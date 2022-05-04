@@ -44,6 +44,8 @@ namespace pmacc
             {
             }
 
+            HDINLINE PitchedBoxCommon(PitchedBoxCommon const&) = default;
+
             /*!return the first value in the box (list)
              * @return first value
              */
@@ -82,6 +84,8 @@ namespace pmacc
         {
         }
 
+        HDINLINE PitchedBox(PitchedBox const&) = default;
+
         HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& /*memSize*/, const size_t /*pitch*/) : Base(pointer)
         {
         }
@@ -112,6 +116,8 @@ namespace pmacc
             , pitch(pitch)
         {
         }
+
+        HDINLINE PitchedBox(PitchedBox const&) = default;
 
         HDINLINE ReducedType operator[](const int idx) const
         {
@@ -154,6 +160,8 @@ namespace pmacc
             , pitch2D(memSize[1] * pitch)
         {
         }
+
+        HDINLINE PitchedBox(PitchedBox const&) = default;
 
         HDINLINE ReducedType operator[](const int idx) const
         {

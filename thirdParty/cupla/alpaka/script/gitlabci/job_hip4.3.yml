@@ -1,0 +1,22 @@
+# HIP
+linux_hip4.3_clang_debug_hip_only:
+  extends: .base_hip
+  variables:
+    ALPAKA_CI_HIP_VERSION: "4.3"
+    ALPAKA_CI_CLANG_VER: 13
+    ALPAKA_CI_STDLIB: libstdc++
+    CMAKE_BUILD_TYPE: Debug
+    ALPAKA_BOOST_VERSION: 1.75.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+  stage: stageRun0
+
+linux_hip4.3_clang_release_hip_only:
+  extends: .base_hip_compile_only
+  variables:
+    ALPAKA_CI_HIP_VERSION: "4.3"
+    ALPAKA_CI_CLANG_VER: 13
+    ALPAKA_CI_STDLIB: libstdc++
+    CMAKE_BUILD_TYPE: Release
+    ALPAKA_BOOST_VERSION: 1.76.0
+    ALPAKA_CI_CMAKE_VER: 3.20.6
+  stage: stageCompile0

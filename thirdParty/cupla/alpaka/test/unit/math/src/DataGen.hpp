@@ -1,4 +1,4 @@
-/** Copyright 2019 Jakob Krude, Benjamin Worpitz, Jeffrey Kelling
+/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Jeffrey Kelling, Jan Stephan, Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -12,6 +12,7 @@
 #include "Defines.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <limits>
 #include <random>
 
@@ -23,10 +24,73 @@ namespace alpaka
         {
             namespace math
             {
+                //! Helper to generate random numbers of the given type for testing
+                //!
+                //! The general implementation supports float and double types
+                //!
+                //! @tparam TData generated type
+                template<typename TData>
+                struct RngWrapper
+                {
+                    auto getMax()
+                    {
+                        return std::numeric_limits<TData>::max();
+                    }
+
+                    auto getLowest()
+                    {
+                        return std::numeric_limits<TData>::lowest();
+                    }
+
+                    auto getDistribution()
+                    {
+                        return std::uniform_real_distribution<TData>{0, 1000};
+                    }
+
+                    template<typename TDistribution, typename TEngine>
+                    auto getNumber(TDistribution& distribution, TEngine& engine)
+                    {
+                        return distribution(engine);
+                    }
+                };
+
+                //! Specialization for generating alpaka::Complex<TData>
+                //!
+                //! It has a much reduced range of numbers.
+                //! The reason is, the results of operations much easier go to infinity area.
+                //! Also, alpaka may emulate complex number math via calling other functions.
+                //! As a result, it may produce some infinities and NaNs when the std:: implementation would not.
+                //! So this range at least makes sure the "simple" cases work and therefore the implementation is
+                //! logically correct.
+                template<typename TData>
+                struct RngWrapper<Complex<TData>>
+                {
+                    auto getMax()
+                    {
+                        return Complex<TData>{10.0, 10.0};
+                    }
+
+                    auto getLowest()
+                    {
+                        return -getMax();
+                    }
+
+                    auto getDistribution()
+                    {
+                        return std::uniform_real_distribution<TData>{0, 5};
+                    }
+
+                    template<typename TDistribution, typename TEngine>
+                    auto getNumber(TDistribution& distribution, TEngine& engine)
+                    {
+                        return Complex<TData>{distribution(engine), distribution(engine)};
+                    }
+                };
+
                 /**
                  * Fills buffer with random numbers (host-only).
                  *
-                 * @tparam TData The used data-type (float || double).
+                 * @tparam TData The used data-type (float, double, Complex<float> or Complex<double>).
                  * @tparam TArgs The args-buffer to be filled.
                  * @tparam TFunctor The used Functor-type.
                  * @param args The buffer that should be filled.
@@ -50,23 +114,24 @@ namespace alpaka
                         TArgs::value_type::arity == TFunctor::arity,
                         "Buffer properties must match TFunctor::arity");
                     static_assert(TArgs::capacity > 6, "Set of args must provide > 6 entries.");
-                    constexpr auto max = std::numeric_limits<TData>::max();
-                    constexpr auto low = std::numeric_limits<TData>::lowest();
+                    auto rngWrapper = RngWrapper<TData>{};
+                    auto const max = rngWrapper.getMax();
+                    auto const low = rngWrapper.getLowest();
                     std::default_random_engine eng{static_cast<std::default_random_engine::result_type>(seed)};
 
                     // These pseudo-random numbers are implementation/platform specific!
-                    std::uniform_real_distribution<TData> dist(0, 1000);
-                    std::uniform_real_distribution<TData> distOne(-1, 1);
+                    auto dist = rngWrapper.getDistribution();
+                    decltype(dist) distOne(-1, 1);
                     for(size_t k = 0; k < TFunctor::arity_nr; ++k)
                     {
-                        bool matchedSwitch = false;
+                        [[maybe_unused]] bool matchedSwitch = false;
                         switch(functor.ranges[k])
                         {
                         case Range::OneNeighbourhood:
                             matchedSwitch = true;
                             for(size_t i = 0; i < TArgs::capacity; ++i)
                             {
-                                args(i).arg[k] = distOne(eng);
+                                args(i).arg[k] = rngWrapper.getNumber(distOne, eng);
                             }
                             break;
 
@@ -75,7 +140,7 @@ namespace alpaka
                             args(0).arg[k] = max;
                             for(size_t i = 1; i < TArgs::capacity; ++i)
                             {
-                                args(i).arg[k] = dist(eng) + static_cast<TData>(1);
+                                args(i).arg[k] = rngWrapper.getNumber(dist, eng) + static_cast<TData>(1);
                             }
                             break;
 
@@ -85,7 +150,7 @@ namespace alpaka
                             args(1).arg[k] = max;
                             for(size_t i = 2; i < TArgs::capacity; ++i)
                             {
-                                args(i).arg[k] = dist(eng);
+                                args(i).arg[k] = rngWrapper.getNumber(dist, eng);
                             }
                             break;
 
@@ -98,7 +163,7 @@ namespace alpaka
                                 TData arg;
                                 do
                                 {
-                                    arg = dist(eng);
+                                    arg = rngWrapper.getNumber(dist, eng);
                                 } while(std::equal_to<TData>()(arg, 1));
                                 if(i % 2 == 0)
                                     args(i).arg[k] = arg;
@@ -115,9 +180,9 @@ namespace alpaka
                             for(size_t i = 3; i < TArgs::capacity; ++i)
                             {
                                 if(i % 2 == 0)
-                                    args(i).arg[k] = dist(eng);
+                                    args(i).arg[k] = rngWrapper.getNumber(dist, eng);
                                 else
-                                    args(i).arg[k] = -dist(eng);
+                                    args(i).arg[k] = -rngWrapper.getNumber(dist, eng);
                             }
                             break;
 
@@ -133,18 +198,16 @@ namespace alpaka
                             // no need to test for denormal for now: not supported by CUDA
                             // for(; i < nFixed + (TArgs::capacity - nFixed) / 2; ++i)
                             // {
-                            //     const TData v = dist(eng) * std::numeric_limits<TData>::denorm_min();
-                            //     args(i).arg[k] = (i % 2 == 0) ? v : -v;
+                            //     const TData v = rngWrapper.getNumber(dist, eng) *
+                            //     std::numeric_limits<TData>::denorm_min(); args(i).arg[k] = (i % 2 == 0) ? v : -v;
                             // }
                             for(; i < TArgs::capacity; ++i)
                             {
-                                const TData v = dist(eng);
+                                const TData v = rngWrapper.getNumber(dist, eng);
                                 args(i).arg[k] = (i % 2 == 0) ? v : -v;
                             }
                             break;
                         }
-                        // disable gcc-warning "unused variable"
-                        alpaka::ignore_unused(matchedSwitch);
                         assert(matchedSwitch);
                     }
                 }

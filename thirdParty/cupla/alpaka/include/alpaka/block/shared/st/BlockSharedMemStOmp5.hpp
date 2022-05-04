@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Erik Zenker, René Widera
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, René Widera, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -34,7 +34,7 @@ namespace alpaka
         using BlockSharedMemStMemberImpl<4>::BlockSharedMemStMemberImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename T, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStOmp5>
@@ -66,7 +66,7 @@ namespace alpaka
                 // shared memory block data will be reused
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

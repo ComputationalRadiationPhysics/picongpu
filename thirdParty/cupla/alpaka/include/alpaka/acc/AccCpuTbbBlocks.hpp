@@ -1,4 +1,4 @@
-/* Copyright 2021 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,9 +12,9 @@
 #ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
 
 // Base classes.
+#    include <alpaka/atomic/AtomicCpu.hpp>
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
 #    include <alpaka/atomic/AtomicNoOp.hpp>
-#    include <alpaka/atomic/AtomicStdLibLock.hpp>
 #    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
 #    include <alpaka/block/shared/st/BlockSharedMemStMember.hpp>
 #    include <alpaka/block/sync/BlockSyncNoOp.hpp>
@@ -37,7 +37,6 @@
 
 // Implementation details.
 #    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 
 #    include <memory>
@@ -57,8 +56,8 @@ namespace alpaka
         public gb::IdxGbRef<TDim, TIdx>,
         public bt::IdxBtZero<TDim, TIdx>,
         public AtomicHierarchy<
-            AtomicStdLibLock<16>, // grid atomics
-            AtomicStdLibLock<16>, // block atomics
+            AtomicCpu, // grid atomics
+            AtomicCpu, // block atomics
             AtomicNoOp         // thread atomics
         >,
         public math::MathStdLib,
@@ -88,8 +87,8 @@ namespace alpaka
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
             , bt::IdxBtZero<TDim, TIdx>()
             , AtomicHierarchy<
-                  AtomicStdLibLock<16>, // atomics between grids
-                  AtomicStdLibLock<16>, // atomics between blocks
+                  AtomicCpu, // atomics between grids
+                  AtomicCpu, // atomics between blocks
                   AtomicNoOp // atomics between threads
                   >()
             , math::MathStdLib()
@@ -108,7 +107,7 @@ namespace alpaka
         Vec<TDim, TIdx> mutable m_gridBlockIdx; //!< The index of the currently executed block.
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU TBB block accelerator type trait specialization.
         template<typename TDim, typename TIdx>
@@ -120,10 +119,8 @@ namespace alpaka
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuTbbBlocks<TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& /* dev */) -> AccDevProps<TDim, TIdx>
             {
-                alpaka::ignore_unused(dev);
-
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(1),
                         // m_gridBlockExtentMax
@@ -195,7 +192,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

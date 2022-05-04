@@ -1,4 +1,4 @@
-/* Copyright 2021 Jan Stephan
+/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -25,7 +25,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename TMemScope>
         struct MemFence<MemFenceOmp5, TMemScope>
@@ -33,10 +33,10 @@ namespace alpaka
             static auto mem_fence(MemFenceOmp5 const&, TMemScope const&)
             {
                 // We only have one fence scope available in OpenMP 5 which encompasses the whole device
-#    pragma omp flush acq_rel
+#    pragma omp flush
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

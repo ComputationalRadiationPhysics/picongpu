@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling
+/* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -76,7 +76,7 @@ namespace alpaka
         }
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename TDim, typename TIdx>
         struct SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>
@@ -215,7 +215,7 @@ namespace alpaka
 
                 if(!data)
                 {
-                    traits::SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(
+                    trait::SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(
                         smem,
                         [&data, &smem]() { smem.template alloc<T>(TuniqueId); });
                     data = smem.template getLatestVarPtr<T>();
@@ -233,7 +233,7 @@ namespace alpaka
                 // Nothing to do. Block shared memory is automatically freed when all threads left the block.
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

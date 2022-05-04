@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,26 +12,23 @@
 
 #include <cstddef>
 
-namespace alpaka
+namespace alpaka::test
 {
-    namespace test
+    template<typename TType, size_t TSize>
+    struct Array
     {
-        template<typename TType, size_t TSize>
-        struct Array
+        TType m_data[TSize];
+
+        template<typename T_Idx>
+        ALPAKA_FN_HOST_ACC auto operator[](const T_Idx idx) const -> const TType&
         {
-            TType m_data[TSize];
+            return m_data[idx];
+        }
 
-            template<typename T_Idx>
-            ALPAKA_FN_HOST_ACC const TType& operator[](const T_Idx idx) const
-            {
-                return m_data[idx];
-            }
-
-            template<typename TIdx>
-            ALPAKA_FN_HOST_ACC TType& operator[](const TIdx idx)
-            {
-                return m_data[idx];
-            }
-        };
-    } // namespace test
-} // namespace alpaka
+        template<typename TIdx>
+        ALPAKA_FN_HOST_ACC auto operator[](const TIdx idx) -> TType&
+        {
+            return m_data[idx];
+        }
+    };
+} // namespace alpaka::test

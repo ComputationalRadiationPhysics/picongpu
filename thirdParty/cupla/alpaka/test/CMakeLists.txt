@@ -13,13 +13,13 @@ cmake_minimum_required(VERSION 3.18)
 add_subdirectory(catch_main)
 
 if(NOT TARGET alpaka::alpaka)
-    list(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
+    list(APPEND CMAKE_MODULE_PATH "${alpaka_ROOT}")
     find_package(alpaka REQUIRED)
 endif()
 
 add_subdirectory(common)
 
-list(APPEND _ALPAKA_TEST_OPTIONS --use-colour yes)
+list(APPEND _alpaka_TEST_OPTIONS --use-colour yes)
 
 add_subdirectory(analysis)
 add_subdirectory(integ)

@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -39,7 +39,7 @@ namespace alpaka
         BarrierWithPredicate mutable m_barrierWithPredicate;
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename TIdx>
         struct SyncBlockThreads<BlockSyncBarrierThread<TIdx>>
@@ -61,7 +61,7 @@ namespace alpaka
                 return blockSync.m_barrierWithPredicate.template wait<TOp>(predicate);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

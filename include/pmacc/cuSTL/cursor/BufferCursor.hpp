@@ -63,6 +63,10 @@ namespace pmacc
                 : Cursor<PointerAccessor<T_Type>, BufferNavigator<T_dim>, T_Type*>(other)
             {
             }
+
+            HDINLINE BufferCursor(const BufferCursor&) = default;
+
+            HDINLINE BufferCursor& operator=(const BufferCursor& other) = default;
         };
 
         namespace traits

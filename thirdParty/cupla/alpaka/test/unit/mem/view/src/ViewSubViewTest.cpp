@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Erik Zenker
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -25,36 +25,36 @@
         "-Wcast-align" // "cast from 'std::uint8_t*' to 'Elem*' increases required alignment of target type"
 #endif
 
-namespace alpaka
+namespace alpaka::test
 {
-    namespace test
+    template<typename TAcc, typename TDev, typename TElem, typename TDim, typename TIdx, typename TBuf>
+    auto testViewSubViewImmutable(
+        alpaka::ViewSubView<TDev, TElem, TDim, TIdx> const& view,
+        TBuf& buf,
+        TDev const& dev,
+        alpaka::Vec<TDim, TIdx> const& extentView,
+        alpaka::Vec<TDim, TIdx> const& offsetView) -> void
     {
-        template<typename TAcc, typename TDev, typename TElem, typename TDim, typename TIdx, typename TBuf>
-        auto testViewSubViewImmutable(
-            alpaka::ViewSubView<TDev, TElem, TDim, TIdx> const& view,
-            TBuf& buf,
-            TDev const& dev,
-            alpaka::Vec<TDim, TIdx> const& extentView,
-            alpaka::Vec<TDim, TIdx> const& offsetView) -> void
+        alpaka::test::testViewImmutable<TElem>(view, dev, extentView, offsetView);
+
+        // alpaka::trait::GetPitchBytes
+        // The pitch of the view has to be identical to the pitch of the underlying buffer in all dimensions.
         {
-            alpaka::test::testViewImmutable<TElem>(view, dev, extentView, offsetView);
+            auto const pitchBuf = alpaka::getPitchBytesVec(buf);
+            auto const pitchView = alpaka::getPitchBytesVec(view);
 
-            // alpaka::traits::GetPitchBytes
-            // The pitch of the view has to be identical to the pitch of the underlying buffer in all dimensions.
+            for(TIdx i = TDim::value; i > static_cast<TIdx>(0u); --i)
             {
-                auto const pitchBuf = alpaka::getPitchBytesVec(buf);
-                auto const pitchView = alpaka::getPitchBytesVec(view);
-
-                for(TIdx i = TDim::value; i > static_cast<TIdx>(0u); --i)
-                {
-                    REQUIRE(pitchBuf[i - static_cast<TIdx>(1u)] == pitchView[i - static_cast<TIdx>(1u)]);
-                }
+                REQUIRE(pitchBuf[i - static_cast<TIdx>(1u)] == pitchView[i - static_cast<TIdx>(1u)]);
             }
+        }
 
-            // alpaka::traits::GetPtrNative
-            // The native pointer has to be exactly the value we calculate here.
+        // alpaka::trait::GetPtrNative
+        // The native pointer has to be exactly the value we calculate here.
+        {
+            auto viewPtrNative = reinterpret_cast<std::uint8_t*>(alpaka::getPtrNative(buf));
+            if constexpr(TDim::value > 0)
             {
-                auto viewPtrNative = reinterpret_cast<std::uint8_t*>(alpaka::getPtrNative(buf));
                 auto const pitchBuf = alpaka::getPitchBytesVec(buf);
                 for(TIdx i = TDim::value; i > static_cast<TIdx>(0u); --i)
                 {
@@ -62,99 +62,99 @@ namespace alpaka
                         = (i < static_cast<TIdx>(TDim::value)) ? pitchBuf[i] : static_cast<TIdx>(sizeof(TElem));
                     viewPtrNative += offsetView[i - static_cast<TIdx>(1u)] * pitch;
                 }
-                REQUIRE(reinterpret_cast<TElem*>(viewPtrNative) == alpaka::getPtrNative(view));
             }
+            REQUIRE(reinterpret_cast<TElem*>(viewPtrNative) == alpaka::getPtrNative(view));
         }
+    }
 
-        template<typename TAcc, typename TDev, typename TElem, typename TDim, typename TIdx, typename TBuf>
-        auto testViewSubViewMutable(
-            alpaka::ViewSubView<TDev, TElem, TDim, TIdx>& view,
-            TBuf& buf,
-            TDev const& dev,
-            alpaka::Vec<TDim, TIdx> const& extentView,
-            alpaka::Vec<TDim, TIdx> const& offsetView) -> void
-        {
-            testViewSubViewImmutable<TAcc>(view, buf, dev, extentView, offsetView);
+    template<typename TAcc, typename TDev, typename TElem, typename TDim, typename TIdx, typename TBuf>
+    auto testViewSubViewMutable(
+        alpaka::ViewSubView<TDev, TElem, TDim, TIdx>& view,
+        TBuf& buf,
+        TDev const& dev,
+        alpaka::Vec<TDim, TIdx> const& extentView,
+        alpaka::Vec<TDim, TIdx> const& offsetView) -> void
+    {
+        testViewSubViewImmutable<TAcc>(view, buf, dev, extentView, offsetView);
 
-            using Queue = alpaka::test::DefaultQueue<TDev>;
-            Queue queue(dev);
-            alpaka::test::testViewMutable<TAcc>(queue, view);
-        }
+        using Queue = alpaka::test::DefaultQueue<TDev>;
+        Queue queue(dev);
+        alpaka::test::testViewMutable<TAcc>(queue, view);
+    }
 
-        template<typename TAcc, typename TElem>
-        auto testViewSubViewNoOffset() -> void
-        {
-            using Dev = alpaka::Dev<TAcc>;
-            using Pltf = alpaka::Pltf<Dev>;
+    template<typename TAcc, typename TElem>
+    auto testViewSubViewNoOffset() -> void
+    {
+        using Dev = alpaka::Dev<TAcc>;
+        using Pltf = alpaka::Pltf<Dev>;
 
-            using Dim = alpaka::Dim<TAcc>;
-            using Idx = alpaka::Idx<TAcc>;
-            using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
 
-            Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
 
-            auto const extentBuf
-                = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-            auto buf = alpaka::allocBuf<TElem, Idx>(dev, extentBuf);
+        auto const extentBuf
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+        auto buf = alpaka::allocBuf<TElem, Idx>(dev, extentBuf);
 
-            auto const extentView = extentBuf;
-            auto const offsetView = alpaka::Vec<Dim, Idx>::all(static_cast<Idx>(0));
-            View view(buf);
+        auto const extentView = extentBuf;
+        auto const offsetView = alpaka::Vec<Dim, Idx>::all(static_cast<Idx>(0));
+        View view(buf);
 
-            alpaka::test::testViewSubViewMutable<TAcc>(view, buf, dev, extentView, offsetView);
-        }
+        alpaka::test::testViewSubViewMutable<TAcc>(view, buf, dev, extentView, offsetView);
+    }
 
-        template<typename TAcc, typename TElem>
-        auto testViewSubViewOffset() -> void
-        {
-            using Dev = alpaka::Dev<TAcc>;
-            using Pltf = alpaka::Pltf<Dev>;
+    template<typename TAcc, typename TElem>
+    auto testViewSubViewOffset() -> void
+    {
+        using Dev = alpaka::Dev<TAcc>;
+        using Pltf = alpaka::Pltf<Dev>;
 
-            using Dim = alpaka::Dim<TAcc>;
-            using Idx = alpaka::Idx<TAcc>;
-            using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
 
-            Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
 
-            auto const extentBuf
-                = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-            auto buf = alpaka::allocBuf<TElem, Idx>(dev, extentBuf);
+        auto const extentBuf
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+        auto buf = alpaka::allocBuf<TElem, Idx>(dev, extentBuf);
 
-            auto const extentView = alpaka::
-                createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>();
-            auto const offsetView
-                = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
-            View view(buf, extentView, offsetView);
+        auto const extentView
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>();
+        auto const offsetView
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
+        View view(buf, extentView, offsetView);
 
-            alpaka::test::testViewSubViewMutable<TAcc>(view, buf, dev, extentView, offsetView);
-        }
+        alpaka::test::testViewSubViewMutable<TAcc>(view, buf, dev, extentView, offsetView);
+    }
 
-        template<typename TAcc, typename TElem>
-        auto testViewSubViewOffsetConst() -> void
-        {
-            using Dev = alpaka::Dev<TAcc>;
-            using Pltf = alpaka::Pltf<Dev>;
+    template<typename TAcc, typename TElem>
+    auto testViewSubViewOffsetConst() -> void
+    {
+        using Dev = alpaka::Dev<TAcc>;
+        using Pltf = alpaka::Pltf<Dev>;
 
-            using Dim = alpaka::Dim<TAcc>;
-            using Idx = alpaka::Idx<TAcc>;
-            using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
 
-            Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
 
-            auto const extentBuf
-                = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-            auto buf = alpaka::allocBuf<TElem, Idx>(dev, extentBuf);
+        auto const extentBuf
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+        auto buf = alpaka::allocBuf<TElem, Idx>(dev, extentBuf);
 
-            auto const extentView = alpaka::
-                createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>();
-            auto const offsetView
-                = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
-            View const view(buf, extentView, offsetView);
+        auto const extentView
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>();
+        auto const offsetView
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
+        View const view(buf, extentView, offsetView);
 
-            alpaka::test::testViewSubViewImmutable<TAcc>(view, buf, dev, extentView, offsetView);
-        }
-    } // namespace test
-} // namespace alpaka
+        alpaka::test::testViewSubViewImmutable<TAcc>(view, buf, dev, extentView, offsetView);
+    }
+} // namespace alpaka::test
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif

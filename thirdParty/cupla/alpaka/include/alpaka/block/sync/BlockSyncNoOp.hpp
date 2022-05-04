@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,7 +11,6 @@
 
 #include <alpaka/block/sync/Traits.hpp>
 #include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -20,15 +19,14 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct SyncBlockThreads<BlockSyncNoOp>
         {
             ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_ACC static auto syncBlockThreads(BlockSyncNoOp const& blockSync) -> void
+            ALPAKA_FN_ACC static auto syncBlockThreads(BlockSyncNoOp const& /* blockSync */) -> void
             {
-                alpaka::ignore_unused(blockSync);
                 // Nothing to do.
             }
         };
@@ -37,11 +35,11 @@ namespace alpaka
         struct SyncBlockThreadsPredicate<TOp, BlockSyncNoOp>
         {
             ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(BlockSyncNoOp const& blockSync, int predicate) -> int
+            ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(BlockSyncNoOp const& /* blockSync */, int predicate)
+                -> int
             {
-                alpaka::ignore_unused(blockSync);
                 return predicate;
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

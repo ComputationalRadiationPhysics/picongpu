@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Erik Zenker, René Widera, Matthias Werner
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, René Widera, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,17 +11,9 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
-
 #    include <alpaka/block/shared/st/Traits.hpp>
+#    include <alpaka/core/BoostPredef.hpp>
+#    include <alpaka/core/Concepts.hpp>
 
 #    include <cstdint>
 #    include <type_traits>
@@ -34,7 +26,17 @@ namespace alpaka
     {
     };
 
-    namespace traits
+#    if !defined(ALPAKA_HOST_ONLY)
+
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+
+    namespace trait
     {
         template<typename T, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStUniformCudaHipBuiltIn>
@@ -53,7 +55,10 @@ namespace alpaka
                 // Nothing to do. CUDA/HIP block shared memory is automatically freed when all threads left the block.
             }
         };
-    } // namespace traits
+    } // namespace trait
+
+#    endif
+
 } // namespace alpaka
 
 #endif

@@ -15,7 +15,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 # Using a macro to stay in the scope (fixes lost assignment of linker command in FindHIP.cmake)
 # https://github.com/ROCm-Developer-Tools/HIP/issues/631
 MACRO(ALPAKA_ADD_EXECUTABLE In_Name)
-    IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
+    IF(alpaka_ACC_GPU_CUDA_ENABLE)
         ENABLE_LANGUAGE(CUDA)
         FOREACH(_file ${ARGN})
             IF((${_file} MATCHES "\\.cpp$") OR (${_file} MATCHES "\\.cxx$") OR (${_file} MATCHES "\\.cu$"))

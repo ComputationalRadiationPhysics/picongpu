@@ -1,4 +1,4 @@
-/** Copyright 2019 Jakob Krude, Benjamin Worpitz
+/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -8,6 +8,8 @@
  */
 
 #pragma once
+
+#include <alpaka/alpaka.hpp>
 
 #include <cmath>
 #include <iomanip>
@@ -48,7 +50,7 @@ namespace alpaka
 
                     T arg[arity_nr]; // represents arg0, arg1, ...
 
-                    friend std::ostream& operator<<(std::ostream& os, const ArgsItem& argsItem)
+                    friend auto operator<<(std::ostream& os, const ArgsItem& argsItem) -> std::ostream&
                     {
                         os.precision(17);
                         os << "[ ";
@@ -59,10 +61,41 @@ namespace alpaka
                     }
                 };
 
+                //! Reference implementation of rsqrt, since there is no std::rsqrt
                 template<typename T>
-                auto rsqrt(T const& arg) -> decltype(std::sqrt(arg))
+                auto rsqrt(T const& arg)
                 {
-                    return static_cast<T>(1) / std::sqrt(arg);
+                    // Need ADL for complex numbers
+                    using std::sqrt;
+                    return static_cast<T>(1) / sqrt(arg);
+                }
+
+                //! Stub for division expressed same way as alpaka math traits
+                template<typename TAcc, typename T>
+                ALPAKA_FN_HOST_ACC auto divides(TAcc&, T const& arg1, T const& arg2)
+                {
+                    return arg1 / arg2;
+                }
+
+                //! Stub for subtraction expressed same way as alpaka math traits
+                template<typename TAcc, typename T>
+                ALPAKA_FN_HOST_ACC auto minus(TAcc&, T const& arg1, T const& arg2)
+                {
+                    return arg1 - arg2;
+                }
+
+                //! Stub for multiplication expressed same way as alpaka math traits
+                template<typename TAcc, typename T>
+                ALPAKA_FN_HOST_ACC auto multiplies(TAcc&, T const& arg1, T const& arg2)
+                {
+                    return arg1 * arg2;
+                }
+
+                //! Stub for addition expressed same way as alpaka math traits
+                template<typename TAcc, typename T>
+                ALPAKA_FN_HOST_ACC auto plus(TAcc&, T const& arg1, T const& arg2)
+                {
+                    return arg1 + arg2;
                 }
 
             } // namespace math

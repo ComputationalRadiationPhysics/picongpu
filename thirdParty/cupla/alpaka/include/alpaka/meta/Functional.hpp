@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,30 +11,27 @@
 
 #include <alpaka/core/Common.hpp>
 
-namespace alpaka
+namespace alpaka::meta
 {
-    namespace meta
+    template<typename T>
+    struct min
     {
-        template<typename T>
-        struct min
+        ALPAKA_NO_HOST_ACC_WARNING
+        ALPAKA_FN_HOST_ACC
+        constexpr auto operator()(const T& lhs, const T& rhs) const
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC
-            constexpr auto operator()(const T& lhs, const T& rhs) const
-            {
-                return (lhs < rhs) ? lhs : rhs;
-            }
-        };
+            return (lhs < rhs) ? lhs : rhs;
+        }
+    };
 
-        template<typename T>
-        struct max
+    template<typename T>
+    struct max
+    {
+        ALPAKA_NO_HOST_ACC_WARNING
+        ALPAKA_FN_HOST_ACC
+        constexpr auto operator()(const T& lhs, const T& rhs) const
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC
-            constexpr auto operator()(const T& lhs, const T& rhs) const
-            {
-                return (lhs > rhs) ? lhs : rhs;
-            }
-        };
-    } // namespace meta
-} // namespace alpaka
+            return (lhs > rhs) ? lhs : rhs;
+        }
+    };
+} // namespace alpaka::meta

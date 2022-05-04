@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -21,10 +21,8 @@ class KernelWithHostConstexpr
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& /* acc */, bool* success) const -> void
     {
-        alpaka::ignore_unused(acc);
-
 #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
 #    pragma warning(push)
 #    pragma warning(disable : 4127) // warning C4127: conditional expression is constant

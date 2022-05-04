@@ -40,7 +40,7 @@ Dependencies
 ------------
 
 - **cmake 3.18.0**
-- **[alpaka 0.8.X](https://github.com/alpaka-group/alpaka/)**
+- **[alpaka 0.9.X](https://github.com/alpaka-group/alpaka/)**
   - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage

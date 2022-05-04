@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -15,7 +15,6 @@
 #        error If ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED is set, the compiler has to support OpenMP 2.0 or higher!
 #    endif
 
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 #    include <alpaka/dev/Traits.hpp>
 #    include <alpaka/event/EventCpu.hpp>
@@ -35,44 +34,41 @@
 
 namespace alpaka
 {
-    namespace cpu
+    namespace cpu::detail
     {
-        namespace detail
-        {
 #    if BOOST_COMP_CLANG
 // avoid diagnostic warning: "has no out-of-line virtual method definitions; its vtable will be emitted in every
 // translation unit [-Werror,-Wweak-vtables]" https://stackoverflow.com/a/29288300
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wweak-vtables"
 #    endif
-            //! The CPU collective device queue implementation.
-            class QueueCpuOmp2CollectiveImpl final : public cpu::ICpuQueue
+        //! The CPU collective device queue implementation.
+        class QueueCpuOmp2CollectiveImpl final : public cpu::ICpuQueue
 #    if BOOST_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
+        {
+        public:
+            QueueCpuOmp2CollectiveImpl(DevCpu const& dev) noexcept : m_dev(dev), m_uCurrentlyExecutingTask(0u)
             {
-            public:
-                QueueCpuOmp2CollectiveImpl(DevCpu const& dev) noexcept : m_dev(dev), m_uCurrentlyExecutingTask(0u)
-                {
-                }
-                QueueCpuOmp2CollectiveImpl(QueueCpuOmp2CollectiveImpl const&) = delete;
-                auto operator=(QueueCpuOmp2CollectiveImpl const&) -> QueueCpuOmp2CollectiveImpl& = delete;
-                void enqueue(EventCpu& ev) final
-                {
-                    alpaka::enqueue(*this, ev);
-                }
-                void wait(EventCpu const& ev) final
-                {
-                    alpaka::wait(*this, ev);
-                }
+            }
+            QueueCpuOmp2CollectiveImpl(QueueCpuOmp2CollectiveImpl const&) = delete;
+            auto operator=(QueueCpuOmp2CollectiveImpl const&) -> QueueCpuOmp2CollectiveImpl& = delete;
+            void enqueue(EventCpu& ev) final
+            {
+                alpaka::enqueue(*this, ev);
+            }
+            void wait(EventCpu const& ev) final
+            {
+                alpaka::wait(*this, ev);
+            }
 
-            public:
-                DevCpu const m_dev; //!< The device this queue is bound to.
-                std::mutex mutable m_mutex;
-                std::atomic<uint32_t> m_uCurrentlyExecutingTask;
-            };
-        } // namespace detail
-    } // namespace cpu
+        public:
+            DevCpu const m_dev; //!< The device this queue is bound to.
+            std::mutex mutable m_mutex;
+            std::atomic<uint32_t> m_uCurrentlyExecutingTask;
+        };
+    } // namespace cpu::detail
 
     //! The CPU collective device queue.
     //
@@ -109,7 +105,7 @@ namespace alpaka
         std::shared_ptr<QueueCpuBlocking> m_spBlockingQueue;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU blocking device queue device type trait specialization.
         template<>
@@ -300,20 +296,17 @@ namespace alpaka
                     wait(*queue.m_spBlockingQueue, event);
             }
         };
-    } // namespace traits
+    } // namespace trait
     //! The test specifics.
-    namespace test
+    namespace test::trait
     {
-        namespace traits
+        //! The blocking queue trait specialization for a OpenMP2 collective CPU queue.
+        template<>
+        struct IsBlockingQueue<QueueCpuOmp2Collective>
         {
-            //! The blocking queue trait specialization for a OpenMP2 collective CPU queue.
-            template<>
-            struct IsBlockingQueue<alpaka::QueueCpuOmp2Collective>
-            {
-                static constexpr bool value = true;
-            };
-        } // namespace traits
-    } // namespace test
+            static constexpr bool value = true;
+        };
+    } // namespace test::trait
 } // namespace alpaka
 
 #    include <alpaka/event/EventCpu.hpp>

@@ -73,6 +73,8 @@ namespace picongpu
                     {
                     }
 
+                    HDINLINE UpdateFunctor(UpdateFunctor const&) = default;
+
                     /** Apply correction to a single value of updatedField due to incidentField
                      *
                      * Both indices are in the local domain, including guards.

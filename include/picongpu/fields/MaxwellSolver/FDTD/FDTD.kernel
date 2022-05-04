@@ -50,6 +50,12 @@ namespace picongpu
                 class UpdateEFunctor : public StencilFunctor<T_CurlB>
                 {
                 public:
+                    HDINLINE UpdateEFunctor() = default;
+
+                    HDINLINE UpdateEFunctor(const UpdateEFunctor&) = default;
+
+                    HDINLINE UpdateEFunctor& operator=(const UpdateEFunctor&) = default;
+
                     /** Update electric field at the given position
                      *
                      * @tparam T_LocalBBox local magnetic field box type
@@ -86,6 +92,12 @@ namespace picongpu
                 class UpdateBHalfFunctor : public StencilFunctor<T_CurlE>
                 {
                 public:
+                    HDINLINE UpdateBHalfFunctor() = default;
+
+                    HDINLINE UpdateBHalfFunctor(const UpdateBHalfFunctor&) = default;
+
+                    HDINLINE UpdateBHalfFunctor& operator=(const UpdateBHalfFunctor&) = default;
+
                     /** Update magnetic field at the given position
                      *
                      * @tparam T_LocalEBox local electric field box type
@@ -119,6 +131,12 @@ namespace picongpu
                 template<uint32_t T_numWorkers>
                 struct KernelUpdateField
                 {
+                    HDINLINE KernelUpdateField() = default;
+
+                    HDINLINE KernelUpdateField(const KernelUpdateField&) = default;
+
+                    HDINLINE KernelUpdateField& operator=(const KernelUpdateField&) = default;
+
                     /** Update the yee field using the given functor
                      *
                      * @tparam T_Acc alpaka accelerator type

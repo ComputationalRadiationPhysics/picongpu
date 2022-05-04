@@ -1,4 +1,4 @@
-/* Copyright 2019-2021 Benjamin Worpitz, Erik Zenker, Sergei Bastrakov
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Sergei Bastrakov, Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -70,35 +70,27 @@ struct OpenMPScheduleTraitKernel : public OpenMPScheduleDefaultKernel
 {
 };
 
-namespace alpaka
+namespace alpaka::trait
 {
-    namespace traits
+    //! Schedule trait specialization for OpenMPScheduleTraitKernel.
+    //! This is the most general way to define a schedule.
+    //! In case neither the trait nor the member are provided, there will be no schedule() clause.
+    template<typename TAcc>
+    struct OmpSchedule<OpenMPScheduleTraitKernel, TAcc>
     {
-        //! Schedule trait specialization for OpenMPScheduleTraitKernel.
-        //! This is the most general way to define a schedule.
-        //! In case neither the trait nor the member are provided, there will be no schedule() clause.
-        template<typename TAcc>
-        struct OmpSchedule<OpenMPScheduleTraitKernel, TAcc>
+        template<typename TDim, typename... TArgs>
+        ALPAKA_FN_HOST static auto getOmpSchedule(
+            OpenMPScheduleTraitKernel const& /* kernelFnObj */,
+            Vec<TDim, Idx<TAcc>> const& /* blockThreadExtent */,
+            Vec<TDim, Idx<TAcc>> const& /* threadElemExtent */,
+            TArgs const&... /* args */) -> alpaka::omp::Schedule
         {
-            template<typename TDim, typename... TArgs>
-            ALPAKA_FN_HOST static auto getOmpSchedule(
-                OpenMPScheduleTraitKernel const& kernelFnObj,
-                Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
-                Vec<TDim, Idx<TAcc>> const& threadElemExtent,
-                TArgs const&... args) -> alpaka::omp::Schedule
-            {
-                // Determine schedule at runtime for the given kernel and run parameters.
-                // For this particular example kernel, TArgs is an empty pack and can be removed.
-                alpaka::ignore_unused(kernelFnObj);
-                alpaka::ignore_unused(blockThreadExtent);
-                alpaka::ignore_unused(threadElemExtent);
-                alpaka::ignore_unused(args...);
-
-                return alpaka::omp::Schedule{alpaka::omp::Schedule::Dynamic, 2};
-            }
-        };
-    } // namespace traits
-} // namespace alpaka
+            // Determine schedule at runtime for the given kernel and run parameters.
+            // For this particular example kernel, TArgs is an empty pack and can be removed.
+            return alpaka::omp::Schedule{alpaka::omp::Schedule::Dynamic, 2};
+        }
+    };
+} // namespace alpaka::trait
 
 auto main() -> int
 {

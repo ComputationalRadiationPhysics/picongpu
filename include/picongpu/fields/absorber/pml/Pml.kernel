@@ -249,6 +249,8 @@ namespace picongpu
                     {
                     }
 
+                    UpdateEFunctor(const UpdateEFunctor&) = default;
+
                     /** Update electric field at the given position
                      *
                      * @tparam T_LocalBBox local magnetic field box type
@@ -344,6 +346,8 @@ namespace picongpu
                         , updatePsiB(updatePsiB)
                     {
                     }
+
+                    UpdateBHalfFunctor(const UpdateBHalfFunctor&) = default;
 
                     /** Update magnetic field at the given position
                      *

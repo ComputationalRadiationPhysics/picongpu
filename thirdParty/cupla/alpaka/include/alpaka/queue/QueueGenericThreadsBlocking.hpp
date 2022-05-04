@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
@@ -43,8 +42,8 @@ namespace alpaka
 #endif
             {
             public:
-                explicit QueueGenericThreadsBlockingImpl(TDev const& dev) noexcept
-                    : m_dev(dev)
+                explicit QueueGenericThreadsBlockingImpl(TDev dev) noexcept
+                    : m_dev(std::move(dev))
                     , m_bCurrentlyExecutingTask(false)
                 {
                 }
@@ -98,7 +97,7 @@ namespace alpaka
         std::shared_ptr<generic::detail::QueueGenericThreadsBlockingImpl<TDev>> m_spQueueImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU blocking device queue device type trait specialization.
         template<typename TDev>
@@ -161,7 +160,7 @@ namespace alpaka
                 std::lock_guard<std::mutex> lk(queue.m_spQueueImpl->m_mutex);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #include <alpaka/event/EventGenericThreads.hpp>

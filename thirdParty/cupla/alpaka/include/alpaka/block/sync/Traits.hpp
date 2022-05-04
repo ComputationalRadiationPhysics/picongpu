@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -21,7 +21,7 @@ namespace alpaka
     };
 
     //! The block synchronization traits.
-    namespace traits
+    namespace trait
     {
         //! The block synchronization operation trait.
         template<typename TBlockSync, typename TSfinae = void>
@@ -30,7 +30,7 @@ namespace alpaka
         //! The block synchronization and predicate operation trait.
         template<typename TOp, typename TBlockSync, typename TSfinae = void>
         struct SyncBlockThreadsPredicate;
-    } // namespace traits
+    } // namespace trait
 
     //! Synchronizes all threads within the current block (independently for all blocks).
     //!
@@ -41,7 +41,7 @@ namespace alpaka
     ALPAKA_FN_ACC auto syncBlockThreads(TBlockSync const& blockSync) -> void
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptBlockSync, TBlockSync>;
-        traits::SyncBlockThreads<ImplementationBase>::syncBlockThreads(blockSync);
+        trait::SyncBlockThreads<ImplementationBase>::syncBlockThreads(blockSync);
     }
 
     //! The counting function object.
@@ -103,7 +103,7 @@ namespace alpaka
     ALPAKA_FN_ACC auto syncBlockThreadsPredicate(TBlockSync const& blockSync, int predicate) -> int
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptBlockSync, TBlockSync>;
-        return traits::SyncBlockThreadsPredicate<TOp, ImplementationBase>::syncBlockThreadsPredicate(
+        return trait::SyncBlockThreadsPredicate<TOp, ImplementationBase>::syncBlockThreadsPredicate(
             blockSync,
             predicate);
     }

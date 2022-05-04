@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
  *
  * This file is part of Alpaka.
  *
@@ -27,33 +27,26 @@
 #    include <type_traits>
 #    include <utility>
 
-namespace alpaka
+namespace alpaka::omp5::detail
 {
-    namespace omp5
+    //! OMP5 runtime API error checking with log and exception, ignoring specific error values
+    ALPAKA_FN_HOST inline auto omp5Check(int const& error, char const* desc, char const* file, int const& line) -> void
     {
-        namespace detail
+        if(error != 0)
         {
-            //! OMP5 runtime API error checking with log and exception, ignoring specific error values
-            ALPAKA_FN_HOST inline auto omp5Check(int const& error, char const* desc, char const* file, int const& line)
-                -> void
-            {
-                if(error != 0)
-                {
-                    std::ostringstream os;
-                    os << std::string(file) << "(" << std::to_string(line) << ") " << std::string(desc) << " : '"
-                       << error << "': '"
-                       << "TODO"
-                       << "'!";
+            std::ostringstream os;
+            os << std::string(file) << "(" << std::to_string(line) << ") " << std::string(desc) << " : '" << error
+               << "': '"
+               << "TODO"
+               << "'!";
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                    std::cerr << os.str() << std::endl;
+            std::cerr << os.str() << std::endl;
 #    endif
-                    ALPAKA_DEBUG_BREAK;
-                    throw std::runtime_error(os.str());
-                }
-            }
-        } // namespace detail
-    } // namespace omp5
-} // namespace alpaka
+            ALPAKA_DEBUG_BREAK;
+            throw std::runtime_error(os.str());
+        }
+    }
+} // namespace alpaka::omp5::detail
 
 //! OMP5 runtime error checking with log and exception.
 #    define ALPAKA_OMP5_CHECK(cmd) ::alpaka::omp5::detail::omp5Check(cmd, #    cmd, __FILE__, __LINE__)

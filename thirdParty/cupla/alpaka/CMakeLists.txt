@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020 Benjamin Worpitz, Jan Stephan
+# Copyright 2022 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
 #
 # This file is part of alpaka.
 #
@@ -19,18 +19,18 @@ include(CMakePrintHelpers)
 
 #-------------------------------------------------------------------------------
 # Find alpaka version.
-file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/alpaka/version.hpp" ALPAKA_VERSION_MAJOR_HPP REGEX "#define ALPAKA_VERSION_MAJOR ")
-file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/alpaka/version.hpp" ALPAKA_VERSION_MINOR_HPP REGEX "#define ALPAKA_VERSION_MINOR ")
-file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/alpaka/version.hpp" ALPAKA_VERSION_PATCH_HPP REGEX "#define ALPAKA_VERSION_PATCH ")
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/alpaka/version.hpp" alpaka_VERSION_MAJOR_HPP REGEX "#define ALPAKA_VERSION_MAJOR ")
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/alpaka/version.hpp" alpaka_VERSION_MINOR_HPP REGEX "#define ALPAKA_VERSION_MINOR ")
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/alpaka/version.hpp" alpaka_VERSION_PATCH_HPP REGEX "#define ALPAKA_VERSION_PATCH ")
 
-string(REGEX MATCH "([0-9]+)" ALPAKA_VERSION_MAJOR  ${ALPAKA_VERSION_MAJOR_HPP})
-string(REGEX MATCH "([0-9]+)" ALPAKA_VERSION_MINOR  ${ALPAKA_VERSION_MINOR_HPP})
-string(REGEX MATCH "([0-9]+)" ALPAKA_VERSION_PATCH  ${ALPAKA_VERSION_PATCH_HPP})
+string(REGEX MATCH "([0-9]+)" alpaka_VERSION_MAJOR  ${alpaka_VERSION_MAJOR_HPP})
+string(REGEX MATCH "([0-9]+)" alpaka_VERSION_MINOR  ${alpaka_VERSION_MINOR_HPP})
+string(REGEX MATCH "([0-9]+)" alpaka_VERSION_PATCH  ${alpaka_VERSION_PATCH_HPP})
 
-set(PACKAGE_VERSION "${ALPAKA_VERSION_MAJOR}.${ALPAKA_VERSION_MINOR}.${ALPAKA_VERSION_PATCH}")
+set(PACKAGE_VERSION "${alpaka_VERSION_MAJOR}.${alpaka_VERSION_MINOR}.${alpaka_VERSION_PATCH}")
 
-project(alpaka VERSION      ${ALPAKA_VERSION_MAJOR}.${ALPAKA_VERSION_MINOR}.${ALPAKA_VERSION_PATCH}
-               DESCRIPTION  "The alpaka library is a header-only C++14 abstraction library for accelerator development."
+project(alpaka VERSION      ${alpaka_VERSION_MAJOR}.${alpaka_VERSION_MINOR}.${alpaka_VERSION_PATCH}
+               DESCRIPTION  "The alpaka library is a header-only C++17 abstraction library for accelerator development."
                HOMEPAGE_URL "https://github.com/alpaka-group/alpaka"
                LANGUAGES    CXX)
 
@@ -46,74 +46,74 @@ option(BUILD_TESTING "Build the testing tree." OFF)
 option(alpaka_INSTALL_TEST_HEADER "Install headers of the namespace alpaka::test. Attention, headers are not designed for production code, see documentation." OFF)
 include(CTest)
 
+include(CMakeDependentOption)
+cmake_dependent_option(alpaka_CHECK_HEADERS "Check all alpaka headers as part of the tests whether they can be compiled standalone." OFF BUILD_TESTING OFF)
+
 ################################################################################
 # Internal variables.
 
 # Set found to true initially and set it to false if a required dependency is missing.
-set(_ALPAKA_FOUND TRUE)
+set(_alpaka_FOUND TRUE)
 
 # This file's directory.
-set(_ALPAKA_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(_alpaka_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 # Normalize the path (e.g. remove ../)
-get_filename_component(_ALPAKA_ROOT_DIR ${_ALPAKA_ROOT_DIR} ABSOLUTE)
+get_filename_component(_alpaka_ROOT_DIR ${_alpaka_ROOT_DIR} ABSOLUTE)
+
+# Compiler feature tests.
+set(_alpaka_FEATURE_TESTS_DIR "${_alpaka_ROOT_DIR}/cmake/tests")
 
 # Add common functions.
-set(_ALPAKA_COMMON_FILE "${_ALPAKA_ROOT_DIR}/cmake/common.cmake")
-include(${_ALPAKA_COMMON_FILE})
+set(_alpaka_COMMON_FILE "${_alpaka_ROOT_DIR}/cmake/common.cmake")
+include(${_alpaka_COMMON_FILE})
 
-# Add ALPAKA_ADD_EXECUTABLE function.
-set(_ALPAKA_ADD_EXECUTABLE_FILE "${_ALPAKA_ROOT_DIR}/cmake/addExecutable.cmake")
-include(${_ALPAKA_ADD_EXECUTABLE_FILE})
+# Add alpaka_ADD_EXECUTABLE function.
+set(_alpaka_ADD_EXECUTABLE_FILE "${_alpaka_ROOT_DIR}/cmake/addExecutable.cmake")
+include(${_alpaka_ADD_EXECUTABLE_FILE})
 
-# Add ALPAKA_ADD_LIBRARY function.
-set(_ALPAKA_ADD_LIBRARY_FILE "${_ALPAKA_ROOT_DIR}/cmake/addLibrary.cmake")
-include(${_ALPAKA_ADD_LIBRARY_FILE})
-
-# Add module search path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${_ALPAKA_ROOT_DIR}/cmake/modules/")
-
-# parse environment variable `CMAKE_MODULE_PATH`
-if(DEFINED ENV{CMAKE_MODULE_PATH})
-    string(REPLACE ":" ";" ENV_CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH})
-    foreach(_PREFIX_PATH ${ENV_CMAKE_MODULE_PATH})
-        set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${_PREFIX_PATH}")
-    endforeach()
-endif()
+# Add alpaka_ADD_LIBRARY function.
+set(_alpaka_ADD_LIBRARY_FILE "${_alpaka_ROOT_DIR}/cmake/addLibrary.cmake")
+include(${_alpaka_ADD_LIBRARY_FILE})
 
 # Set include directories
-set(_ALPAKA_INCLUDE_DIRECTORY "${_ALPAKA_ROOT_DIR}/include")
-set(_ALPAKA_SUFFIXED_INCLUDE_DIR "${_ALPAKA_INCLUDE_DIRECTORY}/alpaka")
+set(_alpaka_INCLUDE_DIRECTORY "${_alpaka_ROOT_DIR}/include")
+set(_alpaka_SUFFIXED_INCLUDE_DIR "${_alpaka_INCLUDE_DIRECTORY}/alpaka")
 
-include(${_ALPAKA_ROOT_DIR}/cmake/alpakaCommon.cmake)
+# the sequential accelerator is required for the tests and examples
+if(NOT DEFINED alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE AND (alpaka_BUILD_EXAMPLES OR BUILD_TESTING))
+  option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "enable alpaka serial accelerator" ON)
+endif()
+
+include(${_alpaka_ROOT_DIR}/cmake/alpakaCommon.cmake)
 
 # Add all the source and include files in all recursive subdirectories and group them accordingly.
-append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "hpp" _ALPAKA_FILES_HEADER)
-append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "h" _ALPAKA_FILES_HEADER)
+append_recursive_files_add_to_src_group("${_alpaka_SUFFIXED_INCLUDE_DIR}" "${_alpaka_SUFFIXED_INCLUDE_DIR}" "hpp" _alpaka_FILES_HEADER)
+append_recursive_files_add_to_src_group("${_alpaka_SUFFIXED_INCLUDE_DIR}" "${_alpaka_SUFFIXED_INCLUDE_DIR}" "h" _alpaka_FILES_HEADER)
 
 # remove headers of the folder alpaka/test, if alpaka_INSTALL_TEST_HEADER is disabled
 if(NOT alpaka_INSTALL_TEST_HEADER)
-  list(FILTER _ALPAKA_FILES_HEADER EXCLUDE REGEX "(.*)/alpaka/test/(.*)")
+  list(FILTER _alpaka_FILES_HEADER EXCLUDE REGEX "(.*)/alpaka/test/(.*)")
 endif()
 
-append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/script" "${_ALPAKA_ROOT_DIR}" "sh" _ALPAKA_FILES_SCRIPT)
-set_source_files_properties(${_ALPAKA_FILES_SCRIPT} PROPERTIES HEADER_FILE_ONLY TRUE)
+append_recursive_files_add_to_src_group("${_alpaka_ROOT_DIR}/script" "${_alpaka_ROOT_DIR}" "sh" _alpaka_FILES_SCRIPT)
+set_source_files_properties(${_alpaka_FILES_SCRIPT} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/cmake" "${_ALPAKA_ROOT_DIR}" "cmake" _ALPAKA_FILES_CMAKE)
-list(APPEND _ALPAKA_FILES_CMAKE "${_ALPAKA_ROOT_DIR}/cmake/alpakaConfig.cmake.in" "${_ALPAKA_ROOT_DIR}/CMakeLists.txt")
-set_source_files_properties(${_ALPAKA_FILES_CMAKE} PROPERTIES HEADER_FILE_ONLY TRUE)
+append_recursive_files_add_to_src_group("${_alpaka_ROOT_DIR}/cmake" "${_alpaka_ROOT_DIR}" "cmake" _alpaka_FILES_CMAKE)
+list(APPEND _alpaka_FILES_CMAKE "${_alpaka_ROOT_DIR}/cmake/alpakaConfig.cmake.in" "${_alpaka_ROOT_DIR}/CMakeLists.txt")
+set_source_files_properties(${_alpaka_FILES_CMAKE} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/docs/markdown" "${_ALPAKA_ROOT_DIR}" "md" _ALPAKA_FILES_DOC)
-set_source_files_properties(${_ALPAKA_FILES_DOC} PROPERTIES HEADER_FILE_ONLY TRUE)
+append_recursive_files_add_to_src_group("${_alpaka_ROOT_DIR}/docs/markdown" "${_alpaka_ROOT_DIR}" "md" _alpaka_FILES_DOC)
+set_source_files_properties(${_alpaka_FILES_DOC} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/.github" "${_ALPAKA_ROOT_DIR}" "yml" _ALPAKA_FILES_OTHER)
-list(APPEND _ALPAKA_FILES_OTHER "${_ALPAKA_ROOT_DIR}/.clang-format" "${_ALPAKA_ROOT_DIR}/.gitignore" "${_ALPAKA_ROOT_DIR}/.zenodo.json" "${_ALPAKA_ROOT_DIR}/LICENSE" "${_ALPAKA_ROOT_DIR}/README.md")
-set_source_files_properties(${_ALPAKA_FILES_OTHER} PROPERTIES HEADER_FILE_ONLY TRUE)
+append_recursive_files_add_to_src_group("${_alpaka_ROOT_DIR}/.github" "${_alpaka_ROOT_DIR}" "yml" _alpaka_FILES_OTHER)
+list(APPEND _alpaka_FILES_OTHER "${_alpaka_ROOT_DIR}/.clang-format" "${_alpaka_ROOT_DIR}/.gitignore" "${_alpaka_ROOT_DIR}/.zenodo.json" "${_alpaka_ROOT_DIR}/LICENSE" "${_alpaka_ROOT_DIR}/README.md")
+set_source_files_properties(${_alpaka_FILES_OTHER} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 if(TARGET alpaka)
     # HACK: Workaround for the limitation that files added to INTERFACE targets (target_sources) can not be marked as PUBLIC or PRIVATE but only as INTERFACE.
     # Therefore those files will be added to projects "linking" to the INTERFACE library, but are not added to the project itself within an IDE.
     add_custom_target("alpakaIde"
-                      SOURCES ${_ALPAKA_FILES_HEADER} ${_ALPAKA_FILES_SCRIPT} ${_ALPAKA_FILES_CMAKE} ${_ALPAKA_FILES_DOC} ${_ALPAKA_FILES_OTHER})
+                      SOURCES ${_alpaka_FILES_HEADER} ${_alpaka_FILES_SCRIPT} ${_alpaka_FILES_CMAKE} ${_alpaka_FILES_DOC} ${_alpaka_FILES_OTHER})
 endif()
 
 ################################################################################
@@ -124,7 +124,7 @@ endif()
 # since alpakaCommon.cmake is included.
 
 if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
-    if(ALPAKA_ACC_GPU_HIP_ENABLE)
+    if(alpaka_ACC_GPU_HIP_ENABLE)
         # export HIPCC flags to parent scope in case alpaka is another project's subdirectory
         set(HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} PARENT_SCOPE)
         set(HIP_NVCC_FLAGS ${HIP_NVCC_FLAGS} PARENT_SCOPE)
@@ -150,7 +150,7 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
     include(CMakePackageConfigHelpers)
     include(GNUInstallDirs)
 
-    set(_ALPAKA_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/alpaka")
+    set(_alpaka_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/alpaka")
 
     install(TARGETS alpaka
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -163,29 +163,28 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
         COMPATIBILITY SameMajorVersion)
 
     configure_package_config_file(
-        "${_ALPAKA_ROOT_DIR}/cmake/alpakaConfig.cmake.in"
+        "${_alpaka_ROOT_DIR}/cmake/alpakaConfig.cmake.in"
         "${PROJECT_BINARY_DIR}/alpakaConfig.cmake"
-        INSTALL_DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+        INSTALL_DESTINATION "${_alpaka_INSTALL_CMAKEDIR}")
 
     install(FILES "${PROJECT_BINARY_DIR}/alpakaConfig.cmake"
                   "${PROJECT_BINARY_DIR}/alpakaConfigVersion.cmake"
-            DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+            DESTINATION "${_alpaka_INSTALL_CMAKEDIR}")
 
     if(alpaka_INSTALL_TEST_HEADER)
-        install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
+        install(DIRECTORY "${_alpaka_SUFFIXED_INCLUDE_DIR}"
 	        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
     else()
-	install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
+	install(DIRECTORY "${_alpaka_SUFFIXED_INCLUDE_DIR}"
 	        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
                 PATTERN "test" EXCLUDE)
     endif()
 
-    install(FILES "${_ALPAKA_ROOT_DIR}/cmake/addExecutable.cmake"
-                  "${_ALPAKA_ROOT_DIR}/cmake/addLibrary.cmake"
-                  "${_ALPAKA_ROOT_DIR}/cmake/alpakaCommon.cmake"
-                  "${_ALPAKA_ROOT_DIR}/cmake/common.cmake"
-            DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
-
-    install(DIRECTORY "${_ALPAKA_ROOT_DIR}/cmake/modules"
-            DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+    install(FILES "${_alpaka_ROOT_DIR}/cmake/addExecutable.cmake"
+                  "${_alpaka_ROOT_DIR}/cmake/addLibrary.cmake"
+                  "${_alpaka_ROOT_DIR}/cmake/alpakaCommon.cmake"
+                  "${_alpaka_ROOT_DIR}/cmake/common.cmake"
+            DESTINATION "${_alpaka_INSTALL_CMAKEDIR}")
+    install(DIRECTORY "${_alpaka_ROOT_DIR}/cmake/tests"
+            DESTINATION "${_alpaka_INSTALL_CMAKEDIR}")
 endif()

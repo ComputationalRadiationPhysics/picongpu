@@ -48,6 +48,8 @@ namespace pmacc
         {
         }
 
+        HDINLINE DataBoxUnaryTransform(DataBoxUnaryTransform const&) = default;
+
         template<typename T_Index>
         HDINLINE ValueType operator()(const T_Index& idx) const
         {

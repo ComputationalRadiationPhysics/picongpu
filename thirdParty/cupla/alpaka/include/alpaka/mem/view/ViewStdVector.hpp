@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -7,111 +7,91 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+/* TODO: Once C++20 is available remove this file and replace with a generic ContiguousContainer solution based on
+ * concepts. It should be sufficient to check for the existence of Container.size() and Container.data() */
+
 #pragma once
 
 #include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/pltf/PltfCpu.hpp>
 
 #include <vector>
 
-namespace alpaka
+namespace alpaka::trait
 {
-    namespace traits
+    //! The std::vector device type trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct DevType<std::vector<TElem, TAllocator>>
     {
-        //! The std::vector device type trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct DevType<std::vector<TElem, TAllocator>>
-        {
-            using type = DevCpu;
-        };
+        using type = DevCpu;
+    };
 
-        //! The std::vector device get trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct GetDev<std::vector<TElem, TAllocator>>
-        {
-            ALPAKA_FN_HOST static auto getDev(std::vector<TElem, TAllocator> const& view) -> DevCpu
-            {
-                alpaka::ignore_unused(view);
-                return getDevByIdx<PltfCpu>(0u);
-            }
-        };
-
-        //! The std::vector dimension getter trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct DimType<std::vector<TElem, TAllocator>>
-        {
-            using type = DimInt<1u>;
-        };
-
-        //! The std::vector memory element type get trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct ElemType<std::vector<TElem, TAllocator>>
-        {
-            using type = TElem;
-        };
-    } // namespace traits
-    namespace extent
+    //! The std::vector device get trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct GetDev<std::vector<TElem, TAllocator>>
     {
-        namespace traits
+        ALPAKA_FN_HOST static auto getDev(std::vector<TElem, TAllocator> const& /* view */) -> DevCpu
         {
-            //! The std::vector width get trait specialization.
-            template<typename TElem, typename TAllocator>
-            struct GetExtent<DimInt<0u>, std::vector<TElem, TAllocator>>
-            {
-                ALPAKA_FN_HOST static auto getExtent(std::vector<TElem, TAllocator> const& extent)
-                    -> Idx<std::vector<TElem, TAllocator>>
-                {
-                    return extent.size();
-                }
-            };
-        } // namespace traits
-    } // namespace extent
-    namespace traits
+            return getDevByIdx<PltfCpu>(0u);
+        }
+    };
+
+    //! The std::vector dimension getter trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct DimType<std::vector<TElem, TAllocator>>
     {
-        //! The std::vector native pointer get trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct GetPtrNative<std::vector<TElem, TAllocator>>
-        {
-            ALPAKA_FN_HOST static auto getPtrNative(std::vector<TElem, TAllocator> const& view) -> TElem const*
-            {
-                return view.data();
-            }
-            ALPAKA_FN_HOST static auto getPtrNative(std::vector<TElem, TAllocator>& view) -> TElem*
-            {
-                return view.data();
-            }
-        };
+        using type = DimInt<1u>;
+    };
 
-        //! The std::vector pitch get trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct GetPitchBytes<DimInt<0u>, std::vector<TElem, TAllocator>>
-        {
-            ALPAKA_FN_HOST static auto getPitchBytes(std::vector<TElem, TAllocator> const& pitch)
-                -> Idx<std::vector<TElem, TAllocator>>
-            {
-                return sizeof(TElem) * pitch.size();
-            }
-        };
+    //! The std::vector memory element type get trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct ElemType<std::vector<TElem, TAllocator>>
+    {
+        using type = TElem;
+    };
 
-        //! The std::vector offset get trait specialization.
-        template<typename TIdx, typename TElem, typename TAllocator>
-        struct GetOffset<TIdx, std::vector<TElem, TAllocator>>
+    //! The std::vector width get trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct GetExtent<DimInt<0u>, std::vector<TElem, TAllocator>>
+    {
+        ALPAKA_FN_HOST static auto getExtent(std::vector<TElem, TAllocator> const& extent)
+            -> Idx<std::vector<TElem, TAllocator>>
         {
-            ALPAKA_FN_HOST static auto getOffset(std::vector<TElem, TAllocator> const&)
-                -> Idx<std::vector<TElem, TAllocator>>
-            {
-                return 0u;
-            }
-        };
+            return std::size(extent);
+        }
+    };
 
-        //! The std::vector idx type trait specialization.
-        template<typename TElem, typename TAllocator>
-        struct IdxType<std::vector<TElem, TAllocator>>
+    //! The std::vector native pointer get trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct GetPtrNative<std::vector<TElem, TAllocator>>
+    {
+        ALPAKA_FN_HOST static auto getPtrNative(std::vector<TElem, TAllocator> const& view) -> TElem const*
         {
-            using type = std::size_t;
-        };
-    } // namespace traits
-} // namespace alpaka
+            return std::data(view);
+        }
+        ALPAKA_FN_HOST static auto getPtrNative(std::vector<TElem, TAllocator>& view) -> TElem*
+        {
+            return std::data(view);
+        }
+    };
+
+    //! The std::vector offset get trait specialization.
+    template<typename TIdx, typename TElem, typename TAllocator>
+    struct GetOffset<TIdx, std::vector<TElem, TAllocator>>
+    {
+        ALPAKA_FN_HOST static auto getOffset(std::vector<TElem, TAllocator> const&)
+            -> Idx<std::vector<TElem, TAllocator>>
+        {
+            return 0u;
+        }
+    };
+
+    //! The std::vector idx type trait specialization.
+    template<typename TElem, typename TAllocator>
+    struct IdxType<std::vector<TElem, TAllocator>>
+    {
+        using type = std::size_t;
+    };
+} // namespace alpaka::trait

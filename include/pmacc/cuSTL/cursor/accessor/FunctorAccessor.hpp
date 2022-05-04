@@ -38,6 +38,10 @@ namespace pmacc
             {
             }
 
+            HDINLINE FunctorAccessor(const FunctorAccessor&) = default;
+
+            HDINLINE FunctorAccessor& operator=(const FunctorAccessor&) = default;
+
             template<typename TCursor>
             HDINLINE Reference operator()(TCursor& cursor)
             {

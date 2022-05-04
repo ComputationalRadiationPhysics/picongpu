@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -41,6 +41,35 @@ static auto testBufferMutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> 
     alpaka::test::testViewMutable<TAcc>(queue, buf);
 }
 
+template<typename TAcc>
+static auto testAsyncBufferMutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
+{
+    using Dev = alpaka::Dev<TAcc>;
+    using Pltf = alpaka::Pltf<Dev>;
+    using Queue = alpaka::test::DefaultQueue<Dev>;
+
+    using Elem = float;
+    using Dim = alpaka::Dim<TAcc>;
+    using Idx = alpaka::Idx<TAcc>;
+
+    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+    Queue queue(dev);
+
+    // memory is allocated when the queue reaches this point
+    auto buf = alpaka::allocAsyncBuf<Elem, Idx>(queue, extent);
+
+    // asynchronous operations can be submitted to the queue immediately
+    alpaka::test::testViewMutable<TAcc>(queue, buf);
+
+    // synchronous operations must wait for the memory to be available
+    alpaka::wait(queue);
+    auto const offset = alpaka::Vec<Dim, Idx>::zeros();
+    alpaka::test::testViewImmutable<Elem>(buf, dev, extent, offset);
+
+    // the buffer will queue the deallocation of the memory when it goes out of scope,
+    // and extend the lifetime of the queue until all memory operations have completed.
+}
+
 TEMPLATE_LIST_TEST_CASE("memBufBasicTest", "[memBuf]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -64,6 +93,40 @@ TEMPLATE_LIST_TEST_CASE("memBufZeroSizeTest", "[memBuf]", alpaka::test::TestAccs
     testBufferMutable<Acc>(extent);
 }
 
+TEMPLATE_LIST_TEST_CASE("memBufAsyncBasicTest", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
+
+    if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<Acc>, Dim>)
+    {
+        auto const extent
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+        testAsyncBufferMutable<Acc>(extent);
+    }
+    else
+    {
+        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+    }
+}
+
+TEMPLATE_LIST_TEST_CASE("memBufAsyncZeroSizeTest", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
+
+    if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<Acc>, Dim>)
+    {
+        auto const extent = alpaka::Vec<Dim, Idx>::zeros();
+        testAsyncBufferMutable<Acc>(extent);
+    }
+    else
+    {
+        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+    }
+}
 
 template<typename TAcc>
 static auto testBufferImmutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
@@ -94,4 +157,158 @@ TEMPLATE_LIST_TEST_CASE("memBufConstTest", "[memBuf]", alpaka::test::TestAccs)
         = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
 
     testBufferImmutable<Acc>(extent);
+}
+
+template<typename TAcc>
+static auto testAsyncBufferImmutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
+{
+    using Dev = alpaka::Dev<TAcc>;
+    using Pltf = alpaka::Pltf<Dev>;
+    using Queue = alpaka::test::DefaultQueue<Dev>;
+
+    using Elem = float;
+    using Dim = alpaka::Dim<TAcc>;
+    using Idx = alpaka::Idx<TAcc>;
+
+    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+    Queue queue(dev);
+
+    // memory is allocated when the queue reaches this point
+    auto const buf = alpaka::allocAsyncBuf<Elem, Idx>(queue, extent);
+
+    // synchronous operations must wait for the memory to be available
+    alpaka::wait(queue);
+    auto const offset = alpaka::Vec<Dim, Idx>::zeros();
+    alpaka::test::testViewImmutable<Elem>(buf, dev, extent, offset);
+
+    // the buffer will queue the deallocation of the memory when it goes out of scope,
+    // and extend the lifetime of the queue until all memory operations have completed.
+}
+
+TEMPLATE_LIST_TEST_CASE("memBufAsyncConstTest", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
+
+    if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<Acc>, Dim>)
+    {
+        auto const extent
+            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+        testAsyncBufferImmutable<Acc>(extent);
+    }
+    else
+    {
+        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+    }
+}
+
+template<typename TAcc>
+static auto testBufferAccessorAdaptor(
+    alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent,
+    alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& index) -> void
+{
+    using Dev = alpaka::Dev<TAcc>;
+    using Pltf = alpaka::Pltf<Dev>;
+
+    using Elem = float;
+    using Dim = alpaka::Dim<TAcc>;
+    using Idx = alpaka::Idx<TAcc>;
+
+    // assume dimensionality up to 4
+    CHECK(Dim::value <= 4);
+
+    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+
+    // alpaka::malloc
+    auto buf = alpaka::allocBuf<Elem, Idx>(dev, extent);
+
+    // check that the array subscript operator access the correct element
+    auto const& pitch = alpaka::getPitchBytesVec(buf);
+    INFO("buffer extent: " << extent << " elements")
+    INFO("buffer pitch: " << pitch << " bytes")
+    CHECK((index < extent).foldrAll(std::logical_and<bool>(), true));
+
+    auto base = reinterpret_cast<uintptr_t>(std::data(buf));
+    uintptr_t expected = base;
+    if constexpr(Dim::value > 1)
+    {
+        expected += static_cast<uintptr_t>(pitch[1] * index[0]);
+    }
+    if constexpr(Dim::value > 2)
+    {
+        expected += static_cast<uintptr_t>(pitch[2] * index[1]);
+    }
+    if constexpr(Dim::value > 3)
+    {
+        expected += static_cast<uintptr_t>(pitch[3] * index[2]);
+    }
+    if constexpr(Dim::value > 0)
+        expected += sizeof(Elem) * static_cast<std::size_t>(index[Dim::value - 1]);
+
+    INFO("element " << index << " expected at offset " << expected - base)
+    INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base)
+    CHECK(reinterpret_cast<Elem*>(expected) == &buf[index]);
+
+    // check that an out-of-bound access is detected
+    if constexpr(Dim::value > 0)
+        CHECK_THROWS_AS((void) buf.at(extent), std::out_of_range);
+}
+
+TEMPLATE_LIST_TEST_CASE("memBufAccessorAdaptorTest", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
+
+    auto extent = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+    auto index = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
+
+    testBufferAccessorAdaptor<Acc>(extent, index);
+}
+
+TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Idx = alpaka::Idx<Acc>;
+    using Pltf = alpaka::Pltf<alpaka::Dev<Acc>>;
+    using Elem = std::size_t;
+
+    auto const devHost = alpaka::getDevByIdx<alpaka::PltfCpu>(0u);
+    auto const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
+    auto const extent = alpaka::Vec<alpaka::DimInt<0>, Idx>{};
+
+    auto write = [&](auto& buf, Elem value)
+    {
+        auto v = alpaka::createView(devHost, &value, extent);
+        alpaka::memcpy(queue, buf, v);
+    };
+    auto read = [&](const auto& buf)
+    {
+        Elem value{};
+        auto v = alpaka::createView(devHost, &value, extent);
+        alpaka::memcpy(queue, v, buf);
+        return value;
+    };
+
+    // move constructor
+    {
+        auto buf1 = alpaka::allocBuf<Elem, Idx>(dev, extent);
+        write(buf1, 1);
+        auto buf2{std::move(buf1)};
+        CHECK(read(buf2) == 1);
+    } // both buffers destruct fine here
+
+    // move assignment (via swap)
+    {
+        auto buf1 = alpaka::allocBuf<Elem, Idx>(dev, extent);
+        auto buf2 = alpaka::allocBuf<Elem, Idx>(dev, extent);
+        write(buf1, 1);
+        write(buf2, 2);
+        using std::swap;
+        swap(buf1, buf2);
+        CHECK(read(buf1) == 2);
+        CHECK(read(buf2) == 1);
+    } // both buffers destruct fine here
 }

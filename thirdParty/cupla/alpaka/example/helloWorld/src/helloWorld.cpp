@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Erik Zenker
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -168,9 +168,9 @@ auto main() -> int
 
     // Instantiate the kernel function object
     //
-    // Kernels can be everything that has a callable operator()
-    // and which takes the accelerator as first argument.
-    // So a kernel can be a class or struct, a lambda, a std::function, etc.
+    // Kernels can be everything that is trivially copyable, has a
+    // callable operator() and takes the accelerator as first
+    // argument. So a kernel can be a class or struct, a lambda, etc.
     HelloWorldKernel helloWorldKernel;
 
     // Run the kernel

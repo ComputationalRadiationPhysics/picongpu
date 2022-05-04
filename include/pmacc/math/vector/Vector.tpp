@@ -192,7 +192,7 @@ namespace alpaka
 {
     namespace math
     {
-        namespace traits
+        namespace trait
         {
             /*! Specialisation of pow where base is a vector and exponent is a scalar
              *
@@ -243,7 +243,7 @@ namespace alpaka
                 }
             };
 
-        } // namespace traits
+        } // namespace trait
     } // namespace math
 } // namespace alpaka
 

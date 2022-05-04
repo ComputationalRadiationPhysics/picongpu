@@ -15,7 +15,7 @@ source ./script/travis_retry.sh
 source ./script/set.sh
 
 #-------------------------------------------------------------------------------
-if [ "$ALPAKA_CI" = "GITHUB" ]
+if [ "$alpaka_CI" = "GITHUB" ]
 then
     echo GITHUB_WORKSPACE: "${GITHUB_WORKSPACE}"
 fi
@@ -24,9 +24,6 @@ if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     # Show all running services
     sudo service --status-all
-
-    # Stop some unnecessary services to save memory
-    sudo /etc/init.d/mysql stop
 
     # Show memory stats
     travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install smem

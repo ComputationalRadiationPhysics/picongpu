@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -22,7 +22,7 @@ namespace alpaka
     };
 
     //! The allocator traits.
-    namespace traits
+    namespace trait
     {
         //! The memory allocation trait.
         template<typename T, typename TAlloc, typename TSfinae = void>
@@ -31,14 +31,14 @@ namespace alpaka
         //! The memory free trait.
         template<typename T, typename TAlloc, typename TSfinae = void>
         struct Free;
-    } // namespace traits
+    } // namespace trait
 
     //! \return The pointer to the allocated memory.
     template<typename T, typename TAlloc>
     ALPAKA_FN_HOST auto malloc(TAlloc const& alloc, std::size_t const& sizeElems) -> T*
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMemAlloc, TAlloc>;
-        return traits::Malloc<T, ImplementationBase>::malloc(alloc, sizeElems);
+        return trait::Malloc<T, ImplementationBase>::malloc(alloc, sizeElems);
     }
 
     //! Frees the memory identified by the given pointer.
@@ -46,6 +46,6 @@ namespace alpaka
     ALPAKA_FN_HOST auto free(TAlloc const& alloc, T const* const ptr) -> void
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMemAlloc, TAlloc>;
-        traits::Free<T, ImplementationBase>::free(alloc, ptr);
+        trait::Free<T, ImplementationBase>::free(alloc, ptr);
     }
 } // namespace alpaka

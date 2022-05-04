@@ -1,7 +1,7 @@
 project(mallocMC LANGUAGES CXX)
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.18)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(POLICY CMP0074)
@@ -68,20 +68,9 @@ alpaka_add_executable(VerifyHeap EXCLUDE_FROM_ALL tests/verify_heap.cpp tests/ve
 target_include_directories(VerifyHeap PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
 target_link_libraries(VerifyHeap PUBLIC alpaka::alpaka warnings)
 
-if (CUDA_VERSION VERSION_LESS 10.2) # TODO(bgruber): I do not know exactly where it breaks. 9.1 does not work, 10.2 works
-    # the catch2 main needs to be in a non-CUDA file before CUDA 10.2, because nvcc fails to compile the catch2 header
-    # TODO: merge the test_main back into the tests exe, once CUDA 10.2 is the minimum version
-    add_library(tests_main EXCLUDE_FROM_ALL tests/main.cpp)
-    target_include_directories(tests_main PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
-    target_link_libraries(tests_main PUBLIC Catch2::Catch2 warnings)
+alpaka_add_executable(tests EXCLUDE_FROM_ALL tests/main.cpp tests/dimensions.cpp tests/policies.cpp)
+target_include_directories(tests PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+target_link_libraries(tests PUBLIC alpaka::alpaka Catch2::Catch2 warnings)
 
-    alpaka_add_executable(tests EXCLUDE_FROM_ALL tests/dimensions.cpp tests/policies.cpp)
-    target_include_directories(tests PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
-    target_link_libraries(tests PUBLIC tests_main alpaka::alpaka Catch2::Catch2 warnings)
-else()
-    alpaka_add_executable(tests EXCLUDE_FROM_ALL tests/main.cpp tests/dimensions.cpp tests/policies.cpp)
-    target_include_directories(tests PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
-    target_link_libraries(tests PUBLIC alpaka::alpaka Catch2::Catch2 warnings)
-endif()
 
 add_custom_target(examples DEPENDS mallocMC_Example01 mallocMC_Example03 VerifyHeap)

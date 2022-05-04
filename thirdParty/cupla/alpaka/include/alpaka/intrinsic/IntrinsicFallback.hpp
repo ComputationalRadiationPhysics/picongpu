@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov, Jeffrey Kelling
+/* Copyright 2022 Sergei Bastrakov, Jeffrey Kelling, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -49,7 +49,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct Popcount<IntrinsicFallback>
@@ -78,5 +78,5 @@ namespace alpaka
                 return alpaka::detail::ffsFallback(value);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

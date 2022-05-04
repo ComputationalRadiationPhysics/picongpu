@@ -73,6 +73,8 @@ namespace pmacc
         {
         }
 
+        HDINLINE SharedBox(SharedBox const&) = default;
+
         using ReducedType1D = T_TYPE&;
         using ReducedType2D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value>, T_id>;
         using ReducedType3D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value, T_Vector::y::value>, T_id>;

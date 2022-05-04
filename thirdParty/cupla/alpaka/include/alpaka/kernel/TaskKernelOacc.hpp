@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -30,7 +30,6 @@
 #    include <alpaka/dev/DevOacc.hpp>
 #    include <alpaka/idx/MapIdx.hpp>
 #    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/meta/ApplyTuple.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #    include <algorithm>
@@ -166,7 +165,7 @@ namespace alpaka
         core::Tuple<std::decay_t<TArgs>...> m_args;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The OpenACC execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
@@ -231,7 +230,7 @@ namespace alpaka
                                                                 { task(queue.m_spQueueImpl->m_dev); });
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

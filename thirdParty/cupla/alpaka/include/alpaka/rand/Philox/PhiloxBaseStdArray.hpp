@@ -1,4 +1,4 @@
-/* Copyright 2021 Jiri Vyskocil
+/* Copyright 2022 Jiri Vyskocil, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,27 +12,21 @@
 #include <array>
 #include <cstdint>
 
-namespace alpaka
+namespace alpaka::rand::engine
 {
-    namespace rand
+    /** Philox backend using std::array for Key and Counter storage
+     *
+     * @tparam TParams Philox algorithm parameters \sa PhiloxParams
+     * @tparam TImpl engine type implementation (CRTP)
+     */
+    template<typename TParams, typename TImpl>
+    class PhiloxBaseStdArray
     {
-        namespace engine
-        {
-            /** Philox backend using std::array for Key and Counter storage
-             *
-             * @tparam TParams Philox algorithm parameters \sa PhiloxParams
-             * @tparam TImpl engine type implementation (CRTP)
-             */
-            template<typename TParams, typename TImpl>
-            class PhiloxBaseStdArray
-            {
-            public:
-                using Counter = std::array<std::uint32_t, TParams::counterSize>; ///< Counter type = std::array
-                using Key = std::array<std::uint32_t, TParams::counterSize / 2>; ///< Key type = std::array
-                template<typename TScalar>
-                using ResultContainer
-                    = std::array<TScalar, TParams::counterSize>; ///< Vector template for distribution results
-            };
-        } // namespace engine
-    } // namespace rand
-} // namespace alpaka
+    public:
+        using Counter = std::array<std::uint32_t, TParams::counterSize>; ///< Counter type = std::array
+        using Key = std::array<std::uint32_t, TParams::counterSize / 2>; ///< Key type = std::array
+        template<typename TScalar>
+        using ResultContainer
+            = std::array<TScalar, TParams::counterSize>; ///< Vector template for distribution results
+    };
+} // namespace alpaka::rand::engine

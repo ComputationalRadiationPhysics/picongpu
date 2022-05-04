@@ -1,5 +1,4 @@
-/* Copyright 2020 Benjamin Worpitz, Matthias Werner, Jakob Krude,
- *                Sergei Bastrakov
+/* Copyright 2020 Benjamin Worpitz, Matthias Werner, Jakob Krude, Sergei Bastrakov, Bernhard Manfred Gruber
  *
  * This file exemplifies usage of alpaka.
  *
@@ -67,7 +66,7 @@ struct HeatEquationKernel
 //!
 //! \param x value of x
 //! \param t value of t
-double exactSolution(double const x, double const t)
+auto exactSolution(double const x, double const t) -> double
 {
     constexpr double pi = 3.14159265358979323846;
     return std::exp(-pi * pi * t) * std::sin(pi * x);
@@ -158,9 +157,9 @@ auto main() -> int
     HeatEquationKernel kernel;
 
     // Copy host -> device
-    alpaka::memcpy(queue, uCurrBufAcc, uCurrBufHost, extent);
+    alpaka::memcpy(queue, uCurrBufAcc, uCurrBufHost);
     // Copy to the buffer for next as well to have boundary values set
-    alpaka::memcpy(queue, uNextBufAcc, uCurrBufAcc, extent);
+    alpaka::memcpy(queue, uNextBufAcc, uCurrBufAcc);
     alpaka::wait(queue);
 
     for(uint32_t step = 0; step < numTimeSteps; step++)
@@ -175,7 +174,7 @@ auto main() -> int
     }
 
     // Copy device -> host
-    alpaka::memcpy(queue, uNextBufHost, uNextBufAcc, extent);
+    alpaka::memcpy(queue, uNextBufHost, uNextBufAcc);
     alpaka::wait(queue);
 
     // Calculate error

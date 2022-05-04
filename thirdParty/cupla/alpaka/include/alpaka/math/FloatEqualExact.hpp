@@ -37,11 +37,9 @@ namespace alpaka
          * @return a == b
          */
         template<typename T>
-        ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC bool floatEqualExactNoWarning(T a, T b)
+        ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC auto floatEqualExactNoWarning(T a, T b) -> bool
         {
-            static_assert(
-                std::is_floating_point<T>::value,
-                "floatEqualExactNoWarning is for floating point values only!");
+            static_assert(std::is_floating_point_v<T>, "floatEqualExactNoWarning is for floating point values only!");
 
             // So far only GCC and Clang check for float comparison and both accept the GCC pragmas.
 #ifdef __GNUC__

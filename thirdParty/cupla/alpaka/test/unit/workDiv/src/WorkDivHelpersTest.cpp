@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -8,12 +8,13 @@
  */
 
 #include <alpaka/acc/AccDevProps.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/workdiv/WorkDivHelpers.hpp>
 
 #include <catch2/catch.hpp>
+
+#include <tuple>
 
 namespace
 {
@@ -42,8 +43,7 @@ TEMPLATE_LIST_TEST_CASE("getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     // Note: getValidWorkDiv() is called inside getWorkDiv
-    auto const workDiv = getWorkDiv<Acc>();
-    alpaka::ignore_unused(workDiv);
+    std::ignore = getWorkDiv<Acc>();
 }
 
 TEMPLATE_LIST_TEST_CASE("isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)

@@ -4,7 +4,7 @@ Install
  - C++14 compiler (clang, gcc, hipcc, icc, nvcc)
   - *Debian/Ubuntu:* `sudo apt-get install gcc build-essential`
   - *Arch Linux:* `sudo pacman -S base-devel`
- - `alpaka` 0.6.x
+ - `alpaka` 0.9.x
   - included as git submodule
  - `boost` >= 1.65.1
    - dependency of alpaka

@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling
+/* Copyright 2022 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -35,7 +35,6 @@
 // Implementation details.
 #    include <alpaka/core/ClipCast.hpp>
 #    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/ctx/block/CtxBlockOacc.hpp>
 #    include <alpaka/dev/DevOacc.hpp>
 
@@ -100,7 +99,7 @@ namespace alpaka
         CtxBlockOacc<TDim, TIdx>& m_blockShared;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The OpenACC accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
@@ -112,19 +111,11 @@ namespace alpaka
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccOacc<TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getAccDevProps(DevOacc const& dev) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevOacc const& /* dev */) -> AccDevProps<TDim, TIdx>
             {
-                alpaka::ignore_unused(dev);
-
-#    ifdef ALPAKA_CI
-                auto const blockThreadCountMax(
-                    alpaka::core::clipCast<TIdx>(std::min(static_cast<size_t>(2u), oaccMaxWorkerNum)));
-                auto const gridBlockCountMax(
-                    alpaka::core::clipCast<TIdx>(std::min(static_cast<size_t>(2u), oaccMaxGangNum)));
-#    else
                 auto const blockThreadCountMax(alpaka::core::clipCast<TIdx>(oaccMaxWorkerNum));
                 auto const gridBlockCountMax(alpaka::core::clipCast<TIdx>(oaccMaxGangNum));
-#    endif
+
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(gridBlockCountMax),
                         // m_gridBlockExtentMax
@@ -353,7 +344,7 @@ namespace alpaka
                     workDiv.m_blockShared);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -34,13 +34,13 @@ public:
             static_cast<alpaka::Idx<Acc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(
-            std::is_same<TByValue, TExpected>::value,
+            std::is_same_v<TByValue, TExpected>,
             "Incorrect first additional kernel template parameter type!");
         static_assert(
-            std::is_same<TByConstValue, TExpected>::value,
+            std::is_same_v<TByConstValue, TExpected>,
             "Incorrect second additional kernel template parameter type!");
         static_assert(
-            std::is_same<TByConstReference, TExpected>::value,
+            std::is_same_v<TByConstReference, TExpected>,
             "Incorrect third additional kernel template parameter type!");
     }
 };
@@ -104,10 +104,10 @@ public:
             static_cast<alpaka::Idx<Acc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(
-            std::is_same<TByPointer, TExpectedFirst>::value,
+            std::is_same_v<TByPointer, TExpectedFirst>,
             "Incorrect first additional kernel template parameter type!");
         static_assert(
-            std::is_same<TByPointerToConst, TExpectedSecond>::value,
+            std::is_same_v<TByPointerToConst, TExpectedSecond>,
             "Incorrect second additional kernel template parameter type!");
     }
 };

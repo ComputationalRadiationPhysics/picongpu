@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,15 +11,12 @@
 
 #include <type_traits>
 
-namespace alpaka
+namespace alpaka::meta
 {
-    namespace meta
+    //! A false_type being dependent on a ignored template parameter.
+    //! This allows to use static_assert in uninstantiated template specializations without triggering.
+    template<typename T>
+    struct DependentFalseType : std::false_type
     {
-        //! A false_type being dependent on a ignored template parameter.
-        //! This allows to use static_assert in uninstantiated template specializations without triggering.
-        template<typename T>
-        struct DependentFalseType : std::false_type
-        {
-        };
-    } // namespace meta
-} // namespace alpaka
+    };
+} // namespace alpaka::meta

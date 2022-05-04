@@ -1,4 +1,4 @@
-/* Copyright 2021 Jan Stephan
+/* Copyright 2022 Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,15 +12,6 @@
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
 #    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
-
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/mem/fence/Traits.hpp>
 
@@ -31,7 +22,17 @@ namespace alpaka
     {
     };
 
-    namespace traits
+#    if !defined(ALPAKA_HOST_ONLY)
+
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+
+    namespace trait
     {
         template<>
         struct MemFence<MemFenceUniformCudaHipBuiltIn, memory_scope::Block>
@@ -43,6 +44,16 @@ namespace alpaka
         };
 
         template<>
+        struct MemFence<MemFenceUniformCudaHipBuiltIn, memory_scope::Grid>
+        {
+            __device__ static auto mem_fence(MemFenceUniformCudaHipBuiltIn const&, memory_scope::Grid const&)
+            {
+                // CUDA and HIP do not have a per-grid memory fence, so a device-level fence is used
+                __threadfence();
+            }
+        };
+
+        template<>
         struct MemFence<MemFenceUniformCudaHipBuiltIn, memory_scope::Device>
         {
             __device__ static auto mem_fence(MemFenceUniformCudaHipBuiltIn const&, memory_scope::Device const&)
@@ -50,7 +61,10 @@ namespace alpaka
                 __threadfence();
             }
         };
-    } // namespace traits
+    } // namespace trait
+
+#    endif
+
 } // namespace alpaka
 
 #endif

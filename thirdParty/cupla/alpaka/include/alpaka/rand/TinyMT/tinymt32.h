@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Axel Huebl, Benjamin Worpitz, Mutsuo Saito
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Mutsuo Saito, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *

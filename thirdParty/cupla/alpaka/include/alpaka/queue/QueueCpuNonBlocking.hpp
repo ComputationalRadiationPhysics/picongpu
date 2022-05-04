@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling
+/* Copyright 2020 Jeffrey Kelling, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Andrea Bocci, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,15 +12,7 @@
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
 #    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
-
+#    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/intrinsic/Traits.hpp>
 
 namespace alpaka
@@ -31,7 +23,17 @@ namespace alpaka
     {
     };
 
-    namespace traits
+#    if !defined(ALPAKA_HOST_ONLY)
+
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+
+    namespace trait
     {
         template<>
         struct Popcount<IntrinsicUniformCudaHipBuiltIn>
@@ -39,21 +41,21 @@ namespace alpaka
             __device__ static auto popcount(IntrinsicUniformCudaHipBuiltIn const& /*intrinsic*/, std::uint32_t value)
                 -> std::int32_t
             {
-#    if BOOST_COMP_CLANG && BOOST_LANG_CUDA
+#        if BOOST_COMP_CLANG && BOOST_LANG_CUDA
                 return __popc(static_cast<int>(value));
-#    else
+#        else
                 return static_cast<std::int32_t>(__popc(static_cast<unsigned int>(value)));
-#    endif
+#        endif
             }
 
             __device__ static auto popcount(IntrinsicUniformCudaHipBuiltIn const& /*intrinsic*/, std::uint64_t value)
                 -> std::int32_t
             {
-#    if BOOST_COMP_CLANG && BOOST_LANG_CUDA
+#        if BOOST_COMP_CLANG && BOOST_LANG_CUDA
                 return __popcll(static_cast<long long>(value));
-#    else
+#        else
                 return static_cast<std::int32_t>(__popcll(static_cast<unsigned long long>(value)));
-#    endif
+#        endif
             }
         };
 
@@ -72,7 +74,10 @@ namespace alpaka
                 return static_cast<std::int32_t>(__ffsll(static_cast<long long>(value)));
             }
         };
-    } // namespace traits
+    } // namespace trait
+
+#    endif
+
 } // namespace alpaka
 
 #endif

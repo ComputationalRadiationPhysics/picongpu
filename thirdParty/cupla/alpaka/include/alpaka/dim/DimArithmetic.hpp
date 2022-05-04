@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -13,16 +13,12 @@
 
 #include <type_traits>
 
-namespace alpaka
+namespace alpaka::trait
 {
-    // Trait specializations for unsigned integral types.
-    namespace traits
+    //! The arithmetic type dimension getter trait specialization.
+    template<typename T>
+    struct DimType<T, std::enable_if_t<std::is_arithmetic_v<T>>>
     {
-        //! The arithmetic type dimension getter trait specialization.
-        template<typename T>
-        struct DimType<T, std::enable_if_t<std::is_arithmetic<T>::value>>
-        {
-            using type = DimInt<1u>;
-        };
-    } // namespace traits
-} // namespace alpaka
+        using type = DimInt<1u>;
+    };
+} // namespace alpaka::trait

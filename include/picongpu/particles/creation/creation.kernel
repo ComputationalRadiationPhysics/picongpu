@@ -81,6 +81,8 @@ namespace picongpu
                 {
                 }
 
+                HDINLINE CreateParticlesKernel(CreateParticlesKernel const&) = default;
+
                 /** Goes over all frames and calls `ParticleCreator`
                  *
                  * @tparam T_Acc alpaka accelerator type

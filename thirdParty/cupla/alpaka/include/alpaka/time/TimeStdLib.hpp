@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -10,7 +10,6 @@
 #pragma once
 
 #include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/time/Traits.hpp>
 
 #include <chrono>
@@ -22,21 +21,19 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU fibers accelerator clock operation.
         template<>
         struct Clock<TimeStdLib>
         {
-            ALPAKA_FN_HOST static auto clock(TimeStdLib const& time) -> std::uint64_t
+            ALPAKA_FN_HOST static auto clock(TimeStdLib const& /* time */) -> std::uint64_t
             {
-                alpaka::ignore_unused(time);
-
                 // NOTE: high_resolution_clock returns a non-steady wall-clock time!
                 // This means that it is not ensured that the values will always increase monotonically.
                 return static_cast<std::uint64_t>(
                     std::chrono::high_resolution_clock::now().time_since_epoch().count());
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

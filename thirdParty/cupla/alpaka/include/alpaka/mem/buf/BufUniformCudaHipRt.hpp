@@ -1,4 +1,5 @@
-/* Copyright 2019 Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
+ * Bernhard Manfred Gruber, Antonio Di Pilato
  *
  * This file is part of alpaka.
  *
@@ -10,16 +11,6 @@
 #pragma once
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
 
 // Backend specific includes.
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
@@ -33,6 +24,8 @@
 #    include <alpaka/dev/Traits.hpp>
 #    include <alpaka/dim/DimIntegralConst.hpp>
 #    include <alpaka/mem/buf/Traits.hpp>
+#    include <alpaka/mem/view/ViewAccessOps.hpp>
+#    include <alpaka/meta/DependentFalseType.hpp>
 #    include <alpaka/vec/Vec.hpp>
 
 #    include <functional>
@@ -48,34 +41,26 @@ namespace alpaka
 
     //! The CUDA/HIP memory buffer.
     template<typename TElem, typename TDim, typename TIdx>
-    class BufUniformCudaHipRt
+    class BufUniformCudaHipRt : public internal::ViewAccessOps<BufUniformCudaHipRt<TElem, TDim, TIdx>>
     {
+    public:
         static_assert(
-            !std::is_const<TElem>::value,
+            !std::is_const_v<TElem>,
             "The elem type of the buffer can not be const because the C++ Standard forbids containers of const "
             "elements!");
-        static_assert(!std::is_const<TIdx>::value, "The idx type of the buffer can not be const!");
+        static_assert(!std::is_const_v<TIdx>, "The idx type of the buffer can not be const!");
 
-    private:
-        using Elem = TElem;
-        using Dim = TDim;
-
-    public:
         //! Constructor
-        template<typename TExtent>
+        template<typename TExtent, typename Deleter>
         ALPAKA_FN_HOST BufUniformCudaHipRt(
             DevUniformCudaHipRt const& dev,
             TElem* const pMem,
+            Deleter deleter,
             TIdx const& pitchBytes,
             TExtent const& extent)
             : m_dev(dev)
-            , m_extentElements(extent::getExtentVecEnd<TDim>(extent))
-            , m_spMem(
-                  pMem,
-                  // NOTE: Because the BufUniformCudaHipRt object can be copied and the original object could have been
-                  // destroyed, a std::ref(m_dev) or a this pointer can not be bound to the callback because they are
-                  // not always valid at time of destruction.
-                  std::bind(&BufUniformCudaHipRt::freeBuffer, std::placeholders::_1, m_dev))
+            , m_extentElements(getExtentVecEnd<TDim>(extent))
+            , m_spMem(pMem, std::move(deleter))
             , m_pitchBytes(pitchBytes)
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -85,31 +70,26 @@ namespace alpaka
                 "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to be "
                 "identical!");
             static_assert(
-                std::is_same<TIdx, Idx<TExtent>>::value,
+                std::is_same_v<TIdx, Idx<TExtent>>,
                 "The idx type of TExtent and the TIdx template parameter have to be identical!");
         }
 
-    private:
-        //! Frees the shared buffer.
-        ALPAKA_FN_HOST static auto freeBuffer(TElem* const memPtr, DevUniformCudaHipRt const& dev) -> void
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-            // Set the current device.
-            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.m_iDevice));
-            // Free the buffer.
-            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Free)(reinterpret_cast<void*>(memPtr)));
-        }
-
     public:
-        DevUniformCudaHipRt m_dev; // NOTE: The device has to be destructed after the memory pointer because it is
-                                   // required for destruction.
+        DevUniformCudaHipRt m_dev;
         Vec<TDim, TIdx> m_extentElements;
         std::shared_ptr<TElem> m_spMem;
         TIdx m_pitchBytes;
     };
 
-    namespace traits
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+    template<typename TElem, typename TDim, typename TIdx>
+    using BufCudaRt = BufUniformCudaHipRt<TElem, TDim, TIdx>;
+#    else
+    template<typename TElem, typename TDim, typename TIdx>
+    using BufHipRt = BufUniformCudaHipRt<TElem, TDim, TIdx>;
+#    endif
+
+    namespace trait
     {
         //! The BufUniformCudaHipRt device type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -140,27 +120,20 @@ namespace alpaka
         {
             using type = TElem;
         };
-    } // namespace traits
-    namespace extent
-    {
-        namespace traits
+
+        //! The BufUniformCudaHipRt extent get trait specialization.
+        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
+        struct GetExtent<
+            TIdxIntegralConst,
+            BufUniformCudaHipRt<TElem, TDim, TIdx>,
+            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
         {
-            //! The BufUniformCudaHipRt extent get trait specialization.
-            template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-            struct GetExtent<
-                TIdxIntegralConst,
-                BufUniformCudaHipRt<TElem, TDim, TIdx>,
-                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
+            ALPAKA_FN_HOST static auto getExtent(BufUniformCudaHipRt<TElem, TDim, TIdx> const& extent) -> TIdx
             {
-                ALPAKA_FN_HOST static auto getExtent(BufUniformCudaHipRt<TElem, TDim, TIdx> const& extent) -> TIdx
-                {
-                    return extent.m_extentElements[TIdxIntegralConst::value];
-                }
-            };
-        } // namespace traits
-    } // namespace extent
-    namespace traits
-    {
+                return extent.m_extentElements[TIdxIntegralConst::value];
+            }
+        };
+
         //! The BufUniformCudaHipRt native pointer get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrNative<BufUniformCudaHipRt<TElem, TDim, TIdx>>
@@ -211,130 +184,128 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getPitchBytes(BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf) -> TIdx
             {
-                return buf.m_pitchBytes;
+                return buf.m_pitchBytes; // TODO(bgruber): is this even correct? This reports the pitch for the TDim -
+                                         // 1 dimension, but CUDA's pitch is always the row pitch, independently of the
+                                         // buffer's dimensions.
             }
         };
 
-        //! The CUDA/HIP 1D memory allocation trait specialization.
-        template<typename TElem, typename TIdx>
-        struct BufAlloc<TElem, DimInt<1u>, TIdx, DevUniformCudaHipRt>
+        //! The CUDA/HIP memory allocation trait specialization.
+        template<typename TElem, typename Dim, typename TIdx>
+        struct BufAlloc<TElem, Dim, TIdx, DevUniformCudaHipRt>
         {
             template<typename TExtent>
             ALPAKA_FN_HOST static auto allocBuf(DevUniformCudaHipRt const& dev, TExtent const& extent)
-                -> BufUniformCudaHipRt<TElem, DimInt<1u>, TIdx>
+                -> BufUniformCudaHipRt<TElem, Dim, TIdx>
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                auto const width = extent::getWidth(extent);
-                auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
-
-                // Set the current device.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.m_iDevice));
-                // Allocate the buffer on this device.
-                void* memPtr;
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(Malloc)(&memPtr, static_cast<std::size_t>(widthBytes)));
-
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__ << " ew: " << width << " ewb: " << widthBytes << " ptr: " << memPtr << std::endl;
-#    endif
-                return BufUniformCudaHipRt<TElem, DimInt<1u>, TIdx>(
-                    dev,
-                    reinterpret_cast<TElem*>(memPtr),
-                    static_cast<TIdx>(widthBytes),
-                    extent);
-            }
-        };
-        //! The CUDA/HIP 2D memory allocation trait specialization.
-        template<typename TElem, typename TIdx>
-        struct BufAlloc<TElem, DimInt<2u>, TIdx, DevUniformCudaHipRt>
-        {
-            template<typename TExtent>
-            ALPAKA_FN_HOST static auto allocBuf(DevUniformCudaHipRt const& dev, TExtent const& extent)
-                -> BufUniformCudaHipRt<TElem, DimInt<2u>, TIdx>
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                auto const width = extent::getWidth(extent);
-                auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
-                auto const height = extent::getHeight(extent);
-
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
 
                 void* memPtr = nullptr;
                 std::size_t pitchBytes = 0u;
-#    ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-                // FIXME: HIP cannot handle zero-size input (throws Unknown Error)
-                if(width != 0 && height != 0)
-#    endif
+                if(getExtentProduct(extent) != 0)
                 {
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.m_iDevice));
-
-
-                    // Allocate the buffer on this device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(MallocPitch)(
-                        &memPtr,
-                        &pitchBytes,
-                        static_cast<std::size_t>(widthBytes),
-                        static_cast<std::size_t>(height)));
-                    ALPAKA_ASSERT(pitchBytes >= static_cast<std::size_t>(widthBytes) || (width * height) == 0);
+                    if constexpr(Dim::value <= 1)
+                    {
+                        pitchBytes = static_cast<std::size_t>(getWidth(extent)) * sizeof(TElem);
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Malloc)(&memPtr, pitchBytes));
+                    }
+                    else if constexpr(Dim::value == 2)
+                    {
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(MallocPitch)(
+                            &memPtr,
+                            &pitchBytes,
+                            static_cast<std::size_t>(getWidth(extent)) * sizeof(TElem),
+                            static_cast<std::size_t>(getHeight(extent))));
+                    }
+                    else if constexpr(Dim::value == 3)
+                    {
+                        ALPAKA_API_PREFIX(Extent)
+                        const extentVal = ALPAKA_PP_CONCAT(make_, ALPAKA_API_PREFIX(Extent))(
+                            static_cast<std::size_t>(getWidth(extent)) * sizeof(TElem),
+                            static_cast<std::size_t>(getHeight(extent)),
+                            static_cast<std::size_t>(getDepth(extent)));
+                        ALPAKA_API_PREFIX(PitchedPtr) pitchedPtrVal;
+                        pitchedPtrVal.ptr = nullptr;
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Malloc3D)(&pitchedPtrVal, extentVal));
+                        memPtr = pitchedPtrVal.ptr;
+                        pitchBytes = pitchedPtrVal.pitch;
+                    }
                 }
-
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__ << " ew: " << width << " eh: " << height << " ewb: " << widthBytes
-                          << " ptr: " << memPtr << " pitch: " << pitchBytes << std::endl;
+                std::cout << __func__;
+                if constexpr(Dim::value >= 1)
+                    std::cout << " ew: " << getWidth(extent);
+                if constexpr(Dim::value >= 2)
+                    std::cout << " eh: " << getHeight(extent);
+                if constexpr(Dim::value >= 3)
+                    std::cout << " ed: " << getDepth(extent);
+                std::cout << " ptr: " << memPtr << " pitch: " << pitchBytes << std::endl;
 #    endif
-                return BufUniformCudaHipRt<TElem, DimInt<2u>, TIdx>(
+                return {
                     dev,
                     reinterpret_cast<TElem*>(memPtr),
+                    [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Free)(ptr)); },
                     static_cast<TIdx>(pitchBytes),
-                    extent);
+                    extent};
             }
         };
-        //! The CUDA/HIP 3D memory allocation trait specialization.
-        template<typename TElem, typename TIdx>
-        struct BufAlloc<TElem, DimInt<3u>, TIdx, DevUniformCudaHipRt>
+
+        //! The CUDA/HIP stream-ordered memory allocation trait specialization.
+        template<typename TElem, typename TDim, typename TIdx>
+        struct AsyncBufAlloc<TElem, TDim, TIdx, DevUniformCudaHipRt>
         {
-            template<typename TExtent>
-            ALPAKA_FN_HOST static auto allocBuf(DevUniformCudaHipRt const& dev, TExtent const& extent)
-                -> BufUniformCudaHipRt<TElem, DimInt<3u>, TIdx>
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA < BOOST_VERSION_NUMBER(11, 2, 0))
+            static_assert(
+                meta::DependentFalseType<TElem>::value,
+                "Support for stream-ordered memory buffers requires CUDA 11.2 or higher.");
+#    endif
+#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+            static_assert(
+                meta::DependentFalseType<TElem>::value,
+                "HIP devices do not support stream-ordered memory buffers.");
+#    endif
+            static_assert(
+                TDim::value <= 1,
+                "HIP/CUDA devices support only one-dimensional stream-ordered memory buffers.");
+
+            template<typename TQueue, typename TExtent>
+            ALPAKA_FN_HOST static auto allocAsyncBuf(TQueue queue, [[maybe_unused]] TExtent const& extent)
+                -> BufUniformCudaHipRt<TElem, TDim, TIdx>
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                ALPAKA_API_PREFIX(Extent)
-                const extentVal = ALPAKA_PP_CONCAT(make_, ALPAKA_API_PREFIX(Extent))(
-                    static_cast<std::size_t>(extent::getWidth(extent) * static_cast<TIdx>(sizeof(TElem))),
-                    static_cast<std::size_t>(extent::getHeight(extent)),
-                    static_cast<std::size_t>(extent::getDepth(extent)));
+                static_assert(TDim::value == Dim<TExtent>::value, "extent must have the same dimension as the buffer");
+                auto const width = getWidth(extent);
 
-                ALPAKA_API_PREFIX(PitchedPtr) pitchedPtrVal;
-                pitchedPtrVal.ptr = nullptr;
-#    ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-                pitchedPtrVal.pitch = 0u;
-                // FIXME: HIP cannot handle zero-size input
-                if(extentVal.width != 0 && extentVal.height != 0 && extentVal.depth != 0)
-#    endif
-                {
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.m_iDevice));
-                    // Allocate the buffer on this device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Malloc3D)(&pitchedPtrVal, extentVal));
-                }
+                auto const& dev = getDev(queue);
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
+                void* memPtr;
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(
+                    MallocAsync)(&memPtr, static_cast<std::size_t>(width) * sizeof(TElem), queue.getNativeHandle()));
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__ << " ew: " << extent::getWidth(extent) << " eh: " << extentVal.height
-                          << " ed: " << extentVal.depth << " ewb: " << extentVal.width << " ptr: " << pitchedPtrVal.ptr
-                          << " pitch: " << pitchedPtrVal.pitch << " wb: " << pitchedPtrVal.xsize
-                          << " h: " << pitchedPtrVal.ysize << std::endl;
+                std::cout << __func__ << " ew: " << width << " ptr: " << memPtr << std::endl;
 #    endif
-
-                return BufUniformCudaHipRt<TElem, DimInt<3u>, TIdx>(
+                return BufUniformCudaHipRt<TElem, TDim, TIdx>(
                     dev,
-                    reinterpret_cast<TElem*>(pitchedPtrVal.ptr),
-                    static_cast<TIdx>(pitchedPtrVal.pitch),
+                    reinterpret_cast<TElem*>(memPtr),
+                    [queue = std::move(queue)](TElem* ptr)
+                    { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(FreeAsync)(ptr, queue.getNativeHandle())); },
+                    width * static_cast<TIdx>(sizeof(TElem)),
                     extent);
             }
         };
+
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(11, 2, 0))
+        //! The CUDA/HIP stream-ordered memory allocation capability trait specialization.
+        template<typename TDim>
+        struct HasAsyncBufSupport<TDim, DevUniformCudaHipRt> : std::bool_constant<TDim::value <= 1>
+        {
+        };
+#    endif
+
         //! The BufUniformCudaHipRt CUDA/HIP device memory mapping trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Map<BufUniformCudaHipRt<TElem, TDim, TIdx>, DevUniformCudaHipRt>
@@ -451,7 +422,7 @@ namespace alpaka
                     //   compute capability greater than or equal to 1.1.
                     ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(HostRegister)(
                         const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf))),
-                        extent::getExtentProduct(buf) * sizeof(Elem<BufCpu<TElem, TDim, TIdx>>),
+                        getExtentProduct(buf) * sizeof(Elem<BufCpu<TElem, TDim, TIdx>>),
                         ALPAKA_API_PREFIX(HostRegisterMapped)));
                 }
             }
@@ -502,7 +473,7 @@ namespace alpaka
                 return pDev;
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #    include <alpaka/mem/buf/uniformCudaHip/Copy.hpp>

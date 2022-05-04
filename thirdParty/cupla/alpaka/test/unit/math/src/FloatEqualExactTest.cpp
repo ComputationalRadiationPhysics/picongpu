@@ -1,4 +1,4 @@
-/* Copyright 2021 Jiri Vyskocil
+/* Copyright 2022 Jiří Vyskočil, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/FloatEqualExact.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
@@ -19,10 +18,8 @@ class FloatEqualExactTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& /* acc */, bool* success) const -> void
     {
-        alpaka::ignore_unused(acc);
-
         // Store the comparison result in a separate variable so that the function call is outside ALPAKA_CHECK.
         // In case ALPAKA_CHECK were ever somehow modified to silence the warning by itself.
         bool testValue = false;

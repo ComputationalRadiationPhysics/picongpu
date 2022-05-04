@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020 Benjamin Worpitz, Jan Stephan
+# Copyright 2021 Benjamin Worpitz, Jan Stephan
 #
 # This file exemplifies usage of alpaka.
 #
@@ -22,13 +22,14 @@
 
 cmake_minimum_required(VERSION 3.18)
 
-project("alpakaExamples")
+project("alpakaExamples" LANGUAGES CXX)
 
 ################################################################################
 # Add subdirectories.
 ################################################################################
 
 add_subdirectory("bufferCopy/")
+add_subdirectory("complex/")
 add_subdirectory("heatEquation/")
 add_subdirectory("helloWorld/")
 add_subdirectory("helloWorldLambda/")

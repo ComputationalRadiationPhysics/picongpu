@@ -1,4 +1,4 @@
-/* Copyright 2021 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,8 +12,8 @@
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
 
 // Base classes.
+#    include <alpaka/atomic/AtomicCpu.hpp>
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/atomic/AtomicStdLibLock.hpp>
 #    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
 #    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierThread.hpp>
@@ -38,7 +38,6 @@
 #    include <alpaka/core/BoostPredef.hpp>
 #    include <alpaka/core/ClipCast.hpp>
 #    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 
 #    include <memory>
@@ -62,9 +61,9 @@ namespace alpaka
         public gb::IdxGbRef<TDim, TIdx>,
         public bt::IdxBtRefThreadIdMap<TDim, TIdx>,
         public AtomicHierarchy<
-            AtomicStdLibLock<16>, // grid atomics
-            AtomicStdLibLock<16>, // block atomics
-            AtomicStdLibLock<16>  // thread atomics
+            AtomicCpu, // grid atomics
+            AtomicCpu, // block atomics
+            AtomicCpu  // thread atomics
         >,
         public math::MathStdLib,
         public BlockSharedMemDynMember<>,
@@ -93,9 +92,9 @@ namespace alpaka
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
             , bt::IdxBtRefThreadIdMap<TDim, TIdx>(m_threadToIndexMap)
             , AtomicHierarchy<
-                  AtomicStdLibLock<16>, // atomics between grids
-                  AtomicStdLibLock<16>, // atomics between blocks
-                  AtomicStdLibLock<16> // atomics between threads
+                  AtomicCpu, // atomics between grids
+                  AtomicCpu, // atomics between blocks
+                  AtomicCpu // atomics between threads
                   >()
             , math::MathStdLib()
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
@@ -123,7 +122,7 @@ namespace alpaka
         std::thread::id mutable m_idMasterThread; //!< The id of the master thread.
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU threads accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
@@ -218,7 +217,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

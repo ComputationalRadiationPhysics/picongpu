@@ -38,42 +38,6 @@
 
 namespace mallocMC
 {
-    namespace detail
-    {
-        /**
-         * @brief Template class to call getAvailableSlots[Host|Accelerator] if
-         * the CreationPolicy provides it.
-         *
-         * Returns 0 else.
-         *
-         * @tparam T_Allocator The type of the Allocator to be used
-         * @tparam T_isHost True for the host call, false for the accelerator
-         * call
-         * @tparam T_providesAvailableSlots If the CreationPolicy provides
-         * getAvailableSlots[Host|Accelerator] (auto filled, do not set)
-         */
-        template<typename AlpakaAcc, typename T_Allocator, bool T_providesAvailableSlots>
-        struct GetAvailableSlotsIfAvailAcc
-        {
-            ALPAKA_FN_ACC static auto getAvailableSlots(const AlpakaAcc&, size_t, T_Allocator&) -> unsigned
-            {
-                return 0;
-            }
-        };
-
-        template<typename AlpakaAcc, typename T_Allocator>
-        struct GetAvailableSlotsIfAvailAcc<AlpakaAcc, T_Allocator, true>
-        {
-            ALPAKA_FN_ACC static auto getAvailableSlots(const AlpakaAcc& acc, size_t slotSize, T_Allocator& alloc)
-                -> unsigned
-            {
-                return alloc.T_Allocator::CreationPolicy::template getAvailableSlotsAccelerator<
-                    typename T_Allocator::AlignmentPolicy>(acc, slotSize);
-            }
-        };
-
-    } // namespace detail
-
     /**
      * @brief "HostClass" that combines all policies to a useful allocator
      *
@@ -123,17 +87,22 @@ namespace mallocMC
             CreationPolicy::destroy(acc, p);
         }
 
-        /* polymorphism over the availability of getAvailableSlots for calling
-         * from the accelerator
+        /** Provide the number of available free slots.
+         *
+         * @tparam AlpakaAcc The type of the Allocator to be used
+         * @param acc alpaka accelerator
+         * @param slotSize assumed allocation size in bytes
+         * @return number of free slots of the given size, if creation policy is not providing the information on the
+         * device side 0 will be returned.
          */
         template<typename AlpakaAcc>
         ALPAKA_FN_ACC auto getAvailableSlots(const AlpakaAcc& acc, size_t slotSize) -> unsigned
         {
             slotSize = AlignmentPolicy::applyPadding(slotSize);
-            return detail::GetAvailableSlotsIfAvailAcc<
-                AlpakaAcc,
-                DeviceAllocator,
-                Traits<DeviceAllocator>::providesAvailableSlots>::getAvailableSlots(acc, slotSize, *this);
+            if constexpr(Traits<DeviceAllocator>::providesAvailableSlots)
+                return CreationPolicy::template getAvailableSlotsAccelerator<AlignmentPolicy>(acc, slotSize);
+            else
+                return 0u;
         }
     };
 

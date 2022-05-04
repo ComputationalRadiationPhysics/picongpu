@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Jonas Schenke, Matthias Werner
+/* Copyright 2020 Benjamin Worpitz, Jonas Schenke, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file exemplifies usage of alpaka.
  *
@@ -58,20 +58,20 @@ using MaxBlockSize = Accelerator::MaxBlockSize;
 //!
 //! Returns true if the reduction was correct and false otherwise.
 template<typename T, typename DevHost, typename DevAcc, typename TFunc>
-T reduce(
+auto reduce(
     DevHost devHost,
     DevAcc devAcc,
     QueueAcc queue,
     uint64_t n,
     alpaka::Buf<DevHost, T, Dim, Idx> hostMemory,
-    TFunc func)
+    TFunc func) -> T
 {
     static constexpr uint64_t blockSize = getMaxBlockSize<Accelerator, 256>();
 
     // calculate optimal block size (8 times the MP count proved to be
     // relatively near to peak performance in benchmarks)
-    uint32_t blockCount = static_cast<uint32_t>(alpaka::getAccDevProps<Acc>(devAcc).m_multiProcessorCount * 8);
-    uint32_t maxBlockCount = static_cast<uint32_t>((((n + 1) / 2) - 1) / blockSize + 1); // ceil(ceil(n/2.0)/blockSize)
+    auto blockCount = static_cast<uint32_t>(alpaka::getAccDevProps<Acc>(devAcc).m_multiProcessorCount * 8);
+    auto maxBlockCount = static_cast<uint32_t>((((n + 1) / 2) - 1) / blockSize + 1); // ceil(ceil(n/2.0)/blockSize)
 
     if(blockCount > maxBlockCount)
         blockCount = maxBlockCount;
@@ -120,7 +120,7 @@ T reduce(
     return resultGpuHost;
 }
 
-int main()
+auto main() -> int
 {
     // select device and problem size
     const int dev = 0;
@@ -136,7 +136,7 @@ int main()
     // calculate optimal block size (8 times the MP count proved to be
     // relatively near to peak performance in benchmarks)
     uint32_t blockCount = static_cast<uint32_t>(alpaka::getAccDevProps<Acc>(devAcc).m_multiProcessorCount * 8);
-    uint32_t maxBlockCount = static_cast<uint32_t>((((n + 1) / 2) - 1) / blockSize + 1); // ceil(ceil(n/2.0)/blockSize)
+    auto maxBlockCount = static_cast<uint32_t>((((n + 1) / 2) - 1) / blockSize + 1); // ceil(ceil(n/2.0)/blockSize)
 
     if(blockCount > maxBlockCount)
         blockCount = maxBlockCount;

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -73,7 +73,7 @@ TEMPLATE_LIST_TEST_CASE("staticDeviceMemoryGlobal", "[viewStaticAccMem]", TestAc
         auto viewConstantMemUninitialized
             = alpaka::createStaticDevMemView(&g_constantMemory2DUninitialized[0u][0u], devAcc, extent);
 
-        alpaka::memcpy(queueAcc, viewConstantMemUninitialized, bufHost, extent);
+        alpaka::memcpy(queueAcc, viewConstantMemUninitialized, bufHost);
         alpaka::wait(queueAcc);
 
         REQUIRE(fixture(kernel, alpaka::getPtrNative(viewConstantMemUninitialized)));
@@ -114,7 +114,7 @@ TEMPLATE_LIST_TEST_CASE("staticDeviceMemoryConstant", "[viewStaticAccMem]", Test
         auto viewGlobalMemUninitialized
             = alpaka::createStaticDevMemView(&g_globalMemory2DUninitialized[0u][0u], devAcc, extent);
 
-        alpaka::memcpy(queueAcc, viewGlobalMemUninitialized, bufHost, extent);
+        alpaka::memcpy(queueAcc, viewGlobalMemUninitialized, bufHost);
         alpaka::wait(queueAcc);
 
         REQUIRE(fixture(kernel, alpaka::getPtrNative(viewGlobalMemUninitialized)));

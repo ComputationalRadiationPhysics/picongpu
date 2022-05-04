@@ -53,6 +53,10 @@ namespace pmacc
             {
             }
 
+            HDINLINE LinearInterpAccessor(const LinearInterpAccessor&) = default;
+
+            HDINLINE LinearInterpAccessor& operator=(const LinearInterpAccessor&) = default;
+
             template<typename T_Position>
             HDINLINE Reference operator()(const T_Position pos) const
             {

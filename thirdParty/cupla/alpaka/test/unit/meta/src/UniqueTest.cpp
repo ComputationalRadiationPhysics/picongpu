@@ -22,7 +22,7 @@ TEST_CASE("uniqueWithDuplicate", "[meta]")
 
     using UniqueReference = std::tuple<int, float>;
 
-    static_assert(std::is_same<UniqueReference, UniqueResult>::value, "alpaka::meta::Unique failed!");
+    static_assert(std::is_same_v<UniqueReference, UniqueResult>, "alpaka::meta::Unique failed!");
 }
 
 TEST_CASE("uniqueWithoutDuplicate", "[meta]")
@@ -33,5 +33,5 @@ TEST_CASE("uniqueWithoutDuplicate", "[meta]")
 
     using UniqueReference = UniqueInput;
 
-    static_assert(std::is_same<UniqueReference, UniqueResult>::value, "alpaka::meta::Unique failed!");
+    static_assert(std::is_same_v<UniqueReference, UniqueResult>, "alpaka::meta::Unique failed!");
 }

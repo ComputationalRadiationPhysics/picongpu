@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -41,7 +41,7 @@ namespace alpaka
         //! \return The biggest number that satisfies the following conditions:
         //!     1) dividend/ret==0
         //!     2) ret<=maxDivisor
-        template<typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+        template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
         ALPAKA_FN_HOST auto nextDivisorLowerOrEqual(T const& maxDivisor, T const& dividend) -> T
         {
             T divisor(maxDivisor);
@@ -60,7 +60,7 @@ namespace alpaka
         //! \param val The value to find divisors of.
         //! \param maxDivisor The maximum.
         //! \return A list of all divisors less then or equal to the given maximum.
-        template<typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+        template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
         ALPAKA_FN_HOST auto allDivisorsLessOrEqual(T const& val, T const& maxDivisor) -> std::set<T>
         {
             std::set<T> divisorSet;
@@ -279,13 +279,13 @@ namespace alpaka
                     intersects[(i - 1u) % 2u] = gridThreadExtentDivisors[0];
                     intersects[(i) % 2u].clear();
                     set_intersection(
-                        intersects[(i - 1u) % 2u].begin(),
-                        intersects[(i - 1u) % 2u].end(),
-                        gridThreadExtentDivisors[i].begin(),
-                        gridThreadExtentDivisors[i].end(),
-                        std::inserter(intersects[i % 2], intersects[i % 2u].begin()));
+                        std::begin(intersects[(i - 1u) % 2u]),
+                        std::end(intersects[(i - 1u) % 2u]),
+                        std::begin(gridThreadExtentDivisors[i]),
+                        std::end(gridThreadExtentDivisors[i]),
+                        std::inserter(intersects[i % 2], std::begin(intersects[i % 2u])));
                 }
-                TIdx const maxCommonDivisor(*(--intersects[(TDim::value - 1) % 2u].end()));
+                TIdx const maxCommonDivisor(*(--std::end(intersects[(TDim::value - 1) % 2u])));
                 for(typename TDim::value_type i(0u); i < TDim::value; ++i)
                 {
                     blockThreadExtent[i] = maxCommonDivisor;
@@ -342,11 +342,11 @@ namespace alpaka
     //! \return The work division.
     template<typename TAcc, typename TGridElemExtent, typename TThreadElemExtent, typename TDev>
     ALPAKA_FN_HOST auto getValidWorkDiv(
-        TDev const& dev,
-        TGridElemExtent const& gridElemExtent = TGridElemExtent(),
-        TThreadElemExtent const& threadElemExtents = TThreadElemExtent(),
-        bool requireBlockThreadExtentToDivideGridThreadExtent = true,
-        GridBlockExtentSubDivRestrictions gridBlockExtentSubDivRestrictions
+        [[maybe_unused]] TDev const& dev,
+        [[maybe_unused]] TGridElemExtent const& gridElemExtent = TGridElemExtent(),
+        [[maybe_unused]] TThreadElemExtent const& threadElemExtents = TThreadElemExtent(),
+        [[maybe_unused]] bool requireBlockThreadExtentToDivideGridThreadExtent = true,
+        [[maybe_unused]] GridBlockExtentSubDivRestrictions gridBlockExtentSubDivRestrictions
         = GridBlockExtentSubDivRestrictions::Unrestricted)
         -> WorkDivMembers<Dim<TGridElemExtent>, Idx<TGridElemExtent>>
     {
@@ -357,18 +357,28 @@ namespace alpaka
             Dim<TThreadElemExtent>::value == Dim<TAcc>::value,
             "The dimension of TAcc and the dimension of TThreadElemExtent have to be identical!");
         static_assert(
-            std::is_same<Idx<TGridElemExtent>, Idx<TAcc>>::value,
+            std::is_same_v<Idx<TGridElemExtent>, Idx<TAcc>>,
             "The idx type of TAcc and the idx type of TGridElemExtent have to be identical!");
         static_assert(
-            std::is_same<Idx<TThreadElemExtent>, Idx<TAcc>>::value,
+            std::is_same_v<Idx<TThreadElemExtent>, Idx<TAcc>>,
             "The idx type of TAcc and the idx type of TThreadElemExtent have to be identical!");
 
-        return subDivideGridElems(
-            extent::getExtentVec(gridElemExtent),
-            extent::getExtentVec(threadElemExtents),
-            getAccDevProps<TAcc>(dev),
-            requireBlockThreadExtentToDivideGridThreadExtent,
-            gridBlockExtentSubDivRestrictions);
+        if constexpr(Dim<TGridElemExtent>::value == 0)
+        {
+            const auto zero = Vec<DimInt<0>, Idx<TAcc>>{};
+            ALPAKA_ASSERT(gridElemExtent == zero);
+            ALPAKA_ASSERT(threadElemExtents == zero);
+            return WorkDivMembers<DimInt<0>, Idx<TAcc>>{zero, zero, zero};
+        }
+        else
+            return subDivideGridElems(
+                getExtentVec(gridElemExtent),
+                getExtentVec(threadElemExtents),
+                getAccDevProps<TAcc>(dev),
+                requireBlockThreadExtentToDivideGridThreadExtent,
+                gridBlockExtentSubDivRestrictions);
+        using V [[maybe_unused]] = Vec<Dim<TGridElemExtent>, Idx<TGridElemExtent>>;
+        ALPAKA_UNREACHABLE(WorkDivMembers<Dim<TGridElemExtent>, Idx<TGridElemExtent>>{V{}, V{}, V{}});
     }
 
     //! \tparam TDim The dimensionality of the accelerator device properties.
@@ -380,11 +390,6 @@ namespace alpaka
     template<typename TDim, typename TIdx, typename TWorkDiv>
     ALPAKA_FN_HOST auto isValidWorkDiv(AccDevProps<TDim, TIdx> const& accDevProps, TWorkDiv const& workDiv) -> bool
     {
-        // Store the maxima allowed for extents of grid, blocks and threads.
-        auto const gridBlockExtentMax = subVecEnd<Dim<TWorkDiv>>(accDevProps.m_gridBlockExtentMax);
-        auto const blockThreadExtentMax = subVecEnd<Dim<TWorkDiv>>(accDevProps.m_blockThreadExtentMax);
-        auto const threadElemExtentMax = subVecEnd<Dim<TWorkDiv>>(accDevProps.m_threadElemExtentMax);
-
         // Get the extents of grid, blocks and threads of the work division to check.
         auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
         auto const blockThreadExtent = getWorkDiv<Block, Threads>(workDiv);
@@ -405,14 +410,22 @@ namespace alpaka
         }
 
         // Check that the extents for all dimensions are correct.
-        for(typename Dim<TWorkDiv>::value_type i(0); i < Dim<TWorkDiv>::value; ++i)
+        if constexpr(Dim<TWorkDiv>::value > 0)
         {
-            // No extent is allowed to be zero or greater then the allowed maximum.
-            if((gridBlockExtent[i] < 1) || (blockThreadExtent[i] < 1) || (threadElemExtent[i] < 1)
-               || (gridBlockExtentMax[i] < gridBlockExtent[i]) || (blockThreadExtentMax[i] < blockThreadExtent[i])
-               || (threadElemExtentMax[i] < threadElemExtent[i]))
+            // Store the maxima allowed for extents of grid, blocks and threads.
+            auto const gridBlockExtentMax = subVecEnd<Dim<TWorkDiv>>(accDevProps.m_gridBlockExtentMax);
+            auto const blockThreadExtentMax = subVecEnd<Dim<TWorkDiv>>(accDevProps.m_blockThreadExtentMax);
+            auto const threadElemExtentMax = subVecEnd<Dim<TWorkDiv>>(accDevProps.m_threadElemExtentMax);
+
+            for(typename Dim<TWorkDiv>::value_type i(0); i < Dim<TWorkDiv>::value; ++i)
             {
-                return false;
+                // No extent is allowed to be zero or greater then the allowed maximum.
+                if((gridBlockExtent[i] < 1) || (blockThreadExtent[i] < 1) || (threadElemExtent[i] < 1)
+                   || (gridBlockExtentMax[i] < gridBlockExtent[i]) || (blockThreadExtentMax[i] < blockThreadExtent[i])
+                   || (threadElemExtentMax[i] < threadElemExtent[i]))
+                {
+                    return false;
+                }
             }
         }
 

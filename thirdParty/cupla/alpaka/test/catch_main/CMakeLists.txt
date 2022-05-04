@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020 Benjamin Worpitz, Axel Huebl
+# Copyright 2022 Benjamin Worpitz, Axel Huebl, Jan Stephan, Bernhard Manfred Gruber
 #
 # This file is part of alpaka.
 #
@@ -8,23 +8,21 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-option(ALPAKA_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON)
+option(alpaka_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON)
 
-if(ALPAKA_USE_INTERNAL_CATCH2)
-    message(STATUS "Catch2: Using INTERNAL version 2.13.3")
+if(alpaka_USE_INTERNAL_CATCH2)
+    message(STATUS "Catch2: Using INTERNAL version 2.13.8")
 else()
-    find_package(Catch2 2.13.3 CONFIG REQUIRED)
+    find_package(Catch2 2.13.8 CONFIG REQUIRED)
     set_target_properties(Catch2::Catch2 PROPERTIES IMPORTED_GLOBAL TRUE)
     message(STATUS "Catch2: Found version ${Catch2_VERSION}")
 endif()
 
 add_library(CatchMain src/CatchMain.cpp)
-# target_compile_features(CatchMain PUBLIC cxx_std_14)  # min C++14
+target_compile_features(CatchMain PUBLIC cxx_std_17)
 set_target_properties(CatchMain PROPERTIES
     FOLDER "test"
-    CXX_STANDARD 14  # exactly C++14
     CXX_EXTENSIONS OFF
-    CXX_STANDARD_REQUIRED ON
     POSITION_INDEPENDENT_CODE ON
     WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
@@ -40,7 +38,7 @@ if(MSVC)
     target_compile_options(CatchMain PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/bigobj> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/bigobj>)
 endif()
 
-if(ALPAKA_USE_INTERNAL_CATCH2)
+if(alpaka_USE_INTERNAL_CATCH2)
     target_include_directories(CatchMain SYSTEM PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/../../thirdParty/catch2/include)
 else()

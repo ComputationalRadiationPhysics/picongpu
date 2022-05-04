@@ -1,4 +1,4 @@
-/* Copyright 2020-2021 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -22,10 +22,9 @@ struct KernelWithOmpScheduleBase
 {
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& /* acc */, bool* success) const -> void
     {
         // No run-time check is performed
-        alpaka::ignore_unused(acc);
         ALPAKA_CHECK(*success, true);
     }
 };
@@ -77,31 +76,23 @@ struct KernelWithTrait : TBase
 {
 };
 
-namespace alpaka
+namespace alpaka::trait
 {
-    namespace traits
+    // Specialize the trait for kernels of type KernelWithTrait<>
+    template<typename TBase, typename TAcc>
+    struct OmpSchedule<KernelWithTrait<TBase>, TAcc>
     {
-        // Specialize the trait for kernels of type KernelWithTrait<>
-        template<typename TBase, typename TAcc>
-        struct OmpSchedule<KernelWithTrait<TBase>, TAcc>
+        template<typename TDim, typename... TArgs>
+        ALPAKA_FN_HOST static auto getOmpSchedule(
+            KernelWithTrait<TBase> const& /* kernelFnObj */,
+            Vec<TDim, Idx<TAcc>> const& /* blockThreadExtent */,
+            Vec<TDim, Idx<TAcc>> const& /* threadElemExtent */,
+            TArgs const&... /* args */) -> alpaka::omp::Schedule
         {
-            template<typename TDim, typename... TArgs>
-            ALPAKA_FN_HOST static auto getOmpSchedule(
-                KernelWithTrait<TBase> const& kernelFnObj,
-                Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
-                Vec<TDim, Idx<TAcc>> const& threadElemExtent,
-                TArgs const&... args) -> alpaka::omp::Schedule
-            {
-                alpaka::ignore_unused(kernelFnObj);
-                alpaka::ignore_unused(blockThreadExtent);
-                alpaka::ignore_unused(threadElemExtent);
-                alpaka::ignore_unused(args...);
-
-                return alpaka::omp::Schedule{alpaka::omp::Schedule::Static, 4};
-            }
-        };
-    } // namespace traits
-} // namespace alpaka
+            return alpaka::omp::Schedule{alpaka::omp::Schedule::Static, 4};
+        }
+    };
+} // namespace alpaka::trait
 
 // Generic testing routine for the given kernel type
 template<typename TAcc, typename TKernel>
@@ -121,6 +112,10 @@ void testKernel()
     KernelWithTrait<TKernel> kernelWithTrait;
     REQUIRE(fixture(kernelWithTrait));
 }
+
+// Disabling these tests for GCC + OMP5 & OACC because GCC does not like static
+// data members in mapped variables when offlading.
+#if !(BOOST_COMP_GNUC && (defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) || defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)))
 
 // Note: it turned out not possible to test all possible combinations as it causes several compilers to crash in CI.
 // However the following tests should cover all important cases
@@ -152,8 +147,9 @@ TEMPLATE_LIST_TEST_CASE("kernelWithStaticMemberOmpScheduleChunkSize", "[kernel]"
 
 TEMPLATE_LIST_TEST_CASE("kernelWithMemberOmpScheduleChunkSize", "[kernel]", alpaka::test::TestAccs)
 {
-#if defined _OPENMP && _OPENMP >= 200805
+#    if defined _OPENMP && _OPENMP >= 200805
     testKernel<TestType, KernelWithMemberOmpScheduleChunkSize<alpaka::omp::Schedule::Auto>>();
-#endif
+#    endif
     testKernel<TestType, KernelWithMemberOmpScheduleChunkSize<alpaka::omp::Schedule::Runtime>>();
 }
+#endif

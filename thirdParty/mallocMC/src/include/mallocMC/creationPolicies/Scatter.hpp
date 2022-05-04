@@ -43,6 +43,7 @@
 #include <cstdint> /* uint32_t */
 #include <cstdio>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -699,7 +700,7 @@ namespace mallocMC
             template<typename AlpakaAcc>
             ALPAKA_FN_ACC auto markpages(const AlpakaAcc& acc, uint32 startpage, uint32 pages, uint32 bytes) -> bool
             {
-                int abord = -1;
+                uint32 abord = std::numeric_limits<uint32>::max();
                 for(uint32 trypage = startpage; trypage < startpage + pages; ++trypage)
                 {
                     const uint32 old
@@ -710,7 +711,7 @@ namespace mallocMC
                         break;
                     }
                 }
-                if(abord == -1)
+                if(abord == std::numeric_limits<uint32>::max())
                     return true;
                 for(uint32 trypage = startpage; trypage < abord; ++trypage)
                     alpaka::atomicOp<alpaka::AtomicCas>(acc, (uint32*) &_ptes[trypage].chunksize, bytes, 0u);
@@ -1013,8 +1014,8 @@ namespace mallocMC
                     m_heap->pool = m_heapmem;
                     m_heap->initDeviceFunction(m_acc, m_heapmem, m_memsize);
                 };
-                using Dim = typename alpaka::traits::DimType<AlpakaAcc>::type;
-                using Idx = typename alpaka::traits::IdxType<AlpakaAcc>::type;
+                using Dim = typename alpaka::trait::DimType<AlpakaAcc>::type;
+                using Idx = typename alpaka::trait::IdxType<AlpakaAcc>::type;
                 using VecType = alpaka::Vec<Dim, Idx>;
 
                 auto threadsPerBlock = VecType::ones();
@@ -1178,24 +1179,22 @@ namespace mallocMC
                 auto d_slots = alpaka::allocBuf<unsigned, int>(dev, 1);
                 alpaka::memset(queue, d_slots, 0, 1);
 
-                auto getAvailableSlotsKernel
-                    = [] ALPAKA_FN_ACC(const AlpakaAcc& acc, T_DeviceAllocator* heap, size_t slotSize, unsigned* slots)
-                    -> void {
+                auto getAvailableSlotsKernel = [] ALPAKA_FN_ACC(
+                                                   const AlpakaAcc& acc,
+                                                   T_DeviceAllocator* heapPtr,
+                                                   size_t numBytes,
+                                                   unsigned* slots) -> void {
                     const auto gid = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc).sum();
 
                     const auto nWorker = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc).prod();
-                    const unsigned temp
-                        = heap->template getAvailaibleSlotsDeviceFunction<typename T_DeviceAllocator::AlignmentPolicy>(
-                            acc,
-                            slotSize,
-                            gid,
-                            nWorker);
+                    const unsigned temp = heapPtr->template getAvailaibleSlotsDeviceFunction<
+                        typename T_DeviceAllocator::AlignmentPolicy>(acc, numBytes, gid, nWorker);
                     if(temp)
                         alpaka::atomicOp<alpaka::AtomicAdd>(acc, slots, temp);
                 };
 
-                using Dim = typename alpaka::traits::DimType<AlpakaAcc>::type;
-                using Idx = typename alpaka::traits::IdxType<AlpakaAcc>::type;
+                using Dim = typename alpaka::trait::DimType<AlpakaAcc>::type;
+                using Idx = typename alpaka::trait::IdxType<AlpakaAcc>::type;
 
                 using VecType = alpaka::Vec<Dim, Idx>;
 

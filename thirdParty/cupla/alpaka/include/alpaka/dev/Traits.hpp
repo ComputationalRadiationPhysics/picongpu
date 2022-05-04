@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -12,10 +12,14 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
 namespace alpaka
 {
     //! The device traits.
-    namespace traits
+    namespace trait
     {
         //! The device type trait.
         template<typename T, typename TSfinae = void>
@@ -39,16 +43,16 @@ namespace alpaka
 
         //! The device warp size get trait.
         template<typename T, typename TSfinae = void>
-        struct GetWarpSize;
+        struct GetWarpSizes;
 
         //! The device reset trait.
         template<typename T, typename TSfinae = void>
         struct Reset;
-    } // namespace traits
+    } // namespace trait
 
     //! The device type trait alias template to remove the ::type.
     template<typename T>
-    using Dev = typename traits::DevType<T>::type;
+    using Dev = typename trait::DevType<T>::type;
 
     struct ConceptGetDev;
 
@@ -59,14 +63,14 @@ namespace alpaka
     ALPAKA_FN_HOST auto getDev(T const& t)
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptGetDev, T>;
-        return traits::GetDev<ImplementationBase>::getDev(t);
+        return trait::GetDev<ImplementationBase>::getDev(t);
     }
 
     //! \return The device name.
     template<typename TDev>
     ALPAKA_FN_HOST auto getName(TDev const& dev) -> std::string
     {
-        return traits::GetName<TDev>::getName(dev);
+        return trait::GetName<TDev>::getName(dev);
     }
 
     //! \return The memory on the device in Bytes. Returns 0 if querying memory
@@ -74,7 +78,7 @@ namespace alpaka
     template<typename TDev>
     ALPAKA_FN_HOST auto getMemBytes(TDev const& dev) -> std::size_t
     {
-        return traits::GetMemBytes<TDev>::getMemBytes(dev);
+        return trait::GetMemBytes<TDev>::getMemBytes(dev);
     }
 
     //! \return The free memory on the device in Bytes.
@@ -83,14 +87,14 @@ namespace alpaka
     template<typename TDev>
     ALPAKA_FN_HOST auto getFreeMemBytes(TDev const& dev) -> std::size_t
     {
-        return traits::GetFreeMemBytes<TDev>::getFreeMemBytes(dev);
+        return trait::GetFreeMemBytes<TDev>::getFreeMemBytes(dev);
     }
 
-    //! \return The warp size on the device in number of threads.
+    //! \return The supported warp sizes on the device in number of threads.
     template<typename TDev>
-    ALPAKA_FN_HOST auto getWarpSize(TDev const& dev) -> std::size_t
+    ALPAKA_FN_HOST auto getWarpSizes(TDev const& dev) -> std::vector<std::size_t>
     {
-        return traits::GetWarpSize<TDev>::getWarpSize(dev);
+        return trait::GetWarpSizes<TDev>::getWarpSizes(dev);
     }
 
     //! Resets the device.
@@ -98,16 +102,16 @@ namespace alpaka
     template<typename TDev>
     ALPAKA_FN_HOST auto reset(TDev const& dev) -> void
     {
-        traits::Reset<TDev>::reset(dev);
+        trait::Reset<TDev>::reset(dev);
     }
 
-    namespace traits
+    namespace trait
     {
         //! Get device type
         template<typename TDev>
-        struct DevType<TDev, typename std::enable_if<concepts::ImplementsConcept<ConceptDev, TDev>::value>::type>
+        struct DevType<TDev, std::enable_if_t<concepts::ImplementsConcept<ConceptDev, TDev>::value>>
         {
             using type = typename concepts::ImplementationBase<ConceptDev, TDev>;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

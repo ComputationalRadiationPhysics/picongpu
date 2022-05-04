@@ -10,34 +10,6 @@ The policy-based C++ template interface provided allows for straightforward user
 
 The library name *alpaka* is an acronym standing for **A**\ bstraction **L**\ ibrary for **Pa**\ rallel **K**\ ernel **A**\ cceleration.
 
-Example
--------
-
-.. literalinclude:: ../../../example/helloWorld/src/helloWorld.cpp
-   :language: C++
-   :caption: helloWorld.cpp
-
-.. code-block:: cmake
-   :caption: CMakeLists.txt
-
-   cmake_minimum_required(VERSION 3.18)
-
-   set(_TARGET_NAME helloWorld)
-   project(${_TARGET_NAME})
-
-   find_package(alpaka REQUIRED)
-
-   alpaka_add_executable(${_TARGET_NAME} helloWorld.cpp)
-   target_link_libraries(
-     ${_TARGET_NAME}
-     PUBLIC alpaka::alpaka)
-
-You can integrate alpaka into your project via ``find_package()`` in your ``CMakeLists.txt``.
-This requires, that you :doc:`install </basic/install>` alpaka.
-If you do not install alpaka in a default path such as ``/usr/local/`` you have to set the ``CMake`` argument ``-Dalpaka_ROOT=/path/to/alpaka/install``.
-
-The cmake configuration decides which alpaka accelerators are available during compiling. For example, if you configure your ``cmake`` build with the CUDA back-end (``-DALPAKA_ACC_GPU_CUDA_ENABLE=ON``), ``cmake`` checks, if the CUDA SDK is available and if it found, the C++ template ``alpaka::acc::AccGpuCudaRt`` is available during compiling.
-
 About alpaka
 ------------
 

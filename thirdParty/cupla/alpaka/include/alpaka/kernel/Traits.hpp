@@ -1,4 +1,4 @@
-/* Copyright 2019-2021 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -13,10 +13,8 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Debug.hpp>
 #include <alpaka/core/OmpSchedule.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
-#include <alpaka/meta/Void.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -29,7 +27,7 @@
 namespace alpaka
 {
     //! The kernel traits.
-    namespace traits
+    namespace trait
     {
         //! The kernel execution task creation trait.
         template<
@@ -67,16 +65,11 @@ namespace alpaka
             ALPAKA_NO_HOST_ACC_WARNING
             template<typename TDim, typename... TArgs>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
-                TKernelFnObj const& kernelFnObj,
-                Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
-                Vec<TDim, Idx<TAcc>> const& threadElemExtent,
-                TArgs const&... args) -> std::size_t
+                [[maybe_unused]] TKernelFnObj const& kernelFnObj,
+                [[maybe_unused]] Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
+                [[maybe_unused]] Vec<TDim, Idx<TAcc>> const& threadElemExtent,
+                [[maybe_unused]] TArgs const&... args) -> std::size_t
             {
-                alpaka::ignore_unused(kernelFnObj);
-                alpaka::ignore_unused(blockThreadExtent);
-                alpaka::ignore_unused(threadElemExtent);
-                alpaka::ignore_unused(args...);
-
                 return 0u;
             }
         };
@@ -124,20 +117,15 @@ namespace alpaka
             ALPAKA_NO_HOST_ACC_WARNING
             template<typename TDim, typename... TArgs>
             ALPAKA_FN_HOST static auto getOmpSchedule(
-                TKernelFnObj const& kernelFnObj,
-                Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
-                Vec<TDim, Idx<TAcc>> const& threadElemExtent,
-                TArgs const&... args) -> TraitNotSpecialized
+                [[maybe_unused]] TKernelFnObj const& kernelFnObj,
+                [[maybe_unused]] Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
+                [[maybe_unused]] Vec<TDim, Idx<TAcc>> const& threadElemExtent,
+                [[maybe_unused]] TArgs const&... args) -> TraitNotSpecialized
             {
-                alpaka::ignore_unused(kernelFnObj);
-                alpaka::ignore_unused(blockThreadExtent);
-                alpaka::ignore_unused(threadElemExtent);
-                alpaka::ignore_unused(args...);
-
                 return TraitNotSpecialized{};
             }
         };
-    } // namespace traits
+    } // namespace trait
 
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic push
@@ -162,7 +150,7 @@ namespace alpaka
         Vec<TDim, Idx<TAcc>> const& threadElemExtent,
         TArgs const&... args) -> std::size_t
     {
-        return traits::BlockSharedMemDynSizeBytes<TKernelFnObj, TAcc>::getBlockSharedMemDynSizeBytes(
+        return trait::BlockSharedMemDynSizeBytes<TKernelFnObj, TAcc>::getBlockSharedMemDynSizeBytes(
             kernelFnObj,
             blockThreadExtent,
             threadElemExtent,
@@ -191,7 +179,7 @@ namespace alpaka
         Vec<TDim, Idx<TAcc>> const& threadElemExtent,
         TArgs const&... args)
     {
-        return traits::OmpSchedule<TKernelFnObj, TAcc>::getOmpSchedule(
+        return trait::OmpSchedule<TKernelFnObj, TAcc>::getOmpSchedule(
             kernelFnObj,
             blockThreadExtent,
             threadElemExtent,
@@ -213,12 +201,8 @@ namespace alpaka
             template<typename TKernelFnObj, typename... TArgs>
             void operator()(TKernelFnObj const&, TArgs const&...)
             {
-#if defined(__cpp_lib_is_invocable) && __cpp_lib_is_invocable >= 201703
                 using Result = std::invoke_result_t<TKernelFnObj, TAcc const&, TArgs const&...>;
-#else
-                using Result = std::result_of_t<TKernelFnObj(TAcc const&, TArgs const&...)>;
-#endif
-                static_assert(std::is_same<Result, void>::value, "The TKernelFnObj is required to return void!");
+                static_assert(std::is_same_v<Result, void>, "The TKernelFnObj is required to return void!");
             }
         };
     } // namespace detail
@@ -238,18 +222,29 @@ namespace alpaka
         // check for void return type
         detail::CheckFnReturnType<TAcc>{}(kernelFnObj, args...);
 
+#if BOOST_COMP_NVCC
+        static_assert(
+            std::is_trivially_copyable_v<TKernelFnObj> || __nv_is_extended_device_lambda_closure_type(TKernelFnObj)
+                || __nv_is_extended_host_device_lambda_closure_type(TKernelFnObj),
+            "Kernels must be trivially copyable or an extended CUDA lambda expression!");
+#else
+        static_assert(std::is_trivially_copyable_v<TKernelFnObj>, "Kernels must be trivially copyable!");
+#endif
+        static_assert(
+            (std::is_trivially_copyable_v<std::decay_t<TArgs>> && ...),
+            "Kernel arguments must be trivially copyable!");
         static_assert(
             Dim<std::decay_t<TWorkDiv>>::value == Dim<TAcc>::value,
             "The dimensions of TAcc and TWorkDiv have to be identical!");
         static_assert(
-            std::is_same<Idx<std::decay_t<TWorkDiv>>, Idx<TAcc>>::value,
+            std::is_same_v<Idx<std::decay_t<TWorkDiv>>, Idx<TAcc>>,
             "The idx type of TAcc and the idx type of TWorkDiv have to be identical!");
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
         std::cout << __func__ << " workDiv: " << workDiv << ", kernelFnObj: " << typeid(kernelFnObj).name()
                   << std::endl;
 #endif
-        return traits::CreateTaskKernel<TAcc, TWorkDiv, TKernelFnObj, TArgs...>::createTaskKernel(
+        return trait::CreateTaskKernel<TAcc, TWorkDiv, TKernelFnObj, TArgs...>::createTaskKernel(
             workDiv,
             kernelFnObj,
             std::forward<TArgs>(args)...);

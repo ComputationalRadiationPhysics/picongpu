@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -17,23 +17,20 @@
 #include <climits>
 #include <cstdint>
 
-class ActivemaskSingleThreadWarpTestKernel
+struct ActivemaskSingleThreadWarpTestKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
-        std::int32_t const warpExtent = alpaka::warp::getSize(acc);
-        ALPAKA_CHECK(*success, warpExtent == 1);
-
+        if constexpr(alpaka::Dim<TAcc>::value > 0)
+            ALPAKA_CHECK(*success, alpaka::warp::getSize(acc) == 1);
         ALPAKA_CHECK(*success, alpaka::warp::activemask(acc) == 1u);
     }
 };
 
-class ActivemaskMultipleThreadWarpTestKernel
+struct ActivemaskMultipleThreadWarpTestKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, std::uint64_t inactiveThreadIdx) const -> void
@@ -69,31 +66,33 @@ TEMPLATE_LIST_TEST_CASE("activemask", "[warp]", alpaka::test::TestAccs)
     using Idx = alpaka::Idx<Acc>;
 
     Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
-    auto const warpExtent = alpaka::getWarpSize(dev);
-    if(warpExtent == 1)
+    auto const warpExtents = alpaka::getWarpSizes(dev);
+    for(auto const warpExtent : warpExtents)
     {
-        Idx const gridThreadExtentPerDim = 4;
-        alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(gridThreadExtentPerDim));
-        ActivemaskSingleThreadWarpTestKernel kernel;
-        REQUIRE(fixture(kernel));
-    }
-    else
-    {
-        // Work around gcc 7.5 trying and failing to offload for OpenMP 4.0
+        const auto scalar = Dim::value == 0 || warpExtent == 1;
+        if(scalar)
+        {
+            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
+            REQUIRE(fixture(ActivemaskSingleThreadWarpTestKernel{}));
+        }
+        else
+        {
+            // Work around gcc 7.5 trying and failing to offload for OpenMP 4.0
 #if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 5, 0)) && defined ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        return;
+            return;
 #else
-        using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
-        auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
-        // Enforce one warp per thread block
-        auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
-        blockThreadExtent[0] = static_cast<Idx>(warpExtent);
-        auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-        auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
-        auto fixture = ExecutionFixture{workDiv};
-        ActivemaskMultipleThreadWarpTestKernel kernel;
-        for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
-            REQUIRE(fixture(kernel, inactiveThreadIdx));
+            using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
+            auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
+            // Enforce one warp per thread block
+            auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
+            blockThreadExtent[0] = static_cast<Idx>(warpExtent);
+            auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
+            auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
+            auto fixture = ExecutionFixture{workDiv};
+            ActivemaskMultipleThreadWarpTestKernel kernel;
+            for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                REQUIRE(fixture(kernel, inactiveThreadIdx));
 #endif
+        }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2021 Jan Stephan
+/* Copyright 2022 Jan Stephan, Andrea Bocci
  *
  * This file is part of alpaka.
  *
@@ -21,7 +21,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct MemFence<MemFenceCpuSerial, memory_scope::Block>
@@ -29,6 +29,15 @@ namespace alpaka
             static auto mem_fence(MemFenceCpuSerial const&, memory_scope::Block const&)
             {
                 /* Nothing to be done on the block level for the serial case. */
+            }
+        };
+
+        template<>
+        struct MemFence<MemFenceCpuSerial, memory_scope::Grid>
+        {
+            static auto mem_fence(MemFenceCpuSerial const&, memory_scope::Grid const&)
+            {
+                /* Nothing to be done on the grid level for the serial case. */
             }
         };
 
@@ -48,5 +57,5 @@ namespace alpaka
                 dummy.store(x, std::memory_order_relaxed);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

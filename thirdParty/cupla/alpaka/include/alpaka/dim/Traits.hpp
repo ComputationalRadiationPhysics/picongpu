@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2020 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,15 +11,15 @@
 
 namespace alpaka
 {
-    //! The dimension traits.
-    namespace traits
+    //! The dimension trait.
+    namespace trait
     {
         //! The dimension getter type trait.
         template<typename T, typename TSfinae = void>
         struct DimType;
-    } // namespace traits
+    } // namespace trait
 
     //! The dimension type trait alias template to remove the ::type.
     template<typename T>
-    using Dim = typename traits::DimType<T>::type;
+    using Dim = typename trait::DimType<T>::type;
 } // namespace alpaka

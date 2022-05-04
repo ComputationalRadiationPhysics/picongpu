@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2017-2019 Benjamin Worpitz
+# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
 #
 # This file is part of alpaka.
 #
@@ -18,7 +18,7 @@ source ./script/set.sh
 : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
 : "${CXX?'CXX must be specified'}"
 
-# add clang-11 reposetory for ubuntu 18.04
+# add clang-11 repository for ubuntu 18.04
 if [[ "$(cat /etc/os-release)" == *"18.04"* && "${ALPAKA_CI_CLANG_VER}" -eq 11 ]]
 then
     travis_retry sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install tzdata
@@ -27,6 +27,13 @@ then
     echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main" | sudo tee /etc/apt/sources.list.d/clang11.list
     echo "deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main" | sudo tee -a  /etc/apt/sources.list.d/clang11.list
     travis_retry apt-get -y --quiet update
+fi
+
+# add clang-13 repository for ubuntu 20.04
+if [[ "$(cat /etc/os-release)" == *"20.04"* && "${ALPAKA_CI_CLANG_VER}" -eq 13 ]]
+then
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+    sudo add-apt-repository 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main'
 fi
 
 travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-${ALPAKA_CI_CLANG_VER}
@@ -46,7 +53,7 @@ then
     fi
 fi
 
-if [ "${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" = "ON" ] || [ "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" = "ON" ] || [ "${ALPAKA_ACC_ANY_BT_OMP5_ENABLE}" = "ON" ]
+if [ "${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" = "ON" ] || [ "${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" = "ON" ] || [ "${alpaka_ACC_ANY_BT_OMP5_ENABLE}" = "ON" ]
 then
     if [[ "${ALPAKA_CI_CLANG_VER}" =~ ^[0-9]+$ ]] && [ "${ALPAKA_CI_CLANG_VER}" -ge 8 ]
     then
@@ -55,7 +62,7 @@ then
         LIBOMP_PACKAGE=libomp-dev
     fi
     travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install "${LIBOMP_PACKAGE}"
-    if [ "${ALPAKA_ACC_ANY_BT_OMP5_ENABLE}" = "ON" ]
+    if [ "${alpaka_ACC_ANY_BT_OMP5_ENABLE}" = "ON" ]
     then
         travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install \
             clang-tools-${ALPAKA_CI_CLANG_VER} llvm-${ALPAKA_CI_CLANG_VER}

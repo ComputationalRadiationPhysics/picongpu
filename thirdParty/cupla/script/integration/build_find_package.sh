@@ -20,7 +20,7 @@ mkdir build install
 export LD_LIBRARY_PATH=${EXT_PROJECT_ROOT}/install/lib:${LD_LIBRARY_PATH}
 echo $LD_LIBRARY_PATH
 cd build
-cmake .. -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON -DBOOST_ROOT=/opt/boost/${CUPLA_BOOST_VERSION} -DCMAKE_INSTALL_PREFIX=../install -DBUILD_SHARED_LIBS=ON
+cmake .. -Dalpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON -DBOOST_ROOT=/opt/boost/${CUPLA_BOOST_VERSION} -DCMAKE_INSTALL_PREFIX=../install -DBUILD_SHARED_LIBS=ON
 cmake --build .
 cmake --install .
 

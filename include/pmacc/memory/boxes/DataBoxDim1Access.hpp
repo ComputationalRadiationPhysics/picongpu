@@ -47,6 +47,8 @@ namespace pmacc
         {
         }
 
+        HDINLINE DataBoxDim1Access(DataBoxDim1Access const&) = default;
+
         HDINLINE RefValueType operator()(DataSpace<DIM1> const& idx = {}) const
         {
             return (*this)[idx.x()];

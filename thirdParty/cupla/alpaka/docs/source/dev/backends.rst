@@ -268,7 +268,9 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +------------------------------+---------------------------------------------------------+
     | CUDA                         | alpaka                                                  |
     +==============================+=========================================================+
-    | cudaStreamAddCallback        | alpaka::enqueue(queue, [](){dosomething();})            |
+    | cudaLaunchHostFunc           | alpaka::enqueue(queue, [](){dosomething();})            |
+    |                              |                                                         |
+    | cudaStreamAddCallback        | \                                                       |
     +------------------------------+---------------------------------------------------------+
     | cudaStreamAttachMemAsync     | --                                                      |
     +------------------------------+---------------------------------------------------------+
@@ -355,7 +357,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocArray            | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMallocHost             | alpaka::allocBuf<TElement>(device, extents) 1D, 2D, 3D suppoorted!                         |
+    | cudaMallocHost             | alpaka::allocBuf<TElement>(device, extents) 1D, 2D, 3D supported!                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocManaged          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -374,13 +376,13 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemRangeGetAttributes  | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy                 | alpaka::memcpy(memBufDst, memBufSrc, extents1D)                                            |
+    | cudaMemcpy                 | alpaka::memcpy(queue, memBufDst, memBufSrc, extents1D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy2D               | alpaka::memcpy(memBufDst, memBufSrc, extents2D)                                            |
+    | cudaMemcpy2D               | alpaka::memcpy(queue, memBufDst, memBufSrc, extents2D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpy2DArrayToArray   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy2DAsync          | alpaka::memcpy(memBufDst, memBufSrc, extents2D, queue)                                     |
+    | cudaMemcpy2DAsync          | alpaka::memcpy(queue, memBufDst, memBufSrc, extents2D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpy2DFromArray      | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -390,17 +392,17 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpy2DToArrayAsync   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3D               | alpaka::memcpy(memBufDst, memBufSrc, extents3D)                                            |
+    | cudaMemcpy3D               | alpaka::memcpy(queue, memBufDst, memBufSrc, extents3D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3DAsync          | alpaka::memcpy(memBufDst, memBufSrc, extents3D, queue)                                     |
+    | cudaMemcpy3DAsync          | alpaka::memcpy(queue, memBufDst, memBufSrc, extents3D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3DPeer           | alpaka::memcpy(memBufDst, memBufSrc, extents3D)                                            |
+    | cudaMemcpy3DPeer           | alpaka::memcpy(queue, memBufDst, memBufSrc, extents3D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3DPeerAsync      | alpaka::memcpy(memBufDst, memBufSrc, extents3D, queue)                                     |
+    | cudaMemcpy3DPeerAsync      | alpaka::memcpy(queue, memBufDst, memBufSrc, extents3D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyArrayToArray     | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpyAsync            | alpaka::memcpy(memBufDst, memBufSrc, extents1D, queue)                                     |
+    | cudaMemcpyAsync            | alpaka::memcpy(queue, memBufDst, memBufSrc, extents1D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyFromArray        | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -410,9 +412,9 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyFromSymbolAsync  | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpyPeer             | alpaka::memcpy(memBufDst, memBufSrc, extents1D)                                            |
+    | cudaMemcpyPeer             | alpaka::memcpy(queue, memBufDst, memBufSrc, extents1D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpyPeerAsync        | alpaka::memcpy(memBufDst, memBufSrc, extents1D, queue)                                     |
+    | cudaMemcpyPeerAsync        | alpaka::memcpy(queue, memBufDst, memBufSrc, extents1D)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyToArray          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -422,17 +424,17 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyToSymbolAsync    | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset                 | alpaka::memset(memBufDst, byte, extents1D)                                                 |
+    | cudaMemset                 | alpaka::memset(queue, memBufDst, byte, extents1D)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset2D               | alpaka::memset(memBufDst, byte, extents2D)                                                 |
+    | cudaMemset2D               | alpaka::memset(queue, memBufDst, byte, extents2D)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset2DAsync          | alpaka::memset(memBufDst, byte, extents2D, queue)                                          |
+    | cudaMemset2DAsync          | alpaka::memset(queue, memBufDst, byte, extents2D, queue)                                   |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset3D               | alpaka::memset(memBufDst, byte, extents3D)                                                 |
+    | cudaMemset3D               | alpaka::memset(queue, memBufDst, byte, extents3D)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset3DAsync          | alpaka::memset(memBufDst, byte, extents3D, queue)                                          |
+    | cudaMemset3DAsync          | alpaka::memset(queue, memBufDst, byte, extents3D)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemsetAsync            | alpaka::memset(memBufDst, byte, extents1D, queue)                                          |
+    | cudaMemsetAsync            | alpaka::memset(queue, memBufDst, byte, extents1D)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | makecudaExtent             | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
