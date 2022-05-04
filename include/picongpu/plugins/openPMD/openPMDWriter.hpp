@@ -202,6 +202,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             // defined later since we need openPMDWriter constructor
 
             plugins::multi::Option<std::string> notifyPeriod = {"period", "enable openPMD IO [for each n-th step]"};
+            plugins::multi::Option<std::string> range
+                = {"range", "define the output range in cells for each dimension e.g. 1:10,:,42:"};
 
             plugins::multi::Option<std::string> source = {"source", "data sources: ", "species_all, fields_all"};
 
@@ -294,6 +296,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::string concatenatedSourceNames = plugins::misc::concatenateToString(allowedDataSources, ", ");
 
                 notifyPeriod.registerHelp(desc, masterPrefix + prefix);
+                range.registerHelp(desc, masterPrefix + prefix);
                 source.registerHelp(desc, masterPrefix + prefix, std::string("[") + concatenatedSourceNames + "]");
                 tomlSources.registerHelp(desc, masterPrefix + prefix);
                 fileName.registerHelp(desc, masterPrefix + prefix);
@@ -920,6 +923,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
+
             void notify(uint32_t currentStep) override
             {
                 // notify is only allowed if the plugin is not controlled by the
@@ -931,7 +935,17 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mThreadParams.initFromConfig(*m_help, m_id, outputDirectory);
 
                 /* window selection */
-                mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+                auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
+
+                // set default if the user is not providing the parameter.
+                std::string selectedRange = ":,:,:";
+                if(m_help->range.optionDefined(m_id) && !m_help->range.get(m_id).empty())
+                    selectedRange = m_help->range.get(m_id);
+
+                const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                mThreadParams.window
+                    = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, selectedRange);
+
                 mThreadParams.isCheckpoint = false;
                 dumpData(currentStep);
             }
@@ -1410,7 +1424,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* y direction can be negative for first gpu */
                 const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 DataSpace<simDim> particleOffset(localDomain.offset);
-                particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
+                particleOffset -= threadParams->window.globalDimensions.offset;
 
                 std::vector<std::string> vectorOfDataSourceNames;
                 if(m_help->selfRegister)

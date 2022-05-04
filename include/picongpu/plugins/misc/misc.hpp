@@ -24,5 +24,6 @@
 #include "picongpu/plugins/misc/ExecuteIfNameIsEqual.hpp"
 #include "picongpu/plugins/misc/concatenateToString.hpp"
 #include "picongpu/plugins/misc/containsObject.hpp"
+#include "picongpu/plugins/misc/intersectRangeWithWindow.hpp"
 #include "picongpu/plugins/misc/removeSpaces.hpp"
 #include "picongpu/plugins/misc/splitString.hpp"
