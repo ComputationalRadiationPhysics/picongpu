@@ -60,6 +60,8 @@ namespace pmacc
         {
         }
 
+        AreaMapping(const AreaMapping&) = default;
+
         /** Generate grid dimension information for alpaka kernel calls
          *
          * A kernel using this mapping must use exacly the returned number of blocks

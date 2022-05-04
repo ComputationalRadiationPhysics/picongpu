@@ -24,8 +24,6 @@
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/types.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
 
 namespace picongpu
 {
@@ -100,12 +98,14 @@ namespace picongpu
                  * @attention thread-collective operation, requires external thread synchronization
                  */
                 template<uint32_t T_numWorkers, typename T_BlockDescription, typename T_Acc, typename T_FieldBox>
-                DINLINE static auto create(T_Acc const& acc, T_FieldBox const& fieldBox, uint32_t const workerIdx)
+                DINLINE static auto create(
+                    [[maybe_unused]] T_Acc const& acc,
+                    T_FieldBox const& fieldBox,
+                    [[maybe_unused]] uint32_t const workerIdx)
 #if(!BOOST_COMP_CLANG)
                     -> T_FieldBox
 #endif
                 {
-                    alpaka::ignore_unused(acc, workerIdx);
                     return fieldBox;
                 }
 
@@ -120,12 +120,11 @@ namespace picongpu
                     typename T_FieldBox,
                     typename T_FieldCache>
                 DINLINE static void flush(
-                    T_Acc const& acc,
-                    T_FieldBox fieldBox,
-                    T_FieldCache const& cachedBox,
-                    uint32_t const workerIdx)
+                    T_Acc const& /*acc*/,
+                    T_FieldBox /*fieldBox*/,
+                    T_FieldCache const& /*cachedBox*/,
+                    uint32_t const /*workerIdx*/)
                 {
-                    alpaka::ignore_unused(acc, fieldBox, cachedBox, workerIdx);
                 }
             };
         } // namespace detail

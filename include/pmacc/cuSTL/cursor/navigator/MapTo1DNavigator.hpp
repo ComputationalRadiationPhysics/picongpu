@@ -60,6 +60,10 @@ namespace pmacc
             {
             }
 
+            HDINLINE MapTo1DNavigator(const MapTo1DNavigator&) = default;
+
+            HDINLINE MapTo1DNavigator& operator=(const MapTo1DNavigator&) = default;
+
             template<typename Cursor>
             HDINLINE Cursor operator()(const Cursor& cursor, math::Int<1> jump)
             {

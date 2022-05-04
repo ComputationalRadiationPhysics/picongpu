@@ -61,12 +61,7 @@ namespace pmacc
             }
 
             // Assignment operator
-            HDINLINE Complex& operator=(const Complex& other)
-            {
-                real = other.get_real();
-                imaginary = other.get_imag();
-                return *this;
-            }
+            HDINLINE Complex& operator=(const Complex& other) = default;
 
             // assign addition
             HDINLINE Complex& operator+=(const Complex& other)

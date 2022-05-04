@@ -49,6 +49,10 @@ namespace pmacc
             {
             }
 
+            HDINLINE BufferNavigator(const BufferNavigator&) = default;
+
+            HDINLINE BufferNavigator& operator=(const BufferNavigator&) = default;
+
             template<typename Data>
             HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
             {

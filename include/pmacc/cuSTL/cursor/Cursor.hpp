@@ -70,6 +70,10 @@ namespace pmacc
             {
             }
 
+            HDINLINE Cursor(const Cursor&) = default;
+
+            HDINLINE Cursor& operator=(const Cursor& other) = default;
+
             /** access
              * @return Accessor's return type.
              * Typically a reference to the current selected single datum.

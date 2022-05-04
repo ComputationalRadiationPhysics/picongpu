@@ -37,6 +37,8 @@ namespace picongpu
         {
         }
 
+        HDINLINE FieldBackgroundE(const FieldBackgroundE&) = default;
+
         /** Specify your background field E(r,t) here
          *
          * @param cellIdx The total cell id counted from the start at t = 0
@@ -64,6 +66,8 @@ namespace picongpu
         {
         }
 
+        HDINLINE FieldBackgroundB(const FieldBackgroundB&) = default;
+
         /** Specify your background field B(r,t) here
          *
          * @param cellIdx The total cell id counted from the start at t=0
@@ -90,6 +94,8 @@ namespace picongpu
         HINLINE FieldBackgroundJ(const float3_64 unitField) : m_unitField(unitField)
         {
         }
+
+        HDINLINE FieldBackgroundJ(const FieldBackgroundJ&) = default;
 
         /** Specify your background field J(r,t) here
          *

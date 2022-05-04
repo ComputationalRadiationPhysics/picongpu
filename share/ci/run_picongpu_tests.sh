@@ -38,6 +38,11 @@ else
   CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
 fi
 
+# Test is running out of memory, therefore we do not run in parallel.
+if [[ "$PIC_TEST_CASE_FOLDER" =~ .*CollisionsBeamRelaxation.* ]] ; then
+  export CI_CPUS=1
+fi
+
 # workaround for clang cuda
 # HDF5 from the apt sources is pulling -D_FORTIFY_SOURCE=2 into the compile flags
 # this workaround is creating a warning about the double definition of _FORTIFY_SOURCE

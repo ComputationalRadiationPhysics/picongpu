@@ -148,7 +148,7 @@ namespace picongpu
         TParticlesBox particlesBox;
         cursor::BufferCursor<float_PS, 2> curOriginPhaseSpace;
         uint32_t p_element;
-        std::pair<float_X, float_X> axis_p_range;
+        std::pair<const float_X, float_X> axis_p_range;
         T_Filter particleFilter;
 
         /** Constructor to transfer params to device
@@ -173,6 +173,10 @@ namespace picongpu
             , particleFilter(parFilter)
         {
         }
+
+        HDINLINE FunctorBlock(const FunctorBlock&) = default;
+
+        HDINLINE FunctorBlock& operator=(const FunctorBlock&) = default;
 
         /** Called for the first cell of each block #-of-cells-in-block times
          *

@@ -69,6 +69,8 @@ namespace pmacc
         {
         }
 
+        ExchangeMapping(const ExchangeMapping&) = default;
+
         /*get exchange type
          *@return exchange of this object
          */

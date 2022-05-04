@@ -46,6 +46,10 @@ namespace pmacc
             {
             }
 
+            HDINLINE CartNavigator(const CartNavigator&) = default;
+
+            HDINLINE CartNavigator& operator=(const CartNavigator&) = default;
+
             template<typename Data>
             HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
             {

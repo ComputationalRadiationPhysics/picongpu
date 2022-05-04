@@ -74,6 +74,8 @@ namespace picongpu
                 {
                 }
 
+                HDINLINE Curl(const Curl&) = default;
+
                 /** Return curl value at the given point
                  *
                  * @tparam T_DataBox data box type with field data

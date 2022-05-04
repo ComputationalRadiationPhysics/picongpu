@@ -41,6 +41,7 @@
 
 #include <isaac.hpp>
 
+
 namespace picongpu
 {
     namespace isaacP
@@ -62,6 +63,8 @@ namespace picongpu
             TFieldSource() : cellDescription(nullptr)
             {
             }
+
+            TFieldSource(const TFieldSource&) = default;
 
             void init(MappingDesc* cellDescription)
             {
@@ -112,6 +115,8 @@ namespace picongpu
             TFieldSource() : cellDescription(nullptr)
             {
             }
+
+            TFieldSource(const TFieldSource&) = default;
 
             void init(MappingDesc* cellDescription)
             {
@@ -175,6 +180,8 @@ namespace picongpu
             TVectorFieldSource() : cellDescription(nullptr)
             {
             }
+
+            TVectorFieldSource(const TVectorFieldSource&) = default;
 
             void init(MappingDesc* cellDescription)
             {
@@ -304,10 +311,6 @@ namespace picongpu
         public:
             static const size_t featureDim = 3;
             DataSpace<simDim> guarding;
-            ISAAC_NO_HOST_DEVICE_WARNING
-            ParticleSource()
-            {
-            }
 
             ISAAC_HOST_INLINE static std::string getName()
             {
@@ -406,6 +409,8 @@ namespace picongpu
 #endif
                 >;
             VisualizationType* visualization = nullptr;
+
+            static_assert(std::is_trivially_copyable<std::decay_t<VectorFieldSourceList>>::value);
 
             IsaacPlugin()
             {

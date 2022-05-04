@@ -40,34 +40,34 @@ get_backend_flags()
         exit 1
     fi
     if [ "${backend_cfg[0]}" == "cuda" ] ; then
-        result+=" -DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON"
+        result+=" -Dalpaka_ACC_GPU_CUDA_ENABLE=ON -Dalpaka_ACC_GPU_CUDA_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DCMAKE_CUDA_ARCHITECTURES=\"${backend_cfg[1]}\""
         else
             result+=" -DCMAKE_CUDA_ARCHITECTURES=35"
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+        result+=" -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "serial" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON"
+        result+=" -Dalpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "tbb" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON"
+        result+=" -Dalpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "threads" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON"
+        result+=" -Dalpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "hip" ] ; then
-        result+=" -DALPAKA_ACC_GPU_HIP_ENABLE=ON -DALPAKA_ACC_GPU_HIP_ONLY_MODE=ON"
+        result+=" -Dalpaka_ACC_GPU_HIP_ENABLE=ON -Dalpaka_ACC_GPU_HIP_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DGPU_TARGETS=\"${backend_cfg[1]}\""
         fi

@@ -127,7 +127,7 @@ namespace alpaka
 {
     namespace math
     {
-        namespace traits
+        namespace trait
         {
             template<typename T_Ctx, typename T_Type>
             struct Pow<T_Ctx, ::pmacc::math::Complex<T_Type>, T_Type, void>
@@ -238,7 +238,7 @@ namespace alpaka
                         / ::pmacc::math::Complex<T_Type>(type(0.), type(2.));
                 }
             };
-        } // namespace traits
+        } // namespace trait
     } // namespace math
 } // namespace alpaka
 

@@ -44,15 +44,9 @@ namespace pmacc
         {
         }
 
-        HDINLINE Pointer(const Pointer& other) : ptr(other.ptr)
-        {
-        }
+        HDINLINE Pointer(const Pointer& other) = default;
 
-        HDINLINE Pointer& operator=(const Pointer& other)
-        {
-            ptr = other.ptr;
-            return *this;
-        }
+        HDINLINE Pointer& operator=(const Pointer& other) = default;
 
         /** dereference the pointer*/
         HDINLINE type& operator*()

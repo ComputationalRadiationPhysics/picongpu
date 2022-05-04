@@ -81,6 +81,8 @@ namespace pmacc
             }
         }
 
+        MappingDescription(const MappingDescription&) = default;
+
         HDINLINE DataSpace<DIM> getGridSuperCells() const
         {
             return this->gridSuperCells;

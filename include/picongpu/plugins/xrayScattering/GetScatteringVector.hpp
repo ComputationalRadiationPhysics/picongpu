@@ -53,6 +53,8 @@ namespace picongpu
                 {
                 }
 
+                HDINLINE GetScatteringVector(const GetScatteringVector&) = default;
+
                 HDINLINE float2_X operator[](const uint32_t& idx)
                 {
                     const uint32_t totalIdx = idx + m_iterOffset;

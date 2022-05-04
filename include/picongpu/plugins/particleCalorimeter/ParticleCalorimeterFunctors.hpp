@@ -79,6 +79,8 @@ namespace picongpu
         {
         }
 
+        HDINLINE CalorimeterFunctor(const CalorimeterFunctor&) = default;
+
         HINLINE void setCalorimeterCursor(const CalorimeterCur& calorimeterCur)
         {
             this->calorimeterCur = calorimeterCur;

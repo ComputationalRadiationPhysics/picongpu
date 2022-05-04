@@ -57,6 +57,9 @@ namespace pmacc
                 HDINLINE
                 constexpr Vector_components& operator=(const Vector_components&) = default;
 
+                HDINLINE
+                constexpr Vector_components(const Vector_components&) = default;
+
                 /*align full vector*/
                 PMACC_ALIGN(v[dim], type);
 
@@ -70,43 +73,6 @@ namespace pmacc
                 const type& operator[](const int idx) const
                 {
                     return v[idx];
-                }
-            };
-
-
-            /** functor to copy a object element-wise
-             *
-             * @tparam isDestConst define if destination is const (not copyable) object
-             */
-            template<bool isDestConst>
-            struct CopyElementWise
-            {
-                /** copy object element-wise
-                 *
-                 * @tparam T_Dest destination object type
-                 * @tparam T_Src source object type
-                 */
-                template<typename T_Dest, typename T_Src>
-                HDINLINE void operator()(T_Dest& dest, const T_Src& src) const
-                {
-                    PMACC_CASSERT_MSG(
-                        CopyElementWise_destination_and_source_had_different_dimension,
-                        T_Dest::dim == T_Src::dim);
-                    for(int d = 0; d < T_Dest::dim; d++)
-                        dest[d] = src[d];
-                }
-            };
-
-            /** specialization for constant destination
-             *
-             * the constant storage is already available and set in the destination
-             */
-            template<>
-            struct CopyElementWise<true>
-            {
-                template<typename T_Dest, typename T_Src>
-                HDINLINE void operator()(T_Dest& dest, const T_Src& src) const
-                {
                 }
             };
 
@@ -169,10 +135,7 @@ namespace pmacc
             }
 
             HDINLINE
-            constexpr Vector(const Vector& other)
-            {
-                detail::CopyElementWise<Storage::isConst>()(*this, other);
-            }
+            constexpr Vector(const Vector& other) = default;
 
             template<typename T_OtherAccessor, typename T_OtherNavigator, typename T_OtherStorage>
             HDINLINE Vector(const Vector<T_Type, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& other)
@@ -236,7 +199,7 @@ namespace pmacc
                 return invertedVector;
             }
 
-            constexpr HDINLINE Vector& operator=(const Vector&) = default;
+            HDINLINE Vector& operator=(const Vector&) = default;
 
             template<typename T_OtherAccessor, typename T_OtherNavigator, typename T_OtherStorage>
             HDINLINE Vector& operator=(const Vector<type, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
