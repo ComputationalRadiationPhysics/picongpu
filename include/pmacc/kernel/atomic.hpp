@@ -84,7 +84,9 @@ namespace pmacc
                     ::atomicAddNoRet(ptr, value);
                 }
             };
-#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1 && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) >= 403)
+#elif(                                                                                                                \
+    PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT == 1 && ALPAKA_ACC_GPU_HIP_ENABLED == 1                               \
+    && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) >= 403)
             /** HIP backend specialization for atomic add float
              *
              * atomicAdd(float*,float) into shared memory is very slow for HIP 4.3+.
