@@ -68,11 +68,11 @@ Further options are:
 - `-j <N> : run <N> tests in parallel (note: do NOT omit the number <N>)`
 
 If you ran your test with, let's say `-l -q -j 4`, and you got errors like
->  [compileSuite] [error] In PIC_EXTENSION_PATH:PATH=.../params/ThermalTest/cmakePreset_0:
->                         CMAKE_INSTALL_PREFIX:PATH=.../params/ThermalTest/cmakePreset_0
+>  [compileSuite] [error] In PIC_EXTENSION_PATH:PATH=.../params/KelvinHelmholtz/cmakePreset_0:
+>                         CMAKE_INSTALL_PREFIX:PATH=.../params/KelvinHelmholtz/cmakePreset_0
 >                         (.../build) make install
 
-check the specific test's output (in this case `examples/ThermalTest` with
+check the specific test's output (in this case `examples/KelvinHelmholtz` with
 *CMake preset #0*) with:
 - `less -R $tmpPath/build/build_ThermalTest_cmakePreset_0/compile.log`
 
