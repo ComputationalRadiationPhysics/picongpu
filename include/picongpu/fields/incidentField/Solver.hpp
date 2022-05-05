@@ -292,7 +292,8 @@ namespace picongpu
                     functor.incidentComponent2 = dir1;
 
                     // Coefficients for the respective terms
-                    float_X const coeffBase = curlCoefficient / cellSize[T_axis];
+                    float_X const directionSign = (parameters.direction > 0.0_X ? 1.0_X : -1.0_X);
+                    float_X const coeffBase = curlCoefficient / cellSize[T_axis] * directionSign;
                     functor.coeff1[dir1] = coeffBase;
                     functor.coeff2[dir2] = -coeffBase;
 
