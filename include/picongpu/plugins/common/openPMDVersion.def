@@ -158,10 +158,6 @@ namespace picongpu
                 std::forward<Functor>(createBaseBuffer));
         }
 
-        constexpr char const* jsonConfigBP5TargetBuffer
-            = R"({"adios2": {"engine": {"preferred_flush_target": "disk"}}})";
-        constexpr char const* jsonConfigBP5TargetDisk
-            = R"({"adios2": {"engine": {"preferred_flush_target": "buffer"}}})";
 
         enum class PreferredFlushTarget : bool
         {
@@ -169,17 +165,50 @@ namespace picongpu
             Buffer
         };
 
+        namespace detail
+        {
+            /*
+             * Do some SFINAE tricks to detect whether the openPMD API allows
+             * specifying JSON configs in flush calls or not.
+             */
+            template<typename Series = ::openPMD::Series, typename Dummy = void>
+            struct FlushSeries
+            {
+                static void run(Series& series, PreferredFlushTarget)
+                {
+                    series.flush();
+                }
+            };
+
+            /*
+             * Enable this if Series::flush accepts string parameters.
+             */
+            template<typename Series>
+            struct FlushSeries<Series, decltype(std::declval<Series>().flush(std::declval<std::string>()))>
+            {
+                static constexpr char const* jsonConfigBP5TargetBuffer
+                    = R"({"adios2": {"engine": {"preferred_flush_target": "disk"}}})";
+                static constexpr char const* jsonConfigBP5TargetDisk
+                    = R"({"adios2": {"engine": {"preferred_flush_target": "buffer"}}})";
+
+                static void run(Series& series, PreferredFlushTarget target)
+                {
+                    switch(target)
+                    {
+                    case PreferredFlushTarget::Disk:
+                        series.flush(jsonConfigBP5TargetDisk);
+                        break;
+                    case PreferredFlushTarget::Buffer:
+                        series.flush(jsonConfigBP5TargetBuffer);
+                        break;
+                    }
+                }
+            };
+        } // namespace detail
+
         inline void flushSeries(::openPMD::Series& series, PreferredFlushTarget target)
         {
-            switch(target)
-            {
-            case PreferredFlushTarget::Disk:
-                series.flush(jsonConfigBP5TargetDisk);
-                break;
-            case PreferredFlushTarget::Buffer:
-                series.flush(jsonConfigBP5TargetBuffer);
-                break;
-            }
+            detail::FlushSeries<>::run(series, target);
         }
 
     } // namespace openPMD
