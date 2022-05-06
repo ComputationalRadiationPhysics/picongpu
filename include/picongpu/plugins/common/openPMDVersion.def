@@ -158,13 +158,28 @@ namespace picongpu
                 std::forward<Functor>(createBaseBuffer));
         }
 
-        inline void flushCollectively(::openPMD::Series& series)
+        constexpr char const* jsonConfigBP5TargetBuffer
+            = R"({"adios2": {"engine": {"preferred_flush_target": "disk"}}})";
+        constexpr char const* jsonConfigBP5TargetDisk
+            = R"({"adios2": {"engine": {"preferred_flush_target": "buffer"}}})";
+
+        enum class PreferredFlushTarget : bool
         {
-            series.flush(
-#if OPENPMDAPI_VERSION_GE(0, 15, 0)
-                ::openPMD::FlushMode::Collective
-#endif
-            );
+            Disk,
+            Buffer
+        };
+
+        inline void flushSeries(::openPMD::Series& series, PreferredFlushTarget target)
+        {
+            switch(target)
+            {
+            case PreferredFlushTarget::Disk:
+                series.flush(jsonConfigBP5TargetDisk);
+                break;
+            case PreferredFlushTarget::Buffer:
+                series.flush(jsonConfigBP5TargetBuffer);
+                break;
+            }
         }
 
     } // namespace openPMD

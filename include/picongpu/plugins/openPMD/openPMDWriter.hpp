@@ -730,7 +730,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     ::openPMD::shareRaw(rawPtr),
                     asStandardVector(recordOffsetDims),
                     asStandardVector(recordLocalSizeDims));
-                flushCollectively(*params->openPMDSeries);
+                flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
             }
 
             /** Implementation of loading random number generator states
@@ -1386,7 +1386,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     if(numDataPoints == 0)
                     {
-                        flushCollectively(*params->openPMDSeries);
+                        flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
                         continue;
                     }
 
@@ -1437,7 +1437,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         }
                     }
 
-                    flushCollectively(*params->openPMDSeries);
+                    flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
                 }
             }
 
