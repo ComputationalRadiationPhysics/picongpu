@@ -92,9 +92,6 @@ namespace picongpu
                     //! Time increment in the target field, in iterations
                     float_X timeIncrementIteration;
 
-                    //! Whether there is an active (non-none) min source for each axis
-                    pmacc::math::Vector<bool, simDim> hasMinSource;
-
                     //! Cell description for kernels
                     MappingDesc const cellDescription;
                 };
@@ -188,21 +185,14 @@ namespace picongpu
                      */
                     auto const& subGrid = Environment<simDim>::get().SubGrid();
                     auto const globalDomainOffset = subGrid.getGlobalDomain().offset;
-                    auto beginUserIdx = parameters.offsetMinBorder + globalDomainOffset;
-                    /* Total field in positive direction needs to have the begin adjusted by one to get the first
-                     * index inside the respective region.
-                     * Here we want to shift only for axes with active positive-direction source.
-                     * So for other boundaries the Huygens surface is effectively pushed one cell outside.
-                     * We do it to avoid creating artificial non-uniformities at the edges.
-                     * (Example: consider there is only XMin source and no YMin, no ZMin.
-                     * Then the XMin source is applied for y = beginUserIdx.y() and z = beginUserIdx.z() as usual.
-                     * If we always shifted by 1 in all directions, it would have made those layers special
-                     * and caused unnecessary edge effects.)
+                    /* Add extra 1 to account for 0.75 Huygens surface shift.
+                     * However, the shift is not reverted for min-border row of B due to our Yee grid configuration.
                      */
-                    if(isUpdatedFieldTotal && parameters.direction > 0)
-                        for(uint32_t d = 0; d < simDim; d++)
-                            if(parameters.hasMinSource[d])
-                                beginUserIdx[d]++;
+                    auto beginUserIdx
+                        = parameters.offsetMinBorder + globalDomainOffset + pmacc::DataSpace<simDim>::create(1);
+                    ;
+                    if(!isUpdatedFieldTotal && (parameters.direction > 0))
+                        beginUserIdx[T_axis] -= 1;
                     auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder + globalDomainOffset;
 
                     // Prepare update functor type
@@ -440,7 +430,9 @@ namespace picongpu
             /** Solver for incident fields to be called inside an FDTD Maxwell's solver
              *
              * It uses the total field / scattered field technique for FDTD solvers.
-             * Implementation is based on
+             * Implementation is based on two sources:
+             * A. Taflove, S.C. Hagness. Computational Electrodynamics. The Finite-Difference Time-Domain Method. Third
+             * Edition. Artech house (2005). Chapter 5.
              * M. Potter, J.-P. Berenger. A Review of the Total Field/Scattered Field Technique for the FDTD Method.
              * FERMAT, Volume 19, Article 1, 2017.
              *
@@ -448,9 +440,11 @@ namespace picongpu
              * It is composed of six axis-aligned plane segments in 3d or four axis-aligned line segments in 2d.
              * So it is parallel to the interface between the absorber area and internal non-absorbing area.
              * The position of the Huygens surface is controlled by offset from the interface inwards.
-             * This offset is a sum of the user-specified gap and 0.75 of a cell into the internal area from each side.
+             * Extra 0.75 of a cell shift is applied towards the internal area from each side.
              * (The choice of 0.75 is arbitrary by this implementation, only required to be not in full or half cells).
-             * All gaps >= 0 are supported if the surface covers an internal volume of at least one full cell.
+             * Thus, the positioning and indexing matches that of [Taflove, Hagness].
+             * Offsets must be such that the Huygens surface is located outside of field absorber area and covers an
+             * internal volume of at least one full cell.
              *
              * In the internal volume bounded by the Huygens surface, the E and B fields are so-called full fields.
              * They are a combined result of incoming incident fields and the internally happening dynamics.
@@ -477,10 +471,6 @@ namespace picongpu
                         offsetMinBorder[axis] = OFFSET[axis][0];
                         offsetMaxBorder[axis] = OFFSET[axis][1];
                     }
-                    hasMinProfile[0] = !std::is_same_v<XMinProfile, profiles::None>;
-                    hasMinProfile[1] = !std::is_same_v<YMinProfile, profiles::None>;
-                    if constexpr(simDim == 3)
-                        hasMinProfile[2] = !std::is_same_v<ZMinProfile, profiles::None>;
                     checkVolume();
                 }
 
@@ -569,7 +559,6 @@ namespace picongpu
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
                     parameters.offsetMinBorder = offsetMinBorder;
                     parameters.offsetMaxBorder = offsetMaxBorder;
-                    parameters.hasMinSource = hasMinProfile;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 1.0_X;
@@ -597,7 +586,6 @@ namespace picongpu
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
                     parameters.offsetMinBorder = offsetMinBorder;
                     parameters.offsetMaxBorder = offsetMaxBorder;
-                    parameters.hasMinSource = hasMinProfile;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 0.5_X;
@@ -639,9 +627,6 @@ namespace picongpu
                  * Counted in full cells, the surface is additionally offset by 0.75 cells
                  */
                 pmacc::DataSpace<simDim> offsetMaxBorder;
-
-                //! Whether there is an active (non-none) min profile for each axis
-                pmacc::math::Vector<bool, simDim> hasMinProfile;
 
                 //! Cell description for kernels
                 MappingDesc const cellDescription;
