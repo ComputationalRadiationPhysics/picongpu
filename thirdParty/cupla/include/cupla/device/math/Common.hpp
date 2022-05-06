@@ -25,6 +25,7 @@
 #include "cupla/types.hpp"
 
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/math/MathStdLib.hpp>
 
 #include <type_traits>
 
