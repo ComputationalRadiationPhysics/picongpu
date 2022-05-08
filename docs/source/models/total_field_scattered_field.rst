@@ -424,7 +424,7 @@ References
         FERMAT, Volume 19, Article 1 (2017)
 
 .. [Taflove2005]
-        A. Taflove
+        A. Taflove, S.C. Hagness
         *Computational electrodynamics: the finite-difference time-domain method*
         Artech house (2005)
 

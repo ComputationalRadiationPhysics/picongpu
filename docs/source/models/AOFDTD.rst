@@ -409,7 +409,7 @@ References
         Physical Review Special Topics-Accelerators and Beams 16.2 (2013): 021301.
 
 .. [Taflove2005]
-        A. Taflove
+        A. Taflove, S.C. Hagness
         *Computational electrodynamics: the finite-difference time-domain method*
         Artech house (2005)
 
