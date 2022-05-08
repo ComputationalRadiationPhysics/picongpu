@@ -23,6 +23,16 @@ Gaussian Beam with Pulse Front Tilt
    :language: bash
    :lines: 36-119
 
+Gaussian Beam with Second- and Third-Order-Dispersion
+'''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+.. doxygenstruct:: picongpu::fields::laserProfiles::PulseFromSpectrum
+  :project: PIConGPU
+
+.. literalinclude:: ../../../../../include/picongpu/fields/laserProfiles/PulseFromSpectrum.def
+  :language: bash
+  :lines: 37-127
+
 Wavepacket
 ''''''''''
 
