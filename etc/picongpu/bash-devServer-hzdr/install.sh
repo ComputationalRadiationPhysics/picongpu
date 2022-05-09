@@ -11,7 +11,7 @@ spack install --reuse openpmd-api@0.14.4 %gcc@10.2.0 \
     ^py-numpy@1.22.3
 
 echo "boost:"
-spack install --reuse boost@1.72.0 \
+spack install --reuse boost@1.74.0 \
     +program_options \
     +filesystem \
     +system \
@@ -22,5 +22,6 @@ spack install --reuse boost@1.72.0 \
     +thread \
     +chrono \
     +atomic \
-    +date_time %gcc@10.2.0\
-    ^python@3.9.12
+    +date_time \
+    ~python
+    %gcc@10.2.0
