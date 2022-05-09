@@ -392,7 +392,7 @@ Finally, updates of :math:`B_z` are as follows:
 Calculating Incident B from E
 -----------------------------
 
-Consider a case when both :math:`E^{inc}(x, y, z, t)` and  :math:`\vec B^{inc}(x, y, z, t)` are theoretically present, but only :math:`E^{inc}(x, y, z, t)` is known in explicit form.
+Consider a case when both :math:`\vec E^{inc}(x, y, z, t)` and  :math:`\vec B^{inc}(x, y, z, t)` are theoretically present, but only :math:`\vec E^{inc}(x, y, z, t)` is known in explicit form.
 
 When slowly varying elvelope approximation (SVEA) is applicable, one may employ it to calculate the other field as :math:`\vec B^{inc}(x, y, z, t) = \vec k \times \vec E^{inc}(x, y, z, t) / c`.
 PIConGPU implements this approach for all incident field profiles and as a default second parameter of the ``Free`` incident field profile.

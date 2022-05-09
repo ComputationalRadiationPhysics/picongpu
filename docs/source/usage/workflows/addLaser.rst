@@ -20,7 +20,7 @@ Incident Field
 Incident field is an external field source producing a wave propagating inwards the simulation volume.
 The source is applied at a boundary of an axis-aligned box located inside the simulation area.
 The implementation is based on the total field/scattered field formulation described in detail :ref:`here <model-TFSF>`.
-A user sets offsets of each side of this box from global domain boundary in :ref:`incidentField.param <usage-params-core>`.
+A user sets offsets of this box from global domain boundary in :ref:`incidentField.param <usage-params-core>`.
 Each offset must cover at least the field absorber thickness along the boundary so that the generating surface is located in the internal area.
 
 For each of the generation planes ``XMin, XMax, YMin, YMax, ZMin, ZMax`` (the latter two for 3d) a user sets incident profile to be applied.
@@ -28,10 +28,10 @@ The configuration is done through parameter structures, depending on the profile
 Both profiles and parameter structures generally match their laser counterparts.
 The differences between matching incident field- and laser profiles are:
 
-# positioning of incident field is controlled for the generation plane and not via an internal member ``::initPlaneY``
-# incident field profiles do not have an extra time delay equal to :math:`initPlaneY * \Delta y / c` as lasers do (when needed, other parameters could be adjusted to accomodate for the delay)
-# default initial phase is chosen so that the laser starts smoothly at the generation plane (for laser it is always for plane :math:`y = 0`) 
-# incident field uses generalized coordinate system and treats transversal axes and parameters generically (explained in comments of the profile parameters in question)
+#. positioning of incident field is controlled for the generation plane and not via an internal member ``::initPlaneY``
+#. incident field profiles do not have an extra time delay equal to :math:`\mathrm{initPlaneY} * \Delta y / c` as lasers do (when needed, other parameters could be adjusted to accomodate for the delay)
+#. default initial phase is chosen so that the laser starts smoothly at the generation plane (for laser it is always for plane :math:`y = 0`)
+#. incident field uses generalized coordinate system and treats transversal axes and parameters generically (explained in comments of the profile parameters in question)
 
 Note that the profile itself only controls properties of the laser, but not where it will be applied to.
 It is a combination of profile and particular plane that together will produce an inward-going laser adhering to the profile.
