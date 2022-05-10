@@ -82,10 +82,12 @@ namespace picongpu
                      * @param beginGridIdx grid index of the first updatedField value to be corrected at all
                      * (not necessarily by this call)
                      * @param updatedGridIdx grid index of updatedField to be corrected by this function
+                     * @param isLastUpdatedCell whether the cell is the last updated one along each direction
                      */
                     HDINLINE void operator()(
                         pmacc::DataSpace<simDim> const& beginGridIdx,
-                        pmacc::DataSpace<simDim> const& updatedGridIdx)
+                        pmacc::DataSpace<simDim> const& updatedGridIdx,
+                        pmacc::math::Vector<bool, simDim> const& isLastUpdatedCell)
                     {
                         // Determine Huygens surface position for the current updatedField value
                         auto huygensSurfaceIdx = updatedGridIdx;
@@ -96,8 +98,11 @@ namespace picongpu
                         auto const incidentFieldShift1 = incidentFieldShiftBase + inCellShift1;
                         auto const incidentFieldShift2 = incidentFieldShiftBase + inCellShift2;
                         auto const updatedFieldShift = (updatedGridIdx - huygensSurfaceIdx)[T_axis];
-                        updatedField(updatedGridIdx)
-                            += getUpdatedFieldCorrection(updatedFieldShift, incidentFieldShift1, incidentFieldShift2);
+                        updatedField(updatedGridIdx) += getUpdatedFieldCorrection(
+                            updatedFieldShift,
+                            incidentFieldShift1,
+                            incidentFieldShift2,
+                            isLastUpdatedCell);
                     }
 
                     //! UpdatedField box
@@ -139,6 +144,10 @@ namespace picongpu
                      * match the Yee grid layout for incidentField for incidentComponent1, 2. coeff1, 2 are non-zero
                      * only along incidentComponent2, 1 respectively. Which of the components/terms is first or second
                      * is irrelevant, as long as the variables with 1, 2 match the described scheme.
+                     *
+                     * For the last cells updated along axes other than T_axis, only some field components are updated.
+                     * This is due to configuration of the Yee grid and indexing used. This special case is handled
+                     * inside the kernel by effectively skipping some updates.
                      *
                      * @{
                      */
@@ -201,11 +210,13 @@ namespace picongpu
                      * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
                      * @param incidentFieldShift1 base shift of the first incidentField component
                      * @param incidentFieldShift2 base shift of the second incidentField component
+                     * @param isLastUpdatedCell whether the cell is last updated one along each direction
                      */
                     HDINLINE float3_X getUpdatedFieldCorrection(
                         int32_t updatedFieldShift,
                         floatD_X const& incidentFieldShift1,
-                        floatD_X const& incidentFieldShift2) const
+                        floatD_X const& incidentFieldShift2,
+                        pmacc::math::Vector<bool, simDim> const& isLastUpdatedCell) const
                     {
                         auto result = float3_X::create(0.0_X);
                         auto incidentIdxShift = floatD_X::create(0.0_X);
@@ -221,6 +232,17 @@ namespace picongpu
                         constexpr auto dir2 = (axis + 2) % 3;
                         constexpr int32_t sizeDir1 = pmacc::math::CT::At_c<NumCoefficients, dir1>::type::value;
                         constexpr int32_t sizeDir2 = pmacc::math::CT::At_c<NumCoefficients, dir2>::type::value;
+                        /* Due to indexing of the Yee grid, at the last updated cell we must update only some of the
+                         * transversal field components and not all of them.
+                         * These guard variables take care of that and isolate this logic here, so that the main update
+                         * is always expressed in vector form as if for all components.
+                         */
+                        bool const applyIncidentField1
+                            = ((isUpdatedFieldTotal && !isLastUpdatedCell[incidentComponent2])
+                               || (!isUpdatedFieldTotal && !isLastUpdatedCell[incidentComponent1]));
+                        bool const applyIncidentField2
+                            = ((isUpdatedFieldTotal && !isLastUpdatedCell[incidentComponent1])
+                               || (!isUpdatedFieldTotal && !isLastUpdatedCell[incidentComponent2]));
                         for(int32_t axisShift = abs(updatedFieldShift); axisShift < margin; axisShift++)
                         {
                             auto coeffIdx = pmacc::DataSpace<3>::create(0);
@@ -237,15 +259,16 @@ namespace picongpu
                                         = derivativeCoefficients.value[coeffIdx[0]][coeffIdx[1]][coeffIdx[2]];
                                     // Note: the vector update scheme and notation is described at declaration of
                                     // coeff1, 2
-                                    result += derivativeCoeff
-                                        * (coeff1
-                                               * functorIncidentField(
-                                                   incidentFieldShift1
-                                                   + incidentIdxShift.shrink<simDim>())[incidentComponent1]
-                                           + coeff2
-                                               * functorIncidentField(
-                                                   incidentFieldShift2
-                                                   + incidentIdxShift.shrink<simDim>())[incidentComponent2]);
+                                    if(applyIncidentField1)
+                                        result += derivativeCoeff * coeff1
+                                            * functorIncidentField(
+                                                      incidentFieldShift1
+                                                      + incidentIdxShift.shrink<simDim>())[incidentComponent1];
+                                    if(applyIncidentField2)
+                                        result += derivativeCoeff * coeff2
+                                            * functorIncidentField(
+                                                      incidentFieldShift2
+                                                      + incidentIdxShift.shrink<simDim>())[incidentComponent2];
                                     incidentIdxShift[dir2] += 1.0_X;
                                 }
                                 incidentIdxShift[dir1] += 1.0_X;
@@ -334,13 +357,19 @@ namespace picongpu
                                     = DataSpaceOperations<simDim>::template map<T_BlockDescription>(linearIdx);
                                 auto const updatedGridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
 
-                                // The index may be outside since the active area is not generally a multiple of block
-                                // size
+                                /* The index may be outside since the active area is not generally a multiple of block
+                                 * size. Last updated cells may be treated differently in the functor, prepare this
+                                 * information here.
+                                 */
                                 bool isInside = true;
+                                auto isLastUpdatedCell = pmacc::math::Vector<bool, simDim>::create(false);
                                 for(uint32_t d = 0; d < simDim; d++)
+                                {
                                     isInside = isInside && (updatedGridIdx[d] < endGridIdx[d]);
+                                    isLastUpdatedCell[d] = (updatedGridIdx[d] == endGridIdx[d] - 1);
+                                }
                                 if(isInside)
-                                    functor(beginGridIdx, updatedGridIdx);
+                                    functor(beginGridIdx, updatedGridIdx, isLastUpdatedCell);
                             });
                     }
                 };
