@@ -284,6 +284,61 @@ namespace picongpu
                     }
                 };
 
+                /** Base class for incident E functors of separable lasers
+                 *
+                 * In internal coordinates these lasers have form
+                 * f(time, position) = Longitudinal(time) * Transversal(position)
+                 * This class implements a standard workflow for calculating such lasers.
+                 *
+                 * @tparam T_BaseParam parameter structure matching profiles::BaseParam requirements
+                 */
+                template<typename T_BaseParam>
+                struct BaseSeparableFunctorE : public BaseFunctorE<T_BaseParam>
+                {
+                    //! Base functor
+                    using Base = BaseFunctorE<T_BaseParam>;
+
+                    /** Create a functor on the host side, check that unit matches the internal E unit
+                     *
+                     * @param currentStep current time step index, note that it is fractional
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  fieldE_internal = fieldE_SI / unitField
+                     */
+                    HINLINE BaseSeparableFunctorE(float_X const currentStep, float3_64 const unitField)
+                        : Base(currentStep, unitField)
+                    {
+                    }
+
+                    /** Calculate value of given functor representing a separable laser
+                     *
+                     * @tparam T_SeparableFunctor functor type, must match interface of Base and define methods
+                     *                            getLongitudinal(time, phaseShift), getTransversal(totalCellIdx)
+                     *
+                     * @param functor functor object
+                     * @param totalCellIdx cell index in the total domain
+                     */
+                    template<typename T_SeparableFunctor>
+                    HDINLINE float3_X operator()(T_SeparableFunctor const& functor, floatD_X const& totalCellIdx) const
+                    {
+                        auto const time = functor.getCurrentTime(totalCellIdx);
+                        // Cut off when the laser has not entered at this point yet to avoid confusion.
+                        if(time < 0.0_X)
+                            return float3_X::create(0.0_X);
+                        auto const transversal = functor.getTransversal(totalCellIdx);
+                        if(T_SeparableFunctor::Unitless::Polarization == PolarizationType::Linear)
+                            return functor.getLinearPolarizationVector()
+                                * (functor.getLongitudinal(time, 0.0_X) * transversal);
+                        else
+                        {
+                            auto const phaseShift = pmacc::math::Pi<float_X>::halfValue;
+                            return functor.getCircularPolarizationVector1()
+                                * (functor.getLongitudinal(time, phaseShift) * transversal)
+                                + functor.getCircularPolarizationVector2()
+                                * (functor.getLongitudinal(time, 0.0_X) * transversal);
+                        }
+                    }
+                };
+
                 /** Helper functor to calculate values of B from values of E using slowly varying envelope
                  * approximation (SVEA) for the given axis and direction
                  *
