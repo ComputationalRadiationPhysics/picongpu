@@ -71,28 +71,6 @@ namespace picongpu
                     using type = T_FunctorIncidentB;
                 };
 
-                /** Get type of incident field B functor for the free profile type using default parameter
-                 *
-                 * @tparam T_FunctorIncidentE functor for the incident E field
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
-                 */
-                template<typename T_FunctorIncidentE, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentB<
-                    profiles::Free<T_FunctorIncidentE, profiles::SVEAFunctorIncidentB>,
-                    T_axis,
-                    T_direction>
-                {
-                    using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<
-                            profiles::Free<T_FunctorIncidentE, profiles::SVEAFunctorIncidentB>,
-                            T_axis,
-                            T_direction>::type,
-                        T_axis,
-                        T_direction>;
-                };
-
             } // namespace detail
         } // namespace incidentField
     } // namespace fields

@@ -40,10 +40,10 @@
  * positioning of the generating surface relative to total domain. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free<UserFunctorIncidentE>;
+ * using XMin = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
  * using XMax = profiles::None;
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
- * using YMax = profiles::Free<AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB>;
+ * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
  * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
  *
@@ -127,9 +127,7 @@ namespace picongpu
             /** Make a profile with the user-provided functors defined above.
              *
              * The functors for incident field E and B must be consistent to each other.
-             * They also have to take into consideration which boundary the profile is applied to.
-             * The second template parameter may be left with the default value, then B field will be calculated
-             * from E using the slowly varying envelope approximation (SVEA).
+             * They should work for all boundaries the profile is applied to.
              */
             using MyProfile = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
 

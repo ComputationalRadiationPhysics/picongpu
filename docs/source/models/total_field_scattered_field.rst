@@ -395,7 +395,6 @@ Calculating Incident B from E
 Consider a case when both :math:`\vec E^{inc}(x, y, z, t)` and  :math:`\vec B^{inc}(x, y, z, t)` are theoretically present, but only :math:`\vec E^{inc}(x, y, z, t)` is known in explicit form.
 
 When slowly varying elvelope approximation (SVEA) is applicable, one may employ it to calculate the other field as :math:`\vec B^{inc}(x, y, z, t) = \vec k \times \vec E^{inc}(x, y, z, t) / c`.
-PIConGPU implements this approach for all incident field profiles and as a default second parameter of the ``Free`` incident field profile.
 
 Otherwise one may use TF/SF with only the modified known field set as incident and the other one set to 0.
 Generally, the interpretation of the result is assisted by the equivalence theorem, and in particular Love and Schelkunoff equivalence principles [Harrington2001]_ [Balanis2012]_.
@@ -405,7 +404,7 @@ Likewise, having :math:`\vec B^{inc}(x, y, z, t) = \vec 0` corresponds to only m
 Practically, one may try using the known incident field with twice the amplitude and keeping the other incident field zero, as demonstrated in [Rengarajan2000]_.
 Note that using this approach in PIConGPU results in generating pulses going both inwards and outwards of the Huygens surface
 (similar to laser profiles with ``initPlaneY > 0``).
-Therefore, it is recommended to have no density outside the surface and use a strong field absorber to negate the effect of the artificial outwards-going pulse.
+Therefore, in this case it is recommended to have no density outside the surface and use a strong field absorber to negate the effect of the artificial outwards-going pulse.
 
 References
 ----------
