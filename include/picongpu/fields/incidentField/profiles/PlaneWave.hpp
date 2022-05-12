@@ -192,9 +192,7 @@ namespace picongpu
                 struct GetFunctorIncidentB<profiles::PlaneWave<T_Params>, T_axis, T_direction>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::PlaneWave<T_Params>, T_axis, T_direction>::type,
-                        T_axis,
-                        T_direction>;
+                        typename GetFunctorIncidentE<profiles::PlaneWave<T_Params>, T_axis, T_direction>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

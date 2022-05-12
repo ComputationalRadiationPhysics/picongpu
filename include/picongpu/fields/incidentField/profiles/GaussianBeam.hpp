@@ -375,9 +375,7 @@ namespace picongpu
                 struct GetFunctorIncidentB<profiles::GaussianBeam<T_Params>, T_axis, T_direction>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::GaussianBeam<T_Params>, T_axis, T_direction>::type,
-                        T_axis,
-                        T_direction>;
+                        typename GetFunctorIncidentE<profiles::GaussianBeam<T_Params>, T_axis, T_direction>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

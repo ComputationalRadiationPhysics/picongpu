@@ -335,9 +335,7 @@ namespace picongpu
                 {
                     using type = detail::ApproximateIncidentB<
                         typename GetFunctorIncidentE<profiles::ExpRampWithPrepulse<T_Params>, T_axis, T_direction>::
-                            type,
-                        T_axis,
-                        T_direction>;
+                            type>;
                 };
             } // namespace detail
         } // namespace incidentField
