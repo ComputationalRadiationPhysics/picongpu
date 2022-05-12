@@ -339,6 +339,72 @@ namespace picongpu
                     }
                 };
 
+                /** Base class for incident E functors of separable lasers with Gaussian transversal profile
+                 *
+                 * In internal coordinates these lasers have transversal profile in form
+                 * exp(-squared_transversal_distance)
+                 *
+                 * This base class provides such getTransversal() that also matches requirements of
+                 * BaseSeparableFunctorE.
+                 *
+                 * @tparam T_BaseTransversalGaussianParam parameter structure matching
+                 * profiles::T_BaseTransversalGaussianParam requirements
+                 */
+                template<typename T_BaseTransversalGaussianParam>
+                struct BaseSeparableTransveralGaussianFunctorE
+                    : public BaseSeparableFunctorE<T_BaseTransversalGaussianParam>
+                {
+                    //! Base class
+                    using Base = BaseSeparableFunctorE<T_BaseTransversalGaussianParam>;
+
+                    //! Unitless parameters type
+                    using Unitless
+                        = profiles::detail::BaseTransversalGaussianParamUnitless<T_BaseTransversalGaussianParam>;
+
+                    /** Create a functor on the host side, check that unit matches the internal E unit
+                     *
+                     * @param currentStep current time step index, note that it is fractional
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  fieldE_internal = fieldE_SI / unitField
+                     */
+                    HINLINE BaseSeparableTransveralGaussianFunctorE(
+                        float_X const currentStep,
+                        float3_64 const unitField)
+                        : Base(currentStep, unitField)
+                    {
+                    }
+
+                    /** Calculate value of given functor representing a separable laser with Gaussian transversal
+                     * profile
+                     *
+                     * @tparam T_SeparableFunctor functor type, must match interface of Base and define method
+                     *                            getLongitudinal(time, phaseShift)
+                     *
+                     * @param functor functor object
+                     * @param totalCellIdx cell index in the total domain
+                     */
+                    template<typename T_Functor>
+                    HDINLINE float3_X operator()(T_Functor const& functor, floatD_X const& totalCellIdx) const
+                    {
+                        return Base::operator()(functor, totalCellIdx);
+                    }
+
+                    /** Get transversal Gaussian factor for the given position
+                     *
+                     * Interface required by Base.
+                     *
+                     * @param totalCellIdx cell index in the total domain (including all moving window slides)
+                     */
+                    HDINLINE float_X getTransversal(floatD_X const& totalCellIdx) const
+                    {
+                        auto internalPosition = this->getInternalCoordinates(totalCellIdx);
+                        internalPosition[0] = 0.0_X;
+                        auto const w0 = float3_X(1.0_X, Unitless::W0_AXIS_1, Unitless::W0_AXIS_2).shrink<simDim>();
+                        auto const r2 = pmacc::math::abs2(internalPosition / w0);
+                        return math::exp(-r2);
+                    }
+                };
+
                 /** Helper functor to calculate values of B from values of E using slowly varying envelope
                  * approximation (SVEA) for the given axis and direction
                  *
