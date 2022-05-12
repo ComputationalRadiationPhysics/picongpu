@@ -23,9 +23,9 @@
 
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
-#include "picongpu/fields/incidentField/profiles/BaseFunctorE.hpp"
 
 #include <cstdint>
+
 
 namespace picongpu
 {
@@ -42,122 +42,106 @@ namespace picongpu
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct PlaneWaveUnitless : public T_Params
+                    struct PlaneWaveUnitless : public BaseParamUnitless<T_Params>
                     {
+                        //! User SI parameters
                         using Params = T_Params;
 
-                        static constexpr float_X WAVE_LENGTH
-                            = float_X(Params::WAVE_LENGTH_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X PULSE_LENGTH
-                            = float_X(Params::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (1 sigma)
+                        //! Base unitless parameters
+                        using Base = BaseParamUnitless<T_Params>;
+
+                        // unit: UNIT_TIME
                         static constexpr float_X LASER_NOFOCUS_CONSTANT
-                            = float_X(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); // unit: seconds
-                        static constexpr float_X AMPLITUDE
-                            = float_X(Params::AMPLITUDE_SI / UNIT_EFIELD); // unit: Volt /meter
-                        static constexpr float_X INIT_TIME = float_X(
+                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME);
+                        // unit: UNIT_TIME
+                        static constexpr float_X INIT_TIME = static_cast<float_X>(
                             (Params::RAMP_INIT * Params::PULSE_LENGTH_SI + Params::LASER_NOFOCUS_CONSTANT_SI)
-                            / UNIT_TIME); // unit: seconds (full inizialisation length)
-                        static constexpr float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
+                            / UNIT_TIME);
                     };
 
                     /** Plane wave incident E functor
                      *
                      * @tparam T_Params parameters
-                     * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                     * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from
-                     * the max boundary inwards)
                      */
-                    template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                    class PlaneWaveFunctorIncidentE
+                    template<typename T_Params>
+                    struct PlaneWaveFunctorIncidentE
                         : public PlaneWaveUnitless<T_Params>
-                        , public BaseFunctorE<T_axis, T_direction>
+                        , public incidentField::detail::BaseSeparableFunctorE<T_Params>
                     {
                     public:
                         //! Unitless parameters type
                         using Unitless = PlaneWaveUnitless<T_Params>;
 
                         //! Base functor type
-                        using Base = BaseFunctorE<T_axis, T_direction>;
+                        using Base = incidentField::detail::BaseSeparableFunctorE<T_Params>;
 
                         /** Create a functor on the host side for the given time step
-                         *
-                         * Since this profile is only time-dependent, calculate the whole value on host.
                          *
                          * @param currentStep current time step index, note that it is fractional
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
                         HINLINE PlaneWaveFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
-                            : Base(unitField)
-                            , elong(getLongitudinal(currentStep))
+                            : Base(currentStep, unitField)
                         {
                         }
 
                         /** Calculate incident field E value for the given position
                          *
-                         * Since it is a plane wave parallel to the generating surface, the value only depends on time.
+                         * Interface required by Base.
                          *
                          * @param totalCellIdx cell index in the total domain (including all moving window slides)
                          * @return incident field E value in internal units
                          */
                         HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                         {
-                            return elong;
+                            return Base::operator()(*this, totalCellIdx);
                         }
 
-                    private:
-                        //! Precalulated time-dependent longitudinal value, in this case it is also the final result
-                        float3_X const elong;
-
-                        //! Get time-dependent longitudinal vector factor
-                        HDINLINE float3_X getLongitudinal(float_X const currentStep) const
+                        /** Get time-dependent longitudinal scalar factor for the given time
+                         *
+                         * @param time time moment to calculate the factor at
+                         * @param phaseShift additional phase shift to add on top of everything else,
+                         *                   in radian
+                         */
+                        HDINLINE float_X getLongitudinal(float_X const time, float_X const phaseShift) const
                         {
-                            float_64 const runTime = DELTA_T * currentStep;
-                            float_64 envelope = float_64(Unitless::AMPLITUDE);
-                            float_64 const mue = 0.5 * Unitless::RAMP_INIT * Unitless::PULSE_LENGTH;
-                            float_64 const w = 2.0 * PI * Unitless::f;
-                            float_64 const tau = Unitless::PULSE_LENGTH * math::sqrt(2.0);
-                            float_64 const endUpramp = mue;
-                            float_64 const startDownramp = mue + Unitless::LASER_NOFOCUS_CONSTANT;
-                            float_64 integrationCorrectionFactor = 0.0;
-                            if(runTime > startDownramp)
+                            auto envelope = Unitless::AMPLITUDE;
+                            auto const mue = 0.5_X * Unitless::RAMP_INIT * Unitless::PULSE_LENGTH;
+                            auto const tau = Unitless::PULSE_LENGTH * math::sqrt(2.0_X);
+                            auto const endUpramp = mue;
+                            auto const startDownramp = mue + Unitless::LASER_NOFOCUS_CONSTANT;
+                            auto integrationCorrectionFactor = 0.0_X;
+                            if(time > startDownramp)
                             {
                                 // downramp = end
-                                float_64 const exponent = (runTime - startDownramp) / tau;
-                                envelope *= exp(-0.5 * exponent * exponent);
-                                integrationCorrectionFactor = (runTime - startDownramp) / (w * tau * tau);
+                                auto const exponent = (time - startDownramp) / tau;
+                                envelope *= exp(-0.5_X * exponent * exponent);
+                                integrationCorrectionFactor = (time - startDownramp) / (Unitless::w * tau * tau);
                             }
-                            else if(runTime < endUpramp)
+                            else if(time < endUpramp)
                             {
                                 // upramp = start
-                                float_64 const exponent = (runTime - endUpramp) / tau;
-                                envelope *= exp(-0.5 * exponent * exponent);
-                                integrationCorrectionFactor = (runTime - endUpramp) / (w * tau * tau);
+                                auto const exponent = (time - endUpramp) / tau;
+                                envelope *= exp(-0.5_X * exponent * exponent);
+                                integrationCorrectionFactor = (time - endUpramp) / (Unitless::w * tau * tau);
                             }
 
-                            float_64 const timeOszi = runTime - endUpramp;
-                            float_64 const t_and_phase = w * timeOszi + Unitless::LASER_PHASE;
+                            auto const timeOszi = time - endUpramp;
+                            auto const phase = Unitless::w * timeOszi + Unitless::LASER_PHASE + phaseShift;
                             // to understand both components [sin(...) + t/tau^2 * cos(...)] see description above
-                            auto const baseValue = static_cast<float_X>(
-                                (math::sin(t_and_phase) + math::cos(t_and_phase) * integrationCorrectionFactor));
-                            auto elong = float3_X::create(0.0_X);
-                            if(Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
-                            {
-                                elong[Base::dir1] = baseValue;
-                            }
-                            else if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2)
-                            {
-                                elong[Base::dir2] = baseValue;
-                            }
-                            else if(Unitless::Polarisation == Unitless::CIRCULAR)
-                            {
-                                elong[Base::dir1] = static_cast<float_X>(
-                                                        math::cos(t_and_phase)
-                                                        - math::sin(t_and_phase) * integrationCorrectionFactor)
-                                    / math::sqrt(2.0_X);
-                                elong[Base::dir2] = baseValue / math::sqrt(2.0_X);
-                            }
-                            return elong * envelope;
+                            return (math::sin(phase) + math::cos(phase) * integrationCorrectionFactor) * envelope;
+                        }
+
+                        /** Get position-dependent transversal scalar factor for the given position
+                         *
+                         * Interface required by Base.
+                         *
+                         * @param totalCellIdx cell index in the total domain (including all moving window slides)
+                         */
+                        HDINLINE float_X getTransversal(floatD_X const& totalCellIdx) const
+                        {
+                            return 1.0_X;
                         }
                     };
                 } // namespace detail
@@ -175,7 +159,7 @@ namespace picongpu
                 template<typename T_Params, uint32_t T_axis, int32_t T_direction>
                 struct GetFunctorIncidentE<profiles::PlaneWave<T_Params>, T_axis, T_direction>
                 {
-                    using type = profiles::detail::PlaneWaveFunctorIncidentE<T_Params, T_axis, T_direction>;
+                    using type = profiles::detail::PlaneWaveFunctorIncidentE<T_Params>;
                 };
 
                 /** Get type of incident field B functor for the plane wave profile type
