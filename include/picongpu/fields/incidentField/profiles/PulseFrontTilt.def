@@ -36,14 +36,22 @@ namespace picongpu
                     // All parameters are same as for GaussianBeam, plus one extra parameter
                     struct PulseFrontTiltParam : public GaussianBeamParam
                     {
-                        /** the tilt angle between laser propagation direction and laser axis 2
+                        /** The tilt angles from laser propagation direction
                          *
-                         * AXIS_2 is previous axis before the propagation axis in order (x, y, z) with a periodic
-                         * wrap. E.g. for y propagation axis, AXIS_2 = x.
+                         * AXIS_1 is directed according to POLARIZATION_ANGLE_SI parameter.
+                         * AXIS_2 is a cross product of the propagation direction and AXIS_1.
                          *
-                         *  unit: degree
+                         * Value 0 corresponds to no tilt.
+                         *
+                         * For 2d simulations TILT_AXIS_2_SI must be defined but its value has no effect.
+                         *
+                         * unit: degree, periodic in 360.0
+                         *
+                         * @{
                          */
+                        static constexpr float_64 TILT_AXIS_1_SI = 0.0;
                         static constexpr float_64 TILT_AXIS_2_SI = 0.0;
+                        /** *} */
                     };
                 } // namespace defaults
 
