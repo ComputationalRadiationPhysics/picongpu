@@ -23,7 +23,8 @@
 
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
-#include "picongpu/fields/incidentField/profiles/BaseFunctorE.hpp"
+
+#include <pmacc/algorithms/math/defines/pi.hpp>
 
 #include <cstdint>
 
@@ -42,35 +43,30 @@ namespace picongpu
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct ExpRampWithPrepulseUnitless : public T_Params
+                    struct ExpRampWithPrepulseUnitless : public BaseTransversalGaussianParamUnitless<T_Params>
                     {
+                        //! User SI parameters
                         using Params = T_Params;
 
-                        static constexpr float_X WAVE_LENGTH
-                            = static_cast<float_X>(Params::WAVE_LENGTH_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X PULSE_LENGTH
-                            = static_cast<float_X>(Params::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (1 sigma)
-                        static constexpr float_X LASER_NOFOCUS_CONSTANT
-                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); // unit: seconds
-                        static constexpr float_X AMPLITUDE
-                            = static_cast<float_X>(Params::AMPLITUDE_SI / UNIT_EFIELD); // unit: Volt /meter
-                        static constexpr float_X W0_AXIS_1
-                            = static_cast<float_X>(Params::W0_AXIS_1_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X W0_AXIS_2
-                            = static_cast<float_X>(Params::W0_AXIS_2_SI / UNIT_LENGTH); // unit: meter
+                        //! Base unitless parameters
+                        using Base = BaseTransversalGaussianParamUnitless<T_Params>;
 
-                        static constexpr float_64 TIME_PREPULSE
-                            = static_cast<float_64>(Params::TIME_PREPULSE_SI / UNIT_TIME);
-                        static constexpr float_64 TIME_PEAKPULSE
-                            = static_cast<float_64>(Params::TIME_PEAKPULSE_SI / UNIT_TIME);
-                        static constexpr float_64 TIME_1 = static_cast<float_64>(Params::TIME_POINT_1_SI / UNIT_TIME);
-                        static constexpr float_64 TIME_2 = static_cast<float_64>(Params::TIME_POINT_2_SI / UNIT_TIME);
-                        static constexpr float_64 TIME_3 = static_cast<float_64>(Params::TIME_POINT_3_SI / UNIT_TIME);
+                        // unit: UNIT_TIME
+                        static constexpr float_X LASER_NOFOCUS_CONSTANT
+                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME);
+
+                        static constexpr float_X TIME_PREPULSE
+                            = static_cast<float_X>(Params::TIME_PREPULSE_SI / UNIT_TIME);
+                        static constexpr float_X TIME_PEAKPULSE
+                            = static_cast<float_X>(Params::TIME_PEAKPULSE_SI / UNIT_TIME);
+                        static constexpr float_X TIME_1 = static_cast<float_X>(Params::TIME_POINT_1_SI / UNIT_TIME);
+                        static constexpr float_X TIME_2 = static_cast<float_X>(Params::TIME_POINT_2_SI / UNIT_TIME);
+                        static constexpr float_X TIME_3 = static_cast<float_X>(Params::TIME_POINT_3_SI / UNIT_TIME);
                         static constexpr float_X endUpramp = TIME_PEAKPULSE - 0.5_X * LASER_NOFOCUS_CONSTANT;
                         static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5_X * LASER_NOFOCUS_CONSTANT;
 
-                        static constexpr float_X INIT_TIME
-                            = static_cast<float_X>((TIME_PEAKPULSE + Params::RAMP_INIT * PULSE_LENGTH) / UNIT_TIME);
+                        static constexpr float_X INIT_TIME = static_cast<float_X>(
+                            (TIME_PEAKPULSE + Params::RAMP_INIT * Base::PULSE_LENGTH) / UNIT_TIME);
 
                         // compile-time checks for physical sanity:
                         static_assert(
@@ -115,34 +111,29 @@ namespace picongpu
                             "would give more than half of the pulse amplitude. This is not a Gaussian pulse at all "
                             "anymore - probably some of the parameters are different from what you think!?");
 
-                        /* a symmetric pulse will be initialized at position z=0 for
+                        /* a symmetric pulse will be initialized at generation plane for
                          * a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
                          * we shift the complete pulse for the half of this time to start with
                          * the front of the laser pulse.
                          */
                         static constexpr float_X time_start_init
-                            = static_cast<float_X>(TIME_1 - (0.5 * Params::RAMP_INIT * PULSE_LENGTH));
-                        static constexpr float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
-                        static constexpr float_64 w = 2.0 * PI * f;
+                            = static_cast<float_X>(TIME_1 - (0.5_X * Params::RAMP_INIT * Base::PULSE_LENGTH));
                     };
 
                     /** Exponential ramp with prepulse incident E functor
                      *
                      * @tparam T_Params parameters
-                     * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                     * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from
-                     * the max boundary inwards)
                      */
-                    template<typename T_Params, uint32_t T_axis, int32_t T_direction>
+                    template<typename T_Params>
                     struct ExpRampWithPrepulseFunctorIncidentE
                         : public ExpRampWithPrepulseUnitless<T_Params>
-                        , public BaseFunctorE<T_axis, T_direction>
+                        , public incidentField::detail::BaseSeparableTransveralGaussianFunctorE<T_Params>
                     {
                         //! Unitless parameters type
                         using Unitless = ExpRampWithPrepulseUnitless<T_Params>;
 
                         //! Base functor type
-                        using Base = BaseFunctorE<T_axis, T_direction>;
+                        using Base = incidentField::detail::BaseSeparableTransveralGaussianFunctorE<T_Params>;
 
                         /** Create a functor on the host side for the given time step
                          *
@@ -153,11 +144,8 @@ namespace picongpu
                         HINLINE ExpRampWithPrepulseFunctorIncidentE(
                             float_X const currentStep,
                             float3_64 const unitField)
-                            : Base(unitField)
-                            , elong(getLongitudinal(currentStep))
+                            : Base(currentStep, unitField)
                         {
-                            auto const& subGrid = Environment<simDim>::get().SubGrid();
-                            totalDomainCells = precisionCast<float_X>(subGrid.getTotalDomain().size);
                         }
 
                         /** Calculate incident field E value for the given position
@@ -167,42 +155,26 @@ namespace picongpu
                          */
                         HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                         {
-                            return elong * getTransversal(totalCellIdx);
+                            return Base::operator()(*this, totalCellIdx);
+                        }
+
+                        /** Get time-dependent longitudinal scalar factor for the given time
+                         *
+                         * Interface required by Base.
+                         * Gaussian transversal profile not implemented in this class, but provided by Base.
+                         *
+                         * @param time time moment to calculate the factor at
+                         * @param phaseShift additional phase shift to add on top of everything else,
+                         *                   in radian
+                         */
+                        HDINLINE float_X getLongitudinal(float_X const time, float_X const phaseShift) const
+                        {
+                            auto const phase = Unitless::w * time + Unitless::LASER_PHASE + phaseShift;
+                            return math::sin(phase) * getEnvelope(time);
                         }
 
                     private:
-                        //! Total domain size in cells
-                        floatD_X totalDomainCells;
-
-                        //! Precalulated time-dependent longitudinal value
-                        float3_X const elong;
-
-                        //! Get time-dependent longitudinal vector factor
-                        HINLINE float3_X getLongitudinal(float_X const currentStep) const
-                        {
-                            /* initialize the laser not in the first cell is equal to a negative shift
-                             * in time
-                             */
-                            float_64 const runTime = Unitless::time_start_init + DELTA_T * currentStep;
-                            float_64 const phase = Unitless::w * runTime + Unitless::LASER_PHASE;
-                            auto result = float3_64::create(0.0);
-                            if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2)
-                            {
-                                result[Base::dir2] = math::sin(phase);
-                            }
-                            else if(Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
-                            {
-                                result[Base::dir1] = math::sin(phase);
-                            }
-                            else if(Unitless::Polarisation == Unitless::CIRCULAR)
-                            {
-                                result[Base::dir2] = math::sin(phase) / math::sqrt(2.0_X);
-                                result[Base::dir1] = math::cos(phase) / math::sqrt(2.0_X);
-                            }
-                            return precisionCast<float_X>(result * getEnvelope(runTime));
-                        }
-
-                        HINLINE float_64 getEnvelope(float_64 const runTime) const
+                        HDINLINE float_X getEnvelope(float_X const runTime) const
                         {
                             /* workaround for clang 5 linker issues
                              * `undefined reference to
@@ -217,7 +189,7 @@ namespace picongpu
                             auto const AMP_2 = math::sqrt(int_ratio_point_2) * Unitless::AMPLITUDE;
                             auto const AMP_3 = math::sqrt(int_ratio_point_3) * Unitless::AMPLITUDE;
 
-                            auto env = 0.0;
+                            auto env = 0.0_X;
                             bool const before_preupramp = runTime < Unitless::time_start_init;
                             bool const before_start = runTime < Unitless::TIME_1;
                             bool const before_peakpulse = runTime < Unitless::endUpramp;
@@ -225,7 +197,7 @@ namespace picongpu
                             bool const after_peakpulse = Unitless::startDownramp <= runTime;
 
                             if(before_preupramp)
-                                env = 0.;
+                                env = 0._X;
                             else if(before_start)
                             {
                                 env = AMP_1 * gauss(runTime - Unitless::TIME_1);
@@ -240,15 +212,16 @@ namespace picongpu
                                                                         Unitless::endUpramp)
                                     / Unitless::AMPLITUDE;
 
-                                if(ramp_when_peakpulse > 0.5)
-                                {
-                                    log<picLog::PHYSICS>(
-                                        "Attention, the intensities of the laser upramp are very large! "
-                                        "The extrapolation of the last exponential to the time of "
-                                        "the peakpulse gives more than half of the amplitude of "
-                                        "the peak Gaussian. This is not a Gaussian at all anymore, "
-                                        "and physically very unplausible, check the params for misunderstandings!");
-                                }
+                                // This check exists in original laser, but can't print from device
+                                // if(ramp_when_peakpulse > 0.5_X)
+                                //{
+                                //    log<picLog::PHYSICS>(
+                                //        "Attention, the intensities of the laser upramp are very large! "
+                                //        "The extrapolation of the last exponential to the time of "
+                                //        "the peakpulse gives more than half of the amplitude of "
+                                //        "the peak Gaussian. This is not a Gaussian at all anymore, "
+                                //        "and physically very unplausible, check the params for misunderstandings!");
+                                //}
 
                                 env += Unitless::AMPLITUDE * (1._X - ramp_when_peakpulse)
                                     * gauss(runTime - Unitless::endUpramp);
@@ -269,38 +242,25 @@ namespace picongpu
                          * between 0 and 1, i.e. as multiple of the max value.
                          * use as: amp_t = amp_0 * gauss( t - t_0 )
                          */
-                        HINLINE float_64 gauss(float_64 const t) const
+                        HDINLINE float_X gauss(float_X const t) const
                         {
                             auto const exponent = t / Unitless::PULSE_LENGTH;
-                            return math::exp(-0.25 * exponent * exponent);
+                            return math::exp(-0.25_X * exponent * exponent);
                         }
 
                         /** get value of exponential curve through two points at given t
                          * t/t1/t2 given as float_X, since the envelope doesn't need the accuracy
                          */
-                        HINLINE float_64 extrapolateExpo(
-                            float_64 const t1,
-                            float_64 const a1,
-                            float_64 const t2,
-                            float_64 const a2,
-                            float_64 const t) const
+                        HDINLINE float_X extrapolateExpo(
+                            float_X const t1,
+                            float_X const a1,
+                            float_X const t2,
+                            float_X const a2,
+                            float_X const t) const
                         {
                             auto const log1 = (t2 - t) * math::log(a1);
                             auto const log2 = (t - t1) * math::log(a2);
                             return math::exp((log1 + log2) / (t2 - t1));
-                        }
-
-                        //! Get position-dependent transversal scalar factor
-                        HDINLINE float_X getTransversal(const floatD_X& totalCellIdx) const
-                        {
-                            floatD_X transversalPosition
-                                = (totalCellIdx - totalDomainCells * 0.5_X) * cellSize.shrink<simDim>();
-                            transversalPosition[Base::dir0] = 0.0_X;
-                            auto w0 = float3_X::create(1.0_X);
-                            w0[Base::dir1] = Unitless::W0_AXIS_1;
-                            w0[Base::dir2] = Unitless::W0_AXIS_2;
-                            float_X const r2 = pmacc::math::abs2(transversalPosition / w0.shrink<simDim>());
-                            return math::exp(-r2);
                         }
                     };
                 } // namespace detail
@@ -318,7 +278,7 @@ namespace picongpu
                 template<typename T_Params, uint32_t T_axis, int32_t T_direction>
                 struct GetFunctorIncidentE<profiles::ExpRampWithPrepulse<T_Params>, T_axis, T_direction>
                 {
-                    using type = profiles::detail::ExpRampWithPrepulseFunctorIncidentE<T_Params, T_axis, T_direction>;
+                    using type = profiles::detail::ExpRampWithPrepulseFunctorIncidentE<T_Params>;
                 };
 
                 /** Get type of incident field B functor for the exponential ramp with prepulse  profile type
