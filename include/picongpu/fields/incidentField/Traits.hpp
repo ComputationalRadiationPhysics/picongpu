@@ -31,26 +31,22 @@ namespace picongpu
         {
             namespace detail
             {
-                /** Get type of incident field functor for the given profile type, axis and direction
+                /** Get type of incident field functor for the given profile type
                  *
                  * The resulting functor is set as ::type.
                  * These traits have to be specialized by all profiles.
-                 * The traits essentially constitute applying of profile to a particular boundary.
                  *
                  * @tparam T_Profile profile type
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  *
                  * @{
                  */
 
                 //! Get functor for incident E values
-                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                template<typename T_Profile>
                 struct GetFunctorIncidentE;
 
                 //! Get functor for incident B values
-                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                template<typename T_Profile>
                 struct GetFunctorIncidentB;
 
                 /** @} */
@@ -61,20 +57,17 @@ namespace picongpu
                  * The latter present customization points.
                  *
                  * @tparam T_Profile profile type
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  *
                  * @{
                  */
 
                 //! Functor for incident E values
-                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
-                using FunctorIncidentE = typename GetFunctorIncidentE<T_Profile, T_axis, T_direction>::type;
+                template<typename T_Profile>
+                using FunctorIncidentE = typename GetFunctorIncidentE<T_Profile>::type;
 
                 //! Functor for incident B values
-                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
-                using FunctorIncidentB = typename GetFunctorIncidentB<T_Profile, T_axis, T_direction>::type;
+                template<typename T_Profile>
+                using FunctorIncidentB = typename GetFunctorIncidentB<T_Profile>::type;
 
                 /** @} */
 

@@ -133,12 +133,9 @@ namespace picongpu
                 /** Get type of incident field E functor for the polynom profile type
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentE<profiles::Polynom<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentE<profiles::Polynom<T_Params>>
                 {
                     using type = profiles::detail::PolynomFunctorIncidentE<T_Params>;
                 };
@@ -148,15 +145,12 @@ namespace picongpu
                  * Rely on SVEA to calculate value of B from E.
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentB<profiles::Polynom<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentB<profiles::Polynom<T_Params>>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::Polynom<T_Params>, T_axis, T_direction>::type>;
+                        typename GetFunctorIncidentE<profiles::Polynom<T_Params>>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

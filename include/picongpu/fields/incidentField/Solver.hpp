@@ -597,33 +597,20 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 1.0_X;
-                    meta::ForEach<T_MinProfiles, ApplyUpdateE<bmpl::_1, T_axis, 1>> applyMinProfiles;
+                    meta::ForEach<T_MinProfiles, ApplyUpdateE<bmpl::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<bmpl::_1, T_axis, -1>> applyMaxProfiles;
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<bmpl::_1>> applyMaxProfiles;
                     applyMaxProfiles(parameters);
                 }
 
                 /** Functor to apply update E for the given particular profile (not a typelist), axis and direction
                  *
                  * @tparam T_Profile incident field profile for the chosen part of the Huygens surface
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                template<typename T_Profile>
                 struct ApplyUpdateE
                 {
-                    /** Hook to use this type with meta::ForEach and bmpl::_1
-                     *
-                     * @tparam T_ProfileType incident field profile for the chosen part of the Huygens surface
-                     */
-                    template<typename T_ProfileType>
-                    struct apply
-                    {
-                        using type = ApplyUpdateE<T_ProfileType, T_axis, T_direction>;
-                    };
-
                     /** Call update E with the given parameters
                      *
                      * @tparam T_Parameters parameters type
@@ -633,7 +620,7 @@ namespace picongpu
                     template<typename T_Parameters>
                     HINLINE void operator()(T_Parameters const& parameters) const
                     {
-                        using Functor = detail::FunctorIncidentB<T_Profile, T_axis, T_direction>;
+                        using Functor = detail::FunctorIncidentB<T_Profile>;
                         using Update = typename detail::UpdateE<Functor>;
                         Update{}(parameters);
                     }
@@ -657,33 +644,20 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 0.5_X;
-                    meta::ForEach<T_MinProfiles, ApplyUpdateB<bmpl::_1, T_axis, 1>> applyMinProfiles;
+                    meta::ForEach<T_MinProfiles, ApplyUpdateB<bmpl::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<bmpl::_1, T_axis, -1>> applyMaxProfiles;
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<bmpl::_1>> applyMaxProfiles;
                     applyMaxProfiles(parameters);
                 }
 
                 /** Functor to apply update B for the given particular profile (not a typelist), axis and direction
                  *
                  * @tparam T_Profile incident field profile for the chosen part of the Huygens surface
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                template<typename T_Profile>
                 struct ApplyUpdateB
                 {
-                    /** Hook to use this type with meta::ForEach and bmpl::_1
-                     *
-                     * @tparam T_ProfileType incident field profile for the chosen part of the Huygens surface
-                     */
-                    template<typename T_ProfileType>
-                    struct apply
-                    {
-                        using type = ApplyUpdateB<T_ProfileType, T_axis, T_direction>;
-                    };
-
                     /** Call update B with the given parameters
                      *
                      * @tparam T_Parameters parameters type
@@ -693,7 +667,7 @@ namespace picongpu
                     template<typename T_Parameters>
                     HINLINE void operator()(T_Parameters const& parameters) const
                     {
-                        using Functor = detail::FunctorIncidentE<T_Profile, T_axis, T_direction>;
+                        using Functor = detail::FunctorIncidentE<T_Profile>;
                         using Update = typename detail::UpdateB<Functor>;
                         Update{}(parameters);
                     }

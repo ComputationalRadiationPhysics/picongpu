@@ -152,31 +152,22 @@ namespace picongpu
                 /** Get type of incident field E functor for the plane wave profile type
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentE<profiles::PlaneWave<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentE<profiles::PlaneWave<T_Params>>
                 {
                     using type = profiles::detail::PlaneWaveFunctorIncidentE<T_Params>;
                 };
 
                 /** Get type of incident field B functor for the plane wave profile type
                  *
-                 * For plane wave there is no difference between directly- and SVEA-calculating B, so reuse SVEA for
-                 * brevity.
-                 *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentB<profiles::PlaneWave<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentB<profiles::PlaneWave<T_Params>>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::PlaneWave<T_Params>, T_axis, T_direction>::type>;
+                        typename GetFunctorIncidentE<profiles::PlaneWave<T_Params>>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

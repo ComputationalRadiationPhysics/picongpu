@@ -39,16 +39,9 @@ namespace picongpu
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field
                  * @tparam T_FunctorIncidentB functor for the incident B field
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<
-                    typename T_FunctorIncidentE,
-                    typename T_FunctorIncidentB,
-                    uint32_t T_axis,
-                    int32_t T_direction>
-                struct GetFunctorIncidentE<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>, T_axis, T_direction>
+                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                struct GetFunctorIncidentE<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
                     using type = T_FunctorIncidentE;
                 };
@@ -57,16 +50,9 @@ namespace picongpu
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field
                  * @tparam T_FunctorIncidentB functor for the incident B field
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<
-                    typename T_FunctorIncidentE,
-                    typename T_FunctorIncidentB,
-                    uint32_t T_axis,
-                    int32_t T_direction>
-                struct GetFunctorIncidentB<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>, T_axis, T_direction>
+                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                struct GetFunctorIncidentB<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
                     using type = T_FunctorIncidentB;
                 };
