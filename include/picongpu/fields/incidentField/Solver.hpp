@@ -32,6 +32,8 @@
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/traits/IsBaseTemplateOf.hpp>
 
 #include <algorithm>
@@ -483,9 +485,9 @@ namespace picongpu
                  */
                 void updateE(float_X const sourceTimeIteration)
                 {
-                    updateE<0, XMinProfile, XMaxProfile>(sourceTimeIteration);
-                    updateE<1, YMinProfile, YMaxProfile>(sourceTimeIteration);
-                    updateE<2, ZMinProfile, ZMaxProfile>(sourceTimeIteration);
+                    updateE<0, XMinProfiles, XMaxProfiles>(sourceTimeIteration);
+                    updateE<1, YMinProfiles, YMaxProfiles>(sourceTimeIteration);
+                    updateE<2, ZMinProfiles, ZMaxProfiles>(sourceTimeIteration);
                 }
 
                 /** Apply contribution of the incident E field to the B field update by half a time step
@@ -500,9 +502,9 @@ namespace picongpu
                  */
                 void updateBHalf(float_X const sourceTimeIteration)
                 {
-                    updateBHalf<0, XMinProfile, XMaxProfile>(sourceTimeIteration);
-                    updateBHalf<1, YMinProfile, YMaxProfile>(sourceTimeIteration);
-                    updateBHalf<2, ZMinProfile, ZMaxProfile>(sourceTimeIteration);
+                    updateBHalf<0, XMinProfiles, XMaxProfiles>(sourceTimeIteration);
+                    updateBHalf<1, YMinProfiles, YMaxProfiles>(sourceTimeIteration);
+                    updateBHalf<2, ZMinProfiles, ZMaxProfiles>(sourceTimeIteration);
                 }
 
             private:
@@ -537,23 +539,26 @@ namespace picongpu
                 //! Return if incident field is enabled in the simulation i.e. there exists a non-None profile
                 static bool isEnabled()
                 {
-                    using profiles::None;
-                    auto const isEnabledX = !(std::is_same_v<XMinProfile, None> && std::is_same_v<XMaxProfile, None>);
-                    auto const isEnabledY = !(std::is_same_v<YMinProfile, None> && std::is_same_v<YMaxProfile, None>);
-                    auto const isEnabledZ = !(std::is_same_v<ZMinProfile, None> && std::is_same_v<ZMaxProfile, None>);
+                    using Disabled = pmacc::MakeSeq_t<profiles::None>;
+                    auto const isEnabledX
+                        = !(std::is_same_v<XMinProfiles, Disabled> && std::is_same_v<XMaxProfiles, Disabled>);
+                    auto const isEnabledY
+                        = !(std::is_same_v<YMinProfiles, Disabled> && std::is_same_v<YMaxProfiles, Disabled>);
+                    auto const isEnabledZ
+                        = !(std::is_same_v<ZMinProfiles, Disabled> && std::is_same_v<ZMaxProfiles, Disabled>);
                     return isEnabledX || isEnabledY || isEnabledZ;
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step
                  *
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_MinProfile profile type for the min boundary along the axis
-                 * @tparam T_MaxProfile profile type for the max boundary along the axis
+                 * @tparam T_MinProfiles typelist of profiles for the min boundary along the axis
+                 * @tparam T_MaxProfiles typelist of profiles for the max boundary along the axis
                  *
                  * @param sourceTimeIteration time iteration at which the source incident B field
                  *                            (not the target E field!) values will be calculated
                  */
-                template<uint32_t T_axis, typename T_MinProfile, typename T_MaxProfile>
+                template<uint32_t T_axis, typename T_MinProfiles, typename T_MaxProfiles>
                 void updateE(float_X const sourceTimeIteration)
                 {
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
@@ -562,25 +567,58 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 1.0_X;
-                    using FunctorIncidentBMin = detail::FunctorIncidentB<T_MinProfile, T_axis, 1>;
-                    using UpdateMin = typename detail::UpdateE<FunctorIncidentBMin>;
-                    UpdateMin{}(parameters);
+                    meta::ForEach<T_MinProfiles, ApplyUpdateE<bmpl::_1, T_axis, 1>> applyMinProfiles;
+                    applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    using FunctorIncidentBMax = detail::FunctorIncidentB<T_MaxProfile, T_axis, -1>;
-                    using UpdateMax = typename detail::UpdateE<FunctorIncidentBMax>;
-                    UpdateMax{}(parameters);
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<bmpl::_1, T_axis, -1>> applyMaxProfiles;
+                    applyMaxProfiles(parameters);
                 }
+
+                /** Functor to apply update E for the given particular profile (not a typelist), axis and direction
+                 *
+                 * @tparam T_Profile incident field profile for the chosen part of the Huygens surface
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 */
+                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                struct ApplyUpdateE
+                {
+                    /** Hook to use this type with meta::ForEach and bmpl::_1
+                     *
+                     * @tparam T_ProfileType incident field profile for the chosen part of the Huygens surface
+                     */
+                    template<typename T_ProfileType>
+                    struct apply
+                    {
+                        using type = ApplyUpdateE<T_ProfileType, T_axis, T_direction>;
+                    };
+
+                    /** Call update E with the given parameters
+                     *
+                     * @tparam T_Parameters parameters type
+                     *
+                     * @param parameters parameters
+                     */
+                    template<typename T_Parameters>
+                    HINLINE void operator()(T_Parameters const& parameters) const
+                    {
+                        using Functor = detail::FunctorIncidentB<T_Profile, T_axis, T_direction>;
+                        using Update = typename detail::UpdateE<Functor>;
+                        Update{}(parameters);
+                    }
+                };
 
                 /** Apply contribution of the incident E field to the B field update by half a time step
                  *
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_MinProfile profile type for the min boundary along the axis
-                 * @tparam T_MaxProfile profile type for the max boundary along the axis
+                 * @tparam T_MinProfiles typelist of profiles for the min boundary along the axis
+                 * @tparam T_MaxProfiles typelist of profiles for the max boundary along the axis
                  *
                  * @param sourceTimeIteration time iteration at which the source incident E field
                  *                            (not the target B field!) values will be calculated
                  */
-                template<uint32_t T_axis, typename T_MinProfile, typename T_MaxProfile>
+                template<uint32_t T_axis, typename T_MinProfiles, typename T_MaxProfiles>
                 void updateBHalf(float_X const sourceTimeIteration)
                 {
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
@@ -589,28 +627,62 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 0.5_X;
-                    using FunctorIncidentEMin = detail::FunctorIncidentE<T_MinProfile, T_axis, 1>;
-                    using UpdateMin = typename detail::UpdateB<FunctorIncidentEMin>;
-                    UpdateMin{}(parameters);
+                    meta::ForEach<T_MinProfiles, ApplyUpdateB<bmpl::_1, T_axis, 1>> applyMinProfiles;
+                    applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    using FunctorIncidentEMax = detail::FunctorIncidentE<T_MaxProfile, T_axis, -1>;
-                    using UpdateMax = typename detail::UpdateB<FunctorIncidentEMax>;
-                    UpdateMax{}(parameters);
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<bmpl::_1, T_axis, -1>> applyMaxProfiles;
+                    applyMaxProfiles(parameters);
                 }
 
-                /** Profiles to be used by implementation
+                /** Functor to apply update B for the given particular profile (not a typelist), axis and direction
                  *
-                 * Make aliases to user-provided types for decoupling and uniformity of 2d and 3d cases
+                 * @tparam T_Profile incident field profile for the chosen part of the Huygens surface
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 */
+                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                struct ApplyUpdateB
+                {
+                    /** Hook to use this type with meta::ForEach and bmpl::_1
+                     *
+                     * @tparam T_ProfileType incident field profile for the chosen part of the Huygens surface
+                     */
+                    template<typename T_ProfileType>
+                    struct apply
+                    {
+                        using type = ApplyUpdateB<T_ProfileType, T_axis, T_direction>;
+                    };
+
+                    /** Call update B with the given parameters
+                     *
+                     * @tparam T_Parameters parameters type
+                     *
+                     * @param parameters parameters
+                     */
+                    template<typename T_Parameters>
+                    HINLINE void operator()(T_Parameters const& parameters) const
+                    {
+                        using Functor = detail::FunctorIncidentE<T_Profile, T_axis, T_direction>;
+                        using Update = typename detail::UpdateB<Functor>;
+                        Update{}(parameters);
+                    }
+                };
+
+                /** Typelists of profiles to be used by implementation
+                 *
+                 * Make aliases to user-provided types for decoupling and uniformity of 2d and 3d cases.
+                 * Always convert to typelist for uniform handling.
                  *
                  * @{
                  */
 
-                using XMinProfile = XMin;
-                using XMaxProfile = XMax;
-                using YMinProfile = YMin;
-                using YMaxProfile = YMax;
-                using ZMinProfile = std::conditional_t<simDim == 3, ZMin, profiles::None>;
-                using ZMaxProfile = std::conditional_t<simDim == 3, ZMax, profiles::None>;
+                using XMinProfiles = pmacc::MakeSeq_t<XMin>;
+                using XMaxProfiles = pmacc::MakeSeq_t<XMax>;
+                using YMinProfiles = pmacc::MakeSeq_t<YMin>;
+                using YMaxProfiles = pmacc::MakeSeq_t<YMax>;
+                using ZMinProfiles = pmacc::MakeSeq_t<std::conditional_t<simDim == 3, ZMin, profiles::None>>;
+                using ZMaxProfiles = pmacc::MakeSeq_t<std::conditional_t<simDim == 3, ZMax, profiles::None>>;
 
                 /** @} */
 

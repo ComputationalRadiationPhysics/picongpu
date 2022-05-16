@@ -23,7 +23,8 @@ The implementation is based on the total field/scattered field formulation descr
 A user sets offsets of this box from global domain boundary in :ref:`incidentField.param <usage-params-core>`.
 Each offset must cover at least the field absorber thickness along the boundary so that the generating surface is located in the internal area.
 
-For each of the generation planes ``XMin, XMax, YMin, YMax, ZMin, ZMax`` (the latter two for 3d) a user sets incident profile to be applied.
+For each of the generation planes ``XMin, XMax, YMin, YMax, ZMin, ZMax`` (the latter two for 3d) a user sets an incident profile, or a typelist of such profiles, to be applied.
+In case a typelist is used, the result is a sum of all profiles in the list.
 The configuration is done through parameter structures, depending on the profile type.
 Both profiles and parameter structures generally match their laser counterparts.
 The differences between matching incident field- and laser profiles are:

@@ -19,7 +19,7 @@
 
 /** @file incidentField.param
  *
- * Configure incident field profile and gap between Huygence surface and absorber for each boundary.
+ * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
@@ -34,16 +34,18 @@
  * parameters
  *
  * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
- * in 2d) type aliases in namespace `picongpu::fields::incidentField`. It also has to define constexpr array
- * `OFFSET` that controls inward offset of the generating surface relative to global domain. For example:
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
+ * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
+ * effects of all profiles in the list. This file also has to define constexpr array `OFFSET` that controls inward
+ * offset of the generating surface relative to global domain. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free< UserFunctorIncidentE >;
+ * using XMin = profiles::Free<UserFunctorIncidentE>;
  * using XMax = profiles::None;
- * using YMin = profiles::PlaneWave< UserPlaneWaveParams >;
- * using YMax = profiles::Free< AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB >;
- * using ZMin = profiles::Polynom< UserPolynomParams >;
- * using ZMax = profiles::GaussianBeam< UserGaussianBeamParams >;
+ * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
+ * using YMax = profiles::Free<AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB>;
+ * using ZMin = profiles::Polynom<UserPolynomParams>;
+ * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
  *
  * constexpr uint32_t OFFSET[3][2] = { {16, 16}, {16, 16}, {16, 16} };
  * @endcode
