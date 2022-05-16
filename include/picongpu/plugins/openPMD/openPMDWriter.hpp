@@ -1157,12 +1157,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian);
                 mesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
 
-                if(simDim == DIM2)
+                if constexpr(simDim == DIM2)
                 {
                     std::vector<std::string> axisLabels = {"y", "x"}; // 2D: F[y][x]
                     mesh.setAxisLabels(axisLabels);
                 }
-                if(simDim == DIM3)
+                if constexpr(simDim == DIM3)
                 {
                     std::vector<std::string> axisLabels = {"z", "y", "x"}; // 3D: F[z][y][x]
                     mesh.setAxisLabels(axisLabels);

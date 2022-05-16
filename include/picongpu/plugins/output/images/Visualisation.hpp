@@ -713,7 +713,7 @@ namespace picongpu
             m_output.join();
 
             uint32_t localDomainOffset = 0;
-            if(simDim == DIM3)
+            if constexpr(simDim == DIM3)
                 localDomainOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset[sliceDim];
 
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
