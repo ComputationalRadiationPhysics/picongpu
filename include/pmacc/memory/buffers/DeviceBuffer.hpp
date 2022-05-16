@@ -84,9 +84,9 @@ namespace pmacc
         {
             cuplaPitchedPtr cuplaData = this->getCudaPitched();
             math::Size_t<DIM - 1> pitch;
-            if(DIM >= 2)
+            if constexpr(DIM >= 2)
                 pitch[0] = cuplaData.pitch;
-            if(DIM == 3)
+            if constexpr(DIM == 3)
                 pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
             // pass data pointer without deletion policy
             container::DeviceBuffer<TYPE, DIM> result(

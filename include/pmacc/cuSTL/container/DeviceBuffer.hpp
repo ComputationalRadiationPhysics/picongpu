@@ -105,9 +105,9 @@ namespace pmacc
                 this->sharedPtr = ptr;
                 this->shiftedPtr = ptr.get();
                 this->_size = size;
-                if(T_dim >= 2)
+                if constexpr(T_dim >= 2)
                     this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
-                if(T_dim == 3)
+                if constexpr(T_dim == 3)
                     this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
             }
             HINLINE DeviceBuffer(const Base& base) : Base(base)

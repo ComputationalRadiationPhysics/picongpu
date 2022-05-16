@@ -113,11 +113,11 @@ namespace pmacc
             //!\todo: current size can be changed if it is a DeviceBuffer and current size is on device
             // call first get current size (but const not allow this)
 
-            if(DIM == DIM1)
+            if constexpr(DIM == DIM1)
             {
                 tmp[0] = current_size;
             }
-            if(DIM == DIM2)
+            if constexpr(DIM == DIM2)
             {
                 if(current_size <= data_space[0])
                 {
@@ -130,7 +130,7 @@ namespace pmacc
                     tmp[1] = (current_size + data_space[0] - 1) / data_space[0];
                 }
             }
-            if(DIM == DIM3)
+            if constexpr(DIM == DIM3)
             {
                 if(current_size <= data_space[0])
                 {

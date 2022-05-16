@@ -38,7 +38,7 @@ namespace pmacc
             cuplaData.xsize = size[0] * sizeof(Type);
             cuplaData.ysize = 1;
 
-            if(dim == 2u)
+            if constexpr(dim == 2u)
             {
                 cuplaData.xsize = size[0] * sizeof(Type);
                 cuplaData.ysize = size[1];
@@ -46,7 +46,7 @@ namespace pmacc
                     CUDA_CHECK(cuplaMallocPitch(&cuplaData.ptr, &cuplaData.pitch, cuplaData.xsize, cuplaData.ysize));
                 pitch[0] = cuplaData.pitch;
             }
-            else if(dim == 3u)
+            else if constexpr(dim == 3u)
             {
                 cuplaExtent extent;
                 extent.width = size[0] * sizeof(Type);

@@ -63,7 +63,7 @@ namespace pmacc
                 DataSpace<DIM3> periodicTmp;
                 tmp[0] = nodes[0];
                 periodicTmp[0] = periodic[0];
-                if(DIM < DIM2)
+                if constexpr(DIM < DIM2)
                 {
                     tmp[1] = 1;
                     periodicTmp[1] = 1;
@@ -74,7 +74,7 @@ namespace pmacc
                     periodicTmp[1] = periodic[1];
                 }
 
-                if(DIM < DIM3)
+                if constexpr(DIM < DIM3)
                 {
                     tmp[2] = 1;
                     periodicTmp[2] = 1;

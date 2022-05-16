@@ -80,7 +80,7 @@ namespace pmacc
                 tmp_size,
                 exchangeTypeToOffset(exchange, memoryLayout, guardingCells, area),
                 sizeOnDevice);
-            if(DIM > DIM1)
+            if constexpr(DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
                 deviceDoubleBuffer = std::make_unique<DeviceBuffer>(tmp_size, false, true);
@@ -105,7 +105,7 @@ namespace pmacc
             using DeviceBuffer = DeviceBufferIntern<TYPE, DIM>;
             deviceBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, sizeOnDevice);
             //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
-            if(DIM > DIM1)
+            if constexpr(DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
                 deviceDoubleBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, false, true);
@@ -132,11 +132,13 @@ namespace pmacc
             if(exchangeMask.containsExchangeType(LEFT) || exchangeMask.containsExchangeType(RIGHT))
                 result[0] = 1;
 
-            if(DIM > DIM1 && (exchangeMask.containsExchangeType(TOP) || exchangeMask.containsExchangeType(BOTTOM)))
-                result[1] = 1;
+            if constexpr(DIM > DIM1)
+                if(exchangeMask.containsExchangeType(TOP) || exchangeMask.containsExchangeType(BOTTOM))
+                    result[1] = 1;
 
-            if(DIM > DIM2 && (exchangeMask.containsExchangeType(FRONT) || exchangeMask.containsExchangeType(BACK)))
-                result[2] = 1;
+            if constexpr(DIM > DIM2)
+                if(exchangeMask.containsExchangeType(FRONT) || exchangeMask.containsExchangeType(BACK))
+                    result[2] = 1;
 
             return result;
         }
@@ -153,7 +155,7 @@ namespace pmacc
             DataSpace<DIM> border = memoryLayout.getGuard();
             Mask mask(exchange);
             DataSpace<DIM> tmp_offset;
-            if(DIM >= DIM1)
+            if constexpr(DIM >= DIM1)
             {
                 if(mask.containsExchangeType(RIGHT))
                 {
@@ -173,7 +175,7 @@ namespace pmacc
                     }
                 }
             }
-            if(DIM >= DIM2)
+            if constexpr(DIM >= DIM2)
             {
                 if(mask.containsExchangeType(BOTTOM))
                 {
@@ -192,7 +194,7 @@ namespace pmacc
                     }
                 }
             }
-            if(DIM == DIM3)
+            if constexpr(DIM == DIM3)
             {
                 if(mask.containsExchangeType(BACK))
                 {

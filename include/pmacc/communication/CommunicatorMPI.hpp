@@ -237,7 +237,7 @@ namespace pmacc
         bool slide() override
         {
             // we can only slide in y direction right now
-            if(DIM < DIM2)
+            if constexpr(DIM < DIM2)
                 return false;
 
             // MPI_Barrier(topology);
@@ -257,7 +257,7 @@ namespace pmacc
                 return false;
 
             // we can only slide in y direction right now
-            if(DIM < DIM2)
+            if constexpr(DIM < DIM2)
                 return false;
 
             bool result = false;
@@ -399,7 +399,7 @@ namespace pmacc
                 if(m.containsExchangeType(RIGHT))
                     mcoords[0]++;
 
-                if(DIM >= DIM2)
+                if constexpr(DIM >= DIM2)
                 {
                     if(m.containsExchangeType(TOP))
                         mcoords[1]--;
@@ -407,7 +407,7 @@ namespace pmacc
                         mcoords[1]++;
                 }
 
-                if(DIM == DIM3)
+                if constexpr(DIM == DIM3)
                 {
                     if(m.containsExchangeType(BACK))
                         mcoords[2]++;
