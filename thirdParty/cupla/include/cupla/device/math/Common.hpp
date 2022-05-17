@@ -24,7 +24,7 @@
 #include "cupla/defines.hpp"
 #include "cupla/types.hpp"
 
-#include <alpaka/core/Concepts.hpp>
+#include <alpaka/alpaka.hpp>
 
 #include <type_traits>
 
