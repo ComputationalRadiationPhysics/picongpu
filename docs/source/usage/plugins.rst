@@ -24,7 +24,6 @@ Plugin name                                                                     
 :ref:`radiation <usage-plugins-radiation>` [#f2]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
 :ref:`resource log <usage-plugins-resourceLog>`                                      monitor used hardware resources & memory
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
-:ref:`slice field printer <usage-plugins-sliceFieldPrinter>` [#f4]_ [#f5]_           print out a slice of the electric and/or magnetic and/or current field
 :ref:`sum currents <usage-plugins-sumCurrents>` [#f5]_                               compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-transitionRadiation>`                       compute emitted electromagnetic spectra
 :ref:`xrayScattering <usage-plugins-xrayScattering>` [#f2]_                          compute SAXS scattering amplitude ( based on `FieldTmp` species density )
