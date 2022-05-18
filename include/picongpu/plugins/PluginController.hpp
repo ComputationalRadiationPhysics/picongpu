@@ -59,7 +59,6 @@
 #        include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #    endif
 
-#    include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
 #    if(SIMDIM == DIM3)
 #        include "picongpu/plugins/IntensityPlugin.hpp"
 #    endif
@@ -172,22 +171,7 @@ namespace picongpu
             ,
             ResourceLog>;
 
-
-        /* define field plugins */
-        using UnspecializedFieldPlugins = bmpl::vector<
-#if(PMACC_CUDA_ENABLED == 1)
-            SliceFieldPrinterMulti<bmpl::_1>
-#endif
-            >;
-
         using AllFields = bmpl::vector<FieldB, FieldE, FieldJ>;
-
-        using CombinedUnspecializedFieldPlugins =
-            typename AllCombinations<bmpl::vector<AllFields, UnspecializedFieldPlugins>>::type;
-
-        using FieldPlugins = typename bmpl::
-            transform<CombinedUnspecializedFieldPlugins, typename TupleSpeciesPlugin::Apply<bmpl::_1>>::type;
-
 
         /* define species plugins */
         using UnspecializedSpeciesPlugins = bmpl::vector<
@@ -229,7 +213,7 @@ namespace picongpu
             transform<CombinedUnspecializedSpeciesPluginsEligible, typename TupleSpeciesPlugin::Apply<bmpl::_1>>::type;
 
         /* create sequence with all fully specialized plugins */
-        using AllPlugins = MakeSeq_t<StandAlonePlugins, FieldPlugins, SpeciesPlugins>;
+        using AllPlugins = MakeSeq_t<StandAlonePlugins, SpeciesPlugins>;
 
         /**
          * Initializes the controller by adding all user plugins to its internal list.
