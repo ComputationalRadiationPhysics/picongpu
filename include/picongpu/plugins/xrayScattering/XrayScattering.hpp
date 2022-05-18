@@ -65,7 +65,7 @@ namespace picongpu
             using namespace pmacc;
             using namespace picongpu::SI;
             namespace po = boost::program_options;
-            using complex_X = pmacc::math::Complex<float_X>;
+            using complex_X = alpaka::Complex<float_X>;
 
 
             /** xrayScattering plugin

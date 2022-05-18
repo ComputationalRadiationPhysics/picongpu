@@ -205,8 +205,8 @@ namespace picongpu
              *             the field */
             HDINLINE EField::float_T EField::calcTWTSEx(const float3_64& pos, const float_64 time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
-                using complex_64 = pmacc::math::Complex<float_64>;
+                using complex_T = alpaka::Complex<float_T>;
+                using complex_64 = alpaka::Complex<float_64>;
                 /* Unit of speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /* Unit of time */
@@ -330,7 +330,7 @@ namespace picongpu
                     - complex_T(0, 2) * z * tanPhi2 * tanPhi2;
                 const complex_T result = (math::exp(helpVar4) * tauG * math::sqrt((cspeed * om0 * rho0) / helpVar3))
                     / math::sqrt(helpVar5);
-                return result.get_real();
+                return result.real();
             }
 
             /** Calculate the Ey(r,t) field here

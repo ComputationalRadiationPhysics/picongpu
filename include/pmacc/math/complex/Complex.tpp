@@ -59,7 +59,7 @@ namespace pmacc
         template<typename T_Type>
         struct Euler
         {
-            using result = typename ::pmacc::math::Complex<T_Type>;
+            using result = alpaka::Complex<T_Type>;
 
             HDINLINE result operator()(const T_Type& magnitude, const T_Type& phase)
             {
@@ -72,176 +72,23 @@ namespace pmacc
             }
         };
 
-        /*  Set primary template and subsequent specialization of arg() for retrieving
-         *  the phase of a complex number (Note: Branchcut running from -infinity to 0).
-         */
-        template<typename T_Type>
-        struct Arg;
-
-        template<typename T_Type>
-        HDINLINE typename Arg<T_Type>::result arg(const T_Type& val)
-        {
-            return Arg<T_Type>()(val);
-        }
-
-        template<typename T_Type>
-        struct Arg<::pmacc::math::Complex<T_Type>>
-        {
-            using result = typename ::pmacc::math::Complex<T_Type>::type;
-            using type = T_Type;
-
-            HDINLINE result operator()(const ::pmacc::math::Complex<T_Type>& other)
-            {
-                if(other.get_real() == type(0.0) && other.get_imag() == type(0.0))
-                    return type(0.0);
-                else if(other.get_real() == type(0.0) && other.get_imag() > type(0.0))
-                    return Pi<type>::halfValue;
-                else if(other.get_real() == type(0.0) && other.get_imag() < type(0.0))
-                    return -Pi<type>::halfValue;
-                else if(other.get_real() < type(0.0) && other.get_imag() == type(0.0))
-                    return Pi<type>::value;
-                else
-                    return cupla::math::atan2(other.get_imag(), other.get_real());
-            }
-        };
-
         /** Specialize abs2() for complex numbers.
          *
          * Note: Abs is specialized in alpaka::math below
          */
         template<typename T_Type>
-        struct Abs2<::pmacc::math::Complex<T_Type>>
+        struct Abs2<alpaka::Complex<T_Type>>
         {
-            using result = typename ::pmacc::math::Complex<T_Type>::type;
+            using result = typename alpaka::Complex<T_Type>::value_type;
 
-            HDINLINE result operator()(const ::pmacc::math::Complex<T_Type>& other)
+            HDINLINE result operator()(const alpaka::Complex<T_Type>& other)
             {
-                return pmacc::math::abs2(other.get_real()) + pmacc::math::abs2(other.get_imag());
+                return pmacc::math::abs2(other.real()) + pmacc::math::abs2(other.imag());
             }
         };
 
     } // namespace math
 } // namespace pmacc
-
-namespace alpaka
-{
-    namespace math
-    {
-        namespace trait
-        {
-            template<typename T_Ctx, typename T_Type>
-            struct Pow<T_Ctx, ::pmacc::math::Complex<T_Type>, T_Type, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other,
-                    T_Type const& exponent) -> ::pmacc::math::Complex<T_Type>
-                {
-                    return cupla::pow(cupla::math::abs(other), exponent)
-                        * cupla::math::exp(
-                               ::pmacc::math::Complex<T_Type>(T_Type(0.), T_Type(1.)) * pmacc::math::arg(other)
-                               * exponent);
-                }
-            };
-
-            template<typename T_Ctx, typename T_Type>
-            struct Sqrt<T_Ctx, ::pmacc::math::Complex<T_Type>, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other) -> ::pmacc::math::Complex<T_Type>
-                {
-                    using type = T_Type;
-                    if(other.get_real() <= type(0.0) && other.get_imag() == type(0.0))
-                    {
-                        return ::pmacc::math::Complex<T_Type>(
-                            type(0.0),
-                            alpaka::math::sqrt(mathConcept, -other.get_real()));
-                    }
-                    else
-                    {
-                        return alpaka::math::sqrt(mathConcept, cupla::math::abs(other))
-                            * (other + cupla::math::abs(other)) / cupla::math::abs(other + cupla::math::abs(other));
-                    }
-                }
-            };
-
-            template<typename T_Ctx, typename T_Type>
-            struct Exp<T_Ctx, ::pmacc::math::Complex<T_Type>, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other) -> ::pmacc::math::Complex<T_Type>
-                {
-                    using type = T_Type;
-                    return pmacc::math::euler(type(1.0), other.get_imag())
-                        * alpaka::math::exp(mathConcept, other.get_real());
-                }
-            };
-
-            template<typename T_Ctx, typename T_Type>
-            struct Abs<T_Ctx, ::pmacc::math::Complex<T_Type>, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other) -> T_Type
-                {
-                    /* It is not possible to use alpaka::math::sqrt( mathConcept, ... )
-                     * here, as the mathConcept would not match, so go around via cupla
-                     */
-                    return cupla::math::sqrt(pmacc::math::abs2(other));
-                }
-            };
-
-            template<typename T_Ctx, typename T_Type>
-            struct Log<T_Ctx, ::pmacc::math::Complex<T_Type>, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other) -> ::pmacc::math::Complex<T_Type>
-                {
-                    using type = T_Type;
-                    return alpaka::math::log(mathConcept, cupla::math::abs(other))
-                        + ::pmacc::math::Complex<T_Type>(type(0.), type(1.)) * pmacc::math::arg(other);
-                }
-            };
-
-            template<typename T_Ctx, typename T_Type>
-            struct Cos<T_Ctx, ::pmacc::math::Complex<T_Type>, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other) -> ::pmacc::math::Complex<T_Type>
-                {
-                    using type = T_Type;
-                    return (alpaka::math::exp(mathConcept, ::pmacc::math::Complex<T_Type>(type(0.), type(1.)) * other)
-                            + alpaka::math::exp(
-                                mathConcept,
-                                ::pmacc::math::Complex<T_Type>(type(0.), type(-1.)) * other))
-                        / type(2.0);
-                }
-            };
-
-            template<typename T_Ctx, typename T_Type>
-            struct Sin<T_Ctx, ::pmacc::math::Complex<T_Type>, void>
-            {
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Complex<T_Type> const& other) -> ::pmacc::math::Complex<T_Type>
-                {
-                    using type = T_Type;
-
-                    return (alpaka::math::exp(mathConcept, ::pmacc::math::Complex<T_Type>(type(0.), type(1.)) * other)
-                            - alpaka::math::exp(
-                                mathConcept,
-                                ::pmacc::math::Complex<T_Type>(type(0.), type(-1.)) * other))
-                        / ::pmacc::math::Complex<T_Type>(type(0.), type(2.));
-                }
-            };
-        } // namespace trait
-    } // namespace math
-} // namespace alpaka
-
 
 namespace pmacc
 {
@@ -249,25 +96,25 @@ namespace pmacc
     {
         namespace precisionCast
         {
-            /*  Specialize precisionCast-operators for complex numbers. */
+            /*  Specialize precisionCast-operators for alpaka complex numbers. */
 
             template<typename T_CastToType>
-            struct TypeCast<T_CastToType, ::pmacc::math::Complex<T_CastToType>>
+            struct TypeCast<T_CastToType, alpaka::Complex<T_CastToType>>
             {
-                using result = const ::pmacc::math::Complex<T_CastToType>&;
+                using result = const alpaka::Complex<T_CastToType>&;
 
-                HDINLINE result operator()(const ::pmacc::math::Complex<T_CastToType>& complexNumber) const
+                HDINLINE result operator()(const alpaka::Complex<T_CastToType>& complexNumber) const
                 {
                     return complexNumber;
                 }
             };
 
             template<typename T_CastToType, typename T_OldType>
-            struct TypeCast<T_CastToType, ::pmacc::math::Complex<T_OldType>>
+            struct TypeCast<T_CastToType, alpaka::Complex<T_OldType>>
             {
-                using result = ::pmacc::math::Complex<T_CastToType>;
+                using result = alpaka::Complex<T_CastToType>;
 
-                HDINLINE result operator()(const ::pmacc::math::Complex<T_OldType>& complexNumber) const
+                HDINLINE result operator()(const alpaka::Complex<T_OldType>& complexNumber) const
                 {
                     return result(complexNumber);
                 }
@@ -280,21 +127,21 @@ namespace pmacc
     {
         // Specialize complex type grid buffer for MPI
         template<>
-        HINLINE MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<float>>()
+        HINLINE MPI_StructAsArray getMPI_StructAsArray<alpaka::Complex<float>>()
         {
-            using ComplexType = pmacc::math::Complex<float>;
-            MPI_StructAsArray result = getMPI_StructAsArray<ComplexType::type>();
-            result.sizeMultiplier *= uint32_t(sizeof(ComplexType) / sizeof(typename ComplexType::type));
+            using ComplexType = alpaka::Complex<float>;
+            MPI_StructAsArray result = getMPI_StructAsArray<ComplexType::value_type>();
+            result.sizeMultiplier *= uint32_t(sizeof(ComplexType) / sizeof(ComplexType::value_type));
             return result;
         };
 
         // Specialize complex type grid buffer for MPI
         template<>
-        HINLINE MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<double>>()
+        HINLINE MPI_StructAsArray getMPI_StructAsArray<alpaka::Complex<double>>()
         {
-            using ComplexType = pmacc::math::Complex<double>;
-            MPI_StructAsArray result = getMPI_StructAsArray<ComplexType::type>();
-            result.sizeMultiplier *= uint32_t(sizeof(ComplexType) / sizeof(typename ComplexType::type));
+            using ComplexType = alpaka::Complex<double>;
+            MPI_StructAsArray result = getMPI_StructAsArray<ComplexType::value_type>();
+            result.sizeMultiplier *= uint32_t(sizeof(ComplexType) / sizeof(ComplexType::value_type));
             return result;
         };
 

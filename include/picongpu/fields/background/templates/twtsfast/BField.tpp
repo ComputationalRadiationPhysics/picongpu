@@ -315,8 +315,8 @@ namespace picongpu
             HDINLINE
             BField::float_T BField::calcTWTSBy(float3_64 const& pos, float_64 const time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
-                using complex_64 = pmacc::math::Complex<float_64>;
+                using complex_T = alpaka::Complex<float_T>;
+                using complex_64 = alpaka::Complex<float_64>;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
                 auto const beta0 = float_T(beta_0);
@@ -451,7 +451,7 @@ namespace picongpu
                        * math::sqrt(cspeed * om0 * rho0 / helpVar2))
                     / (float_T(2.0) * cspeed * math::pow(helpVar4, float_T(1.5)));
 
-                return result.get_real() / UNIT_SPEED;
+                return result.real() / UNIT_SPEED;
             }
 
             /** Calculate the Bz(r,t) field
@@ -462,7 +462,7 @@ namespace picongpu
             HDINLINE
             BField::float_T BField::calcTWTSBz_Ex(float3_64 const& pos, float_64 const time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
+                using complex_T = alpaka::Complex<float_T>;
 
                 /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
                 auto const beta0 = float_T(beta_0);
@@ -592,7 +592,7 @@ namespace picongpu
                        * math::sqrt(om0 * rho0 / helpVar7))
                     / math::pow(helpVar9, float_T(1.5));
 
-                return result.get_real() / UNIT_SPEED;
+                return result.real() / UNIT_SPEED;
             }
 
             /** Calculate the Bx(r,t) field
@@ -617,8 +617,8 @@ namespace picongpu
             HDINLINE
             BField::float_T BField::calcTWTSBz_Ey(float3_64 const& pos, float_64 const time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
-                using complex_64 = pmacc::math::Complex<float_64>;
+                using complex_T = alpaka::Complex<float_T>;
+                using complex_64 = alpaka::Complex<float_64>;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
                 auto const beta0 = float_T(beta_0);
@@ -754,7 +754,7 @@ namespace picongpu
                        * math::pow(float_T(1.0) / helpVar2, float_T(1.5)))
                     / math::sqrt(helpVar4);
 
-                return result.get_real() / UNIT_SPEED;
+                return result.real() / UNIT_SPEED;
             }
 
         } /* namespace twtsfast */

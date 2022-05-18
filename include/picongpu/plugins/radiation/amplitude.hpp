@@ -40,10 +40,10 @@ namespace picongpu
                 /* For the intermediate amplitude values we may use single precision,
                  * for the final accumulation we will have to use double precision.
                  */
-                using complex_T = pmacc::math::Complex<T_Float>;
+                using complex_T = alpaka::Complex<T_Float>;
                 /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
                 static constexpr uint32_t numComponents
-                    = uint32_t(3) * uint32_t(sizeof(complex_T) / sizeof(typename complex_T::type));
+                    = uint32_t(3) * uint32_t(sizeof(complex_T) / sizeof(typename complex_T::value_type));
 
                 /** default constructor
                  *
@@ -88,9 +88,9 @@ namespace picongpu
                 HDINLINE static Amplitude zero(void)
                 {
                     Amplitude result;
-                    result.amp_x = complex_T::zero();
-                    result.amp_y = complex_T::zero();
-                    result.amp_z = complex_T::zero();
+                    result.amp_x = complex_T{};
+                    result.amp_y = complex_T{};
+                    result.amp_z = complex_T{};
                     return result;
                 }
 
@@ -168,7 +168,7 @@ namespace picongpu
                  * Returns: real-x-value */
                 HDINLINE picongpu::float_64 debug(void)
                 {
-                    return amp_x.get_real();
+                    return amp_x.real();
                 }
 
                 /** Getters for the components
@@ -204,7 +204,7 @@ namespace pmacc
         HINLINE MPI_StructAsArray getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude<>>()
         {
             MPI_StructAsArray result
-                = getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude<>::complex_T::type>();
+                = getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude<>::complex_T::value_type>();
             result.sizeMultiplier *= picongpu::plugins::radiation::Amplitude<>::numComponents;
             return result;
         };

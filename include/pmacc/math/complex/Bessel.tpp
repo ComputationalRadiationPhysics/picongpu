@@ -77,8 +77,8 @@ namespace pmacc
             template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
             struct Cbesselj0Base
             {
-                using Result = pmacc::math::Complex<T_Type>;
-                using complex_T = pmacc::math::Complex<T_Type>;
+                using Result = alpaka::Complex<T_Type>;
+                using complex_T = alpaka::Complex<T_Type>;
                 using float_T = T_Type;
 
                 HDINLINE Result operator()(complex_T const& z)
@@ -107,7 +107,7 @@ namespace pmacc
                         cj0 = cone;
                         return cj0;
                     }
-                    if(z.get_real() < float_T(0.0))
+                    if(z.real() < float_T(0.0))
                         z1 = float_T(-1.0) * z;
                     if(a0 <= float_T(12.0))
                     {
@@ -151,8 +151,8 @@ namespace pmacc
             template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
             struct Cbesselj1Base
             {
-                using Result = pmacc::math::Complex<T_Type>;
-                using complex_T = pmacc::math::Complex<T_Type>;
+                using Result = alpaka::Complex<T_Type>;
+                using complex_T = alpaka::Complex<T_Type>;
                 using float_T = T_Type;
 
                 HDINLINE Result operator()(complex_T const& z)
@@ -181,7 +181,7 @@ namespace pmacc
                         cj1 = czero;
                         return cj1;
                     }
-                    if(z.get_real() < float_T(0.0))
+                    if(z.real() < float_T(0.0))
                         z1 = float_T(-1.0) * z;
                     if(a0 <= float_T(12.0))
                     {
@@ -219,7 +219,7 @@ namespace pmacc
                         }
                         cj1 = cu * (cp1 * cupla::math::cos(ct2) - cq1 * cupla::math::sin(ct2));
                     }
-                    if(z.get_real() < float_T(0.0))
+                    if(z.real() < float_T(0.0))
                     {
                         cj1 = float_T(-1.0) * cj1;
                     }
@@ -228,7 +228,7 @@ namespace pmacc
             };
 
             template<>
-            struct J0<pmacc::math::Complex<double>>
+            struct J0<alpaka::Complex<double>>
                 : public Cbesselj0Base<
                       double,
                       pmacc::math::bessel::aDouble_t,
@@ -239,7 +239,7 @@ namespace pmacc
             };
 
             template<>
-            struct J0<pmacc::math::Complex<float>>
+            struct J0<alpaka::Complex<float>>
                 : public Cbesselj0Base<
                       float,
                       pmacc::math::bessel::aFloat_t,
@@ -250,7 +250,7 @@ namespace pmacc
             };
 
             template<>
-            struct J1<pmacc::math::Complex<double>>
+            struct J1<alpaka::Complex<double>>
                 : public Cbesselj1Base<
                       double,
                       pmacc::math::bessel::aDouble_t,
@@ -261,7 +261,7 @@ namespace pmacc
             };
 
             template<>
-            struct J1<pmacc::math::Complex<float>>
+            struct J1<alpaka::Complex<float>>
                 : public Cbesselj1Base<
                       float,
                       pmacc::math::bessel::aFloat_t,

@@ -293,8 +293,8 @@ namespace picongpu
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBy(const float3_64& pos, const float_64 time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
-                using complex_64 = pmacc::math::Complex<float_64>;
+                using complex_T = alpaka::Complex<float_T>;
+                using complex_64 = alpaka::Complex<float_64>;
                 /* Unit of speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /* Unit of time */
@@ -434,7 +434,7 @@ namespace picongpu
                        * math::pow(helpVar3, float_T(-1.5)))
                     / (float_T(2.0) * helpVar5 * math::sqrt(helpVar6));
 
-                return result.get_real() / UNIT_SPEED;
+                return result.real() / UNIT_SPEED;
             }
 
             /** Calculate the Bz(r,t) field
@@ -444,7 +444,7 @@ namespace picongpu
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBz_Ex(const float3_64& pos, const float_64 time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
+                using complex_T = alpaka::Complex<float_T>;
                 /** Unit of Speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /** Unit of time */
@@ -547,7 +547,7 @@ namespace picongpu
                        * math::sqrt((om0 * rho0) / helpVar3))
                     / math::pow(helpVar7, float_T(1.5));
 
-                return result.get_real() / UNIT_SPEED;
+                return result.real() / UNIT_SPEED;
             }
 
             /** Calculate the Bx(r,t) field
@@ -570,8 +570,8 @@ namespace picongpu
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBz_Ey(const float3_64& pos, const float_64 time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
-                using complex_64 = pmacc::math::Complex<float_64>;
+                using complex_T = alpaka::Complex<float_T>;
+                using complex_64 = alpaka::Complex<float_64>;
                 /** Unit of speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /** Unit of time */
@@ -703,7 +703,7 @@ namespace picongpu
                     * (cspeed * math::exp(helpVar3) * k * tauG * x * math::pow(helpVar2, float_T(-1.5))
                        / math::sqrt(helpVar4));
 
-                return result.get_real() / UNIT_SPEED;
+                return result.real() / UNIT_SPEED;
             }
 
         } /* namespace twts */

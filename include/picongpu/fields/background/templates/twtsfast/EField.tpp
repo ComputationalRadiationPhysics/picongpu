@@ -208,8 +208,8 @@ namespace picongpu
              *             the field */
             HDINLINE EField::float_T EField::calcTWTSEx(float3_64 const& pos, float_64 const time) const
             {
-                using complex_T = pmacc::math::Complex<float_T>;
-                using complex_64 = pmacc::math::Complex<float_64>;
+                using complex_T = alpaka::Complex<float_T>;
+                using complex_64 = alpaka::Complex<float_64>;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
                 auto const beta0 = float_T(beta_0);
@@ -337,7 +337,7 @@ namespace picongpu
                 complex_T const result
                     = (math::exp(helpVar3) * tauG * math::sqrt(cspeed * om0 * rho0 / helpVar2)) / math::sqrt(helpVar4);
 
-                return result.get_real();
+                return result.real();
             }
 
             /** Calculate the Ey(r,t) field here
