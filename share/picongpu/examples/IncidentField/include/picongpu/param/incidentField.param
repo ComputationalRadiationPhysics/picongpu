@@ -19,7 +19,7 @@
 
 /** @file incidentField.param
  *
- * Configure incident field profile and gap between Huygence surface and absorber for each boundary.
+ * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
@@ -34,16 +34,18 @@
  * parameters
  *
  * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
- * in 2d) type aliases in namespace `picongpu::fields::incidentField`. It also has to define constexpr array
- * `OFFSET` that controls inward offset of the generating surface relative to global domain. For example:
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
+ * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
+ * effects of all profiles in the list. This file also has to define constexpr array `OFFSET` that controls inward
+ * offset of the generating surface relative to global domain. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free< UserFunctorIncidentE >;
+ * using XMin = profiles::Free<UserFunctorIncidentE>;
  * using XMax = profiles::None;
- * using YMin = profiles::PlaneWave< UserPlaneWaveParams >;
- * using YMax = profiles::Free< AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB >;
- * using ZMin = profiles::Polynom< UserPolynomParams >;
- * using ZMax = profiles::GaussianBeam< UserGaussianBeamParams >;
+ * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
+ * using YMax = profiles::Free<AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB>;
+ * using ZMin = profiles::Polynom<UserPolynomParams>;
+ * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
  *
  * constexpr uint32_t OFFSET[3][2] = { {16, 16}, {16, 16}, {16, 16} };
  * @endcode
@@ -188,8 +190,9 @@ namespace picongpu
                 }
             };
 
-            /** Functor to set values of incident E field
+            /** Functor to set values of incident E field with given delay in time steps
              */
+            template<int32_t T_delaySteps>
             class FunctorYMaxIncidentE : public FunctorBase
             {
             public:
@@ -203,7 +206,7 @@ namespace picongpu
                  *                  field_internal = field_SI / unitField
                  */
                 HINLINE FunctorYMaxIncidentE(float_X const currentStep, float3_64 const unitField)
-                    : FunctorBase(currentStep)
+                    : FunctorBase(currentStep - static_cast<float_X>(T_delaySteps))
                     , m_unitField(unitField)
                 {
                 }
@@ -221,8 +224,9 @@ namespace picongpu
                 }
             };
 
-            /** Functor to set values of incident B field
+            /** Functor to set values of incident B field with given delay in time steps
              */
+            template<int32_t T_delaySteps>
             class FunctorYMaxIncidentB : public FunctorBase
             {
             public:
@@ -236,7 +240,7 @@ namespace picongpu
                  *                  field_internal = field_SI / unitField
                  */
                 HINLINE FunctorYMaxIncidentB(float_X const currentStep, float3_64 const unitField)
-                    : FunctorBase(currentStep)
+                    : FunctorBase(currentStep - static_cast<float_X>(T_delaySteps))
                     , m_unitField(unitField)
                 {
                 }
@@ -267,17 +271,20 @@ namespace picongpu
              * same as what default SVEA would give.
              * However, in principle a user could implement any behavior in FunctorYMaxIncidentB.
              */
-            using MyYMaxProfile = profiles::Free<FunctorYMaxIncidentE, FunctorYMaxIncidentB>;
+            using MyYMaxProfile = profiles::Free<FunctorYMaxIncidentE<0>, FunctorYMaxIncidentB<0>>;
+
+            //! Another profile that is a 100 time steps delayed version of MyYMaxProfile
+            using MyYMaxProfileDelay = profiles::Free<FunctorYMaxIncidentE<100>, FunctorYMaxIncidentB<100>>;
 
             /**@{*/
             /** Incident field profile types along each boundary, these 6 types (or aliases) are required.
              *
-             * Here we generate Gaussian pulses propagating inwards from X min and Y Max borders.
+             * Here we generate a Gaussian pulse propagating inwards from X min and 2 Gaussian pulses from Y max.
              */
             using XMin = MyXMinProfile;
             using XMax = profiles::None;
             using YMin = profiles::None;
-            using YMax = MyYMaxProfile;
+            using YMax = MakeSeq_t<MyYMaxProfile, MyYMaxProfileDelay>;
             using ZMin = profiles::None;
             using ZMax = profiles::None;
             /**@}*/
