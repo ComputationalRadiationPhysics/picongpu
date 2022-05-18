@@ -169,11 +169,11 @@ namespace picongpu
             std::vector<int> totalDomainSize{&totalDomain.size[0], &totalDomain.size[0] + simDim};
             std::vector<int> totalDomainOffset{&totalDomain.offset[0], &totalDomain.offset[0] + simDim};
             std::vector<std::string> globalDomainAxisLabels;
-            if(simDim == DIM2)
+            if constexpr(simDim == DIM2)
             {
                 globalDomainAxisLabels = {"y", "x"}; // 2D: F[y][x]
             }
-            if(simDim == DIM3)
+            if constexpr(simDim == DIM3)
             {
                 globalDomainAxisLabels = {"z", "y", "x"}; // 3D: F[z][y][x]
             }

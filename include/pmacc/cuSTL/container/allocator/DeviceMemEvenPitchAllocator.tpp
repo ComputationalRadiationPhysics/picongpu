@@ -34,11 +34,11 @@ namespace pmacc
             if(size.productOfComponents())
                 CUDA_CHECK(cuplaMalloc((void**) &dataPointer, sizeof(Type) * size.productOfComponents()));
 
-            if(dim == 2u)
+            if constexpr(dim == 2u)
             {
                 pitch[0] = sizeof(Type) * size[0];
             }
-            else if(dim == 3u)
+            else if constexpr(dim == 3u)
             {
                 pitch[0] = sizeof(Type) * size[0];
                 pitch[1] = pitch[0] * size[1];

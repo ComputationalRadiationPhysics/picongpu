@@ -63,7 +63,7 @@ namespace picongpu
                     void operator()(po::options_description& desc)
                     {
                         auto example = std::string{"example: --" + prefix + "_boundary absorbing periodic"};
-                        if(simDim == 3)
+                        if constexpr(simDim == 3)
                             example += " reflecting";
                         desc.add_options()(
                             (prefix + "_boundary").c_str(),

@@ -124,7 +124,7 @@ namespace picongpu
                     // Note: since this should compile for 2d, .z( ) can't be used
                     using detail::makeIdx;
                     int layerIdx = 0;
-                    if(simDim == 3)
+                    if constexpr(simDim == 3)
                     {
                         auto const negativeZLayer
                             = Layer{makeIdx(0, 0, 0), makeIdx(gridSize[0], gridSize[1], negativeSize[2])};

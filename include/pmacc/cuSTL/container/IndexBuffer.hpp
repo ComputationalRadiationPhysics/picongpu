@@ -61,7 +61,7 @@ namespace pmacc
                 math::Int<dim> factor;
                 factor[0] = 1;
                 factor[1] = this->_size.x();
-                if(dim == 3)
+                if constexpr(dim == 3)
                     factor[2] = this->_size.x() * this->_size.y();
 
                 return cursor::
@@ -76,7 +76,7 @@ namespace pmacc
                 math::Int<dim> factor;
                 factor[0] = 1;
                 factor[1] = this->_size.x();
-                if(dim == 3)
+                if constexpr(dim == 3)
                     factor[2] = this->_size.x() * this->_size.y();
                 math::Int<dim> customFactor;
                 for(uint32_t i = 0; i < dim; i++)

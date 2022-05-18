@@ -81,12 +81,13 @@ namespace picongpu
 
         bool activatePlugin = true;
 
-        if(simDim == DIM2 && el_space == AxisDescription::z)
-        {
-            std::cerr << "[Plugin] [" + m_help->getOptionPrefix() + "] Skip requested output for "
-                      << m_help->element_space.get(id) << m_help->element_momentum.get(id) << std::endl;
-            activatePlugin = false;
-        }
+        if constexpr(simDim == DIM2)
+            if(el_space == AxisDescription::z)
+            {
+                std::cerr << "[Plugin] [" + m_help->getOptionPrefix() + "] Skip requested output for "
+                          << m_help->element_space.get(id) << m_help->element_momentum.get(id) << std::endl;
+                activatePlugin = false;
+            }
 
         if(activatePlugin)
         {

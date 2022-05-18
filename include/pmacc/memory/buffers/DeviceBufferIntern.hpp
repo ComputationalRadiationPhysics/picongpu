@@ -126,11 +126,11 @@ namespace pmacc
         {
             __startOperation(ITask::TASK_DEVICE);
 
-            if(DIM == DIM1)
+            if constexpr(DIM == DIM1)
             {
                 return (TYPE*) (data.ptr) + this->offset[0];
             }
-            else if(DIM == DIM2)
+            else if constexpr(DIM == DIM2)
             {
                 return (TYPE*) ((char*) data.ptr + this->offset[1] * this->data.pitch) + this->offset[0];
             }
@@ -238,18 +238,18 @@ namespace pmacc
             data.xsize = this->getDataSpace()[0] * sizeof(TYPE);
             data.ysize = 1;
 
-            if(DIM == DIM1)
+            if constexpr(DIM == DIM1)
             {
                 log<ggLog::MEMORY>("Create device 1D data: %1% MiB") % (data.xsize / 1024 / 1024);
                 CUDA_CHECK(cuplaMallocPitch(&data.ptr, &data.pitch, data.xsize, 1));
             }
-            if(DIM == DIM2)
+            if constexpr(DIM == DIM2)
             {
                 data.ysize = this->getDataSpace()[1];
                 log<ggLog::MEMORY>("Create device 2D data: %1% MiB") % (data.xsize * data.ysize / 1024 / 1024);
                 CUDA_CHECK(cuplaMallocPitch(&data.ptr, &data.pitch, data.xsize, data.ysize));
             }
-            if(DIM == DIM3)
+            if constexpr(DIM == DIM3)
             {
                 cuplaExtent extent;
                 extent.width = this->getDataSpace()[0] * sizeof(TYPE);
@@ -285,7 +285,7 @@ namespace pmacc
             // fake the pitch, thus we can use this 1D Buffer as 2D or 3D
             data.pitch = this->getDataSpace()[0] * sizeof(TYPE);
 
-            if(DIM > DIM1)
+            if constexpr(DIM > DIM1)
             {
                 data.ysize = this->getDataSpace()[1];
             }
