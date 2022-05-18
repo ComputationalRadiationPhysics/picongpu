@@ -67,19 +67,16 @@ namespace picongpu
                     {
                     }
 
-                    /** Offset of the Huygens surface from min border of the global domain
+                    /** Total position of the Huygens surface for min and max borders
                      *
-                     * The offset is from the start of CORE + BORDER area.
-                     * Counted in full cells, the surface is additionally offset by 0.75 cells
-                     */
-                    pmacc::DataSpace<simDim> offsetMinBorder;
-
-                    /** Offset of the Huygens surface from max border of the global domain
+                     * It is offset from the origin of the user coordinate system, in cells.
+                     * The Huygens surface is additionally offset by 0.75 cells inwards from this position.
                      *
-                     * The offset is from the start of CORE + BORDER area.
-                     * Counted in full cells, the surface is additionally offset by 0.75 cells
+                     * @{
                      */
-                    pmacc::DataSpace<simDim> offsetMaxBorder;
+                    pmacc::DataSpace<simDim> totalPositionMinBorder;
+                    pmacc::DataSpace<simDim> totalPositionMaxBorder;
+                    /** @} */
 
                     /** Direction of the incidentField propagation
                      *
@@ -134,22 +131,38 @@ namespace picongpu
                     auto const boundaryIdx = (updateFunctor.direction > 0) ? 0 : 1;
                     auto const& absorber = fields::absorber::Absorber::get();
                     auto const absorberThickness = absorber.getGlobalThickness()(axis, boundaryIdx);
-                    auto const minAllowedOffset = absorberThickness + margin - 1;
-                    if(OFFSET[axis][boundaryIdx] < minAllowedOffset)
+                    auto const minAllowedOffsetFromBoundary = static_cast<int32_t>(absorberThickness + margin - 1);
+
+                    // Calculate offset of Huygens surface from the active boundary
+                    auto const& subGrid = Environment<simDim>::get().SubGrid();
+                    int32_t offset = 0;
+                    if(boundaryIdx == 0)
+                        offset = POSITION[axis][boundaryIdx];
+                    else if(POSITION[axis][boundaryIdx] > 0)
+                        offset = subGrid.getGlobalDomain().size[axis] - POSITION[axis][boundaryIdx];
+                    else
+                        offset = -POSITION[axis][boundaryIdx];
+
+                    // For YMax boundary and moving window on we allow positioning outside of global volume
+                    auto const movingWindowEnabled = MovingWindow::getInstance().isEnabled();
+                    bool const skipOffsetCheck = ((axis == 1) && (boundaryIdx == 1) && movingWindowEnabled);
+                    if(skipOffsetCheck)
+                        offset = minAllowedOffsetFromBoundary;
+
+                    if(offset < minAllowedOffsetFromBoundary)
                         throw std::runtime_error(
-                            "Incident field OFFSET[" + std::to_string(axis) + "][" + std::to_string(boundaryIdx)
-                            + "] is too small for used field solver and absorber, must be at least "
-                            + std::to_string(minAllowedOffset));
+                            "Incident field POSITION[" + std::to_string(axis) + "][" + std::to_string(boundaryIdx)
+                            + "] is too close to the boundary for used field solver and absorber, must be at least "
+                            + std::to_string(minAllowedOffsetFromBoundary) + " cells away");
 
                     /* Current implementation requires all updated values (along the active axis) to be inside the same
                      * local domain
                      */
-                    auto const& subGrid = Environment<simDim>::get().SubGrid();
                     auto const localDomainSize = subGrid.getLocalDomain().size[axis];
                     if((beginLocalUserIdx[axis] + 1 < margin) || (beginLocalUserIdx[axis] + margin > localDomainSize))
                         throw std::runtime_error(
                             "The Huygens surface for incident field generation is too close to a local domain border."
-                            "Adjust OFFSET or grid distribution over gpus.");
+                            "Adjust POSITION or grid distribution over gpus.");
                 }
 
                 /** Update a field with the given incidentField normally to the given axis
@@ -182,20 +195,14 @@ namespace picongpu
                     auto updatedFieldPositions = traits::FieldPosition<cellType::Yee, T_UpdatedField>{}();
                     bool isUpdatedFieldTotal = (updatedFieldPositions[0][0] != 0.0_X);
 
-                    /* Start and end of the source area in the user total coordinates
-                     * (the coordinate system in which a user functor is expressed, no guards)
+                    /* Start and end of the source area in the user total coordinates.
+                     * Add extra 1 to account for 0.75 Huygens surface shift.
+                     * However, the shift is reverted for min-border row of B due to our Yee grid configuration.
                      */
-                    auto const& subGrid = Environment<simDim>::get().SubGrid();
-                    auto const globalDomainOffset = subGrid.getGlobalDomain().offset;
-                    /* Add extra 1 to account for 0.75 Huygens surface shift.
-                     * However, the shift is not reverted for min-border row of B due to our Yee grid configuration.
-                     */
-                    auto beginUserIdx
-                        = parameters.offsetMinBorder + globalDomainOffset + pmacc::DataSpace<simDim>::create(1);
-                    ;
+                    auto beginUserIdx = parameters.totalPositionMinBorder + pmacc::DataSpace<simDim>::create(1);
                     if(!isUpdatedFieldTotal && (parameters.direction > 0))
                         beginUserIdx[T_axis] -= 1;
-                    auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder + globalDomainOffset;
+                    auto endUserIdx = parameters.totalPositionMaxBorder;
 
                     // Prepare update functor type
                     DataConnector& dc = Environment<>::get().DataConnector();
@@ -219,10 +226,12 @@ namespace picongpu
                     }
 
                     // Convert to the local domain indices
-                    using Index = pmacc::DataSpace<simDim>;
-                    using IntVector = pmacc::math::Vector<int, simDim>;
+                    auto const& subGrid = Environment<simDim>::get().SubGrid();
+                    auto const globalDomainOffset = subGrid.getGlobalDomain().offset;
                     auto const localDomain = subGrid.getLocalDomain();
                     auto const totalCellOffset = globalDomainOffset + localDomain.offset;
+                    using Index = pmacc::DataSpace<simDim>;
+                    using IntVector = pmacc::math::Vector<int, simDim>;
                     auto const beginLocalUserIdx
                         = Index{pmacc::math::max(IntVector{beginUserIdx - totalCellOffset}, IntVector::create(0))};
                     auto const endLocalUserIdx = Index{
@@ -465,15 +474,18 @@ namespace picongpu
                  */
                 Solver(MappingDesc const cellDescription) : cellDescription(cellDescription)
                 {
-                    /* Read offsets from global domain borders, without guards.
-                     * These can end up being outside of the local domain, it is handled later.
-                     */
+                    auto const& subGrid = Environment<simDim>::get().SubGrid();
+                    auto const globalDomainSize = subGrid.getGlobalDomain().size;
                     for(uint32_t axis = 0u; axis < simDim; ++axis)
                     {
-                        offsetMinBorder[axis] = OFFSET[axis][0];
-                        offsetMaxBorder[axis] = OFFSET[axis][1];
+                        totalPositionMinBorder[axis] = POSITION[axis][0];
+                        // Treat negative right-side positions as described in the .param file
+                        if(POSITION[axis][1] > 0)
+                            totalPositionMaxBorder[axis] = POSITION[axis][1];
+                        else
+                            totalPositionMaxBorder[axis] = globalDomainSize[axis] + POSITION[axis][1];
                     }
-                    checkVolume();
+                    checkPositioning();
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step
@@ -508,8 +520,18 @@ namespace picongpu
                 }
 
             private:
-                //! Check if volume bounded by the Huygens surface is positive, print a warning otherwise
-                void checkVolume() const
+                /** Check if Huygens surface positioning is reasonable, print a warning otherwise
+                 *
+                 * Check that the position is inside the simulation volume (taking into account potential moving
+                 * window). Also check that the internal volume is not zero.
+                 *
+                 * Note that it only checks some conditions for positioning.
+                 * So this check is necessary, but not sufficient to ensure a valid configuration.
+                 * An incident field solver makes a different check later and throws if it fails.
+                 *
+                 * This check is skipped when all profiles are None.
+                 */
+                void checkPositioning() const
                 {
                     // Skip the check when no incident field sources enabled
                     if(!isEnabled())
@@ -523,16 +545,29 @@ namespace picongpu
                     bool isPrinting = (Environment<simDim>::get().GridController().getGlobalRank() == 0);
                     if(isPrinting)
                     {
+                        auto const movingWindowEnabled = MovingWindow::getInstance().isEnabled();
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
-                        auto const totalDomainSize = subGrid.getTotalDomain().size;
+                        auto const globalDomainSize = subGrid.getGlobalDomain().size;
                         for(uint32_t axis = 0; axis < simDim; axis++)
-                            if(offsetMinBorder[axis] + offsetMaxBorder[axis] + 2 > totalDomainSize[axis])
+                        {
+                            if(totalPositionMinBorder[axis] < 0)
+                                log<picLog::PHYSICS>(
+                                    "Warning: Huygens surface at Min border is located outside of simulation volume, "
+                                    "no incident field will be generated at the external part of the surface\n");
+                            // For moving window we allow for YMax positioning outside of the domain
+                            bool const skipMaxCheck = ((axis == 1) && movingWindowEnabled);
+                            if(!skipMaxCheck && (totalPositionMaxBorder[axis] >= globalDomainSize[axis]))
+                                log<picLog::PHYSICS>(
+                                    "Warning: Huygens surface at Max border is located outside of simulation volume, "
+                                    "no incident field will be generated at the external part of the surface\n");
+                            if(totalPositionMaxBorder[axis] - totalPositionMinBorder[axis] < 2)
                             {
                                 log<picLog::PHYSICS>(
                                     "Warning: volume bounded by the Huygens surface is zero, no incident "
                                     "field will be generated\n");
                                 break;
                             }
+                        }
                     }
                 }
 
@@ -562,8 +597,8 @@ namespace picongpu
                 void updateE(float_X const sourceTimeIteration)
                 {
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
-                    parameters.offsetMinBorder = offsetMinBorder;
-                    parameters.offsetMaxBorder = offsetMaxBorder;
+                    parameters.totalPositionMinBorder = totalPositionMinBorder;
+                    parameters.totalPositionMaxBorder = totalPositionMaxBorder;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 1.0_X;
@@ -622,8 +657,8 @@ namespace picongpu
                 void updateBHalf(float_X const sourceTimeIteration)
                 {
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
-                    parameters.offsetMinBorder = offsetMinBorder;
-                    parameters.offsetMaxBorder = offsetMaxBorder;
+                    parameters.totalPositionMinBorder = totalPositionMinBorder;
+                    parameters.totalPositionMaxBorder = totalPositionMaxBorder;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 0.5_X;
@@ -686,19 +721,16 @@ namespace picongpu
 
                 /** @} */
 
-                /** Offset of the Huygens surface from min border of the global domain
+                /** Total position of the Huygens surface for min and max borders
                  *
-                 * The offset is from the start of CORE + BORDER area.
-                 * Counted in full cells, the surface is additionally offset by 0.75 cells
-                 */
-                pmacc::DataSpace<simDim> offsetMinBorder;
-
-                /** Offset of the Huygens surface from max border of the global domain
+                 * It is offset from the origin of the user coordinate system, in cells.
+                 * The Huygens surface is additionally offset by 0.75 cells inwards from this position.
                  *
-                 * The offset is from the end of CORE + BORDER area.
-                 * Counted in full cells, the surface is additionally offset by 0.75 cells
+                 * @{
                  */
-                pmacc::DataSpace<simDim> offsetMaxBorder;
+                pmacc::DataSpace<simDim> totalPositionMinBorder;
+                pmacc::DataSpace<simDim> totalPositionMaxBorder;
+                /** @} */
 
                 //! Cell description for kernels
                 MappingDesc const cellDescription;

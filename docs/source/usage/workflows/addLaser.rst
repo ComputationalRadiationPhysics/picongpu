@@ -18,10 +18,14 @@ Incident Field
 """"""""""""""
 
 Incident field is an external field source producing a wave propagating inwards the simulation volume.
-The source is applied at a boundary of an axis-aligned box located inside the simulation area.
+The source is applied at a generating surface that is a boundary of an axis-aligned box located inside the simulation area.
 The implementation is based on the total field/scattered field formulation described in detail :ref:`here <model-TFSF>`.
-A user sets offsets of this box from global domain boundary in :ref:`incidentField.param <usage-params-core>`.
-Each offset must cover at least the field absorber thickness along the boundary so that the generating surface is located in the internal area.
+A user defines positioning of this box in the total domain in :ref:`incidentField.param <usage-params-core>`.
+
+The surface must be offset inwards relative to each boundary by at least the field absorber thickness along the boundary so that the generating surface is located in the internal area.
+An exception to this requirement is made for simulations using the moving window.
+Then the surface positions along window movement direction can be located outside of the initially simulated volume.
+In this case, parts of the surface located outside of the currently simulated volume are treated as if they had zero incident field and it is user's responsibility to apply a source matching such a case.
 
 For each of the generation planes ``XMin, XMax, YMin, YMax, ZMin, ZMax`` (the latter two for 3d) a user sets an incident profile, or a typelist of such profiles, to be applied.
 In case a typelist is used, the result is a sum of all profiles in the list.
@@ -40,9 +44,9 @@ For pre-set profiles a proper orientation of the wave will be provided by intern
 With the ``Free`` profile, it is on a user to provide functors to calculate incident fields and ensure the orientation for the boundaries it is applied to (however, it does not have to work for all boundaries, only the ones in question).
 Please refer to :ref:`the detailed description <model-TFSF>` for setting up ``Free`` profile, also for the case when only one of the external fields is known in explicit form.
 
-Incident field is compatible to all field solvers, however using field solvers other than Yee requires a larger offset depending on the stencil width along the boundary axis.
-As a rule of thumb, this extra requirement is (order of FDTD solver / 2 - 1).
-Additionally, the current implementation requires the offset be located sufficiently far away from local domain boundaries.
+Incident field is compatible to all field solvers, however using field solvers other than Yee requires a larger offset of the generating surface from absorber depending on the stencil width along the boundary axis.
+As a rule of thumb, this extra requirement is (order of FDTD solver / 2 - 1) cells.
+Additionally, the current implementation requires the generation surface to be located sufficiently far away from local domain boundaries.
 The same rule of a thumb can be used, with offsets being at least that many cells away from domain boundaries.
 Validity of the provided offsets with respect to both conditions is checked at run time.
 
