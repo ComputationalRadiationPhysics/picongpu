@@ -343,14 +343,9 @@ namespace picongpu
                     template<uint32_t T_axis>
                     void operator()(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
                     {
-                        // IncidentField generation at y boundaries cannot be performed once the window started moving
-                        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(
-                            static_cast<uint32_t>(parameters.sourceTimeIteration));
-                        bool const boxHasSlided = (numSlides != 0);
-                        if(!((T_axis == 1) && boxHasSlided))
-                            updateField<T_UpdatedField, T_IncidentField, T_Curl, T_FunctorIncidentField>(
-                                parameters,
-                                curlCoefficient);
+                        updateField<T_UpdatedField, T_IncidentField, T_Curl, T_FunctorIncidentField>(
+                            parameters,
+                            curlCoefficient);
                     }
                 };
 
