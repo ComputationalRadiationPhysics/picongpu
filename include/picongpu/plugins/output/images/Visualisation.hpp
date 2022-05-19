@@ -855,15 +855,15 @@ namespace picongpu
         {
             PMACC_ASSERT(cellDescription != nullptr);
             const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
-#if(SIMDIM == DIM3)
-            const bool tmp
-                = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getLocalDomain().size[sliceDim]
-                    > sliceOffset
-                && globalRootCellPos[sliceDim] <= sliceOffset;
-            return tmp;
-#else
+            if constexpr(simDim == DIM3)
+            {
+                const bool tmp = globalRootCellPos[sliceDim]
+                            + Environment<simDim>::get().SubGrid().getLocalDomain().size[sliceDim]
+                        > sliceOffset
+                    && globalRootCellPos[sliceDim] <= sliceOffset;
+                return tmp;
+            }
             return true;
-#endif
         }
 
 
