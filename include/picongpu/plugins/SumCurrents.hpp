@@ -106,17 +106,10 @@ namespace picongpu
             // gCurrent is just j
             // j = I/A
 
-            float3_X realCurrent;
-            if constexpr(simDim == DIM3)
-                realCurrent = float3_X(
-                    gCurrent.x() * CELL_HEIGHT * CELL_DEPTH,
-                    gCurrent.y() * CELL_WIDTH * CELL_DEPTH,
-                    gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
-            if constexpr(simDim == DIM2)
-                realCurrent = float3_X(
-                    gCurrent.x() * CELL_HEIGHT,
-                    gCurrent.y() * CELL_WIDTH,
-                    gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
+            auto const realCurrent = float3_X(
+                gCurrent.x() * CELL_HEIGHT * CELL_DEPTH,
+                gCurrent.y() * CELL_WIDTH * CELL_DEPTH,
+                gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
 
             float3_64 realCurrent_SI(
                 float_64(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),
