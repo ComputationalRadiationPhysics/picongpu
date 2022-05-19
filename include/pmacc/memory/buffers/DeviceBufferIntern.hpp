@@ -134,12 +134,11 @@ namespace pmacc
             {
                 return (TYPE*) ((char*) data.ptr + this->offset[1] * this->data.pitch) + this->offset[0];
             }
-            else
-            {
-                const size_t offsetY = this->offset[1] * this->data.pitch;
-                const size_t sizePlaneXY = this->getPhysicalMemorySize()[1] * this->data.pitch;
-                return (TYPE*) ((char*) data.ptr + this->offset[2] * sizePlaneXY + offsetY) + this->offset[0];
-            }
+
+            // path for the highest supported dimension DIM3
+            const size_t offsetY = this->offset[1] * this->data.pitch;
+            const size_t sizePlaneXY = this->getPhysicalMemorySize()[1] * this->data.pitch;
+            return (TYPE*) ((char*) data.ptr + this->offset[2] * sizePlaneXY + offsetY) + this->offset[0];
         }
 
         DataSpace<DIM> getOffset() const override
