@@ -64,7 +64,7 @@ namespace picongpu
          *    - Evaluate the amount of real particles in the cell, Nr, using T_DensityFunctor.
          *    - If Nr > 0, decide how to represent it with macroparticles using T_PositionFunctor:
          *        - (For simplicity we describe how all currently used functors but RandomPositionAndWeightingImpl
-         *           operate, see below for customization)
+         *           and RandomBinomialImpl operate, see below for customization)
          *        - Try to have exactly T_PositionFunctor::numParticlesPerCell macroparticles
          *          with same weighting w = Nr / T_PositionFunctor::numParticlesPerCell.
          *        - If such w < MIN_WEIGHTING, instead use fewer macroparticles and higher weighting.

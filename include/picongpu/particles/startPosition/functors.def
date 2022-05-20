@@ -22,6 +22,7 @@
 
 #include "picongpu/particles/startPosition/OnePositionImpl.def"
 #include "picongpu/particles/startPosition/QuietImpl.def"
+#include "picongpu/particles/startPosition/RandomBinomialImpl.def"
 #include "picongpu/particles/startPosition/RandomImpl.def"
 #include "picongpu/particles/startPosition/RandomPositionAndWeightingImpl.def"
 #include "picongpu/particles/startPosition/generic/Free.def"

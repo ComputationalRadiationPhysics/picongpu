@@ -32,14 +32,14 @@ namespace picongpu
     {
         namespace startPosition
         {
-            struct QuietParam25ppc
+            struct Param25ppc
             {
-                /** Count of particles per cell per direction at initial state
+                /** Count of particles per cell at initial state
                  *  unit: none
                  */
-                using numParticlesPerDimension = typename mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type;
+                static constexpr uint32_t numParticlesPerCell = 25;
             };
-            using Quiet25ppc = QuietImpl<QuietParam25ppc>;
+            using RandomBinomial25ppc = RandomBinomialImpl<Param25ppc>;
 
         } // namespace startPosition
 
@@ -53,8 +53,7 @@ namespace picongpu
          *  number of particles per cell for normalization of weighted
          *  particle attributes.
          */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
-            = mCT::volume<startPosition::QuietParam25ppc::numParticlesPerDimension>::type::value;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::Param25ppc::numParticlesPerCell;
 
         namespace manipulators
         {

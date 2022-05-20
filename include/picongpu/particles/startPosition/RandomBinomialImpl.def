@@ -1,0 +1,81 @@
+/* Copyright 2022 Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/startPosition/generic/FreeRng.def"
+
+#include <pmacc/random/distributions/Uniform.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            namespace acc
+            {
+                /** Set the in cell position randomly and weights to mimic random sampling in whole domain
+                 *
+                 * @see startPosition::RandomBinomialImpl
+                 *
+                 * @tparam T_ParamClass parameter class, must define ::numParticlesPerCell
+                 */
+                template<typename T_ParamClass>
+                struct RandomBinomialImpl;
+
+            } // namespace acc
+
+            /** Set the in cell position randomly and weights to mimic random sampling in whole domain
+             *
+             * The number of macroparticles in cell will be equal to ::numParticlesPerCell, unless
+             * the weights will get below MIN_WEIGHTING.
+             * Unlike for other sampling functors, the total weighting of macroparticles in a cell will not be exactly
+             * equal to expected number of real particles in the cell.
+             *
+             * Instead, the functor will mimic the process of random sampling in the whole domain as follows.
+             * First, consider a simplified case of uniform density on whole domain and all weightings equal to 1.
+             * Denote m total number of cells and n = T_ParamClass::numParticlesPerCell.
+             * Then the expected number of macroparticles in a cell is distributed as N ~ Binomial(m * n, 1 / m).
+             * So to mimic random sampling we could have changed the number of macroparticles in a cell
+             * from hard-set n to a binomially distributed random value N with expected value n.
+             *
+             * However, we would like to keep computational workload uniform between cells when possible.
+             * (For low n also potentially do some importance sampling, that we also do generally for low density.)
+             * So instead we keep N = n and adjust weightings to result in about the same sampled density in a cell as
+             * the simplistic scheme described above.
+             *
+             * Denote w a weighting calculated for usual PIConGPU sampling in other functors.
+             * The weighting in this method is sampled as W = w * n / N with N ~ Binomial(m * n, 1 / m).
+             * That binomial distribution has parameters E(N) = n, Var(N) = n * (1 - 1/m).
+             * For n > 5 and m >> 1 the we can approximate that distribution with Normal(n, n).
+             * So with this approximation N = n + Z * sqrt(n) with Z ~ Normal(0, 1).
+             * Thus, we sample weighting as follows: W = w * n / (n + Z * sqrt(n)) = W / (1 + Z / sqrt(n)).
+             *
+             * @tparam T_ParamClass parameter class, must define ::numParticlesPerCell
+             */
+            template<typename T_ParamClass>
+            using RandomBinomialImpl = generic::
+                FreeRng<acc::RandomBinomialImpl<T_ParamClass>, pmacc::random::distributions::Uniform<float_X>>;
+        } // namespace startPosition
+    } // namespace particles
+} // namespace picongpu
