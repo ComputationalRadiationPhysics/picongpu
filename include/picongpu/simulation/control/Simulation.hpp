@@ -186,6 +186,11 @@ namespace picongpu
             else
                 while(devices.size() < 3)
                     devices.push_back(1);
+            // check for request of > 1 device in z for a 2d simulation, this is probably a user's mistake
+            if((simDim == 2) && (devices[2] > 1))
+                std::cerr
+                    << "Warning: " << devices[2] << " devices requested for z in a 2d simulation, this parameter "
+                    << "will be reset to 1. Number of MPI ranks must be equal to the number of devices in x * y\n";
 
             // check on correct grid size. fill with default grid size value 1 for missing 3. dimension
             if(gridSize.size() < 2 || gridSize.size() > 3)
