@@ -35,7 +35,7 @@ namespace picongpu
         namespace xrayScattering
         {
             template<typename T>
-            std::vector<T> extractReal(Buffer<pmacc::math::Complex<T>, DIM1>& complexBuffer)
+            std::vector<T> extractReal(Buffer<alpaka::Complex<T>, DIM1>& complexBuffer)
             {
                 std::vector<T> realValues;
                 auto size = complexBuffer.getCurrentSize();
@@ -43,13 +43,13 @@ namespace picongpu
                 realValues.reserve(size);
                 for(uint32_t ii = 0; ii < size; ii++)
                 {
-                    realValues.push_back(dataBox[ii].get_real());
+                    realValues.push_back(dataBox[ii].real());
                 }
                 return realValues;
             }
 
             template<typename T>
-            std::vector<T> extractImag(Buffer<pmacc::math::Complex<T>, DIM1>& complexBuffer)
+            std::vector<T> extractImag(Buffer<alpaka::Complex<T>, DIM1>& complexBuffer)
             {
                 std::vector<T> imagValues;
                 auto size = complexBuffer.getCurrentSize();
@@ -57,13 +57,13 @@ namespace picongpu
                 imagValues.reserve(size);
                 for(uint32_t ii = 0; ii < size; ii++)
                 {
-                    imagValues.push_back(dataBox[ii].get_imag());
+                    imagValues.push_back(dataBox[ii].imag());
                 }
                 return imagValues;
             }
 
             template<typename T>
-            std::vector<T> extractReal(std::vector<pmacc::math::Complex<T>> const& complexVec)
+            std::vector<T> extractReal(std::vector<alpaka::Complex<T>> const& complexVec)
             {
                 std::vector<T> realValues;
                 realValues.reserve(complexVec.size());
@@ -72,12 +72,12 @@ namespace picongpu
                     std::begin(complexVec),
                     std::end(complexVec),
                     std::back_inserter(realValues),
-                    [](pmacc::math::Complex<T> const& data) { return data.get_real(); });
+                    [](alpaka::Complex<T> const& data) { return data.real(); });
                 return realValues;
             }
 
             template<typename T>
-            std::vector<T> extractImag(std::vector<pmacc::math::Complex<T>> const& complexVec)
+            std::vector<T> extractImag(std::vector<alpaka::Complex<T>> const& complexVec)
             {
                 std::vector<T> imagValues;
                 imagValues.reserve(complexVec.size());
@@ -86,7 +86,7 @@ namespace picongpu
                     std::begin(complexVec),
                     std::end(complexVec),
                     std::back_inserter(imagValues),
-                    [](pmacc::math::Complex<T> const& data) { return data.get_imag(); });
+                    [](alpaka::Complex<T> const& data) { return data.imag(); });
                 return imagValues;
             }
 

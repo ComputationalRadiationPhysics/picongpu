@@ -28,8 +28,8 @@ namespace picongpu
     {
         namespace transitionRadiation
         {
-            using complex_X = pmacc::math::Complex<float_X>;
-            using complex_64 = pmacc::math::Complex<float_64>;
+            using complex_X = alpaka::Complex<float_X>;
+            using complex_64 = alpaka::Complex<float_64>;
 
             /* Arbitrary margin which is necessary to prevent division by 0 error
              * created by particles moving in the plane of the foil.
@@ -197,7 +197,7 @@ namespace picongpu
             complex_X calcFormFactor(float_X const omega, complex_X const exponent)
             {
                 // preventing division by 0
-                const bool longMovingParticle = exponent.get_real() == -1.0;
+                const bool longMovingParticle = exponent.real() == -1.0;
                 return float_X(longMovingParticle) * complex_X(0.0, 0.0)
                     + float_X(!longMovingParticle) * complex_X(math::exp(exponent * omega));
             }

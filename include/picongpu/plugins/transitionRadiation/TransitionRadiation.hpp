@@ -63,7 +63,7 @@ namespace picongpu
             using namespace pmacc;
 
             namespace po = boost::program_options;
-            using complex_X = pmacc::math::Complex<float_X>;
+            using complex_X = alpaka::Complex<float_X>;
 
             /** Implementation of transition radiation for in situ calculation in PIConGPU
              *

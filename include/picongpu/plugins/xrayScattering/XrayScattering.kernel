@@ -86,7 +86,7 @@ namespace picongpu
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
                     uint32_t const blockIdxLin = cupla::blockIdx(acc).x;
 
-                    using complex_X = pmacc::math::Complex<float_X>;
+                    using complex_X = alpaka::Complex<float_X>;
                     // Storage for positions in the beam coordinate system.
                     PMACC_SMEM(acc, positions, memory::Array<float2_X, blockSize>);
                     // Storage for (form factor density * beam intensity factor).
@@ -141,16 +141,12 @@ namespace picongpu
                                 } // end loop over positions
                                 // Add the super cell contribution to the output.
                                 // Avoid racing conditions between blocks.
-                                cupla::atomicAdd(
-                                    acc,
-                                    &(amplitudeBox[qLoopIdx].get_real()),
-                                    amplitude.get_real(),
-                                    ::alpaka::hierarchy::Blocks{});
-                                cupla::atomicAdd(
-                                    acc,
-                                    &(amplitudeBox[qLoopIdx].get_imag()),
-                                    amplitude.get_imag(),
-                                    ::alpaka::hierarchy::Blocks{});
+                                // To get addresses of real and imaginary parts, rely on array-oriented access that
+                                // is guaranteed by alpaka::Complex<>.
+                                auto* resultReal = &reinterpret_cast<float_X(&)[2]>(amplitudeBox[qLoopIdx])[0];
+                                auto* resultImag = &reinterpret_cast<float_X(&)[2]>(amplitudeBox[qLoopIdx])[1];
+                                cupla::atomicAdd(acc, resultReal, amplitude.real(), ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(acc, resultImag, amplitude.imag(), ::alpaka::hierarchy::Blocks{});
                             } // end loop over scattering directions
                         } // end lambda function body
                     );

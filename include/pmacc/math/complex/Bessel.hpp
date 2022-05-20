@@ -73,18 +73,18 @@ namespace pmacc
             struct Cbesselj0Base;
 
             template<typename T_Type>
-            HDINLINE typename J0<pmacc::math::Complex<T_Type>>::result j0(pmacc::math::Complex<T_Type> const& z)
+            HDINLINE typename J0<alpaka::Complex<T_Type>>::result j0(alpaka::Complex<T_Type> const& z)
             {
-                return J0<pmacc::math::Complex<T_Type>>()(z);
+                return J0<alpaka::Complex<T_Type>>()(z);
             }
 
             template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
             struct Cbesselj1Base;
 
             template<typename T_Type>
-            HDINLINE typename J1<pmacc::math::Complex<T_Type>>::result j1(pmacc::math::Complex<T_Type> const& z)
+            HDINLINE typename J1<alpaka::Complex<T_Type>>::result j1(alpaka::Complex<T_Type> const& z)
             {
-                return J1<pmacc::math::Complex<T_Type>>()(z);
+                return J1<alpaka::Complex<T_Type>>()(z);
             }
 
             PMACC_CONST_VECTOR(
