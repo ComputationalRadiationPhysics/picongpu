@@ -117,15 +117,15 @@ General code references
 Field solvers
 """""""""""""
  - Yee field solver\ :sup:`\*` [Yee1966]_
- - Lehe fields solver\ :sup:`\*` [Lehe2013]_
+ - Lehe field solver\ :sup:`\*` [Lehe2013]_
  - High-Order Finite Difference solver\ :sup:`\*` [Ghrist2000]_
 
 Particle pushers
 """"""""""""""""
  - Boris pusher\ :sup:`\*` [Boris1970]_
  - Vay pusher\ :sup:`\*` [Vay2008]_
- - Reduces Landau-Lifshitz pusher\ :sup:`\*` [Vranic2016]_
- - Higuera-Cary pusher [Higuera2017]_
+ - Reduced Landau-Lifshitz pusher\ :sup:`\*` [Vranic2016]_
+ - Higuera-Cary pusher\ :sup:`\*` [Higuera2017]_
 
 Current deposition
 """"""""""""""""""
