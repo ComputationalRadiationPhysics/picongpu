@@ -30,9 +30,6 @@
 #include "picongpu/particles/pusher/particlePusherProbe.hpp"
 #include "picongpu/particles/pusher/particlePusherReducedLandauLifshitz.hpp"
 #include "picongpu/particles/pusher/particlePusherVay.hpp"
-#if(SIMDIM == DIM3)
-#    include "picongpu/particles/pusher/particlePusherAxel.hpp"
-#endif
 
 #include <pmacc/math/operation.hpp>
 
@@ -46,13 +43,6 @@ namespace picongpu
             struct Acceleration : public particlePusherAcceleration::Push<Velocity, Gamma<>>
             {
             };
-
-#if(SIMDIM == DIM3)
-
-            struct Axel : public particlePusherAxel::Push<Velocity, Gamma<>>
-            {
-            };
-#endif
 
             struct Boris : public particlePusherBoris::Push<Velocity, Gamma<>>
             {
