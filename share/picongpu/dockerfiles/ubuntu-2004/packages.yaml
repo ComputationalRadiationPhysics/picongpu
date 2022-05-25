@@ -3,7 +3,7 @@ packages:
     buildable: false
     externals:
       - prefix: /usr/local/cuda
-        spec: cuda@11.2%gcc@9.3.0 arch=linux-ubuntu20.04-x86_64
+        spec: cuda@11.6%gcc@9.3.0 arch=linux-ubuntu20.04-x86_64
   pkg-config:
     buildable: false
     externals:

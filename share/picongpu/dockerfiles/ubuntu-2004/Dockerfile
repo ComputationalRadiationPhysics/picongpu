@@ -1,4 +1,4 @@
-FROM       nvidia/cuda:11.2.0-base-ubuntu20.04
+FROM       nvidia/cuda:11.6.0-base-ubuntu20.04
 MAINTAINER Axel Huebl <a.huebl@hzdr.de>
 LABEL      authors="Axel Huebl, René Widera"
 
@@ -8,7 +8,7 @@ ENV        DEBIAN_FRONTEND=noninteractive \
            SPACK_ROOT=/usr/local \
            SPACK_EXTRA_REPO=/usr/local/share/spack-repo \
            PIC_PACKAGE='picongpu@develop+isaac backend=cuda target=x86_64' \
-           CUDA_PKG_VERSION="11-2"
+           CUDA_PKG_VERSION="11-6"
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
