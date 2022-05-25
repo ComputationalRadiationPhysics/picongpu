@@ -65,7 +65,7 @@ namespace picongpu
 
                 struct ChargeAssignment : public detail::Counter
                 {
-                    HDINLINE float_X operator()(float_X const x)
+                    HDINLINE float_X operator()(float_X const x) const
                     {
                         /*       -
                          *       | -1               if -1<x<=0
@@ -85,7 +85,7 @@ namespace picongpu
                     /** form factor of this particle shape.
                      * @param x has to be within [0, 1)
                      */
-                    HDINLINE float_X operator()(float_X const x)
+                    HDINLINE float_X operator()(float_X const x) const
                     {
                         bool const in_cell = 0.0_X <= x && x < 1.0_X;
 

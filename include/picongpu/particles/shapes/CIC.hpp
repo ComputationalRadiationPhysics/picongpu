@@ -40,6 +40,26 @@ namespace picongpu
                      * Is the same for all directions
                      */
                     static constexpr uint32_t support = 2;
+
+                    /** Creates an array with assignment values assuming that the position of the particle is on
+                     * support.
+                     *
+                     * @tparam T_size Number of elements within the resulting array. Only the first two elements will
+                     * be filled with valid values.
+                     * @param  x particle position relative to the assignment cell range [0.0;1.0)
+                     * @return array with evaluated shape values
+                     */
+                    template<uint32_t T_size>
+                    HDINLINE auto shapeArray(float_X const x) const
+                    {
+                        static_assert(T_size >= 2);
+                        pmacc::memory::Array<float_X, T_size> shapeValues;
+                        // grid points [0;1]
+                        // note: math::abs(0 - x) == math::abs(x)
+                        shapeValues[0] = math::abs(x);
+                        shapeValues[1] = 1.0_X - x;
+                        return shapeValues;
+                    }
                 };
 
             } // namespace detail
@@ -56,7 +76,12 @@ namespace picongpu
 
                 struct ChargeAssignment : public detail::CIC
                 {
-                    HDINLINE float_X operator()(float_X const x)
+                    // lowest valid grid offsets
+                    static constexpr int begin = 0;
+                    // highest valid grid offsets
+                    static constexpr int end = 2;
+
+                    HDINLINE float_X operator()(float_X const x) const
                     {
                         /*       -
                          *       |  1-|x|           if |x|<1
@@ -75,19 +100,57 @@ namespace picongpu
 
                         return result;
                     }
+
+                    /** Creates an array with assignment values.
+                     *
+                     * @param pos particle position relative to the assignment cell range [0.0;2.0)
+                     * @param isOutOfRange True if pos in range [1.0;2.0)
+                     * @return Array with precomputed assignment values.
+                     */
+                    HDINLINE auto shapeArray(float_X const pos, bool const isOutOfRange) const
+                    {
+                        float_X x = isOutOfRange ? pos - 1.0_X : pos;
+
+                        auto shapeValues = detail::CIC::shapeArray<support + 1>(x);
+
+                        // Update value so that a particle can be out of range without using lmem/local memory on GPUs
+                        // because of dynamic indexing into an array located in registers.
+                        shapeValues[2] = isOutOfRange ? shapeValues[1] : 0.0_X;
+                        shapeValues[1] = isOutOfRange ? shapeValues[0] : shapeValues[1];
+                        shapeValues[0] = isOutOfRange ? 0.0_X : shapeValues[0];
+
+                        return shapeValues;
+                    }
                 };
 
                 struct ChargeAssignmentOnSupport : public detail::CIC
                 {
+                    // lowest valid grid offsets
+                    static constexpr int begin = 0;
+                    // highest valid grid offsets
+                    static constexpr int end = 1;
+
                     /** form factor of this particle shape.
                      * @param x has to be within [-support/2, support/2]
                      */
-                    HDINLINE float_X operator()(float_X const x)
+                    HDINLINE float_X operator()(float_X const x) const
                     {
                         /*
                          * W(x)=1-|x|
                          */
                         return 1.0_X - math::abs(x);
+                    }
+
+                    /** Creates an array with assignment values.
+                     *
+                     * @param pos particle position relative to the assignment cell range [0.0;1.0)
+                     * @param isOutOfRange must be false, input will be ignored because the particle shape is always on
+                     *                     support.
+                     * @return Array with precomputed assignment values.
+                     */
+                    HDINLINE auto shapeArray(float_X const x, [[maybe_unused]] bool const isOutOfRange) const
+                    {
+                        return detail::CIC::shapeArray<support>(x);
                     }
                 };
             };
