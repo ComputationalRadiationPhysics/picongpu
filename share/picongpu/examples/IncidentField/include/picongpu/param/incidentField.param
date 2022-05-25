@@ -303,10 +303,10 @@ namespace picongpu
              * (absorber_thickness + const), as then changing absorber parameters will affect laser positioning. When
              * all used profiles are None, the check for POSITION validity is skipped.
              *
-             * For moving window simulations, POSITION[1][1] can be located outside the initially simulated volume.
-             * In this case, parts of the generation surface outside of the currently simulated volume is are treated
-             * as if they had zero incident field and it is user's responsibility to apply a source matching such a
-             * case.
+             * For moving window simulations, POSITION for the YMax side can be located outside the initially simulated
+             * volume. In this case, parts of the generation surface outside of the currently simulated volume is are
+             * treated as if they had zero incident field and it is user's responsibility to apply a source matching
+             * such a case.
              */
             constexpr int32_t POSITION[3][2] = {
                 {16, -16}, // x direction [negative, positive]

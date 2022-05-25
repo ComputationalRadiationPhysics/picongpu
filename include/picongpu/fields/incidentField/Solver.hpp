@@ -133,7 +133,7 @@ namespace picongpu
                     auto const absorberThickness = absorber.getGlobalThickness()(axis, boundaryIdx);
                     auto const minAllowedOffsetFromBoundary = static_cast<int32_t>(absorberThickness + margin - 1);
 
-                    // Calculate offset of Huygens surface from the active boundary
+                    // Calculate offset of Huygens surface from the active boundary in the inwards direction
                     auto const& subGrid = Environment<simDim>::get().SubGrid();
                     int32_t offset = 0;
                     if(boundaryIdx == 0)
