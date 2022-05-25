@@ -23,6 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
+#include "picongpu/particles/shapes.hpp"
 
 #include <pmacc/attribute/unroll.hpp>
 #include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
@@ -63,6 +64,36 @@ namespace picongpu
         static constexpr int begin = -supp / 2 + (supp + 1) % 2;
         static constexpr int end = begin + supp - 1;
 
+        /** Get particle assignment shape functors.
+         *
+         * @param pos Position of the particle relative to the located cell. The position must be shifted to the
+         *            assignment cell. The supported range of the position is defined by assignment function and
+         *            depends on the particle support.
+         * @return Three dimensional array with particle shape assignment functors.
+         */
+        HDINLINE auto getShapeFunctors(float3_X const& pos) const
+        {
+            pmacc::memory::Array<shapes::Cached<AssignmentFunction>, 3> result;
+            result[0] = shapes::Cached<AssignmentFunction>(pos.x(), true);
+            result[1] = shapes::Cached<AssignmentFunction>(pos.y(), true);
+            result[2] = shapes::Cached<AssignmentFunction>(pos.z(), true);
+            return result;
+        };
+
+        /** Get particle assignment shape functors.
+         *
+         * @param pos Position of the particle relative to the located cell. The position must be shifted to the
+         *            assignment cell. The supported range of the position is defined by assignment function and
+         *            depends on the particle support.
+         * @return Two dimensional array with particle shape assignment functors.
+         */
+        HDINLINE auto getShapeFunctors(float2_X const& pos) const
+        {
+            pmacc::memory::Array<shapes::Cached<AssignmentFunction>, 2> result;
+            result[0] = shapes::Cached<AssignmentFunction>(pos.x(), true);
+            result[1] = shapes::Cached<AssignmentFunction>(pos.y(), true);
+            return result;
+        };
 
         template<class Cursor, class VecVector>
         HDINLINE typename Cursor::ValueType operator()(
@@ -84,9 +115,9 @@ namespace picongpu
                     = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(i));
                 floatD_X particlePosShifted = particlePos;
                 ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
-                result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end>(
+                result[i] = InterpolationMethod::template interpolate<begin, end>(
                     fieldComponent,
-                    particlePosShifted);
+                    getShapeFunctors(particlePosShifted));
             }
 
             return result;
