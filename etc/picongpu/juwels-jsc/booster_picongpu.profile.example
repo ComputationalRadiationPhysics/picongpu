@@ -33,16 +33,19 @@ fi
 # General modules #############################################################
 #
 module purge
-module load GCC/9.3.0
-module load CUDA/11.0
-module load CMake/3.18.0
-module load ParaStationMPI/5.4.7-1
-module load Python/3.8.5
+module load GCC/11.2.0
+module load CUDA/11.5
+module load CMake/3.21.1
+module load ParaStationMPI/5.5.0-1
+module load mpi-settings/CUDA
+module load Python/3.9.6
 
-module load Boost/1.74.0
-module load HDF5/1.10.6
+module load HDF5/1.12.1
+module load Boost/1.78.0
+
 # necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
-module load SciPy-Stack/2020-Python-3.8.5
+module load SciPy-bundle/2021.10
+module load h5py
 
 # Self-Build Software #########################################################
 #
@@ -51,23 +54,17 @@ module load SciPy-Stack/2020-Python-3.8.5
 # https://gist.github.com/steindev/5a2ab0c4957a1e57ed671ac198b491c6
 #
 export PIC_LIBS=$PROJECT/lib
-export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
 export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.0
 export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
 export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1
 export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.13.3
 
-export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
 
 export PATH=$ADIOS2_ROOT/bin:$PATH
-
-export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH
-
-
 
 # Environment #################################################################
 #
