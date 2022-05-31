@@ -156,7 +156,7 @@ Piz Daint (CSCS)
 
 **Production directory:** ``$SCRATCH`` (`link <https://user.cscs.ch/storage/file_systems/>`_).
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, zlib, libpng, c-blosc, PNGwriter and ADIOS <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, libpng, PNGwriter and ADIOS2 <install-dependencies>` manually.
 
 .. note::
 

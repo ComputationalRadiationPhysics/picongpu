@@ -13,7 +13,6 @@ digraph PIConGPU {
     compiler -> mpi;
     compiler -> boost;
     compiler -> python;
-    compiler -> zlib;
     compiler -> libpng;
 
     cuda -> mpi [style=dashed label="cuda-awareness"];
@@ -25,11 +24,11 @@ digraph PIConGPU {
 
     hdf5 [label="hdf5-parallel"];
     mpi -> hdf5;
-    zlib -> hdf5;
+    compiler -> hdf5;
 
     adios2 [label="ADIOS2"];
     mpi -> adios2;
-    zlib -> adios2;
+    compiler -> adios2;
     hdf5 -> adios2 [style=dashed label="optional"];
     compiler -> libfabric;
     libfabric -> adios2[style=dashed label="RDMA staging"];

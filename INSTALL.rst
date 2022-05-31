@@ -69,21 +69,6 @@ MPI 2.3+
   - ``export MPI_ROOT=<MPI_INSTALL>``
   - as long as CUDA awareness (``openmpi+cuda``) is missing: ``export OMPI_MCA_mpi_leave_pinned=0``
 
-zlib
-""""
-- *Debian/Ubuntu:* ``sudo apt-get install zlib1g-dev``
-- *Arch Linux:* ``sudo pacman --sync zlib``
-- *Spack:* ``spack install zlib``
-- *from source:*
-
-  - ``./configure --prefix=$HOME/lib/zlib``
-  - ``make && make install``
-- *environent:* (assumes install from source in ``$HOME/lib/zlib``)
-
-  - ``export ZLIB_ROOT=$HOME/lib/zlib``
-  - ``export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH``
-  - ``export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH``
-
 boost
 """""
 - 1.74.0+ (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
