@@ -38,7 +38,7 @@ DataSpace
 Vector
 ------
 
-.. doxygenclass:: pmacc::math::Vector
+.. doxygenstruct:: pmacc::math::Vector
    :project: PIConGPU
    :members:
    :protected-members:
@@ -91,7 +91,7 @@ ParticleDescription
 ParticleBox
 -----------
 
-.. doxygenstruct:: pmacc::ParticlesBox
+.. doxygenclass:: pmacc::ParticlesBox
    :project: PIConGPU
    :members:
    :protected-members:
@@ -136,7 +136,7 @@ SimulationHelper
 ForEach
 -------
 
-.. doxygenstruct:: meta::ForEach
+.. doxygenstruct:: pmacc::meta::ForEach
    :project: PIConGPU
    :members:
    :protected-members:

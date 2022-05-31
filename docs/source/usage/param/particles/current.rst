@@ -25,7 +25,7 @@ EmZ
 EZ (alias for EmZ)
 ~~~~~~~~~~~~~~~~~~
 
-.. doxygenstruct:: picongpu::currentSolver::EZ
+.. doxygentypedef:: picongpu::currentSolver::EZ
    :project: PIConGPU
 
 VillaBune

@@ -45,7 +45,7 @@ pmacc helpers
 .. doxygenstruct:: pmacc::lockstep::Variable
    :project: PIConGPU
 
-.. doxygenstruct:: pmacc::lockstep::ForEach
+.. doxygenclass:: pmacc::lockstep::ForEach
    :project: PIConGPU
 
 Common Patterns
