@@ -17,76 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file This file implements a adaptive Histogram starting from argument 0
+/** @file This file implements an adaptive Histogram, starting from argument 0
  *
- * basic idea: 1-dimensional infinite histogram, with sparsely populated bins
- * binWidths are not uniform, but indirectly definded by a target value of a
- * relative binning width dependent error.
+ * Basic idea: 1-dimensional infinite histogram, with sparsely populated bins.
+ * BinWidths are not uniform, but indirectly defined by a target value of a
+ * binning width dependent relative error, therefore an error approximator
+ * which is independent of the actual bin content.
  *
- * only populated bins are stored in memory.
- *
- * TemplateParameters:
- * -------------------
- *  @tparam T_AtomicDataBox ... type of data container for atomic input data
- *  @tparam T_maxNumberBins ... maximum number of bins of the histogram
- *  @tparam T_maxNumNewBins ... maximum number of new bins before updateWithNewBins
- *                                must be called by one thread
- *                                BEWARE: causes invalid memory access if set incorrectly
- *
- * private members:
- * ----------------
- *  float_X[T_maxNumberBins] binWeights ... histogram bin values
- *                                          weights of particles in bin in supercell
- *  float_X{T_maxNumberBins] binDeltaEnergy  ... secondary histogram value
- *                                               energy change in this time step in this histogram bin
- *  float_X{T_maxNumberBins] binLeftBoundary ... left boundary of bin in argument space
- *
- * storage of bins added since last call to updateWithNewBins
- * float_X[T_maxNumNewBins] newBinsWeights      ... see regular
- * float_X[T_maxNumNewBins] newBinsLeftBoundary ... -||-
- *  NOTE: no <newBinsDeltaEnergy> necessary, since all electrons are already binned for this step
- *
- *  float_x relativeErrorTarget   ... relative error target used to choose bin size
- *  T_RelativeError relativeError ... relative error functor
- *  float_X initialgridWidth      ... intial binWidth used
- *
- *  uint numBins    ... number of bins occupied
- *  uint numNewBins ... number of newBins occupied,
- *
- *  float_X lastLeftBoundary ... last left boundary of a bin used
- *
- * private methods:
- * ---------------
- *  uint findBin(float_X leftBoundary, uint startIndex=0) ... tries to finds leftBoundary in bin collection
- *  bool hasBin(float_X leftBoundary, uint startIndex=0)  ... checks wether bin exists
- *  float_X centerBin(bool directionPositive, float_X Boundary, float_X binWidth ) ...
- *      return center of Bin,
- *      direction positive indicates wether the leftBoundary(true) or the right Boundary(false) is given as argument
- *  bool inBin(bool directionPositive, float_X boundary, float_X binWidth, float_X x) ...
- *      is x in the given Bin?
- *
- * public methods:
- * ---------------
- *  void init(float_X relativeErrorTarget >0 , float_X initialGridWidth >0 , T_RelativeError& relativeError) ...
- *      init method for adaptive histogram, must be called by one thread once before use
- *      BEWARE: assumptions for input parameters
- *
- *  uint getMaxNumberBins()     ... returns corresponding template parameter value
- *  uint getMaxNUmberNewBins()  ... -||-
- *  float_X getInitialGridWidth()
- *
- *  uint getNumBins() ... returns current number of occupied bins
- *  float_X getEnergyBin(T_Acc& acc, uint index, T_AtomicDataBox atomicDataBox) ...
- *      returns central energy of bin with given collection index if it exists, otherwise returns 0._X
- *  float_X getLeftBoundaryBin(uint index) ... return leftBoundary of bin with given collection index
- *  float_X getWeightBin(uint index) ... returns weight of Bin with given collection index
- *      BEWARE: does not check if the bin is occupied, or exists at all,
- *          leave alone unless you know what you are doing
- *  float_X getDeltaEnergyBin(uint index) ... same as above for delta energy bin, beware also applies
- *  uint getBinIndex(T_Acc& acc, float_X energy, T_AtomicDataBox atomicDataBox) ...
- *      returns collection index of existing bin containing this energy, or maxNumBins otherwise
- *  float_X getBinWidth(T_Acc& acc, bool directionPositive, float_X boundary, T_AtomicDataBox atomicDataBox)
- *      return binWidth of the specifed bin, for more see in code function documentation
+ * Only populated bins are stored in memory.
  */
 
 #pragma once
@@ -116,62 +54,123 @@ namespace picongpu
             {
                 namespace histogram2
                 {
-                    template<uint32_t T_maxNumBins, uint32_t T_maxNumNewBins, typename T_AtomicDataBox>
+                    /** @class Adaptive Histogram implementation, see file for principles
+                     *
+                     * TemplateParameters:
+                     * -------------------
+                     *  @tparam T_AtomicDataBox type of data container for atomic input data
+                     *  @tparam T_maxNumberBins maximum number of bins of the histogram
+                     *  @tparam T_maxNumberNewBins maximum number of new bins before
+                     *       updateWithNewBins must be called by ONE thread
+                     *       BEWARE: causes invalid memory access if set incorrectly
+                     */
+
+                    template<uint32_t T_maxNumberBins, uint32_t T_maxNumberNewBins, typename T_AtomicDataBox>
                     struct AdaptiveHistogram
                     {
                     private:
                         //{ members
-                        constexpr static uint32_t maxNumBins = T_maxNumBins;
-                        constexpr static uint32_t maxNumNewBins = T_maxNumNewBins;
+                        //! renaming of T_maxNumberBins
+                        constexpr static uint32_t maxNumBins = T_maxNumberBins;
+                        //! renaming of T_maxNumberNewBins
+                        constexpr static uint32_t maxNumNewBins = T_maxNumberNewBins;
 
-                        //{ content of bins, three data fields
-                        // 1. weight of particles
-                        float_X binWeights[maxNumBins];
-                        // 2. accumulated change in particle Energy in this bin,
+                        /** histogram storage, weights of particles in bin
+                         *
+                         * Is updated by the fillHistogram Functor once per PIC step.
+                         */
+                        float_X binWeight[maxNumBins];
+                        /** histogram storage, accumulated change in particle Energy
+                         *
+                         * for the current time step, is updated by the atomicPhysics solver
+                         */
                         float_X binDeltaEnergy[maxNumBins];
-                        // 3. accumulated weight added to this bin due
+                        /** histogram storage, accumulated weight added to this bin, due to interactions
+                         *
+                         * for the current time step, is updated by the atomicPhysics solver
+                         */
                         float_X binDeltaWeight[maxNumBins];
                         //}
-
-                        // location of bins
+                        /** histogram storage, left boundary of bin
+                         *
+                         * This together with the implicitly defined bin width, calculated
+                         * at runtime via call of getBinWidth(), completely defines the bin
+                         */
                         float_X binLeftBoundary[maxNumBins];
 
-                        //{ administration data
-                        // number of bins occupied, <= T_maxNumBins
+
+                        /** number of bins occupied currently occupied
+                         *
+                         * NOTE: must be <= T_maxNumberBins, all further bins are dropped!
+                         */
                         uint16_t numBins;
 
-                        // new bins since last call to update method
+                        //{new bins storage, since last call to update method
+                        /** storage for new Bins since last call to updateWithNewBins, left boundary of bin
+                         *
+                         * This together with the implicitly defined bin width, calculated
+                         * at runtime via call of getBinWidth(), completely defines the bin
+                         */
                         float_X newBinsLeftBoundary[maxNumNewBins];
+                        //! storage for new Bins since last call to updateWithNewBins, weight in bin
                         float_X newBinsWeights[maxNumNewBins];
-                        // number of entries in new bins
+                        /* No <newBinsDeltaEnergy> necessary, since all electrons are
+                         * already binned for this atomic physics solver step
+                         */
+
+                        /** number of new bins, since last call to update method,
+                         *
+                         * NOTE: must be <= T_maxNumberNewBins, all further bins are dropped!
+                         */
                         uint32_t numNewBins;
                         //}
 
-                        // reference point of histogram, always boundary of a bin in the histogram
-                        // in current implementation not used
-                        float_X lastLeftBoundary; // unit: Argument
+                        //{ administration data
+                        /** last left boundary of a bin used
+                         *
+                         * reference point of histogram, always boundary of a bin in the
+                         * histogram
+                         *
+                         * NOTE: in current implementation not used
+                         *
+                         * Unit: Argument
+                         */
+                        float_X lastLeftBoundary; // Unit: Argument
 
-                        // target value of relative Error of a histogram bin,
-                        // bin width choosen such that relativeError is close to target
-                        float_X relativeErrorTarget; // unit: varies
-
+                        /** relative error target used to choose bin size
+                         *
+                         * target value of relative Error of a histogram bin,
+                         * bin width choosen such that relativeError is close to target
+                         *
+                         * Unit: varies depending on quantity stored in histogram and error
+                         *  estimator
+                         */
+                        float_X relativeErrorTarget; // Unit: varies
 
                     public:
-                        // defines initial global grid
-                        float_X initialGridWidth; // unit: Argument
+                        //! initial binWidth used, defines initial global grid, Unit: argument
+                        float_X initialGridWidth; // Unit: Argument
                         //}
 
                     private:
-                        // TODO: replace linear search, by ordering bins
-                        /** Tries to find binLeftBoundary in the collection,
-                         * starting at the given collection index and return the collection index.
+                        /// @todo : replace linear search, by ordering bins
+                        /** tries to find bin with given left boundary
                          *
-                         * Returns index in the binIndices array when present or maxNumBin when not present
+                         * Tries to find binLeftBoundary in the collection,
+                         * starting at the given collection index and return the collection
+                         * index.
                          *
-                         * maxNumBin is never a valid index of the collection
+                         * @return Returns index in the binIndices array when present or
+                         *      maxNumBin when not present, maxNumBin is never a valid
+                         *      index of the collection
+                         *
+                         * @param leftBoundary left boundary of bin to search, Unit: argument
+                         * @param startIndex index from which to start the search,
+                         *  only searches in collection entries with an index higher than
+                         *  the given start index
                          */
                         DINLINE uint16_t findBin(
-                            float_X leftBoundary, // unit: Argument
+                            float_X leftBoundary, // Unit: Argument
                             uint16_t startIndex = 0u) const
                         {
                             for(uint16_t i = startIndex; i < numBins; i++)
@@ -185,28 +184,43 @@ namespace picongpu
                             return maxNumBins;
                         }
 
-                        // checks whether Bin exists
+                        //! checks whether Bin exists
                         DINLINE bool hasBin(float_X leftBoundary) const
                         {
                             auto const index = findBin(leftBoundary);
                             return (index < maxNumBins);
                         }
 
-                        // return center of Bin
+                        /** helper function, return center of bin
+                         *
+                         * case directionPositive == true:  [boundary, boundary + binWidth)
+                         * case directionPositive == false: [boundary - binWidth,boundary)
+                         *
+                         * @param directionPositive direction positive indicates whether
+                         *   the left boundary(true) or the right boundary(false) is given
+                         * @param boundary left or right boundary of bin, Unit: Argument
+                         * @param binWidth width of bin, Unit: Argument
+                         */
                         DINLINE static float_X centerBin(
                             bool const directionPositive,
-                            float_X const Boundary,
+                            float_X const boundary,
                             float_X const binWidth)
                         {
                             if(directionPositive)
-                                return Boundary + binWidth / 2._X;
+                                return boundary + binWidth / 2._X;
                             else
-                                return Boundary - binWidth / 2._X;
+                                return boundary - binWidth / 2._X;
                         }
 
-                        /** =^= is x in Bin?
+                        /** helper function, is x in Bin?
+                         *
                          *  case directionPositive == true:    [boundary, boundary + binWidth)
                          *  case directionPositive == false:   [boundary - binWidth,boundary)
+                         *
+                         * @param directionPositive direction positive indicates whether
+                         *   the left boundary(true) or the right boundary(false) is given
+                         * @param boundary left or right boundary of bin, Unit: Argument
+                         * @param binWidth width of bin, Unit: Argument
                          */
                         DINLINE static bool inBin(
                             bool directionPositive,
@@ -221,24 +235,19 @@ namespace picongpu
                         }
 
                     public:
-                        /** Has to be called by one thread once before any other method
-                         * of this object to correctly initialise the histogram.
+                        /** Has to be called by ONE thread once before use
+                         * of this object to correctly initialize the histogram.
+                         *
+                         * BEWARE: Assumptions for input parameters must be full filled!
                          *
                          * @param relativeErrorTarget ... should be >0,
                          *      maximum relative Error of Histogram Bin
                          * @param initialGridWidth ... should be >0,
-                         *      starting binwidth of algorithm
+                         *      starting bin width of algorithm
                          * @param relativeError ... relative should be monoton rising with rising binWidth
                          */
                         DINLINE void init(float_X relativeErrorTarget, float_X initialGridWidth)
                         {
-                            // debug only
-                            /*printf(
-                                "        initialGridWidth_INIT_IN %f, relativeErrorTarget_INIT_IN %f\n",
-                                initialGridWidth,
-                                relativeErrorTarget);
-                            */
-
                             // init histogram empty
                             this->numBins = 0u;
                             this->numNewBins = 0u;
@@ -250,13 +259,13 @@ namespace picongpu
                             this->relativeErrorTarget = relativeErrorTarget;
                             this->initialGridWidth = initialGridWidth;
 
-                            // TODO: make this debug mode only
+                            /// @todo : make this debug mode only
                             // since we are filling memory we are never touching (if everything works)
 
                             //{ start of debug init
                             for(uint16_t i = 0u; i < maxNumBins; i++)
                             {
-                                this->binWeights[i] = 0._X;
+                                this->binWeight[i] = 0._X;
                                 this->binDeltaEnergy[i] = 0._X;
                                 this->binDeltaWeight[i] = 0._X;
                                 this->binLeftBoundary[i] = 0._X;
@@ -270,37 +279,45 @@ namespace picongpu
                             //} end of debug init
                         }
 
+                        //! get value of template parameter T_maxNumberBins
                         DINLINE static constexpr uint16_t getMaxNumberBins()
                         {
                             return AdaptiveHistogram::maxNumBins;
                         }
 
+                        //! get value of template parameter T_maxNumberNewBins
                         DINLINE static constexpr uint16_t getMaxNumberNewBins()
                         {
                             return AdaptiveHistogram::maxNumNewBins;
                         }
 
+                        //! get current number of occupied Bins
                         DINLINE uint16_t getNumBins()
                         {
                             return this->numBins;
                         }
 
+                        //! get initial grid width, Unit: Argument, may change in the future
                         DINLINE float_X getInitialGridWidth()
                         {
                             return this->initialGridWidth;
                         }
 
+                        //! get last Bin Left Boundary calculated, currently unused, Unit: Argument
                         DINLINE float_X getLastBinLeftBoundary()
                         {
                             return this->lastBinLeftBoundary;
                         }
 
-                        // return unit: value
                         /** if bin with given index exists, returns it's central energy, otherwise returns 0
                          *
                          * 0 is never a valid central energy since 0 is always a left boundary of a bin
                          *
-                         * @param index ... collection index of bin
+                         * @param index collection index of bin
+                         * @param acc accelerator config for on accelerator execution
+                         * @param atomicDataBox atomic data for relative error estimation
+                         *
+                         * @return return Unit: Value
                          */
                         template<typename T_Acc>
                         DINLINE float_X getEnergyBin(T_Acc& acc, uint16_t index, T_AtomicDataBox atomicDataBox) const
@@ -317,7 +334,12 @@ namespace picongpu
                             return 0._X;
                         }
 
-                        // returns the left Boundary of the by collection index specified occupied bin
+                        /** return the left boundary of the specified bin
+                         *
+                         * Bin is specified by collection index.
+                         *
+                         * @return If an invalid index is given returns -1.0
+                         */
                         DINLINE float_X getLeftBoundaryBin(uint16_t index) const
                         {
                             // no need to check for < 0, since uint
@@ -329,28 +351,55 @@ namespace picongpu
                             return -1._X;
                         }
 
+                        /** returns weight of Bin with given collection index
+                         *
+                         * BEWARE: does not check if the bin is occupied, or exists at all.
+                         *  Will cause invalid memory access if misused.
+                         *
+                         * Leave alone unless you know what you are doing!
+                         */
                         DINLINE float_X getWeightBin(uint16_t index) const
                         {
-                            return this->binWeights[index];
+                            return this->binWeight[index];
                         }
 
+                        /** returns current deltaEnergy of Bin with given collection index
+                         *
+                         * BEWARE: does not check if the bin is occupied, or exists at all.
+                         *  Will cause invalid memory access if misused.
+                         *
+                         * Leave alone unless you know what you are doing!
+                         */
                         DINLINE float_X getDeltaEnergyBin(uint16_t index) const
                         {
                             return this->binDeltaEnergy[index];
                         }
 
+                        /** returns current deltaWeight of Bin with given collection index
+                         *
+                         * BEWARE: does not check if the bin is occupied, or exists at all.
+                         *  Will cause invalid memory access if misused.
+                         *
+                         * Leave alone unless you know what you are doing!
+                         */
                         DINLINE float_X getDeltaWeightBin(uint16_t index) const
                         {
                             return this->binDeltaWeight[index];
                         }
 
-                        /** returns collection index of existing bin containing this energy
-                         * or maxNumBins otherwise
+                        /** get collection index, of bin containing given energy
+                         *
+                         * @param energy given energy, Unit: Argument
+                         * @param acc accelerator config for on accelerator execution
+                         * @param atomicDataBox atomic data for relative error estimation
+                         *
+                         * @return returns collection index of existing bin containing
+                         * this energy or maxNumBins otherwise
                          */
                         template<typename T_Acc>
                         DINLINE uint16_t getBinIndex(
                             T_Acc& acc,
-                            float_X energy, // unit: argument
+                            float_X energy, // Unit: Argument
                             T_AtomicDataBox atomicDataBox) const
                         {
                             float_X leftBoundary;
@@ -368,25 +417,42 @@ namespace picongpu
                             return this->maxNumBins;
                         }
 
-                        /** find z, /in Z, iteratively, such that currentBinWidth * 2^z
-                         * gives a lower relativeError than the relativeErrorTarget and maximises the
-                         * binWidth and return currentBinWidth * 2^z.
+                        /** calculate the bin width of the a bin starting from the specified boundary
                          *
-                         * @param directionPositive .. whether the bin faces in positive argument
-                         *      direction from the given boundary
-                         * @param boundary
-                         * @param currentBinWidth ... starting binWidth, the result may be both larger and
-                         *      smaller than initial value
+                         * Currently uses hard coded values for the beginning and
+                         * exponentially growing values after running out.
+                         *
+                         * In Future will be done as follows:
+                         *
+                         * The correct bin width is prescribed by the given error estimator,
+                         * the relativeErrorTarget, and the initial gridWidth.
+                         *
+                         * We are essentially searching for a z, \in \Z, iteratively, such
+                         * that currentBinWidth * 2^z as input to the given error approximator
+                         * results in a relative error lower than the relativeErrorTarget,
+                         * while maximizing the bin width.
+                         *
+                         * The currentBinWidth * 2^z is then returned as the correct bin width.
+                         *
+                         * This results in a well defined set of bin boundaries, if a common
+                         * reference point is used and bins are consecutive.
+                         *
+                         * @param directionPositive whether the bin faces in positive argument
+                         *      direction from the given boundary, see inBin() and centerBin()
+                         *      for more information.
+                         * @param boundary boundary of bin, Unit: Value
+                         * @param currentBinWidth starting binWidth, the result may be both
+                         *      larger and smaller than initial value, Unit: Argument
                          */
                         template<typename T_Acc>
                         DINLINE float_X getBinWidth(
                             T_Acc& acc,
                             const bool directionPositive, // unitless
-                            const float_X boundary, // unit: value
+                            const float_X boundary, // Unit: value
                             T_AtomicDataBox atomicDataBox) const
                         {
-                            // debug only, hardcoded binWidths for now, until I have time to rework the error
-                            // estimator, Brian Marre, 2021
+                            //! debug only, @todo hardcoded binWidths for now, until I have time to rework the error
+                            //! estimator, Brian Marre, 2021
                             if(boundary < 1)
                                 return 0.25_X;
                             else if(boundary < 10)
@@ -398,16 +464,20 @@ namespace picongpu
 
                         /** Returns the left boundary of the bin a given argument value x belongs into
                          *
-                         * see file description for more information
+                         * see file description and getBinWidth() for more information
                          *
-                         * @param x ... where object is located that we want to bin
-                         * does not change lastBinLeftBoundary
+                         * NOTE: current implementation does not change lastBinLeftBoundary
+                         *  but future implementations will use this to save time.
+                         *
+                         * @param x where object is located that we want to bin
+                         * @param acc accelerator config for on accelerator execution
+                         * @param atomicDataBox atomic data for relative error estimation
                          */
                         template<typename T_Acc>
                         DINLINE float_X
                         getBinLeftBoundary(T_Acc& acc, float_X const x, T_AtomicDataBox atomicDataBox) const
                         {
-                            // wether x is in positive direction with regards to last known
+                            // whether x is in positive direction with regards to last known
                             // Boundary
                             bool directionPositive = (x >= this->lastLeftBoundary);
 
@@ -416,13 +486,15 @@ namespace picongpu
 
                             // start from prevoius point to reduce seek times
                             //  BEWARE: currently starting point does not change
-                            // TODO: seperate this to seeker class with each worker getting it's own
-                            //  instance
-                            float_X boundary = this->lastLeftBoundary; // unit: argument
+                            //! @todo : separate this to seeker class with each worker
+                            //! getting it's own instance, probably context variable
+                            float_X boundary = this->lastLeftBoundary; // Unit: Argument
 
+                            // debug only
                             // preparation for debug access to run time access
                             uint32_t const workerIdx = cupla::threadIdx(acc).x;
-                            // debug acess
+
+                            // debug only access
                             if(workerIdx == 0)
                             {
                                 // debug code
@@ -446,7 +518,7 @@ namespace picongpu
 
                                 inBin = AdaptiveHistogram::inBin(directionPositive, boundary, currentBinWidth, x);
 
-                                // check wether x is in Bin
+                                // check whether x is in Bin
                                 if(inBin)
                                 {
                                     if(directionPositive)
@@ -485,48 +557,92 @@ namespace picongpu
                             return boundary;
                         }
 
-                        /// maybe rename to addDelta_Weight and addDelta_Energy to avoid confusion?
+                        /// @todo : maybe rename to addDelta_Weight and addDelta_Energy to avoid confusion?
+                        /** add/subtract weight to/from the change accumulation of weights of a bin
+                         *
+                         * Used to update the histogram by the rate solver upon doing an
+                         * atomic physics transitions, shifting weight from one bin to
+                         * another already existing bin.
+                         *
+                         * BEWARE: Does not check if enough weight present.
+                         *  See tryRemoveWeightFromBin() for a version which does check.
+                         * NOTE: only differs in sign convention from removeWeightFromBin()
+                         *
+                         * @param index collection index of the bin to which to add the weight
+                         * @param deltaWeight weight to add, can be negative
+                         * @param acc accelerator config for on accelerator execution
+                         */
                         template<typename T_Acc>
                         DINLINE void addDeltaWeight(T_Acc& acc, uint16_t index, float_X deltaWeight)
                         {
                             cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), deltaWeight);
                         }
 
+                        /** record energy taken/added from/to a given bin
+                         *
+                         * Used to record how much energy was taken from a bin through
+                         * atomic transitions by the atomic physics solver.
+                         *
+                         * BEWARE: Does not check if enough energy present.
+                         *  See tryRemoveEnergyFromBin() for a version which does check.
+                         *
+                         * @param index collection index of the bin to which to add the weight
+                         * @param deltaWeight weight to add, can be negative
+                         * @param acc accelerator config for on accelerator execution
+                         */
                         template<typename T_Acc>
                         DINLINE void addDeltaEnergy(T_Acc& acc, uint16_t index, float_X deltaEnergy)
                         {
                             cupla::atomicAdd(acc, &(this->binDeltaEnergy[index]), deltaEnergy);
                         }
 
-                        // tries to add the specified change to the specified bin, returns true if sucessfull
-                        // or false if not enough energy in bin to add delta energy and keep bin weight >=0
+                        /** tries to reduce the weight of the specified bin by deltaWeight,
+                         * unless this would result in a negative weight.
+                         *
+                         * @param index collection index of the bin to which to add the weight
+                         * @param deltaWeight weight to remove
+                         * @param acc accelerator config for on accelerator execution
+                         *
+                         * @return returns true if successful, or false if not enough weight
+                         *  in bin to add delta weight and keep bin weight >=0
+                         */
                         template<typename T_Acc>
                         DINLINE bool tryRemoveWeightFromBin(T_Acc& acc, uint16_t index, float_X deltaWeight)
                         {
-                            if(this->binWeights[index] + this->binDeltaWeight[index] - deltaWeight >= 0._X)
+                            if(this->binWeight[index] + this->binDeltaWeight[index] - deltaWeight >= 0._X)
                             {
+                                // updates deltaWeight instead of binWeight
                                 cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), -deltaWeight);
                                 return true;
                             }
                             return false;
                         }
 
+                        //! same as addDeltaWeight() but different sign convention
                         template<typename T_Acc>
                         DINLINE void removeWeightFromBin(T_Acc& acc, uint16_t index, float_X deltaWeight)
                         {
                             cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), -deltaWeight);
                         }
 
-                        // tries to add the delta energy to the specified bin, returns true if succesfull
-                        // or false if not enough energy in bin to add delta energy and keep bin energy >=0
+                        /** tries to add the delta energy to the specified bin, unless this
+                         * would result in a negative energy.
+                         *
+                         * @param index collection index of the bin to which to add the weight
+                         * @param deltaEnergy energy to add
+                         * @param acc accelerator config for on accelerator execution
+                         *
+                         * @return returns true if successful, or false if not enough energy
+                         * in bin to add delta energy and keep bin energy >=0
+                         */
                         template<typename T_Acc>
                         DINLINE bool tryAddEnergyToBin(
                             T_Acc& acc,
                             uint16_t index,
-                            float_X deltaEnergy, // unit: argument
+                            float_X deltaEnergy, // Unit: Argument
                             T_AtomicDataBox atomicDataBox)
                         {
-                            if((this->binWeights[index] + this->binDeltaWeight[index])
+                            if((this->binWeight[index] + this->binDeltaWeight[index])
                                        * this->getEnergyBin(acc, index, atomicDataBox)
                                        * picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
                                    + deltaEnergy
@@ -536,12 +652,18 @@ namespace picongpu
                                 return true;
                             }
                             return false;
-                            // TODO: think about moving corresponding weight of electrons to lower energy bin
-                            //      might be possible if bisn are without gaps, should make histogram filling
-                            //      even easier and faster
+                            /// @todo : think about moving corresponding weight of electrons to lower energy bin
+                            ///      might be possible if bins are without gaps, should make histogram filling
+                            ///      even easier and faster
                         }
 
-                        // add for Argument x, weight to the bin
+                        /** add for Argument x, weight to the bin containing the argument x
+                         *
+                         * @param x where object is located that we want to bin
+                         * @param weight weight of the object to bin
+                         * @param acc accelerator config for on accelerator execution
+                         * @param atomicDataBox atomic data for relative error estimation
+                         */
                         template<typename T_Acc>
                         DINLINE void binObject(
                             T_Acc const& acc,
@@ -549,14 +671,8 @@ namespace picongpu
                             float_X const weight,
                             T_AtomicDataBox atomicDataBox)
                         {
-                            // debug only
-                            // std::cout << "energy" << x << std::endl;
-
                             // compute global bin index
                             float_X const binLeftBoundary = this->getBinLeftBoundary(acc, x, atomicDataBox);
-
-                            // debug only
-                            // std::cout << "foundLBoundary";
 
                             // search for bin in collection of existing bins
                             auto const index = findBin(binLeftBoundary);
@@ -565,12 +681,12 @@ namespace picongpu
                             // the value, as another thread may contribute to the same bin
                             if(index < maxNumBins) // bin already exists
                             {
-                                cupla::atomicAdd(acc, &(this->binWeights[index]), weight);
+                                cupla::atomicAdd(acc, &(this->binWeight[index]), weight);
                             }
                             else
                             {
                                 // Otherwise we add it to a collection of new bins
-                                // Note: in current dev the namespace is different in cupla
+
                                 // get Index where to deposit it by atomic add to numNewBins
                                 // this assures that the same index is not used twice
                                 auto newBinIdx
@@ -585,14 +701,25 @@ namespace picongpu
                                     /// If we are here, there were more new bins since the last update
                                     /// call than memory allocated for them
                                     /// Normally, this should not happen
+                                    PMACC_ASSERT_MSG(
+                                        false,
+                                        "ERROR:Too many new bins before call to updateMethod in binObject MethodW")
                                     printf(
                                         "ERROR:Too many new bins before call to updateMethod in binObject Method\n");
                                 }
                             }
                         }
 
-                        // shift weight to the bin corresponding to energy x
-                        // does add the bin to array of new Bins if it does not exist yet.
+
+                        /** shift weight to the bin corresponding to energy x
+                         *
+                         * Does add the bin to array of new Bins if it does not exist yet.
+                         *
+                         * @param energy energy where the weight is shifted to, Unit: argument
+                         * @param weight weight to shift
+                         * @param acc accelerator config for on accelerator execution
+                         * @param atomicDataBox atomic data for relative error estimation
+                         */
                         template<typename T_Acc>
                         DINLINE void shiftWeight(
                             T_Acc const& acc,
@@ -600,10 +727,7 @@ namespace picongpu
                             float_X const weight,
                             T_AtomicDataBox atomicDataBox)
                         {
-                            // debug only
-                            // std::cout << "                shiftWeightCall" << std::endl;
-
-                            // compute global bin index
+                            // compute bin left boundary for energy
                             float_X const binLeftBoundary = this->getBinLeftBoundary(acc, energy, atomicDataBox);
 
                             // search for bin in collection of existing bins
@@ -632,18 +756,20 @@ namespace picongpu
                                     /// If we are here, there were more new bins since the last update
                                     /// call than memory allocated for them
                                     /// Normally, this should not happen
+                                    PMACC_ASSERT_MSG(
+                                        false,
+                                        "ERROR:Too many new bins before call to updateMethod in binObject Method")
                                     printf(
                                         "ERROR:Too many new bins before call to updateMethod in shiftWeight Method\n");
                                 }
                             }
                         }
 
-                        /** This method moves new bins created by shiftWeight to
-                         * the main collection of bins
+                        /** Move new bins created by shiftWeight to the main collection of bins
                          *
                          * Should be called periodically so that we don't run out of memory for new bins
                          * choose maxNumNewBins to fit period and number threads and particle frame size
-                         * MUST be called sequentially
+                         * MUST be called sequentially.
                          */
                         DINLINE void updateWithNewShiftBins()
                         {
@@ -663,7 +789,7 @@ namespace picongpu
                                     if(this->numBins < this->maxNumBins)
                                     {
                                         this->binLeftBoundary[this->numBins] = this->newBinsLeftBoundary[i];
-                                        this->binWeights[this->numBins] = 0._X;
+                                        this->binWeight[this->numBins] = 0._X;
                                         this->binDeltaEnergy[this->numBins] = 0._X;
                                         this->binDeltaWeight[this->numBins] = this->newBinsWeights[i];
                                         this->numBins++;
@@ -676,12 +802,12 @@ namespace picongpu
                             this->numNewBins = 0u;
                         }
 
-                        /** This method moves new bins to the main collection of bins
+                        /** Move new bins to the main collection of bins
+                         *
                          * Should be called periodically so that we don't run out of memory for
-                         * new bins
-                         * choose maxNumNewBins to fit period and number threads and particle frame
-                         * size
-                         * MUST be called sequentially
+                         * new bins, choose maxNumNewBins to fit period and number threads
+                         * and particle frame size.
+                         * MUST be called sequentially.
                          */
                         DINLINE void updateWithNewBins()
                         {
@@ -695,13 +821,13 @@ namespace picongpu
 
                                 // If this bin was already added
                                 if(index < maxNumBins)
-                                    this->binWeights[index] += this->newBinsWeights[i];
+                                    this->binWeight[index] += this->newBinsWeights[i];
                                 else
                                 {
                                     if(this->numBins < this->maxNumBins)
                                     {
                                         this->binLeftBoundary[this->numBins] = this->newBinsLeftBoundary[i];
-                                        this->binWeights[this->numBins] = this->newBinsWeights[i];
+                                        this->binWeight[this->numBins] = this->newBinsWeights[i];
                                         this->binDeltaEnergy[this->numBins] = 0._X;
                                         this->binDeltaWeight[this->numBins] = 0._X;
                                         this->numBins++;

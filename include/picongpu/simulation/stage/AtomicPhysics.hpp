@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2022 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
  *                     Brian Marre
@@ -41,24 +41,6 @@
  *
  * One instance of this class AtomicPhysics is stored as a protected member of the
  * MySimulation class.
- *
- * @private-member:
- * - MappingDesc cellDescription
- *      Description of cell structure used for PIC-Simulations, ask real programmers
- *       for more information ;)
- *      @todo add pointer to documentation of cell description; 15.12.2020-Brian Marre
- * - <list like> SpeciesWithAtomicPhysics
- *      seqential, list like, of all species with flag _atomicPhysics as defined in
- *      species.param
- * - <functor> callAtomicPhysics
- *      functor for actual atomic physics call for a given species of macroparticles
- *      definded in file <include/picongpu/particles/atomicPhysics/CallAtomicPhysics.hpp>
- *
- * @operator:
- * - ( step ):
- *      calls the callatomicPhysics functor passing the cellDescription and current
- *      time step.
- *      this operator is called once per time step by the simulation main loop
  */
 
 namespace picongpu
@@ -67,8 +49,12 @@ namespace picongpu
     {
         namespace stage
         {
-            //! test stage for AtomicPhysics
-            // one instance of this class is initialised and it's operator() called for every time step
+            /** functor for actual atomic physics stage call
+             *
+             * defined in file <include/picongpu/particles/atomicPhysics/CallAtomicPhysics.hpp>
+             *
+             * one instance of this class is initialized and it's operator() called for every time step
+             */
             class AtomicPhysics
             {
             public:
@@ -76,6 +62,13 @@ namespace picongpu
                 {
                 }
 
+                /** calls the callAtomicPhysics functor
+                 *
+                 * calls the callAtomicPhysics functor passing the cellDescription and
+                 * current time step.
+                 *
+                 * This operator is called once per time step by the simulation main loop
+                 */
                 void operator()(uint32_t const step) const
                 {
                     // create instance
@@ -84,18 +77,23 @@ namespace picongpu
                 }
 
             private:
-                // list of all species of macro particles with flag _atomicPhysics as defined in
-                // species.param, is list of types
-                using SpeciesWithAtomicPhysics = typename pmacc::particles::traits::FilterByFlag<
-                    VectorAllSpecies,
-                    // temporary name
-                    _atomicPhysics<>>::type;
+                /** list of all species of macro particles with flag atomicPhysicsSolver
+                 *
+                 * as defined in species.param, is list of types
+                 */
+                using SpeciesWithAtomicPhysics =
+                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, atomicPhysicsSolver<>>::type;
 
-                // kernel to be called for each species
+                //! kernel to be called for each species
                 pmacc::meta::ForEach<SpeciesWithAtomicPhysics, particles::atomicPhysics::CallAtomicPhysics<bmpl::_1>>
                     callAtomicPhysics;
 
-                //! Mapping for kernels
+                /** Description of cell structure used for PIC-Simulations.
+                 *
+                 * ask real programmers for more information ;)
+                 *
+                 * @todo add pointer to documentation of cell description; 15.12.2020-Brian Marre
+                 */
                 MappingDesc cellDescription;
             };
 

@@ -100,7 +100,7 @@ namespace picongpu
         massRatio<MassRatioArgon>,
         chargeRatio<ChargeRatioArgon>,
         densityRatio<DensityRatioArgon>,
-        _atomicPhysics<BulkElectrons>,
+        atomicPhysicsSolver<BulkElectrons>,
         atomicNumbers<ionization::atomicNumbers::Argon_t>,
         ionizationEnergies<ionization::energies::AU::Argon_t>,
         effectiveNuclearCharge<ionization::effectiveNuclearCharge::Argon_t>>;

@@ -54,7 +54,7 @@ namespace picongpu
 
                     if constexpr(HasFlag<
                                      typename T_Particle::FrameType,
-                                     _atomicPhysics<>>::type::value) // -> atomicState exists
+                                     atomicPhysicsSolver<>>::type::value) // -> atomicState exists
                     {
                         // get current Configuration number object
                         auto configNumber = particle[atomicConfigNumber_];

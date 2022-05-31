@@ -25,9 +25,10 @@
 #pragma once
 
 #include <picongpu/particles/atomicPhysics/stateRepresentation/LevelVector.hpp>
-//include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp>
+#include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp>
 
 #include <string>
+#include <pmacc/identifier/value_identifier.hpp>
 
 namespace picongpu
 {
@@ -43,7 +44,7 @@ namespace picongpu
         // transition data
         const std::string transitionDataFileName = "<path>/ArgonTransitions.txt";
 
-        // datatype to be used for configNUmber storage
+        // datatype to be used for configNumber storage
         using configNumberDataType = uint64_t;
         constexpr uint8_t protonNumber = 18u;
         constexpr uint8_t numLevels = 10u;
@@ -58,4 +59,56 @@ namespace picongpu
         constexpr uint16_t maxNumBins = 50;
 
     } // namespace atomicPhysics
+
+    /** atomic levels
+     *
+     * atomic state of ions, description by levelVector corresponding to a super
+     *  configutation
+     *
+     * Must be defined for each ion species seperatly by giving the number of moddeled
+     * atomic Levels N for this species.
+     *
+     * replaces fylite::Superconfig, since more general
+     */
+
+    /* definition of a atomicLevels Object for one species(element), additional must be
+     *  added similarly as a new value identifier
+     */
+    value_identifier(
+        atomicPhysics::LevelVector<picongpu::atomicPhysics::numLevels>,
+        levelVector_Hydrogen, // name used in species Definition
+        atomicPhysics::LevelVector<picongpu::atomicPhysics::numLevels>::create(0.)
+        // initialization with zero
+    );
+
+    /** atomicConfigNumber
+     *
+     * atomic state of ions, description by index number, corresponding to a super
+     *  configurations.
+     *
+     * Must be defined for each ion species seperatly by giving the number of modelled
+     * atomic levels N, the proton number Z and the datatype to be used,
+     * eg. float_x, uint32_t, ..., for storage of index.
+     *
+     * -> more efficient representation of atomicLevels
+     *
+     * BEWARE: index variable must cover the number of states possible,
+     * See particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp for further
+     * information
+     */
+
+    /* definition of a configNumber type as an example,
+     * other ion speceis can be added similarly as a new value identifier
+     *
+     * actual datatype must be defined seperately from value_identifier,
+     * since all "," are interpreted as seperating macro arguments
+     */
+    using ConfigNumber_H = particles::atomicPhysics::stateRepresentation::
+        ConfigNumber<
+            picongpu::atomicPhysics::configNumberDataType,
+            picongpu::atomicPhysics::numLevels,
+            picongpu::atomicPhysics::protonNumber>;
+    value_identifier(ConfigNumber_H, configNumber_Hydrogen, ConfigNumber_H(1u));
+
+
 } // namespace picongpu

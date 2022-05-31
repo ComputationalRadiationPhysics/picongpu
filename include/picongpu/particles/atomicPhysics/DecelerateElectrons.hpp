@@ -69,7 +69,7 @@ namespace picongpu
                 float_X const deltaEnergyBin = histogram.getDeltaEnergyBin(binIndex);
                 // unit: ATOMIC_UNIT_ENERGY
 
-                /// @todo : create attribute functor for pyhsical particle properties?, @BrianMarre, 2021
+                /// @todo : create attribute functor for physical particle properties?, @BrianMarre, 2021
                 constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
                 float_64 m_e_rel = attribute::getMass(1.0_X, electron) * picongpu::UNIT_MASS * c_SI * c_SI
                     / picongpu::SI::ATOMIC_UNIT_ENERGY; // unit: ATOMIC_UNIT_ENERGY

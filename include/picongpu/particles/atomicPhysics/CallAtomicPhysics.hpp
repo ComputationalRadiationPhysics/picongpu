@@ -124,8 +124,7 @@ namespace picongpu
                     VectorAllSpecies,
                     typename pmacc::particles::traits::ResolveAliasFromSpecies<
                         IonSpecies,
-                        // note: renamed to _atomicPhysics temporarily
-                        _atomicPhysics<> /// atomic physics flag of species from species.param file
+                        atomicPhysicsSolver<> /// atomic physics flag of species from species.param file
                         >::type>;
                 // electron frame type
                 using ElectronFrameType = typename ElectronSpecies::FrameType;

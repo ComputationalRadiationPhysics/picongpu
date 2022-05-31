@@ -120,7 +120,7 @@ namespace picongpu
 
     /* 1 atomic unit of energy is equal to 1 Hartree or 2 Rydberg
      * which is twice the ground state binding energy of atomic hydrogen */
-    constexpr float_X UNITCONV_AU_to_eV = 27.21139;
-    constexpr float_X UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
+    constexpr float_64 UNITCONV_AU_to_eV = 27.21139;
+    constexpr float_64 UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
 
 } // namespace picongpu

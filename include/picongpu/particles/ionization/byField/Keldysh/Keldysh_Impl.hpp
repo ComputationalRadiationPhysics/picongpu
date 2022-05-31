@@ -257,9 +257,9 @@ namespace picongpu
                     parentIon[momentum_] -= electronMomentum;
 
                     /** ionization of the ion by reducing the number of bound electrons
-                     *  and reset of atoic state to ground state of new charge state
+                     *  and reset of atomic state to ground state of new charge state
                      *
-                     * @warning substracting a float from a float can potentially
+                     * @warning subtracting a float from a float can potentially
                      *          create a negative boundElectrons number for the ion,
                      *          see #1850 for details
                      */

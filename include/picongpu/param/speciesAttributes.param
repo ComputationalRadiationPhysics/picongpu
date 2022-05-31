@@ -1,5 +1,5 @@
 /* Copyright 2014-2022 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
- *                     Heiko Burau
+ *                     Heiko Burau, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -126,8 +126,7 @@ namespace picongpu
     //! alias for atomic state of ion, see also atomicPhysics.param 
     alias(atomicConfigNumber);
 
-    /// temporarily rename to avoid collision with namespace picongpu::atomicPhysics
-    alias(_atomicPhysics);
+    alias(atomicPhysicsSolver);
 
     /** Total cell index of a particle.
      *

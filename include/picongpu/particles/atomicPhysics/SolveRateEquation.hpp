@@ -47,7 +47,7 @@ namespace picongpu
         {
             //{ definitions random number generators
             // for now 32-bit hardcoded, should cover even the most extensive state and transition lists
-            // @TODO: make configurable from param file, Brian Marre, 2021
+            /// @todo : make configurable from param file, Brian Marre, 2021
             using DistributionInt = pmacc::random::distributions::Uniform<uint32_t>;
             using RngFactoryInt = particles::functor::misc::Rng<DistributionInt>;
             using DistributionFloat = pmacc::random::distributions::Uniform<float_X>;

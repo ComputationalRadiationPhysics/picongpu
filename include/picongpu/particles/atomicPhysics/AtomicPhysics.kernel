@@ -25,9 +25,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 
-// TODO: get histogram type from param files
+/// @todo : get histogram type from param files
 // histogram of electron distribution
-#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/AdaptiveHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram/AdaptiveHistogram.hpp"
 
 // sub steps of atomic physics
 #include "picongpu/particles/atomicPhysics/DecelerateElectrons.hpp"

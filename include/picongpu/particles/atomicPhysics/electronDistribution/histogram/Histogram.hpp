@@ -19,7 +19,7 @@
 
 /** @file This file implements a fixed bin width histogram starting from Argument 0.
  * This is done as an unordered collection of bins indices and their corresponding
- * values, this implementations was done for testing purposes for the adaptive
+ * values, this implementation was done for testing purposes for the adaptive
  * histogram.
  */
 
@@ -46,7 +46,7 @@ namespace picongpu
                     template<uint32_t T_maxNumBins, uint32_t T_maxNumNewBins>
                     struct Histogram
                     {
-                    private: // TODO: chnage all calls to new getter methods
+                    private: /// @todo : change all calls to new getter methods
                         constexpr static uint32_t maxNumBins = T_maxNumBins;
                         constexpr static uint32_t maxNumNewBins = T_maxNumNewBins;
 
@@ -84,10 +84,10 @@ namespace picongpu
                             this->numBins = 0u;
                             this->numNewBins = 0u;
 
-                            // TODO: make this debug mode only
-                            // For debug purposes this is okay
-                            // Afterwards this code should be removed as we are
-                            // filling memory we are never touching (if everything works)
+                            /// @todo : make this debug mode only
+                            /// For debug purposes this is okay
+                            /// Afterwards this code should be removed as we are
+                            /// filling memory we are never touching (if everything works)
                             for(uint32_t i = 0u; i < maxNumBins; i++)
                             {
                                 this->binWeights[i] = 0.;
@@ -102,10 +102,11 @@ namespace picongpu
                             }
                         }
 
-                        // Tries to find binIndex in the collection and return the collection index.
-                        // Returns index in the binIndices array when present or maxNumBin
-                        // when not present, maxNumBin is never a valid index of the collection
-                        // stupid linear search for now
+                        /** Tries to find binIndex in the collection and return the collection index.
+                         * Returns index in the binIndices array when present or maxNumBin
+                         * when not present, maxNumBin is never a valid index of the collection
+                         * stupid linear search for now, @todo
+                         */
                         DINLINE uint32_t findBin(uint32_t binIndex, uint32_t startIndex = 0u) const
                         {
                             for(uint32_t i = startIndex; i < numBins; i++)
