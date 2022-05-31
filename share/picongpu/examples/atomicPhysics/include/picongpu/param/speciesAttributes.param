@@ -1,0 +1,304 @@
+/* Copyright 2014-2020 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
+ *                     Heiko Burau, Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * This file defines available attributes that can be stored with each particle
+ * of a particle species.
+ * Each attribute defined here needs to implement furthermore the traits
+ *   - Unit
+ *   - UnitDimension
+ *   - WeightingPower
+ *   - MacroWeighted
+ * in speciesAttributes.unitless for further information about these
+ * traits see therein.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
+#include "picongpu/param/atomicPhysics.param"
+
+// pmacc
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/identifier/identifier.hpp>
+#include <pmacc/identifier/alias.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/particles/IdProvider.def>
+
+
+// definition of carbon config number Object
+namespace picongpu
+{
+    /** relative (to cell origin) in-cell position of a particle
+     *
+     * With this definition we do not define any type like float3_X,
+     * float3_64, ...
+     * This is only a name without a specialization.
+     */
+    alias(position);
+
+    //! unique identifier for a particle
+    value_identifier(uint64_t, particleId, IdProvider<simDim>::getNewId());
+
+    //! specialization for the relative in-cell position
+    value_identifier(floatD_X, position_pic, floatD_X::create(0.));
+
+    //! momentum at timestep t
+    value_identifier(float3_X, momentum, float3_X::create(0.));
+
+    //! momentum at (previous) timestep t-1
+    value_identifier(float3_X, momentumPrev1, float3_X::create(0._X));
+
+    //! weighting of the macro particle
+    value_identifier(float_X, weighting, 0._X);
+
+    //! Voronoi cell of the macro particle
+    value_identifier(int16_t, voronoiCellId, -1);
+
+    //! interpolated electric field with respect to particle shape
+    value_identifier(float3_X, probeE, float3_X::create(0.));
+
+    //! interpolated electric field with respect to particle shape
+    value_identifier(float3_X, probeB, float3_X::create(0.));
+
+    /** masking a particle for radiation
+     *
+     * The mask is used by the user defined filter
+     * `RadiationParticleFilter` in radiation.param to (de)select
+     * particles for the radiation calculation.
+     */
+    value_identifier(bool, radiationMask, false);
+
+    /** masking a particle for transition radiation
+     *
+     * The mask is used by the user defined filter
+     * `TransitionRadiationParticleFilter` in transitionRadiation.param to (de)select
+     * particles for the transition radiation calculation.
+     */
+    value_identifier(bool, transitionRadiationMask, false);
+
+    /** number of electrons bound to the atom / ion
+     *
+     * value type is float_X to avoid casts during the runtime
+     * - float_X instead of integer types are reasonable because effective charge
+     *   numbers are possible
+     * - required for ion species if ionization is enabled
+     * - setting it requires atomicNumbers to also be set
+     *
+     * @todo connect default to proton number
+     */
+    value_identifier(float_X, boundElectrons, 0._X);
+
+    /* atomicPhysics internal state representations
+     *
+     * the following definitions, until <end atomicPhysics> are different
+     * Representations of the internal state of ions in plasmas.
+     */
+    // Example of number of modelled shells/levels
+    constexpr uint8_t chargeNumber_Hydrogen = 1u; // hydrogen charge number=1
+    constexpr uint8_t numberLevels_Hydrogen = 10u; // model 10 shells/levels
+
+
+    /** [depreceated]flylite atomic superconfiguration from
+     *
+     * atomic configuration of an ion for collisional-radiative modeling,
+     * see also flylite.param, was to be used by the not finished population
+     * kinetics stage, has been replaced by atomicPhysics
+     */
+    value_identifier(flylite::Superconfig, superconfig, flylite::Superconfig::create(0.));
+
+    alias(atomicLevels);
+    /** atomic levels
+     *
+     * internal state of ions described by levelVector, see atomicPhysics for
+     * detail.
+     *
+     * Must be defined for each ion seperatly by giving the number of moddeled
+     * atomic Levels N for this species.
+     *
+     * replaces fylite::Superconfig, since more general
+     */
+
+    /* definition of a atomicLevels specific for hydrogen other elements can be
+     * added similarly as a new value identifier
+     */
+
+    value_identifier(
+        atomicPhysics::LevelVector<numberLevels_Hydrogen>,
+        levelVector_Hydrogen, // name used in species Definition
+        atomicPhysics::LevelVector<numberLevels_Hydrogen>::create(0.)
+        // initialization with zero
+    );
+
+
+    /// We need an alias as different ion species will have different
+    /// types of that. But the kernels need to be generic
+    alias(atomicConfigNumber);
+
+    /** atomicConfigNumber
+     *
+     * internal state of ions described by index number of superconfiguration.
+     *
+     * Must be defined for each ion species seperatly by giving the number of
+     * modelled atomic levels N, the charge number and the dataformat to be
+     * used, eg. float_x, uint32_t, ..., for storage of index.
+     *
+     * more efficient representation of atomicLevels
+     * Beware: index variable  must be cover the number of states possible,
+     * see AtomicPhysics for further information
+     */
+
+    /* definition of a configNumber specific for hydrogen
+     * other elements can be added similarly as a new value identifier
+     *
+     * actual datatype must be defined seperately from value_identifier,
+     * since all "," are interpreted as seperating macro arguments
+     */
+    using ConfigNumber_Ar = particles::atomicPhysics::stateRepresentation::ConfigNumber<
+        picongpu::atomicPhysics::configNumberDataType,
+        picongpu::atomicPhysics::numLevels,
+        picongpu::atomicPhysics::protonNumber>;
+
+    value_identifier(ConfigNumber_Ar, configNumber_Argon, ConfigNumber_Ar(0u));
+
+    /// temporarily rename to avoid collision with namespace picongpu::atomicPhysics
+    alias(_atomicPhysics);
+
+    /* <end atomicPhysics>
+     */
+
+    /** Total cell index of a particle.
+     *
+     *  The total cell index is a
+     *  N-dimensional DataSpace given by a GPU's
+     *    `globalDomain.offset` + `localDomain.offset`
+     *  added to the N-dimensional cell index the particle belongs to on that GPU.
+     */
+    value_identifier(DataSpace<simDim>, totalCellIdx, DataSpace<simDim>());
+
+    //! alias for particle shape, see also species.param
+    alias(shape);
+
+    //! alias for particle pusher, see alsospecies.param
+    alias(particlePusher);
+
+    //! alias for particle ionizers, see also ionizer.param
+    alias(ionizers);
+
+    //! alias for ionization energy container, see also ionizationEnergies.param
+    alias(ionizationEnergies);
+
+    //! alias for synchrotronPhotons, see also speciesDefinition.param
+    alias(synchrotronPhotons);
+
+    //! alias for ion species used for bremsstrahlung
+    alias(bremsstrahlungIons);
+
+    //! alias for photon species used for bremsstrahlung
+    alias(bremsstrahlungPhotons);
+
+    //! alias for particle to field interpolation, see also species.param
+    alias(interpolation);
+
+    //! alias for particle current solver, see also species.param
+    alias(current);
+
+    /** alias for particle flag: atomic numbers, see also ionizer.param
+     * - only reasonable for atoms / ions / nuclei
+     * - is required when boundElectrons is set
+     */
+    alias(atomicNumbers);
+
+    /** alias for particle flag: effective nuclear charge,
+     *
+     * - see also ionizer.param
+     * - only reasonable for atoms / ions / nuclei
+     */
+    alias(effectiveNuclearCharge);
+
+    /** alias for particle population kinetics model (e.g. FLYlite)
+     *
+     * see also flylite.param
+     */
+    alias(populationKinetics);
+
+    /** alias for particle mass ratio
+     *
+     * mass ratio between base particle, see also
+     * speciesConstants.param `SI::BASE_MASS_SI` and a user defined species
+     *
+     * default value: 1.0 if unset
+     */
+    alias(massRatio);
+
+    /** alias for particle charge ratio
+     *
+     * charge ratio between base particle, see also
+     * speciesConstants.param `SI::BASE_CHARGE_SI` and a user defined species
+     *
+     * default value: 1.0 if unset
+     */
+    alias(chargeRatio);
+
+    /** alias for particle density ratio
+     *
+     * density ratio between default density, see also
+     * density.param `SI::BASE_DENSITY_SI` and a user defined species
+     *
+     * default value: 1.0 if unset
+     */
+    alias(densityRatio);
+
+    /** alias to reserved bytes for each communication direction
+     *
+     * This is an optional flag and overwrites the default species configuration
+     * in memory.param.
+     *
+     * A memory config must be of the following form:
+     *
+     * @code{.cpp}
+     * struct ExampleExchangeMemCfg
+     * {
+     *     static constexpr uint32_t BYTES_EXCHANGE_X = 5 * 1024 * 1024;
+     *     static constexpr uint32_t BYTES_EXCHANGE_Y = 5 * 1024 * 1024;
+     *     static constexpr uint32_t BYTES_EXCHANGE_Z = 5 * 1024 * 1024;
+     *     static constexpr uint32_t BYTES_CORNER = 16 * 1024;
+     *     static constexpr uint32_t BYTES_EDGES = 16 * 1024;
+     * };
+     * @endcode
+     */
+    alias(exchangeMemCfg);
+
+    /** alias to specify the boundary condition for particles
+     *
+     * The default behavior if this alias is not given to a species is that the
+     * particles which leave the global simulation box where deleted.
+     * This also notifies all plugins that can handle leaving particles.
+     *
+     * Note: alias `boundaryCondition` will be ignored if the runtime parameter
+     * `--periodic` is set.
+     */
+    alias(boundaryCondition);
+
+} // namespace picongpu
