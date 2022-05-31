@@ -120,6 +120,15 @@ namespace picongpu
      */
     value_identifier(flylite::Superconfig, superconfig, flylite::Superconfig::create(0.));
 
+    //! alias for one of two representations of the atomic state, see also atomicPhysics.param
+    alias(atomicLevels);
+
+    //! alias for atomic state of ion, see also atomicPhysics.param 
+    alias(atomicConfigNumber);
+
+    /// temporarily rename to avoid collision with namespace picongpu::atomicPhysics
+    alias(_atomicPhysics);
+
     /** Total cell index of a particle.
      *
      *  The total cell index is a
