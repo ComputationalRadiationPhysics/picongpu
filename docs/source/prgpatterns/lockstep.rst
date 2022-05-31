@@ -98,7 +98,8 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
     uint32_t const workerIdx = cupla::threadIdx(acc).x;
     constexpr uint32_t frameSize = 256;
     constexpr uint32_t numWorkers = 42;
-    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx, 23);
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto var = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 23);
 
 
 * Data from a context variable can be accessed within independent lock steps.
