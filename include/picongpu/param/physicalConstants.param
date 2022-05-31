@@ -55,6 +55,10 @@ namespace picongpu
          */
         constexpr float_64 ATOMIC_UNIT_ENERGY = 4.36e-18;
 
+        /** bohr radius, unit: m
+         */
+        constexpr float_64 BOHR_RADIUS = 5.292e-7;
+
         /* atomic unit for electric field in V/m:
          * field strength between electron and core in ground state hydrogen
          */
@@ -111,11 +115,12 @@ namespace picongpu
     //   UNIT_ENERGY) // unit: none
     //
     constexpr float_64 UNITCONV_keV_to_Joule = 1.60217646e-16;
+    constexpr float_64 UNITCONV_eV_to_Joule = UNITCONV_keV_to_Joule * 1e-3;
     constexpr float_64 UNITCONV_Joule_to_keV = (1.0 / UNITCONV_keV_to_Joule);
 
     /* 1 atomic unit of energy is equal to 1 Hartree or 2 Rydberg
      * which is twice the ground state binding energy of atomic hydrogen */
-    constexpr float_64 UNITCONV_AU_to_eV = 27.21139;
-    constexpr float_64 UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
+    constexpr float_X UNITCONV_AU_to_eV = 27.21139;
+    constexpr float_X UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
 
 } // namespace picongpu

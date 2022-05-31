@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
 
@@ -312,12 +313,15 @@ namespace picongpu
                     parentIon[momentum_] -= electronMomentum;
 
                     /** ionization of the ion by reducing the number of bound electrons
+                     *  and reset of atomic state to ground state of new charge state
                      *
                      * @warning substracting a float from a float can potentially
                      *          create a negative boundElectrons number for the ion,
                      *          see #1850 for details
                      */
-                    parentIon[boundElectrons_] -= float_X(1.);
+                    picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
+                        parentIon,
+                        static_cast<uint16_t>(parentIon[boundElectrons_]) - 1u);
                 }
             };
 

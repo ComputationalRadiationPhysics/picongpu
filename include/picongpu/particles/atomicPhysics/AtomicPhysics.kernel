@@ -1,0 +1,368 @@
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Marco Garten,
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
+ *                     Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+
+// TODO: get histogram type from param files
+// histogram of electron distribution
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/AdaptiveHistogram.hpp"
+
+// sub steps of atomic physics
+#include "picongpu/particles/atomicPhysics/DecelerateElectrons.hpp"
+#include "picongpu/particles/atomicPhysics/FillHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/SolveRateEquation.hpp"
+
+// atomic rate calculation functor
+#include "picongpu/particles/atomicPhysics/AtomicRate.hpp"
+// conversion to/from atomic state index
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
+
+// debug only
+#include <cstdint>
+#include <iostream>
+
+
+/**@file
+ * This file implements the device atomic physics kernel
+ *
+ * This kernel is called once for every super cell, for every PIC time step.
+ *
+ * @tparam T_numWorkers ... number of workers used for histogram filling
+ * @tparam T_maxNumBins ... maximum number of Bins of the histogram
+ */
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace atomicPhysics
+        {
+            template<uint32_t T_numWorkers, uint16_t T_maxNumBins>
+            struct AtomicPhysicsKernel
+            {
+                // note: maybe rename variables later
+                RngFactoryInt rngFactoryInt;
+                RngFactoryFloat rngFactoryFloat;
+
+                AtomicPhysicsKernel(
+                    RngFactoryInt rngFactoryInt = RngFactoryInt{0},
+                    RngFactoryFloat rngFactoryFloat = RngFactoryFloat{0})
+                    : rngFactoryInt(rngFactoryInt)
+                    , rngFactoryFloat(rngFactoryFloat)
+                {
+                }
+
+                // template parameters are automatically deduced from input
+                template<
+                    typename T_Acc,
+                    typename T_ElectronBox,
+                    typename T_IonBox,
+                    typename T_Mapping,
+                    typename T_AtomicDataBox>
+                HDINLINE void operator()(
+                    T_Acc const& acc,
+                    T_ElectronBox electronBox,
+                    T_IonBox ionBox,
+                    T_Mapping mapper,
+                    T_AtomicDataBox const atomicDataBox,
+                    float_X const initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
+                    float_X const relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
+                    uint32_t const step) const
+                {
+                    // we assume 1d thread indices
+                    // thread index inside a block
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+                    // Create and initialize a histogram on shared memory
+                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+                    // TODO: get this from ion species
+                    // hard coded for now
+                    using ConfigNumberDataType = picongpu::atomicPhysics::configNumberDataType;
+                    // number of levels modelled
+                    constexpr uint8_t numLevels = picongpu::atomicPhysics::numLevels;
+
+                    // conversion to/from atomic state index
+                    using ConfigNumber = picongpu::particles::atomicPhysics::stateRepresentation::
+                        ConfigNumber<ConfigNumberDataType, numLevels, atomicDataBox.getAtomicNumber()>;
+
+                    // atomic rate calculation methods
+                    using AtomicRate = picongpu::particles::atomicPhysics::
+                        AtomicRate<T_AtomicDataBox, ConfigNumberDataType, ConfigNumber, numLevels>;
+
+                    using Histogram = electronDistribution::histogram2::
+                        AdaptiveHistogram<T_maxNumBins, frameSize, T_AtomicDataBox>;
+
+
+                    // debug only, compare to hand calculated rate
+                    /*
+                    ConfigNumberDataType oldState = 1055u;
+                    auto levelVector = ConfigNumber::getLevelVector(oldState);
+                    std::cout << "oldState: { " << uint16_t(levelVector[0]) << ", "
+                        << uint16_t(levelVector[1]) << ", "
+                        << uint16_t(levelVector[2]) << ", "
+                        << uint16_t(levelVector[3]) << ", "
+                        << uint16_t(levelVector[4]) << ", "
+                        << uint16_t(levelVector[5]) << ", "
+                        << uint16_t(levelVector[6]) << ", "
+                        << uint16_t(levelVector[7]) << ", "
+                        << uint16_t(levelVector[8]) << ", "
+                        << uint16_t(levelVector[9]) << ", "
+                        << std::endl;
+
+                    ConfigNumberDataType newState = 352973u;
+                    auto levelVector2 = ConfigNumber::getLevelVector(newState);
+                    std::cout << "newState: { " << uint16_t(levelVector2[0]) << ", "
+                        << uint16_t(levelVector2[1]) << ", "
+                        << uint16_t(levelVector2[2]) << ", "
+                        << uint16_t(levelVector2[3]) << ", "
+                        << uint16_t(levelVector2[4]) << ", "
+                        << uint16_t(levelVector2[5]) << ", "
+                        << uint16_t(levelVector2[6]) << ", "
+                        << uint16_t(levelVector2[7]) << ", "
+                        << uint16_t(levelVector2[8]) << ", "
+                        << uint16_t(levelVector2[9]) << ", "
+                        << std::endl;
+
+                    std::cout << "oldStateenergy " << float_64(atomicDataBox(oldState)) * UNITCONV_AU_to_eV <<
+                    std::endl; std::cout << "newStateenergy " << float_64(atomicDataBox(newState)) * UNITCONV_AU_to_eV
+                    << std::endl;
+
+                    std::cout << "energyDifference "
+                        << float_64(AtomicRate::energyDifference(acc, oldState, newState, atomicDataBox)) *
+                    UNITCONV_AU_to_eV << std::endl;
+
+                    auto transitionIndex = atomicDataBox.findTransitionInBlock(atomicDataBox.findState(oldState),
+                    newState); std::cout << "transitionIndex "
+                        << transitionIndex << std::endl;
+
+                    std::cout << "gauntFactor " << AtomicRate::gauntFactor(
+                        AtomicRate::energyDifference(acc, oldState, newState, atomicDataBox),
+                        5._X,
+                        transitionIndex,
+                        atomicDataBox) << std::endl;
+
+                    std::cout << "cross section " << AtomicRate::collisionalExcitationCrosssection(
+                        acc,
+                        oldState,
+                        newState,
+                        transitionIndex,
+                        5._X,
+                        atomicDataBox) << std::endl;
+
+                    std::cout << "Rate " << AtomicRate::Rate(
+                        acc,
+                        oldState,
+                        newState,
+                        transitionIndex,
+                        5._X,
+                        10._X,
+                        float_X(9.99999e24),
+                        atomicDataBox) << std::endl;
+                    */
+
+                    // debug only
+                    if(workerIdx == 0)
+                    {
+                        // cpu
+                        // std::cout << "start kernel" << std::endl;
+                        // gpu
+                        printf("start kernel\n");
+                    }
+
+                    // get new histogram
+                    //Histogram histogram;
+                    PMACC_SMEM(
+                        acc, // mandatory first parameter
+                        histogram, // variable name
+                        Histogram // variable type
+                    );
+
+                    if(workerIdx == 0)
+                    {
+                        // cpu
+                        // std::cout << "    allocation histogram in SMEM" << std::endl;
+                        // gpu
+                        printf("    allocation histogram in SMEM\n");
+                    }
+
+                    if(workerIdx == 0)
+                    {
+                        // cpu
+                        // std::cout << "    allocated relative error instance" << std::endl;
+                        // gpu
+                        printf("    allocated relative error instance\n");
+                    }
+
+                    // init histogram and relative error
+                    if(workerIdx == 0)
+                    {
+                        // pass through parameters of histogram
+                        histogram.init(relativeErrorTarget, initialGridWidth);
+                    }
+                    cupla::__syncthreads(acc);
+                    // necessary since all access relativeError and histogram, but both are only valid after init
+
+                    // debug only
+                    if(workerIdx == 0)
+                    {
+                        // CPU
+                        // std::cout << "    init histogram" << std::endl;
+                        // gpu
+                        printf("    init histogram\n");
+                        // printf("        initialGridWidthSpecified: %f\n", initialGridWidth);
+                    }
+
+                    fillHistogram<T_numWorkers>(acc, electronBox, mapper, &histogram, atomicDataBox);
+                    cupla::__syncthreads(acc);
+
+                    // debug only, content of histogram, serial build only
+                    //{
+                    /*uint16_t numBins = histogram.getNumBins();
+                    float_X binLeftBoundary;
+                    float_X binCentralEnergy;
+
+                    std::cout << numBins << std::endl;
+
+                    std::cout << "{ " << std::endl;
+                    for(uint16_t i = 0u; i < numBins; i++)
+                    {
+                        std::cout << i << " : ";
+
+                        binLeftBoundary = histogram.getLeftBoundaryBin(i);
+                        binCentralEnergy = histogram.getEnergyBin(acc, i, atomicDataBox);
+
+                        std::cout << "L: " << binLeftBoundary << ", C: " << binCentralEnergy;
+                        std::cout << "|: " << histogram.getWeightBin(i) << std::endl;
+                    }
+                    std::cout << " }" << std::endl;
+                    //}*/
+
+                    // debug only, histogram bins write out, serial build only
+                    /*uint16_t numBinsToWriteOut = 10;
+
+                    // init with defined 0-th bin Boundary
+                    float_X leftBinBoundary = 0._X;
+                    std::cout << "{ 0, ";
+                    for (uint16_t i=1u; i < numBinsToWriteOut; i++)
+                    {
+                        leftBinBoundary += histogram.getBinWidth(
+                            acc,
+                            true,
+                            leftBinBoundary,
+                            atomicDataBox);
+
+                        std::cout << ", " << leftBinBoundary;
+                    }
+                    std::cout << " }" << std::endl;*/
+
+                    // debug only
+                    if(workerIdx == 0)
+                    {
+                        // cpu
+                        // std::cout << "    histogram filled" << std::endl;
+                        // gpu
+                        printf("    histogram filled\n");
+                    }
+
+                    bool debug;
+                    if(workerIdx == 0)
+                    {
+                        debug = true;
+                    }
+                    else
+                    {
+                        debug = false;
+                    }
+
+                    solveRateEquation<T_numWorkers, AtomicRate>(
+                        acc,
+                        mapper,
+                        rngFactoryInt,
+                        rngFactoryFloat,
+                        ionBox,
+                        atomicDataBox,
+                        &histogram,
+                        debug);
+
+                    cupla::__syncthreads( acc );
+
+                    // debug only
+                    if( workerIdx == 0 )
+                    {
+                        printf("    rate applied\n");
+
+                        // debug only, content of histogram, serial build only
+                        /*//{
+                        uint16_t numBins = histogram.getNumBins();
+                        float_X binLeftBoundary;
+                        float_X binCentralEnergy;
+                        float_X binresultEnergy;
+
+                        std::cout << numBins << std::endl;
+
+                        std::cout << "{ " << std::endl;
+                        for(uint16_t i = 0u; i < numBins; i++)
+                        {
+                            std::cout << i << " : ";
+
+                            binLeftBoundary = histogram.getLeftBoundaryBin(i);
+                            binCentralEnergy = histogram.getEnergyBin(acc, i, atomicDataBox);
+
+                            std::cout << "L: " << binLeftBoundary << ", C: " << binCentralEnergy;
+                            std::cout << " | resulting weight: "
+                                << histogram.getDeltaWeightBin(i) + histogram.getWeightBin(i)
+                                << std::endl;
+                        }
+                        std::cout << " }" << std::endl;
+                        //}*/
+                    }
+                    // debug only
+                    // cupla::__syncthreads( acc );
+
+                    decelerateElectrons< T_numWorkers >(
+                        acc,
+                        mapper,
+                        electronBox,
+                        histogram,
+                        atomicDataBox
+                    );
+
+                    cupla::__syncthreads( acc );
+
+                    // debug only
+                    if( workerIdx == 0 )
+                    {
+                        // cpu
+                        // std::cout << "    electrons decelerated" << std::endl;
+                        // gpu
+                        printf("    electrons decelerated\n");
+                    }
+                }
+            };
+
+        } // namespace atomicPhysics
+    } // namespace particles
+} // namespace picongpu
