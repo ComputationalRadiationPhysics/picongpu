@@ -73,7 +73,7 @@ namespace pmacc
     {
         namespace bessel
         {
-            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
+            template<typename T_Type, typename T_TableA, typename T_TableB>
             struct Cbesselj0Base
             {
                 using result = alpaka::Complex<T_Type>;
@@ -84,8 +84,6 @@ namespace pmacc
                 {
                     T_TableA a;
                     T_TableB b;
-                    T_TableA1 a1;
-                    T_TableB1 b1;
                     result cj0;
                     /* The target rel. accuracy goal eps is chosen according to the original implementation
                      * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
@@ -94,9 +92,7 @@ namespace pmacc
                      */
                     float_T const eps = float_T(4.5) * std::numeric_limits<float_T>::epsilon();
 
-                    complex_T const cii = complex_T(0, 1);
                     complex_T const cone = complex_T(1, 0);
-                    complex_T const czero = complex_T(0, 0);
 
                     float_T const a0 = cupla::math::abs(z);
                     complex_T const z2 = z * z;
@@ -149,7 +145,7 @@ namespace pmacc
                 }
             };
 
-            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
+            template<typename T_Type, typename T_TableA1, typename T_TableB1>
             struct Cbesselj1Base
             {
                 using result = alpaka::Complex<T_Type>;
@@ -158,8 +154,6 @@ namespace pmacc
 
                 HDINLINE result operator()(complex_T const& z)
                 {
-                    T_TableA a;
-                    T_TableB b;
                     T_TableA1 a1;
                     T_TableB1 b1;
                     result cj1;
@@ -170,7 +164,6 @@ namespace pmacc
                      */
                     float_T const eps = float_T(4.5) * std::numeric_limits<float_T>::epsilon();
 
-                    complex_T const cii = complex_T(0, 1);
                     complex_T const cone = complex_T(1, 0);
                     complex_T const czero = complex_T(0, 0);
 
@@ -231,45 +224,25 @@ namespace pmacc
 
             template<>
             struct J0<alpaka::Complex<double>>
-                : public Cbesselj0Base<
-                      double,
-                      pmacc::math::bessel::aDouble_t,
-                      pmacc::math::bessel::bDouble_t,
-                      pmacc::math::bessel::a1Double_t,
-                      pmacc::math::bessel::b1Double_t>
+                : public Cbesselj0Base<double, pmacc::math::bessel::aDouble_t, pmacc::math::bessel::bDouble_t>
             {
             };
 
             template<>
             struct J0<alpaka::Complex<float>>
-                : public Cbesselj0Base<
-                      float,
-                      pmacc::math::bessel::aFloat_t,
-                      pmacc::math::bessel::bFloat_t,
-                      pmacc::math::bessel::a1Float_t,
-                      pmacc::math::bessel::b1Float_t>
+                : public Cbesselj0Base<float, pmacc::math::bessel::aFloat_t, pmacc::math::bessel::bFloat_t>
             {
             };
 
             template<>
             struct J1<alpaka::Complex<double>>
-                : public Cbesselj1Base<
-                      double,
-                      pmacc::math::bessel::aDouble_t,
-                      pmacc::math::bessel::bDouble_t,
-                      pmacc::math::bessel::a1Double_t,
-                      pmacc::math::bessel::b1Double_t>
+                : public Cbesselj1Base<double, pmacc::math::bessel::a1Double_t, pmacc::math::bessel::b1Double_t>
             {
             };
 
             template<>
             struct J1<alpaka::Complex<float>>
-                : public Cbesselj1Base<
-                      float,
-                      pmacc::math::bessel::aFloat_t,
-                      pmacc::math::bessel::bFloat_t,
-                      pmacc::math::bessel::a1Float_t,
-                      pmacc::math::bessel::b1Float_t>
+                : public Cbesselj1Base<float, pmacc::math::bessel::a1Float_t, pmacc::math::bessel::b1Float_t>
             {
             };
 
