@@ -9,39 +9,55 @@
  */
 
 digraph PIConGPU {
-    compiler -> cuda;
+    mpi [label="MPI"];
     compiler -> mpi;
-    compiler -> boost;
-    compiler -> python;
-    compiler -> libpng;
 
-    cuda -> mpi [style=dashed label="cuda-awareness"];
-    batchSystem -> mpi;
-    fileSystem -> mpi [style=dashed label="extra hints"];
+    boost [label="Boost"];
+    compiler -> boost;
 
     python [label="python-dev"];
+    compiler -> python;
     python -> boost [style=dashed label="Boost::Python"];
 
-    hdf5 [label="hdf5-parallel"];
-    mpi -> hdf5;
-    compiler -> hdf5;
-
-    adios2 [label="ADIOS2"];
-    mpi -> adios2;
-    compiler -> adios2;
-    hdf5 -> adios2 [style=dashed label="optional"];
-    compiler -> libfabric;
-    libfabric -> adios2[style=dashed label="RDMA staging"];
-
-    openpmd [label="openPMD API"];
-    adios2 -> openpmd [style=dashed label="optional"];
-    hdf5 -> openpmd [style=dashed label="optional"];
-    nlohmann_json [label="nlohmann_json\n(header-only)\n(internall shipped\nby default)"];
-    nlohmann_json -> openpmd[style="dashed"]
-
+    compiler -> libpng;
     libpng -> PNGwriter;
 
-    trace [label="Score-P"];
-    mpi -> trace;
-    cuda -> trace;
+    compiler -> alpaka;
+    boost -> alpaka;
+    alpaka -> cupla;
+
+    mallocmc [label="mallocMC"]
+    alpaka -> mallocmc;
+
+    isaac [label="ISAAC"]
+    alpaka -> isaac;
+    boost -> isaac;
+    mpi -> isaac;
+
+    cuda [label="CUDA"];
+    compiler -> cuda;
+    cuda -> alpaka [style=dashed label="optional"];
+    cuda -> mpi [style=dashed label="cuda-awareness"];
+
+    hip [label="HIP"];
+    compiler -> hip;
+    hip -> alpaka [style=dashed label="optional"];
+
+    omp [label="OpenMP"];
+    compiler -> omp;
+    omp -> alpaka [style=dashed label="optional"];
+
+    openpmd [label="openPMD API"];
+    mpi -> openpmd;
+    compiler -> openpmd;
+
+    picongpu [label="PIConGPU"];
+    alpaka -> picongpu;
+    cupla -> picongpu;
+    mpi -> picongpu;
+    boost -> picongpu;
+    mallocmc -> picongpu;
+    isaac -> picongpu [style=dashed label="optional"];
+    openpmd -> picongpu [style=dashed label="optional"];
+    PNGwriter -> picongpu [style=dashed label="optional"];
 }
