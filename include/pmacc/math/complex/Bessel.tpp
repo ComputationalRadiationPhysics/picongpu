@@ -62,7 +62,6 @@
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/math/Complex.hpp"
 #include "pmacc/math/Vector.hpp"
-#include "pmacc/math/complex/Bessel.hpp"
 #include "pmacc/types.hpp"
 
 #include <cmath>
@@ -77,17 +76,17 @@ namespace pmacc
             template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
             struct Cbesselj0Base
             {
-                using Result = alpaka::Complex<T_Type>;
+                using result = alpaka::Complex<T_Type>;
                 using complex_T = alpaka::Complex<T_Type>;
                 using float_T = T_Type;
 
-                HDINLINE Result operator()(complex_T const& z)
+                HDINLINE result operator()(complex_T const& z)
                 {
                     T_TableA a;
                     T_TableB b;
                     T_TableA1 a1;
                     T_TableB1 b1;
-                    Result cj0;
+                    result cj0;
                     /* The target rel. accuracy goal eps is chosen according to the original implementation
                      * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
                      * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
@@ -151,17 +150,17 @@ namespace pmacc
             template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
             struct Cbesselj1Base
             {
-                using Result = alpaka::Complex<T_Type>;
+                using result = alpaka::Complex<T_Type>;
                 using complex_T = alpaka::Complex<T_Type>;
                 using float_T = T_Type;
 
-                HDINLINE Result operator()(complex_T const& z)
+                HDINLINE result operator()(complex_T const& z)
                 {
                     T_TableA a;
                     T_TableB b;
                     T_TableA1 a1;
                     T_TableB1 b1;
-                    Result cj1;
+                    result cj1;
                     /* The target rel. accuracy goal eps is chosen according to the original implementation
                      * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
                      * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
