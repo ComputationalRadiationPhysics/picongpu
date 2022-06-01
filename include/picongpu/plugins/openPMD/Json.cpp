@@ -301,6 +301,35 @@ The key 'select' must point to either a single string or an array of strings.)EN
                 hdf5Dataset["chunks"] = "none";
             }
         }
+        {
+            auto& adios2EngineParams = config["adios2"]["engine"]["parameters"];
+            if(!adios2EngineParams.contains("BufferChunkSize"))
+            {
+                /*
+                 * This parameter is only interpreted by the ADIOS2 BP5 engine
+                 * (and potentially future engines that use the BP5 serializer).
+                 * Other engines will ignore it without warning.
+                 *
+                 * Reasoning: The internal data structure of BP5 is a linked
+                 * list of equally-sized chunks.
+                 * This parameter specifies the size of each individual chunk to
+                 * the maximum possible 2GB (i.e. a bit lower than that),
+                 * which is more performant than the default 128MB.
+                 *
+                 * Since each buffer chunk is allocated by malloc(), chunks are
+                 * not actually written upon creation.
+                 * As a result, on systems with virtual memory, the overhead
+                 * of specifying this is a potential allocation of up to 2GB
+                 * of unused **virtual** memory, **not physical** memory.
+                 * That's a good deal, since it gives us performance by default.
+                 *
+                 * On those systems where this setting actually poses a problem,
+                 * careful memory configuration is necessary anyway, so the
+                 * defaults don't matter.
+                 */
+                adios2EngineParams["BufferChunkSize"] = "2147381248";
+            }
+        }
     }
 } // namespace
 
