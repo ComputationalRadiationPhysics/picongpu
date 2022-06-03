@@ -62,7 +62,6 @@
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/math/Complex.hpp"
 #include "pmacc/math/Vector.hpp"
-#include "pmacc/math/complex/Bessel.hpp"
 #include "pmacc/types.hpp"
 
 #include <cmath>
@@ -74,20 +73,18 @@ namespace pmacc
     {
         namespace bessel
         {
-            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
+            template<typename T_Type, typename T_TableA, typename T_TableB>
             struct Cbesselj0Base
             {
-                using Result = alpaka::Complex<T_Type>;
+                using result = alpaka::Complex<T_Type>;
                 using complex_T = alpaka::Complex<T_Type>;
                 using float_T = T_Type;
 
-                HDINLINE Result operator()(complex_T const& z)
+                HDINLINE result operator()(complex_T const& z)
                 {
                     T_TableA a;
                     T_TableB b;
-                    T_TableA1 a1;
-                    T_TableB1 b1;
-                    Result cj0;
+                    result cj0;
                     /* The target rel. accuracy goal eps is chosen according to the original implementation
                      * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
                      * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
@@ -95,9 +92,7 @@ namespace pmacc
                      */
                     float_T const eps = float_T(4.5) * std::numeric_limits<float_T>::epsilon();
 
-                    complex_T const cii = complex_T(0, 1);
                     complex_T const cone = complex_T(1, 0);
-                    complex_T const czero = complex_T(0, 0);
 
                     float_T const a0 = cupla::math::abs(z);
                     complex_T const z2 = z * z;
@@ -130,7 +125,8 @@ namespace pmacc
                             kz = 10u; //   "      "     "  12
                         else
                             kz = 12u; //   "      "     "  14
-                        complex_T ct1 = z1 - Pi<float_T>::quarterValue;
+                        constexpr auto quarterPi = Pi<float_T>::quarterValue;
+                        complex_T ct1 = z1 - quarterPi;
                         complex_T cp0 = cone;
                         for(uint32_t k = 0u; k < kz; k++)
                         {
@@ -141,27 +137,26 @@ namespace pmacc
                         {
                             cq0 += b[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(3.0));
                         }
-                        complex_T const cu = cupla::math::sqrt(Pi<float_T>::doubleReciprocalValue / z1);
+                        constexpr auto doubleReciprocalPi = Pi<float_T>::doubleReciprocalValue;
+                        complex_T const cu = cupla::math::sqrt(doubleReciprocalPi / z1);
                         cj0 = cu * (cp0 * cupla::math::cos(ct1) - cq0 * cupla::math::sin(ct1));
                     }
                     return cj0;
                 }
             };
 
-            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
+            template<typename T_Type, typename T_TableA1, typename T_TableB1>
             struct Cbesselj1Base
             {
-                using Result = alpaka::Complex<T_Type>;
+                using result = alpaka::Complex<T_Type>;
                 using complex_T = alpaka::Complex<T_Type>;
                 using float_T = T_Type;
 
-                HDINLINE Result operator()(complex_T const& z)
+                HDINLINE result operator()(complex_T const& z)
                 {
-                    T_TableA a;
-                    T_TableB b;
                     T_TableA1 a1;
                     T_TableB1 b1;
-                    Result cj1;
+                    result cj1;
                     /* The target rel. accuracy goal eps is chosen according to the original implementation
                      * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
                      * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
@@ -169,7 +164,6 @@ namespace pmacc
                      */
                     float_T const eps = float_T(4.5) * std::numeric_limits<float_T>::epsilon();
 
-                    complex_T const cii = complex_T(0, 1);
                     complex_T const cone = complex_T(1, 0);
                     complex_T const czero = complex_T(0, 0);
 
@@ -205,7 +199,8 @@ namespace pmacc
                             kz = 10u; //   "      "     "  12
                         else
                             kz = 12u; //   "      "     "  14
-                        complex_T const cu = cupla::math::sqrt(Pi<float_T>::doubleReciprocalValue / z1);
+                        constexpr auto doubleReciprocalPi = Pi<float_T>::doubleReciprocalValue;
+                        complex_T const cu = cupla::math::sqrt(doubleReciprocalPi / z1);
                         complex_T const ct2 = z1 - float_T(0.75) * Pi<float_T>::value;
                         complex_T cp1 = cone;
                         for(uint32_t k = 0u; k < kz; k++)
@@ -229,50 +224,28 @@ namespace pmacc
 
             template<>
             struct J0<alpaka::Complex<double>>
-                : public Cbesselj0Base<
-                      double,
-                      pmacc::math::bessel::aDouble_t,
-                      pmacc::math::bessel::bDouble_t,
-                      pmacc::math::bessel::a1Double_t,
-                      pmacc::math::bessel::b1Double_t>
+                : public Cbesselj0Base<double, pmacc::math::bessel::aDouble_t, pmacc::math::bessel::bDouble_t>
             {
             };
 
             template<>
             struct J0<alpaka::Complex<float>>
-                : public Cbesselj0Base<
-                      float,
-                      pmacc::math::bessel::aFloat_t,
-                      pmacc::math::bessel::bFloat_t,
-                      pmacc::math::bessel::a1Float_t,
-                      pmacc::math::bessel::b1Float_t>
+                : public Cbesselj0Base<float, pmacc::math::bessel::aFloat_t, pmacc::math::bessel::bFloat_t>
             {
             };
 
             template<>
             struct J1<alpaka::Complex<double>>
-                : public Cbesselj1Base<
-                      double,
-                      pmacc::math::bessel::aDouble_t,
-                      pmacc::math::bessel::bDouble_t,
-                      pmacc::math::bessel::a1Double_t,
-                      pmacc::math::bessel::b1Double_t>
+                : public Cbesselj1Base<double, pmacc::math::bessel::a1Double_t, pmacc::math::bessel::b1Double_t>
             {
             };
 
             template<>
             struct J1<alpaka::Complex<float>>
-                : public Cbesselj1Base<
-                      float,
-                      pmacc::math::bessel::aFloat_t,
-                      pmacc::math::bessel::bFloat_t,
-                      pmacc::math::bessel::a1Float_t,
-                      pmacc::math::bessel::b1Float_t>
+                : public Cbesselj1Base<float, pmacc::math::bessel::a1Float_t, pmacc::math::bessel::b1Float_t>
             {
             };
 
         } // namespace bessel
     } // namespace math
 } // namespace pmacc
-
-#include "pmacc/math/complex/Bessel.tpp"

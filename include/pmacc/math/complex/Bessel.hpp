@@ -59,7 +59,6 @@
 
 #pragma once
 
-#include "pmacc/math/Complex.hpp"
 #include "pmacc/types.hpp"
 
 
@@ -69,24 +68,6 @@ namespace pmacc
     {
         namespace bessel
         {
-            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
-            struct Cbesselj0Base;
-
-            template<typename T_Type>
-            HDINLINE typename J0<alpaka::Complex<T_Type>>::result j0(alpaka::Complex<T_Type> const& z)
-            {
-                return J0<alpaka::Complex<T_Type>>()(z);
-            }
-
-            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
-            struct Cbesselj1Base;
-
-            template<typename T_Type>
-            HDINLINE typename J1<alpaka::Complex<T_Type>>::result j1(alpaka::Complex<T_Type> const& z)
-            {
-                return J1<alpaka::Complex<T_Type>>()(z);
-            }
-
             PMACC_CONST_VECTOR(
                 double,
                 14,
@@ -241,3 +222,5 @@ namespace pmacc
         } // namespace bessel
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/math/complex/Bessel.tpp"
