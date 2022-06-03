@@ -71,7 +71,13 @@ namespace picongpu
 #ifdef __CUDACC_VER_MAJOR__
         std::stringstream cuda;
         cuda << __CUDACC_VER_MAJOR__ << "." << __CUDACC_VER_MINOR__ << "." << __CUDACC_VER_BUILD__;
+#endif
+#ifdef HIP_VERSION_MAJOR
+        std::stringstream hip;
+        hip << HIP_VERSION_MAJOR << "." << HIP_VERSION_MINOR << "." << HIP_VERSION_PATCH;
+#endif
 
+#if(defined(__CUDACC_VER_MAJOR__) || defined(HIP_VERSION_MAJOR))
         std::stringstream mallocMC;
         mallocMC << MALLOCMC_VERSION_MAJOR << "." << MALLOCMC_VERSION_MINOR << "." << MALLOCMC_VERSION_PATCH;
 #endif
@@ -121,6 +127,11 @@ namespace picongpu
         cliText << "  CMake:      " << cmake.str() << std::endl;
 #ifdef __CUDACC_VER_MAJOR__
         cliText << "  CUDA:       " << cuda.str() << std::endl;
+#endif
+#ifdef HIP_VERSION_MAJOR
+        cliText << "  HIP:        " << hip.str() << std::endl;
+#endif
+#if(defined(__CUDACC_VER_MAJOR__) || defined(HIP_VERSION_MAJOR))
         cliText << "  mallocMC:   " << mallocMC.str() << std::endl;
 #endif
         cliText << "  Boost:      " << boost.str() << std::endl;
@@ -138,9 +149,12 @@ namespace picongpu
 #ifdef __CUDACC_VER_MAJOR__
         software.push_back(std::string("CUDA/") + cuda.str());
 #endif
+#ifdef HIP_VERSION_MAJOR
+        software.push_back(std::string("HIP/") + hip.str());
+#endif
         software.push_back(std::string("Boost/") + boost.str());
         software.push_back(mpiFlavor.str() + std::string("/") + mpiFlavorVersion.str());
-#ifdef __CUDACC_VER_MAJOR__
+#if(defined(__CUDACC_VER_MAJOR__) || defined(HIP_VERSION_MAJOR))
         software.push_back(std::string("mallocMC/") + mallocMC.str());
 #endif
         if(pngwriter.str().compare(versionNotFound) != 0)
