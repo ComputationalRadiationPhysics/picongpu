@@ -12,7 +12,7 @@
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov
 
 Overview
 --------
@@ -69,10 +69,10 @@ MPI 2.3+
   - ``export MPI_ROOT=<MPI_INSTALL>``
   - as long as CUDA awareness (``openmpi+cuda``) is missing: ``export OMPI_MCA_mpi_leave_pinned=0``
 
-boost
+Boost
 """""
-- 1.74.0+ (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
+- 1.74.0+ (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs)
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-math-dev libboost-serialization-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
@@ -82,7 +82,7 @@ boost
   - ``curl -Lo boost_1_74_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz``
   - ``tar -xzf boost_1_74_0.tar.gz``
   - ``cd boost_1_74_0``
-  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,serialization,system,thread --prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=filesystem,math,program_options,serialization,system --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++17" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
@@ -91,6 +91,7 @@ boost
 
 git
 """
+- not required for the code, but for our workflows
 - 1.7.9.5 or `higher <https://help.github.com/articles/https-cloning-errors>`_
 - *Debian/Ubuntu:* ``sudo apt-get install git``
 - *Arch Linux:* ``sudo pacman --sync git``
@@ -98,6 +99,7 @@ git
 
 rsync
 """""
+- not required for the code, but for our workflows
 - *Debian/Ubuntu:* ``sudo apt-get install rsync``
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
@@ -112,7 +114,7 @@ cupla 0.4.X-dev
 
 mallocMC 2.6.0crp-dev
 """""""""""""""""""""
-- only required for CUDA backend
+- only required for CUDA and HIP backends
 - `mallocMC <https://github.com/ComputationalRadiationPhysics/mallocMC>`_ is included in the PIConGPU source code
 
 .. _install-dependencies-picongpu:
@@ -194,80 +196,16 @@ pngwriter
   - ``export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH``
   - ``export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH``
 
-HDF5
-""""
-- 1.8.13+
-- standard shared version (no C++, enable parallel)
-- *Debian/Ubuntu:* ``sudo apt-get install libhdf5-openmpi-dev``
-- *Arch Linux:* ``sudo pacman --sync hdf5-openmpi``
-- *Spack:* ``spack install hdf5~fortran``
-- *from source:*
-
-  - ``mkdir -p ~/src ~/lib``
-  - ``cd ~/src``
-  - download hdf5 source code from `release list of the HDF5 group <https://www.hdfgroup.org/ftp/HDF5/releases/>`_, for example:
-
-  - ``curl -Lo hdf5-1.8.20.tar.gz https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz``
-  - ``tar -xzf hdf5-1.8.20.tar.gz``
-  - ``cd hdf5-1.8.20``
-  - ``./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/``
-  - ``make``
-  - *optional:* ``make test``
-  - ``make install``
-  - If you encounter errors related to linking MPI during ``./configure``, you might try setting the compiler manually via ``./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/ CC=mpicc CXX=mpic++``.
-- *environment:* (assumes install from source in ``$HOME/lib/hdf5``)
-
-  - ``export HDF5_ROOT=$HOME/lib/hdf5``
-  - ``export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH``
-
-c-blosc
-"""""""
-- general purpose compressor, used in ADIOS2 for in situ data reduction
-- *Debian/Ubuntu:* ``sudo apt-get install libblosc-dev``
-- *Arch Linux:* ``sudo pacman --sync blosc``
-- *Spack:* ``spack install c-blosc``
-- *from source:*
-
-  - ``mkdir -p ~/src ~/lib``
-  - ``git clone -b v1.21.1 https://github.com/Blosc/c-blosc.git ~/src/c-blosc/``
-  - ``cd ~/src/c-blosc``
-  - ``mkdir build && cd build``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/c-blosc -DPREFER_EXTERNAL_ZLIB=ON ..``
-  - ``make install``
-- *environment:* (assumes install from source in ``$HOME/lib/c-blosc``)
-
-  - ``export BLOSC_ROOT=$HOME/lib/c-blosc``
-  - ``export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH``
-  - ``export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH``
-
-ADIOS2
-""""""
-- 2.7.1+
-- Input/Output library for simulation data output via openPMD-api
-- *Spack:* ``spack install adios2@2.7.1``
-- *from source*
-
-  - ``mkdir -p ~/src ~/lib``
-  - ``git clone -b v2.7.1 https://github.com/ornladios/ADIOS2.git ~/src/ADIOS2``
-  - ``cd ~/src/ADIOS2``
-  - ``mkdir build && cd build``
-  - ``cmake -DCMAKE_INSTALL_PREFIX="$HOME/lib/ADIOS2" -DADIOS2_USE_Fortran=OFF -DADIOS2_USE_PNG=OFF -DADIOS2_USE_BZip2=OFF ..``
-  - ``make install``
-- *environment:* (assumes install from source in ``$HOME/lib/ADIOS2``)
-
-  - ``export ADIOS2_ROOT=$HOME/lib/ADIOS2``
-  - ``export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH``
-  - ``export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib:$LD_LIBRARY_PATH``
-
 openPMD API
 """""""""""
+- optional, but strongly recommended as most PIConGPU output requires it
 - 0.14.3+
 - *Spack*: ``spack install openpmd-api``
 - For usage in PIConGPU, the openPMD API must have been built either with support for ADIOS2 or HDF5 (or both).
   When building the openPMD API from source (described below), these dependencies must be built and installed first.
 
   - For ADIOS2, CMake build instructions can be found in the `official documentation <https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html>`_.
-    The default configuration should generally be sufficient, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location.
+    Besides compression, the default configuration should generally be sufficient, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location. Compression with ``c-blosc`` is described below.
   - For HDF5, CMake build  instructions can be found in the `official documentation <https://support.hdfgroup.org/HDF5/release/cmakebuild.html>`_.
     The parameters ``-DHDF5_BUILD_CPP_LIB=OFF -DHDF5_ENABLE_PARALLEL=ON`` are required, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location.
 - *from source:*
@@ -289,6 +227,27 @@ openPMD API
   By setting the CMake parameter ``PIC_nlohmann_json_PROVIDER=extern``, CMake
   can be instructed to search for an installation of nlohmann_json externally.
   Refer to LICENSE.md for further information.
+
+c-blosc for openPMD API with ADIOS2
+"""""""""""""""""""""""""""""""""""
+- not a direct dependency of PIConGPU, but an optional dependency for openPMD API with ADIOS2; installation is described here since it is lacking in documentation elsewhere
+- general purpose compressor, used in ADIOS2 for in situ data reduction
+- *Debian/Ubuntu:* ``sudo apt-get install libblosc-dev``
+- *Arch Linux:* ``sudo pacman --sync blosc``
+- *Spack:* ``spack install c-blosc``
+- *from source:*
+
+  - ``mkdir -p ~/src ~/lib``
+  - ``git clone -b v1.21.1 https://github.com/Blosc/c-blosc.git ~/src/c-blosc/``
+  - ``cd ~/src/c-blosc``
+  - ``mkdir build && cd build``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/c-blosc -DPREFER_EXTERNAL_ZLIB=ON ..``
+  - ``make install``
+- *environment:* (assumes install from source in ``$HOME/lib/c-blosc``)
+
+  - ``export BLOSC_ROOT=$HOME/lib/c-blosc``
+  - ``export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH``
+  - ``export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH``
 
 ISAAC
 """""
