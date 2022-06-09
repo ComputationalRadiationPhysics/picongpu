@@ -328,7 +328,7 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.66 REQUIRED COMPONENTS filesystem system math_tr1)
+find_package(Boost 1.74 REQUIRED COMPONENTS filesystem system math_tr1)
 if(TARGET Boost::filesystem)
     set(PMacc_LIBRARIES ${PMacc_LIBRARIES} Boost::boost Boost::filesystem
                                            Boost::system Boost::math_tr1)
