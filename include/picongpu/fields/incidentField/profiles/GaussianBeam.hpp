@@ -112,7 +112,7 @@ namespace picongpu
                     /** Gaussian beam incident E functor
                      *
                      * The implementation is shared between a normal Gaussian beam and one with tilted front.
-                     * We always take tilt value from the unitless params and apply the tile (which can be 0).
+                     * We always take tilt value from the unitless params and apply the tilt (which can be 0).
                      *
                      * @tparam T_Params parameters
                      */
@@ -204,7 +204,7 @@ namespace picongpu
                          */
                         HDINLINE float_X getValue(floatD_X const& totalCellIdx, float_X const phaseShift) const
                         {
-                            // transform coordinate system to center of x-z plane of initialization
+                            // transform to internal coordinate system
                             floatD_X pos = this->getInternalCoordinates(totalCellIdx);
                             auto const time = this->getCurrentTime(totalCellIdx);
                             if(time < 0.0_X)

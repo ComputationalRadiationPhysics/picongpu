@@ -237,7 +237,7 @@ namespace picongpu
                         return focus + firstIntersectionP * direction;
                     }
 
-                    /** Get unit axis vectors of internal cooridnate system
+                    /** Get unit axis vectors of internal coordinate system
                      *
                      * For simplicity of use and since they are for internal use only, these are always in 3d.
                      *

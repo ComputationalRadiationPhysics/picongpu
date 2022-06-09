@@ -100,7 +100,7 @@ namespace picongpu
                     static constexpr float_64 DIRECTION_Z = 0.0;
                     /** @} */
 
-                    /** Focus position in total cooridnate system
+                    /** Focus position in total coordinate system
                      *
                      * "Non-focused" lasers should have it set at or near the generation surface where the laser enters
                      * the domain. The position does not have to be inside the domain.
