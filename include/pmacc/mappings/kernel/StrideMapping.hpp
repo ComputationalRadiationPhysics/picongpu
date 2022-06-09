@@ -109,9 +109,11 @@ namespace pmacc
 
         /** Set mapper to next non-empty subarea
          *
+         * Note: this function has no HINLINE as it is recursive and so cannot be force-inlined.
+         *
          * @return whether the whole area was processed
          */
-        HINLINE bool next()
+        bool next()
         {
             int linearOffset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), offset);
             linearOffset++;

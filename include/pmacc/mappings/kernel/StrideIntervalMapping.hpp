@@ -126,9 +126,11 @@ namespace pmacc
 
         /** Set mapper to next non-empty subinterval
          *
+         * Note: this function has no HINLINE as it is recursive and so cannot be force-inlined.
+         *
          * @return whether the whole interval was processed
          */
-        HINLINE bool next()
+        bool next()
         {
             int linearOffset = DataSpaceOperations<dim>::map(DataSpace<dim>::create(stride), offset);
             linearOffset++;
