@@ -60,6 +60,28 @@ namespace picongpu
                         float_X const square_tmp = tmp * tmp;
                         return 0.5_X * square_tmp;
                     }
+
+                    /** Creates an array with assignment values assuming that the position of the particle is on
+                     * support.
+                     *
+                     * @tparam T_size Number of elements within the resulting array. Only the first three elements will
+                     * be filled with valid values.
+                     * @param  x particle position relative to the assignment cell range [-0.5;0.5)
+                     * @return array with evaluated shape values
+                     */
+                    template<uint32_t T_size>
+                    HDINLINE auto shapeArray(float_X const x) const
+                    {
+                        static_assert(T_size >= 3);
+                        pmacc::memory::Array<float_X, T_size> shapeValues;
+                        // grid points [-1;1]
+                        shapeValues[0] = ff_2nd_radius(math::abs(-1._X - x));
+                        // note: math::abs(0 - x) == math::abs(x)
+                        shapeValues[1] = ff_1st_radius(math::abs(x));
+                        // equal to ff_2nd_radius(1._X - x); but less compute intensive
+                        shapeValues[2] = 1.0_X - (shapeValues[0] + shapeValues[1]);
+                        return shapeValues;
+                    }
                 };
 
             } // namespace detail
@@ -76,7 +98,12 @@ namespace picongpu
 
                 struct ChargeAssignment : public detail::TSC
                 {
-                    HDINLINE float_X operator()(float_X const x)
+                    // lowest valid grid offsets
+                    static constexpr int begin = -1;
+                    // highest valid grid offsets
+                    static constexpr int end = 2;
+
+                    HDINLINE float_X operator()(float_X const x) const
                     {
                         /*       -
                          *       |  3/4 - x^2                  if |x|<1/2
@@ -100,14 +127,41 @@ namespace picongpu
 
                         return result;
                     }
+
+                    /** Creates an array with assignment values.
+                     *
+                     * @param pos particle position relative to the assignment cell range [-0.5;1.5)
+                     * @param isOutOfRange True if pos in range [-0.5;1.5)
+                     * @return Array with precomputed assignment values.
+                     */
+                    HDINLINE auto shapeArray(float_X const xx, bool const isOutOfRange) const
+                    {
+                        float_X x = isOutOfRange ? xx - 1.0_X : xx;
+
+                        auto shapeValues = detail::TSC::shapeArray<support + 1>(x);
+
+                        // Update value so that a particle can be out of range without using lmem/local memory on GPUs
+                        // because of dynamic indexing into an array located in registers.
+                        shapeValues[3] = isOutOfRange ? shapeValues[2] : 0.0_X;
+                        shapeValues[2] = isOutOfRange ? shapeValues[1] : shapeValues[2];
+                        shapeValues[1] = isOutOfRange ? shapeValues[0] : shapeValues[1];
+                        shapeValues[0] = isOutOfRange ? 0.0_X : shapeValues[0];
+
+                        return shapeValues;
+                    }
                 };
 
                 struct ChargeAssignmentOnSupport : public detail::TSC
                 {
+                    // lowest valid grid offsets
+                    static constexpr int begin = -1;
+                    // highest valid grid offsets
+                    static constexpr int end = 1;
+
                     /** form factor of this particle shape.
                      * @param x has to be within [-support/2, support/2]
                      */
-                    HDINLINE float_X operator()(float_X const x)
+                    HDINLINE float_X operator()(float_X const x) const
                     {
                         /*       -
                          *       |  3/4 - x^2                  if |x|<1/2
@@ -127,6 +181,18 @@ namespace picongpu
                             result = rad1;
 
                         return result;
+                    }
+
+                    /** Creates an array with assignment values.
+                     *
+                     * @param pos particle position relative to the assignment cell range [-0.5;0.5)
+                     * @param isOutOfRange must be false, input will be ignored because the particle shape is always on
+                     *                     support.
+                     * @return Array with precomputed assignment values.
+                     */
+                    HDINLINE auto shapeArray(float_X const x, [[maybe_unused]] bool const isOutOfRange) const
+                    {
+                        return detail::TSC::shapeArray<support>(x);
                     }
                 };
             };

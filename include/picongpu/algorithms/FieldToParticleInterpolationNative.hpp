@@ -23,6 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/ShiftCoordinateSystemNative.hpp"
+#include "picongpu/particles/shapes.hpp"
 
 #include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
@@ -51,6 +52,37 @@ namespace picongpu
         using LowerMargin = typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type;
         using UpperMargin = typename pmacc::math::CT::make_Int<simDim, upperMargin>::type;
 
+        /** Get particle assignment shape functors.
+         *
+         * @param pos Position of the particle relative to the located cell. The position must be shifted to the
+         *            assignment cell. The supported range of the position is defined by assignment function and
+         *            depends on the particle support.
+         * @return Three dimensional array with particle shape assignment functors.
+         */
+        HDINLINE auto getShapeArray(float3_X const& pos) const
+        {
+            pmacc::memory::Array<shapes::Jit<AssignmentFunction>, 3> result;
+            result[0] = shapes::Jit<AssignmentFunction>(pos.x());
+            result[1] = shapes::Jit<AssignmentFunction>(pos.y());
+            result[2] = shapes::Jit<AssignmentFunction>(pos.z());
+            return result;
+        };
+
+        /** Get particle assignment shape functors.
+         *
+         * @param pos Position of the particle relative to the located cell. The position must be shifted to the
+         *            assignment cell. The supported range of the position is defined by assignment function and
+         *            depends on the particle support.
+         * @return Two dimensional array with particle shape assignment functors.
+         */
+        HDINLINE auto getShapeArray(float2_X const& pos) const
+        {
+            pmacc::memory::Array<shapes::Jit<AssignmentFunction>, 2> result;
+            result[0] = shapes::Jit<AssignmentFunction>(pos.x());
+            result[1] = shapes::Jit<AssignmentFunction>(pos.y());
+            return result;
+        };
+
         template<class Cursor, class VecVector_>
         HDINLINE float3_X operator()(Cursor field, const floatD_X& particlePos, const VecVector_& fieldPos)
         {
@@ -64,28 +96,25 @@ namespace picongpu
                 = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(0));
             floatD_X pos_tmp(particlePos);
             ShiftCoordinateSystemNative<supp>()(field_x, pos_tmp, fieldPos.x());
-            float_X result_x
-                = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin>(
-                    field_x,
-                    pos_tmp);
+            float_X result_x = InterpolationMethod::template interpolate<-lowerMargin, upperMargin>(
+                field_x,
+                getShapeArray(pos_tmp));
 
             auto field_y
                 = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(1));
             pos_tmp = particlePos;
             ShiftCoordinateSystemNative<supp>()(field_y, pos_tmp, fieldPos.y());
-            float_X result_y
-                = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin>(
-                    field_y,
-                    pos_tmp);
+            float_X result_y = InterpolationMethod::template interpolate<-lowerMargin, upperMargin>(
+                field_y,
+                getShapeArray(pos_tmp));
 
             auto field_z
                 = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(2));
             pos_tmp = particlePos;
             ShiftCoordinateSystemNative<supp>()(field_z, pos_tmp, fieldPos.z());
-            float_X result_z
-                = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin>(
-                    field_z,
-                    pos_tmp);
+            float_X result_z = InterpolationMethod::template interpolate<-lowerMargin, upperMargin>(
+                field_z,
+                getShapeArray(pos_tmp));
 
             return float3_X(result_x, result_y, result_z);
         }
