@@ -15,6 +15,7 @@ sudo apt-get install -y \
 
 sudo wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
 sudo apt-key add 7fa2af80.pub
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
 echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" \
     | sudo tee /etc/apt/sources.list.d/cuda.list
 
