@@ -72,10 +72,12 @@ namespace picongpu
 
                 /** Create a functor
                  *
+                 * @param currentStep current time step index, note that it is fractional
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE UserFunctorIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HDINLINE UserFunctorIncidentE(float_X const currentStep, const float3_64 unitField)
+                    : m_unitField(unitField)
                 {
                 }
 
@@ -83,10 +85,9 @@ namespace picongpu
                  *
                  * @param totalCellIdx cell index in the total domain (including all moving window slides),
                  *        note that it is fractional
-                 * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
@@ -103,10 +104,12 @@ namespace picongpu
 
                 /** Create a functor
                  *
+                 * @param currentStep current time step index, note that it is fractional
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE UserFunctorIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                HDINLINE UserFunctorIncidentB(float_X const currentStep, const float3_64 unitField)
+                    : m_unitField(unitField)
                 {
                 }
 
@@ -114,10 +117,9 @@ namespace picongpu
                  *
                  * @param totalCellIdx cell index in the total domain (including all moving window slides),
                  *        note that it is fractional
-                 * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
