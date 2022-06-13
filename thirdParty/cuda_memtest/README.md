@@ -59,17 +59,31 @@ DEALINGS WITH THE SOFTWARE.
 
 ## Compile and Run
 
-### Compile
+### Compile for CUDA
 
 Inside the source directory, run:
 ```bash
 mkdir build
 cd build
-cmake ..
+# build for NVIDIA architecture sm_35
+cmake -DCMAKE_CUDA_ARCHITECTURES=35 .. 
 make
 ```
 
-Note: In CMake, `..` is the path to the source directory.
+### Compile for HIP
+
+Inside the source directory, run:
+```bash
+mkdir build
+cd build
+# build for NVIDIA architecture MI2XX
+cmake -DCUDA_MEMTEST_BACKEND=hip -DGPU_TARGETS=gfx90a ..
+make
+```
+
+Note: 
+  - In CMake, `..` is the path to the source directory.
+  - You can find the architecture for your NVIDIA GPU on [this site](https://developer.nvidia.com/cuda-gpus).
 
 We also provide the package `cuda-memtest` in the [Spack package manager](https://spack.io) .
 
@@ -120,14 +134,11 @@ Consider this script as a source for inspiration, or so.
 
 ### Known Issues
 
-* If your machine is cuda 2.2, killing the program while it is running test 10 (the memory stress test) could result 
-  in your GPUs in bad state. This is a bug from the nvidia driver. A detailed description can be found in 
-  http://forums.nvidia.com/index.php?showtopic=97379. We have filed a bug report to nvidia.
-  Rebooting or reloading the nvidia driver will put the GPUs back to clean state.
+* Even if you compile with AMD HIP the tool binary will be named `cuda_memtest`. 
 
-Note: You are not using CUDA 2.2 anymore, are you? ;-)
+* If you run on AMD GPUs via HIP the tool will mention everywhere CUDA instead of HIP.
 
-* We are not maintaining the OpenCL version of this code base.
+* We are **not** maintaining the OpenCL version of this code base.
   Pull requests restoring and updating the OpenCL capabilities are welcome.
 
 ## Test Descriptions

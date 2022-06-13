@@ -214,23 +214,28 @@ endif(PARAM_OVERWRITES)
 option(CUDAMEMTEST_ENABLE "Build cuda_memtest and the helper mpiInfo \
                           (allow GPU health test before running PIConGPU)" ON)
 
-if((NOT ALPAKA_ACC_GPU_CUDA_ENABLE) OR ALPAKA_CUDA_COMPILER MATCHES "clang")
+if( NOT (alpaka_ACC_GPU_CUDA_ENABLE OR alpaka_ACC_GPU_HIP_ENABLE) OR alpaka_CUDA_COMPILER MATCHES "clang")
     # cuda_memtest is not compiling with host accelerator of alpaka or clang
     set(CUDAMEMTEST_ENABLE OFF CACHE BOOL "Build cuda_memtest and the helper mpiInfo \
                            (allow GPU health test before running PIConGPU)" FORCE)
-    message(STATUS "Disable 'cuda_memtest' build: not supported by clang or non CUDA alpaka backends")
+    message(STATUS "Disable 'cuda_memtest' build: not supported by clang or non CUDA/HIP alpaka backends")
 endif()
 
 if(CUDAMEMTEST_ENABLE)
-    # Enabling CUDA solves a bug in mpiInfo
-    # Error message: No known features for CUDA compiler "" version .
-    ENABLE_LANGUAGE(CUDA)
+    if(alpaka_ACC_GPU_CUDA_ENABLE)
+        # Enabling CUDA solves a bug in mpiInfo
+        # Error message: No known features for CUDA compiler "" version .
+        ENABLE_LANGUAGE(CUDA)
+    endif()
     set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
     find_path(CUDA_MEMTEST_DIR
             NAMES cuda_memtest.h
             PATHS "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/cuda_memtest"
             DOC "path to cuda_memtest"
     )
+    if(alpaka_ACC_GPU_HIP_ENABLE)
+        set(CUDA_MEMTEST_BACKEND hip CACHE STRING "Select the backend API used for the test." FORCE)
+    endif()
     add_subdirectory(${CUDA_MEMTEST_DIR}
                      "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 

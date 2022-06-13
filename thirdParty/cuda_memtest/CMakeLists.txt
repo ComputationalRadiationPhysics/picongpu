@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.16.0)
 # Project
 ################################################################################
 
-project(CUDA_memtest LANGUAGES CXX CUDA)
+project(CUDA_memtest LANGUAGES CXX)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
@@ -18,6 +18,8 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 # own modules for find_packages
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
+set(CUDA_MEMTEST_BACKEND "cuda" CACHE STRING "Select the backend API used for the test.")
+set_property(CACHE CUDA_MEMTEST_BACKEND PROPERTY STRINGS "cuda;hip")
 
 ################################################################################
 # CMake policies
@@ -31,31 +33,53 @@ if(POLICY CMP0074)
 endif()
 
 
-################################################################################
-# Find CUDA
-################################################################################
+if(CUDA_MEMTEST_BACKEND STREQUAL "cuda")
+    ################################################################################
+    # Find CUDA
+    ################################################################################
 
-if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
-    if(CUDA_SHOW_CODELINES)
-        target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--source-in-ptx -lineinfo>)
-        set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
-    endif(CUDA_SHOW_CODELINES)
+    enable_language(CUDA)
+    # cuda toolkit contains CUDA::nvml
+    find_package(CUDAToolkit)
 
-    if(CUDA_SHOW_REGISTER)
-        target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcuda-ptxas=-v>)
+    if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
+        if(CUDA_SHOW_CODELINES)
+            target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--source-in-ptx -lineinfo>)
+            set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
+        endif(CUDA_SHOW_CODELINES)
+
+        if(CUDA_SHOW_REGISTER)
+            target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcuda-ptxas=-v>)
+        endif()
+
+        if(CUDA_KEEP_FILES)
+            target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--keep>)
+        endif()
     endif()
 
-    if(CUDA_KEEP_FILES)
-        target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--keep>)
+    ################################################################################
+    # Find NVML
+    ################################################################################
+
+    set(GPU_DEPLOYMENT_KIT_ROOT_DIR "$ENV{GDK_ROOT}")
+    find_package(NVML)
+else()
+    ################################################################################
+    # Find HIP
+    ################################################################################
+    # supported HIP version range
+    set(CUDA_MEMTEST_HIP_MIN_VER 4.0)
+    set(CUDA_MEMTEST_HIP_MAX_VER 5.0)
+    find_package(hip "${CUDA_MEMTEST_HIP_MAX_VER}")
+    if(NOT TARGET hip)
+        message(STATUS "Could not find HIP ${CUDA_MEMTEST_HIP_MAX_VER}. Now searching for HIP ${CUDA_MEMTEST_HIP_MIN_VER}")
+        find_package(hip "${CUDA_MEMTEST_HIP_MIN_VER}")
+    endif()
+
+    if(NOT TARGET hip)
+        message(FATAL_ERROR "Optional alpaka dependency HIP could not be found!")
     endif()
 endif()
-
-################################################################################
-# Find NVML
-################################################################################
-
-set(GPU_DEPLOYMENT_KIT_ROOT_DIR "$ENV{GDK_ROOT}")
-find_package(NVML)
 
 
 ################################################################################
@@ -80,28 +104,40 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # Compile & Link cuda_memtest
 ################################################################################
 
-set_source_files_properties(tests.cu cuda_memtest.cu misc.cpp PROPERTIES LANGUAGE CUDA)
+if(CUDA_MEMTEST_BACKEND STREQUAL "cuda")
+    set_source_files_properties(tests.cpp cuda_memtest.cpp misc.cpp PROPERTIES LANGUAGE CUDA)
+endif()
 
 add_executable(cuda_memtest
-        tests.cu
+        tests.cpp
         misc.cpp
-        cuda_memtest.cu
+        cuda_memtest.cpp
         )
 
-target_link_libraries("cuda_memtest" INTERFACE CUDA::cudart)
-target_link_libraries(cuda_memtest INTERFACE CUDA::cuda_driver)
+if(CUDA_MEMTEST_BACKEND STREQUAL "cuda")
+    target_link_libraries(cuda_memtest INTERFACE CUDA::cudart)
+    target_link_libraries(cuda_memtest INTERFACE CUDA::cuda_driver)
 
+    if(TARGET CUDA::nvml)
+        message(STATUS "nvml found")
+        target_link_libraries(cuda_memtest PRIVATE CUDA::nvml)
+        target_compile_definitions(cuda_memtest PRIVATE "ENABLE_NVML=1")
+    else()
+        target_compile_definitions(cuda_memtest PRIVATE "ENABLE_NVML=0")
+    endif()
+
+    if(NOT CUDA_MEMTEST_RELEASE)
+        set(CMAKE_BUILD_TYPE Debug)
+        target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-g>)
+    endif()
+else()
+    target_link_libraries(cuda_memtest PRIVATE hip::host)
+    target_link_libraries(cuda_memtest PRIVATE hip::device)
+    target_compile_definitions(cuda_memtest PRIVATE "ENABLE_NVML=0")
+endif()
 
 if(NOT MSVC)
     target_link_libraries(cuda_memtest PRIVATE Threads::Threads)
-endif()
-
-
-if(NVML_FOUND)
-    target_link_libraries(cuda_memtest PRIVATE ${NVML_LIBRARY})
-    target_compile_definitions(cuda_memtest PRIVATE "ENABLE_NVML=1")
-else()
-    target_compile_definitions(cuda_memtest PRIVATE "ENABLE_NVML=0")
 endif()
 
 ################################################################################
@@ -111,9 +147,6 @@ endif()
 option(CUDA_MEMTEST_RELEASE "disable all runtime asserts" ON)
 if(CUDA_MEMTEST_RELEASE)
     target_compile_definitions(cuda_memtest PRIVATE -DNDEBUG)
-else(CUDA_MEMTEST_RELEASE)
-    set(CMAKE_BUILD_TYPE Debug)
-    target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-g>)
 endif(CUDA_MEMTEST_RELEASE)
 
 ################################################################################

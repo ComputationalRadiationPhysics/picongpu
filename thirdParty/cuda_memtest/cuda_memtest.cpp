@@ -38,6 +38,7 @@
  * DEALINGS WITH THE SOFTWARE.
  */
 
+#include "cuda_memtest.h"
 #include "misc.h"
 #include <pthread.h>
 #include <cstdio>
@@ -83,7 +84,7 @@ typedef struct arg_s{
 }arg_t;
 
 void
-display_device_info(struct cudaDeviceProp* prop)
+display_device_info(deviceProp_t* prop)
 {
 #if !defined(NVML_DEVICE_SERIAL_BUFFER_SIZE)
     char devSerialNum[] = "unknown (no NVML found)";
@@ -127,8 +128,8 @@ thread_func(void* _arg)
 
 
 
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, device); CUERR;
+    deviceProp_t prop;
+    CUERR(MEMTEST_API_PREFIX(GetDeviceProperties)(&prop, device));
 
     display_device_info(&prop);
 
@@ -143,14 +144,13 @@ thread_func(void* _arg)
     }
 
 
-    cudaSetDevice(device);
-    cudaDeviceSynchronize();
-    CUERR;
+    CUERR(MEMTEST_API_PREFIX(SetDevice)(device));
+    CUERR(MEMTEST_API_PREFIX(DeviceSynchronize)());
 
     PRINTF("Attached to device %d successfully.\n", device);
 
     size_t free, total;
-    cudaMemGetInfo(&free, &total);
+    CUERR(MEMTEST_API_PREFIX(MemGetInfo)(&free, &total));
 
     allocate_small_mem();
 
@@ -167,14 +167,19 @@ thread_func(void* _arg)
         if(useMappedMemory)
         {
             //create cuda mapped memory
-            cudaHostAlloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,cudaHostAllocMapped);
-            cudaHostGetDevicePointer(&ptr,mappedHostPtr,0);
+#if defined(__CUDACC__)
+            CUERR(cudaHostAlloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,cudaHostAllocMapped));
+            CUERR(cudaHostGetDevicePointer(&ptr,mappedHostPtr,0));
+#elif defined(__HIP__)
+            CUERR(hipHostMalloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,hipHostRegisterMapped));
+            CUERR(hipHostGetDevicePointer((void**)&ptr,mappedHostPtr,0));
+#endif
         }
         else
         {
-            cudaMalloc((void**)&ptr, tot_num_blocks* BLOCKSIZE);
+            CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&ptr, tot_num_blocks* BLOCKSIZE));
         }
-    }while(cudaGetLastError() != cudaSuccess);
+    }while(MEMTEST_API_PREFIX(GetLastError)() != MEMTEST_API_PREFIX(Success));
 
     PRINTF("Allocated %d MB\n", tot_num_blocks);
 
@@ -276,7 +281,7 @@ main(int argc, char** argv)
     PRINTF("Running cuda memtest, version %s\n", VERSION);
     int device = -1;
     int num_gpus;
-    cudaGetDeviceCount(&num_gpus);CUERR;
+    CUERR(MEMTEST_API_PREFIX(GetDeviceCount)(&num_gpus));
 
     if (num_gpus == 0){
 	fprintf(stderr,"ERROR: no GPUs found\n");

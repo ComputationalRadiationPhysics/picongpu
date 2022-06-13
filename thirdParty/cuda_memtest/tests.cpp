@@ -40,7 +40,7 @@
 
 #include <cstdio>
 #include "misc.h"
-#include <cuda.h>
+#include "cuda_memtest.h"
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -114,11 +114,11 @@ error_checking(const char* msg, unsigned int blockidx)
     unsigned long host_err_second_read[MAX_ERR_RECORD_COUNT];
     unsigned int i;
 
-    cudaMemcpy((void*)&err, (void*)err_count, sizeof(unsigned int), cudaMemcpyDeviceToHost);CUERR;
-    cudaMemcpy((void*)&host_err_addr[0], (void*)err_addr, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, cudaMemcpyDeviceToHost);CUERR;
-    cudaMemcpy((void*)&host_err_expect[0], (void*)err_expect, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, cudaMemcpyDeviceToHost);CUERR;
-    cudaMemcpy((void*)&host_err_current[0], (void*)err_current, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, cudaMemcpyDeviceToHost);CUERR;
-    cudaMemcpy((void*)&host_err_second_read[0], (void*)err_second_read, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, cudaMemcpyDeviceToHost);CUERR;
+    CUERR(MEMTEST_API_PREFIX(Memcpy)((void*)&err, (void*)err_count, sizeof(unsigned int), MEMTEST_API_PREFIX(MemcpyDeviceToHost)));
+    CUERR(MEMTEST_API_PREFIX(Memcpy)((void*)&host_err_addr[0], (void*)err_addr, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, MEMTEST_API_PREFIX(MemcpyDeviceToHost)));
+    CUERR(MEMTEST_API_PREFIX(Memcpy)((void*)&host_err_expect[0], (void*)err_expect, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, MEMTEST_API_PREFIX(MemcpyDeviceToHost)));
+    CUERR(MEMTEST_API_PREFIX(Memcpy)((void*)&host_err_current[0], (void*)err_current, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, MEMTEST_API_PREFIX(MemcpyDeviceToHost)));
+    CUERR(MEMTEST_API_PREFIX(Memcpy)((void*)&host_err_second_read[0], (void*)err_second_read, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT, MEMTEST_API_PREFIX(MemcpyDeviceToHost)));
 
 #define ERR_MSG_LENGTH 4096
     char error_msg[ERR_MSG_LENGTH];
@@ -189,12 +189,12 @@ error_checking(const char* msg, unsigned int blockidx)
 		unreported_errors ++;
 	    }
 	}
-	cudaMemset(err_count, 0, sizeof(unsigned int));CUERR;
-	cudaMemset((void*)&err_addr[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
-	cudaMemset((void*)&err_expect[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
-	cudaMemset((void*)&err_current[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
+	CUERR(MEMTEST_API_PREFIX(Memset)(err_count, 0, sizeof(unsigned int)));
+	CUERR(MEMTEST_API_PREFIX(Memset)((void*)&err_addr[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
+	CUERR(MEMTEST_API_PREFIX(Memset)((void*)&err_expect[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
+	CUERR(MEMTEST_API_PREFIX(Memset)((void*)&err_current[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
 	if (exit_on_error){
-	    cudaDeviceReset();
+	    CUERR(MEMTEST_API_PREFIX(DeviceReset)());
 	    exit(ERR_BAD_STATE);
 	}
     }
@@ -312,7 +312,7 @@ move_inv_test(char* ptr, unsigned int tot_num_blocks, unsigned int p1, unsigned 
     for (i= 0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_move_inv_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_move_inv_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1));
 	SHOW_PROGRESS("move_inv_write", i, tot_num_blocks);
     }
 
@@ -320,7 +320,7 @@ move_inv_test(char* ptr, unsigned int tot_num_blocks, unsigned int p1, unsigned 
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_move_inv_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_move_inv_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1, p2, err_count, err_addr, err_expect, err_current, err_second_read));
 	err += error_checking("move_inv_readwrite",  i);
 	SHOW_PROGRESS("move_inv_readwrite", i, tot_num_blocks);
     }
@@ -328,7 +328,7 @@ move_inv_test(char* ptr, unsigned int tot_num_blocks, unsigned int p1, unsigned 
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_move_inv_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_move_inv_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p2, err_count, err_addr, err_expect, err_current, err_second_read));
 	err += error_checking("move_inv_read",  i);
 	SHOW_PROGRESS("move_inv_read", i, tot_num_blocks);
     }
@@ -407,12 +407,12 @@ test0(char* ptr, unsigned int tot_num_blocks)
 
 	//the first iteration
 	unsigned int pattern = 1;
-	kernel_test0_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern,  err_count, err_addr, err_expect, err_current, err_second_read); CUERR;
+    SYNC_CUERR_KERNELkernel_test0_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern,  err_count, err_addr, err_expect, err_current, err_second_read));
 	prev_pattern =pattern;
 
 	for (j =1; j < 32; j++){
 	    pattern = 1 << j;
-	    kernel_test0_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, prev_pattern, err_count, err_addr, err_expect, err_current, err_second_read); CUERR;
+        SYNC_CUERR_KERNELkernel_test0_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, prev_pattern, err_count, err_addr, err_expect, err_current, err_second_read));
 	    prev_pattern = pattern;
 	}
 
@@ -587,22 +587,22 @@ test0(char* ptr, unsigned int tot_num_blocks)
 
 
     //test global address
-    kernel_test0_global_write<<<1, 1>>>(ptr, end_ptr); SYNC_CUERR;
-    kernel_test0_global_read<<<1, 1>>>(ptr, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+    SYNC_CUERR_KERNEL(kernel_test0_global_write<<<1, 1>>>(ptr, end_ptr));
+    SYNC_CUERR_KERNEL(kernel_test0_global_read<<<1, 1>>>(ptr, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read));
     error_checking("test0 on global address",  0);
 
     for(unsigned int ite = 0;ite < num_iterations; ite++){
 	for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	    dim3 grid;
 	    grid.x= GRIDSIZE;
-	    kernel_test0_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr); SYNC_CUERR;
+	    SYNC_CUERR_KERNEL(kernel_test0_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr));
 	    SHOW_PROGRESS("test0 on writing", i, tot_num_blocks);
 	}
 
 	for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	    dim3 grid;
 	    grid.x= GRIDSIZE;
-	    kernel_test0_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	    SYNC_CUERR_KERNEL(kernel_test0_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read));
 	    error_checking(__FUNCTION__,  i);
 	    SHOW_PROGRESS("test0 on reading", i, tot_num_blocks);
 	}
@@ -672,7 +672,7 @@ test1(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test1_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test1_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count));
 	SHOW_PROGRESS("test1 on writing", i, tot_num_blocks);
 
     }
@@ -680,7 +680,7 @@ test1(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test1_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+    SYNC_CUERR_KERNEL(kernel_test1_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read));
 	error_checking("test1 on reading",  i);
 	SHOW_PROGRESS("test1 on reading", i, tot_num_blocks);
 
@@ -900,7 +900,7 @@ test5(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test5_init<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test5_init<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr));
 	SHOW_PROGRESS("test5[init]", i, tot_num_blocks);
     }
 
@@ -908,7 +908,7 @@ test5(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test5_move<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test5_move<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr));
 	SHOW_PROGRESS("test5[move]", i, tot_num_blocks);
     }
 
@@ -916,7 +916,7 @@ test5(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test5_check<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test5_check<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read));
 	error_checking("test5[check]",  i);
 	SHOW_PROGRESS("test5[check]", i, tot_num_blocks);
     }
@@ -1050,14 +1050,14 @@ movinv32(char* ptr, unsigned int tot_num_blocks, unsigned int pattern,
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_movinv32_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_movinv32_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset));
 	SHOW_PROGRESS("test6[moving inversion 32 write]", i, tot_num_blocks);
     }
 
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_movinv32_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_movinv32_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset, err_count, err_addr, err_expect, err_current, err_second_read));
 	error_checking("test6[moving inversion 32 readwrite]",  i);
 	SHOW_PROGRESS("test6[moving inversion 32 readwrite]", i, tot_num_blocks);
     }
@@ -1065,7 +1065,7 @@ movinv32(char* ptr, unsigned int tot_num_blocks, unsigned int pattern,
    for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
        dim3 grid;
        grid.x= GRIDSIZE;
-       kernel_movinv32_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+       SYNC_CUERR_KERNEL(kernel_movinv32_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset, err_count, err_addr, err_expect, err_current, err_second_read));
        error_checking("test6[moving inversion 32 read]",  i);
        SHOW_PROGRESS("test6[moving inversion 32 read]", i, tot_num_blocks);
    }
@@ -1191,7 +1191,7 @@ test7(char* ptr, unsigned int tot_num_blocks)
 	host_buf[i] = get_random_num();
     }
 
-    cudaMemcpy(ptr, host_buf, BLOCKSIZE, cudaMemcpyHostToDevice);
+    CUERR(MEMTEST_API_PREFIX(Memcpy)(ptr, host_buf, BLOCKSIZE, MEMTEST_API_PREFIX(MemcpyHostToDevice)));
 
 
     char* end_ptr = ptr + tot_num_blocks* BLOCKSIZE;
@@ -1201,7 +1201,7 @@ test7(char* ptr, unsigned int tot_num_blocks)
     for (i=1;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test7_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test7_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count));
 	SHOW_PROGRESS("test7_write", i, tot_num_blocks);
     }
 
@@ -1209,7 +1209,7 @@ test7(char* ptr, unsigned int tot_num_blocks)
     for (i=1;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test7_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test7_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count, err_addr, err_expect, err_current, err_second_read));
 	err += error_checking("test7_readwrite",  i);
 	SHOW_PROGRESS("test7_readwrite", i, tot_num_blocks);
     }
@@ -1218,7 +1218,7 @@ test7(char* ptr, unsigned int tot_num_blocks)
     for (i=1;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_test7_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_test7_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count, err_addr, err_expect, err_current, err_second_read));
 	err += error_checking("test7_read",  i);
 	SHOW_PROGRESS("test7_read", i, tot_num_blocks);
     }
@@ -1304,14 +1304,14 @@ modtest(char* ptr, unsigned int tot_num_blocks, unsigned int offset, unsigned in
     for (i= 0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_modtest_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, offset, p1, p2); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_modtest_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, offset, p1, p2));
 	SHOW_PROGRESS("test8[mod test, write]", i, tot_num_blocks);
     }
 
     for (i= 0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_modtest_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, offset, p1, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_modtest_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, offset, p1, err_count, err_addr, err_expect, err_current, err_second_read));
 	err += error_checking("test8[mod test, read", i);
 	SHOW_PROGRESS("test8[mod test, read]", i, tot_num_blocks);
     }
@@ -1379,7 +1379,7 @@ test9(char* ptr, unsigned int tot_num_blocks)
     for (i= 0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_move_inv_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_move_inv_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1));
 	SHOW_PROGRESS("test9[bit fade test, write]", i, tot_num_blocks);
     }
 
@@ -1389,7 +1389,7 @@ test9(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_move_inv_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_move_inv_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1, p2, err_count, err_addr, err_expect, err_current, err_second_read));
 	error_checking("test9[bit fade test, readwrite]",  i);
 	SHOW_PROGRESS("test9[bit fade test, readwrite]", i, tot_num_blocks);
     }
@@ -1399,7 +1399,7 @@ test9(char* ptr, unsigned int tot_num_blocks)
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
-	kernel_move_inv_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(kernel_move_inv_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p2, err_count, err_addr, err_expect, err_current, err_second_read));
 	error_checking("test9[bit fade test, read]",  i);
 	SHOW_PROGRESS("test9[bit fade test, read]", i, tot_num_blocks);
     }
@@ -1476,11 +1476,11 @@ __global__ void test10_kernel_readwrite(char* ptr, int memsize, TYPE p1, TYPE p2
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
 #define checkCudaErrors(err)  __checkCudaErrors (err, __FILE__, __LINE__)
 
-inline void __checkCudaErrors(cudaError err, const char *file, const int line )
+inline void __checkCudaErrors(apiError_t err, const char *file, const int line )
 {
-    if(cudaSuccess != err)
+    if(MEMTEST_API_PREFIX(Success) != err)
     {
-        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",file, line, (int)err, cudaGetErrorString( err ) );
+        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",file, line, (int)err, MEMTEST_API_PREFIX(GetErrorString)( err ) );
         exit(-1);
     }
 }
@@ -1497,37 +1497,37 @@ void test10(char* ptr, unsigned int tot_num_blocks)
 	p1 = get_random_num_long();
     }
     TYPE p2 = ~p1;
-    cudaStream_t stream;
-    cudaEvent_t start, stop;
-    checkCudaErrors(cudaStreamCreate(&stream));
-    checkCudaErrors(cudaEventCreate(&start));
-    checkCudaErrors(cudaEventCreate(&stop));
+    MEMTEST_API_PREFIX(Stream_t) stream;
+    MEMTEST_API_PREFIX(Event_t) start, stop;
+    checkCudaErrors(MEMTEST_API_PREFIX(StreamCreate)(&stream));
+    checkCudaErrors(MEMTEST_API_PREFIX(EventCreate)(&start));
+    checkCudaErrors(MEMTEST_API_PREFIX(EventCreate)(&stop));
 
     int n = num_iterations;
     float elapsedtime;
     dim3 gridDim(STRESS_GRIDSIZE);
     dim3 blockDim(STRESS_BLOCKSIZE);
-    checkCudaErrors(cudaEventRecord(start, stream));
+    checkCudaErrors(MEMTEST_API_PREFIX(EventRecord)(start, stream));
 
     PRINTF("Test10 with pattern=0x%lx\n", p1);
-    test10_kernel_write<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1); SYNC_CUERR;
+    SYNC_CUERR_KERNEL(test10_kernel_write<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1));
     for(int i =0;i < n ;i ++){
-	test10_kernel_readwrite<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1, p2,
-								  err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
+	SYNC_CUERR_KERNEL(test10_kernel_readwrite<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1, p2,
+								  err_count, err_addr, err_expect, err_current, err_second_read));
 	p1 = ~p1;
 	p2 = ~p2;
 
     }
-    cudaEventRecord(stop, stream);
-    cudaEventSynchronize(stop);
+    CUERR(MEMTEST_API_PREFIX(EventRecord)(stop, stream));
+    CUERR(MEMTEST_API_PREFIX(EventSynchronize)(stop));
     error_checking("test10[Memory stress test]",  0);
-    cudaEventElapsedTime(&elapsedtime, start, stop);
+    CUERR(MEMTEST_API_PREFIX(EventElapsedTime)(&elapsedtime, start, stop));
     DEBUG_PRINTF("test10: elapsedtime=%f, bandwidth=%f GB/s\n", elapsedtime, (2*n+1)*tot_num_blocks/elapsedtime);
 
-   cudaEventDestroy(start);
-   cudaEventDestroy(stop);
+   CUERR(MEMTEST_API_PREFIX(EventDestroy)(start));
+   CUERR(MEMTEST_API_PREFIX(EventDestroy)(stop));
 
-   cudaStreamDestroy(stream);
+   CUERR(MEMTEST_API_PREFIX(StreamDestroy)(stream));
 
 #if 0
     TYPE* host_buf = (TYPE*)malloc(tot_num_blocks*BLOCKSIZE);
@@ -1536,7 +1536,7 @@ void test10(char* ptr, unsigned int tot_num_blocks)
 	exit(ERR_GENERAL);
     }
     memset(host_buf, 0, tot_num_blocks* BLOCKSIZE);
-    cudaMemcpy(host_buf, ptr, tot_num_blocks*BLOCKSIZE, cudaMemcpyDeviceToHost);
+    CUERR(MEMTEST_API_PREFIX(Memcpy)(host_buf, ptr, tot_num_blocks*BLOCKSIZE, MEMTEST_API_PREFIX(MemcpyDeviceToHost)));
     for(unsigned long i=0;i < (tot_num_blocks*BLOCKSIZE)/sizeof(TYPE) ;i ++){
 	if (host_buf[i] != p1){
 	    PRINTF("ERROR: data not match for i=%d, expecting 0x%x, current value=0x%x\n", i, p1, host_buf[i]);
@@ -1572,20 +1572,20 @@ cuda_memtest_t cuda_memtests[]={
 void
 allocate_small_mem(void)
 {
-    cudaMalloc((void**)&err_count, sizeof(unsigned int)); CUERR;
-    cudaMemset(err_count, 0, sizeof(unsigned int)); CUERR;
+    CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&err_count, sizeof(unsigned int)));
+    CUERR(MEMTEST_API_PREFIX(Memset)(err_count, 0, sizeof(unsigned int)));
 
-    cudaMalloc((void**)&err_addr, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
-    cudaMemset(err_addr, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);
+    CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&err_addr, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
+    CUERR(MEMTEST_API_PREFIX(Memset)(err_addr, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
 
-    cudaMalloc((void**)&err_expect, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
-    cudaMemset(err_expect, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);
+    CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&err_expect, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
+    CUERR(MEMTEST_API_PREFIX(Memset)(err_expect, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
 
-    cudaMalloc((void**)&err_current, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
-    cudaMemset(err_current, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);
+    CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&err_current, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
+    CUERR(MEMTEST_API_PREFIX(Memset)(err_current, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
 
-    cudaMalloc((void**)&err_second_read, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
-    cudaMemset(err_second_read, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);
+    CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&err_second_read, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
+    CUERR(MEMTEST_API_PREFIX(Memset)(err_second_read, 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT));
 }
 
 void
