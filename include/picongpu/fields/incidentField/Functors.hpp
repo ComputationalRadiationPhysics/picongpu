@@ -209,7 +209,7 @@ namespace picongpu
                          * Note that it's generally not the first point of entry, as that is one of vertices.
                          */
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
-                        auto const totalDomainCells = subGrid.getTotalDomain().size;
+                        auto const globalDomainCells = subGrid.getGlobalDomain().size;
                         auto const direction = getDirection().shrink<simDim>();
                         auto const focus = float3_X(
                                                Unitless::FOCUS_POSITION_X,
@@ -224,12 +224,14 @@ namespace picongpu
                             {
                                 // Take into account 0.75 cells inwards shift of Huygens surface
                                 auto const minPosition
-                                    = (static_cast<float_X>(OFFSET[axis][0]) + 0.75_X) * cellSize[axis];
+                                    = (static_cast<float_X>(POSITION[axis][0]) + 0.75_X) * cellSize[axis];
                                 firstIntersectionP
                                     = std::min(firstIntersectionP, (minPosition - focus[axis]) / direction[axis]);
+                                auto const maxPositionIdx = (POSITION[axis][1] > 0)
+                                    ? POSITION[axis][1]
+                                    : globalDomainCells[axis] + POSITION[axis][1];
                                 auto const maxPosition
-                                    = (static_cast<float_X>(totalDomainCells[axis] - OFFSET[axis][1]) - 0.75_X)
-                                    * cellSize[axis];
+                                    = (static_cast<float_X>(maxPositionIdx) - 0.75_X) * cellSize[axis];
                                 firstIntersectionP
                                     = std::min(firstIntersectionP, (maxPosition - focus[axis]) / direction[axis]);
                             }
