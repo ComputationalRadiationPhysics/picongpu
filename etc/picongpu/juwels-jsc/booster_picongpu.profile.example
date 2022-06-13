@@ -69,6 +69,7 @@ export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
 export PATH=$ADIOS2_ROOT/bin:$PATH
 export PATH=$OPENPMD_ROOT/bin:$PATH
 
+export PYTHONPATH=$ADIOS2_ROOT/lib/python3.9/site-packages/adios2:$PYTHONPATH
 export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.9/site-packages/openpmd_api:$PYTHONPATH
 # Environment #################################################################
 #
