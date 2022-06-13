@@ -185,7 +185,7 @@ namespace picongpu
                          */
                         HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                         {
-                            if(Unitless::Polarization == PolarizationType::Linear)
+                            if(Unitless::Polarisation == PolarisationType::Linear)
                                 return this->getLinearPolarizationVector() * getValue(totalCellIdx, 0.0_X);
                             else
                             {

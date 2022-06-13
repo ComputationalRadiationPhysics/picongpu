@@ -118,9 +118,9 @@ namespace picongpu
                          *
                          * @{
                          */
-                        static constexpr float_X POL_DIR_X = static_cast<float_X>(Params::POLARIZATION_DIRECTION_X);
-                        static constexpr float_X POL_DIR_Y = static_cast<float_X>(Params::POLARIZATION_DIRECTION_Y);
-                        static constexpr float_X POL_DIR_Z = static_cast<float_X>(Params::POLARIZATION_DIRECTION_Z);
+                        static constexpr float_X POL_DIR_X = static_cast<float_X>(Params::POLARISATION_DIRECTION_X);
+                        static constexpr float_X POL_DIR_Y = static_cast<float_X>(Params::POLARISATION_DIRECTION_Y);
+                        static constexpr float_X POL_DIR_Z = static_cast<float_X>(Params::POLARISATION_DIRECTION_Z);
                         /** @} */
 
                         // Check that polarization direction is normalized

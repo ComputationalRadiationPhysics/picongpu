@@ -38,7 +38,7 @@ namespace picongpu
                          *              decreases to its 1/e^2-th part,
                          *              at the focus position of the laser
                          *
-                         * AXIS_1 is directed according to POLARIZATION_ANGLE_SI parameter.
+                         * AXIS_1 is directed according to POLARISATION_DIRECTION parameters.
                          * AXIS_2 is a cross product of the propagation direction and AXIS_1.
                          *
                          * For 2d simulations W0_AXIS_2_SI must be defined but its value has no effect.

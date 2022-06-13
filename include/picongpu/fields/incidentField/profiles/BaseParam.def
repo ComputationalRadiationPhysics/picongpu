@@ -29,10 +29,12 @@ namespace picongpu
              *
              * It only defines the type between linear and circular.
              * The direction of linear polarization and one of the axes of circular polarization
-             * is defined by POLARIZATION_DIRECTION_{X|Y|Z} members of parameter structure.
+             * is defined by POLARISATION_DIRECTION_{X|Y|Z} members of parameter structure.
              * For circular case, the second axis is taken as cross(direction, first axis).
+             *
+             * Note: we use spelling 'Polarisation' for consistency with other lasers.
              */
-            enum class PolarizationType
+            enum class PolarisationType
             {
                 Linear,
                 Circular
@@ -120,8 +122,11 @@ namespace picongpu
                     static constexpr float_64 FOCUS_POSITION_Z_SI = 8.0e-5;
                     /** @} */
 
-                    //! E polarization type
-                    static constexpr PolarizationType Polarization = PolarizationType::Linear;
+                    /** E polarization type
+                     *
+                     * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                     */
+                    static constexpr PolarisationType Polarisation = PolarisationType::Linear;
 
                     /** Unit E polarization direction
                      *
@@ -134,13 +139,15 @@ namespace picongpu
                      * (Normalization is required on a user side as internally it is awkward to do with the
                      * static-constexpr style of using parameters.)
                      *
+                     * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                     *
                      * unit: none
                      *
                      * @{
                      */
-                    static constexpr float_64 POLARIZATION_DIRECTION_X = 1.0;
-                    static constexpr float_64 POLARIZATION_DIRECTION_Y = 0.0;
-                    static constexpr float_64 POLARIZATION_DIRECTION_Z = 0.0;
+                    static constexpr float_64 POLARISATION_DIRECTION_X = 1.0;
+                    static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
+                    static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                     /** @} */
                 };
             } // namespace profiles

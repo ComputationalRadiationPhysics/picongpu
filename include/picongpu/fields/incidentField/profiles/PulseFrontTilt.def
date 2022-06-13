@@ -38,7 +38,7 @@ namespace picongpu
                     {
                         /** The tilt angles from laser propagation direction
                          *
-                         * AXIS_1 is directed according to POLARIZATION_ANGLE_SI parameter.
+                         * AXIS_1 is directed according to POLARISATION_DIRECTION parameters.
                          * AXIS_2 is a cross product of the propagation direction and AXIS_1.
                          *
                          * Value 0 corresponds to no tilt.

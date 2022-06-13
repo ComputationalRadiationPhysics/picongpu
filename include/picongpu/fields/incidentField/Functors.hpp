@@ -327,7 +327,7 @@ namespace picongpu
                         if(time < 0.0_X)
                             return float3_X::create(0.0_X);
                         auto const transversal = functor.getTransversal(totalCellIdx);
-                        if(T_SeparableFunctor::Unitless::Polarization == PolarizationType::Linear)
+                        if(T_SeparableFunctor::Unitless::Polarisation == PolarisationType::Linear)
                             return functor.getLinearPolarizationVector()
                                 * (functor.getLongitudinal(time, 0.0_X) * transversal);
                         else
