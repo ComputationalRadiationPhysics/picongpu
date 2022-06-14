@@ -69,7 +69,7 @@ namespace picongpu
                  *
                  * This operator is called once per time step by the simulation main loop
                  */
-                void operator()(uint32_t const step) const
+                void runSolver(uint32_t const step) const
                 {
                     // create instance
                     printf("atomic physics stage for step %d \n", step);

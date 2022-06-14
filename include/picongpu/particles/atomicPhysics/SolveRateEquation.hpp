@@ -72,7 +72,7 @@ namespace picongpu
              *          if we change state:
              *              - change ion state
              *
-             * \return changes timeRemaining_SI
+             * @return changes timeRemaining_SI
              */
             template<
                 typename T_Acc,
@@ -230,7 +230,7 @@ namespace picongpu
              *      if we change state:
              *          - change ion state
              *
-             * \return changes timeRemaining_SI
+             * @return changes timeRemaining_SI
              */
             template<typename T_Acc, typename T_Ion, typename T_ConfigNumberDataType>
             DINLINE void rateEquationSolverSpontaneousTransition(
@@ -590,7 +590,7 @@ namespace picongpu
 
             /** actual rate equation solver
              *
-             * \return updates value of timeRemaining_SI
+             * @return updates value of timeRemaining_SI
              *
              * this method does one step of the rate solving algorithm, it is called
              * by atomicPhysics.kernel until time remaining of the current particle
@@ -603,7 +603,7 @@ namespace picongpu
              *      or spontaneous photon emission
              *  3.) call rate calculation function for process, new state and maybe choosen electron energy
              *
-             * @TODO: Refactor needed to reduce complexity, Brian Marre 2021
+             * @todo : Refactor needed to reduce complexity, Brian Marre 2021
              */
             template<
                 typename T_AtomicRate,

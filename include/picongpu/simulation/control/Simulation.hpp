@@ -565,7 +565,7 @@ namespace picongpu
             fieldBackground.subtract(currentStep);
             myFieldSolver->update_beforeCurrent(currentStep);
             __setTransactionEvent(commEvent);
-            atomicPhysics->operator()(currentStep);
+            atomicPhysics->runSolver(currentStep);
             CurrentBackground{*cellDescription}(currentStep);
             CurrentDeposition{}(currentStep);
             currentInterpolationAndAdditionToEMF(currentStep);

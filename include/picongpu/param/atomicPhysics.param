@@ -46,13 +46,17 @@ namespace picongpu
         constexpr uint8_t protonNumber = 18u;
         constexpr uint8_t numLevels = 10u;
 
-        /* pathes of file containing atomic input data,
-         * see documentation for creation[@todo], only one different ion possible for now[@todo]
+        /* files containing atomic input data,
+         *
+         * files are not shipped with PIConGPU, see documentation for creation @todo
+         * all paths are either relative to the simOutput folder, or must be absolute
+         *
+         * only one ion with atomicPhysics possible for now, will change soon @todo
          */
         // state data
-        const std::string stateDataFileName = "/home/marre55/ArgonLevels.txt";
+        const std::string stateDataFileName = "../ArgonLevels.txt";
         // transition data
-        const std::string transitionDataFileName = "/home/marre55/ArgonTransitions.txt";
+        const std::string transitionDataFileName = "../ArgonTransitions.txt";
 
         //! @todo dirty hack, should be specifiable per species independently
         //! for now 1: free electron interaction, 2: +photonic spontanous deexcitation

@@ -38,11 +38,17 @@ namespace picongpu
         template<uint8_t T_NumberStates>
         using LevelVector = particles::atomicPhysics::stateRepresentation::LevelVector<float_X, T_NumberStates>;
 
-        // pathes of file containing atomic input data, see documentation for creation, only one different ion possible for now
+        /* files containing atomic input data,
+         *
+         * files are not shipped with PIConGPU, see documentation for creation @todo
+         * all paths are either relative to the simOutput folder, or must be absolute
+         *
+         * only one ion with atomicPhysics possible for now, will change soon @todo
+         */
         // state data
-        const std::string stateDataFileName = "<path>/ArgonLevels.txt";
-        // transition data
-        const std::string transitionDataFileName = "<path>/ArgonTransitions.txt";
+        const std::string stateDataFileName = "../ArgonLevels.txt";
+        // transition data, 
+        const std::string transitionDataFileName = "../ArgonTransitions.txt";
 
         // datatype to be used for configNumber storage
         using configNumberDataType = uint64_t;
