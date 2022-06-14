@@ -23,9 +23,9 @@
 
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
-#include "picongpu/fields/incidentField/profiles/BaseFunctorE.hpp"
 
 #include <cstdint>
+
 
 namespace picongpu
 {
@@ -42,42 +42,32 @@ namespace picongpu
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct PolynomUnitless : public T_Params
+                    struct PolynomUnitless : public BaseTransversalGaussianParamUnitless<T_Params>
                     {
+                        //! User SI parameters
                         using Params = T_Params;
 
-                        static constexpr float_X WAVE_LENGTH
-                            = float_X(Params::WAVE_LENGTH_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X PULSE_LENGTH
-                            = float_X(Params::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (1 sigma)
-                        static constexpr float_X AMPLITUDE
-                            = float_X(Params::AMPLITUDE_SI / UNIT_EFIELD); // unit: Volt /meter
-                        static constexpr float_X W0_AXIS_1
-                            = float_X(Params::W0_AXIS_1_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X W0_AXIS_2
-                            = float_X(Params::W0_AXIS_2_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X INIT_TIME = float_X(
-                            Params::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (full initialization length)
-                        static constexpr float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
+                        //! Base unitless parameters
+                        using Base = BaseTransversalGaussianParamUnitless<T_Params>;
+
+                        // unit: UNIT_TIME
+                        static constexpr float_X INIT_TIME = static_cast<float_X>(Params::PULSE_LENGTH_SI / UNIT_TIME);
                     };
 
                     /** Polynom incident E functor
                      *
                      * @tparam T_Params parameters
-                     * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                     * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from
-                     * the max boundary inwards)
                      */
-                    template<typename T_Params, uint32_t T_axis, int32_t T_direction>
+                    template<typename T_Params>
                     struct PolynomFunctorIncidentE
                         : public PolynomUnitless<T_Params>
-                        , public BaseFunctorE<T_axis, T_direction>
+                        , public incidentField::detail::BaseSeparableTransveralGaussianFunctorE<T_Params>
                     {
                         //! Unitless parameters type
                         using Unitless = PolynomUnitless<T_Params>;
 
                         //! Base functor type
-                        using Base = BaseFunctorE<T_axis, T_direction>;
+                        using Base = incidentField::detail::BaseSeparableTransveralGaussianFunctorE<T_Params>;
 
                         /** Create a functor on the host side for the given time step
                          *
@@ -86,11 +76,8 @@ namespace picongpu
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
                         HINLINE PolynomFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
-                            : Base(unitField)
-                            , elong(getLongitudinal(currentStep))
+                            : Base(currentStep, unitField)
                         {
-                            auto const& subGrid = Environment<simDim>::get().SubGrid();
-                            totalDomainCells = precisionCast<float_X>(subGrid.getTotalDomain().size);
                         }
 
                         /** Calculate incident field E value for the given position
@@ -100,42 +87,32 @@ namespace picongpu
                          */
                         HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                         {
-                            return elong * getTransversal(totalCellIdx);
+                            return Base::operator()(*this, totalCellIdx);
                         }
 
-                    private:
-                        //! Total domain size in cells
-                        floatD_X totalDomainCells;
-
-                        //! Precalulated time-dependent longitudinal value
-                        float3_X const elong;
-
-                        //! Get time-dependent longitudinal vector factor
-                        HDINLINE float3_X getLongitudinal(float_X const currentStep) const
+                        /** Get time-dependent longitudinal scalar factor for the given time
+                         *
+                         * Interface required by Base.
+                         * Gaussian transversal profile not implemented in this class, but provided by Base.
+                         *
+                         * @param time time moment to calculate the factor at
+                         * @param phaseShift additional phase shift to add on top of everything else,
+                         *                   in radian
+                         */
+                        HDINLINE float_X getLongitudinal(float_X const time, float_X const phaseShift) const
                         {
-                            auto result = float3_X::create(0.0_X);
-                            /* a symmetric pulse will be initialized at position z=0
+                            /* a symmetric pulse will be initialized at generation position
                              * the laser amplitude rises  for riseTime and falls for riseTime
                              * making the laser pulse 2*riseTime long
                              */
-                            float_64 const runTime = DELTA_T * currentStep;
                             const float_X riseTime = 0.5_X * Unitless::PULSE_LENGTH;
-                            const float_X tau = runTime / riseTime;
-                            const float_X omegaLaser = 2.0_X * PI * Unitless::f;
-                            auto const arg = omegaLaser * (runTime - riseTime) + Unitless::LASER_PHASE;
-                            if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2)
-                                result[Base::dir2] = math::sin(arg);
-                            else if(Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
-                                result[Base::dir1] = math::sin(arg);
-                            else if(Unitless::Polarisation == Unitless::CIRCULAR)
-                            {
-                                result[Base::dir2] = math::sin(arg) / math::sqrt(2.0_X);
-                                result[Base::dir1] = math::cos(arg) / math::sqrt(2.0_X);
-                            }
-                            auto const amplitude = static_cast<float_X>(Unitless::AMPLITUDE * polynomial(tau));
-                            return result * amplitude;
+                            const float_X tau = time / riseTime;
+                            auto const phase = Unitless::w * (time - riseTime) + Unitless::LASER_PHASE + phaseShift;
+                            auto const amplitude = Unitless::AMPLITUDE * polynomial(tau);
+                            return math::sin(phase) * amplitude;
                         }
 
+                    private:
                         //! Get polynomial value for unitless time variable tau in [0.0, 2.0]
                         static HDINLINE float_X polynomial(float_X const tau)
                         {
@@ -147,19 +124,6 @@ namespace picongpu
                                     * (4.0_X - 9.0_X * tau + 6.0_X * tau * tau);
                             return result;
                         }
-
-                        //! Get position-dependent transversal scalar factor
-                        HDINLINE float_X getTransversal(const floatD_X& totalCellIdx) const
-                        {
-                            floatD_X transversalPosition
-                                = (totalCellIdx - totalDomainCells * 0.5_X) * cellSize.shrink<simDim>();
-                            transversalPosition[Base::dir0] = 0.0_X;
-                            auto w0 = float3_X::create(1.0_X);
-                            w0[Base::dir1] = Unitless::W0_AXIS_1;
-                            w0[Base::dir2] = Unitless::W0_AXIS_2;
-                            float_X const r2 = pmacc::math::abs2(transversalPosition / w0.shrink<simDim>());
-                            return math::exp(-r2);
-                        }
                     };
                 } // namespace detail
             } // namespace profiles
@@ -169,14 +133,11 @@ namespace picongpu
                 /** Get type of incident field E functor for the polynom profile type
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentE<profiles::Polynom<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentE<profiles::Polynom<T_Params>>
                 {
-                    using type = profiles::detail::PolynomFunctorIncidentE<T_Params, T_axis, T_direction>;
+                    using type = profiles::detail::PolynomFunctorIncidentE<T_Params>;
                 };
 
                 /** Get type of incident field B functor for the polynom profile type
@@ -184,17 +145,12 @@ namespace picongpu
                  * Rely on SVEA to calculate value of B from E.
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentB<profiles::Polynom<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentB<profiles::Polynom<T_Params>>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::Polynom<T_Params>, T_axis, T_direction>::type,
-                        T_axis,
-                        T_direction>;
+                        typename GetFunctorIncidentE<profiles::Polynom<T_Params>>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

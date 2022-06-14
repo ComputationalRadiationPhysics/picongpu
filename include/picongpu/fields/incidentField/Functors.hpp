@@ -21,7 +21,14 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/incidentField/profiles/BaseParam.hpp"
+
+#include <algorithm>
 #include <cstdint>
+#include <limits>
+#include <stdexcept>
+#include <string>
+
 
 namespace picongpu
 {
@@ -86,19 +93,329 @@ namespace picongpu
             };
             namespace detail
             {
+                /** Base class for calculating incident E functors
+                 *
+                 * Defines internal coordinate system tied to laser focus position and direction.
+                 * Its axes are, in this order: propagation direction, polarization direction,
+                 * cross product of propagation direction and polarization direction.
+                 *
+                 * Provides conversion operations for cooridnate and time transforms to internal system.
+                 * Essentially, a client of this class can implement a laser in internal coordinate system and
+                 * use the base class functionality for all necessary transformations.
+                 *
+                 * Checks unit matching.
+                 *
+                 * @tparam T_BaseParam parameter structure matching profiles::BaseParam requirements
+                 */
+                template<typename T_BaseParam>
+                class BaseFunctorE
+                {
+                public:
+                    //! Unitless base parameters type
+                    using Unitless = profiles::detail::BaseParamUnitless<T_BaseParam>;
+
+                    /** Create a functor on the host side, check that unit matches the internal E unit
+                     *
+                     * @param currentStep current time step index, note that it is fractional
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  fieldE_internal = fieldE_SI / unitField
+                     */
+                    HINLINE BaseFunctorE(float_X const currentStep, float3_64 const unitField)
+                        : currentTimeOrigin(currentStep * DELTA_T)
+                        , origin(getOrigin())
+                    {
+                        checkUnit(unitField);
+                    }
+
+                    //! Get a normalized 3-dimensional direction vector
+                    HDINLINE static float3_X getDirection()
+                    {
+                        return getAxis0();
+                    }
+
+                    /** Get current time to calculate field at the given point
+                     *
+                     * It accounts for both current PIC iteration and location relative to origin.
+                     * Note that the result may be negative as well, and clients may want to set
+                     * field = 0 when the returned value is negative.
+                     *
+                     * @param totalCellIdx cell index in the total domain
+                     * @param phaseVelocity phase velocity along the propagation direction
+                     */
+                    HDINLINE float_X
+                    getCurrentTime(floatD_X const& totalCellIdx, float_X const phaseVelocity = SPEED_OF_LIGHT) const
+                    {
+                        auto const shiftFromOrigin = totalCellIdx * cellSize.shrink<simDim>() - origin;
+                        auto const distance = pmacc::math::dot(shiftFromOrigin, getDirection().shrink<simDim>());
+                        auto const timeDelay = distance / phaseVelocity;
+                        return currentTimeOrigin - timeDelay;
+                    }
+
+                    //! Get a unit vector with linear E polarization
+                    HDINLINE float3_X getLinearPolarizationVector() const
+                    {
+                        return getAxis1();
+                    }
+
+                    //! Get a first vector with circular E polarization, norm is 0.5
+                    HDINLINE float3_X getCircularPolarizationVector1() const
+                    {
+                        return getLinearPolarizationVector() / math::sqrt(2.0_X);
+                    }
+
+                    //! Get a second vector with circular E polarization, norm is 0.5
+                    HDINLINE float3_X getCircularPolarizationVector2() const
+                    {
+                        return pmacc::math::cross(getAxis0(), getCircularPolarizationVector1());
+                    }
+
+                    /** Transform the given cell index to coordinates (not cell index) in the internal system
+                     *
+                     * @param totalCellIdx cell index in the total domain
+                     */
+                    HDINLINE floatD_X getInternalCoordinates(floatD_X const& totalCellIdx) const
+                    {
+                        auto const shiftFromOrigin = totalCellIdx * cellSize.shrink<simDim>() - origin;
+                        floatD_X result;
+                        result[0] = pmacc::math::dot(shiftFromOrigin, getAxis0().shrink<simDim>());
+                        result[1] = pmacc::math::dot(shiftFromOrigin, getAxis1().shrink<simDim>());
+                        if constexpr(simDim == 3)
+                            result[2] = pmacc::math::dot(shiftFromOrigin, getAxis2().shrink<simDim>());
+                        return result;
+                    }
+
+                protected:
+                    /** Laser center at generation surface when projected along propagation direction
+                     *
+                     * That point serves as origin in internal coordinate system
+                     */
+                    floatD_X const origin;
+
+                    /** Current time for calculating the field at the origin
+                     *
+                     * Other points will have time shifts relative to it according to their position relative to the
+                     * origin and propagation direction.
+                     */
+                    float_X const currentTimeOrigin;
+
+                    //! Calculate origin position
+                    HINLINE static floatD_X getOrigin()
+                    {
+                        /* Find min value of variable p so that a line
+                         * line(p) = focusPosition + p * direction
+                         * intersects with the Huygens surface.
+                         * That intersection point is where the laser is centered when entering the volume.
+                         * Use that as origin of the internal coordinate system.
+                         * Note that it's generally not the first point of entry, as that is one of vertices.
+                         */
+                        auto const& subGrid = Environment<simDim>::get().SubGrid();
+                        auto const globalDomainCells = subGrid.getGlobalDomain().size;
+                        auto const direction = getDirection().shrink<simDim>();
+                        auto const focus = float3_X(
+                                               Unitless::FOCUS_POSITION_X,
+                                               Unitless::FOCUS_POSITION_Y,
+                                               Unitless::FOCUS_POSITION_Z)
+                                               .shrink<simDim>();
+                        auto firstIntersectionP = std::numeric_limits<float_X>::infinity();
+                        for(uint32_t axis = 0u; axis < simDim; ++axis)
+                        {
+                            // The expressions should generally work anyways, but to avoid potential 0/0
+                            if(std::abs(direction[axis]) > std::numeric_limits<float_X>::epsilon())
+                            {
+                                // Take into account 0.75 cells inwards shift of Huygens surface
+                                auto const minPosition
+                                    = (static_cast<float_X>(POSITION[axis][0]) + 0.75_X) * cellSize[axis];
+                                firstIntersectionP
+                                    = std::min(firstIntersectionP, (minPosition - focus[axis]) / direction[axis]);
+                                auto const maxPositionIdx = (POSITION[axis][1] > 0)
+                                    ? POSITION[axis][1]
+                                    : globalDomainCells[axis] + POSITION[axis][1];
+                                auto const maxPosition
+                                    = (static_cast<float_X>(maxPositionIdx) - 0.75_X) * cellSize[axis];
+                                firstIntersectionP
+                                    = std::min(firstIntersectionP, (maxPosition - focus[axis]) / direction[axis]);
+                            }
+                        }
+                        return focus + firstIntersectionP * direction;
+                    }
+
+                    /** Get unit axis vectors of internal coordinate system
+                     *
+                     * For simplicity of use and since they are for internal use only, these are always in 3d.
+                     *
+                     * @{
+                     */
+                    HDINLINE static constexpr float3_X getAxis0()
+                    {
+                        return float3_X(Unitless::DIR_X, Unitless::DIR_Y, Unitless::DIR_Z);
+                    }
+
+                    HDINLINE static constexpr float3_X getAxis1()
+                    {
+                        return float3_X(Unitless::POL_DIR_X, Unitless::POL_DIR_Y, Unitless::POL_DIR_Z);
+                    }
+
+                    HDINLINE static constexpr float3_X getAxis2()
+                    {
+                        // cross product of getAxis0() and getAxis1()
+                        return float3_X(
+                            Unitless::DIR_Y * Unitless::POL_DIR_Z - Unitless::DIR_Z * Unitless::POL_DIR_Y,
+                            Unitless::DIR_Z * Unitless::POL_DIR_X - Unitless::DIR_X * Unitless::POL_DIR_Z,
+                            Unitless::DIR_X * Unitless::POL_DIR_Y - Unitless::DIR_Y * Unitless::POL_DIR_X
+
+                        );
+                    }
+                    /** @} */
+
+                    //! Check that the input units are valid
+                    HINLINE static void checkUnit(float3_64 const unitField)
+                    {
+                        // Ensure that we always get unitField = (UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD) so that
+                        // we can always calculate in internal units and avoid conversions in child types.
+                        // We can afford it each time, as this is done on host before kernel
+                        for(uint32_t axis = 0; axis < 3; axis++)
+                        {
+                            constexpr double ulp = 1.0;
+                            constexpr double eps = std::numeric_limits<double>::epsilon();
+                            bool const isMatchingUnit = (std::fabs(unitField[axis] - UNIT_EFIELD) <= eps * ulp);
+                            if(!isMatchingUnit)
+                                throw std::runtime_error(
+                                    "Incident field BaseFunctorE created with wrong unit: expected "
+                                    + std::to_string(UNIT_EFIELD) + ", got " + std::to_string(unitField[axis]));
+                        }
+                    }
+                };
+
+                /** Base class for incident E functors of separable lasers
+                 *
+                 * In internal coordinates these lasers have form
+                 * f(time, position) = Longitudinal(time) * Transversal(position)
+                 * This class implements a standard workflow for calculating such lasers.
+                 *
+                 * @tparam T_BaseParam parameter structure matching profiles::BaseParam requirements
+                 */
+                template<typename T_BaseParam>
+                struct BaseSeparableFunctorE : public BaseFunctorE<T_BaseParam>
+                {
+                    //! Base functor
+                    using Base = BaseFunctorE<T_BaseParam>;
+
+                    /** Create a functor on the host side, check that unit matches the internal E unit
+                     *
+                     * @param currentStep current time step index, note that it is fractional
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  fieldE_internal = fieldE_SI / unitField
+                     */
+                    HINLINE BaseSeparableFunctorE(float_X const currentStep, float3_64 const unitField)
+                        : Base(currentStep, unitField)
+                    {
+                    }
+
+                    /** Calculate value of given functor representing a separable laser
+                     *
+                     * @tparam T_SeparableFunctor functor type, must match interface of Base and define methods
+                     *                            getLongitudinal(time, phaseShift), getTransversal(totalCellIdx)
+                     *
+                     * @param functor functor object
+                     * @param totalCellIdx cell index in the total domain
+                     */
+                    template<typename T_SeparableFunctor>
+                    HDINLINE float3_X operator()(T_SeparableFunctor const& functor, floatD_X const& totalCellIdx) const
+                    {
+                        auto const time = functor.getCurrentTime(totalCellIdx);
+                        // Cut off when the laser has not entered at this point yet to avoid confusion.
+                        if(time < 0.0_X)
+                            return float3_X::create(0.0_X);
+                        auto const transversal = functor.getTransversal(totalCellIdx);
+                        if(T_SeparableFunctor::Unitless::Polarisation == PolarisationType::Linear)
+                            return functor.getLinearPolarizationVector()
+                                * (functor.getLongitudinal(time, 0.0_X) * transversal);
+                        else
+                        {
+                            auto const phaseShift = pmacc::math::Pi<float_X>::halfValue;
+                            return functor.getCircularPolarizationVector1()
+                                * (functor.getLongitudinal(time, phaseShift) * transversal)
+                                + functor.getCircularPolarizationVector2()
+                                * (functor.getLongitudinal(time, 0.0_X) * transversal);
+                        }
+                    }
+                };
+
+                /** Base class for incident E functors of separable lasers with Gaussian transversal profile
+                 *
+                 * In internal coordinates these lasers have transversal profile in form
+                 * exp(-squared_transversal_distance)
+                 *
+                 * This base class provides such getTransversal() that also matches requirements of
+                 * BaseSeparableFunctorE.
+                 *
+                 * @tparam T_BaseTransversalGaussianParam parameter structure matching
+                 * profiles::T_BaseTransversalGaussianParam requirements
+                 */
+                template<typename T_BaseTransversalGaussianParam>
+                struct BaseSeparableTransveralGaussianFunctorE
+                    : public BaseSeparableFunctorE<T_BaseTransversalGaussianParam>
+                {
+                    //! Base class
+                    using Base = BaseSeparableFunctorE<T_BaseTransversalGaussianParam>;
+
+                    //! Unitless parameters type
+                    using Unitless
+                        = profiles::detail::BaseTransversalGaussianParamUnitless<T_BaseTransversalGaussianParam>;
+
+                    /** Create a functor on the host side, check that unit matches the internal E unit
+                     *
+                     * @param currentStep current time step index, note that it is fractional
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  fieldE_internal = fieldE_SI / unitField
+                     */
+                    HINLINE BaseSeparableTransveralGaussianFunctorE(
+                        float_X const currentStep,
+                        float3_64 const unitField)
+                        : Base(currentStep, unitField)
+                    {
+                    }
+
+                    /** Calculate value of given functor representing a separable laser with Gaussian transversal
+                     * profile
+                     *
+                     * @tparam T_SeparableFunctor functor type, must match interface of Base and define method
+                     *                            getLongitudinal(time, phaseShift)
+                     *
+                     * @param functor functor object
+                     * @param totalCellIdx cell index in the total domain
+                     */
+                    template<typename T_Functor>
+                    HDINLINE float3_X operator()(T_Functor const& functor, floatD_X const& totalCellIdx) const
+                    {
+                        return Base::operator()(functor, totalCellIdx);
+                    }
+
+                    /** Get transversal Gaussian factor for the given position
+                     *
+                     * Interface required by Base.
+                     *
+                     * @param totalCellIdx cell index in the total domain (including all moving window slides)
+                     */
+                    HDINLINE float_X getTransversal(floatD_X const& totalCellIdx) const
+                    {
+                        auto internalPosition = this->getInternalCoordinates(totalCellIdx);
+                        internalPosition[0] = 0.0_X;
+                        auto const w0 = float3_X(1.0_X, Unitless::W0_AXIS_1, Unitless::W0_AXIS_2).shrink<simDim>();
+                        auto const r2 = pmacc::math::abs2(internalPosition / w0);
+                        return math::exp(-r2);
+                    }
+                };
+
                 /** Helper functor to calculate values of B from values of E using slowly varying envelope
                  * approximation (SVEA) for the given axis and direction
                  *
                  * The functor follows FunctorIncidentFieldConcept and thus can be used as FunctorIncidentB.
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field, follows the interface of
-                 *                            FunctorIncidentFieldConcept (defined in Functors.hpp),
-                 *                            must have been applied for the same axis and direction
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
+                 *                            FunctorIncidentFieldConcept (defined in Functors.hpp)
                  */
-                template<typename T_FunctorIncidentE, uint32_t T_axis, int32_t T_direction>
+                template<typename T_FunctorIncidentE>
                 class ApproximateIncidentB : public T_FunctorIncidentE
                 {
                 public:
@@ -122,7 +439,7 @@ namespace picongpu
                     /** Calculate B value using SVEA
                      *
                      * The resulting value is calculated as B = cross(k, E) / c, where
-                     * k is pulse propagation direction vector defined by T_axis, T_direction
+                     * k is pulse propagation direction vector
                      * E is value returned by a base functor at the target location and time of resulting B
                      *
                      * @param totalCellIdx cell index in the total domain (including all moving window slides)
@@ -132,16 +449,7 @@ namespace picongpu
                     {
                         // Get corresponding E value, it is already in internal units
                         auto const eValue = Base::operator()(totalCellIdx);
-                        // To avoid making awkward type casts and calling cross product, we express it manually as
-                        // rotation and sign change
-                        constexpr float_X signAndNormalization = static_cast<float_X>(T_direction) / SPEED_OF_LIGHT;
-                        constexpr uint32_t dir0 = T_axis;
-                        constexpr uint32_t dir1 = (dir0 + 1) % 3;
-                        constexpr uint32_t dir2 = (dir0 + 2) % 3;
-                        auto bValue = float3_X::create(0.0_X);
-                        bValue[dir1] = -eValue[dir2] * signAndNormalization;
-                        bValue[dir2] = eValue[dir1] * signAndNormalization;
-                        return bValue;
+                        return pmacc::math::cross(Base::getDirection(), eValue) / SPEED_OF_LIGHT;
                     }
                 };
             } // namespace detail

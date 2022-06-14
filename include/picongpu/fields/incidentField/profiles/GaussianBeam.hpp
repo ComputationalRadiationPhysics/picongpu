@@ -24,7 +24,8 @@
 
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
-#include "picongpu/fields/incidentField/profiles/BaseFunctorE.hpp"
+
+#include <pmacc/algorithms/math/defines/pi.hpp>
 
 #include <cstdint>
 #include <limits>
@@ -42,24 +43,27 @@ namespace picongpu
                 {
                     /** Base class providing tilt value based on given parameters
                      *
-                     * General implementation sets tilt to 0 and does not require T_Params having tilt as member.
+                     * General implementation sets tilts to 0 and does not require T_Params having tilt as member.
                      *
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params, typename T_Sfinae = void>
                     struct TiltParam
                     {
-                        static constexpr float_X TILT_AXIS_2 = 0.0_X; // unit: radiant (in dimensions of pi)
+                        // unit: radian
+                        static constexpr float_X TILT_AXIS_1 = 0.0_X;
+                        // unit: radian
+                        static constexpr float_X TILT_AXIS_2 = 0.0_X;
                     };
 
-                    /** Helper type to check if T_Params has member TILT_AXIS_2_SI
+                    /** Helper type to check if T_Params has members TILT_AXIS_1_SI and TILT_AXIS_2_SI.
                      *
                      * Is void for those types, ill-formed otherwise.
                      *
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    using HasTilt = std::void_t<decltype(T_Params::TILT_AXIS_2_SI)>;
+                    using HasTilt = std::void_t<decltype(T_Params::TILT_AXIS_1_SI + T_Params::TILT_AXIS_2_SI)>;
 
                     /** Specialization for T_Params having tilt as member, then use it.
                      *
@@ -68,8 +72,12 @@ namespace picongpu
                     template<typename T_Params>
                     struct TiltParam<T_Params, HasTilt<T_Params>>
                     {
-                        static constexpr float_X TILT_AXIS_2 = static_cast<float_X>(
-                            T_Params::TILT_AXIS_2_SI * PI / 180.); // unit: radiant (in dimensions of pi)
+                        // unit: radian
+                        static constexpr float_X TILT_AXIS_1
+                            = static_cast<float_X>(T_Params::TILT_AXIS_1_SI * pmacc::math::Pi<float_X>::value / 180.);
+                        // unit: radian
+                        static constexpr float_X TILT_AXIS_2
+                            = static_cast<float_X>(T_Params::TILT_AXIS_2_SI * pmacc::math::Pi<float_X>::value / 180.);
                     };
 
                     /** Unitless gaussian beam parameters
@@ -81,49 +89,43 @@ namespace picongpu
                      */
                     template<typename T_Params>
                     struct GaussianBeamUnitless
-                        : public T_Params
+                        : public BaseParamUnitless<T_Params>
                         , public TiltParam<T_Params>
                     {
+                        //! User SI parameters
                         using Params = T_Params;
 
-                        static constexpr float_X WAVE_LENGTH
-                            = static_cast<float_X>(Params::WAVE_LENGTH_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X PULSE_LENGTH
-                            = static_cast<float_X>(Params::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (1 sigma)
-                        static constexpr float_X AMPLITUDE
-                            = static_cast<float_X>(Params::AMPLITUDE_SI / UNIT_EFIELD); // unit: Volt /meter
-                        static constexpr float_X W0 = float_X(Params::W0_SI / UNIT_LENGTH); // unit: meter
-                        // rayleigh length in propagation direction
-                        static constexpr float_X R = static_cast<float_X>(PI) * W0 * W0 / WAVE_LENGTH;
-                        static constexpr float_X FOCUS_POS
-                            = static_cast<float_X>(Params::FOCUS_POS_SI / UNIT_LENGTH); // unit: meter
-                        static constexpr float_X INIT_TIME = static_cast<float_X>(
-                            (Params::PULSE_INIT * Params::PULSE_LENGTH_SI)
-                            / UNIT_TIME); // unit: seconds (full initialization length)
+                        //! Base unitless parameters
+                        using Base = BaseParamUnitless<T_Params>;
 
-                        static constexpr float_X f = static_cast<float_X>(SPEED_OF_LIGHT / WAVE_LENGTH);
+                        // unit: UNIT_LENGTH
+                        static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
+
+                        // rayleigh length in propagation direction
+                        static constexpr float_X R = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
+
+                        // unit: UNIT_TIME
+                        static constexpr float_X INIT_TIME
+                            = static_cast<float_X>((Params::PULSE_INIT * Params::PULSE_LENGTH_SI) / UNIT_TIME);
                     };
 
                     /** Gaussian beam incident E functor
                      *
                      * The implementation is shared between a normal Gaussian beam and one with tilted front.
-                     * We always take tilt value from the unitless params and apply the tile (which can be 0).
+                     * We always take tilt value from the unitless params and apply the tilt (which can be 0).
                      *
                      * @tparam T_Params parameters
-                     * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                     * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from
-                     * the max boundary inwards)
                      */
-                    template<typename T_Params, uint32_t T_axis, int32_t T_direction>
+                    template<typename T_Params>
                     struct GaussianBeamFunctorIncidentE
                         : public GaussianBeamUnitless<T_Params>
-                        , public BaseFunctorE<T_axis, T_direction>
+                        , public incidentField::detail::BaseFunctorE<T_Params>
                     {
                         //! Unitless parameters type
                         using Unitless = GaussianBeamUnitless<T_Params>;
 
                         //! Base functor type
-                        using Base = BaseFunctorE<T_axis, T_direction>;
+                        using Base = incidentField::detail::BaseFunctorE<T_Params>;
 
                         /** Create a functor on the host side for the given time step
                          *
@@ -132,12 +134,8 @@ namespace picongpu
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
                         HINLINE GaussianBeamFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
-                            : Base(unitField)
-                            , runTime(DELTA_T * currentStep)
+                            : Base(currentStep, unitField)
                         {
-                            auto const& subGrid = Environment<simDim>::get().SubGrid();
-                            totalDomainCells = precisionCast<float_X>(subGrid.getTotalDomain().size);
-
                             // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not
                             // compile on laserTransversal(), which is on DEVICE.
                             auto etrans_norm = 0.0_X;
@@ -187,113 +185,74 @@ namespace picongpu
                          */
                         HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                         {
-                            // transform coordinate system to center of x-z plane of initialization
-                            floatD_X pos = (totalCellIdx - totalDomainCells * 0.5_X) * cellSize.shrink<simDim>();
-                            if(T_direction > 0)
-                                pos[Base::dir0] = totalCellIdx[Base::dir0] * cellSize[Base::dir0];
+                            if(Unitless::Polarisation == PolarisationType::Linear)
+                                return this->getLinearPolarizationVector() * getValue(totalCellIdx, 0.0_X);
                             else
-                                pos[Base::dir0]
-                                    = (totalDomainCells[Base::dir0] - totalCellIdx[Base::dir0]) * cellSize[Base::dir0];
-                            floatD_X planeNoNormal = floatD_X::create(1.0_X);
-                            planeNoNormal[Base::dir0] = 0.0_X;
+                            {
+                                auto const phaseShift = pmacc::math::Pi<float_X>::halfValue;
+                                return this->getCircularPolarizationVector1() * getValue(totalCellIdx, phaseShift)
+                                    + this->getCircularPolarizationVector2() * getValue(totalCellIdx, 0.0_X);
+                            }
+                        }
+
+                    private:
+                        /** Get value for the given position
+                         *
+                         * @param totalCellIdx cell index in the total domain (including all moving window slides)
+                         * @param phaseShift additional phase shift to add on top of everything else,
+                         *                   in radian
+                         */
+                        HDINLINE float_X getValue(floatD_X const& totalCellIdx, float_X const phaseShift) const
+                        {
+                            // transform to internal coordinate system
+                            floatD_X pos = this->getInternalCoordinates(totalCellIdx);
+                            auto const time = this->getCurrentTime(totalCellIdx);
+                            if(time < 0.0_X)
+                                return 0.0_X;
 
                             // calculate focus position relative to the current point in the propagation direction
-                            float_X const focusPos = Unitless::FOCUS_POS - pos[Base::dir0];
+                            auto const focusRelativeToOrigin = float3_X(
+                                                                   Unitless::FOCUS_POSITION_X,
+                                                                   Unitless::FOCUS_POSITION_Y,
+                                                                   Unitless::FOCUS_POSITION_Z)
+                                                                   .shrink<simDim>()
+                                - this->origin;
+                            float_X const focusPos = math::sqrt(pmacc::math::abs2(focusRelativeToOrigin)) - pos[0];
                             // beam waist at the generation plane so that at focus we will get W0
                             float_X const w = Unitless::W0
                                 * math::sqrt(1.0_X + (focusPos / Unitless::R) * (focusPos / Unitless::R));
 
-                            auto result = getEnvelope(w);
-                            // a symmetric pulse will be initialized at position z=0 for
+                            // a symmetric pulse will be initialized at generation plane for
                             // a time of PULSE_INIT * PULSE_LENGTH = INIT_TIME.
                             // we shift the complete pulse for the half of this time to start with
                             // the front of the laser pulse.
                             constexpr auto mue = 0.5_X * Unitless::INIT_TIME;
-                            auto const phase = 2.0_X * static_cast<float_X>(PI) * Unitless::f
-                                    * (runTime - mue - focusPos / SPEED_OF_LIGHT)
-                                + Unitless::LASER_PHASE;
+                            auto const phase = Unitless::w * (time - mue - focusPos / SPEED_OF_LIGHT)
+                                + Unitless::LASER_PHASE + phaseShift;
 
-                            // Apply tilt in Base::dir2
-                            auto const timeShift
-                                = phase / (2.0_X * float_X(PI) * float_X(Unitless::f)) + focusPos / SPEED_OF_LIGHT;
-                            auto const tilt = Unitless::TILT_AXIS_2;
-                            auto const shiftAxis2
-                                = SPEED_OF_LIGHT * math::tan(tilt) * timeShift / cellSize[Base::dir0];
-                            pos[Base::dir2] += shiftAxis2;
-                            float_X const transversalDistanceSquared = pmacc::math::abs2(pos * planeNoNormal);
-
-                            if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2
-                               || Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
+                            // Apply tilt if needed
+                            if constexpr(Unitless::TILT_AXIS_1 || Unitless::TILT_AXIS_2)
                             {
-                                result *= getValue(phase, focusPos, w, transversalDistanceSquared);
+                                auto const tiltTimeShift = phase / Unitless::w + focusPos / SPEED_OF_LIGHT;
+                                auto const tiltPositionShift = SPEED_OF_LIGHT * tiltTimeShift
+                                    / pmacc::math::dot(this->getDirection(), float3_X{cellSize});
+                                auto const tilt1 = Unitless::TILT_AXIS_1;
+                                pos[1] += math::tan(tilt1) * tiltPositionShift;
+                                if constexpr(simDim == 3)
+                                {
+                                    auto const tilt2 = Unitless::TILT_AXIS_2;
+                                    pos[2] += math::tan(tilt2) * tiltPositionShift;
+                                }
                             }
-                            else if(Unitless::Polarisation == Unitless::CIRCULAR)
-                            {
-                                result[Base::dir2] *= getValue(phase, focusPos, w, transversalDistanceSquared);
-                                result[Base::dir1]
-                                    *= getValue(phase + float_X(PI / 2.0), focusPos, w, transversalDistanceSquared);
-                            }
-                            return result;
-                        }
 
-                    private:
-                        //! Total domain size in cells
-                        floatD_X totalDomainCells;
+                            auto planeNoNormal = floatD_X::create(1.0_X);
+                            planeNoNormal[0] = 0.0_X;
+                            auto const transversalDistanceSquared = pmacc::math::abs2(pos * planeNoNormal);
 
-                        //! Current time
-                        float_X const runTime;
-
-                        /** Get vector field with waist-dependent envelope in components according to the polarization
-                         *
-                         * This function merely applies envelope and polarization, most calculations to produce a_m
-                         * Gaussian pulse happen elsewhere.
-                         *
-                         * @param w unitless beam waist
-                         */
-                        HDINLINE float3_X getEnvelope(float_X const w) const
-                        {
-                            auto envelope = Unitless::AMPLITUDE;
-                            if(simDim == DIM2)
-                                envelope *= math::sqrt(Unitless::W0 / w);
-                            else if(simDim == DIM3)
-                                envelope *= Unitless::W0 / w;
-
-                            auto result = float3_X::create(0.0_X);
-                            if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2)
-                            {
-                                result[Base::dir2] = envelope;
-                            }
-                            else if(Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
-                            {
-                                result[Base::dir1] = envelope;
-                            }
-                            else if(Unitless::Polarisation == Unitless::CIRCULAR)
-                            {
-                                result[Base::dir1] = envelope / math::sqrt(2.0_X);
-                                result[Base::dir2] = envelope / math::sqrt(2.0_X);
-                            }
-                            return result;
-                        }
-
-                        /** Get scalar multiplier to the envelope
-                         *
-                         * Does most calculations to produce a Gaussian pulse.
-                         *
-                         * @param phase phase value
-                         * @param focusPos distance to focus position in the propagation direction
-                         * @param w unitless beam waist
-                         * @param transversalDistanceSquared squared distance from beam center in the transversal plane
-                         */
-                        HDINLINE float_X getValue(
-                            float_X const phase,
-                            float_X const focusPos,
-                            float_X const w,
-                            float_X const transversalDistanceSquared) const
-                        {
                             // inverse radius of curvature of the beam's  wavefronts
-                            float_X const R_inv = -focusPos / (Unitless::R * Unitless::R + focusPos * focusPos);
+                            auto const R_inv = -focusPos / (Unitless::R * Unitless::R + focusPos * focusPos);
                             // the Gouy phase shift
-                            float_X const xi = math::atan(-focusPos / Unitless::R);
+                            auto const xi = math::atan(-focusPos / Unitless::R);
                             auto etrans = 0.0_X;
                             auto const r2OverW2 = transversalDistanceSquared / w / w;
                             auto const r = 0.5_X * transversalDistanceSquared * R_inv;
@@ -302,18 +261,25 @@ namespace picongpu
                                 etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre(m, 2.0_X * r2OverW2)
                                     * math::exp(-r2OverW2)
                                     * math::cos(
-                                              2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
-                                              - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r
+                                              pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * focusPos
+                                              - pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * r
                                               + (2._X * float_X(m) + 1._X) * xi + phase +
                                               typename Unitless::LAGUERREPHASES_t{}[m]);
                             }
-                            auto const exponent = (r - focusPos - phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
+                            auto const exponent
+                                = (r - focusPos
+                                   - phase / pmacc::math::Pi<float_X>::doubleValue * Unitless::WAVE_LENGTH)
                                 / (SPEED_OF_LIGHT * 2.0_X * Unitless::PULSE_LENGTH);
                             etrans *= math::exp(-exponent * exponent);
                             auto etrans_norm = 0.0_X;
                             for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
                                 etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
-                            return etrans / etrans_norm;
+                            auto envelope = Unitless::AMPLITUDE;
+                            if(simDim == DIM2)
+                                envelope *= math::sqrt(Unitless::W0 / w);
+                            else if(simDim == DIM3)
+                                envelope *= Unitless::W0 / w;
+                            return envelope * etrans / etrans_norm;
                         }
 
                         /** Simple iteration algorithm to implement Laguerre polynomials for GPUs.
@@ -352,14 +318,11 @@ namespace picongpu
                 /** Get type of incident field E functor for the gaussian beam profile type
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentE<profiles::GaussianBeam<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentE<profiles::GaussianBeam<T_Params>>
                 {
-                    using type = profiles::detail::GaussianBeamFunctorIncidentE<T_Params, T_axis, T_direction>;
+                    using type = profiles::detail::GaussianBeamFunctorIncidentE<T_Params>;
                 };
 
                 /** Get type of incident field B functor for the gaussiam beam profile type
@@ -367,17 +330,12 @@ namespace picongpu
                  * Rely on SVEA to calculate value of B from E.
                  *
                  * @tparam T_Params parameters
-                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
-                 * max boundary inwards)
                  */
-                template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentB<profiles::GaussianBeam<T_Params>, T_axis, T_direction>
+                template<typename T_Params>
+                struct GetFunctorIncidentB<profiles::GaussianBeam<T_Params>>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::GaussianBeam<T_Params>, T_axis, T_direction>::type,
-                        T_axis,
-                        T_direction>;
+                        typename GetFunctorIncidentE<profiles::GaussianBeam<T_Params>>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

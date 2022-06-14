@@ -33,6 +33,11 @@
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
  *
+ * All profiles but `Free<>` and `None` are parametrized with a profile-specific structure.
+ * Their interfaces are defined in the corresponding `.def` files inside directory
+ * picongpu/fields/incidentField/profiles/. Note that all these parameter structures inherit common base structures
+ * from `BaseParam.def`. Thus, a user-provided structure must also define all members according to the base struct.
+ *
  * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
  * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
  * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
@@ -40,10 +45,10 @@
  * positioning of the generating surface relative to total domain. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free<UserFunctorIncidentE>;
+ * using XMin = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
  * using XMax = profiles::None;
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
- * using YMax = profiles::Free<AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB>;
+ * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
  * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
  *
@@ -190,7 +195,40 @@ namespace picongpu
                 }
             };
 
-            /** Functor to set values of incident E field with given delay in time steps
+            /** Functor to set values of incident B field
+             */
+            class FunctorXMinIncidentB : public FunctorBase
+            {
+            public:
+                /* We use this to calculate your SI input back to our unit system */
+                PMACC_ALIGN(m_unitField, const float3_64);
+
+                /** Create a functor on the host side for the given time step
+                 *
+                 * @param currentStep current time step index, note that it is fractional
+                 * @param unitField conversion factor from SI to internal units,
+                 *                  field_internal = field_SI / unitField
+                 */
+                HINLINE FunctorXMinIncidentB(float_X const currentStep, float3_64 const unitField)
+                    : FunctorBase(currentStep)
+                    , m_unitField(unitField)
+                {
+                }
+
+                /** Calculate incident field B_inc(r, t) for a source
+                 *
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
+                 */
+                HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
+                {
+                    auto const valueSI = getXMinSourceValueSI(totalCellIdx);
+                    auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
+                    return fieldSI / precisionCast<float_X>(m_unitField);
+                }
+            };
+
+            /** Functor to set values of incident E field
              */
             template<int32_t T_delaySteps>
             class FunctorYMaxIncidentE : public FunctorBase
@@ -258,12 +296,8 @@ namespace picongpu
                 }
             };
 
-            /** Source of incident E and B fields
-             *
-             * We use default type for functor B that will calculate it from E values using SVEA according to the
-             * boundary the profile is applied to.
-             */
-            using MyXMinProfile = profiles::Free<FunctorXMinIncidentE>;
+            //! Source of incident E and B fields
+            using MyXMinProfile = profiles::Free<FunctorXMinIncidentE, FunctorXMinIncidentB>;
 
             /** Another source of incident E and B fields, this time we provide both E and B functors
              *
@@ -279,7 +313,8 @@ namespace picongpu
             /**@{*/
             /** Incident field profile types along each boundary, these 6 types (or aliases) are required.
              *
-             * Here we generate a Gaussian pulse propagating inwards from X min and 2 Gaussian pulses from Y max.
+             * Here we generate Gaussian pulses (focused at generation position) propagating inwards from X min and Y
+             * Max borders.
              */
             using XMin = MyXMinProfile;
             using XMax = profiles::None;

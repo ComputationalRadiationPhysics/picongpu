@@ -30,28 +30,14 @@ namespace picongpu
         {
             namespace profiles
             {
-                /** Calculate incident field B from values of E using slowly varying envelope approximation (SVEA)
-                 *
-                 * It will make orientation consistent with the axis and direction that the Free profile is applied to.
-                 * The calculated B values follow B = cross(k, E) / c, where k is propagation direction vector.
-                 *
-                 * This type does not adhere to FunctorIncidentFieldConcept, however can be used as the second
-                 * (but not first) template parameter of Free<>.
-                 */
-                struct SVEAFunctorIncidentB;
-
                 /** Free profile tag using given functors
-                 *
-                 * By default translates to source with same functors for any axis and direction.
-                 * Thus, a user should hard-set the functors for the chosen axis and direction.
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field, follows the interface of
                  *                            FunctorIncidentFieldConcept (defined in Functors.hpp)
                  * @tparam T_FunctorIncidentB functor for the incident B field, follows the interface of
-                 *                            FunctorIncidentFieldConcept (defined in Functors.hpp),
-                 *                            or by default a special SVEA functor
+                 *                            FunctorIncidentFieldConcept (defined in Functors.hpp)
                  */
-                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB = SVEAFunctorIncidentB>
+                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
                 struct Free;
 
             } // namespace profiles

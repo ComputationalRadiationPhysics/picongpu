@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/fields/incidentField/profiles/BaseParam.def"
+
 
 namespace picongpu
 {
@@ -30,7 +32,7 @@ namespace picongpu
             {
                 namespace defaults
                 {
-                    struct ExpRampWithPrepulseParam
+                    struct ExpRampWithPrepulseParam : public BaseParam
                     {
                         /** Intensities of prepulse and exponential preramp
                          *
@@ -53,56 +55,25 @@ namespace picongpu
                         static constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
                         /** @} */
 
-                        /** unit: meter */
-                        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-                        /** UNITCONV */
-                        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                            * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                            * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-                        /** unit: W / m^2 */
-                        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-                        /** unit: none */
-                        static constexpr float_64 _A0 = 20.;
-
-                        /** unit: Volt /meter */
-                        static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-                        /** unit: Volt /meter */
-                        // constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
                         /** Stretch temporal profile by a constant plateau between the up and downramp
-                         *  unit: seconds */
+                         *
+                         *  unit: seconds
+                         */
                         static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
                             = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
 
-                        /** Pulse length: sigma of std. gauss for intensity (E^2)
-                         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-                         *                                          [    2.354820045     ]
-                         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-                         *                      = what a experimentalist calls "pulse duration"
+                        /** Beam waist: distance from the axis where the pulse intensity (E^2)
+                         *              decreases to its 1/e^2-th part,
+                         *              at the focus position of the laser
                          *
-                         *  unit: seconds (1 sigma)
+                         * AXIS_1 is directed according to POLARISATION_DIRECTION parameters.
+                         * AXIS_2 is a cross product of the propagation direction and AXIS_1.
+                         *
+                         * For 2d simulations W0_AXIS_2_SI must be defined but its value has no effect.
+                         *
+                         * unit: meter
                          */
-                        static constexpr float_64 PULSE_LENGTH_SI = 3.0e-14
-                            / 2.35482; // half of the time in which E falls to half its initial value (then I falls to
-                                       // half its value in 15fs, approx 6 wavelengths). Those are 4.8 wavelenghts.
-
-                        /** beam waist: distance from the axis where the pulse intensity (E^2)
-                         *              decreases to its 1/e^2-th part
-                         *
-                         * AXIS_1 is next axis after the propagation axis in order (x, y, z) with a periodic wrap.
-                         * AXIS_2 is next after AXIS_1. E.g. for y propagation axis, AXIS_1 = z, AXIS_2 = x.
-                         *
-                         * If both values are equal, the laser has a circular shape in AXIS_1 - AXIS_2
-                         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-                         *                             [   1.17741    ]
-                         *
-                         *  unit: meter
-                         */
-                        static constexpr float_64 W0_AXIS_1_SI = 2.5 * WAVE_LENGTH_SI;
+                        static constexpr float_64 W0_AXIS_1_SI = 4.246e-6;
                         static constexpr float_64 W0_AXIS_2_SI = W0_AXIS_1_SI;
 
                         /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before
@@ -111,29 +82,6 @@ namespace picongpu
                          * unit: none
                          */
                         static constexpr float_64 RAMP_INIT = 16.0;
-
-                        /** laser phase shift (no shift: 0.0)
-                         *
-                         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-                         *
-                         * unit: rad, periodic in 2*pi
-                         */
-                        static constexpr float_X LASER_PHASE = 0.0;
-
-                        /** Available E polarisation types, B polarization will be calculated automatically
-                         *
-                         * For linear polarization, AXIS_1 and AXIS_2 are defined same as for W0_AXIS_1_SI,
-                         * W0_AXIS_2_SI.
-                         */
-                        enum PolarisationType
-                        {
-                            LINEAR_AXIS_1 = 1u,
-                            LINEAR_AXIS_2 = 2u,
-                            CIRCULAR = 4u
-                        };
-                        /** Polarization selection
-                         */
-                        static constexpr PolarisationType Polarisation = LINEAR_AXIS_2;
                     };
                 } // namespace defaults
 
@@ -173,7 +121,9 @@ namespace picongpu
                  *
                  * @tparam T_Params class parameter to configure the beam profile,
                  *                  see members of defaults::ExpRampWithPrepulseParam
-                 *                  for required members
+                 *                  for required members.
+                 *                  The focus position should be at or near the generation surface as the
+                 *                  laser equations are formulated for this case.
                  */
                 template<typename T_Params = defaults::ExpRampWithPrepulseParam>
                 struct ExpRampWithPrepulse;

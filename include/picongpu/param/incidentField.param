@@ -33,6 +33,11 @@
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
  *
+ * All profiles but `Free<>` and `None` are parametrized with a profile-specific structure.
+ * Their interfaces are defined in the corresponding `.def` files inside directory
+ * picongpu/fields/incidentField/profiles/. Note that all these parameter structures inherit common base structures
+ * from `BaseParam.def`. Thus, a user-provided structure must also define all members according to the base struct.
+ *
  * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
  * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
  * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
@@ -40,10 +45,10 @@
  * positioning of the generating surface relative to total domain. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free<UserFunctorIncidentE>;
+ * using XMin = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
  * using XMax = profiles::None;
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
- * using YMax = profiles::Free<AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB>;
+ * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
  * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
  *
@@ -72,10 +77,12 @@ namespace picongpu
 
                 /** Create a functor
                  *
+                 * @param currentStep current time step index, note that it is fractional
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE UserFunctorIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HDINLINE UserFunctorIncidentE(float_X const currentStep, const float3_64 unitField)
+                    : m_unitField(unitField)
                 {
                 }
 
@@ -83,10 +90,9 @@ namespace picongpu
                  *
                  * @param totalCellIdx cell index in the total domain (including all moving window slides),
                  *        note that it is fractional
-                 * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
@@ -103,10 +109,12 @@ namespace picongpu
 
                 /** Create a functor
                  *
+                 * @param currentStep current time step index, note that it is fractional
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE UserFunctorIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                HDINLINE UserFunctorIncidentB(float_X const currentStep, const float3_64 unitField)
+                    : m_unitField(unitField)
                 {
                 }
 
@@ -114,10 +122,9 @@ namespace picongpu
                  *
                  * @param totalCellIdx cell index in the total domain (including all moving window slides),
                  *        note that it is fractional
-                 * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
@@ -127,9 +134,7 @@ namespace picongpu
             /** Make a profile with the user-provided functors defined above.
              *
              * The functors for incident field E and B must be consistent to each other.
-             * They also have to take into consideration which boundary the profile is applied to.
-             * The second template parameter may be left with the default value, then B field will be calculated
-             * from E using the slowly varying envelope approximation (SVEA).
+             * They should work for all boundaries the profile is applied to.
              */
             using MyProfile = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
 
