@@ -703,7 +703,7 @@ namespace picongpu
                                     /// Normally, this should not happen
                                     PMACC_ASSERT_MSG(
                                         false,
-                                        "ERROR:Too many new bins before call to updateMethod in binObject MethodW")
+                                        "ERROR:Too many new bins before call to updateMethod in binObject Method");
                                     printf(
                                         "ERROR:Too many new bins before call to updateMethod in binObject Method\n");
                                 }
@@ -758,7 +758,7 @@ namespace picongpu
                                     /// Normally, this should not happen
                                     PMACC_ASSERT_MSG(
                                         false,
-                                        "ERROR:Too many new bins before call to updateMethod in binObject Method")
+                                        "ERROR:Too many new bins before call to updateMethod in binObject Method");
                                     printf(
                                         "ERROR:Too many new bins before call to updateMethod in shiftWeight Method\n");
                                 }

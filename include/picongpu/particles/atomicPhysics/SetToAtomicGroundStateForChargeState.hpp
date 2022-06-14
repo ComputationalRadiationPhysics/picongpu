@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <pmacc/traits/HasFlag.hpp>
+
 namespace picongpu
 {
     namespace particles
@@ -52,7 +54,7 @@ namespace picongpu
 
                     particle[boundElectrons_] = numberBoundElectrons;
 
-                    if constexpr(HasFlag<
+                    if constexpr(pmacc::traits::HasFlag<
                                      typename T_Particle::FrameType,
                                      atomicPhysicsSolver<>>::type::value) // -> atomicState exists
                     {
