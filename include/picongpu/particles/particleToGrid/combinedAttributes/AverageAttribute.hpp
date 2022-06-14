@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Pawel Ordyna
+/* Copyright 2021-2022 Pawel Ordyna, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -22,10 +22,13 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/particleToGrid/combinedAttributes/AverageAttribute.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 
 #include <limits>
 #include <string>
 #include <vector>
+
+
 namespace picongpu
 {
     namespace particles
@@ -56,6 +59,11 @@ namespace picongpu
                 template<typename T_DerivedAttribute>
                 struct AverageAttributeDescription
                 {
+                    // Check prerequisite on the input type
+                    PMACC_CASSERT_MSG(
+                        _error_average_attribute_only_supports_weighted_derived_attributes_check_trait_IsWeighted,
+                        derivedAttributes::IsWeighted<T_DerivedAttribute>::value);
+
                     HDINLINE float1_64 getUnit() const
                     {
                         // Average quantity has the same unit as the total quantity
