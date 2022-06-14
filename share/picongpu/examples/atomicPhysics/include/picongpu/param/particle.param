@@ -20,13 +20,12 @@
 
 #pragma once
 
-#include "picongpu/particles/startPosition/functors.def"
-#include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
-
-#include <pmacc/math/operation.hpp>
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
 
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 // particles randomly distributed, 10 macro particle per cell, 200keV initial drift
@@ -93,7 +92,7 @@ namespace picongpu
 
                     picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
                         particle,
-                        static_cast<uint8_t>(numberBoundElectrons-16));
+                        static_cast<uint8_t>(numberBoundElectrons - 16));
                 }
             };
 

@@ -193,7 +193,7 @@ namespace picongpu
                     }
 
                     // get new histogram
-                    //Histogram histogram;
+                    // Histogram histogram;
                     PMACC_SMEM(
                         acc, // mandatory first parameter
                         histogram, // variable name
@@ -307,10 +307,10 @@ namespace picongpu
                         &histogram,
                         debug);
 
-                    cupla::__syncthreads( acc );
+                    cupla::__syncthreads(acc);
 
                     // debug only
-                    if( workerIdx == 0 )
+                    if(workerIdx == 0)
                     {
                         printf("    rate applied\n");
 
@@ -342,18 +342,12 @@ namespace picongpu
                     // debug only
                     // cupla::__syncthreads( acc );
 
-                    decelerateElectrons< T_numWorkers >(
-                        acc,
-                        mapper,
-                        electronBox,
-                        histogram,
-                        atomicDataBox
-                    );
+                    decelerateElectrons<T_numWorkers>(acc, mapper, electronBox, histogram, atomicDataBox);
 
-                    cupla::__syncthreads( acc );
+                    cupla::__syncthreads(acc);
 
                     // debug only
-                    if( workerIdx == 0 )
+                    if(workerIdx == 0)
                     {
                         // cpu
                         // std::cout << "    electrons decelerated" << std::endl;

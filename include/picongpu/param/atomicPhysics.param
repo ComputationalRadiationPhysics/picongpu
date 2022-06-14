@@ -24,11 +24,12 @@
 
 #pragma once
 
-#include <picongpu/particles/atomicPhysics/stateRepresentation/LevelVector.hpp>
-#include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
 
 #include <string>
-#include <pmacc/identifier/value_identifier.hpp>
+
+#include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp>
+#include <picongpu/particles/atomicPhysics/stateRepresentation/LevelVector.hpp>
 
 namespace picongpu
 {
@@ -112,11 +113,10 @@ namespace picongpu
      * actual datatype must be defined seperately from value_identifier,
      * since all "," are interpreted as seperating macro arguments
      */
-    using ConfigNumber_H = particles::atomicPhysics::stateRepresentation::
-        ConfigNumber<
-            picongpu::atomicPhysics::configNumberDataType,
-            picongpu::atomicPhysics::numLevels,
-            picongpu::atomicPhysics::protonNumber>;
+    using ConfigNumber_H = particles::atomicPhysics::stateRepresentation::ConfigNumber<
+        picongpu::atomicPhysics::configNumberDataType,
+        picongpu::atomicPhysics::numLevels,
+        picongpu::atomicPhysics::protonNumber>;
     value_identifier(ConfigNumber_H, configNumber_Hydrogen, ConfigNumber_H(1u));
 
 } // namespace picongpu

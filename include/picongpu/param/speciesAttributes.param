@@ -123,7 +123,7 @@ namespace picongpu
     //! alias for one of two representations of the atomic state, see also atomicPhysics.param
     alias(atomicLevels);
 
-    //! alias for atomic state of ion, see also atomicPhysics.param 
+    //! alias for atomic state of ion, see also atomicPhysics.param
     alias(atomicConfigNumber);
 
     alias(atomicPhysicsSolver);

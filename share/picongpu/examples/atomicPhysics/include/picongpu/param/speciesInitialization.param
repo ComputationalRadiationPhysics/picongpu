@@ -43,7 +43,7 @@ namespace picongpu
         using InitPipeline = bmpl::vector<
             CreateDensity<densityProfiles::Homogenous, startPosition::Random10ppc, ArgonIons>,
             // debug one particle per super cell only
-            //CreateDensity<densityProfiles::FreeFormula, startPosition::OnePosition, CarbonIons>,
+            // CreateDensity<densityProfiles::FreeFormula, startPosition::OnePosition, CarbonIons>,
             ManipulateDerive<manipulators::binary::DensityWeighting, ArgonIons, BulkElectrons>,
             // set ions to atomic ground state
             Manipulate<manipulators::SetIonization, ArgonIons>,
