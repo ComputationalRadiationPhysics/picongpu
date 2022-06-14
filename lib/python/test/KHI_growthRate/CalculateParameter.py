@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -7,6 +7,7 @@ License: GPLv3+
 """
 
 import numpy as np
+from scipy.constants import c, m_e, e, epsilon_0
 
 
 class CalculateParameter:
@@ -31,12 +32,6 @@ class CalculateParameter:
         this function calculate the growthrate of a given quantity f(t)
     """
 
-    # fixe parameter
-    __c = 299792458
-    __m_e = 9.1093837015e-31
-    __e = -1.602176634e-19
-    __e_0 = 8.8541878128e-12
-
     def __init__(self):
         pass
 
@@ -58,7 +53,7 @@ class CalculateParameter:
                  speed given by gamma
         """
 
-        return np.sqrt((1 - 1 / gamma**2) * CalculateParameter.__c ** 2)
+        return np.sqrt((1 - 1 / gamma**2) * c ** 2)
 
     @staticmethod
     def calculateTime(steps, deltaT: float, frequency):
@@ -100,7 +95,7 @@ class CalculateParameter:
 
         """
 
-        return v_0 / CalculateParameter.__c
+        return v_0 / c
 
     @staticmethod
     def theoryPlasmafrequence_MI(density):
@@ -124,8 +119,8 @@ class CalculateParameter:
 
         """
 
-        return np.sqrt((density * CalculateParameter.__e**2) / (
-               CalculateParameter.__e_0 * CalculateParameter.__m_e))
+        return np.sqrt((density * e**2) / (
+               epsilon_0 * m_e))
 
     @staticmethod
     def theoryPlasmafrequence_ESKHI(density, gamma):
@@ -153,9 +148,8 @@ class CalculateParameter:
 
         """
 
-        return np.sqrt((density * CalculateParameter.__e ** 2) /
-                       (CalculateParameter.__e_0 * gamma *
-                        CalculateParameter.__m_e))
+        return np.sqrt((density * e ** 2) /
+                       (epsilon_0 * gamma * m_e))
 
     @staticmethod
     def growthRate(f, time, interval=None):

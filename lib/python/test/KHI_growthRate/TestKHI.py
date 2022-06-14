@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -66,7 +66,7 @@ class TestKHI(TestKHIManager):
         resultFile.write("This corresponds to an inaccuracy of: \n\n")
         resultFile.write("Difference: {} \n".format(self.getMaxDifference()))
         resultFile.write("Difference in percentage: {} % \n".format(
-                               self.getMaxDifferenceInPercentage()))
+                               self.getMaxDifference(percentage=True)))
 
         resultFile.close()
 

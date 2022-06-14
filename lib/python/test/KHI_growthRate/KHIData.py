@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -39,18 +39,6 @@ class KHIData:
     setAllData(allParameter):
         sets the data for gamma, density and delta t
 
-    getLightSpeed() -> int:
-        return the speed of light [m/s]
-
-    getElectronMass() -> float:
-        return the electron mass [kg]
-
-    getElectronCharge() -> float:
-        return the electron charge [C]
-
-    getVacuumPermittivity() -> float:
-        return the permittivity of the vacuum [As/(Vm)]
-
     getFieldSum() -> dict:
         return the field data
 
@@ -70,12 +58,6 @@ class KHIData:
         set the growth rate of a specific field given by key
 
     """
-
-    # fixed parameters
-    __c = 299792458
-    __m_e = 9.1093837015e-31
-    __e = -1.602176634e-19
-    __e_0 = 8.8541878128e-12
 
     def __init__(self):
         """constructor"""
@@ -111,23 +93,6 @@ class KHIData:
         self.density = allParameter[1]
         self.deltaT = allParameter[2]
 
-    # for fixed paramters only getter
-    def getLightSpeed(self) -> int:
-
-        return self.__c
-
-    def getElectronMass(self) -> float:
-
-        return self.__m_e
-
-    def getElectronCharge(self) -> float:
-
-        return self.__e
-
-    def getVacuumPermittivity(self) -> float:
-
-        return self.__e_0
-
     def getFieldSum(self) -> dict:
         """
         return:
@@ -154,7 +119,7 @@ class KHIData:
             if an incorrect key was passed to the function
         """
 
-        if(key in self.__fieldsum.keys()):
+        if (key in self.__fieldsum.keys()):
             return self.__fieldsum.get(key)
         else:
             raise KeyError("Use a valid key(total, E_x, E_y, E_z,"
@@ -178,7 +143,7 @@ class KHIData:
         KeyError:
             if an incorrect key was passed to the function
         """
-        if(key in self.__fieldsum.keys()):
+        if (key in self.__fieldsum.keys()):
             self.__fieldsum[key] = value
         else:
             raise KeyError("Use a valid key(total, E_x, E_y, E_z,"
@@ -209,7 +174,7 @@ class KHIData:
             if an incorrect key was passed to the function
         """
 
-        if(key in self.__growthrate.keys()):
+        if (key in self.__growthrate.keys()):
             return self.__growthrate.get(key)
         else:
             raise KeyError("Use a valid key(total, E_x, E_y, E_z,"
@@ -234,7 +199,7 @@ class KHIData:
             if an incorrect key was passed to the function
         """
 
-        if(key in self.__growthrate.keys()):
+        if (key in self.__growthrate.keys()):
             self.__growthrate[key] = value
         else:
             raise KeyError("Use a valid key(total, E_x, E_y, E_z,"

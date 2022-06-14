@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -7,6 +7,7 @@ License: GPLv3+
 """
 
 import numpy as np
+from scipy.constants import c
 
 
 class TheoryGrowthRate:
@@ -66,8 +67,6 @@ class TheoryGrowthRate:
         Lambda:  float
                  maximum growth rate of the MI
         """
-
-        c = 299792458
 
         v = np.sqrt((1 - 1 / gamma ** 2) * c ** 2)
 

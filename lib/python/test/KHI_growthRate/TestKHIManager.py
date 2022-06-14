@@ -1,5 +1,5 @@
 """
-This file is Part of the PIConGPU+
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -62,6 +62,9 @@ class TestKHIManager:
         transferred field from the simulation
     """
 
+    # The level of acceptance results from the scan over several Lorentz
+    # factors. The maximum deviation for the 3D case of KHI was 10% and
+    # for the 2D case of KHI in the MI regimen of 20%.
     __acceptanceLevel = 0.2
 
     def __init__(self, paramDir, simDir):
@@ -115,7 +118,7 @@ class TestKHIManager:
         """
 
         # Single key returns list
-        if(isinstance(key, str)):
+        if (isinstance(key, str)):
             return self.__khiData.getFieldSumByKey(key)
 
         # List of keys returns array
@@ -139,7 +142,7 @@ class TestKHIManager:
         """
 
         # Single key returns list
-        if(isinstance(key, str)):
+        if (isinstance(key, str)):
             return self.__khiData.getGrowthRateByKey(key)
 
         # List of keys returns array
@@ -179,43 +182,13 @@ class TestKHIManager:
         -------
         result: bool
         """
-        if (abs(self.getMaxDifferenceInPercentage()) <=
+        if (abs(self.getMaxDifference(percentage=True)) <=
                 self.__acceptanceLevel * 100):
             return True
         else:
             return False
 
-    def getMaxDifferenceInPercentage(self, field: str = None) -> float:
-        """
-        indicates the difference (percentage) in the growth rate between the
-        transferred field from the simulation and the theoretical value
-
-        input:
-        -------
-        field:      str, optional, None
-                    ("total", "B_x", "B_y", "B_z", "E_x", "E_y", "E_z")
-                    if None the calculated field from the testsuite is used
-                    ("B_z" only for ESKHI, else "B_x")
-
-        return:
-        -------
-        differenz: float
-        """
-
-        if field is None:
-            field = self.__khiData.field
-
-        if self.__khiData.regime == "ESKHI":
-            maxValue = theoGR.getTheoryESKHI_max(
-                                            self.__khiData.gamma)
-        else:
-            maxValue = theoGR.getTheoryMIGR_max(
-                                             self.__khiData.gamma)
-
-        return diffGR.getDifferenceInPercentage(
-            maxValue, self.__khiData.getGrowthRateByKey(field))
-
-    def getMaxDifference(self, field: str = None) -> float:
+    def getMaxDifference(self, field: str = None, percentage=False) -> float:
         """
         indicates the difference in the growth rate between the
         transferred field from the simulation and the theoretical value
@@ -226,6 +199,10 @@ class TestKHIManager:
                  ("total", "B_x", "B_y", "B_z", "E_x", "E_y", "E_z")
                  if None the calculated field from the testsuite is used
                  ("B_z" only for ESKHI, else "B_x")
+
+        percentage: bool, optional, False
+                    if true, the function returns the difference as a
+                    percentage
 
         return:
         -------
@@ -244,7 +221,10 @@ class TestKHIManager:
 
         growthRate = self.__khiData.getGrowthRateByKey(field)
 
-        return diffGR.getMaxDifference(maxValue, growthRate)
+        if percentage:
+            return diffGR.getDifferenceInPercentage(maxValue, growthRate)
+        else:
+            return diffGR.getMaxDifference(maxValue, growthRate)
 
     def getMaxGrowthRate_Sim(self, field: str = None) -> float:
         """

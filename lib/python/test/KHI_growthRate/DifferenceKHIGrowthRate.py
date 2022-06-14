@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors.
 Authors: Mika Soren Voss
@@ -50,7 +50,7 @@ class DifferenceKHIGrowthRate:
 
         difference = np.abs(growthRate - maxGrowthRate)
 
-        return max(difference)
+        return min(difference)
 
     @staticmethod
     def getDifference(theory, simulation):

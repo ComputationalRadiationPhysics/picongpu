@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -49,7 +49,7 @@ class ParamReader:
         """
 
         # path cannot be empty
-        assert(path), "You have to enter a path"
+        assert (path), "You have to enter a path"
 
         self.__path = path
 
@@ -69,7 +69,7 @@ class ParamReader:
         """
 
         # path cannot be empty
-        assert(path), "You have to enter a path"
+        assert (path), "You have to enter a path"
 
         self.__path = path
 
@@ -83,7 +83,7 @@ class ParamReader:
                    variablename
         """
 
-        assert(parameter), "No empty parameter"
+        assert (parameter), "No empty parameter"
 
         self.__searchParameter = parameter
 
@@ -97,8 +97,8 @@ class ParamReader:
             if no search parameters were set
         """
 
-        assert(self.__searchParameter not in globals()), ("There is no"
-                                                          " searchparameter")
+        assert (self.__searchParameter not in globals()), ("There is no"
+                                                           " searchparameter")
 
         return self.__searchParameter
 
@@ -139,7 +139,7 @@ class ParamReader:
         for file in self.getAllData():
             fileParam = open(self.__path + file, 'r')
 
-            if(fileParam.read().find(self.__searchParameter) != -1):
+            if (fileParam.read().find(self.__searchParameter) != -1):
 
                 searchResult.append(file)
 
@@ -201,8 +201,6 @@ class ParamReader:
                             if parameter is None:
                                 parameter = float(entry)
                             else:
-                                if entry in '  PARAM_FACTOR':
-                                    entry = 0.15789473684210525
                                 parameter *= float(entry)
                     else:
                         try:

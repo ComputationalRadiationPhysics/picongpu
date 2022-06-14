@@ -1,5 +1,5 @@
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022 PIConGPU contributors
 Authors: Mika Soren Voss
@@ -55,7 +55,8 @@ class ViewerKHI:
                                       currentGamma: bool = False,
                                       simulationGrowthRate: bool = False,
                                       field: str = None,
-                                      plotLog: bool = True):
+                                      plotLog: bool = True,
+                                      save: bool = False):
         """
         plots the theoretical course of the maximum growth rate for MI and
         ESKHI as a function of gamma
@@ -82,6 +83,10 @@ class ViewerKHI:
 
         plotlog:      bool, True, optional
                       plots the chart logarithmically if True
+
+        save:        bool, optional, false
+                     if true the picture will be saved in the direction of
+                     simDir as growthRate_max.png
 
         """
 
@@ -126,9 +131,13 @@ class ViewerKHI:
         plt.ylabel(r"$\Gamma[\omega_{pe}]$")
 
         plt.legend()
-        plt.show()
 
-    def plotField(self, field, linestyle=None):
+        if save:
+            plt.savefig(self.__simDir + "/growthRate_max.png")
+        else:
+            plt.show()
+
+    def plotField(self, field, linestyle=None, save: bool = False):
         """
         plots the fields passed to the function
 
@@ -137,6 +146,10 @@ class ViewerKHI:
         field:       str or list
                      sets the fields to be drawn
                      (total, B_x, B_y, B_z, E_x, E_y, E_z)
+
+        save:        bool, optional, false
+                     if true the picture will be saved in the direction of
+                     simDir as fields.png
         """
 
         # reading of field and time
@@ -148,7 +161,7 @@ class ViewerKHI:
             plt.plot(time, field_sum_ene, label="$" + field + "$")
 
         # plot for multiple fields
-        elif(not isinstance(field, str)):
+        elif (not isinstance(field, str)):
             for lab, number in zip(field, list(range(len(field)))):
                 if field_sum_ene[number] is not None:
                     plt.plot(time, field_sum_ene[number],
@@ -160,7 +173,10 @@ class ViewerKHI:
         plt.semilogy()
         plt.grid()
 
-        plt.show()
+        if save:
+            plt.savefig(self.__simDir + "/fields.png")
+        else:
+            plt.show()
 
     def plotGrowthRate(self,
                        field,
@@ -197,12 +213,12 @@ class ViewerKHI:
         fig, ax = plt.subplots()
 
         # plot for multiple growthrates
-        if(not isinstance(field, str)):
+        if (not isinstance(field, str)):
             for lab, rate in zip(field, growthrate):
                 if rate is not None:
                     ax.plot(time, rate, label="$" + lab + "$")
 
-        elif(isinstance(field, str) and growthrate is not None):
+        elif (isinstance(field, str) and growthrate is not None):
             ax.plot(time, growthrate, label="$" + field + "$")
 
         # plotting the theoretical reference line
