@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Rene Widera
+/* Copyright 2022 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,12 +19,6 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/algorithms/KinEnergy.hpp"
-#include "picongpu/particles/particleToGrid/derivedAttributes/Energy.def"
-#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
-
 #include <type_traits>
 
 
@@ -36,25 +30,19 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                HDINLINE float1_64 Energy::getUnit() const
-                {
-                    return UNIT_ENERGY;
-                }
-
-                template<class T_Particle>
-                DINLINE float_X Energy::operator()(T_Particle& particle) const
-                {
-                    /* read existing attributes */
-                    const float_X weighting = particle[weighting_];
-                    const float3_X mom = particle[momentum_];
-                    const float_X mass = attribute::getMass(weighting, particle);
-
-                    return KinEnergy<>()(mom, mass);
-                }
-
-                //! Energy is weighted
-                template<>
-                struct IsWeighted<Energy> : std::true_type
+                /** Derive attribute trait whether its value is scaled to macroparticle weight
+                 *
+                 * Note that it describes how the derived attribute itself is calculated, not the eventual field.
+                 * Logically it roughly corresponds to openPMD macroWeighted = true and weightingPower = 1.0
+                 * @see traits::MacroWeighted @see traits::WeightingPower.
+                 * However, as derived attributes are a separate quantity from species we have a separate trait.
+                 *
+                 * Inherits std::true_type, std::false_type or a compatible type.
+                 *
+                 * @tparam T_DerivedAttribute derived attribute type
+                 */
+                template<typename T_DerivedAttribute>
+                struct IsWeighted : public std::false_type
                 {
                 };
             } // namespace derivedAttributes

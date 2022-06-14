@@ -21,9 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
 #include <pmacc/static_assert.hpp>
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -74,6 +77,12 @@ namespace picongpu
                     /* return attribute */
                     return larmorPower;
                 }
+
+                //! Larmor power is weighted
+                template<>
+                struct IsWeighted<LarmorPower> : std::true_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles
