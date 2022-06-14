@@ -24,6 +24,7 @@
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpaceFunctors.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 
 #include <pmacc/communication/manager_common.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
@@ -92,29 +93,11 @@ namespace picongpu
             plugins::multi::Option<float_X> momentum_range_min = {"min", "min range momentum [m_species c]"};
             plugins::multi::Option<float_X> momentum_range_max = {"max", "max range momentum [m_species c]"};
 
-            /*
-             * Set to h5 for now at least, to make for easier comparison of
-             * output with old outpu
-             */
             plugins::multi::Option<std::string> file_name_extension
-                = { "ext",
-                    "openPMD filename extension (this controls the"
-                    "backend picked by the openPMD API)",
-#if openPMD_HAVE_HDF5
-                    "h5"
-#elif openPMD_HAVE_ADIOS2
-                    "bp"
-#else
-                    /*
-                     * This branch should never be activated because CMake will
-                     * not enable the openPMD plugin in that case anyway.
-                     */
-                    static_assert(
-                        false,
-                        "openPMD-api has neither ADIOS2 or HDF5 backend available. Use CMake to deactivate the "
-                        "openPMD plugin.")
-#endif
-                  };
+                = {"ext",
+                   "openPMD filename extension (this controls the"
+                   "backend picked by the openPMD API)",
+                   openPMD::getDefaultExtension().c_str()};
 
             plugins::multi::Option<std::string> json_config
                 = {"json", "advanced (backend) configuration for openPMD in JSON format", "{}"};
