@@ -27,8 +27,10 @@ fi
 # enforce optional dependencies
 CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
 
-# ISAAC together with the example FoilLCT is to complex therefore the CI is always running out of memory.
-if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* || "$PIC_TEST_CASE_FOLDER" =~ .*WarmCopper.* ]] ; then
+# ISAAC together with some examples is too complex and the CI is always running out of memory.
+if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* || "$PIC_TEST_CASE_FOLDER" =~ .*WarmCopper.*
+    || "$PIC_TEST_CASE_FOLDER" =~ .*SPEC.* || "$PIC_TEST_CASE_FOLDER" =~ .*KelvinHelmholtz.*
+    || "$PIC_TEST_CASE_FOLDER" =~ .*compileFieldSolver.* ]] ; then
     CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
     export CI_CPUS=1
 elif [ -z "$DISABLE_ISAAC" ] ; then
