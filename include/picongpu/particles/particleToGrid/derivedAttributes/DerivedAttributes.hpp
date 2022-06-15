@@ -29,4 +29,5 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/Momentum.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MomentumComponent.hpp"

@@ -51,6 +51,7 @@ namespace picongpu
      *                    particle density
      *       note: this is the same as the sum of kinetic particle energy
      *             divided by a constant for the cell volume
+     *   - Momentum: sum of chosen component of momentum per cell with respect to shape
      *   - MomentumComponent: ratio between a selected momentum component and
      *                        the absolute momentum with respect to shape
      *   - LarmorPower: radiated Larmor power
