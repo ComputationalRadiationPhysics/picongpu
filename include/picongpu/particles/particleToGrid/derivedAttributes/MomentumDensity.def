@@ -1,0 +1,116 @@
+/* Copyright 2016-2022 Axel Huebl, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+
+#include <pmacc/static_assert.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+
+#include <cstdint>
+#include <vector>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                /** Density of chosen component of momentum for particle to grid projections
+                 *
+                 * Derives a scalar field for average value of chosen component of momentum in a cell times the
+                 * particle density from a particle species at runtime.
+                 * Each value is mapped per cell according to the species' spatial shape.
+                 *
+                 * @param T_direction direction defining the component x=0, y=1, z=2
+                 */
+                template<size_t T_direction>
+                struct MomentumDensity
+                {
+                    PMACC_CASSERT_MSG(
+                        _error_valid_MomentumDensity_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param,
+                        (T_direction >= 0) && (T_direction < 3));
+
+                    //! Get unit
+                    HDINLINE float1_64 getUnit() const;
+
+                    //! Get unit dimension
+                    HINLINE std::vector<float_64> getUnitDimension() const
+                    {
+                        /* L, M, T, I, theta, N, J
+                         *
+                         * momentum density is in mass times speed per cubic meter: kg * m / s / m^3 = kg / (s * m^2)
+                         *   -> L^-2 * M * T^-1
+                         */
+                        std::vector<float_64> unitDimension(7, 0.0);
+                        unitDimension.at(SIBaseUnits::length) = -2.0;
+                        unitDimension.at(SIBaseUnits::mass) = 1.0;
+                        unitDimension.at(SIBaseUnits::time) = -1.0;
+                        return unitDimension;
+                    }
+
+                    //! Get text name
+                    HINLINE static std::string getName()
+                    {
+                        return "particleMomentumDensity";
+                    }
+
+                    /** Calculate value of the derived attribute per particle
+                     *
+                     * Returns an on-the-fly calculated value of a derived particle attribute for the given particle.
+                     * The result can then be mapped to the cells the particle contributes to according to the
+                     * assignment function.
+                     *
+                     * @tparam T_Particle particle type
+                     * @param particle particle handle
+                     *
+                     * @return values of the derived attribute
+                     */
+                    template<typename T_Particle>
+                    DINLINE float_X operator()(T_Particle& particle) const;
+                };
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+
+        namespace traits
+        {
+            /** Compatibility trait for species and momentum density derived attribute
+             *
+             * @tparam T_Species species type
+             * @tparam T_direction direction defining momentum component x=0, y=1, z=2
+             */
+            template<typename T_Species, size_t T_direction>
+            struct SpeciesEligibleForSolver<T_Species, particleToGrid::derivedAttributes::MomentumDensity<T_direction>>
+            {
+                using FrameType = typename T_Species::FrameType;
+
+                using RequiredIdentifiers = MakeSeq_t<position<>, momentum>;
+
+                using type = typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
+            };
+        } // namespace traits
+    } // namespace particles
+} // namespace picongpu

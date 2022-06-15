@@ -31,3 +31,4 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Momentum.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MomentumComponent.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/MomentumDensity.hpp"
