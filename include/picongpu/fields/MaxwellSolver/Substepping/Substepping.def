@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/traits/GetCurl.hpp"
+
 #include <cstdint>
 
 namespace picongpu
@@ -41,7 +43,7 @@ namespace picongpu
              * For higher order solvers, on the contrary, it may be beneficial wrt dispersion.
              *
              * The substepping is hidden inside the usual field solver interface.
-             * Thus, it is transparent for the rest of the simulation (except code called inside field solver). 
+             * Thus, it is transparent for the rest of the simulation (except code called inside field solver).
              * This solver is fully equivalent to T_BaseSolver when T_numSubsteps == 1.
              *
              * @tparam T_BaseSolver base field solver, follows requirements of field solvers
@@ -52,4 +54,29 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
+
+    namespace traits
+    {
+        /** Get curl(E) type in the substepping solver, same as for the base solver
+         *
+         * @tparam T_BaseSolver base field solver, follows requirements of field solvers
+         * @tparam T_numSubsteps number of substeps per PIC time iteration
+         */
+        template<typename T_BaseSolver, uint32_t T_numSubsteps>
+        struct GetCurlE<fields::maxwellSolver::Substepping<T_BaseSolver, T_numSubsteps>>
+            : public GetCurlE<T_BaseSolver>
+        {
+        };
+
+        /** Get curl(B) type in the substepping solver, same as for the base solver
+         *
+         * @tparam T_BaseSolver base field solver, follows requirements of field solvers
+         * @tparam T_numSubsteps number of substeps per PIC time iteration
+         */
+        template<typename T_BaseSolver, uint32_t T_numSubsteps>
+        struct GetCurlB<fields::maxwellSolver::Substepping<T_BaseSolver, T_numSubsteps>>
+            : public GetCurlB<T_BaseSolver>
+        {
+        };
+    } // namespace traits
 } // namespace picongpu

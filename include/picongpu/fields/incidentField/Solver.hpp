@@ -24,6 +24,7 @@
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+#include "picongpu/fields/MaxwellSolver/Substepping/Substepping.def"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Solver.kernel"

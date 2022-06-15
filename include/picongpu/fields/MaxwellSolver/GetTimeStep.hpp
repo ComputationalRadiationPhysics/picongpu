@@ -35,7 +35,7 @@ namespace picongpu
              * The default implementation uses same time step as in general PIC.
              *
              * @tparam T_FieldSolver field solver typedef
-             */             
+             */
             template<typename T_FieldSolver>
             struct GetTimeStep
             {

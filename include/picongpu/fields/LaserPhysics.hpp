@@ -105,7 +105,8 @@ namespace picongpu
                 constexpr float_X laserTimeShift
                     = laserProfiles::Selected::Unitless::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
 
-                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(static_cast<uint32_t>(currentStep));
+                const uint32_t numSlides
+                    = MovingWindow::getInstance().getSlideCounter(static_cast<uint32_t>(currentStep));
 
                 /* Disable laser if
                  * - init time of laser is over or

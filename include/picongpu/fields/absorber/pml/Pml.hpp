@@ -96,9 +96,7 @@ namespace picongpu
                      * up-to-date
                      */
                     template<typename T_CurlE, uint32_t T_Area>
-                    UpdateBHalfFunctor<T_CurlE> getUpdateBHalfFunctor(
-                        float_X const currentStep,
-                        bool const updatePsiB)
+                    UpdateBHalfFunctor<T_CurlE> getUpdateBHalfFunctor(float_X const currentStep, bool const updatePsiB)
                     {
                         auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateBHalfFunctor<T_CurlE>{
@@ -182,7 +180,8 @@ namespace picongpu
                             }
 
                             // Disable PML at the far side of the moving window
-                            if(movingWindow.isSlidingWindowActive(static_cast<uint32_t>(currentStep)) && exchange == BOTTOM)
+                            if(movingWindow.isSlidingWindowActive(static_cast<uint32_t>(currentStep))
+                               && exchange == BOTTOM)
                                 localThickness(axis, direction) = 0;
                         }
                         return localThickness;

@@ -112,7 +112,9 @@ namespace picongpu
                                 }
 
                                 /* if sliding window is active we disable absorber on bottom side*/
-                                if(MovingWindow::getInstance().isSlidingWindowActive(static_cast<uint32_t>(currentStep)) && i == BOTTOM)
+                                if(MovingWindow::getInstance().isSlidingWindowActive(
+                                       static_cast<uint32_t>(currentStep))
+                                   && i == BOTTOM)
                                     continue;
 
                                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);

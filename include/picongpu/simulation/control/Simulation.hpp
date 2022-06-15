@@ -321,7 +321,7 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
             initFields(dc);
 
-            initFieldSolver();
+            myFieldSolver = std::make_unique<fields::Solver>(*cellDescription);
 
             // initialize field background stage,
             // this may include allocation of additional fields so has to be done before particles
@@ -686,7 +686,6 @@ namespace picongpu
         uint32_t numRanksPerDevice = 1u;
 
     private:
-
         /** Get available memory on device
          *
          * @attention This method is using MPI collectives and must be called from all MPI processes collectively.

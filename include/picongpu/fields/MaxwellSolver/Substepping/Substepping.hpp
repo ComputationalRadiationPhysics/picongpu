@@ -25,6 +25,7 @@
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
@@ -69,24 +70,6 @@ namespace picongpu
                             Substepping_field_solver_wrong_number_of_substeps____must_be_at_least_1,
                             numSubsteps >= 1);
                     }
-
-                    //! Type-erased functor type to add current density to E for the given time iteration
-                    using CurrentAddFunctor = std::function<void(uint32_t)>;
-
-                    /** Set the functor that adds current density to E for the given time iteration
-                     *
-                     * This is a hook to be used by the main simulation object.
-                     *
-                     * @param functor functor instance
-                     */
-                    void setCurrentAddFunctor(CurrentAddFunctor functor)
-                    {
-                        currentAddFunctor = functor;
-                    }
-
-                protected:
-                    //! Functor to add current density to E field
-                    CurrentAddFunctor currentAddFunctor;
                 };
             } // namespace substepping
 
@@ -105,7 +88,7 @@ namespace picongpu
                  *
                  * @param cellDescription mapping description for kernels
                  */
-                Substepping(MappingDesc const cellDescription): Base(cellDescription)
+                Substepping(MappingDesc const cellDescription) : Base(cellDescription)
                 {
                 }
             };
@@ -127,7 +110,7 @@ namespace picongpu
                  *
                  * @param cellDescription mapping description for kernels
                  */
-                Substepping(MappingDesc const cellDescription): Base(cellDescription)
+                Substepping(MappingDesc const cellDescription) : Base(cellDescription)
                 {
                 }
 
@@ -164,8 +147,35 @@ namespace picongpu
                         auto const currentStepAndSubstep
                             = static_cast<float_X>(currentStep) + static_cast<float_X>(subStep) * getTimeStep();
                         this->updateBeforeCurrent(currentStepAndSubstep);
-                        this->currentAddFunctor(currentStep);
+                        addCurrent();
                         this->updateAfterCurrent(currentStepAndSubstep);
+                    }
+                }
+
+            private:
+                /** Interpolate current and add its contribution to the field
+                 *
+                 * This function assumes fieldJ already has values after synchronization between ranks.
+                 * It is always true given the computational loop structure as we always call it inside
+                 * update_afterCurrent() and so (some) currents were already added.
+                 */
+                void addCurrent()
+                {
+                    using namespace pmacc;
+                    using SpeciesWithCurrentSolver =
+                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
+                    constexpr auto numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
+                    constexpr auto existsCurrent = numSpeciesWithCurrentSolver > 0;
+                    if constexpr(existsCurrent)
+                    {
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        constexpr auto area = type::CORE + type::BORDER;
+                        auto const kind = currentInterpolation::CurrentInterpolation::get().kind;
+                        if(kind == currentInterpolation::CurrentInterpolation::Kind::None)
+                            fieldJ.addCurrentToEMF<area>(currentInterpolation::None{});
+                        else
+                            fieldJ.addCurrentToEMF<area>(currentInterpolation::Binomial{});
                     }
                 }
             };
