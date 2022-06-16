@@ -28,6 +28,11 @@
 
 #ifdef __CUDACC_VER_MAJOR__
 #    include <cuda.h>
+#endif
+#ifdef HIP_VERSION_MAJOR
+#    include <hip/hip_runtime.h>
+#endif
+#if(defined(__CUDACC_VER_MAJOR__) || defined(HIP_VERSION_MAJOR))
 #    include <mallocMC/mallocMC.hpp>
 #endif
 #include <mpi.h>
