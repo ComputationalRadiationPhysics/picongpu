@@ -108,9 +108,17 @@ Since an adequate color scaling is essential, there several option the user can 
    // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
    // regime causes a bubble with radius of approx. the laser's
    // beam waist (use for bubble fields)
+   // 6: Custom:  user-provided normalization factors via customNormalizationSI
    #define EM_FIELD_SCALE_CHANNEL1 -1
    #define EM_FIELD_SCALE_CHANNEL2 -1
    #define EM_FIELD_SCALE_CHANNEL3 -1
+
+   /** SI values to be used for Custom normalization
+    *
+    * The order of normalization values is: B, E, current (note - current, not current density).
+    * This variable must always be defined, but has no effect for other normalization types.
+    */
+   constexpr float_64 customNormalizationSI[3] = {5.0e12 / SI::SPEED_OF_LIGHT_SI, 5.0e12, 15.0};
 
 In the above example, all channels are set to **auto scale**.
 **Be careful**, when using a normalization other than auto-scale, depending on your setup, the normalization might fail due to parameters not set by PIConGPU.
