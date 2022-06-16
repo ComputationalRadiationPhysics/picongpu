@@ -288,8 +288,8 @@ namespace picongpu
                     typename T_EBox::ValueType field_e = fieldE(cellOffset);
                     typename T_JBox::ValueType field_j = fieldJ(cellOffset);
 
-                    // multiply with the area size of each plane
-                    field_j *= float3_X::create(CELL_VOLUME) / cellSize;
+                    // multiply with the area size of each plane to get current
+                    auto field_current = field_j * float3_X::create(CELL_VOLUME) / cellSize;
 
                     /* reset picture to black
                      *   color range for each RGB channel: [0.0, 1.0]
@@ -302,15 +302,15 @@ namespace picongpu
                         visPreview::preChannel1(
                             field_b / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get()[0],
                             field_e / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get()[1],
-                            field_j / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get()[2]),
+                            field_current / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get()[2]),
                         visPreview::preChannel2(
                             field_b / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get()[0],
                             field_e / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get()[1],
-                            field_j / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get()[2]),
+                            field_current / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get()[2]),
                         visPreview::preChannel3(
                             field_b / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get()[0],
                             field_e / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get()[1],
-                            field_j / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get()[2]));
+                            field_current / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get()[2]));
 
                     // draw to (perhaps smaller) image cell
                     image(imageCell) = pic;
