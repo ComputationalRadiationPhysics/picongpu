@@ -42,7 +42,7 @@ namespace picongpu
         // 2: Drift:   [outdated]
         // 3: PlWave:  typical fields calculated out of the plasma freq.,
         //             assuming the wave moves approx. with c
-        // 4: Thermal: typical fields calculated out of the electron temperature
+        // 4: Thermal: [outdated]
         // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
         //             regime causes a bubble with radius of approx. the laser's
         //             beam waist (use for bubble fields)
