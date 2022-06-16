@@ -49,7 +49,7 @@ trap "fireSignal SIGUSR1" SIGUSR1
 trap "fireSignal SIGUSR2" SIGUSR2
 trap "fireSignal SIGUSR1 SIGUSR2" SIGALRM
 
-$@ &
+"$@" &
 APP_PID=$!
 echo "PID = ${APP_PID}"
 
