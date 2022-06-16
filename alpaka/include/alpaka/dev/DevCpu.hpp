@@ -11,6 +11,7 @@
 #pragma once
 
 #include <alpaka/dev/Traits.hpp>
+#include <alpaka/dev/common/QueueRegistry.hpp>
 #include <alpaka/dev/cpu/SysInfo.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
@@ -48,46 +49,7 @@ namespace alpaka
     namespace cpu::detail
     {
         //! The CPU device implementation.
-        class DevCpuImpl
-        {
-        public:
-            ALPAKA_FN_HOST auto getAllExistingQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
-            {
-                std::vector<std::shared_ptr<cpu::ICpuQueue>> vspQueues;
-
-                std::lock_guard<std::mutex> lk(m_Mutex);
-                vspQueues.reserve(std::size(m_queues));
-
-                for(auto it = std::begin(m_queues); it != std::end(m_queues);)
-                {
-                    auto spQueue(it->lock());
-                    if(spQueue)
-                    {
-                        vspQueues.emplace_back(std::move(spQueue));
-                        ++it;
-                    }
-                    else
-                    {
-                        it = m_queues.erase(it);
-                    }
-                }
-                return vspQueues;
-            }
-
-            //! Registers the given queue on this device.
-            //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
-            ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
-            {
-                std::lock_guard<std::mutex> lk(m_Mutex);
-
-                // Register this queue on the device.
-                m_queues.push_back(spQueue);
-            }
-
-        private:
-            std::mutex mutable m_Mutex;
-            std::vector<std::weak_ptr<cpu::ICpuQueue>> mutable m_queues;
-        };
+        using DevCpuImpl = alpaka::detail::QueueRegistry<cpu::ICpuQueue>;
     } // namespace cpu::detail
 
     //! The CPU device handle.
@@ -122,6 +84,11 @@ namespace alpaka
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
         {
             m_spDevCpuImpl->registerQueue(spQueue);
+        }
+
+        auto registerCleanup(cpu::detail::DevCpuImpl::CleanerFunctor c) const -> void
+        {
+            m_spDevCpuImpl->registerCleanup(c);
         }
 
         [[nodiscard]] auto getNativeHandle() const noexcept

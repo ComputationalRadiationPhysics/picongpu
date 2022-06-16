@@ -15,7 +15,7 @@ namespace alpaka
 {
     namespace detail
     {
-        //! Fallback implementaion of popcount.
+        //! Fallback implementation of popcount.
         template<typename TValue>
         static auto popcountFallback(TValue value) -> std::int32_t
         {
@@ -28,7 +28,7 @@ namespace alpaka
             return static_cast<std::int32_t>(count);
         }
 
-        //! Fallback implementaion of ffs.
+        //! Fallback implementation of ffs.
         template<typename TValue>
         static auto ffsFallback(TValue value) -> std::int32_t
         {

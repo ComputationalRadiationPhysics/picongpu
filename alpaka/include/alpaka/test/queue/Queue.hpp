@@ -33,13 +33,13 @@ namespace alpaka::test
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
         //! The default queue type trait specialization for the CUDA/HIP device.
-        template<>
-        struct DefaultQueueType<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct DefaultQueueType<DevUniformCudaHipRt<TApi>>
         {
 #    if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = QueueUniformCudaHipRtBlocking;
+            using type = QueueUniformCudaHipRtBlocking<TApi>;
 #    else
-            using type = QueueUniformCudaHipRtNonBlocking;
+            using type = QueueUniformCudaHipRtNonBlocking<TApi>;
 #    endif
         };
 #endif
@@ -71,15 +71,15 @@ namespace alpaka::test
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
         //! The blocking queue trait specialization for a blocking CUDA/HIP RT queue.
-        template<>
-        struct IsBlockingQueue<QueueUniformCudaHipRtBlocking>
+        template<typename TApi>
+        struct IsBlockingQueue<QueueUniformCudaHipRtBlocking<TApi>>
         {
             static constexpr bool value = true;
         };
 
         //! The blocking queue trait specialization for a non-blocking CUDA/HIP RT queue.
-        template<>
-        struct IsBlockingQueue<QueueUniformCudaHipRtNonBlocking>
+        template<typename TApi>
+        struct IsBlockingQueue<QueueUniformCudaHipRtNonBlocking<TApi>>
         {
             static constexpr bool value = false;
         };
@@ -218,8 +218,8 @@ namespace alpaka::test
         std::tuple<DevCpu, QueueCpuNonBlocking>
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
         ,
-        std::tuple<DevUniformCudaHipRt, QueueUniformCudaHipRtBlocking>,
-        std::tuple<DevUniformCudaHipRt, QueueUniformCudaHipRtNonBlocking>
+        std::tuple<DevCudaRt, QueueCudaRtBlocking>,
+        std::tuple<DevCudaRt, QueueCudaRtNonBlocking>
 #endif
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
         ,

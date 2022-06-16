@@ -23,7 +23,7 @@
 #    endif
 #elif BOOST_COMP_MSVC
 #    define ALPAKA_UNREACHABLE(...) __assume(false)
-#elif BOOST_COMP_GNUC || BOOST_COMP_CLANG || BOOST_COMP_INTEL
+#elif BOOST_COMP_GNUC || BOOST_COMP_CLANG
 #    define ALPAKA_UNREACHABLE(...) __builtin_unreachable()
 #else
 #    define ALPAKA_UNREACHABLE(...)

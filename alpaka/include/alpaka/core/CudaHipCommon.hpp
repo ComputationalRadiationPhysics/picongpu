@@ -21,21 +21,13 @@
 
 #    include <tuple>
 
-#    define ALPAKA_PP_CONCAT_DO(X, Y) X##Y
-#    define ALPAKA_PP_CONCAT(X, Y) ALPAKA_PP_CONCAT_DO(X, Y)
-
 #    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #        include <cuda.h>
 #        include <cuda_runtime.h>
-
-//! prefix a name with `cuda`
-#        define ALPAKA_API_PREFIX(name) ALPAKA_PP_CONCAT_DO(cuda, name)
 #    endif
+
 #    ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 #        include <hip/hip_runtime.h>
-
-//! prefix a name with `hip`
-#        define ALPAKA_API_PREFIX(name) ALPAKA_PP_CONCAT_DO(hip, name)
 #    endif
 
 namespace alpaka

@@ -117,15 +117,6 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccOaccIfAvailableElseInt = int;
 #endif
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA || defined(ALPAKA_HOST_ONLY)))                           \
-    || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && (BOOST_LANG_HIP || defined(ALPAKA_HOST_ONLY)))
-        template<typename TDim, typename TIdx>
-        using AccGpuUniformCudaHipRtIfAvailableElseInt = AccGpuUniformCudaHipRt<TDim, TIdx>;
-#else
-        template<typename TDim, typename TIdx>
-        using AccGpuUniformCudaHipRtIfAvailableElseInt = int;
-#endif
-
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA || defined(ALPAKA_HOST_ONLY))
         template<typename TDim, typename TIdx>
         using AccGpuCudaRtIfAvailableElseInt = AccGpuCudaRt<TDim, TIdx>;
@@ -170,7 +161,7 @@ namespace alpaka::test
         using AccGpuSyclIntelIfAvailableElseInt = int;
 #endif
 
-        //! A vector containing all available accelerators and void's.
+        //! A vector containing all available accelerators and int's.
         template<typename TDim, typename TIdx>
         using EnabledAccsElseInt = std::tuple<
             AccCpuSerialIfAvailableElseInt<TDim, TIdx>,
@@ -181,7 +172,6 @@ namespace alpaka::test
             AccCpuOmp2ThreadsIfAvailableElseInt<TDim, TIdx>,
             AccOmp5IfAvailableElseInt<TDim, TIdx>,
             AccOaccIfAvailableElseInt<TDim, TIdx>,
-            AccGpuUniformCudaHipRtIfAvailableElseInt<TDim, TIdx>,
             AccGpuCudaRtIfAvailableElseInt<TDim, TIdx>,
             AccGpuHipRtIfAvailableElseInt<TDim, TIdx>,
             AccCpuSyclIntelIfAvailableElseInt<TDim, TIdx>,

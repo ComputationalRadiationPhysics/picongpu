@@ -31,7 +31,16 @@ namespace alpaka
             static auto declareVar(BlockSharedMemStOmp5BuiltIn const&) -> T&
             {
                 static T shMem;
+                // We disable icpx's warning here, because we are unsure whether the compiler is correct.
+                // See discussion: https://github.com/alpaka-group/alpaka/pull/1700#issuecomment-1109745006
+#    ifdef __INTEL_LLVM_COMPILER
+#        pragma clang diagnostic push
+#        pragma clang diagnostic ignored "-Wopenmp-allocate"
+#    endif
 #    pragma omp allocate(shMem) allocator(omp_pteam_mem_alloc)
+#    ifdef __INTEL_LLVM_COMPILER
+#        pragma clang diagnostic pop
+#    endif
                 return shMem;
             }
         };

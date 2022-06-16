@@ -6,27 +6,18 @@
             "orcid":"0000-0003-1642-0459"
         },
         {
-            "name":"Bastrakov, Sergei",
-            "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
-            "orcid":"0000-0003-3396-6154"
-        },
-        {
             "name":"Ehrig, Simeon",
             "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
             "orcid":"0000-0002-8218-3116"
-        },
-        {
-            "name":"Kelling, Jeffrey",
-            "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
-            "orcid":"0000-0003-1761-2591"
-        },
-        {
-            "name":"Stephan, Jan",
-            "affiliation":"CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-            "orcid":"0000-0001-7839-4386"
         }
     ],
     "contributors":[
+        {
+            "name":"Bastrakov, Sergei",
+            "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
+            "orcid":"0000-0003-3396-6154",
+            "type":"Other"
+        },
         {
             "name":"Bocci, Andrea",
             "affiliation":"CERN",
@@ -44,6 +35,12 @@
             "type":"Other"
         },
         {
+            "name":"Kelling, Jeffrey",
+            "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
+            "orcid":"0000-0003-1761-2591",
+            "type":"Other"
+        },
+        {
             "name":"Mewes, Hauke",
             "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
             "type":"Other"
@@ -51,6 +48,12 @@
         {
             "name":"Ridder, Vincent",
             "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
+            "type":"Other"
+        },
+        {
+            "name":"Stephan, Jan",
+            "affiliation":"CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+            "orcid":"0000-0001-7839-4386",
             "type":"Other"
         },
         {

@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Jeffrey Kelling
  *
  * This file is part of alpaka.
  *
@@ -45,4 +45,21 @@
 #        pragma warning(pop)
 #    endif
 
+#    include <alpaka/core/ThreadTraits.hpp>
+
+namespace alpaka
+{
+    namespace trait
+    {
+        //! boost::fiber implementation of IsThisThread trait.
+        template<>
+        struct IsThisThread<boost::fibers::fiber>
+        {
+            ALPAKA_FN_HOST static auto isThisThread(const boost::fibers::fiber& fiber) -> bool
+            {
+                return boost::this_fiber::get_id() == fiber.get_id();
+            }
+        };
+    } // namespace trait
+} // namespace alpaka
 #endif

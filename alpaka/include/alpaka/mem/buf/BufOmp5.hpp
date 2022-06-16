@@ -50,7 +50,7 @@ namespace alpaka
         public:
             //! Constructor
             template<typename TExtent>
-            ALPAKA_FN_HOST BufOmp5Impl(DevOmp5 const& dev, TElem* const pMem, TExtent const& extent)
+            ALPAKA_FN_HOST BufOmp5Impl(DevOmp5 const& dev, TElem* const pMem, TExtent const& extent) noexcept
                 : m_dev(dev)
                 , m_extentElements(getExtentVecEnd<TDim>(extent))
                 , m_pMem(pMem)

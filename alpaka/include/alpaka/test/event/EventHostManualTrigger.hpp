@@ -221,7 +221,7 @@ namespace alpaka::trait
             auto const enqueueCount = spEventImpl->m_enqueueCount;
 
             // Enqueue a task that only resets the events flag if it is completed.
-            queue.m_spQueueImpl->m_workerThread.enqueueTask(
+            queue.m_spQueueImpl->m_workerThread->enqueueTask(
                 [spEventImpl, enqueueCount]()
                 {
                     std::unique_lock<std::mutex> lk2(spEventImpl->m_mutex);
@@ -289,8 +289,10 @@ namespace alpaka::test
     {
         class EventHostManualTriggerCudaImpl final
         {
+            using TApi = alpaka::ApiCudaRt;
+
         public:
-            ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(DevUniformCudaHipRt const& dev)
+            ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(DevCudaRt const& dev)
                 : m_dev(dev)
                 , m_mutex()
                 , m_bIsReady(true)
@@ -328,7 +330,7 @@ namespace alpaka::test
             }
 
         public:
-            DevUniformCudaHipRt const m_dev; //!< The device this event is bound to.
+            DevCudaRt const m_dev; //!< The device this event is bound to.
 
             mutable std::mutex m_mutex; //!< The mutex used to synchronize access to the event.
             void* m_devMem;
@@ -341,7 +343,7 @@ namespace alpaka::test
     class EventHostManualTriggerCuda final
     {
     public:
-        ALPAKA_FN_HOST EventHostManualTriggerCuda(DevUniformCudaHipRt const& dev)
+        ALPAKA_FN_HOST EventHostManualTriggerCuda(DevCudaRt const& dev)
             : m_spEventImpl(std::make_shared<uniform_cuda_hip::detail::EventHostManualTriggerCudaImpl>(dev))
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -367,13 +369,13 @@ namespace alpaka::test
     namespace trait
     {
         template<>
-        struct EventHostManualTriggerType<DevUniformCudaHipRt>
+        struct EventHostManualTriggerType<DevCudaRt>
         {
             using type = test::EventHostManualTriggerCuda;
         };
         //! The CPU event host manual trigger support get trait specialization.
         template<>
-        struct IsEventHostManualTriggerSupported<DevUniformCudaHipRt>
+        struct IsEventHostManualTriggerSupported<DevCudaRt>
         {
             ALPAKA_FN_HOST static auto isSupported(DevCudaRt const& dev) -> bool
             {
@@ -391,7 +393,7 @@ namespace alpaka::trait
     template<>
     struct GetDev<test::EventHostManualTriggerCuda>
     {
-        ALPAKA_FN_HOST static auto getDev(test::EventHostManualTriggerCuda const& event) -> DevUniformCudaHipRt
+        ALPAKA_FN_HOST static auto getDev(test::EventHostManualTriggerCuda const& event) -> DevCudaRt
         {
             return event.m_spEventImpl->m_dev;
         }
@@ -411,11 +413,10 @@ namespace alpaka::trait
     };
 
     template<>
-    struct Enqueue<QueueUniformCudaHipRtNonBlocking, test::EventHostManualTriggerCuda>
+    struct Enqueue<QueueCudaRtNonBlocking, test::EventHostManualTriggerCuda>
     {
-        ALPAKA_FN_HOST static auto enqueue(
-            QueueUniformCudaHipRtNonBlocking& queue,
-            test::EventHostManualTriggerCuda& event) -> void
+        ALPAKA_FN_HOST static auto enqueue(QueueCudaRtNonBlocking& queue, test::EventHostManualTriggerCuda& event)
+            -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -445,11 +446,9 @@ namespace alpaka::trait
         }
     };
     template<>
-    struct Enqueue<QueueUniformCudaHipRtBlocking, test::EventHostManualTriggerCuda>
+    struct Enqueue<QueueCudaRtBlocking, test::EventHostManualTriggerCuda>
     {
-        ALPAKA_FN_HOST static auto enqueue(
-            QueueUniformCudaHipRtBlocking& queue,
-            test::EventHostManualTriggerCuda& event) -> void
+        ALPAKA_FN_HOST static auto enqueue(QueueCudaRtBlocking& queue, test::EventHostManualTriggerCuda& event) -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -498,6 +497,8 @@ namespace alpaka::test
     {
         class EventHostManualTriggerHipImpl final
         {
+            using TApi = alpaka::ApiHipRt;
+
         public:
             ALPAKA_FN_HOST EventHostManualTriggerHipImpl(DevHipRt const& dev) : m_dev(dev), m_mutex(), m_bIsReady(true)
             {
@@ -621,6 +622,8 @@ namespace alpaka::trait
     template<>
     struct Enqueue<QueueHipRtNonBlocking, test::EventHostManualTriggerHip>
     {
+        using TApi = alpaka::ApiHipRt;
+
         ALPAKA_FN_HOST static auto enqueue(QueueHipRtNonBlocking& queue, test::EventHostManualTriggerHip& event)
             -> void
         {
@@ -663,6 +666,8 @@ namespace alpaka::trait
     template<>
     struct Enqueue<QueueHipRtBlocking, test::EventHostManualTriggerHip>
     {
+        using TApi = alpaka::ApiHipRt;
+
         ALPAKA_FN_HOST static auto enqueue(
             [[maybe_unused]] QueueHipRtBlocking& queue,
             test::EventHostManualTriggerHip& event) -> void

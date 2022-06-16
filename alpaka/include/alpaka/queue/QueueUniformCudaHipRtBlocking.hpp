@@ -1,5 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
- * Antonio Di Pilato
+/* Copyright 2022 Andrea Bocci
  *
  * This file is part of alpaka.
  *
@@ -17,13 +16,8 @@
 namespace alpaka
 {
     //! The CUDA/HIP RT blocking queue.
-    using QueueUniformCudaHipRtBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<true>;
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    using QueueCudaRtBlocking = QueueUniformCudaHipRtBlocking;
-#    else
-    using QueueHipRtBlocking = QueueUniformCudaHipRtBlocking;
-#    endif
+    template<typename TApi>
+    using QueueUniformCudaHipRtBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, true>;
 
 } // namespace alpaka
 

@@ -1,4 +1,4 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov
+/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -37,9 +37,24 @@ TEMPLATE_LIST_TEST_CASE("mathOpsComplexDouble", "[math] [operator]", TestAccFunc
     testTemplate.template operator()<alpaka::Complex<double>>();
 }
 
-#ifdef __cpp_lib_is_layout_compatible
-TEMPLATE_LIST_TEST_CASE("mathOpsComplexDouble", "[layout]", TestAccs)
+TEST_CASE("mathArrayOrientedComplexDouble", "[array-oriented]")
 {
-    STATIC_REQUIRE(std::is_layout_compatible_v<alpaka::Complex<double> std::complex<double>>);
+    // Ensure that our implementation matches the behaviour of std::complex with regard to array-oriented access.
+    // See https://en.cppreference.com/w/cpp/numeric/complex - Array-oriented access - for more information.
+    auto const complex_alpaka = alpaka::Complex<double>{42., 42.};
+    auto const complex_std = std::complex<double>{42., 42.};
+
+    auto const real_alpaka = reinterpret_cast<double const(&)[2]>(complex_alpaka)[0];
+    auto const real_std = reinterpret_cast<double const(&)[2]>(complex_std)[0];
+    REQUIRE(alpaka::math::floatEqualExactNoWarning(real_alpaka, real_std));
+
+    auto const imag_alpaka = reinterpret_cast<double const(&)[2]>(complex_alpaka)[1];
+    auto const imag_std = reinterpret_cast<double const(&)[2]>(complex_std)[1];
+    REQUIRE(alpaka::math::floatEqualExactNoWarning(imag_alpaka, imag_std));
 }
-#endif
+
+TEST_CASE("mathPaddingComplexDouble", "[padding]")
+{
+    // Ensure that we don't accidentally introduce padding
+    STATIC_REQUIRE(sizeof(alpaka::Complex<double>) == 2 * sizeof(double));
+}

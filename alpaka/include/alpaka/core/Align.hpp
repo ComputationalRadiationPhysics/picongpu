@@ -63,23 +63,6 @@ namespace alpaka::core
     } // namespace align
 } // namespace alpaka::core
 
-// ICC does not support constant expressions as parameters to alignas
 // The optimal alignment for a type is the next higher or equal power of two.
-#if BOOST_COMP_INTEL
-#    define ALPAKA_OPTIMAL_ALIGNMENT_SIZE(...)                                                                        \
-        ((__VA_ARGS__) == 1                                                                                           \
-             ? 1                                                                                                      \
-             : ((__VA_ARGS__) <= 2                                                                                    \
-                    ? 2                                                                                               \
-                    : ((__VA_ARGS__) <= 4                                                                             \
-                           ? 4                                                                                        \
-                           : ((__VA_ARGS__) <= 8                                                                      \
-                                  ? 8                                                                                 \
-                                  : ((__VA_ARGS__) <= 16                                                              \
-                                         ? 16                                                                         \
-                                         : ((__VA_ARGS__) <= 32 ? 32 : ((__VA_ARGS__) <= 64 ? 64 : 128)))))))
-#    define ALPAKA_OPTIMAL_ALIGNMENT(...) ALPAKA_OPTIMAL_ALIGNMENT_SIZE(sizeof(std::remove_cv_t<__VA_ARGS__>))
-#else
-#    define ALPAKA_OPTIMAL_ALIGNMENT(...)                                                                             \
-        ::alpaka::core::align::OptimalAlignment<sizeof(std::remove_cv_t<__VA_ARGS__>)>::value
-#endif
+#define ALPAKA_OPTIMAL_ALIGNMENT(...)                                                                                 \
+    ::alpaka::core::align::OptimalAlignment<sizeof(std::remove_cv_t<__VA_ARGS__>)>::value

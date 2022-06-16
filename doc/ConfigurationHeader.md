@@ -24,7 +24,7 @@ Depending of the used accelerator you must link the library `pthread` and/or act
 Example
 =======
 
-To select an accelerator you must include the corresponding accelerator header from [`cupla/config/`](https://github.com/alpaka-group/cupla/tree/master/include/cupla/config)
+To select an accelerator you must include the corresponding accelerator header from [`cupla/config/`](https://github.com/alpaka-group/cupla/tree/dev/include/cupla/config)
 
 
 ```C++

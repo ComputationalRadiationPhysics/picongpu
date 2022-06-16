@@ -229,7 +229,7 @@ Access multi-dimensional indices and extents of blocks, threads, and elements
   .. code-block:: c++
 
      auto idx = getIdx<Origin, Unit>(acc);
-     auto extent = getWorkdiv<Origin, Unit>(acc);
+     auto extent = getWorkDiv<Origin, Unit>(acc);
 
   Origin:
      .. code-block:: c++

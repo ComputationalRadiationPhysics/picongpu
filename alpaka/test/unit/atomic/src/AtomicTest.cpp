@@ -341,38 +341,6 @@ public:
     }
 };
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-// Skip all atomic tests for the unified CUDA/HIP backend.
-// CUDA and HIP atomics will be tested separate.
-template<typename T, typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuUniformCudaHipRt<TDim, TIdx>, T, std::enable_if_t<!std::is_floating_point_v<T>>>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& /* acc */,
-        bool* /* success */,
-        T /* operandOrig */) const -> void
-    {
-    }
-};
-
-// We need this partial specialization because of partial ordering of the
-// template specializations
-template<typename T, typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuUniformCudaHipRt<TDim, TIdx>, T, std::enable_if_t<std::is_floating_point_v<T>>>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& /* acc */,
-        bool* /* success */,
-        T /* operandOrig */) const -> void
-    {
-    }
-};
-#endif
-
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 template<typename TDim, typename TIdx>
 class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, int>
