@@ -30,6 +30,7 @@
 #    include <alpaka/block/shared/st/BlockSharedMemStOmp5.hpp>
 #    include <alpaka/block/shared/st/BlockSharedMemStOmp5BuiltIn.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierOmp.hpp>
+#    include <alpaka/core/DemangleTypeNames.hpp>
 #    include <alpaka/idx/bt/IdxBtOmp.hpp>
 #    include <alpaka/idx/gb/IdxGbLinear.hpp>
 #    include <alpaka/intrinsic/IntrinsicFallback.hpp>
@@ -233,7 +234,7 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccOmp5<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+                return "AccOmp5<" + std::to_string(TDim::value) + "," + core::demangled<TIdx> + ">";
             }
         };
 

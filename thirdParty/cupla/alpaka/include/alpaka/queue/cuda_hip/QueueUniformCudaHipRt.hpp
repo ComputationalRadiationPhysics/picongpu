@@ -27,31 +27,35 @@
 #        include <alpaka/core/Hip.hpp>
 #    endif
 
+#    include <alpaka/core/CallbackThread.hpp>
+
 #    include <condition_variable>
 #    include <functional>
+#    include <future>
 #    include <memory>
 #    include <mutex>
-#    include <stdexcept>
 #    include <thread>
 
 namespace alpaka
 {
+    template<typename TApi>
     class EventUniformCudaHipRt;
 
     namespace uniform_cuda_hip::detail
     {
         //! The CUDA/HIP RT queue implementation.
+        template<typename TApi>
         class QueueUniformCudaHipRtImpl final
         {
         public:
-            ALPAKA_FN_HOST QueueUniformCudaHipRtImpl(DevUniformCudaHipRt const& dev)
+            ALPAKA_FN_HOST QueueUniformCudaHipRtImpl(DevUniformCudaHipRt<TApi> const& dev)
                 : m_dev(dev)
                 , m_UniformCudaHipQueue()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Set the current device.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(m_dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(m_dev.getNativeHandle()));
 
                 // - [cuda/hip]StreamDefault: Default queue creation flag.
                 // - [cuda/hip]StreamNonBlocking: Specifies that work running in the created queue may run
@@ -61,8 +65,8 @@ namespace alpaka
                 // NOTE: [cuda/hip]StreamNonBlocking is required to match the semantic implemented in the alpaka
                 // CPU queue. It would be too much work to implement implicit default queue synchronization on CPU.
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(
-                    StreamCreateWithFlags)(&m_UniformCudaHipQueue, ALPAKA_API_PREFIX(StreamNonBlocking)));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                    TApi::streamCreateWithFlags(&m_UniformCudaHipQueue, TApi::streamNonBlocking));
             }
             QueueUniformCudaHipRtImpl(QueueUniformCudaHipRtImpl&&) = default;
             auto operator=(QueueUniformCudaHipRtImpl&&) -> QueueUniformCudaHipRtImpl& = delete;
@@ -74,7 +78,7 @@ namespace alpaka
                 // function will return immediately and the resources associated with queue will be released
                 // automatically once the device has completed all work in queue.
                 // -> No need to synchronize here.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(ALPAKA_API_PREFIX(StreamDestroy)(m_UniformCudaHipQueue));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::streamDestroy(m_UniformCudaHipQueue));
             }
 
             [[nodiscard]] auto getNativeHandle() const noexcept
@@ -83,21 +87,23 @@ namespace alpaka
             }
 
         public:
-            DevUniformCudaHipRt const m_dev; //!< The device this queue is bound to.
+            DevUniformCudaHipRt<TApi> const m_dev; //!< The device this queue is bound to.
+            core::CallbackThread m_callbackThread;
+
         private:
-            ALPAKA_API_PREFIX(Stream_t) m_UniformCudaHipQueue;
+            typename TApi::Stream_t m_UniformCudaHipQueue;
         };
 
         //! The CUDA/HIP RT queue.
-        template<bool TBlocking>
-        class QueueUniformCudaHipRt final
-            : public concepts::Implements<ConceptCurrentThreadWaitFor, QueueUniformCudaHipRt<TBlocking>>
-            , public concepts::Implements<ConceptQueue, QueueUniformCudaHipRt<TBlocking>>
-            , public concepts::Implements<ConceptGetDev, QueueUniformCudaHipRt<TBlocking>>
+        template<typename TApi, bool TBlocking>
+        class QueueUniformCudaHipRt
+            : public concepts::Implements<ConceptCurrentThreadWaitFor, QueueUniformCudaHipRt<TApi, TBlocking>>
+            , public concepts::Implements<ConceptQueue, QueueUniformCudaHipRt<TApi, TBlocking>>
+            , public concepts::Implements<ConceptGetDev, QueueUniformCudaHipRt<TApi, TBlocking>>
         {
         public:
-            ALPAKA_FN_HOST QueueUniformCudaHipRt(DevUniformCudaHipRt const& dev)
-                : m_spQueueImpl(std::make_shared<QueueUniformCudaHipRtImpl>(dev))
+            ALPAKA_FN_HOST QueueUniformCudaHipRt(DevUniformCudaHipRt<TApi> const& dev)
+                : m_spQueueImpl(std::make_shared<QueueUniformCudaHipRtImpl<TApi>>(dev))
             {
             }
             ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRt const& rhs) const -> bool
@@ -113,55 +119,45 @@ namespace alpaka
             {
                 return m_spQueueImpl->getNativeHandle();
             }
+            auto getCallbackThread() -> core::CallbackThread&
+            {
+                return m_spQueueImpl->m_callbackThread;
+            }
 
         public:
-            std::shared_ptr<QueueUniformCudaHipRtImpl> m_spQueueImpl;
+            std::shared_ptr<QueueUniformCudaHipRtImpl<TApi>> m_spQueueImpl;
         };
-
     } // namespace uniform_cuda_hip::detail
 
     namespace trait
     {
-        //! The CUDA/HIP RT queue device type trait specialization.
-        template<bool TBlocking>
-        struct DevType<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>>
-        {
-            using type = DevUniformCudaHipRt;
-        };
-
-        //! The CUDA/HIP RT queue event type trait specialization.
-        template<bool TBlocking>
-        struct EventType<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>>
-        {
-            using type = EventUniformCudaHipRt;
-        };
-
         //! The CUDA/HIP RT queue device get trait specialization.
-        template<bool TBlocking>
-        struct GetDev<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>>
+        template<typename TApi, bool TBlocking>
+        struct GetDev<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>>
         {
-            ALPAKA_FN_HOST static auto getDev(uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking> const& queue)
-                -> DevUniformCudaHipRt
+            ALPAKA_FN_HOST static auto getDev(
+                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking> const& queue)
+                -> DevUniformCudaHipRt<TApi>
             {
                 return queue.m_spQueueImpl->m_dev;
             }
         };
 
         //! The CUDA/HIP RT queue test trait specialization.
-        template<bool TBlocking>
-        struct Empty<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>>
+        template<typename TApi, bool TBlocking>
+        struct Empty<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>>
         {
-            ALPAKA_FN_HOST static auto empty(uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking> const& queue)
-                -> bool
+            ALPAKA_FN_HOST static auto empty(
+                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking> const& queue) -> bool
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Query is allowed even for queues on non current device.
-                ALPAKA_API_PREFIX(Error_t) ret = ALPAKA_API_PREFIX(Success);
+                typename TApi::Error_t ret = TApi::success;
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(
-                    ret = ALPAKA_API_PREFIX(StreamQuery)(queue.getNativeHandle()),
-                    ALPAKA_API_PREFIX(ErrorNotReady));
-                return (ret == ALPAKA_API_PREFIX(Success));
+                    ret = TApi::streamQuery(queue.getNativeHandle()),
+                    TApi::errorNotReady);
+                return (ret == TApi::success);
             }
         };
 
@@ -169,22 +165,36 @@ namespace alpaka
         //!
         //! Blocks execution of the calling thread until the queue has finished processing all previously requested
         //! tasks (kernels, data copies, ...)
-        template<bool TBlocking>
-        struct CurrentThreadWaitFor<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>>
+        template<typename TApi, bool TBlocking>
+        struct CurrentThreadWaitFor<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>>
         {
             ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking> const& queue) -> void
+                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking> const& queue) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Sync is allowed even for queues on non current device.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(StreamSynchronize)(queue.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::streamSynchronize(queue.getNativeHandle()));
             }
         };
 
-        //! The CUDA/HIP RT queue enqueue trait specialization.
-        template<bool TBlocking, typename TTask>
-        struct Enqueue<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>, TTask>
+        //! The CUDA/HIP RT blocking queue device type trait specialization.
+        template<typename TApi, bool TBlocking>
+        struct DevType<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>>
+        {
+            using type = DevUniformCudaHipRt<TApi>;
+        };
+
+        //! The CUDA/HIP RT blocking queue event type trait specialization.
+        template<typename TApi, bool TBlocking>
+        struct EventType<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>>
+        {
+            using type = EventUniformCudaHipRt<TApi>;
+        };
+
+        //! The CUDA/HIP RT blocking queue enqueue trait specialization.
+        template<typename TApi, bool TBlocking, typename TTask>
+        struct Enqueue<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>, TTask>
         {
             enum class CallbackState
             {
@@ -200,18 +210,7 @@ namespace alpaka
                 CallbackState m_state = CallbackState::enqueued;
             };
 
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-            static void CUDART_CB
-#    else
-            static void HIPRT_CB
-#    endif
-            uniformCudaHipRtCallback(
-#    if !defined(CUDA_VERSION) || CUDA_VERSION <= 9020
-                ALPAKA_API_PREFIX(Stream_t) /*queue*/,
-                ALPAKA_API_PREFIX(Error_t) /*status*/,
-#    endif
-                void* arg)
-
+            ALPAKA_FN_HOST static void uniformCudaHipRtHostFunc(void* arg)
             {
                 // explicitly copy the shared_ptr so that this method holds the state even when the executing thread
                 // has already finished.
@@ -237,29 +236,21 @@ namespace alpaka
             }
 
             ALPAKA_FN_HOST static auto enqueue(
-                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>& queue,
+                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>& queue,
                 TTask const& task) -> void
             {
                 auto spCallbackSynchronizationData = std::make_shared<CallbackSynchronizationData>();
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && CUDA_VERSION > 9020
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(LaunchHostFunc)(
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::launchHostFunc(
                     queue.getNativeHandle(),
-                    uniformCudaHipRtCallback,
+                    uniformCudaHipRtHostFunc,
                     spCallbackSynchronizationData.get()));
-#    else
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(StreamAddCallback)(
-                    queue.getNativeHandle(),
-                    uniformCudaHipRtCallback,
-                    spCallbackSynchronizationData.get(),
-                    0u));
-#    endif
 
                 // We start a new std::thread which stores the task to be executed.
                 // This circumvents the limitation that it is not possible to call CUDA/HIP methods within the CUDA/HIP
                 // callback thread. The CUDA/HIP thread signals the std::thread when it is ready to execute the task.
                 // The CUDA/HIP thread is waiting for the std::thread to signal that it is finished executing the task
                 // before it executes the next task in the queue (CUDA/HIP stream).
-                std::thread t(
+                auto f = queue.getCallbackThread().submit(std::packaged_task<void()>(
                     [spCallbackSynchronizationData, task]()
                     {
                         // If the callback has not yet been called, we wait for it.
@@ -279,25 +270,21 @@ namespace alpaka
                             spCallbackSynchronizationData->m_state = CallbackState::finished;
                         }
                         spCallbackSynchronizationData->m_event.notify_one();
-                    });
+                    }));
 
                 if constexpr(TBlocking)
                 {
-                    t.join();
-                }
-                else
-                {
-                    t.detach();
+                    f.wait();
                 }
             }
         };
 
-        //! The CUDA/HIP RT queue native handle trait specialization.
-        template<bool TBlocking>
-        struct NativeHandle<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking>>
+        //! The CUDA/HIP RT blocking queue native handle trait specialization.
+        template<typename TApi, bool TBlocking>
+        struct NativeHandle<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>>
         {
             [[nodiscard]] static auto getNativeHandle(
-                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TBlocking> const& queue)
+                uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking> const& queue)
             {
                 return queue.getNativeHandle();
             }

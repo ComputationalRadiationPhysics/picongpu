@@ -20,11 +20,18 @@ public:
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
         std::uint64_t const start(alpaka::clock(acc));
         ALPAKA_CHECK(*success, 0u != start);
 
         std::uint64_t const end(alpaka::clock(acc));
         ALPAKA_CHECK(*success, 0u != end);
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
 
         // 'end' has to be greater equal 'start'.
         // CUDA clock will never be equal for two calls, but the clock implementations for CPUs can be.

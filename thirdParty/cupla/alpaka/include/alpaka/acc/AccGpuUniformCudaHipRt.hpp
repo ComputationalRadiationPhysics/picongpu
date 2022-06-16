@@ -17,6 +17,7 @@
 #    include <alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/block/shared/st/BlockSharedMemStUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/block/sync/BlockSyncUniformCudaHipBuiltIn.hpp>
+#    include <alpaka/core/DemangleTypeNames.hpp>
 #    include <alpaka/idx/bt/IdxBtUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/idx/gb/IdxGbUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/intrinsic/IntrinsicUniformCudaHipBuiltIn.hpp>
@@ -44,13 +45,14 @@
 
 namespace alpaka
 {
-    template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
+    template<typename TApi, typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelGpuUniformCudaHipRt;
 
     //! The GPU CUDA accelerator.
     //!
     //! This accelerator allows parallel kernel execution on devices supporting CUDA.
     template<
+        typename TApi,
         typename TDim,
         typename TIdx>
     class AccGpuUniformCudaHipRt :
@@ -68,10 +70,10 @@ namespace alpaka
         public BlockSyncUniformCudaHipBuiltIn,
         public IntrinsicUniformCudaHipBuiltIn,
         public MemFenceUniformCudaHipBuiltIn,
-        public rand::RandUniformCudaHipRand,
+        public rand::RandUniformCudaHipRand<TApi>,
         public TimeUniformCudaHipBuiltIn,
         public warp::WarpUniformCudaHipBuiltIn,
-        public concepts::Implements<ConceptAcc, AccGpuUniformCudaHipRt<TDim, TIdx>>
+        public concepts::Implements<ConceptAcc, AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
@@ -92,7 +94,7 @@ namespace alpaka
             , BlockSharedMemStUniformCudaHipBuiltIn()
             , BlockSyncUniformCudaHipBuiltIn()
             , MemFenceUniformCudaHipBuiltIn()
-            , rand::RandUniformCudaHipRand()
+            , rand::RandUniformCudaHipRand<TApi>()
             , TimeUniformCudaHipBuiltIn()
         {
         }
@@ -101,50 +103,65 @@ namespace alpaka
     namespace trait
     {
         //! The GPU CUDA accelerator accelerator type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct AccType<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct AccType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
-            using type = AccGpuUniformCudaHipRt<TDim, TIdx>;
+            using type = AccGpuUniformCudaHipRt<TApi, TDim, TIdx>;
         };
+
         //! The GPU CUDA accelerator device properties get trait specialization.
-        template<typename TDim, typename TIdx>
-        struct GetAccDevProps<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct GetAccDevProps<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getAccDevProps(DevUniformCudaHipRt const& dev) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevUniformCudaHipRt<TApi> const& dev) -> AccDevProps<TDim, TIdx>
             {
 #    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 // Reading only the necessary attributes with cudaDeviceGetAttribute is faster than reading all with
                 // cuda https://devblogs.nvidia.com/cuda-pro-tip-the-fast-way-to-query-device-properties/
                 int multiProcessorCount = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cudaDeviceGetAttribute(
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
                     &multiProcessorCount,
-                    cudaDevAttrMultiProcessorCount,
+                    TApi::deviceAttributeMultiprocessorCount,
                     dev.getNativeHandle()));
 
                 int maxGridSize[3] = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxGridSize[0], cudaDevAttrMaxGridDimX, dev.getNativeHandle()));
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxGridSize[1], cudaDevAttrMaxGridDimY, dev.getNativeHandle()));
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxGridSize[2], cudaDevAttrMaxGridDimZ, dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxGridSize[0],
+                    TApi::deviceAttributeMaxGridDimX,
+                    dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxGridSize[1],
+                    TApi::deviceAttributeMaxGridDimY,
+                    dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxGridSize[2],
+                    TApi::deviceAttributeMaxGridDimZ,
+                    dev.getNativeHandle()));
 
                 int maxBlockDim[3] = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxBlockDim[0], cudaDevAttrMaxBlockDimX, dev.getNativeHandle()));
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxBlockDim[1], cudaDevAttrMaxBlockDimY, dev.getNativeHandle()));
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxBlockDim[2], cudaDevAttrMaxBlockDimZ, dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxBlockDim[0],
+                    TApi::deviceAttributeMaxBlockDimX,
+                    dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxBlockDim[1],
+                    TApi::deviceAttributeMaxBlockDimY,
+                    dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxBlockDim[2],
+                    TApi::deviceAttributeMaxBlockDimZ,
+                    dev.getNativeHandle()));
 
                 int maxThreadsPerBlock = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
+                    &maxThreadsPerBlock,
+                    TApi::deviceAttributeMaxThreadsPerBlock,
+                    dev.getNativeHandle()));
 
                 int sharedMemSizeBytes = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cudaDeviceGetAttribute(
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceGetAttribute(
                     &sharedMemSizeBytes,
-                    cudaDevAttrMaxSharedMemoryPerBlock,
+                    TApi::deviceAttributeMaxSharedMemoryPerBlock,
                     dev.getNativeHandle()));
 
                 return {// m_multiProcessorCount
@@ -171,58 +188,61 @@ namespace alpaka
                         static_cast<size_t>(sharedMemSizeBytes)};
 
 #    else
-                hipDeviceProp_t hipDevProp;
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipGetDeviceProperties(&hipDevProp, dev.getNativeHandle()));
+                typename TApi::DeviceProp_t properties;
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::getDeviceProperties(&properties, dev.getNativeHandle()));
 
                 return {// m_multiProcessorCount
-                        alpaka::core::clipCast<TIdx>(hipDevProp.multiProcessorCount),
+                        alpaka::core::clipCast<TIdx>(properties.multiProcessorCount),
                         // m_gridBlockExtentMax
                         getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
-                            alpaka::core::clipCast<TIdx>(hipDevProp.maxGridSize[2u]),
-                            alpaka::core::clipCast<TIdx>(hipDevProp.maxGridSize[1u]),
-                            alpaka::core::clipCast<TIdx>(hipDevProp.maxGridSize[0u]))),
+                            alpaka::core::clipCast<TIdx>(properties.maxGridSize[2u]),
+                            alpaka::core::clipCast<TIdx>(properties.maxGridSize[1u]),
+                            alpaka::core::clipCast<TIdx>(properties.maxGridSize[0u]))),
                         // m_gridBlockCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_blockThreadExtentMax
                         getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
-                            alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsDim[2u]),
-                            alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsDim[1u]),
-                            alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsDim[0u]))),
+                            alpaka::core::clipCast<TIdx>(properties.maxThreadsDim[2u]),
+                            alpaka::core::clipCast<TIdx>(properties.maxThreadsDim[1u]),
+                            alpaka::core::clipCast<TIdx>(properties.maxThreadsDim[0u]))),
                         // m_blockThreadCountMax
-                        alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsPerBlock),
+                        alpaka::core::clipCast<TIdx>(properties.maxThreadsPerBlock),
                         // m_threadElemExtentMax
                         Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        static_cast<size_t>(hipDevProp.sharedMemPerBlock)};
+                        static_cast<size_t>(properties.sharedMemPerBlock)};
 #    endif
             }
         };
+
         //! The GPU CUDA accelerator name trait specialization.
-        template<typename TDim, typename TIdx>
-        struct GetAccName<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct GetAccName<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccGpuUniformCudaHipRt<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+                return std::string("AccGpu") + TApi::name + "Rt<" + std::to_string(TDim::value) + ","
+                    + core::demangled<TIdx> + ">";
             }
         };
 
         //! The GPU CUDA accelerator device type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct DevType<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct DevType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
-            using type = DevUniformCudaHipRt;
+            using type = DevUniformCudaHipRt<TApi>;
         };
 
         //! The GPU CUDA accelerator dimension getter trait specialization.
-        template<typename TDim, typename TIdx>
-        struct DimType<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct DimType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
             using type = TDim;
         };
     } // namespace trait
+
     namespace detail
     {
         //! specialization of the TKernelFnObj return type evaluation
@@ -230,8 +250,8 @@ namespace alpaka
         // It is not possible to determine the result type of a __device__ lambda for CUDA on the host side.
         // https://github.com/alpaka-group/alpaka/pull/695#issuecomment-446103194
         // The execution task TaskKernelGpuUniformCudaHipRt is therefore performing this check on device side.
-        template<typename TDim, typename TIdx>
-        struct CheckFnReturnType<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct CheckFnReturnType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
             template<typename TKernelFnObj, typename... TArgs>
             void operator()(TKernelFnObj const&, TArgs const&...)
@@ -239,11 +259,18 @@ namespace alpaka
             }
         };
     } // namespace detail
+
     namespace trait
     {
         //! The GPU CUDA accelerator execution task type trait specialization.
-        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
-        struct CreateTaskKernel<AccGpuUniformCudaHipRt<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        template<
+            typename TApi,
+            typename TDim,
+            typename TIdx,
+            typename TWorkDiv,
+            typename TKernelFnObj,
+            typename... TArgs>
+        struct CreateTaskKernel<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
@@ -251,7 +278,8 @@ namespace alpaka
                 TArgs&&... args)
             {
                 return TaskKernelGpuUniformCudaHipRt<
-                    AccGpuUniformCudaHipRt<TDim, TIdx>,
+                    TApi,
+                    AccGpuUniformCudaHipRt<TApi, TDim, TIdx>,
                     TDim,
                     TIdx,
                     TKernelFnObj,
@@ -260,15 +288,15 @@ namespace alpaka
         };
 
         //! The CPU CUDA execution task platform type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct PltfType<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct PltfType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
-            using type = PltfUniformCudaHipRt;
+            using type = PltfUniformCudaHipRt<TApi>;
         };
 
         //! The GPU CUDA accelerator idx type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct IdxType<AccGpuUniformCudaHipRt<TDim, TIdx>>
+        template<typename TApi, typename TDim, typename TIdx>
+        struct IdxType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
             using type = TIdx;
         };

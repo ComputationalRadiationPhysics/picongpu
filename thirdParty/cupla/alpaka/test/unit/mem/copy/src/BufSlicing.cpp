@@ -7,6 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/core/DemangleTypeNames.hpp>
 #include <alpaka/test/Extent.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/mem/view/Iterator.hpp>
@@ -100,7 +101,7 @@ struct TestContainer
         for(TIdx i(0); i < extents.prod(); ++i)
         {
             INFO("Dim: " << TDim::value)
-            INFO("Idx: " << typeid(TIdx).name())
+            INFO("Idx: " << alpaka::core::demangled<TIdx>)
             INFO("Acc: " << alpaka::trait::GetAccName<TAcc>::getAccName())
             INFO("i: " << i)
             REQUIRE(ptrA[i] == Approx(ptrB[i]));

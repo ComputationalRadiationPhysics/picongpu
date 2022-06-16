@@ -12,14 +12,9 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-// Backend specific includes.
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <alpaka/core/Cuda.hpp>
-#    else
-#        include <alpaka/core/Hip.hpp>
-#    endif
-
 #    include <alpaka/core/Assert.hpp>
+#    include <alpaka/core/Cuda.hpp>
+#    include <alpaka/core/Hip.hpp>
 #    include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #    include <alpaka/dev/Traits.hpp>
 #    include <alpaka/dim/DimIntegralConst.hpp>
@@ -34,14 +29,16 @@
 
 namespace alpaka
 {
-    class DevUniformCudaHipRt;
+    // Forward declarations.
+    struct ApiCudaRt;
+    struct ApiHipRt;
 
     template<typename TElem, typename TDim, typename TIdx>
     class BufCpu;
 
     //! The CUDA/HIP memory buffer.
-    template<typename TElem, typename TDim, typename TIdx>
-    class BufUniformCudaHipRt : public internal::ViewAccessOps<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+    template<typename TApi, typename TElem, typename TDim, typename TIdx>
+    class BufUniformCudaHipRt : public internal::ViewAccessOps<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
     {
     public:
         static_assert(
@@ -53,7 +50,7 @@ namespace alpaka
         //! Constructor
         template<typename TExtent, typename Deleter>
         ALPAKA_FN_HOST BufUniformCudaHipRt(
-            DevUniformCudaHipRt const& dev,
+            DevUniformCudaHipRt<TApi> const& dev,
             TElem* const pMem,
             Deleter deleter,
             TIdx const& pitchBytes,
@@ -75,85 +72,81 @@ namespace alpaka
         }
 
     public:
-        DevUniformCudaHipRt m_dev;
+        DevUniformCudaHipRt<TApi> m_dev;
         Vec<TDim, TIdx> m_extentElements;
         std::shared_ptr<TElem> m_spMem;
         TIdx m_pitchBytes;
     };
 
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    template<typename TElem, typename TDim, typename TIdx>
-    using BufCudaRt = BufUniformCudaHipRt<TElem, TDim, TIdx>;
-#    else
-    template<typename TElem, typename TDim, typename TIdx>
-    using BufHipRt = BufUniformCudaHipRt<TElem, TDim, TIdx>;
-#    endif
-
     namespace trait
     {
         //! The BufUniformCudaHipRt device type trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct DevType<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct DevType<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            using type = DevUniformCudaHipRt;
+            using type = DevUniformCudaHipRt<TApi>;
         };
+
         //! The BufUniformCudaHipRt device get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct GetDev<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct GetDev<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getDev(BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf) -> DevUniformCudaHipRt
+            ALPAKA_FN_HOST static auto getDev(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf)
+                -> DevUniformCudaHipRt<TApi>
             {
                 return buf.m_dev;
             }
         };
 
         //! The BufUniformCudaHipRt dimension getter trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct DimType<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct DimType<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
             using type = TDim;
         };
 
         //! The BufUniformCudaHipRt memory element type get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct ElemType<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct ElemType<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
             using type = TElem;
         };
 
         //! The BufUniformCudaHipRt extent get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
+        template<typename TApi, typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
         struct GetExtent<
             TIdxIntegralConst,
-            BufUniformCudaHipRt<TElem, TDim, TIdx>,
+            BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>,
             std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
         {
-            ALPAKA_FN_HOST static auto getExtent(BufUniformCudaHipRt<TElem, TDim, TIdx> const& extent) -> TIdx
+            ALPAKA_FN_HOST static auto getExtent(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& extent) -> TIdx
             {
                 return extent.m_extentElements[TIdxIntegralConst::value];
             }
         };
 
         //! The BufUniformCudaHipRt native pointer get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct GetPtrNative<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct GetPtrNative<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getPtrNative(BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf) -> TElem const*
+            ALPAKA_FN_HOST static auto getPtrNative(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf)
+                -> TElem const*
             {
                 return buf.m_spMem.get();
             }
-            ALPAKA_FN_HOST static auto getPtrNative(BufUniformCudaHipRt<TElem, TDim, TIdx>& buf) -> TElem*
+            ALPAKA_FN_HOST static auto getPtrNative(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>& buf) -> TElem*
             {
                 return buf.m_spMem.get();
             }
         };
+
         //! The BufUniformCudaHipRt pointer on device get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct GetPtrDev<BufUniformCudaHipRt<TElem, TDim, TIdx>, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct GetPtrDev<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
         {
             ALPAKA_FN_HOST static auto getPtrDev(
-                BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf,
-                DevUniformCudaHipRt const& dev) -> TElem const*
+                BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf,
+                DevUniformCudaHipRt<TApi> const& dev) -> TElem const*
             {
                 if(dev == getDev(buf))
                 {
@@ -165,8 +158,8 @@ namespace alpaka
                 }
             }
             ALPAKA_FN_HOST static auto getPtrDev(
-                BufUniformCudaHipRt<TElem, TDim, TIdx>& buf,
-                DevUniformCudaHipRt const& dev) -> TElem*
+                BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>& buf,
+                DevUniformCudaHipRt<TApi> const& dev) -> TElem*
             {
                 if(dev == getDev(buf))
                 {
@@ -178,11 +171,12 @@ namespace alpaka
                 }
             }
         };
+
         //! The BufUniformCudaHipRt pitch get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct GetPitchBytes<DimInt<TDim::value - 1u>, BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct GetPitchBytes<DimInt<TDim::value - 1u>, BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getPitchBytes(BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf) -> TIdx
+            ALPAKA_FN_HOST static auto getPitchBytes(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf) -> TIdx
             {
                 return buf.m_pitchBytes; // TODO(bgruber): is this even correct? This reports the pitch for the TDim -
                                          // 1 dimension, but CUDA's pitch is always the row pitch, independently of the
@@ -191,16 +185,16 @@ namespace alpaka
         };
 
         //! The CUDA/HIP memory allocation trait specialization.
-        template<typename TElem, typename Dim, typename TIdx>
-        struct BufAlloc<TElem, Dim, TIdx, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename Dim, typename TIdx>
+        struct BufAlloc<TElem, Dim, TIdx, DevUniformCudaHipRt<TApi>>
         {
             template<typename TExtent>
-            ALPAKA_FN_HOST static auto allocBuf(DevUniformCudaHipRt const& dev, TExtent const& extent)
-                -> BufUniformCudaHipRt<TElem, Dim, TIdx>
+            ALPAKA_FN_HOST static auto allocBuf(DevUniformCudaHipRt<TApi> const& dev, TExtent const& extent)
+                -> BufUniformCudaHipRt<TApi, TElem, Dim, TIdx>
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
 
                 void* memPtr = nullptr;
                 std::size_t pitchBytes = 0u;
@@ -209,11 +203,11 @@ namespace alpaka
                     if constexpr(Dim::value <= 1)
                     {
                         pitchBytes = static_cast<std::size_t>(getWidth(extent)) * sizeof(TElem);
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Malloc)(&memPtr, pitchBytes));
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::malloc(&memPtr, pitchBytes));
                     }
                     else if constexpr(Dim::value == 2)
                     {
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(MallocPitch)(
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::mallocPitch(
                             &memPtr,
                             &pitchBytes,
                             static_cast<std::size_t>(getWidth(extent)) * sizeof(TElem),
@@ -221,14 +215,13 @@ namespace alpaka
                     }
                     else if constexpr(Dim::value == 3)
                     {
-                        ALPAKA_API_PREFIX(Extent)
-                        const extentVal = ALPAKA_PP_CONCAT(make_, ALPAKA_API_PREFIX(Extent))(
+                        typename TApi::Extent_t const extentVal = TApi::makeExtent(
                             static_cast<std::size_t>(getWidth(extent)) * sizeof(TElem),
                             static_cast<std::size_t>(getHeight(extent)),
                             static_cast<std::size_t>(getDepth(extent)));
-                        ALPAKA_API_PREFIX(PitchedPtr) pitchedPtrVal;
+                        typename TApi::PitchedPtr_t pitchedPtrVal;
                         pitchedPtrVal.ptr = nullptr;
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Malloc3D)(&pitchedPtrVal, extentVal));
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::malloc3D(&pitchedPtrVal, extentVal));
                         memPtr = pitchedPtrVal.ptr;
                         pitchBytes = pitchedPtrVal.pitch;
                     }
@@ -246,33 +239,33 @@ namespace alpaka
                 return {
                     dev,
                     reinterpret_cast<TElem*>(memPtr),
-                    [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(Free)(ptr)); },
+                    [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::free(ptr)); },
                     static_cast<TIdx>(pitchBytes),
                     extent};
             }
         };
 
         //! The CUDA/HIP stream-ordered memory allocation trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct AsyncBufAlloc<TElem, TDim, TIdx, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct AsyncBufAlloc<TElem, TDim, TIdx, DevUniformCudaHipRt<TApi>>
         {
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA < BOOST_VERSION_NUMBER(11, 2, 0))
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
             static_assert(
-                meta::DependentFalseType<TElem>::value,
+                std::is_same_v<TApi, ApiCudaRt> && TApi::version >= BOOST_VERSION_NUMBER(11, 2, 0),
                 "Support for stream-ordered memory buffers requires CUDA 11.2 or higher.");
 #    endif
 #    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
             static_assert(
-                meta::DependentFalseType<TElem>::value,
+                !std::is_same_v<TApi, ApiHipRt>,
                 "HIP devices do not support stream-ordered memory buffers.");
 #    endif
             static_assert(
                 TDim::value <= 1,
-                "HIP/CUDA devices support only one-dimensional stream-ordered memory buffers.");
+                "CUDA/HIP devices support only one-dimensional stream-ordered memory buffers.");
 
             template<typename TQueue, typename TExtent>
             ALPAKA_FN_HOST static auto allocAsyncBuf(TQueue queue, [[maybe_unused]] TExtent const& extent)
-                -> BufUniformCudaHipRt<TElem, TDim, TIdx>
+                -> BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -280,39 +273,69 @@ namespace alpaka
                 auto const width = getWidth(extent);
 
                 auto const& dev = getDev(queue);
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
                 void* memPtr;
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(
-                    MallocAsync)(&memPtr, static_cast<std::size_t>(width) * sizeof(TElem), queue.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::mallocAsync(
+                    &memPtr,
+                    static_cast<std::size_t>(width) * sizeof(TElem),
+                    queue.getNativeHandle()));
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 std::cout << __func__ << " ew: " << width << " ptr: " << memPtr << std::endl;
 #    endif
-                return BufUniformCudaHipRt<TElem, TDim, TIdx>(
+                return BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>(
                     dev,
                     reinterpret_cast<TElem*>(memPtr),
                     [queue = std::move(queue)](TElem* ptr)
-                    { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(FreeAsync)(ptr, queue.getNativeHandle())); },
+                    { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::freeAsync(ptr, queue.getNativeHandle())); },
                     width * static_cast<TIdx>(sizeof(TElem)),
                     extent);
             }
         };
 
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(11, 2, 0))
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
         //! The CUDA/HIP stream-ordered memory allocation capability trait specialization.
-        template<typename TDim>
-        struct HasAsyncBufSupport<TDim, DevUniformCudaHipRt> : std::bool_constant<TDim::value <= 1>
+        template<typename TApi, typename TDim>
+        struct HasAsyncBufSupport<TDim, DevUniformCudaHipRt<TApi>>
+            : std::bool_constant<
+                  std::is_same_v<TApi, ApiCudaRt> && TApi::version >= BOOST_VERSION_NUMBER(11, 2, 0)
+                  && TDim::value <= 1>
         {
         };
 #    endif
 
+        //! The pinned/mapped memory allocation trait specialization for the CUDA/HIP devices.
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct BufAllocMapped<TElem, TDim, TIdx, DevUniformCudaHipRt<TApi>>
+        {
+            template<typename TExtent>
+            ALPAKA_FN_HOST static auto allocMappedBuf(
+                DevCpu const& host,
+                DevUniformCudaHipRt<TApi> const&,
+                TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                // Allocate CUDA/HIP page-locked memory on the host, mapped into the CUDA/HIP address space and
+                // accessible to all CUDA/HIP devices.
+                TElem* memPtr;
+                TApi::hostMalloc(
+                    reinterpret_cast<void**>(&memPtr),
+                    sizeof(TElem) * static_cast<std::size_t>(getExtentProduct(extent)),
+                    TApi::hostMallocMapped | TApi::hostMallocPortable);
+                auto deleter = [](TElem* ptr) { TApi::hostFree(ptr); };
+
+                return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);
+            }
+        };
+
         //! The BufUniformCudaHipRt CUDA/HIP device memory mapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Map<BufUniformCudaHipRt<TElem, TDim, TIdx>, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct Map<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
         {
             ALPAKA_FN_HOST static auto map(
-                BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf,
-                DevUniformCudaHipRt const& dev) -> void
+                BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf,
+                DevUniformCudaHipRt<TApi> const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -325,12 +348,12 @@ namespace alpaka
             }
         };
         //! The BufUniformCudaHipRt CUDA/HIP device memory unmapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufUniformCudaHipRt<TElem, TDim, TIdx>, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct Unmap<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
         {
             ALPAKA_FN_HOST static auto unmap(
-                BufUniformCudaHipRt<TElem, TDim, TIdx> const& buf,
-                DevUniformCudaHipRt const& dev) -> void
+                BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf,
+                DevUniformCudaHipRt<TApi> const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -343,10 +366,10 @@ namespace alpaka
             }
         };
         //! The BufUniformCudaHipRt memory pinning trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Pin<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct Pin<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto pin(BufUniformCudaHipRt<TElem, TDim, TIdx>&) -> void
+            ALPAKA_FN_HOST static auto pin(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -354,10 +377,10 @@ namespace alpaka
             }
         };
         //! The BufUniformCudaHipRt memory unpinning trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unpin<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct Unpin<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto unpin(BufUniformCudaHipRt<TElem, TDim, TIdx>&) -> void
+            ALPAKA_FN_HOST static auto unpin(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -365,10 +388,10 @@ namespace alpaka
             }
         };
         //! The BufUniformCudaHipRt memory pin state trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct IsPinned<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct IsPinned<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto isPinned(BufUniformCudaHipRt<TElem, TDim, TIdx> const&) -> bool
+            ALPAKA_FN_HOST static auto isPinned(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const&) -> bool
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -377,10 +400,10 @@ namespace alpaka
             }
         };
         //! The BufUniformCudaHipRt memory prepareForAsyncCopy trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct PrepareForAsyncCopy<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct PrepareForAsyncCopy<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufUniformCudaHipRt<TElem, TDim, TIdx>&) -> void
+            ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -389,27 +412,28 @@ namespace alpaka
         };
 
         //! The BufUniformCudaHipRt offset get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-        struct GetOffset<TIdxIntegralConst, BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
+        struct GetOffset<TIdxIntegralConst, BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getOffset(BufUniformCudaHipRt<TElem, TDim, TIdx> const&) -> TIdx
+            ALPAKA_FN_HOST static auto getOffset(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const&) -> TIdx
             {
                 return 0u;
             }
         };
 
         //! The BufUniformCudaHipRt idx type trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct IdxType<BufUniformCudaHipRt<TElem, TDim, TIdx>>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct IdxType<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
             using type = TIdx;
         };
 
         //! The BufCpu CUDA/HIP device memory mapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Map<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct Map<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto map(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt const& dev) -> void
+            ALPAKA_FN_HOST static auto map(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt<TApi> const& dev)
+                -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -420,18 +444,19 @@ namespace alpaka
                     //   Maps the allocation into the CUDA/HIP address space.The device pointer to the memory may be
                     //   obtained by calling cudaHostGetDevicePointer(). This feature is available only on GPUs with
                     //   compute capability greater than or equal to 1.1.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(HostRegister)(
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::hostRegister(
                         const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf))),
                         getExtentProduct(buf) * sizeof(Elem<BufCpu<TElem, TDim, TIdx>>),
-                        ALPAKA_API_PREFIX(HostRegisterMapped)));
+                        TApi::hostRegisterMapped));
                 }
             }
         };
         //! The BufCpu CUDA/HIP device memory unmapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct Unmap<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto unmap(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt const& dev) -> void
+            ALPAKA_FN_HOST static auto unmap(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt<TApi> const& dev)
+                -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -439,36 +464,38 @@ namespace alpaka
                 {
                     // Unmaps the memory range whose base address is specified by ptr, and makes it pageable again.
                     // \FIXME: If the memory has separately been pinned before we destroy the pinning state.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(HostUnregister)(
-                        const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf)))));
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                        TApi::hostUnregister(const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf)))));
                 }
                 // If it is already the same device, nothing has to be unmapped.
             }
         };
 
         //! The BufCpu pointer on CUDA/HIP device get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto getPtrDev(BufCpu<TElem, TDim, TIdx> const& buf, DevUniformCudaHipRt const&)
-                -> TElem const*
+            ALPAKA_FN_HOST static auto getPtrDev(
+                BufCpu<TElem, TDim, TIdx> const& buf,
+                DevUniformCudaHipRt<TApi> const&) -> TElem const*
             {
                 // TODO: Check if the memory is mapped at all!
                 TElem* pDev(nullptr);
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(HostGetDevicePointer)(
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::hostGetDevicePointer(
                     &pDev,
                     const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf))),
                     0));
 
                 return pDev;
             }
-            ALPAKA_FN_HOST static auto getPtrDev(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt const&) -> TElem*
+            ALPAKA_FN_HOST static auto getPtrDev(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt<TApi> const&)
+                -> TElem*
             {
                 // TODO: Check if the memory is mapped at all!
                 TElem* pDev(nullptr);
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(HostGetDevicePointer)(&pDev, getPtrNative(buf), 0));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::hostGetDevicePointer(&pDev, getPtrNative(buf), 0));
 
                 return pDev;
             }

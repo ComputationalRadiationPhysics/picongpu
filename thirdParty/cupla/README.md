@@ -1,7 +1,6 @@
 **cupla** - C++ User interface for the Platform Independent Library alpaka
 ==========================================================================
 
-[![Code Status master](https://gitlab.com/hzdr/crp/cupla/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/cupla/pipelines/master/latest)
 [![Code Status dev](https://gitlab.com/hzdr/crp/cupla/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/cupla/pipelines/dev/latest)
 
 ![cupla Release](doc/logo/cupla_logo_320x210.png)
@@ -63,15 +62,17 @@ Authors
 - [Dr. Sergei Bastrakov](https://github.com/sbastrakov)*
 - [Dr. Andrea Bocci](https://github.com/fwyzard)
 - [Simeon Ehrig](https://github.com/SimeonEhrig)
-- [Matthias Werner](https://github.com/tdd11235813)*
+- [Jan Stephan](https://github.com/j-stephan)*
 - [Rene Widera](https://github.com/psychocoderHPC)*
 
 ### Former Members, Contributions and Thanks
 
 - [Dr. Michael Bussmann](https://www.hzdr.de/db/!ContMan.Visi.Card?pUser=4167&pNid=0)
 - [Dr. Axel Huebl](https://github.com/ax3l)
+- [Dr. Jeffrey Kelling](https://github.com/jkelling)
 - [Maximilian Knespel](https://github.com/mxmlnkn)
 - [Vincent Ridder](https://github.com/vincentridder)
+- [Matthias Werner](https://github.com/tdd11235813)
 
 
 Trademarks Disclaimer

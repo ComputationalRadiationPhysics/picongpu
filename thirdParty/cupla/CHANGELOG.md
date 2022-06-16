@@ -1,8 +1,28 @@
 Changelog
 =========
 
+0.4.0 "K'Ehleyr"
+----------------
+**Date:** 2022-05-19
+
+### Compatibility Changes:
+
+- switch to alpaka 0.9.X #225 #226, [see all breaking changes](https://github.com/alpaka-group/alpaka/blob/0.9.0/CHANGELOG.md#breaking-changes)
+- modernize CMake #203
+
+### Bug Fixes:
+- allow including alpaka via add_subdirectory before cupla in an external project #216
+- fix using cupla with add_subdirectory for the HIP backend #219
+- fix warning: expression result unused #222
+
+### New Features:
+- documenting interoperability with alpaka API
+
+### Misc
+- clang format integration #214
+
 0.3.0 "L'Rell"
-------------
+--------------
 **Date:** 2021-08-03
 
 ### Compatibility Changes:

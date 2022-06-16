@@ -65,7 +65,7 @@ cmake --build .
 cmake --install .
 ```
 
-To check your installation, you can activate the examples (see section [compiling an example](https://github.com/alpaka-group/cupla/blob/master/INSTALL.md#compile-an-example)) during the configuration of `cupla` and check whether it compiles. Activating the examples does not change anything in the installed `cupla` library.
+To check your installation, you can activate the examples (see section [compiling an example](https://github.com/alpaka-group/cupla/blob/dev/INSTALL.md#compile-an-example)) during the configuration of `cupla` and check whether it compiles. Activating the examples does not change anything in the installed `cupla` library.
 
 ```bash
 # use external alpka to verify your environment

@@ -7,6 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "Defines.hpp"
+
 #include <alpaka/math/Traits.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
@@ -16,25 +18,6 @@
 
 #include <type_traits>
 
-// https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-template<typename TAcc, typename FP>
-ALPAKA_FN_ACC auto almost_equal(TAcc const& acc, FP x, FP y, int ulp)
-    -> std::enable_if_t<!std::numeric_limits<FP>::is_integer, bool>
-{
-    // the machine epsilon has to be scaled to the magnitude of the values used
-    // and multiplied by the desired precision in ULPs (units in the last place)
-    return alpaka::math::abs(acc, x - y)
-        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
-        // unless the result is subnormal
-        || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
-}
-
-//! Version for alpaka::Complex
-template<typename TAcc, typename FP>
-ALPAKA_FN_ACC bool almost_equal(TAcc const& acc, alpaka::Complex<FP> x, alpaka::Complex<FP> y, int ulp)
-{
-    return almost_equal(acc, x.real(), y.real(), ulp) && almost_equal(acc, x.imag(), y.imag(), ulp);
-}
 
 class SinCosTestKernel
 {
@@ -50,6 +33,7 @@ public:
         FP result_sin = 0.;
         FP result_cos = 0.;
         alpaka::math::sincos(acc, arg, result_sin, result_cos);
+        using alpaka::test::unit::math::almost_equal;
         ALPAKA_CHECK(
             *success,
             almost_equal(acc, result_sin, check_sin, 1) && almost_equal(acc, result_cos, check_cos, 1));

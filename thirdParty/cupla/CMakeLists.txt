@@ -59,7 +59,7 @@ option(cupla_BUILD_EXAMPLES "Build examples" OFF)
 
 # the min and max. supported alpaka version is also copied to the cuplaConfig.cmake
 set(_CUPLA_MIN_ALPAKA_VERSION 0.9.0)
-set(_CUPLA_UNSUPPORTED_ALPAKA_VERSION 1.0.0)
+set(_CUPLA_MAX_ALPAKA_VERSION 1.0.0)
 
 # do not search for alpaka if it already exists
 # for example, a project that includes alpaka via add_subdirectory before including cupla via add_subdirectory
@@ -77,11 +77,14 @@ if(NOT TARGET alpaka::alpaka)
       set(BUILD_TESTING OFF)
       add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/alpaka)
     else()
-      find_package(alpaka ${_CUPLA_MIN_ALPAKA_VERSION} REQUIRED HINTS $ENV{ALPAKA_ROOT})
-
-      if(alpaka_VERSION VERSION_GREATER_EQUAL _CUPLA_UNSUPPORTED_ALPAKA_VERSION)
+      find_package(alpaka ${_CUPLA_MAX_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
+      if(NOT TARGET alpaka::alpaka)
+        message(STATUS "Could not find alpaka ${_CUPLA_MAX_ALPAKA_VERSION}. Now searching for alpaka ${_CUPLA_MIN_ALPAKA_VERSION}")
+        find_package(alpaka ${_CUPLA_MIN_ALPAKA_VERSION} REQUIRED HINTS $ENV{ALPAKA_ROOT})
+      endif()
+      if(alpaka_VERSION VERSION_GREATER _CUPLA_MAX_ALPAKA_VERSION)
         message(WARNING "Unsupported alpaka version ${alpaka_VERSION}. "
-          "Supported versions [${_CUPLA_MIN_ALPAKA_VERSION},${_CUPLA_UNSUPPORTED_ALPAKA_VERSION}).")
+          "Supported versions [${_CUPLA_MIN_ALPAKA_VERSION},${_CUPLA_MAX_ALPAKA_VERSION}].")
       endif()
     endif()
 
@@ -141,7 +144,7 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
     "${_CUPLA_SOURCE_CMAKEDIR}/${PROJECT_NAME}Config.cmake.in"
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     INSTALL_DESTINATION ${_CUPLA_INSTALL_CMAKEDIR}
-    PATH_VARS _CUPLA_MIN_ALPAKA_VERSION _CUPLA_UNSUPPORTED_ALPAKA_VERSION)
+    PATH_VARS _CUPLA_MIN_ALPAKA_VERSION _CUPLA_MAX_ALPAKA_VERSION)
 
   install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"

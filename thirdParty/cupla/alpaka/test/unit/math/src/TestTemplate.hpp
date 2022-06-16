@@ -12,6 +12,7 @@
 #include "Defines.hpp"
 #include "Functor.hpp"
 
+#include <alpaka/core/DemangleTypeNames.hpp>
 #include <alpaka/math/Complex.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/queue/Queue.hpp>
@@ -66,8 +67,9 @@ struct TestTemplate
         std::random_device rd{};
         auto const seed = rd();
         std::cout << "testing"
-                  << " acc:" << typeid(TAcc).name() << " data type:" << typeid(TData).name()
-                  << " functor:" << typeid(TWrappedFunctor).name() << " seed:" << seed << std::endl;
+                  << " acc:" << alpaka::core::demangled<TAcc> << " data type:"
+                  << alpaka::core::demangled<TData> << " functor:"
+                  << alpaka::core::demangled<TWrappedFunctor> << " seed:" << seed << std::endl;
 
         // SETUP (defines and initialising)
         // DevAcc and DevHost are defined in Buffer.hpp too.
@@ -130,7 +132,7 @@ struct TestTemplate
         std::cout.precision(std::numeric_limits<Underlying>::digits10 + 1);
 
         INFO("Operator: " << functor)
-        INFO("Type: " << typeid(TData).name()) // Compiler specific.
+        INFO("Type: " << alpaka::core::demangled<TData>) // Compiler specific.
 #if ALPAKA_DEBUG_FULL
         INFO("The args buffer: \n" << std::setprecision(std::numeric_limits<Underlying>::digits10 + 1) << args << "\n")
 #endif

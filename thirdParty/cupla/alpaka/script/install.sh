@@ -51,7 +51,7 @@ then
     if [[ "${CXX}" == "g++"* ]] ;then source ./script/install_gcc.sh ;fi
     # do not install clang if we use HIP, HIP/ROCm is shipping an own clang version
     if [[ "${CXX}" == "clang++" ]] && [ "${ALPAKA_CI_INSTALL_HIP}" != "ON" ] ;then source ./script/install_clang.sh ;fi
-    if [[ "${CXX}" == "icpc"* ]] ;then source ./script/install_icpc.sh ;fi
+    if [[ "${CXX}" == "icp"* ]] ;then source ./script/install_oneapi.sh ;fi
 elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
     echo "### list all applications ###"
