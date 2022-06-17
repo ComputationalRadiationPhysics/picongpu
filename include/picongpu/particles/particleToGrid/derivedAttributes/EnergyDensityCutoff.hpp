@@ -23,6 +23,10 @@
 
 #include "picongpu/algorithms/KinEnergy.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
+
+#include <type_traits>
+
 
 namespace picongpu
 {
@@ -57,6 +61,15 @@ namespace picongpu
 
                     return result;
                 }
+
+                /** Energy density cutoff is weighted
+                 *
+                 * @tparam T_ParamClass parameter class containing the maximum energy cutoff
+                 */
+                template<typename T_ParamClass>
+                struct IsWeighted<EnergyDensityCutoff<T_ParamClass>> : std::true_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles

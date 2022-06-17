@@ -23,6 +23,9 @@
 
 #include "picongpu/algorithms/KinEnergy.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -51,6 +54,12 @@ namespace picongpu
 
                     return KinEnergy<>()(mom, mass) * INV_CELL_VOLUME;
                 }
+
+                //! Energy density is weighted
+                template<>
+                struct IsWeighted<EnergyDensity> : std::true_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles

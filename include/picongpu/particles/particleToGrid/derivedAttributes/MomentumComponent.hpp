@@ -21,7 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MomentumComponent.def"
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -56,6 +59,15 @@ namespace picongpu
                     // return attribute
                     return momComOverTotal;
                 }
+
+                /** Momentum component is not weighted as it is a ratio of two weighted quantities
+                 *
+                 * @param T_direction perpendicular direction x=0, y=1, z=2
+                 */
+                template<size_t T_direction>
+                struct IsWeighted<MomentumComponent<T_direction>> : std::false_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles

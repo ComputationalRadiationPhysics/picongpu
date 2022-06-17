@@ -22,6 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -51,6 +54,12 @@ namespace picongpu
                     /* return attribute */
                     return particleChargeDensity;
                 }
+
+                //! Charge density is weighted
+                template<>
+                struct IsWeighted<ChargeDensity> : std::true_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles

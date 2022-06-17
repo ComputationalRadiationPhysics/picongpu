@@ -21,7 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.def"
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -43,6 +46,12 @@ namespace picongpu
                     /* return attribute */
                     return 1.0;
                 }
+
+                //! Macroparticle counter is not weighted
+                template<>
+                struct IsWeighted<MacroCounter> : std::false_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles

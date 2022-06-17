@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Pawel Ordyna
+/* Copyright 2021-2022 Pawel Ordyna, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -61,6 +61,7 @@ namespace picongpu
                 /** Average (per particle) value of a derived attribute
                  *
                  * @tparam T_DerivedAttribute derived attribute class that should be averaged
+                 *                            must have trait derivedAttributes::IsWeighted specialized as true
                  */
                 template<typename T_DerivedAttribute>
                 using AverageAttribute = CombinedDeriveAttribute<

@@ -22,6 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/particleToGrid/derivedAttributes/Counter.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -49,6 +52,12 @@ namespace picongpu
                     /* return attribute */
                     return particleCounter;
                 }
+
+                //! Counter is weighted (as it is a count of real particles)
+                template<>
+                struct IsWeighted<Counter> : std::true_type
+                {
+                };
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles
