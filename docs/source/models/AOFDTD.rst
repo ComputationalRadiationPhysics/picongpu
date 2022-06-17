@@ -239,16 +239,39 @@ The corresponding dispersion relation reads
 
 Obviously, this is a special case of the general dispersion relation, where :math:`M=1`.
 
-Solving for a wave's numerical frequency :math:`\omega` in dependence on its wave vector
+Solving for a wave's numerical frequency :math:`\omega` in dependence on its numerical wave vector
 :math:`\vec{\tilde k} = (\tilde k\cos\phi\sin\theta, \tilde k\sin\phi\sin\theta, \tilde k\cos\theta)` (spherical coordinates),
 
 .. math::
 
-   \omega = \frac{2}{\Delta t} \arcsin \xi\,\text{, where } \xi_\mathrm{max} = c\Delta t
-     \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}}
+   \omega = \frac{2}{\Delta t} \arcsin \xi\,,
 
-reveals two important properties of the field solver.
-(The 2D version is obtained by letting :math:`\Delta z \rightarrow \infty`.)
+where
+
+.. math::
+
+   \xi = c\Delta t \sqrt{
+      \left[
+         \frac{1}{\Delta x} \sin\left(\frac{\tilde k_x \Delta x}{2}\right)
+      \right]^2 +
+     \left[
+         \frac{1}{\Delta y} \sin\left(\frac{\tilde k_y \Delta y}{2}\right)
+     \right]^2 +
+     \left[
+         \frac{1}{\Delta z} \sin\left(\frac{\tilde k_z \Delta z}{2}\right)
+     \right]^2
+     }\,.
+
+Denoting
+
+.. math::
+
+   \xi_\mathrm{max} = c\Delta t \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}}
+
+we have :math:`\xi \leq \xi_\mathrm{max}` with equality possible for diagonal wave propagation and a certain relation between time and spatial grid steps.
+
+This reveals two important properties of the field solver.
+(The 2D version is obtained by letting :math:`\tilde k_z = 0`.)
 
 First, only within the range :math:`\xi_\mathrm{max} \leq 1` the field solver operates stable.
 This gives the *Courant-Friedrichs-Lewy* stability condition relating time step to mesh spacing
@@ -301,11 +324,31 @@ Solving the higher order dispersion relation for the angular frequency yields:
 
 .. math::
 
-   \omega = \frac{2}{\Delta t} \arcsin \xi\,\text{, where } \xi_\mathrm{max}
+   \omega = \frac{2}{\Delta t} \arcsin \xi\,,
+   
+where
+
+.. math::
+
+   \xi &= c\Delta t \sqrt{ \xi^2_x + \xi^2_y + \xi^2_z }\,\text{, and }
+
+   \xi_x &= \sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_x l \Delta x)}{\Delta x} \,,
+
+   \xi_y &= \sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_y l \Delta y)}{\Delta y} \,,
+
+   \xi_z &= \sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_z l \Delta z)}{\Delta z} \,.
+
+With
+
+.. math::
+
+   \xi_\mathrm{max}
      = c\Delta t \left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right]
      \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}}
 
-The equation is structurally the same as for Yee's method, but contains the alternating sum of the weighting coefficients of the spatial derivative.
+we have :math:`\xi \leq \xi_\mathrm{max}`.
+
+The equations are structurally the same as for Yee's method, but contain the alternating sum of the weighting coefficients of the spatial derivative.
 Again, Yee's Formula is the special case where :math:`M=1`.
 For the solver to be stable, :math:`\xi_\mathrm{max}<1` is required as before.
 Thus the stability condition reads
