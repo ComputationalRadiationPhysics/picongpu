@@ -104,12 +104,12 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 0.9.X
-""""""""""""
+alpaka 1.0.X-dev
+""""""""""""""""
 - `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
 
 cupla 0.4.X-dev
-"""""""""""
+"""""""""""""""
 - `cupla <https://github.com/alpaka-group/cupla>`_ is included in the PIConGPU source code
 
 mallocMC 2.6.0crp-dev
