@@ -11,7 +11,7 @@ We agree on the following simple rules to make our lives easier :)
 Format Code
 -----------
 
-- Install *ClangFormat 11*
+- Install *ClangFormat 12* from LLVM 12.0.1
 - To format all files in your working copy, you can run this command in bash from the root folder of PIConGPU:
   ```bash
   find include/ share/picongpu/ share/pmacc -iname "*.def" \
