@@ -195,7 +195,7 @@ namespace picongpu
 
 #if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
             template<typename... T_Args>
-            struct GetDefaultStrategy<alpaka::AccGpuCudaRt<T_Args...>>
+            struct GetDefaultStrategy<alpaka::AccGpuUniformCudaHipRt<alpaka::ApiCudaRt, T_Args...>>
             {
                 // GPU Utilization is higher compared to `StridedCachedSupercells`
                 using type = strategy::CachedSupercells;
@@ -204,7 +204,7 @@ namespace picongpu
 
 #if(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
             template<typename... T_Args>
-            struct GetDefaultStrategy<alpaka::AccGpuHipRt<T_Args...>>
+            struct GetDefaultStrategy<alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_Args...>>
             {
                 // GPU Utilization is higher compared to `StridedCachedSupercells`
                 using type = strategy::CachedSupercells;

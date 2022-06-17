@@ -39,6 +39,18 @@
 
 #include <mpi.h>
 
+#if !defined(ALPAKA_API_PREFIX)
+/* ALPAKA_API_PREFIX was removed in alpaka 1.0.0 but is required to get access cuda/hip functions directly.
+ * @todo find a better way to access native cuda/Hip functions or try to avoid accessing these at all.
+ */
+#    include "pmacc/ppFunctions.hpp"
+#    if(BOOST_LANG_CUDA)
+#        define ALPAKA_API_PREFIX(name) PMACC_JOIN(cuda, name)
+#    elif(BOOST_LANG_HIP)
+#        define ALPAKA_API_PREFIX(name) PMACC_JOIN(hip, name)
+#    endif
+#endif
+
 namespace pmacc
 {
     namespace detail
