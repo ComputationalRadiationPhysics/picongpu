@@ -101,10 +101,10 @@ Since an adequate color scaling is essential, there several option the user can 
    // normalize EM fields to typical laser or plasma quantities
    //-1: Auto: enable adaptive scaling for each output
    // 1: Laser: typical fields calculated out of the laser amplitude
-   // 2: Drift: typical fields caused by a drifting plasma
+   // 2: Drift: [outdated]
    // 3: PlWave: typical fields calculated out of the plasma freq.,
    // assuming the wave moves approx. with c
-   // 4: Thermal: typical fields calculated out of the electron temperature
+   // 4: Thermal: [outdated]
    // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
    // regime causes a bubble with radius of approx. the laser's
    // beam waist (use for bubble fields)
@@ -147,28 +147,37 @@ The data structures used are those available in PIConGPU.
 
 .. code:: cpp
 
-   /* png preview settings for each channel */
-   DINLINE float_X preChannel1( float3_X const & field_B, float3_X const & field_E, float3_X const & field_J )
+   /** Calculate values for png channels for given field values
+    *
+    * @param field_B normalized magnetic field value
+    * @param field_E normalized electric field value
+    * @param field_Current normalized electric current value (note - not current density)
+    *
+    * @{
+    */
+   DINLINE float_X preChannel1( float3_X const & field_B, float3_X const & field_E, float3_X const & field_Current )
    {
        /* Channel1
         * computes the absolute value squared of the electric current */
-       return math::abs2(field_J);
+       return math::abs2(field_Current);
    }
 
-   DINLINE float_X preChannel2( float3_X const & field_B, float3_X const & field_E, float3_X const & field_J )
+   DINLINE float_X preChannel2( float3_X const & field_B, float3_X const & field_E, float3_X const & field_Current )
    {
        /* Channel2
         * computes the square of the x-component of the electric field */
        return field_E.x() * field_E.x();
    }
 
-   DINLINE float_X preChannel3( float3_X const & field_B, float3_X const & field_E, float3_X const & field_J )
+   DINLINE float_X preChannel3( float3_X const & field_B, float3_X const & field_E, float3_X const & field_Current )
    {
        /* Channel3
         * computes the negative values of the y-component of the electric field
         * positive field_E.y() return as negative values and are NOT drawn */
        return -float_X(1.0) * field_E.y();
    }
+
+   /** @} */
 
 Only positive values are drawn. Negative values are clipped to zero.
 In the above example, this feature is used for ``preChannel3``.
