@@ -12,51 +12,17 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 
-#if BOOST_COMP_MSVC
-#    include <malloc.h>
-#else
-#    include <cstdlib>
-#endif
+#include <new>
 
 namespace alpaka::core
 {
-    //! Rounds to the next higher power of two (if not already power of two).
-    // Adapted from llvm/ADT/SmallPtrSet.h
     ALPAKA_FN_INLINE ALPAKA_FN_HOST auto alignedAlloc(size_t alignment, size_t size) -> void*
     {
-#if BOOST_OS_WINDOWS
-        return _aligned_malloc(size, alignment);
-#elif BOOST_OS_MACOS
-        void* ptr = nullptr;
-        posix_memalign(&ptr, alignment, size);
-        return ptr;
-#else
-        // the amount of bytes to allocate must be a multiple of the alignment
-        size_t sizeToAllocate = ((size + alignment - 1u) / alignment) * alignment;
-        return ::aligned_alloc(alignment, sizeToAllocate);
-#endif
+        return ::operator new(size, std::align_val_t{alignment});
     }
 
-    ALPAKA_FN_INLINE ALPAKA_FN_HOST void alignedFree(void* ptr)
+    ALPAKA_FN_INLINE ALPAKA_FN_HOST void alignedFree(size_t alignment, void* ptr)
     {
-#if BOOST_OS_WINDOWS
-        _aligned_free(ptr);
-#else
-        // linux and macos
-        ::free(ptr);
-#endif
+        ::operator delete(ptr, std::align_val_t{alignment});
     }
-
-    //! destroy aligned object and free aligned memory
-    struct AlignedDelete
-    {
-        //! Calls ~T() on ptr to destroy the object and then calls aligned_free to free the allocated memory.
-        template<typename T>
-        void operator()(T* ptr) const
-        {
-            if(ptr)
-                ptr->~T();
-            alignedFree(reinterpret_cast<void*>(ptr));
-        }
-    };
 } // namespace alpaka::core

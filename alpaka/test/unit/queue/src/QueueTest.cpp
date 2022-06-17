@@ -18,6 +18,7 @@
 #include <atomic>
 #include <future>
 #include <thread>
+#include <typeinfo>
 
 using TestQueues = alpaka::meta::Concatenate<
     alpaka::test::TestQueues
@@ -170,4 +171,35 @@ TEMPLATE_LIST_TEST_CASE("queueShouldNotExecuteTasksInParallel", "[queue]", TestQ
 
     firstTaskFinishedFuture.get();
     secondTaskFinishedFuture.get();
+}
+
+//! This task launches a long task in a non-blocking queue and destroys the
+//! queue before the task is finished. The run time of the task is a bit longer
+//! than all other tests here, so the task would run past program termination if
+//! not synchronized somewhere. This test has no assertion, because the tested
+//! behviour is outside of any function scope.
+//!
+//! A thread running past program termination invokes undefined behavior, which
+//! occasionally leads to crashes after termination. I.e. this test may crash
+//! after catch2 reported success.
+TEMPLATE_LIST_TEST_CASE("nonBlockingQueueShouldNotRunPastProgramTermination", "[queue]", TestQueues)
+{
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
+    Fixture f;
+
+    if(!alpaka::test::IsBlockingQueue<typename Fixture::Queue>::value)
+    {
+        // enqueue long task, destroy queue, see what happens
+        alpaka::enqueue(
+            f.m_queue,
+            [name = typeid(f.m_queue).name()]() noexcept
+            {
+                std::cout << "BEGIN not-awaited task in Queue '" << name
+                          << "' (if there is no matchng 'END' line, the task ran past program termination)"
+                          << std::endl;
+                std::this_thread::sleep_for(std::chrono::milliseconds(3000u));
+                std::cout << "END not-awaited task in Queue '" << name << "'" << std::endl;
+            });
+    }
 }

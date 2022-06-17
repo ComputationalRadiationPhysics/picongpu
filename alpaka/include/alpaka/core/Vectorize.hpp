@@ -21,7 +21,7 @@
 //!  for(...){...}`
 // \TODO: Implement for other compilers.
 // See: http://stackoverflow.com/questions/2706286/pragmas-swp-ivdep-prefetch-support-in-various-compilers
-/*#if BOOST_COMP_INTEL || BOOST_COMP_HPACC
+/*#if BOOST_COMP_HPACC
     #define ALPAKA_VECTORIZE_HINT(...)  _Pragma("ivdep")
 #elif BOOST_COMP_PGI
     #define ALPAKA_VECTORIZE_HINT(...)  _Pragma("vector")

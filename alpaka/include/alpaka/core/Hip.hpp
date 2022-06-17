@@ -16,11 +16,6 @@
 #    endif
 
 #    include <alpaka/core/CudaHipCommon.hpp>
-
-#    ifndef HIPRT_CB
-#        define HIPRT_CB
-#    endif
-
 #    include <alpaka/core/UniformCudaHip.hpp>
 
 #endif

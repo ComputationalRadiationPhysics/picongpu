@@ -12,6 +12,7 @@
 #include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/DemangleTypeNames.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
@@ -25,10 +26,6 @@
 
 namespace alpaka
 {
-    struct ConceptUniformCudaHip
-    {
-    };
-
     struct ConceptAcc
     {
     };
@@ -51,19 +48,7 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return typeid(TAcc).name();
-            }
-        };
-
-        //! The GPU CUDA accelerator device properties get trait specialization.
-        template<typename TAcc>
-        struct GetAccDevProps<TAcc, std::enable_if_t<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>>
-        {
-            ALPAKA_FN_HOST static auto getAccDevProps(typename alpaka::trait::DevType<TAcc>::type const& dev)
-                -> AccDevProps<typename trait::DimType<TAcc>::type, typename trait::IdxType<TAcc>::type>
-            {
-                using ImplementationBase = typename concepts::ImplementationBase<ConceptUniformCudaHip, TAcc>;
-                return GetAccDevProps<ImplementationBase>::getAccDevProps(dev);
+                return core::demangled<TAcc>;
             }
         };
     } // namespace trait
@@ -89,56 +74,8 @@ namespace alpaka
         return trait::GetAccName<TAcc>::getAccName();
     }
 
-    namespace detail
-    {
-        template<typename TAcc>
-        struct CheckFnReturnType<
-            TAcc,
-            std::enable_if_t<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>>
-        {
-            template<typename TKernelFnObj, typename... TArgs>
-            void operator()(TKernelFnObj const& kernelFnObj, TArgs const&... args)
-            {
-                using ImplementationBase = typename concepts::ImplementationBase<ConceptUniformCudaHip, TAcc>;
-                CheckFnReturnType<ImplementationBase>{}(kernelFnObj, args...);
-            }
-        };
-    } // namespace detail
-
     namespace trait
     {
-        //! The GPU HIP accelerator device type trait specialization.
-        template<typename TAcc>
-        struct DevType<TAcc, std::enable_if_t<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>>
-        {
-            using ImplementationBase = typename concepts::ImplementationBase<ConceptUniformCudaHip, TAcc>;
-            using type = typename DevType<ImplementationBase>::type;
-        };
-
-        //! The CPU HIP execution task platform type trait specialization.
-        template<typename TAcc>
-        struct PltfType<TAcc, std::enable_if_t<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>>
-        {
-            using ImplementationBase = typename concepts::ImplementationBase<ConceptUniformCudaHip, TAcc>;
-            using type = typename PltfType<ImplementationBase>::type;
-        };
-
-        //! The GPU HIP accelerator dimension getter trait specialization.
-        template<typename TAcc>
-        struct DimType<TAcc, std::enable_if_t<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>>
-        {
-            using ImplementationBase = typename concepts::ImplementationBase<ConceptUniformCudaHip, TAcc>;
-            using type = typename DimType<ImplementationBase>::type;
-        };
-
-        //! The GPU HIP accelerator idx type trait specialization.
-        template<typename TAcc>
-        struct IdxType<TAcc, std::enable_if_t<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>>
-        {
-            using ImplementationBase = typename concepts::ImplementationBase<ConceptUniformCudaHip, TAcc>;
-            using type = typename IdxType<ImplementationBase>::type;
-        };
-
         template<typename TAcc, typename TProperty>
         struct QueueType<TAcc, TProperty, std::enable_if_t<concepts::ImplementsConcept<ConceptAcc, TAcc>::value>>
         {

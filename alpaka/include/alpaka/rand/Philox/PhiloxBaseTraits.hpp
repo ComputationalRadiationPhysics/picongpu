@@ -12,19 +12,29 @@
 #include <alpaka/rand/Philox/PhiloxBaseCommon.hpp>
 #include <alpaka/rand/Philox/PhiloxBaseStdArray.hpp>
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#    include <alpaka/dev/DevUniformCudaHipRt.hpp>
+#    include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
 #    include <alpaka/rand/Philox/PhiloxBaseCudaArray.hpp>
 #endif
 
 namespace alpaka::rand::engine::trait
 {
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-    template<typename TAcc>
-    constexpr auto isGPU = std::is_same_v<typename alpaka::trait::DevType<TAcc>::type, alpaka::DevUniformCudaHipRt>;
-#else
-    template<typename TAcc>
-    constexpr bool isGPU = false;
+#if BOOST_COMP_CLANG
+    /* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because these
+    /  clang versions incorrectly warn about a missing 'extern'. */
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wmissing-variable-declarations"
 #endif
+    template<typename TAcc>
+    constexpr inline bool isGPU = false;
+
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+    template<typename TApi, typename TDim, typename TIdx>
+    constexpr inline bool isGPU<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>> = true;
+#endif
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+
     /** Selection of default backend
      *
      * Selects the data backend based on the accelerator device type. As of now, different backends operate

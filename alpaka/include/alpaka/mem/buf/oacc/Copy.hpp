@@ -360,9 +360,11 @@ namespace alpaka
                             [devSrc = getDev(viewSrc),
                              devDst = getDev(viewDst)](void* dst, void* src, std::size_t size)
                             {
-                                std::unique_ptr<void, decltype(&core::alignedFree)> buf(
+                                auto deleter
+                                    = [](void* ptr) { core::alignedFree(core::vectorization::defaultAlignment, ptr); };
+                                std::unique_ptr<void, decltype(deleter)> buf(
                                     core::alignedAlloc(core::vectorization::defaultAlignment, size),
-                                    &core::alignedFree);
+                                    deleter);
                                 devSrc.makeCurrent();
                                 acc_memcpy_from_device(buf.get(), src, size);
                                 devDst.makeCurrent();

@@ -10,6 +10,7 @@
 #pragma once
 
 #include <alpaka/alpaka.hpp>
+#include <alpaka/core/DemangleTypeNames.hpp>
 
 #include <type_traits>
 #include <utility>
@@ -33,7 +34,7 @@ namespace alpaka::test::integ
     {
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
         std::cout << "measureKernelRunTime("
-                  << " queue: " << typeid(TQueue).name() << " task: " << typeid(std::decay_t<TTask>).name() << ")"
+                  << " queue: " << core::demangled<TQueue> << " task: " << core::demangled<std::decay_t<TTask>> << ")"
                   << std::endl;
 #endif
         // Wait for the queue to finish all tasks enqueued prior to the given task.

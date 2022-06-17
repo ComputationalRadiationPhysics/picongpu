@@ -11,6 +11,11 @@
 
 #include <boost/predef.h>
 
+#ifdef __INTEL_COMPILER
+#    warning                                                                                                          \
+        "The Intel Classic compiler (icpc) is no longer supported. Please upgrade to the Intel LLVM compiler (ipcx)."
+#endif
+
 //---------------------------------------HIP-----------------------------------
 // __HIPCC__ is defined by hipcc (if either __CUDACC__ is defined)
 // https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#compiler-defines-summary
@@ -57,19 +62,13 @@
 #    define BOOST_COMP_CLANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
 #endif
 
-// Intel compiler detection
-// As of Boost 1.74, Boost.Predef's compiler detection is a bit weird. Recent Intel compilers will be identified as
-// BOOST_COMP_INTEL_EMULATED. Boost.Predef has lackluster front-end support and mistakes the EDG front-end
+// PGI and NV HPC SDK compiler detection
+// As of Boost 1.74, Boost.Predef's compiler detection is a bit weird. Recent PGI compilers will be identified as
+// BOOST_COMP_PGI_EMULATED. Boost.Predef has lackluster front-end support and mistakes the EDG front-end
 // for an actual compiler.
 // TODO: Whenever you look at this code please check whether https://github.com/boostorg/predef/issues/28 and
 // https://github.com/boostorg/predef/issues/51 have been resolved.
-#if defined(BOOST_COMP_INTEL) && defined(BOOST_COMP_INTEL_EMULATED)
-#    undef BOOST_COMP_INTEL
-#    define BOOST_COMP_INTEL BOOST_COMP_INTEL_EMULATED
-#endif
-
-// PGI and NV HPC SDK compiler detection
-// BOOST_COMP_PGI_EMULATED is defined by boost instead of BOOST_COMP_PGI (probably the same problem as for Intel)
+// BOOST_COMP_PGI_EMULATED is defined by boost instead of BOOST_COMP_PGI
 #if defined(BOOST_COMP_PGI) && defined(BOOST_COMP_PGI_EMULATED)
 #    undef BOOST_COMP_PGI
 #    define BOOST_COMP_PGI BOOST_COMP_PGI_EMULATED

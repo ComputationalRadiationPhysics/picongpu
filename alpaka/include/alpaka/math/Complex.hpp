@@ -501,25 +501,28 @@ namespace alpaka
     //! Complex power of a complex number
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename T, typename U>
-    constexpr ALPAKA_FN_HOST_ACC Complex<T> pow(Complex<T> const& x, Complex<U> const& y)
+    constexpr ALPAKA_FN_HOST_ACC auto pow(Complex<T> const& x, Complex<U> const& y)
     {
-        return std::pow(std::complex<T>(x), std::complex<U>(y));
+        // Use same type promotion as std::pow
+        auto const result = std::pow(std::complex<T>(x), std::complex<U>(y));
+        using ValueType = typename decltype(result)::value_type;
+        return Complex<ValueType>(result);
     }
 
     //! Real power of a complex number
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename T, typename U>
-    constexpr ALPAKA_FN_HOST_ACC Complex<T> pow(Complex<T> const& x, U const& y)
+    constexpr ALPAKA_FN_HOST_ACC auto pow(Complex<T> const& x, U const& y)
     {
-        return std::pow(std::complex<T>(x), y);
+        return pow(x, Complex<U>(y));
     }
 
     //! Complex power of a real number
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename T, typename U>
-    constexpr ALPAKA_FN_HOST_ACC Complex<T> pow(T const& x, Complex<U> const& y)
+    constexpr ALPAKA_FN_HOST_ACC auto pow(T const& x, Complex<U> const& y)
     {
-        return std::pow(x, std::complex<U>(y));
+        return pow(Complex<T>(x), y);
     }
 
     //! Projection onto the Riemann sphere

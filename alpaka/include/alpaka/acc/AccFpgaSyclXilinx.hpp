@@ -13,6 +13,7 @@
 
 #    include <alpaka/acc/AccGenericSycl.hpp>
 #    include <alpaka/core/Concepts.hpp>
+#    include <alpaka/core/DemangleTypeNames.hpp>
 #    include <alpaka/core/Sycl.hpp>
 #    include <alpaka/dev/DevFpgaSyclXilinx.hpp>
 #    include <alpaka/dev/Traits.hpp>
@@ -50,7 +51,8 @@ namespace alpaka::trait
     {
         static auto getAccName() -> std::string
         {
-            return "experimental::AccFpgaSyclXilinx<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+            return "experimental::AccFpgaSyclXilinx<" + std::to_string(TDim::value) + ","
+                + core::demangled<TIdx> + ">";
         }
     };
 

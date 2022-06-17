@@ -36,17 +36,18 @@ namespace alpaka
     namespace uniform_cuda_hip::detail
     {
         //! The CUDA/HIP RT device event implementation.
+        template<typename TApi>
         class EventUniformCudaHipImpl final
         {
         public:
-            ALPAKA_FN_HOST EventUniformCudaHipImpl(DevUniformCudaHipRt const& dev, bool bBusyWait)
+            ALPAKA_FN_HOST EventUniformCudaHipImpl(DevUniformCudaHipRt<TApi> const& dev, bool bBusyWait)
                 : m_dev(dev)
                 , m_UniformCudaHipEvent()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Set the current device.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(m_dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(m_dev.getNativeHandle()));
 
                 // Create the event on the current device with the specified flags. Valid flags include:
                 // - cuda/hip-EventDefault: Default event creation flag.
@@ -57,10 +58,9 @@ namespace alpaka
                 // data.
                 //   Events created with this flag specified and the cuda/hip-EventBlockingSync flag not specified
                 //   will provide the best performance when used with cudaStreamWaitEvent() and cudaEventQuery().
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(EventCreateWithFlags)(
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::eventCreateWithFlags(
                     &m_UniformCudaHipEvent,
-                    (bBusyWait ? ALPAKA_API_PREFIX(EventDefault) : ALPAKA_API_PREFIX(EventBlockingSync))
-                        | ALPAKA_API_PREFIX(EventDisableTiming)));
+                    (bBusyWait ? TApi::eventDefault : TApi::eventBlockingSync) | TApi::eventDisableTiming));
             }
             EventUniformCudaHipImpl(EventUniformCudaHipImpl const&) = delete;
             auto operator=(EventUniformCudaHipImpl const&) -> EventUniformCudaHipImpl& = delete;
@@ -72,7 +72,7 @@ namespace alpaka
                 // called, the function will return immediately and the resources associated with event will be
                 // released automatically once the device has completed event.
                 // -> No need to synchronize here.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(ALPAKA_API_PREFIX(EventDestroy)(m_UniformCudaHipEvent));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::eventDestroy(m_UniformCudaHipEvent));
             }
 
             [[nodiscard]] auto getNativeHandle() const noexcept
@@ -81,29 +81,30 @@ namespace alpaka
             }
 
         public:
-            DevUniformCudaHipRt const m_dev; //!< The device this event is bound to.
+            DevUniformCudaHipRt<TApi> const m_dev; //!< The device this event is bound to.
 
         private:
-            ALPAKA_API_PREFIX(Event_t) m_UniformCudaHipEvent;
+            typename TApi::Event_t m_UniformCudaHipEvent;
         };
     } // namespace uniform_cuda_hip::detail
 
     //! The CUDA/HIP RT device event.
+    template<typename TApi>
     class EventUniformCudaHipRt final
-        : public concepts::Implements<ConceptCurrentThreadWaitFor, EventUniformCudaHipRt>
-        , public concepts::Implements<ConceptGetDev, EventUniformCudaHipRt>
+        : public concepts::Implements<ConceptCurrentThreadWaitFor, EventUniformCudaHipRt<TApi>>
+        , public concepts::Implements<ConceptGetDev, EventUniformCudaHipRt<TApi>>
     {
     public:
-        ALPAKA_FN_HOST EventUniformCudaHipRt(DevUniformCudaHipRt const& dev, bool bBusyWait = true)
-            : m_spEventImpl(std::make_shared<uniform_cuda_hip::detail::EventUniformCudaHipImpl>(dev, bBusyWait))
+        ALPAKA_FN_HOST EventUniformCudaHipRt<TApi>(DevUniformCudaHipRt<TApi> const& dev, bool bBusyWait = true)
+            : m_spEventImpl(std::make_shared<uniform_cuda_hip::detail::EventUniformCudaHipImpl<TApi>>(dev, bBusyWait))
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
         }
-        ALPAKA_FN_HOST auto operator==(EventUniformCudaHipRt const& rhs) const -> bool
+        ALPAKA_FN_HOST auto operator==(EventUniformCudaHipRt<TApi> const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
         }
-        ALPAKA_FN_HOST auto operator!=(EventUniformCudaHipRt const& rhs) const -> bool
+        ALPAKA_FN_HOST auto operator!=(EventUniformCudaHipRt<TApi> const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
@@ -114,74 +115,67 @@ namespace alpaka
         }
 
     public:
-        std::shared_ptr<uniform_cuda_hip::detail::EventUniformCudaHipImpl> m_spEventImpl;
+        std::shared_ptr<uniform_cuda_hip::detail::EventUniformCudaHipImpl<TApi>> m_spEventImpl;
     };
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    using EventCudaRt = EventUniformCudaHipRt;
-#    else
-    using EventHipRt = EventUniformCudaHipRt;
-#    endif
-
     namespace trait
     {
         //! The CUDA/HIP RT device event device type trait specialization.
-        template<>
-        struct DevType<EventUniformCudaHipRt>
+        template<typename TApi>
+        struct DevType<EventUniformCudaHipRt<TApi>>
         {
-            using type = DevUniformCudaHipRt;
+            using type = DevUniformCudaHipRt<TApi>;
         };
         //! The CUDA/HIP RT device event device get trait specialization.
-        template<>
-        struct GetDev<EventUniformCudaHipRt>
+        template<typename TApi>
+        struct GetDev<EventUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto getDev(EventUniformCudaHipRt const& event) -> DevUniformCudaHipRt
+            ALPAKA_FN_HOST static auto getDev(EventUniformCudaHipRt<TApi> const& event) -> DevUniformCudaHipRt<TApi>
             {
                 return event.m_spEventImpl->m_dev;
             }
         };
 
         //! The CUDA/HIP RT device event test trait specialization.
-        template<>
-        struct IsComplete<EventUniformCudaHipRt>
+        template<typename TApi>
+        struct IsComplete<EventUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto isComplete(EventUniformCudaHipRt const& event) -> bool
+            ALPAKA_FN_HOST static auto isComplete(EventUniformCudaHipRt<TApi> const& event) -> bool
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Query is allowed even for events on non current device.
-                ALPAKA_API_PREFIX(Error_t) ret = ALPAKA_API_PREFIX(Success);
+                typename TApi::Error_t ret = TApi::success;
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(
-                    ret = ALPAKA_API_PREFIX(EventQuery)(event.getNativeHandle()),
-                    ALPAKA_API_PREFIX(ErrorNotReady));
-                return (ret == ALPAKA_API_PREFIX(Success));
+                    ret = TApi::eventQuery(event.getNativeHandle()),
+                    TApi::errorNotReady);
+                return (ret == TApi::success);
             }
         };
 
         //! The CUDA/HIP RT queue enqueue trait specialization.
-        template<>
-        struct Enqueue<QueueUniformCudaHipRtNonBlocking, EventUniformCudaHipRt>
+        template<typename TApi>
+        struct Enqueue<QueueUniformCudaHipRtNonBlocking<TApi>, EventUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto enqueue(QueueUniformCudaHipRtNonBlocking& queue, EventUniformCudaHipRt& event)
-                -> void
+            ALPAKA_FN_HOST static auto enqueue(
+                QueueUniformCudaHipRtNonBlocking<TApi>& queue,
+                EventUniformCudaHipRt<TApi>& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(EventRecord)(event.getNativeHandle(), queue.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::eventRecord(event.getNativeHandle(), queue.getNativeHandle()));
             }
         };
         //! The CUDA/HIP RT queue enqueue trait specialization.
-        template<>
-        struct Enqueue<QueueUniformCudaHipRtBlocking, EventUniformCudaHipRt>
+        template<typename TApi>
+        struct Enqueue<QueueUniformCudaHipRtBlocking<TApi>, EventUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto enqueue(QueueUniformCudaHipRtBlocking& queue, EventUniformCudaHipRt& event)
-                -> void
+            ALPAKA_FN_HOST static auto enqueue(
+                QueueUniformCudaHipRtBlocking<TApi>& queue,
+                EventUniformCudaHipRt<TApi>& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(EventRecord)(event.getNativeHandle(), queue.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::eventRecord(event.getNativeHandle(), queue.getNativeHandle()));
             }
         };
 
@@ -189,69 +183,69 @@ namespace alpaka
         //!
         //! Waits until the event itself and therefore all tasks preceding it in the queue it is enqueued to have been
         //! completed. If the event is not enqueued to a queue the method returns immediately.
-        template<>
-        struct CurrentThreadWaitFor<EventUniformCudaHipRt>
+        template<typename TApi>
+        struct CurrentThreadWaitFor<EventUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto currentThreadWaitFor(EventUniformCudaHipRt const& event) -> void
+            ALPAKA_FN_HOST static auto currentThreadWaitFor(EventUniformCudaHipRt<TApi> const& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Sync is allowed even for events on non current device.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(EventSynchronize)(event.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::eventSynchronize(event.getNativeHandle()));
             }
         };
         //! The CUDA/HIP RT queue event wait trait specialization.
-        template<>
-        struct WaiterWaitFor<QueueUniformCudaHipRtNonBlocking, EventUniformCudaHipRt>
+        template<typename TApi>
+        struct WaiterWaitFor<QueueUniformCudaHipRtNonBlocking<TApi>, EventUniformCudaHipRt<TApi>>
         {
             ALPAKA_FN_HOST static auto waiterWaitFor(
-                QueueUniformCudaHipRtNonBlocking& queue,
-                EventUniformCudaHipRt const& event) -> void
+                QueueUniformCudaHipRtNonBlocking<TApi>& queue,
+                EventUniformCudaHipRt<TApi> const& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(StreamWaitEvent)(queue.getNativeHandle(), event.getNativeHandle(), 0));
+                    TApi::streamWaitEvent(queue.getNativeHandle(), event.getNativeHandle(), 0));
             }
         };
         //! The CUDA/HIP RT queue event wait trait specialization.
-        template<>
-        struct WaiterWaitFor<QueueUniformCudaHipRtBlocking, EventUniformCudaHipRt>
+        template<typename TApi>
+        struct WaiterWaitFor<QueueUniformCudaHipRtBlocking<TApi>, EventUniformCudaHipRt<TApi>>
         {
             ALPAKA_FN_HOST static auto waiterWaitFor(
-                QueueUniformCudaHipRtBlocking& queue,
-                EventUniformCudaHipRt const& event) -> void
+                QueueUniformCudaHipRtBlocking<TApi>& queue,
+                EventUniformCudaHipRt<TApi> const& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(StreamWaitEvent)(queue.getNativeHandle(), event.getNativeHandle(), 0));
+                    TApi::streamWaitEvent(queue.getNativeHandle(), event.getNativeHandle(), 0));
             }
         };
         //! The CUDA/HIP RT device event wait trait specialization.
         //!
         //! Any future work submitted in any queue of this device will wait for event to complete before beginning
         //! execution.
-        template<>
-        struct WaiterWaitFor<DevUniformCudaHipRt, EventUniformCudaHipRt>
+        template<typename TApi>
+        struct WaiterWaitFor<DevUniformCudaHipRt<TApi>, EventUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto waiterWaitFor(DevUniformCudaHipRt& dev, EventUniformCudaHipRt const& event)
-                -> void
+            ALPAKA_FN_HOST static auto waiterWaitFor(
+                DevUniformCudaHipRt<TApi>& dev,
+                EventUniformCudaHipRt<TApi> const& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Set the current device.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(StreamWaitEvent)(nullptr, event.getNativeHandle(), 0));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::streamWaitEvent(nullptr, event.getNativeHandle(), 0));
             }
         };
         //! The CUDA/HIP RT event native handle trait specialization.
-        template<>
-        struct NativeHandle<EventUniformCudaHipRt>
+        template<typename TApi>
+        struct NativeHandle<EventUniformCudaHipRt<TApi>>
         {
-            [[nodiscard]] static auto getNativeHandle(EventUniformCudaHipRt const& event)
+            [[nodiscard]] static auto getNativeHandle(EventUniformCudaHipRt<TApi> const& event)
             {
                 return event.getNativeHandle();
             }

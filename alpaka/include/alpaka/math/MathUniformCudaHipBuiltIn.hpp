@@ -12,6 +12,7 @@
 
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/CudaHipCommon.hpp>
 #include <alpaka/core/Decay.hpp>
 #include <alpaka/core/UniformCudaHip.hpp>
 #include <alpaka/core/Unreachable.hpp>
@@ -720,7 +721,7 @@ namespace alpaka::math
                 if constexpr(is_decayed_v<TBase, float> && is_decayed_v<TExp, float>)
                     return ::powf(base, exp);
                 else if constexpr(is_decayed_v<TBase, double> || is_decayed_v<TExp, double>)
-                    return ::pow(base, exp);
+                    return ::pow(static_cast<double>(base), static_cast<double>(exp));
                 else
                     static_assert(!sizeof(TBase), "Unsupported data type");
 
@@ -738,8 +739,36 @@ namespace alpaka::math
             template<typename TCtx>
             __host__ __device__ auto operator()(TCtx const& ctx, Complex<T> const& base, Complex<U> const& exponent)
             {
+                // Type promotion matching rules of complex std::pow but simplified given our math only supports float
+                // and double, no long double.
+                using Promoted
+                    = Complex<std::conditional_t<is_decayed_v<T, float> && is_decayed_v<U, float>, float, double>>;
                 // pow(z1, z2) = e^(z2 * log(z1))
-                return exp(ctx, exponent * log(ctx, base));
+                return exp(ctx, Promoted{exponent} * log(ctx, Promoted{base}));
+            }
+        };
+
+        //! The CUDA pow trait specialization for complex and real types.
+        template<typename T, typename U>
+        struct Pow<PowUniformCudaHipBuiltIn, Complex<T>, U>
+        {
+            //! Take context as original (accelerator) type, since we call other math functions
+            template<typename TCtx>
+            __host__ __device__ auto operator()(TCtx const& ctx, Complex<T> const& base, U const& exponent)
+            {
+                return pow(ctx, base, Complex<U>{exponent});
+            }
+        };
+
+        //! The CUDA pow trait specialization for real and complex types.
+        template<typename T, typename U>
+        struct Pow<PowUniformCudaHipBuiltIn, T, Complex<U>>
+        {
+            //! Take context as original (accelerator) type, since we call other math functions
+            template<typename TCtx>
+            __host__ __device__ auto operator()(TCtx const& ctx, T const& base, Complex<U> const& exponent)
+            {
+                return pow(ctx, Complex<T>{base}, exponent);
             }
         };
 

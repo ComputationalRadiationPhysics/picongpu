@@ -6,7 +6,7 @@ Installation
 .. code-block::
 
   # Clone alpaka from github.com
-  git clone --branch 0.8.0 https://github.com/alpaka-group/alpaka.git
+  git clone --branch 0.9.0 https://github.com/alpaka-group/alpaka.git
   cd alpaka
   mkdir build && cd build
   cmake -DCMAKE_INSTALL_PREFIX=/install/ ..
