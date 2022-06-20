@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
+/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -67,6 +67,7 @@ namespace picongpu
     // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
     //             regime causes a bubble with radius of approx. the laser's
     //             beam waist (use for bubble fields)
+    // 6: Custom:  user-provided normalization factors via visPreview::customNormalizationSI
     ///  @return float3_X( tyBField, tyEField, tyCurrent )
 
     template<int T>
@@ -154,6 +155,25 @@ namespace picongpu
         }
     };
 
+    //! Specialization for custom normalization
+    template<>
+    struct typicalFields<6>
+    {
+        HDINLINE static float3_X get()
+        {
+#if !(EM_FIELD_SCALE_CHANNEL1 == 6 || EM_FIELD_SCALE_CHANNEL2 == 6 || EM_FIELD_SCALE_CHANNEL3 == 6)
+            return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
+#else
+            // Convert customNormalizationSI to internal units
+            using visPreview::customNormalizationSI;
+            constexpr auto normalizationB = static_cast<float_X>(customNormalizationSI[0] / UNIT_BFIELD);
+            constexpr auto normalizationE = static_cast<float_X>(customNormalizationSI[1] / UNIT_EFIELD);
+            constexpr auto normalizationCurrent
+                = static_cast<float_X>(customNormalizationSI[2] / (UNIT_CHARGE / UNIT_TIME));
+            return float3_X{normalizationB, normalizationE, normalizationCurrent};
+#endif
+        }
+    };
 
     /** Check if an offset is part of the slicing domain
      *
