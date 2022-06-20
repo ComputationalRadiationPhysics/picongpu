@@ -118,10 +118,11 @@ namespace pmacc
             notify(this->myId, RECVFINISHED, nullptr);
             if(retryCounter != 0)
             {
-                std::cerr << "Send/receive buffer for species " << ParBase::FrameType::getName()
+                std::cerr << "Performance warning: send/receive buffer for species " << ParBase::FrameType::getName()
                           << " is too small (max: " << maxSize << ", direction: " << exchange << " '"
                           << ExchangeTypeNames{}[exchange] << "'"
-                          << ", retries: " << retryCounter << ")" << std::endl;
+                          << ", retries: " << retryCounter << "). To remove this warning consider increasing "
+                          << "BYTES_EXCHANGE_{X,Y,Z} in memory.param" << std::endl;
             }
         }
 
