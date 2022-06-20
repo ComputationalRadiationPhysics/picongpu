@@ -42,7 +42,7 @@ namespace picongpu
         // 2: Drift:   [outdated]
         // 3: PlWave:  typical fields calculated out of the plasma freq.,
         //             assuming the wave moves approx. with c
-        // 4: Thermal: typical fields calculated out of the electron temperature
+        // 4: Thermal: [outdated]
         // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
         //             regime causes a bubble with radius of approx. the laser's
         //             beam waist (use for bubble fields)
@@ -62,22 +62,31 @@ namespace picongpu
         namespace preChannel2Col = colorScales::green;
         namespace preChannel3Col = colorScales::none;
 
-        /* png preview settings for each channel */
-        DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
+        /** Calculate values for png channels for given field values
+         *
+         * @param field_B normalized magnetic field value
+         * @param field_E normalized electric field value
+         * @param field_Current normalized electric current value (note - not current density)
+         *
+         * @{
+         */
+        DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_Current)
         {
             // YMax source
             return field_E.x() * field_E.x();
         }
 
-        DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
+        DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, const float3_X& field_Current)
         {
             // XMin source
             return field_E.y() * field_E.y();
         }
 
-        DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
+        DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_Current)
         {
             return 0.0_X;
         }
+
+        /** @} */
     } // namespace visPreview
 } // namespace picongpu
