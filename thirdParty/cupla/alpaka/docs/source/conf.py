@@ -11,9 +11,9 @@ project = 'alpaka'
 copyright = 'Documentation under CC-BY 4.0, Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 author = 'Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 # The short X.Y version.
-version = u'0.9.0'
+version = u'1.0.0'
 # The full version, including alpha/beta/rc tags.
-release = u'0.9.0'
+release = u'1.0.0-develop'
 
 # The master toctree document.
 master_doc = 'index'

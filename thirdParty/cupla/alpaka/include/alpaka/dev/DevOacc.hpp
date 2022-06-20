@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber, Antonio Di Pilato
+/* Copyright 2022 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber, Antonio Di Pilato, Jeffrey Kelling
  *
  * This file is part of Alpaka.
  *
@@ -16,6 +16,7 @@
 #    endif
 
 #    include <alpaka/dev/Traits.hpp>
+#    include <alpaka/dev/common/QueueRegistry.hpp>
 #    include <alpaka/mem/buf/Traits.hpp>
 #    include <alpaka/pltf/PltfOacc.hpp>
 #    include <alpaka/pltf/Traits.hpp>
@@ -43,7 +44,7 @@ namespace alpaka
     namespace oacc::detail
     {
         //! The OpenACC device implementation.
-        class DevOaccImpl
+        class DevOaccImpl : public alpaka::detail::QueueRegistry<IGenericThreadsQueue<DevOacc>>
         {
         public:
             DevOaccImpl(int iDevice) noexcept : m_deviceType(::acc_get_device_type()), m_iDevice(iDevice)
@@ -54,40 +55,6 @@ namespace alpaka
 #    pragma acc parallel loop vector default(present) deviceptr(gridsLock)
                 for(std::size_t a = 0; a < 2; ++a)
                     gridsLock[a] = 0u;
-            }
-
-            ALPAKA_FN_HOST auto getAllExistingQueues() const
-                -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
-            {
-                std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>> vspQueues;
-
-                std::lock_guard<std::mutex> lk(m_Mutex);
-                vspQueues.reserve(std::size(m_queues));
-
-                for(auto it = std::begin(m_queues); it != std::end(m_queues);)
-                {
-                    auto spQueue(it->lock());
-                    if(spQueue)
-                    {
-                        vspQueues.emplace_back(std::move(spQueue));
-                        ++it;
-                    }
-                    else
-                    {
-                        it = m_queues.erase(it);
-                    }
-                }
-                return vspQueues;
-            }
-
-            //! Registers the given queue on this device.
-            //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
-            ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) -> void
-            {
-                std::lock_guard<std::mutex> lk(m_Mutex);
-
-                // Register this queue on the device.
-                m_queues.push_back(std::move(spQueue));
             }
 
             [[nodiscard]] auto getNativeHandle() const noexcept -> int
@@ -128,8 +95,6 @@ namespace alpaka
             }
 
         private:
-            std::mutex mutable m_Mutex;
-            std::vector<std::weak_ptr<IGenericThreadsQueue<DevOacc>>> mutable m_queues;
             acc_device_t m_deviceType;
             int m_iDevice;
             std::uint32_t* m_gridsLock = nullptr;
@@ -220,6 +185,11 @@ namespace alpaka
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) const -> void
         {
             m_devOaccImpl->registerQueue(spQueue);
+        }
+
+        auto registerCleanup(oacc::detail::DevOaccImpl::CleanerFunctor c) const -> void
+        {
+            m_devOaccImpl->registerCleanup(c);
         }
 
     private:

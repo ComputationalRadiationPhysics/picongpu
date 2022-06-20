@@ -16,6 +16,7 @@
 #    endif
 
 // Base classes.
+#    include <alpaka/core/DemangleTypeNames.hpp>
 #    include <alpaka/ctx/block/CtxBlockOacc.hpp>
 #    include <alpaka/idx/bt/IdxBtLinear.hpp>
 #    include <alpaka/intrinsic/IntrinsicFallback.hpp>
@@ -140,7 +141,7 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccOacc<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+                return "AccOacc<" + std::to_string(TDim::value) + "," + core::demangled<TIdx> + ">";
             }
         };
 

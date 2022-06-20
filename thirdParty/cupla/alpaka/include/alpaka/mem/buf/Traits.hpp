@@ -14,6 +14,9 @@
 
 namespace alpaka
 {
+    //! The CPU device handle.
+    class DevCpu;
+
     //! The buffer traits.
     namespace trait
     {
@@ -34,6 +37,10 @@ namespace alpaka
         struct HasAsyncBufSupport : public std::false_type
         {
         };
+
+        //! The pinned/mapped memory allocator trait.
+        template<typename TElem, typename TDim, typename TIdx, typename TDev>
+        struct BufAllocMapped;
 
         //! The memory mapping trait.
         template<typename TBuf, typename TDev, typename TSfinae = void>
@@ -109,6 +116,22 @@ namespace alpaka
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
+
+    //! Allocates pinned/mapped memory on host, accessible by the given device.
+    //!
+    //! \tparam TElem The element type of the returned buffer.
+    //! \tparam TIdx The linear index type of the buffer.
+    //! \tparam TExtent The extent type of the buffer.
+    //! \tparam TDev The type of device the buffer is accessible from.
+    //! \param host The host device to allocate the buffer on.
+    //! \param dev The device to make the memory accessible from.
+    //! \param extent The extent of the buffer.
+    //! \return The newly allocated buffer.
+    template<typename TElem, typename TIdx, typename TExtent, typename TDev>
+    ALPAKA_FN_HOST auto allocMappedBuf(DevCpu const& host, TDev const& dev, TExtent const& extent = TExtent())
+    {
+        return trait::BufAllocMapped<TElem, Dim<TExtent>, TIdx, TDev>::allocMappedBuf(host, dev, extent);
+    }
 
     //! Maps the buffer into the memory of the given device.
     //!

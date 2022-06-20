@@ -73,10 +73,14 @@ namespace pmacc
              * Uses the intrinsic atomicAddNoRet available for AMD gpus only.
              */
             template<typename T_Hierarchy, typename... T_AccArgs>
-            struct AtomicOpNoRet<::alpaka::AtomicAdd, alpaka::AccGpuHipRt<T_AccArgs...>, float, T_Hierarchy>
+            struct AtomicOpNoRet<
+                ::alpaka::AtomicAdd,
+                alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...>,
+                float,
+                T_Hierarchy>
             {
                 DINLINE void operator()(
-                    alpaka::AccGpuHipRt<T_AccArgs...> const& acc,
+                    alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...> const& acc,
                     float* ptr,
                     float const value,
                     T_Hierarchy const& hierarchy)
@@ -99,13 +103,13 @@ namespace pmacc
             template<typename... T_AccArgs>
             struct AtomicOpNoRet<
                 ::alpaka::AtomicAdd,
-                alpaka::AccGpuHipRt<T_AccArgs...>,
+                alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...>,
                 float,
                 ::alpaka::hierarchy::Threads>
             {
                 template<typename T_Hierarchy>
                 DINLINE void operator()(
-                    alpaka::AccGpuHipRt<T_AccArgs...> const& acc,
+                    alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...> const& acc,
                     float* address,
                     float const val,
                     T_Hierarchy const& hierarchy)

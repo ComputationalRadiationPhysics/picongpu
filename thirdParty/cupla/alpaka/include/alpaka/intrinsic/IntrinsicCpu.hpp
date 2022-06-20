@@ -14,6 +14,10 @@
 #include <alpaka/intrinsic/Traits.hpp>
 
 #include <bitset>
+#include <climits>
+#if __has_include(<bit>)
+#    include <bit>
+#endif
 
 #if BOOST_COMP_MSVC
 #    include <intrin.h>
@@ -31,27 +35,24 @@ namespace alpaka
         template<>
         struct Popcount<IntrinsicCpu>
         {
-            static auto popcount(IntrinsicCpu const& /*intrinsic*/, std::uint32_t value) -> std::int32_t
+            template<typename UnsignedIntegral>
+            static auto popcount(IntrinsicCpu const& /*intrinsic*/, UnsignedIntegral value) -> std::int32_t
             {
-#if BOOST_COMP_GNUC || BOOST_COMP_CLANG || BOOST_COMP_INTEL
-                return __builtin_popcount(value);
+#ifdef __cpp_lib_bitops
+                return std::popcount(value);
+#elif BOOST_COMP_GNUC || BOOST_COMP_CLANG
+                if constexpr(sizeof(UnsignedIntegral) == 8)
+                    return __builtin_popcountll(value);
+                else
+                    return __builtin_popcount(value);
 #elif BOOST_COMP_MSVC
-                return __popcnt(value);
+                if constexpr(sizeof(UnsignedIntegral) == 8)
+                    return static_cast<std::int32_t>(__popcnt64(value));
+                else
+                    return __popcnt(value);
 #else
                 // Fallback to standard library
-                return static_cast<std::int32_t>(std::bitset<32>(value).count());
-#endif
-            }
-
-            static auto popcount(IntrinsicCpu const& /*intrinsic*/, std::uint64_t value) -> std::int32_t
-            {
-#if BOOST_COMP_GNUC || BOOST_COMP_CLANG || BOOST_COMP_INTEL
-                return __builtin_popcountll(value);
-#elif BOOST_COMP_MSVC
-                return static_cast<std::int32_t>(__popcnt64(value));
-#else
-                // Fallback to standard library
-                return static_cast<std::int32_t>(std::bitset<64>(value).count());
+                return static_cast<std::int32_t>(std::bitset<sizeof(UnsignedIntegral) * CHAR_BIT>(value).count());
 #endif
             }
         };
@@ -59,35 +60,24 @@ namespace alpaka
         template<>
         struct Ffs<IntrinsicCpu>
         {
-            static auto ffs(IntrinsicCpu const& /*intrinsic*/, std::int32_t value) -> std::int32_t
+            template<typename Integral>
+            static auto ffs(IntrinsicCpu const& /*intrinsic*/, Integral value) -> std::int32_t
             {
-#if BOOST_COMP_GNUC || BOOST_COMP_CLANG || BOOST_COMP_INTEL
-                return __builtin_ffs(value);
+#ifdef __cpp_lib_bitops
+                return value == 0 ? 0 : std::countr_zero(static_cast<std::make_unsigned_t<Integral>>(value)) + 1;
+#elif BOOST_COMP_GNUC || BOOST_COMP_CLANG
+                if constexpr(sizeof(Integral) == 8)
+                    return __builtin_ffsll(value);
+                else
+                    return __builtin_ffs(value);
 #elif BOOST_COMP_MSVC
                 // Implementation based on
                 // https://gitlab.freedesktop.org/cairo/cairo/commit/f5167dc2e1a13d8c4e5d66d7178a24b9b5e7ac7a
                 unsigned long index = 0u;
-                if(_BitScanForward(&index, value) != 0)
-                    return static_cast<std::int32_t>(index + 1u);
+                if constexpr(sizeof(Integral) == 8)
+                    return _BitScanForward64(&index, value) == 0 ? 0 : static_cast<std::int32_t>(index + 1u);
                 else
-                    return 0;
-#else
-                return alpaka::detail::ffsFallback(value);
-#endif
-            }
-
-            static auto ffs(IntrinsicCpu const& /*intrinsic*/, std::int64_t value) -> std::int32_t
-            {
-#if BOOST_COMP_GNUC || BOOST_COMP_CLANG || BOOST_COMP_INTEL
-                return __builtin_ffsll(value);
-#elif BOOST_COMP_MSVC
-                // Implementation based on
-                // https://gitlab.freedesktop.org/cairo/cairo/commit/f5167dc2e1a13d8c4e5d66d7178a24b9b5e7ac7a
-                unsigned long index = 0u;
-                if(_BitScanForward64(&index, value) != 0)
-                    return static_cast<std::int32_t>(index + 1u);
-                else
-                    return 0;
+                    return _BitScanForward(&index, value) == 0 ? 0 : static_cast<std::int32_t>(index + 1u);
 #else
                 return alpaka::detail::ffsFallback(value);
 #endif

@@ -123,6 +123,27 @@ namespace alpaka
                 return std::string("unknown");
 #endif
             }
+
+            //! \return Pagesize in bytes used by the system.
+            inline size_t getPageSize()
+            {
+#if BOOST_OS_WINDOWS || BOOST_OS_CYGWIN
+                SYSTEM_INFO si;
+                GetSystemInfo(&si);
+                return si.dwPageSize;
+#elif BOOST_OS_UNIX || BOOST_OS_MACOS
+#    if defined(_SC_PAGESIZE)
+                return static_cast<std::size_t>(sysconf(_SC_PAGESIZE));
+#    else
+                // this is legacy and only used as fallback
+                return = static_cast<size_t>(getpagesize());
+#    endif
+#else
+#    error "getPageSize not implemented for this system!"
+                return 0;
+#endif
+            }
+
             //! \return The total number of bytes of global memory.
             //! Adapted from David Robert Nadeau:
             //! http://nadeausoftware.com/articles/2012/09/c_c_tip_how_get_physical_memory_size_system
@@ -156,21 +177,14 @@ namespace alpaka
                 std::uint64_t size(0);
                 std::size_t sizeLen{sizeof(size)};
                 if(sysctl(mib, 2, &size, &sizeLen, nullptr, 0) < 0)
-                {
                     throw std::logic_error("getTotalGlobalMemSizeBytes failed calling sysctl!");
-                }
                 return static_cast<std::size_t>(size);
 
 #    elif defined(_SC_AIX_REALMEM) // AIX.
                 return static_cast<std::size_t>(sysconf(_SC_AIX_REALMEM)) * static_cast<std::size_t>(1024);
 
-#    elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE) // Linux, FreeBSD, OpenBSD, Solaris.
-                return static_cast<std::size_t>(sysconf(_SC_PHYS_PAGES))
-                    * static_cast<std::size_t>(sysconf(_SC_PAGESIZE));
-
-#    elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGE_SIZE) // Legacy.
-                return static_cast<std::size_t>(sysconf(_SC_PHYS_PAGES))
-                    * static_cast<std::size_t>(sysconf(_SC_PAGE_SIZE));
+#    elif defined(_SC_PHYS_PAGES) // Linux, FreeBSD, OpenBSD, Solaris.
+                return static_cast<std::size_t>(sysconf(_SC_PHYS_PAGES)) * getPageSize();
 
 #    elif defined(CTL_HW)                                                                                             \
         && (defined(HW_PHYSMEM) || defined(HW_REALMEM)) // FreeBSD, DragonFly BSD, NetBSD, OpenBSD, and OSX.
@@ -185,9 +199,7 @@ namespace alpaka
             std::uint32_t size(0);
             std::size_t const sizeLen{sizeof(size)};
             if(sysctl(mib, 2, &size, &sizeLen, nullptr, 0) < 0)
-            {
                 throw std::logic_error("getTotalGlobalMemSizeBytes failed calling sysctl!");
-            }
             return static_cast<std::size_t>(size);
 #    endif
 
@@ -238,13 +250,8 @@ namespace alpaka
                 {
                     throw std::logic_error("getFreeGlobalMemSizeBytes failed calling sysctl(vm.page_free_count)!");
                 }
-                int page_size = 0;
-                len = sizeof(page_size);
-                if(sysctlbyname("vm.pagesize", &page_size, &len, nullptr, 0) < 0)
-                {
-                    throw std::logic_error("getFreeGlobalMemSizeBytes failed calling sysctl(vm.pagesize)!");
-                }
-                return static_cast<std::size_t>(free_pages) * static_cast<std::size_t>(page_size);
+
+                return static_cast<std::size_t>(free_pages) * getPageSize();
 #else
 #    error "getFreeGlobalMemSizeBytes not implemented for this system!"
 #endif

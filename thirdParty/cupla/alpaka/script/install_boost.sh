@@ -64,6 +64,10 @@ then
 elif [ "${CXX}" == "icpc" ]
 then
     TOOLSET="intel-linux"
+elif [ "${CXX}" == "icpx" ]
+then
+    # icpx is binary compatibly with g++ and ipcx is not supported by b2
+    TOOLSET="gcc"
 else
     TOOLSET="${CC}"
 fi

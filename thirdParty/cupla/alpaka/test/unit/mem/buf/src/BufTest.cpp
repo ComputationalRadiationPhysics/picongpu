@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling
  *
  * This file is part of alpaka.
  *
@@ -162,27 +162,38 @@ TEMPLATE_LIST_TEST_CASE("memBufConstTest", "[memBuf]", alpaka::test::TestAccs)
 template<typename TAcc>
 static auto testAsyncBufferImmutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
 {
-    using Dev = alpaka::Dev<TAcc>;
-    using Pltf = alpaka::Pltf<Dev>;
-    using Queue = alpaka::test::DefaultQueue<Dev>;
+    {
+        using Dev = alpaka::Dev<TAcc>;
+        using Pltf = alpaka::Pltf<Dev>;
+        using Queue = alpaka::test::DefaultQueue<Dev>;
 
-    using Elem = float;
-    using Dim = alpaka::Dim<TAcc>;
-    using Idx = alpaka::Idx<TAcc>;
+        using Elem = float;
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
 
-    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
-    Queue queue(dev);
+        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        Queue queue(dev);
 
-    // memory is allocated when the queue reaches this point
-    auto const buf = alpaka::allocAsyncBuf<Elem, Idx>(queue, extent);
+        // memory is allocated when the queue reaches this point
+        auto const buf = alpaka::allocAsyncBuf<Elem, Idx>(queue, extent);
 
-    // synchronous operations must wait for the memory to be available
-    alpaka::wait(queue);
-    auto const offset = alpaka::Vec<Dim, Idx>::zeros();
-    alpaka::test::testViewImmutable<Elem>(buf, dev, extent, offset);
+        // synchronous operations must wait for the memory to be available
+        alpaka::wait(queue);
+        auto const offset = alpaka::Vec<Dim, Idx>::zeros();
+        alpaka::test::testViewImmutable<Elem>(buf, dev, extent, offset);
 
-    // the buffer will queue the deallocation of the memory when it goes out of scope,
-    // and extend the lifetime of the queue until all memory operations have completed.
+        // The buffer will queue the deallocation of the memory when it goes out of scope,
+        // and extend the lifetime of the queue until all memory operations have completed.
+        // Delay the end of the queue to push the buffer deletetion task after
+        // all local refs to queue have been dropped.
+        alpaka::enqueue(queue, []() { std::this_thread::sleep_for(std::chrono::microseconds(1000)); });
+        [](auto) {}(std::move(queue));
+    }
+
+    // Give the queue, including the buffer's deleter time to complete, we
+    // cannot synchronize here because we dropped the handle to see how it
+    // behaves when it self-destructs.
+    std::this_thread::sleep_for(std::chrono::microseconds(1200));
 }
 
 TEMPLATE_LIST_TEST_CASE("memBufAsyncConstTest", "[memBuf]", alpaka::test::TestAccs)

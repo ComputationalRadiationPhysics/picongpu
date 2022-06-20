@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber, Jeffrey Kelling
  *
  * This file is part of alpaka.
  *
@@ -57,12 +57,30 @@ namespace alpaka
                     false>; // If the threads should yield.
 
             public:
-                explicit QueueGenericThreadsNonBlockingImpl(TDev dev) : m_dev(std::move(dev)), m_workerThread(1u)
+                explicit QueueGenericThreadsNonBlockingImpl(TDev dev)
+                    : m_dev(std::move(dev))
+                    , m_workerThread(std::make_unique<ThreadPool>(1u))
                 {
                 }
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev> const&) = delete;
+                QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev>&&) = delete;
                 auto operator=(QueueGenericThreadsNonBlockingImpl<TDev> const&)
                     -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
+                auto operator=(QueueGenericThreadsNonBlockingImpl&&)
+                    -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
+                ~QueueGenericThreadsNonBlockingImpl() override
+                {
+                    m_dev.registerCleanup(
+                        [pool = std::weak_ptr<ThreadPool>(m_workerThread)]() noexcept
+                        {
+                            auto s = pool.lock();
+                            if(s)
+                            {
+                                s = s->takeDetachHandle();
+                            }
+                        });
+                    m_workerThread->detach(std::move(m_workerThread));
+                }
 
                 void enqueue(EventGenericThreads<TDev>& ev) final
                 {
@@ -77,7 +95,7 @@ namespace alpaka
             public:
                 TDev const m_dev; //!< The device this queue is bound to.
 
-                ThreadPool m_workerThread;
+                std::shared_ptr<ThreadPool> m_workerThread;
             };
         } // namespace detail
     } // namespace generic
@@ -148,7 +166,7 @@ namespace alpaka
                 // ConcurrentExecPool.hpp.
                 if constexpr(!((BOOST_COMP_CLANG_CUDA != BOOST_VERSION_NUMBER_NOT_AVAILABLE)
                                && (BOOST_ARCH_PTX != BOOST_VERSION_NUMBER_NOT_AVAILABLE)))
-                    queue.m_spQueueImpl->m_workerThread.enqueueTask(task);
+                    queue.m_spQueueImpl->m_workerThread->enqueueTask(task);
             }
         };
         //! The CPU non-blocking device queue test trait specialization.
@@ -157,7 +175,7 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto empty(QueueGenericThreadsNonBlocking<TDev> const& queue) -> bool
             {
-                return queue.m_spQueueImpl->m_workerThread.isIdle();
+                return queue.m_spQueueImpl->m_workerThread->isIdle();
             }
         };
     } // namespace trait

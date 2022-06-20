@@ -38,22 +38,32 @@ namespace alpaka
         template<typename TPltf, typename TSfinae>
         struct GetDevByIdx;
     }
-    class PltfUniformCudaHipRt;
 
     namespace uniform_cuda_hip::detail
     {
-        template<bool TBlocking>
+        template<typename TApi, bool TBlocking>
         class QueueUniformCudaHipRt;
     }
-    using QueueUniformCudaHipRtBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<true>;
-    using QueueUniformCudaHipRtNonBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<false>;
+
+    template<typename TApi>
+    using QueueUniformCudaHipRtBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, true>;
+
+    template<typename TApi>
+    using QueueUniformCudaHipRtNonBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, false>;
+
+    template<typename TApi>
+    class PltfUniformCudaHipRt;
+
+    template<typename TApi, typename TElem, typename TDim, typename TIdx>
+    class BufUniformCudaHipRt;
 
     //! The CUDA/HIP RT device handle.
+    template<typename TApi>
     class DevUniformCudaHipRt
-        : public concepts::Implements<ConceptCurrentThreadWaitFor, DevUniformCudaHipRt>
-        , public concepts::Implements<ConceptDev, DevUniformCudaHipRt>
+        : public concepts::Implements<ConceptCurrentThreadWaitFor, DevUniformCudaHipRt<TApi>>
+        , public concepts::Implements<ConceptDev, DevUniformCudaHipRt<TApi>>
     {
-        friend struct trait::GetDevByIdx<PltfUniformCudaHipRt>;
+        friend struct trait::GetDevByIdx<PltfUniformCudaHipRt<TApi>>;
 
     protected:
         DevUniformCudaHipRt() = default;
@@ -80,160 +90,137 @@ namespace alpaka
         int m_iDevice;
     };
 
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    using DevCudaRt = DevUniformCudaHipRt;
-#    else
-    using DevHipRt = DevUniformCudaHipRt;
-#    endif
-
-
     namespace trait
     {
         //! The CUDA/HIP RT device name get trait specialization.
-        template<>
-        struct GetName<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct GetName<DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto getName(DevUniformCudaHipRt const& dev) -> std::string
+            ALPAKA_FN_HOST static auto getName(DevUniformCudaHipRt<TApi> const& dev) -> std::string
             {
                 // There is cuda/hip-DeviceGetAttribute as faster alternative to cuda/hip-GetDeviceProperties to get a
                 // single device property but it has no option to get the name
-#    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-                cudaDeviceProp devProp;
-#    else
-                hipDeviceProp_t devProp;
-#    endif
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(GetDeviceProperties)(&devProp, dev.getNativeHandle()));
+                typename TApi::DeviceProp_t devProp;
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::getDeviceProperties(&devProp, dev.getNativeHandle()));
 
                 return std::string(devProp.name);
             }
         };
 
         //! The CUDA/HIP RT device available memory get trait specialization.
-        template<>
-        struct GetMemBytes<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct GetMemBytes<DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto getMemBytes(DevUniformCudaHipRt const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getMemBytes(DevUniformCudaHipRt<TApi> const& dev) -> std::size_t
             {
                 // Set the current device to wait for.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
 
                 std::size_t freeInternal(0u);
                 std::size_t totalInternal(0u);
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(MemGetInfo)(&freeInternal, &totalInternal));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memGetInfo(&freeInternal, &totalInternal));
 
                 return totalInternal;
             }
         };
 
         //! The CUDA/HIP RT device free memory get trait specialization.
-        template<>
-        struct GetFreeMemBytes<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct GetFreeMemBytes<DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto getFreeMemBytes(DevUniformCudaHipRt const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getFreeMemBytes(DevUniformCudaHipRt<TApi> const& dev) -> std::size_t
             {
                 // Set the current device to wait for.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
 
                 std::size_t freeInternal(0u);
                 std::size_t totalInternal(0u);
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(MemGetInfo)(&freeInternal, &totalInternal));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memGetInfo(&freeInternal, &totalInternal));
 
                 return freeInternal;
             }
         };
 
         //! The CUDA/HIP RT device warp size get trait specialization.
-        template<>
-        struct GetWarpSizes<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct GetWarpSizes<DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto getWarpSizes(DevUniformCudaHipRt const& dev) -> std::vector<std::size_t>
+            ALPAKA_FN_HOST static auto getWarpSizes(DevUniformCudaHipRt<TApi> const& dev) -> std::vector<std::size_t>
             {
-#    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-                cudaDeviceProp devProp;
-#    else
-                hipDeviceProp_t devProp;
-#    endif
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    ALPAKA_API_PREFIX(GetDeviceProperties)(&devProp, dev.getNativeHandle()));
+                typename TApi::DeviceProp_t devProp;
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::getDeviceProperties(&devProp, dev.getNativeHandle()));
 
                 return {static_cast<std::size_t>(devProp.warpSize)};
             }
         };
 
         //! The CUDA/HIP RT device reset trait specialization.
-        template<>
-        struct Reset<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct Reset<DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto reset(DevUniformCudaHipRt const& dev) -> void
+            ALPAKA_FN_HOST static auto reset(DevUniformCudaHipRt<TApi> const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                 // Set the current device to wait for.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(DeviceReset)());
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceReset());
             }
         };
 
         //! The CUDA/HIP RT device native handle trait specialization.
-        template<>
-        struct NativeHandle<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct NativeHandle<DevUniformCudaHipRt<TApi>>
         {
-            [[nodiscard]] static auto getNativeHandle(DevUniformCudaHipRt const& dev)
+            [[nodiscard]] static auto getNativeHandle(DevUniformCudaHipRt<TApi> const& dev)
             {
                 return dev.getNativeHandle();
             }
         };
-    } // namespace trait
 
-    template<typename TElem, typename TDim, typename TIdx>
-    class BufUniformCudaHipRt;
-
-    namespace trait
-    {
         //! The CUDA/HIP RT device memory buffer type trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct BufType<DevUniformCudaHipRt, TElem, TDim, TIdx>
+        template<typename TApi, typename TElem, typename TDim, typename TIdx>
+        struct BufType<DevUniformCudaHipRt<TApi>, TElem, TDim, TIdx>
         {
-            using type = BufUniformCudaHipRt<TElem, TDim, TIdx>;
+            using type = BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>;
         };
 
         //! The CUDA/HIP RT device platform type trait specialization.
-        template<>
-        struct PltfType<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct PltfType<DevUniformCudaHipRt<TApi>>
         {
-            using type = PltfUniformCudaHipRt;
+            using type = PltfUniformCudaHipRt<TApi>;
         };
 
         //! The thread CUDA/HIP device wait specialization.
         //!
         //! Blocks until the device has completed all preceding requested tasks.
         //! Tasks that are enqueued or queues that are created after this call is made are not waited for.
-        template<>
-        struct CurrentThreadWaitFor<DevUniformCudaHipRt>
+        template<typename TApi>
+        struct CurrentThreadWaitFor<DevUniformCudaHipRt<TApi>>
         {
-            ALPAKA_FN_HOST static auto currentThreadWaitFor(DevUniformCudaHipRt const& dev) -> void
+            ALPAKA_FN_HOST static auto currentThreadWaitFor(DevUniformCudaHipRt<TApi> const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                 // Set the current device to wait for.
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(SetDevice)(dev.getNativeHandle()));
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(DeviceSynchronize)());
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::deviceSynchronize());
             }
         };
 
-        template<>
-        struct QueueType<DevUniformCudaHipRt, Blocking>
+        template<typename TApi>
+        struct QueueType<DevUniformCudaHipRt<TApi>, Blocking>
         {
-            using type = QueueUniformCudaHipRtBlocking;
+            using type = QueueUniformCudaHipRtBlocking<TApi>;
         };
 
-        template<>
-        struct QueueType<DevUniformCudaHipRt, NonBlocking>
+        template<typename TApi>
+        struct QueueType<DevUniformCudaHipRt<TApi>, NonBlocking>
         {
-            using type = QueueUniformCudaHipRtNonBlocking;
+            using type = QueueUniformCudaHipRtNonBlocking<TApi>;
         };
     } // namespace trait
 } // namespace alpaka

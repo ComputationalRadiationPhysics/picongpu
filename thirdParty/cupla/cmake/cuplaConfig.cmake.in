@@ -26,12 +26,16 @@ option(CUPLA_STREAM_ASYNC_ENABLE "Enable asynchronous streams" ON)
 
 # the minimum and maximum supported alpaka version are fixed during the installation of cupla
 set(_CUPLA_MIN_ALPAKA_VERSION @_CUPLA_MIN_ALPAKA_VERSION@)
-set(_CUPLA_UNSUPPORTED_ALPAKA_VERSION @_CUPLA_UNSUPPORTED_ALPAKA_VERSION@)
+set(_CUPLA_MAX_ALPAKA_VERSION @_CUPLA_MAX_ALPAKA_VERSION@)
 
-find_package(alpaka ${_CUPLA_MIN_ALPAKA_VERSION} REQUIRED HINTS $ENV{ALPAKA_ROOT})
-if(alpaka_VERSION VERSION_GREATER_EQUAL _CUPLA_UNSUPPORTED_ALPAKA_VERSION)
+find_package(alpaka ${_CUPLA_MAX_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
+if(NOT TARGET alpaka::alpaka)
+  message(STATUS "Could not find alpaka ${_CUPLA_MAX_ALPAKA_VERSION}. Now searching for alpaka ${_CUPLA_MIN_ALPAKA_VERSION}")
+  find_package(alpaka ${_CUPLA_MIN_ALPAKA_VERSION} REQUIRED HINTS $ENV{ALPAKA_ROOT})
+endif()
+if(alpaka_VERSION VERSION_GREATER _CUPLA_MAX_ALPAKA_VERSION)
   message(WARNING "Unsupported alpaka version ${alpaka_VERSION}. "
-    "Supported versions [${_CUPLA_MIN_ALPAKA_VERSION},${_CUPLA_UNSUPPORTED_ALPAKA_VERSION}).")
+    "Supported versions [${_CUPLA_MIN_ALPAKA_VERSION},${_CUPLA_MAX_ALPAKA_VERSION}].")
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/addExecutable.cmake")

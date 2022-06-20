@@ -12,6 +12,7 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Debug.hpp>
+#include <alpaka/core/DemangleTypeNames.hpp>
 #include <alpaka/core/OmpSchedule.hpp>
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
@@ -241,8 +242,8 @@ namespace alpaka
             "The idx type of TAcc and the idx type of TWorkDiv have to be identical!");
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-        std::cout << __func__ << " workDiv: " << workDiv << ", kernelFnObj: " << typeid(kernelFnObj).name()
-                  << std::endl;
+        std::cout << __func__ << " workDiv: " << workDiv
+                  << ", kernelFnObj: " << core::demangled<decltype(kernelFnObj)> << std::endl;
 #endif
         return trait::CreateTaskKernel<TAcc, TWorkDiv, TKernelFnObj, TArgs...>::createTaskKernel(
             workDiv,

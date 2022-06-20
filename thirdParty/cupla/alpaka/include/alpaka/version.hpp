@@ -1,4 +1,4 @@
-/* Copyright 2021 Benjamin Worpitz, Erik Zenker, Jan Stephan
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -11,8 +11,8 @@
 
 #include <boost/predef/version_number.h>
 
-#define ALPAKA_VERSION_MAJOR 0
-#define ALPAKA_VERSION_MINOR 9
+#define ALPAKA_VERSION_MAJOR 1
+#define ALPAKA_VERSION_MINOR 0
 #define ALPAKA_VERSION_PATCH 0
 
 //! The alpaka library version number

@@ -1,4 +1,4 @@
-/* Copyright 2020 Rene Widera
+/* Copyright 2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of cupla.
  *
@@ -38,6 +38,51 @@ namespace cupla
             {
                 namespace detail
                 {
+                    /** Trait to get alpaka math implementation type for given accelerator/math implementation type
+                     *
+                     * This trait is needed here as alpaka currently does not express this relation directly.
+                     * In alpaka it is only possible to get a type of implementation of a particular math function,
+                     * but not for all functions. So with existing alpaka traits e.g. Acc -> alpaka::math::AbsStdLib is
+                     * possible, but not Acc -> alpaka::math::MathStdLib.
+                     * And the latter is needed for math functions that call other math functions as described in #234.
+                     *
+                     * General implementation returns MathStdLib as it fits host-side usage and supported CPU
+                     * accelerators.
+                     *
+                     * @tparam T_AccOrMathImpl accelerator or math implementation type
+                     */
+                    template<typename T_AccOrMathImpl>
+                    struct MathImpl
+                    {
+                        using type = alpaka::math::MathStdLib;
+                    };
+
+#if ALPAKA_ACC_GPU_CUDA_ENABLED == 1
+                    /** Trait to get alpaka math implementation type for CUDA accelerator
+                     *
+                     * @tparam T_Dim dimensionality of accelerator index space
+                     * @tparam T_Idx type of accelerator indexes
+                     */
+                    template<typename T_Dim, typename T_Idx>
+                    struct MathImpl<alpaka::AccGpuCudaRt<T_Dim, T_Idx>>
+                    {
+                        using type = alpaka::math::MathUniformCudaHipBuiltIn;
+                    };
+#endif
+
+#if ALPAKA_ACC_GPU_HIP_ENABLED == 1
+                    /** Trait to get alpaka math implementation type for HIP accelerator
+                     *
+                     * @tparam T_Dim dimensionality of accelerator index space
+                     * @tparam T_Idx type of accelerator indexes
+                     */
+                    template<typename T_Dim, typename T_Idx>
+                    struct MathImpl<alpaka::AccGpuHipRt<T_Dim, T_Idx>>
+                    {
+                        using type = alpaka::math::MathUniformCudaHipBuiltIn;
+                    };
+#endif
+
                     /** Get the concept implementation of the current accelerator
                      *
                      * @tparam T_AccOrMathImpl accelerator or math implementation [type alpaka::* or
@@ -49,7 +94,7 @@ namespace cupla
                     template<typename T_AccOrMathImpl, typename T_Concept>
                     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto getConcept()
                     {
-                        using ResultMathConcept = alpaka::concepts::ImplementationBase<T_Concept, T_AccOrMathImpl>;
+                        using ResultMathConcept = typename MathImpl<T_AccOrMathImpl>::type;
 
                         using AccMathConcept = alpaka::concepts::ImplementationBase<T_Concept, Acc>;
 

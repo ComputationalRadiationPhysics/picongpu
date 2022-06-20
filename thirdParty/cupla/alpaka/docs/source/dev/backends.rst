@@ -105,7 +105,27 @@ NOTE: You have to be careful when mixing alpaka and non alpaka CUDA code. The CU
 Programming Interface
 ---------------------
 
-*Function Attributes*
+**Function Attributes**
+
+Depending on the cmake argument ``ALPAKA_ACC_GPU_CUDA_ONLY_MODE`` the function attributes are defined differently.
+
+*ALPAKA_ACC_GPU_CUDA_ONLY_MODE=OFF* (default)
+
+.. table::
+
+   +-----------------------------------------------------+---------------------------------------------------------+
+   | CUDA                                                | alpaka                                                  |
+   +=====================================================+=========================================================+
+   | ``__host__``                                        | ``ALPAKA_FN_HOST``                                      |
+   +-----------------------------------------------------+---------------------------------------------------------+
+   | ``__device__``                                      | --                                                      |
+   +-----------------------------------------------------+---------------------------------------------------------+
+   | ``__global__``                                      | --                                                      |
+   +-----------------------------------------------------+---------------------------------------------------------+
+   | ``__host__ __device__``                             | ``ALPAKA_FN_HOST_ACC``, ``ALPAKA_FN_ACC``               |
+   +-----------------------------------------------------+---------------------------------------------------------+
+
+*ALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON*
 
 .. table::
 
@@ -116,16 +136,27 @@ Programming Interface
    +-----------------------------------------------------+---------------------------------------------------------+
    | ``__device__``                                      | ``ALPAKA_FN_ACC``                                       |
    +-----------------------------------------------------+---------------------------------------------------------+
-   | ``__global__``                                      | ``ALPAKA_FN_ACC``                                       |
+   | ``__global__``                                      | --                                                      |
    +-----------------------------------------------------+---------------------------------------------------------+
    | ``__host__ __device__``                             | ``ALPAKA_FN_HOST_ACC``                                  |
    +-----------------------------------------------------+---------------------------------------------------------+
+
+.. note:: 
+
+   There is no alpaka equivalent to ``__global__`` because the design of alpaka does not allow it. When running a alpaka kernel, alpaka creates a ``__global__`` kernel that performs some setup functions, such as creating the acc object, and then runs the user kernel, which must be a CUDA ``__device__`` function.
 
 .. note::
 
    You can not call CUDA-only methods, except when ``ALPAKA_ACC_GPU_CUDA_ONLY_MODE`` is enabled.
 
-*Memory*
+.. note::
+
+   When calling a ``constexpr`` function from inside a device function, also mark the called function as a device function, e.g. by prepending ``ALPAKA_FN_ACC``.
+
+   Note that some compilers do that by default, but not all.
+   For details please refer to `#1580 <https://github.com/alpaka-group/alpaka/issues/1580>`_ .
+
+**Memory**
 
 .. table::
 

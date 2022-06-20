@@ -38,7 +38,8 @@
 namespace alpaka::rand
 {
     //! The CUDA/HIP rand implementation.
-    class RandUniformCudaHipRand : public concepts::Implements<ConceptRand, RandUniformCudaHipRand>
+    template<typename TApi>
+    class RandUniformCudaHipRand : public concepts::Implements<ConceptRand, RandUniformCudaHipRand<TApi>>
     {
     };
 
@@ -232,10 +233,10 @@ namespace alpaka::rand
     namespace distribution::trait
     {
         //! The CUDA/HIP random number float normal distribution get trait specialization.
-        template<typename T>
-        struct CreateNormalReal<RandUniformCudaHipRand, T, std::enable_if_t<std::is_floating_point_v<T>>>
+        template<typename TApi, typename T>
+        struct CreateNormalReal<RandUniformCudaHipRand<TApi>, T, std::enable_if_t<std::is_floating_point_v<T>>>
         {
-            __device__ static auto createNormalReal(RandUniformCudaHipRand const& /*rand*/)
+            __device__ static auto createNormalReal(RandUniformCudaHipRand<TApi> const& /*rand*/)
                 -> uniform_cuda_hip::NormalReal<T>
             {
                 return {};
@@ -243,10 +244,10 @@ namespace alpaka::rand
         };
 
         //! The CUDA/HIP random number float uniform distribution get trait specialization.
-        template<typename T>
-        struct CreateUniformReal<RandUniformCudaHipRand, T, std::enable_if_t<std::is_floating_point_v<T>>>
+        template<typename TApi, typename T>
+        struct CreateUniformReal<RandUniformCudaHipRand<TApi>, T, std::enable_if_t<std::is_floating_point_v<T>>>
         {
-            __device__ static auto createUniformReal(RandUniformCudaHipRand const& /*rand*/)
+            __device__ static auto createUniformReal(RandUniformCudaHipRand<TApi> const& /*rand*/)
                 -> uniform_cuda_hip::UniformReal<T>
             {
                 return {};
@@ -254,10 +255,10 @@ namespace alpaka::rand
         };
 
         //! The CUDA/HIP random number integer uniform distribution get trait specialization.
-        template<typename T>
-        struct CreateUniformUint<RandUniformCudaHipRand, T, std::enable_if_t<std::is_integral_v<T>>>
+        template<typename TApi, typename T>
+        struct CreateUniformUint<RandUniformCudaHipRand<TApi>, T, std::enable_if_t<std::is_integral_v<T>>>
         {
-            __device__ static auto createUniformUint(RandUniformCudaHipRand const& /*rand*/)
+            __device__ static auto createUniformUint(RandUniformCudaHipRand<TApi> const& /*rand*/)
                 -> uniform_cuda_hip::UniformUint<T>
             {
                 return {};
@@ -268,11 +269,11 @@ namespace alpaka::rand
     namespace engine::trait
     {
         //! The CUDA/HIP random number default generator get trait specialization.
-        template<>
-        struct CreateDefault<RandUniformCudaHipRand>
+        template<typename TApi>
+        struct CreateDefault<RandUniformCudaHipRand<TApi>>
         {
             __device__ static auto createDefault(
-                RandUniformCudaHipRand const& /*rand*/,
+                RandUniformCudaHipRand<TApi> const& /*rand*/,
                 std::uint32_t const& seed = 0,
                 std::uint32_t const& subsequence = 0,
                 std::uint32_t const& offset = 0) -> uniform_cuda_hip::Xor

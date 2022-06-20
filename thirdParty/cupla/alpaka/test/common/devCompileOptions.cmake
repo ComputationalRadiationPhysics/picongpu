@@ -132,8 +132,8 @@ ELSE()
             LIST(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wcast-align=strict")
         ENDIF()
 
-    # Clang or AppleClang
-    ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Clang, AppleClang, ICPX
+    ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
         LIST(APPEND alpaka_DEV_COMPILE_OPTIONS "-Werror")
         # Weverything really means everything (including Wall, Wextra, pedantic, ...)
         LIST(APPEND alpaka_DEV_COMPILE_OPTIONS "-Weverything")
@@ -157,7 +157,24 @@ ELSE()
         IF(alpaka_ACC_GPU_HIP_ENABLE)
             LIST(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-unused-command-line-argument")
         ENDIF()
-    # ICC
+
+        SET(IS_ICPX OFF)
+        IF(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+            SET(IS_ICPX ON)
+        ELSEIF (CMAKE_VERSION VERSION_LESS 3.20 AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            INCLUDE(CheckCXXSourceCompiles)
+            CHECK_CXX_SOURCE_COMPILES("\
+                #ifndef __INTEL_LLVM_COMPILER\
+                #    error\
+                #endif
+                int main() {}"
+                IS_ICPX)
+        ENDIF()
+        IF (IS_ICPX)
+            # fast math is turned on by default with ICPX, which breaks our unit tests
+            LIST(APPEND alpaka_DEV_COMPILE_OPTIONS "-ffp-model=precise")
+        ENDIF()
+    # ICPC
     ELSEIF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
         LIST(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wall")
     # PGI

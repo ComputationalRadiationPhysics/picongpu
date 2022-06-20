@@ -151,7 +151,7 @@ namespace alpaka::rand
 
                     // compute z0 and z1
                     const T mag = sigma * math::sqrt(*m_acc, static_cast<T>(-2.) * math::log(*m_acc, u1));
-                    constexpr T twoPi = static_cast<T>(2. * M_PI);
+                    constexpr T twoPi = static_cast<T>(2. * math::constants::pi);
                     // getting two normal number out of this, store one for later
                     m_cache = mag * static_cast<T>(math::cos(*m_acc, twoPi * u2)) + mu;
 
