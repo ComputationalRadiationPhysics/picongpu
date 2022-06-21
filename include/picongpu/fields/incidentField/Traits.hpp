@@ -21,7 +21,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
 #include <cstdint>
+#include <type_traits>
+
 
 namespace picongpu
 {
@@ -113,6 +117,14 @@ namespace picongpu
              */
             template<typename T_Profile>
             constexpr float_X amplitude = GetAmplitude<T_Profile>::value;
+
+            //! Typelist of all enabled profiles, can contain duplicates
+            using EnabledProfiles = pmacc::MakeSeq_t<
+                XMin,
+                XMax,
+                YMin,
+                YMax,
+                std::conditional_t<simDim == 3, pmacc::MakeSeq_t<ZMin, ZMax>, pmacc::MakeSeq_t<>>>;
 
         } // namespace incidentField
     } // namespace fields
