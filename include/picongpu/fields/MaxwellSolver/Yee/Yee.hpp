@@ -23,6 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
+#include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 
 #include <pmacc/traits/GetStringProperties.hpp>
@@ -54,6 +55,60 @@ namespace picongpu
                             && sizeof(T_Defer*) != 0);
 
                     return 1.0_X / math::sqrt(INV_CELL2_SUM);
+                }
+            };
+
+            //! Specialization of the dispersion relation for the classic Yee solver
+            template<>
+            class DispersionRelation<Yee> : public DispersionRelationBase
+            {
+            public:
+                /** Create a functor with the given parameters
+                 *
+                 * @param omega angular frequency = 2pi * c / lambda
+                 * @param direction normalized propagation direction
+                 */
+                DispersionRelation(float_64 const omega, float3_64 const direction)
+                    : DispersionRelationBase(omega, direction)
+                {
+                }
+
+                /** Calculate f(absK) in the dispersion relation, see comment to the main template
+                 *
+                 * @param absK absolute value of the (angular) wave number
+                 */
+                float_64 relation(float_64 const absK) const
+                {
+                    // (4.12) in Taflove-Hagness, expressed as rhs - lhs = 0
+                    auto rhs = 0.0;
+                    for(uint32_t d = 0; d < simDim; d++)
+                    {
+                        auto const arg = 0.5 * absK * direction[d] * step[d];
+                        auto const term = math::sin(arg) / step[d];
+                        rhs += term * term;
+                    }
+                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (SPEED_OF_LIGHT * timeStep);
+                    auto const lhs = lhsTerm * lhsTerm;
+                    return rhs - lhs;
+                }
+
+                /** Calculate df(absK)/d(absK) in the dispersion relation, see comment to the main template
+                 *
+                 * @param absK absolute value of the (angular) wave number
+                 */
+                float_64 relationDerivative(float_64 const absK) const
+                {
+                    // Term-wise derivative in same order as in relation()
+                    auto result = 0.0;
+                    for(uint32_t d = 0; d < simDim; d++)
+                    {
+                        // Calculate d(term^2(absK))/d(absK), where term is from relation()
+                        auto const arg = 0.5 * absK * direction[d] * step[d];
+                        auto const term = math::sin(arg) / step[d];
+                        auto const termDerivative = 0.5 * direction[d] * math::cos(arg);
+                        result += 2.0 * term * termDerivative;
+                    }
+                    return result;
                 }
             };
 
