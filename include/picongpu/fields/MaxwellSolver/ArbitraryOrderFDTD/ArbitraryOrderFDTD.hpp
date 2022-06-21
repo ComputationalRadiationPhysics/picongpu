@@ -26,6 +26,7 @@
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Weights.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
+#include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
 
@@ -73,6 +74,72 @@ namespace picongpu
                     }
 
                     return maxC_DT;
+                }
+            };
+
+            //! Specialization of the dispersion relation for the arbitrary-order FDTD
+            template<uint32_t T_neighbors>
+            class DispersionRelation<ArbitraryOrderFDTD<T_neighbors>> : public DispersionRelationBase
+            {
+            public:
+                /** Create a functor with the given parameters
+                 *
+                 * @param omega angular frequency = 2pi * c / lambda
+                 * @param direction normalized propagation direction
+                 */
+                DispersionRelation(float_64 const omega, float3_64 const direction)
+                    : DispersionRelationBase(omega, direction)
+                {
+                }
+
+                /** Calculate f(absK) in the dispersion relation, see comment to the main template
+                 *
+                 * @param absK absolute value of the (angular) wave number
+                 */
+                float_64 relation(float_64 const absK) const
+                {
+                    // Dispersion relation is given in https://picongpu.readthedocs.io/en/latest/models/AOFDTD.html
+                    auto weights = aoFDTD::AOFDTDWeights<T_neighbors>{};
+                    auto rhs = 0.0;
+                    for(uint32_t d = 0; d < simDim; d++)
+                    {
+                        auto term = 0.0;
+                        for(uint32_t l = 0; l < T_neighbors; l++)
+                        {
+                            auto const arg = (static_cast<float_64>(l) + 0.5) * absK * direction[d] * step[d];
+                            term += weights[l] * math::sin(arg) / step[d];
+                        }
+                        rhs += term * term;
+                    }
+                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (SPEED_OF_LIGHT * timeStep);
+                    auto const lhs = lhsTerm * lhsTerm;
+                    return rhs - lhs;
+                }
+
+                /** Calculate df(absK)/d(absK) in the dispersion relation, see comment to the main template
+                 *
+                 * @param absK absolute value of the (angular) wave number
+                 */
+                float_64 relationDerivative(float_64 const absK) const
+                {
+                    // Term-wise derivative in same order as in relation()
+                    auto weights = aoFDTD::AOFDTDWeights<T_neighbors>{};
+                    auto result = 0.0;
+                    for(uint32_t d = 0; d < simDim; d++)
+                    {
+                        // Calculate d(term^2(absK))/d(absK), where term is from relation()
+                        auto term = 0.0;
+                        auto termDerivative = 0.0;
+                        for(uint32_t l = 0; l < T_neighbors; l++)
+                        {
+                            auto const arg = (static_cast<float_64>(l) + 0.5) * absK * direction[d] * step[d];
+                            term += weights[l] * math::sin(arg) / step[d];
+                            termDerivative
+                                += weights[l] * (static_cast<float_64>(l) + 0.5) * direction[d] * math::cos(arg);
+                        }
+                        result += 2.0 * term * termDerivative;
+                    }
+                    return result;
                 }
             };
 
