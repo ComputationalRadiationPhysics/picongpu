@@ -72,6 +72,48 @@ namespace picongpu
                 /** @} */
 
             } // namespace detail
+
+            /** Get max E field amplitude for the given profile type
+             *
+             * The resulting value is set as ::value, in internal units.
+             * This trait has to be specialized by all profiles.
+             *
+             * @tparam T_Profile profile type
+             *
+             * @{
+             */
+
+            //! Generic implementation for all profiles with parameter structs
+            template<typename T_Profile>
+            struct GetAmplitude
+            {
+                using FunctorE = detail::FunctorIncidentE<T_Profile>;
+                static constexpr float_X value = FunctorE::Unitless::AMPLITUDE;
+            };
+
+            //! Specialization for None profile which has no amplitude
+            template<>
+            struct GetAmplitude<profiles::None>
+            {
+                static constexpr float_X value = 0.0_X;
+            };
+
+            //! Specialization for Free profile which has unknown amplitude
+            template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+            struct GetAmplitude<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+            {
+                static constexpr float_X value = 0.0_X;
+            };
+
+            /** @} */
+
+            /** Max E field amplitude in internal units for the given profile type
+             *
+             * @tparam T_Profile profile type
+             */
+            template<typename T_Profile>
+            constexpr float_X amplitude = GetAmplitude<T_Profile>::value;
+
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
