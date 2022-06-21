@@ -24,6 +24,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/output/GatherSlice.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
@@ -47,6 +48,7 @@
 #include <pmacc/memory/boxes/SharedBox.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 
@@ -58,16 +60,18 @@
 namespace picongpu
 {
     // normalize EM fields to typical laser or plasma quantities
-    //-1: Auto:    enable adaptive scaling for each output
-    // 1: Laser:   typical fields calculated out of the laser amplitude
-    // 2: Drift:   outdated
-    // 3: PlWave:  typical fields calculated out of the plasma freq.,
-    //             assuming the wave moves approx. with c
-    // 4: Thermal: outdated
-    // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
-    //             regime causes a bubble with radius of approx. the laser's
-    //             beam waist (use for bubble fields)
-    // 6: Custom:  user-provided normalization factors via visPreview::customNormalizationSI
+    //-1: Auto:     enable adaptive scaling for each output
+    // 1: Laser:    typical fields calculated out of the laser amplitude
+    // 2: Drift:    outdated
+    // 3: PlWave:   typical fields calculated out of the plasma freq.,
+    //              assuming the wave moves approx. with c
+    // 4: Thermal:  outdated
+    // 5: BlowOut:  typical fields, assuming that a LWFA in the blowout
+    //              regime causes a bubble with radius of approx. the laser's
+    //              beam waist (use for bubble fields)
+    // 6: Custom:   user-provided normalization factors via visPreview::customNormalizationSI
+    // 7: Incident: typical fields calculated out of the incident field amplitude,
+    //              uses max amplitude from all enabled incident field profile types ignoring Free
     ///  @return float3_X( tyBField, tyEField, tyCurrent )
 
     template<int T>
@@ -173,6 +177,56 @@ namespace picongpu
             return float3_X{normalizationB, normalizationE, normalizationCurrent};
 #endif
         }
+    };
+
+    //! Specialization for incident field normalization
+    template<>
+    struct typicalFields<7>
+    {
+        //! Get normalization values
+        HDINLINE static float3_X get()
+        {
+#if !(EM_FIELD_SCALE_CHANNEL1 == 7 || EM_FIELD_SCALE_CHANNEL2 == 7 || EM_FIELD_SCALE_CHANNEL3 == 7)
+            return float3_X::create(1.0_X);
+#else
+            constexpr auto baseCharge = BASE_CHARGE;
+            const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
+                * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * math::abs(baseCharge) / DELTA_T;
+            const float_X tyEField = getAmplitude() + FLT_MIN;
+            const float_X tyBField = tyEField * MUE0_EPS0;
+            return float3_X(tyBField, tyEField, tyCurrent);
+#endif
+        }
+
+    private:
+        //! Get laser E amplitude in internal units
+        HDINLINE static float_X getAmplitude()
+        {
+            using Profiles = fields::incidentField::EnabledProfiles;
+            meta::ForEach<Profiles, CalculateMaxAmplitude<bmpl::_1>> calculateMaxAmplitude;
+            auto maxAmplitude = 0.0_X;
+            calculateMaxAmplitude(maxAmplitude);
+            return maxAmplitude;
+        }
+
+        /** Functor to calculate max amplitude between the given value and given profile
+         *
+         * @tparam T_Profile incident field profile
+         */
+        template<typename T_Profile>
+        struct CalculateMaxAmplitude
+        {
+            /** Call update E with the given parameters
+             *
+             * @param[out] maxAmplitude current value of max amplitude, can be updated by the functor
+             */
+            HDINLINE void operator()(float_X& maxAmplitude) const
+            {
+                auto const amplitude = fields::incidentField::amplitude<T_Profile>;
+                if(amplitude > maxAmplitude)
+                    maxAmplitude = amplitude;
+            }
+        };
     };
 
     /** Check if an offset is part of the slicing domain
