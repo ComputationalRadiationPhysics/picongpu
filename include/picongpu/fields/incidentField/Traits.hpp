@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/Unique.hpp>
 
 #include <cstdint>
 #include <type_traits>
@@ -125,6 +126,9 @@ namespace picongpu
                 YMin,
                 YMax,
                 std::conditional_t<simDim == 3, pmacc::MakeSeq_t<ZMin, ZMax>, pmacc::MakeSeq_t<>>>;
+
+            //! Typelist of all unique enabled profiles, can contain duplicates
+            using UniqueEnabledProfiles = pmacc::Unique_t<EnabledProfiles>;
 
         } // namespace incidentField
     } // namespace fields
