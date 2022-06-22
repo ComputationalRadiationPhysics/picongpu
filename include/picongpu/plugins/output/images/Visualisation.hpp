@@ -202,7 +202,7 @@ namespace picongpu
         //! Get laser E amplitude in internal units
         HDINLINE static float_X getAmplitude()
         {
-            using Profiles = fields::incidentField::EnabledProfiles;
+            using Profiles = fields::incidentField::UniqueEnabledProfiles;
             meta::ForEach<Profiles, CalculateMaxAmplitude<bmpl::_1>> calculateMaxAmplitude;
             auto maxAmplitude = 0.0_X;
             calculateMaxAmplitude(maxAmplitude);
