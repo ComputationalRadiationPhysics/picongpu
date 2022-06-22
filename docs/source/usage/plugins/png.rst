@@ -108,7 +108,9 @@ Since an adequate color scaling is essential, there several option the user can 
    // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
    // regime causes a bubble with radius of approx. the laser's
    // beam waist (use for bubble fields)
-   // 6: Custom:  user-provided normalization factors via customNormalizationSI
+   // 6: Custom: user-provided normalization factors via customNormalizationSI
+   // 7: Incident: typical fields calculated out of the incident field amplitude,
+   // uses max amplitude from all enabled incident field profile types ignoring Free
    #define EM_FIELD_SCALE_CHANNEL1 -1
    #define EM_FIELD_SCALE_CHANNEL2 -1
    #define EM_FIELD_SCALE_CHANNEL3 -1
