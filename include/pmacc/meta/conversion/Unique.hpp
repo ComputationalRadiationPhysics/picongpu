@@ -23,41 +23,49 @@
 
 #include "pmacc/meta/conversion/ToSeq.hpp"
 
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/count.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/empty.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/remove.hpp>
 #include <boost/mpl/size.hpp>
 
 
 namespace pmacc
 {
-    /** boost::mpl predicate to check if the given type is present exactly once in the given sequence
+    /** Make a sequence out of the input sequence with the duplicates of elements removed
      *
-     * Defines result as ::type.
-     *
-     * @tparam T_Seq type sequence
-     * @tparam T target type
-     */
-    template<typename T_Seq, typename T>
-    struct IsPresentOnce
-    {
-        using Count = typename bmpl::count<T_Seq, T>::type;
-        using type = typename bmpl::equal_to<Count, bmpl::int_<1>>::type;
-    };
-
-    /** Make a sequence out of the input sequence with the duplicate elements removed
-     *
+     * Each element present in the input sequence is present in the result, and present exactly once.
      * This operation turned out surprisingly tricky to implement with boost::mpl, see #4078 for details.
+     * We implement it in a simplistic and inefficient manner regarding compile time.
+     * However here it is not an issue as this is not a core metaprogramming routine.
      *
      * @tparam T_Seq source sequence
+     * @tparam T_isEmpty whether the source sequence is empty
+     *
+     * @{
      */
-    template<typename T_Seq>
+
+    /** General implementation for non-empty sequences
+     *
+     * Take the front element, remove its other instances from the rest of the sequence,
+     * recursively repeat for the remaining elements.
+     */
+    template<typename T_Seq, bool T_isEmpty = bmpl::empty<T_Seq>::value>
     struct Unique
     {
-        using type = typename bmpl::copy_if<T_Seq, IsPresentOnce<T_Seq, bmpl::_>>::type;
+        using Front = typename bmpl::front<T_Seq>::type;
+        using Tail = typename bmpl::remove<T_Seq, Front>::type;
+        using UniqueTail = typename Unique<Tail>::type;
+        using type = MakeSeq_t<Front, UniqueTail>;
     };
+
+    //! Specialization for empty sequences
+    template<typename T_Seq>
+    struct Unique<T_Seq, true>
+    {
+        using type = MakeSeq_t<>;
+    };
+
+    /** }@ */
 
     //! Helper alias for @see Unique<>
     template<typename T_Seq>
