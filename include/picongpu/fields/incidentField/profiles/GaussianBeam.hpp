@@ -27,9 +27,12 @@
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 
+#include <cmath>
 #include <cstdint>
 #include <limits>
+#include <string>
 #include <type_traits>
+
 
 namespace picongpu
 {
@@ -311,6 +314,20 @@ namespace picongpu
                         }
                     };
                 } // namespace detail
+
+                template<typename T_Params>
+                struct GaussianBeam
+                {
+                    //! Get text name of the incident field profile
+                    static HINLINE std::string getName()
+                    {
+                        // This template is used for both Gaussian and PulseFrontTilt, distinguish based on tilt value
+                        using TiltParam = detail::TiltParam<T_Params>;
+                        bool isTilted = (std::abs(TiltParam::TILT_AXIS_1) + std::abs(TiltParam::TILT_AXIS_2) > 0);
+                        return isTilted ? "PulseFrontTilt" : "GaussianBeam";
+                    }
+                };
+
             } // namespace profiles
 
             namespace detail

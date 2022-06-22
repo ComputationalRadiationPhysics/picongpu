@@ -34,6 +34,16 @@ namespace picongpu
         {
             namespace profiles
             {
+                template<typename T_Params>
+                struct Wavepacket
+                {
+                    //! Get text name of the incident field profile
+                    static HINLINE std::string getName()
+                    {
+                        return "Wavepacket";
+                    }
+                };
+
                 namespace detail
                 {
                     /** Unitless wavepacket parameters

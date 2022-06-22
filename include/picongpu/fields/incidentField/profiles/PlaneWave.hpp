@@ -25,6 +25,7 @@
 #include "picongpu/fields/incidentField/Traits.hpp"
 
 #include <cstdint>
+#include <string>
 
 
 namespace picongpu
@@ -35,6 +36,16 @@ namespace picongpu
         {
             namespace profiles
             {
+                template<typename T_Params>
+                struct PlaneWave
+                {
+                    //! Get text name of the incident field profile
+                    static HINLINE std::string getName()
+                    {
+                        return "PlaneWave";
+                    }
+                };
+
                 namespace detail
                 {
                     /** Unitless plane wave parameters

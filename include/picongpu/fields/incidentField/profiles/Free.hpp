@@ -25,6 +25,7 @@
 #include "picongpu/fields/incidentField/profiles/Free.def"
 
 #include <cstdint>
+#include <string>
 
 
 namespace picongpu
@@ -33,6 +34,16 @@ namespace picongpu
     {
         namespace incidentField
         {
+            template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+            struct Free
+            {
+                //! Get text name of the incident field profile
+                static HINLINE std::string getName()
+                {
+                    return "Free";
+                }
+            };
+
             namespace detail
             {
                 /** Get type of incident field E functor for the free profile type

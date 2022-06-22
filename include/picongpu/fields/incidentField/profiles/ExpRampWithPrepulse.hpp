@@ -27,6 +27,8 @@
 #include <pmacc/algorithms/math/defines/pi.hpp>
 
 #include <cstdint>
+#include <string>
+
 
 namespace picongpu
 {
@@ -36,6 +38,16 @@ namespace picongpu
         {
             namespace profiles
             {
+                template<typename T_Params>
+                struct ExpRampWithPrepulse
+                {
+                    //! Get text name of the incident field profile
+                    static HINLINE std::string getName()
+                    {
+                        return "ExpRampWithPrepulse";
+                    }
+                };
+
                 namespace detail
                 {
                     /** Unitless exponential ramp with prepulse parameters
