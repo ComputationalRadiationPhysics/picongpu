@@ -98,6 +98,7 @@ namespace picongpu
                  * Defines internal coordinate system tied to laser focus position and direction.
                  * Its axes are, in this order: propagation direction, polarization direction,
                  * cross product of propagation direction and polarization direction.
+                 * The internal coordinate system is always 3d, regardless of simDim.
                  *
                  * Provides conversion operations for cooridnate and time transforms to internal system.
                  * Essentially, a client of this class can implement a laser in internal coordinate system and
@@ -169,18 +170,17 @@ namespace picongpu
                         return pmacc::math::cross(getAxis0(), getCircularPolarizationVector1());
                     }
 
-                    /** Transform the given cell index to coordinates (not cell index) in the internal system
+                    /** Transform the given cell index to 3d coordinates (not cell index) in the internal system
                      *
                      * @param totalCellIdx cell index in the total domain
                      */
-                    HDINLINE floatD_X getInternalCoordinates(floatD_X const& totalCellIdx) const
+                    HDINLINE float3_X getInternalCoordinates(floatD_X const& totalCellIdx) const
                     {
                         auto const shiftFromOrigin = totalCellIdx * cellSize.shrink<simDim>() - origin;
-                        floatD_X result;
+                        float3_X result;
                         result[0] = pmacc::math::dot(shiftFromOrigin, getAxis0().shrink<simDim>());
                         result[1] = pmacc::math::dot(shiftFromOrigin, getAxis1().shrink<simDim>());
-                        if constexpr(simDim == 3)
-                            result[2] = pmacc::math::dot(shiftFromOrigin, getAxis2().shrink<simDim>());
+                        result[2] = pmacc::math::dot(shiftFromOrigin, getAxis2().shrink<simDim>());
                         return result;
                     }
 
@@ -399,9 +399,9 @@ namespace picongpu
                      */
                     HDINLINE float_X getTransversal(floatD_X const& totalCellIdx) const
                     {
-                        auto internalPosition = this->getInternalCoordinates(totalCellIdx);
+                        float3_X internalPosition = this->getInternalCoordinates(totalCellIdx);
                         internalPosition[0] = 0.0_X;
-                        auto const w0 = float3_X(1.0_X, Unitless::W0_AXIS_1, Unitless::W0_AXIS_2).shrink<simDim>();
+                        auto const w0 = float3_X(1.0_X, Unitless::W0_AXIS_1, Unitless::W0_AXIS_2);
                         auto const r2 = pmacc::math::abs2(internalPosition / w0);
                         return math::exp(-r2);
                     }

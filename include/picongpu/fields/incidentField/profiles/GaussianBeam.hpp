@@ -204,8 +204,8 @@ namespace picongpu
                          */
                         HDINLINE float_X getValue(floatD_X const& totalCellIdx, float_X const phaseShift) const
                         {
-                            // transform to internal coordinate system
-                            floatD_X pos = this->getInternalCoordinates(totalCellIdx);
+                            // transform to 3d internal coordinate system
+                            float3_X pos = this->getInternalCoordinates(totalCellIdx);
                             auto const time = this->getCurrentTime(totalCellIdx);
                             if(time < 0.0_X)
                                 return 0.0_X;
@@ -238,14 +238,11 @@ namespace picongpu
                                     / pmacc::math::dot(this->getDirection(), float3_X{cellSize});
                                 auto const tilt1 = Unitless::TILT_AXIS_1;
                                 pos[1] += math::tan(tilt1) * tiltPositionShift;
-                                if constexpr(simDim == 3)
-                                {
-                                    auto const tilt2 = Unitless::TILT_AXIS_2;
-                                    pos[2] += math::tan(tilt2) * tiltPositionShift;
-                                }
+                                auto const tilt2 = Unitless::TILT_AXIS_2;
+                                pos[2] += math::tan(tilt2) * tiltPositionShift;
                             }
 
-                            auto planeNoNormal = floatD_X::create(1.0_X);
+                            auto planeNoNormal = float3_X::create(1.0_X);
                             planeNoNormal[0] = 0.0_X;
                             auto const transversalDistanceSquared = pmacc::math::abs2(pos * planeNoNormal);
 
