@@ -142,15 +142,28 @@ namespace picongpu
                      *
                      * @param totalCellIdx cell index in the total domain
                      * @param phaseVelocity phase velocity along the propagation direction
+                     *
+                     * @{
                      */
+
+                    //! 3d version
                     HDINLINE float_X
-                    getCurrentTime(floatD_X const& totalCellIdx, float_X const phaseVelocity = SPEED_OF_LIGHT) const
+                    getCurrentTime(float3_X const& totalCellIdx, float_X const phaseVelocity = SPEED_OF_LIGHT) const
                     {
-                        auto const shiftFromOrigin = totalCellIdx * cellSize.shrink<simDim>() - origin;
-                        auto const distance = pmacc::math::dot(shiftFromOrigin, getDirection().shrink<simDim>());
+                        auto const shiftFromOrigin = totalCellIdx * cellSize - origin;
+                        auto const distance = pmacc::math::dot(shiftFromOrigin, getDirection());
                         auto const timeDelay = distance / phaseVelocity;
                         return currentTimeOrigin - timeDelay;
                     }
+
+                    //! 2d version
+                    HDINLINE float_X
+                    getCurrentTime(float2_X const& totalCellIdx, float_X const phaseVelocity = SPEED_OF_LIGHT) const
+                    {
+                        return getCurrentTime(float3_X{totalCellIdx.x(), totalCellIdx.y(), 0.0_X}, phaseVelocity);
+                    }
+
+                    /** @} */
 
                     //! Get a unit vector with linear E polarization
                     HDINLINE float3_X getLinearPolarizationVector() const
@@ -173,23 +186,36 @@ namespace picongpu
                     /** Transform the given cell index to 3d coordinates (not cell index) in the internal system
                      *
                      * @param totalCellIdx cell index in the total domain
+                     *
+                     * @{
                      */
-                    HDINLINE float3_X getInternalCoordinates(floatD_X const& totalCellIdx) const
+
+                    //! 3d version
+                    HDINLINE float3_X getInternalCoordinates(float3_X const& totalCellIdx) const
                     {
-                        auto const shiftFromOrigin = totalCellIdx * cellSize.shrink<simDim>() - origin;
+                        auto const shiftFromOrigin = totalCellIdx * cellSize - origin;
                         float3_X result;
-                        result[0] = pmacc::math::dot(shiftFromOrigin, getAxis0().shrink<simDim>());
-                        result[1] = pmacc::math::dot(shiftFromOrigin, getAxis1().shrink<simDim>());
-                        result[2] = pmacc::math::dot(shiftFromOrigin, getAxis2().shrink<simDim>());
+                        result[0] = pmacc::math::dot(shiftFromOrigin, getAxis0());
+                        result[1] = pmacc::math::dot(shiftFromOrigin, getAxis1());
+                        result[2] = pmacc::math::dot(shiftFromOrigin, getAxis2());
                         return result;
                     }
+
+                    //! 2d version, returns a 3d coordinate as the internal coordinate system is always 3d
+                    HDINLINE float3_X getInternalCoordinates(float2_X const& totalCellIdx) const
+                    {
+                        return getInternalCoordinates(float3_X{totalCellIdx.x(), totalCellIdx.y(), 0.0_X});
+                    }
+
+                    /** @} */
 
                 protected:
                     /** Laser center at generation surface when projected along propagation direction
                      *
-                     * That point serves as origin in internal coordinate system
+                     * That point serves as origin in internal coordinate system.
+                     * It is always 3d, z component is set to 0 in 2d.
                      */
-                    floatD_X const origin;
+                    float3_X const origin;
 
                     /** Current time for calculating the field at the origin
                      *
@@ -199,7 +225,7 @@ namespace picongpu
                     float_X const currentTimeOrigin;
 
                     //! Calculate origin position
-                    HINLINE static floatD_X getOrigin()
+                    HINLINE static float3_X getOrigin()
                     {
                         /* Find min value of variable p so that a line
                          * line(p) = focusPosition + p * direction
@@ -210,12 +236,11 @@ namespace picongpu
                          */
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
                         auto const globalDomainCells = subGrid.getGlobalDomain().size;
-                        auto const direction = getDirection().shrink<simDim>();
+                        auto const direction = getDirection();
                         auto const focus = float3_X(
-                                               Unitless::FOCUS_POSITION_X,
-                                               Unitless::FOCUS_POSITION_Y,
-                                               Unitless::FOCUS_POSITION_Z)
-                                               .shrink<simDim>();
+                            Unitless::FOCUS_POSITION_X,
+                            Unitless::FOCUS_POSITION_Y,
+                            Unitless::FOCUS_POSITION_Z);
                         auto firstIntersectionP = std::numeric_limits<float_X>::infinity();
                         for(uint32_t axis = 0u; axis < simDim; ++axis)
                         {

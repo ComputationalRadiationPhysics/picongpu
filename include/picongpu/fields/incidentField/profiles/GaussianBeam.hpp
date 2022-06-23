@@ -215,7 +215,6 @@ namespace picongpu
                                                                    Unitless::FOCUS_POSITION_X,
                                                                    Unitless::FOCUS_POSITION_Y,
                                                                    Unitless::FOCUS_POSITION_Z)
-                                                                   .shrink<simDim>()
                                 - this->origin;
                             float_X const focusPos = math::sqrt(pmacc::math::abs2(focusRelativeToOrigin)) - pos[0];
                             // beam waist at the generation plane so that at focus we will get W0
