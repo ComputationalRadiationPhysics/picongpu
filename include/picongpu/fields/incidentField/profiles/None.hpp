@@ -26,6 +26,7 @@
 #include "picongpu/fields/incidentField/profiles/None.def"
 
 #include <cstdint>
+#include <string>
 
 
 namespace picongpu
@@ -34,6 +35,15 @@ namespace picongpu
     {
         namespace incidentField
         {
+            struct None
+            {
+                //! Get text name of the incident field profile
+                static HINLINE std::string getName()
+                {
+                    return "None";
+                }
+            };
+
             namespace detail
             {
                 //! Get type of incident field E functor for the none profile type
