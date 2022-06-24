@@ -183,11 +183,29 @@ namespace picongpu
 
             HDINLINE float3_X EField::operator()(DataSpace<simDim> const& cellIdx, uint32_t const currentStep) const
             {
-                float_64 const time_SI = float_64(currentStep) * dt - tdelay;
                 traits::FieldPosition<fields::CellType, FieldE> const fieldPosE;
+                return getValue(precisionCast<float_X>(cellIdx), fieldPosE(), static_cast<float_X>(currentStep));
+            }
+
+            HDINLINE
+            float3_X EField::operator()(floatD_X const& cellIdx, float_X const currentStep) const
+            {
+                pmacc::math::Vector<floatD_X, detail::numComponents> zeroShifts;
+                for(uint32_t component = 0; component < detail::numComponents; ++component)
+                    zeroShifts[component] = floatD_X::create(0.0);
+                return getValue(cellIdx, zeroShifts, currentStep);
+            }
+
+            HDINLINE
+            float3_X EField::getValue(
+                floatD_X const& cellIdx,
+                pmacc::math::Vector<floatD_X, detail::numComponents> const& extraShifts,
+                float_X const currentStep) const
+            {
+                float_64 const time_SI = float_64(currentStep) * dt - tdelay;
 
                 pmacc::math::Vector<floatD_64, detail::numComponents> const eFieldPositions_SI
-                    = detail::getFieldPositions_SI(cellIdx, halfSimSize, fieldPosE(), unit_length, focus_y_SI, phi);
+                    = detail::getFieldPositions_SI(cellIdx, halfSimSize, extraShifts, unit_length, focus_y_SI, phi);
 
                 /* Single TWTS-Pulse */
                 switch(pol)

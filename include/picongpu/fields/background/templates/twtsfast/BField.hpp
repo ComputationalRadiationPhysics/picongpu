@@ -128,9 +128,32 @@ namespace picongpu
 
                 /** Specify your background field B(r,t) here
                  *
-                 * @param cellIdx The total cell id counted from the start at t=0
-                 * @param currentStep The current time step */
+                 * @param cellIdx The total cell id counted from the start at t=0, note it can be fractional
+                 * @param currentStep The current time step for the field to be calculated at, note it can be
+                 * fractional
+                 * @return float3_X with field normalized to amplitude in range [-1.:1.]
+                 *
+                 * @{
+                 */
+
+                //! Integer index version, adds in-cell shifts according to the grid used; t = currentStep * dt
                 HDINLINE float3_X operator()(DataSpace<simDim> const& cellIdx, uint32_t const currentStep) const;
+
+                //! Floating-point index version, uses fractional cell index as provided; t = currentStep * dt
+                HDINLINE float3_X operator()(floatD_X const& cellIdx, float_X const currentStep) const;
+
+                /** @} */
+
+                /** Calculate B(r, t) for given position, time, and extra in-cell shifts
+                 *
+                 * @param cellIdx The total cell id counted from the start at t=0, note it is fractional
+                 * @param extraShifts The extra in-cell shifts to be added to calculate the position
+                 * @param currentStep The current time step for the field to be calculated at, note it is fractional
+                 */
+                HDINLINE float3_X getValue(
+                    floatD_X const& cellIdx,
+                    pmacc::math::Vector<floatD_X, detail::numComponents> const& extraShifts,
+                    float_X const currentStep) const;
 
                 /** Calculate the By(r,t) field, when electric field vector (Ex,0,0)
                  *  is normal to the pulse-front-tilt plane (y,z)
