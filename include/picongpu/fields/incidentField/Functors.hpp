@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/BaseParam.hpp"
 
 #include <algorithm>
@@ -124,6 +125,7 @@ namespace picongpu
                     HINLINE BaseFunctorE(float_X const currentStep, float3_64 const unitField)
                         : currentTimeOrigin(currentStep * DELTA_T)
                         , origin(getOrigin())
+                        , phaseVelocity(getPhaseVelocity())
                     {
                         checkUnit(unitField);
                     }
@@ -141,14 +143,12 @@ namespace picongpu
                      * field = 0 when the returned value is negative.
                      *
                      * @param totalCellIdx cell index in the total domain
-                     * @param phaseVelocity phase velocity along the propagation direction
                      *
                      * @{
                      */
 
                     //! 3d version
-                    HDINLINE float_X
-                    getCurrentTime(float3_X const& totalCellIdx, float_X const phaseVelocity = SPEED_OF_LIGHT) const
+                    HDINLINE float_X getCurrentTime(float3_X const& totalCellIdx) const
                     {
                         auto const shiftFromOrigin = totalCellIdx * cellSize - origin;
                         auto const distance = pmacc::math::dot(shiftFromOrigin, getDirection());
@@ -157,10 +157,9 @@ namespace picongpu
                     }
 
                     //! 2d version
-                    HDINLINE float_X
-                    getCurrentTime(float2_X const& totalCellIdx, float_X const phaseVelocity = SPEED_OF_LIGHT) const
+                    HDINLINE float_X getCurrentTime(float2_X const& totalCellIdx) const
                     {
-                        return getCurrentTime(float3_X{totalCellIdx.x(), totalCellIdx.y(), 0.0_X}, phaseVelocity);
+                        return getCurrentTime(float3_X{totalCellIdx.x(), totalCellIdx.y(), 0.0_X});
                     }
 
                     /** @} */
@@ -223,6 +222,12 @@ namespace picongpu
                      * origin and propagation direction.
                      */
                     float_X const currentTimeOrigin;
+
+                    /** Phase velocity for the enabled field solver
+                     *
+                     * The solver-fitting phase velocity ensures proper coupling wrt time delays.
+                     */
+                    float_X const phaseVelocity;
 
                     //! Calculate origin position
                     HINLINE static float3_X getOrigin()
@@ -291,6 +296,17 @@ namespace picongpu
                         );
                     }
                     /** @} */
+
+                    /** Get value of phase velocity
+                     *
+                     * To avoid recalculations, we calculate it once (per given profile parameters) and store
+                     * statically.
+                     */
+                    HINLINE static float_X getPhaseVelocity()
+                    {
+                        static float_X phaseVelocityValue = detail::calculatePhaseVelocity<Unitless>();
+                        return phaseVelocityValue;
+                    }
 
                     //! Check that the input units are valid
                     HINLINE static void checkUnit(float3_64 const unitField)
