@@ -39,7 +39,7 @@ namespace picongpu
                  *  and Bz(r ,t) calculations as r.
                  *  @param cellIdx The total cell id counted from the start at timestep 0. */
                 HDINLINE pmacc::math::Vector<floatD_64, numComponents> getFieldPositions_SI(
-                    DataSpace<simDim> const& cellIdx,
+                    floatD_X const& cellIdx,
                     DataSpace<simDim> const& halfSimSize,
                     pmacc::math::Vector<floatD_X, numComponents> const& fieldOnGridPositions,
                     float_64 const unit_length,
@@ -67,7 +67,7 @@ namespace picongpu
 
                     for(uint32_t i = 0; i < numComponents; ++i) /* cellIdx Ex, Ey and Ez */
                     {
-                        fieldPositions[i] += (precisionCast<float_X>(cellIdx) - laserOrigin);
+                        fieldPositions[i] += (cellIdx - laserOrigin);
                         fieldPositions_SI[i] = precisionCast<float_64>(fieldPositions[i]) * cellDimensions;
 
                         fieldPositions_SI[i] = rotateField(fieldPositions_SI[i], phi);
