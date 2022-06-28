@@ -34,15 +34,18 @@ namespace picongpu
     {
         namespace incidentField
         {
-            template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
-            struct Free
+            namespace profiles
             {
-                //! Get text name of the incident field profile
-                static HINLINE std::string getName()
+                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                struct Free
                 {
-                    return "Free";
-                }
-            };
+                    //! Get text name of the incident field profile
+                    static HINLINE std::string getName()
+                    {
+                        return "Free";
+                    }
+                };
+            } // namespace profiles
 
             namespace detail
             {
