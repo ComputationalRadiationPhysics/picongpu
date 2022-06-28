@@ -21,6 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/DispersionRelationSolver.hpp"
+
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/meta/conversion/Unique.hpp>
 
@@ -73,6 +76,64 @@ namespace picongpu
                 //! Functor for incident B values
                 template<typename T_Profile>
                 using FunctorIncidentB = typename GetFunctorIncidentB<T_Profile>::type;
+
+                /** @} */
+
+                /** Calculate phase velocity for the enabled field solver and given unitless parameters
+                 *
+                 * @tparam T_Unitless unitless parameters type, must be compatible to
+                 * profiles::detail::BaseParamUnitless
+                 */
+                template<typename T_Unitless>
+                HINLINE float_X calculatePhaseVelocity()
+                {
+                    auto const omega = pmacc::math::Pi<float_64>::doubleValue
+                        * static_cast<float_64>(SPEED_OF_LIGHT / T_Unitless::WAVE_LENGTH);
+                    // Assume propagation along y as all laser profiles do it
+                    auto const direction = float3_64{T_Unitless::DIR_X, T_Unitless::DIR_Y, T_Unitless::DIR_Z};
+                    auto const absK = maxwellSolver::DispersionRelationSolver<Solver>{}(omega, direction);
+                    auto const phaseVelocity = omega / absK / SPEED_OF_LIGHT;
+                    return static_cast<float_X>(phaseVelocity);
+                }
+
+                /** Get phase velocity for the enabled field solver and given incident field profile
+                 *
+                 * @tparam T_Profile profile type
+                 *
+                 * @{
+                 */
+
+                //! General implementation for parametrized profiles with parameters compatible to profiles::BaseParam
+                template<typename T_Profile>
+                struct GetPhaseVelocity
+                {
+                    HINLINE float_X operator()() const
+                    {
+                        using Functor = FunctorIncidentE<T_Profile>;
+                        using Unitless = typename Functor::Unitless;
+                        return calculatePhaseVelocity<Unitless>();
+                    }
+                };
+
+                //! None profile has no phase velocity, use c as a placeholder value
+                template<>
+                struct GetPhaseVelocity<profiles::None>
+                {
+                    HINLINE float_X operator()() const
+                    {
+                        return SPEED_OF_LIGHT;
+                    }
+                };
+
+                //! Free profile has an unknown phase velocity, use c as a default value
+                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                struct GetPhaseVelocity<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+                {
+                    HINLINE float_X operator()() const
+                    {
+                        return SPEED_OF_LIGHT;
+                    }
+                };
 
                 /** @} */
 
@@ -129,6 +190,16 @@ namespace picongpu
 
             //! Typelist of all unique enabled profiles, can contain duplicates
             using UniqueEnabledProfiles = pmacc::Unique_t<EnabledProfiles>;
+
+            /** Get phase velocity for the enabled field solver and given incident field profile
+             *
+             * @tparam T_Profile profile type
+             */
+            template<typename T_Profile>
+            HINLINE float_X getPhaseVelocity()
+            {
+                return detail::GetPhaseVelocity<T_Profile>{}();
+            }
 
         } // namespace incidentField
     } // namespace fields
