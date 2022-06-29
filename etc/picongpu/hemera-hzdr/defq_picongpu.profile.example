@@ -20,7 +20,7 @@ module load git
 module load gcc/7.3.0
 module load cmake/3.20.2
 module load openmpi/4.0.4-csk
-module load boost/1.68.0
+module load boost/1.78.0
 
 # Other Software ##############################################################
 #
