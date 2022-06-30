@@ -43,7 +43,10 @@ namespace pmacc
     public:
         using DataBoxType = typename DeviceBuffer<TYPE, DIM>::DataBoxType;
 
-        /*! create device buffer
+        /** Create device buffer
+         *
+         * Allocate new memory on the device.
+         *
          * @param size extent for each dimension (in elements)
          * @param sizeOnDevice memory with the current size of the grid is stored on device
          * @param useVectorAsBase use a vector as base of the array (is not lined pitched)
@@ -71,6 +74,15 @@ namespace pmacc
             }
         }
 
+        /** Create a shallow copy of the given source buffer
+         *
+         * The resulting buffer is effectively a subview to the source buffer.
+         *
+         * @param source source device buffer
+         * @param size extent for each dimension (in elements)
+         * @param offset extra offset in the source buffer
+         * @param sizeOnDevice memory with the current size of the grid is stored on device
+         */
         DeviceBufferIntern(
             DeviceBuffer<TYPE, DIM>& source,
             DataSpace<DIM> size,
@@ -324,10 +336,8 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     HINLINE std::unique_ptr<DeviceBufferIntern<TYPE, DIM>> makeDeepCopy(DeviceBuffer<TYPE, DIM>& source)
     {
-        auto result = std::make_unique<DeviceBufferIntern<TYPE, DIM>>(
-            source,
-            source.getDataSpace(),
-            DataSpace<DIM>::create(0));
+        // We have to call this constructor to allocate a new data storage and not shallow-copy the source
+        auto result = std::make_unique<DeviceBufferIntern<TYPE, DIM>>(source.getDataSpace());
         result->copyFrom(source);
         // Wait for copy to finish, so that the resulting object is safe to use after return
         __getTransactionEvent().waitForFinished();
