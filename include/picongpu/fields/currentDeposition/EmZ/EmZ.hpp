@@ -50,9 +50,9 @@ namespace picongpu
                     && pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
                         >= currentUpperMargin);
 
-
-            static constexpr int begin = -currentLowerMargin + 1;
+            static constexpr int begin = ParticleAssign::begin;
             static constexpr int end = begin + supp;
+            static_assert(ParticleAssign::end + 1 == end);
 
 
             /** deposit the current of a particle
@@ -97,7 +97,7 @@ namespace picongpu
                 const float_X chargeDensity = charge / CELL_VOLUME;
 
                 /* Esirkepov implementation for the current deposition */
-                emz::DepositCurrent<typename T_Strategy::BlockReductionOp, ParticleAssign, begin, end> deposit;
+                emz::DepositCurrent<T_Strategy, ParticleAssign, begin, end> deposit;
 
                 /* calculate positions for the second virtual particle, normalized to cell size */
                 for(uint32_t d = 0; d < simDim; ++d)
@@ -148,13 +148,7 @@ namespace picongpu
                          * In this case it is parsed even though the invokeIf condition is false and dataBoxJ is passed
                          * as auto&&.
                          */
-                        emz::DepositCurrent<
-                            typename T_Strategy::BlockReductionOp,
-                            typename T_ParticleShape::ChargeAssignment,
-                            begin,
-                            end + 1,
-                            DIM2>
-                            depositZ;
+                        emz::DepositCurrent<T_Strategy, ParticleAssign, begin, end + 1, DIM2> depositZ;
                         depositZ.computeCurrentZ(
                             acc,
                             dataBoxJ.shift(shiftEnd).toCursor(),

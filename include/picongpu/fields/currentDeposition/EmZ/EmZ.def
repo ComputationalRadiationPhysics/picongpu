@@ -30,7 +30,7 @@ namespace picongpu
     {
         namespace emz
         {
-            template<typename T_AtomicAddOp, typename ParticleAssign, int T_begin, int T_end, uint32_t T_dim = simDim>
+            template<typename T_Strategy, typename T_ParticleAssign, int T_begin, int T_end, uint32_t T_dim = simDim>
             struct DepositCurrent;
         } // namespace emz
 

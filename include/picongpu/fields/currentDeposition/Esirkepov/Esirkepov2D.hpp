@@ -22,9 +22,10 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/Velocity.hpp"
-#include "picongpu/fields/currentDeposition/Esirkepov/Base.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/TrajectoryAssignmentShapeFunction.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/bitPacking.hpp"
 
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
@@ -45,7 +46,7 @@ namespace picongpu
          *  with an arbitrary form-factor"
          */
         template<typename T_ParticleShape, typename T_Strategy>
-        struct Esirkepov<T_ParticleShape, T_Strategy, DIM2> : public Base<typename T_ParticleShape::ChargeAssignment>
+        struct Esirkepov<T_ParticleShape, T_Strategy, DIM2>
         {
             using ParticleAssign = typename T_ParticleShape::ChargeAssignment;
             static constexpr int supp = ParticleAssign::support;
@@ -59,11 +60,13 @@ namespace picongpu
                 __Esirkepov2D_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
                 pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
                         >= currentLowerMargin
+
                     && pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
                         >= currentUpperMargin);
 
-            static constexpr int begin = -currentLowerMargin + 1;
+            static constexpr int begin = ParticleAssign::begin;
             static constexpr int end = begin + supp;
+            static_assert(ParticleAssign::end == end);
 
             float_X charge;
 
@@ -83,14 +86,10 @@ namespace picongpu
                 Line<float2_X> line(oldPos, pos);
 
                 DataSpace<simDim> gridShift;
-                /* Define in which direction the particle leaves the cell.
-                 * It is not important whether the particle move over the positive or negative
-                 * cell border.
-                 *
-                 * 0 == stay in cell
-                 * 1 == leave cell
+                /* Bitmask used to hold information in if the particle is leaving the assignment cell for each
+                 * direction.
                  */
-                DataSpace<DIM2> leaveCell;
+                DataSpace<DIM2> status;
 
                 /* calculate the offset for the virtual coordinate system */
                 for(uint32_t d = 0; d < simDim; ++d)
@@ -100,8 +99,16 @@ namespace picongpu
                     constexpr bool isSupportEven = (supp % 2 == 0);
                     RelayPoint<isSupportEven>()(iStart, iEnd, line.m_pos0[d], line.m_pos1[d]);
                     gridShift[d] = iStart < iEnd ? iStart : iEnd; // integer min function
+                    bitpacking::set(
+                        status[d],
+                        bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL,
+                        gridShift[d] == iStart);
+                    bitpacking::set(
+                        status[d],
+                        bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL,
+                        gridShift[d] == iEnd);
                     /* particle is leaving the cell */
-                    leaveCell[d] = iStart != iEnd ? 1 : 0;
+                    bitpacking::set(status[d], bitpacking::Status::LEAVE_CELL, iStart != iEnd);
                     /* shift the particle position to the virtual coordinate system */
                     line.m_pos0[d] -= gridShift[d];
                     line.m_pos1[d] -= gridShift[d];
@@ -117,20 +124,19 @@ namespace picongpu
                  */
 
                 using namespace cursor::tools;
-                cptCurrent1D(acc, leaveCell, cursorJ, line, cellSize.x());
+                cptCurrent1D(acc, status, cursorJ, line, cellSize.x());
                 cptCurrent1D(
                     acc,
-                    DataSpace<DIM2>(leaveCell[1], leaveCell[0]),
+                    DataSpace<DIM2>(status[1], status[0]),
                     twistVectorFieldAxes<pmacc::math::CT::Int<1, 0>>(cursorJ),
                     rotateOrigin<1, 0>(line),
                     cellSize.y());
-                cptCurrentZ(acc, leaveCell, cursorJ, line, velocity.z());
+                cptCurrentZ(acc, status, cursorJ, line, velocity.z());
             }
 
-            /**
-             * deposites current in z-direction
-             * @param leaveCell vector with information if the particle is leaving the cell
-             *         (for each direction, 0 means stays in cell and 1 means leaves cell)
+            /** deposites current in x-direction (rotated PIConGPU coordinate system)
+             *
+             * @param parStatus vector with particle status information for each direction
              * @param cursorJ cursor pointing at the current density field of the particle's cell
              * @param line trajectory of the particle from to last to the current time step
              * @param cellEdgeLength length of edge of the cell in z-direction
@@ -140,7 +146,7 @@ namespace picongpu
             template<typename CursorJ, typename T_Acc>
             DINLINE void cptCurrent1D(
                 T_Acc const& acc,
-                const DataSpace<simDim>& leaveCell,
+                const DataSpace<simDim>& parStatus,
                 CursorJ cursorJ,
                 const Line<float2_X>& line,
                 const float_X cellEdgeLength)
@@ -149,6 +155,22 @@ namespace picongpu
                 if(line.m_pos0[0] == line.m_pos1[0])
                     return;
 
+                auto shapeI = makeTrajectoryAssignmentShapeFunction(
+                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                        line.m_pos0[0],
+                        bitpacking::test(parStatus[0], bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL)},
+                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                        line.m_pos1[0],
+                        bitpacking::test(parStatus[0], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
+
+                auto shapeJ = makeTrajectoryAssignmentShapeFunction(
+                    typename T_Strategy::template ShapeMiddleLoop<ParticleAssign>{
+                        line.m_pos0[1],
+                        bitpacking::test(parStatus[1], bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL)},
+                    typename T_Strategy::template ShapeMiddleLoop<ParticleAssign>{
+                        line.m_pos1[1],
+                        bitpacking::test(parStatus[1], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
+
                 /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
                  * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1)
                  */
@@ -156,10 +178,10 @@ namespace picongpu
                     = this->charge * (1.0_X / float_X(CELL_VOLUME * DELTA_T)) * cellEdgeLength;
 
                 for(int j = begin; j < end + 1; ++j)
-                    if(j < end + leaveCell[1])
+                    if(j < end + bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL))
                     {
-                        const float_X s0j = this->S0(line, j, 1);
-                        const float_X dsj = this->S1(line, j, 1) - s0j;
+                        const float_X s0j = shapeJ.S0(j);
+                        const float_X dsj = shapeJ.S0(j) - s0j;
 
                         float_X tmp = -currentSurfaceDensity * (s0j + 0.5_X * dsj);
 
@@ -169,13 +191,13 @@ namespace picongpu
                          * therefore we skip the calculation
                          */
                         for(int i = begin; i < end; ++i)
-                            if(i < end + leaveCell[0] - 1)
+                            if(i < end + bitpacking::getValue(parStatus[0], bitpacking::Status::LEAVE_CELL) - 1)
                             {
                                 /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version
                                  * from Esirkepov paper. All coordinates are rotated before thus we can always use C
                                  * style W(i,j,k,0).
                                  */
-                                const float_X W = this->DS(line, i, 0) * tmp;
+                                const float_X W = shapeI.DS(i) * tmp;
                                 accumulated_J += W;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
                                 atomicOp(acc, (*cursorJ(i, j)).x(), accumulated_J);
@@ -186,7 +208,7 @@ namespace picongpu
             template<typename CursorJ, typename T_Acc>
             DINLINE void cptCurrentZ(
                 T_Acc const& acc,
-                const DataSpace<simDim>& leaveCell,
+                const DataSpace<simDim>& parStatus,
                 CursorJ cursorJ,
                 const Line<float2_X>& line,
                 const float_X v_z)
@@ -194,21 +216,38 @@ namespace picongpu
                 if(v_z == 0.0_X)
                     return;
 
-                const float_X currentSurfaceDensityZ = this->charge * (1.0_X / float_X(CELL_VOLUME)) * v_z;
+                auto shapeI = makeTrajectoryAssignmentShapeFunction(
+                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                        line.m_pos0[0],
+                        (parStatus[0] & 2) != 0},
+                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                        line.m_pos1[0],
+                        (parStatus[0] & 4) != 0});
+
+                auto shapeJ = makeTrajectoryAssignmentShapeFunction(
+                    typename T_Strategy::template ShapeMiddleLoop<ParticleAssign>{
+                        line.m_pos0[1],
+                        (parStatus[1] & 2) != 0},
+                    typename T_Strategy::template ShapeMiddleLoop<ParticleAssign>{
+                        line.m_pos1[1],
+                        (parStatus[1] & 4) != 0});
+
+                float_X const currentSurfaceDensityZ = this->charge * (1.0_X / float_X(CELL_VOLUME)) * v_z;
+                int const leaveCellJ = bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL);
 
                 for(int j = begin; j < end + 1; ++j)
-                    if(j < end + leaveCell[1])
+                    if(j < end + leaveCellJ)
                     {
-                        const float_X s0j = this->S0(line, j, 1);
-                        const float_X dsj = this->S1(line, j, 1) - s0j;
+                        const float_X s0j = shapeJ.S0(j);
+                        const float_X dsj = shapeJ.S1(j) - s0j;
 
+                        int const leaveCellI = bitpacking::getValue(parStatus[0], bitpacking::Status::LEAVE_CELL);
                         for(int i = begin; i < end + 1; ++i)
-                            if(i < end + leaveCell[0])
+                            if(i < end + leaveCellI)
                             {
-                                const float_X s0i = this->S0(line, i, 0);
-                                const float_X dsi = this->S1(line, i, 0) - s0i;
-                                float_X W = s0i * this->S0(line, j, 1) + 0.5_X * (dsi * s0j + s0i * dsj)
-                                    + (1.0_X / 3.0_X) * dsi * dsj;
+                                const float_X s0i = shapeI.S0(i);
+                                const float_X dsi = shapeI.S1(i) - s0i;
+                                float_X W = s0i * s0j + 0.5_X * (dsi * s0j + s0i * dsj) + (1.0_X / 3.0_X) * dsi * dsj;
 
                                 const float_X j_z = W * currentSurfaceDensityZ;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
