@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Alexander Debus, Axel Huebl
+/* Copyright 2014-2022 Alexander Debus, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -217,6 +217,53 @@ namespace picongpu
                     return getTWTSEfield_Normalized_Ey<simDim>(eFieldPositions_SI, time_SI);
                 }
                 return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI); // defensive default
+            }
+
+            template<uint32_t T_component>
+            HDINLINE float_X EField::getComponent(floatD_X const& cellIdx, float_X const currentStep) const
+            {
+                // The optimized way is only implemented for 3d, fall back to full field calculation in 2d
+                if constexpr(simDim == DIM3)
+                {
+                    float_64 const time_SI = float_64(currentStep) * dt - tdelay;
+                    pmacc::math::Vector<floatD_X, detail::numComponents> zeroShifts;
+                    for(uint32_t component = 0; component < detail::numComponents; ++component)
+                        zeroShifts[component] = floatD_X::create(0.0);
+                    pmacc::math::Vector<floatD_64, detail::numComponents> const eFieldPositions_SI
+                        = detail::getFieldPositions_SI(cellIdx, halfSimSize, zeroShifts, unit_length, focus_y_SI, phi);
+                    // Explicitly use a 3d vector so that this function compiles for 2d as well
+                    auto const pos = float3_64{
+                        eFieldPositions_SI[T_component][0],
+                        eFieldPositions_SI[T_component][1],
+                        eFieldPositions_SI[T_component][2]};
+                    switch(pol)
+                    {
+                    case LINEAR_X:
+                        if constexpr(T_component == 0)
+                            return static_cast<float_X>(calcTWTSEx(pos, time_SI));
+                        else
+                            return 0.0_X;
+
+                    case LINEAR_YZ:
+                        if constexpr(T_component == 0)
+                            return 0.0_X;
+                        else
+                        {
+                            auto const field = calcTWTSEy(pos, time_SI);
+                            float_X sinPhi;
+                            float_X cosPhi;
+                            pmacc::math::sincos(phi, sinPhi, cosPhi);
+                            if constexpr(T_component == 1)
+                                return -sinPhi * field;
+                            if constexpr(T_component == 2)
+                                return -cosPhi * field;
+                        }
+                    }
+                    // we should never be here
+                    return 0.0_X;
+                }
+                if constexpr(simDim != DIM3)
+                    return (*this)(cellIdx, currentStep)[T_component];
             }
 
             /** Calculate the Ex(r,t) field here
