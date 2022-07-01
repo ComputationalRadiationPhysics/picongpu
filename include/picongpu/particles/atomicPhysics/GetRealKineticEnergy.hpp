@@ -42,8 +42,6 @@ namespace picongpu
                     // mass of physical particle
                     float_64 m_p_SI_rel = attribute::getMass(1.0_X, particle) * picongpu::UNIT_MASS * c_SI * c_SI;
                     // unit: J, SI
-                    // debug only
-                    // std::cout << m_p_SI_rel * UNITCONV_Joule_to_keV << std::endl;, tested result ~511 keV check!
 
                     float3_X vectorMomentum_Scaled = particle[momentum_]; // unit: internal, scaled
                     float_X momentumSquared
@@ -54,25 +52,6 @@ namespace picongpu
                         * (momentumSquared * picongpu::UNIT_MASS * picongpu::UNIT_MASS * picongpu::UNIT_LENGTH
                            * picongpu::UNIT_LENGTH
                            / (picongpu::UNIT_TIME * picongpu::UNIT_TIME)); // unit: J^2, SI, not scaled
-
-                    // debug only
-                    /*std::cout << "Momentum[Internal] " << vectorMomentum_Scaled
-                              << ", Weighting: " << particle[weighting_] << std::endl;
-                    std::cout << "\t"
-                              << "UNIT_MASS[kg/internal]: " << picongpu::UNIT_MASS
-                              << " UNIT_LENGTH[m/internal]: " << picongpu::UNIT_LENGTH
-                              << " UNIT_TIME[s/internal]: " << picongpu::UNIT_TIME << std::endl;
-                    std::cout << "\t"
-                              << "lightspeed[m/s]" << c_SI << ", mass particle, SI" << m_p_SI_rel << std::endl;
-                    std::cout << "MomentumSquared[internal, not scaled]: " << momentumSquared
-                              << ", momentumSquared_rel, SI:" << momentumSquared_p_SI_rel << std::endl;
-                    std::cout << "kinetic energy: "
-                        << math::sqrt(m_p_SI_rel * m_p_SI_rel + momentumSquared_p_SI_rel)
-                        - m_p_SI_rel << std::endl;*/
-                    // explicitly checked!
-
-                    // TODO: note about math functions:
-                    // in the dev branch need to add pmacc:: and acc as first parameter [?]
 
                     // TODO: switch to ATOMIC_UNIT_ENERGY for intermediate calculations, Brian Marre, 2021
 

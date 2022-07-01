@@ -36,9 +36,6 @@
 
 #include <cstdint>
 
-// debug only
-#include <iostream>
-
 namespace picongpu
 {
     namespace particles
@@ -192,8 +189,6 @@ namespace picongpu
 
                         if(sufficentWeightInBin)
                         {
-                            // debug only
-                            // std::cout << "  change accepted" << std::endl;
 
                             // change ion state
                             ion[atomicConfigNumber_] = newState;
@@ -212,9 +207,6 @@ namespace picongpu
                             // complete timeRemaining is used up
                             timeRemaining_SI = 0.0_X;
                         }
-
-                        // debug only
-                        // std::cout << "    final state" << std::endl;
                     } // higher order error since may retry same transiton several times
                 }
             }
@@ -340,23 +332,11 @@ namespace picongpu
                 if(!(densityElectrons == densityElectrons))
                 {
                     printf("ERROR: densityElectrons in rate solver is nan\n");
-                    // debug only output
-                    /*std::cout << "histogramBinIndex " << histogramBinIndex << " WeightBin "
-                              << histogram->getWeightBin(histogramBinIndex) << " DeltaWeight "
-                              << histogram->getDeltaWeightBin(histogramBinIndex) << " binWidth " <<
-                       energyElectronBinWidth
-                              << std::endl;*/
                 }
                 // check for inf
                 if(densityElectrons == 1.0 / 0.0)
                 {
                     printf("ERROR: densityElectrons in rate solver is +-inf\n");
-                    // debug only output
-                    /*std::cout << "histogramBinIndex " << histogramBinIndex << " WeightBin "
-                              << histogram->getWeightBin(histogramBinIndex) << " DeltaWeight "
-                              << histogram->getDeltaWeightBin(histogramBinIndex) << " binWidth " <<
-                       energyElectronBinWidth
-                              << std::endl;*/
                 }
             }
 
@@ -382,9 +362,8 @@ namespace picongpu
                 uint32_t transitionIndex,
                 uint16_t histogramBinIndex,
                 float_X energyElectron, // unit: ATOMIC_UNIT_ENERGY
-                float_X deltaEnergyTransition, // unit: ATOMIC_UNIT_ENERGY
-                uint16_t globalLoopCounter,
-                uint16_t localLoopCounter)
+                float_X deltaEnergyTransition // unit: ATOMIC_UNIT_ENERGY
+                )
             {
                 using AtomicRate = T_AtomicRate;
 
@@ -428,16 +407,6 @@ namespace picongpu
 
                 float_X affectedWeighting = ion[weighting_];
 
-                // debug only
-                /*std::cout << "particleID " << ion[particleId_] << " globalLoopCounter " << globalLoopCounter
-                    << " localLoopCounter " << localLoopCounter
-                    << " timeRemaining " << timeRemaining_SI << " oldState "
-                    << oldState << " newState " << newState << " energyElectron " << energyElectron
-                    << " energyElectronBinWidth " << energyElectronBinWidth << " densityElectrons "
-                    << densityElectrons << " histogramBinIndex " << histogramBinIndex << " electronInteraction:
-                   quasiProbability "
-                    << quasiProbability << " rateSI " << rate_SI << std::endl;*/
-
                 rateEquationSolverForExternalSpectrum(
                     acc,
                     randomGenFloat,
@@ -474,9 +443,8 @@ namespace picongpu
                 uint32_t const newStateIndex,
                 T_ConfigNumberDataType const newState,
                 uint32_t const transitionIndex,
-                float_X const deltaEnergyTransition, // unit: ATOMIC_UNIT_ENERGY
-                uint16_t globalLoopCounter,
-                uint16_t localLoopCounter)
+                float_X const deltaEnergyTransition // unit: ATOMIC_UNIT_ENERGY
+                )
             {
                 using AtomicRate = T_AtomicRate;
 
@@ -491,13 +459,6 @@ namespace picongpu
                 float_X quasiProbability = rate_SI * timeRemaining_SI;
 
                 float_X affectedWeighting = ion[weighting_];
-
-                // debug only
-                /*std::cout << "particleID " << ion[particleId_] << " globalLoopCounter " << globalLoopCounter
-                    << " localLoopCounter " << localLoopCounter
-                    << " timeRemaining " << timeRemaining_SI << " oldState "
-                    << oldState << " newState " << newState << " SpontaneousPhoton: quasiProbability "
-                    << quasiProbability << " rateSI " << rate_SI << std::endl;*/
 
                 rateEquationSolverSpontaneousTransition(
                     acc,
@@ -538,8 +499,6 @@ namespace picongpu
 
                 if(histogram->getNumBins() == 0)
                 {
-                    // debug only
-                    // std::cout << "          no electrons present" << std::endl;
                     printf("         no electrons present in one super cell\n");
 
                     rate_SI = AtomicRate::totalSpontaneousRate(acc, oldState, atomicDataBox);
@@ -581,10 +540,6 @@ namespace picongpu
 
                 float_X quasiProbability = 1._X - rate_SI * timeRemaining_SI;
 
-                // debug only
-                /*std::cout << " no change: quasiProbability " << quasiProbability
-                    << " rateSI " << rate_SI << std::endl;*/
-
                 rateEquationSolverNoChange(randomGenFloat, quasiProbability, timeRemaining_SI);
             }
 
@@ -618,10 +573,7 @@ namespace picongpu
                 T_Ion ion,
                 float_X& timeRemaining_SI,
                 T_AtomicDataBox const atomicDataBox,
-                T_Histogram* histogram,
-                // debug only:
-                uint16_t globalLoopCounter,
-                uint16_t localLoopCounter)
+                T_Histogram* histogram)
             {
                 // workaround: the types may be obtained in a better fashion
                 // @TODO: replace with better version, BrianMarre, 2021
@@ -637,13 +589,6 @@ namespace picongpu
                     = atomicDataBox.findState(oldState); // collection index of atomic state
 
                 bool transitionFound;
-
-                // debug only
-                /*std::cout << "particleID " << ion[particleId_] << " globalLoopCounter " << globalLoopCounter
-                            << " localLoopCounter " << localLoopCounter <<
-                            " timeRemaining[s]" << timeRemaining_SI << std::endl;*/
-                // debug only
-                uint16_t loopCounterTransitionSearch = 0u;
 
                 // randomly select viable Transition
                 while(true)
@@ -672,11 +617,6 @@ namespace picongpu
                             oldState,
                             histogram);
 
-                        // debug only
-                        /*std::cout << "    particleID " << ion[particleId_] << " oldState " << oldState
-                            << " newState " << newState << " process "<< static_cast<uint16_t>(process)
-                            << " new timeRemaining " << timeRemaining_SI << std::endl;*/
-
                         break;
                     }
 
@@ -700,13 +640,6 @@ namespace picongpu
                             transitionFound = true;
                         }
                     }
-
-                    // debug only
-                    /*std::cout << "    loopCountTransition " << loopCounterTransitionSearch << " oldState " <<
-                       oldState
-                        << " newState " << newState << " transitionFound? " << transitionFound
-                        << " transitionIndex " << transitionIndex
-                        << " process " << static_cast<uint16_t>(process) << std::endl;*/
 
                     if(transitionFound)
                     {
@@ -752,16 +685,7 @@ namespace picongpu
                                     transitionIndex,
                                     histogramBinIndex,
                                     energyElectron, // unit: ATOMIC_UNIT_ENERGY
-                                    deltaEnergyTransition, // unit: ATOMIC_UNIT_ENERGY
-                                    // debug only
-                                    globalLoopCounter,
-                                    localLoopCounter);
-
-                                // debug only
-                                /*std::cout << "    particleID " << ion[particleId_] << " oldState " << oldState
-                                    << " newState " << newState << " process "<< static_cast<uint16_t>(process)
-                                    << " new timeRemaining " << timeRemaining_SI << std::endl;*/
-
+                                    deltaEnergyTransition); // unit: ATOMIC_UNIT_ENERGY
                                 break;
                             }
                         }
@@ -789,15 +713,7 @@ namespace picongpu
                                     newStateIndex,
                                     newState,
                                     transitionIndex,
-                                    deltaEnergyTransition,
-                                    // debug only
-                                    globalLoopCounter,
-                                    localLoopCounter);
-
-                                // debug only
-                                /*std::cout << "    particleID " << ion[particleId_] << " oldState " << oldState
-                                    << " newState " << newState << " process " << static_cast<uint16_t>(process)
-                                    << " new timeRemaining " << timeRemaining_SI << std::endl;*/
+                                    deltaEnergyTransition);
 
                                 break;
                             }
@@ -805,7 +721,6 @@ namespace picongpu
                     }
 
                     // retry if no transition between states found
-                    loopCounterTransitionSearch++;
                 }
             }
 
@@ -826,8 +741,7 @@ namespace picongpu
                 RngFactoryFloat rngFactoryFloat,
                 T_IonBox ionBox,
                 T_AtomicDataBox const atomicDataBox,
-                T_Histogram* histogram,
-                bool debug)
+                T_Histogram* histogram)
             {
                 // direct substepping
                 /// @todo implement substepping calculation
@@ -871,14 +785,6 @@ namespace picongpu
                         auto timeRemaining_SI
                             = lockstep::makeVar<float_X>(forEachParticleSlotInFrame, timePerAtomicPhyiscsSubStep);
 
-                        // memory::CtxArray<float_X, ParticleDomCfg> timeRemaining_SI(timePerAtomicPhyiscsSubStep);
-
-                        // debug only
-                        uint16_t globalLoopCounter = 0u;
-                        // debug only
-                        auto localLoopCounter
-                            = lockstep::makeVar<uint16_t>(forEachParticleSlotInFrame, static_cast<uint16_t>(0u));
-
                         while(!allIonsProcessed)
                         {
                             onlyMaster([&]() { allIonsProcessed = true; });
@@ -897,13 +803,7 @@ namespace picongpu
                                             particle,
                                             timeRemaining_SI[idx],
                                             atomicDataBox,
-                                            histogram,
-                                            globalLoopCounter,
-                                            localLoopCounter[idx]);
-
-                                        // debug only
-                                        globalLoopCounter++;
-                                        localLoopCounter[idx]++;
+                                            histogram);
 
                                         if(timeRemaining_SI[idx] > 0._X)
                                         {

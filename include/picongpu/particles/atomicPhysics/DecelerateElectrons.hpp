@@ -32,9 +32,6 @@
 
 #include <cstdint>
 
-// debug only
-#include <iostream>
-
 namespace picongpu
 {
     namespace particles
@@ -105,21 +102,6 @@ namespace picongpu
                                            * electron[weighting_] // new momentum scaled and in internal units
                                            / (picongpu::UNIT_MASS * picongpu::UNIT_LENGTH / picongpu::UNIT_TIME));
                 // unit: internal units
-
-                // debug only
-                /*std::cout << "weightParticle/Bin " << weightMacroParticle/weightBin
-                    << " energyPhysicalElectron[AU] " << energyPhysicalElectron
-                    << " deltaEnergyBinPerPhysicalParticel[AU] " << deltaEnergyBin
-                        /(weightBin * picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
-                    //<< " energyMacroElectron[AU] "
-                    //<< energyPhysicalElectron
-                    //    * picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-                    //    * weightMacroParticle
-                    << " deltaEnergyPhysicalParticle " << newEnergyPhysicalElectron - energyPhysicalElectron
-                    << " previousMomentum [internal, scaled]"
-                    << previousMomentumVectorLength
-                    << " deltaMomentum " << (pmacc::math::abs2(electron[momentum_]) - previousMomentumVectorLength)
-                    << std::endl;*/
             }
 
             // Fill the histogram return via the last parameter

@@ -21,11 +21,6 @@
 
 #include <pmacc/algorithms/math.hpp>
 
-// debug only
-#include <cmath>
-#include <iostream>
-
-
 #pragma once
 
 /** rate calculation from given atomic data, extracted from flylite, based on FLYCHK
@@ -74,7 +69,6 @@ namespace picongpu
                 using LevelVector = pmacc::math::Vector<uint8_t,
                                                         T_numLevels>; // unitless
 
-                // debug only
             public:
                 /** binomial coefficient calculated using partial pascal triangle
                  *
@@ -121,32 +115,12 @@ namespace picongpu
 
                     float_64 result = 1u;
 
-                    // debug only
-                    // Conversion configNumber to levelVector
-                    /*int Z = int(ConfigNumber::Z);
-                    std::cout << "Idx " << configNumber << " ,Z " << Z << std::endl;
-                    std::cout << "{";
-                    for (uint8_t i = 0u; i < T_numLevels; i++ )
-                    {
-                        std::cout << int(levelVector[i]) << ",";
-                        //printf("idx %hhi \n", configNumber);
-                    }
-                    std::cout << "}" << std::endl;*/
-
                     // @TODO: chnage power function call to explicit multipication, BrianMarre 2020
                     for(uint8_t i = 0u; i < T_numLevels; i++)
                     {
                         result *= binomialCoefficients(
                             static_cast<uint8_t>(2u * math::pow(float(i + 1), 2.0f)),
                             levelVector[i]); // unitless
-
-                        // debug only
-                        // test algorithm Multiplicity
-                        /*std::cout << "n " << int(i) + 1u << " OccupationNumber " << int(levelVector[i]) << " binom "
-                                  << binomialCoefficients(
-                                         static_cast<uint8_t>(2u * math::pow(float(i + 1), 2.0f)),
-                                         levelVector[i])
-                                  << " result " << result << std::endl;*/
                     }
 
                     return result; // unitless
@@ -249,17 +223,6 @@ namespace picongpu
                                 m_energyDifference);
                         }
 
-                        // debug only
-                        /*if(std::isnan(Ratio))
-                        {
-                            std::cout << "Ratio: " << Ratio << "MultiplicityN: " << (Multiplicity(acc,
-                        newConfigNumber)) << "MultiplicityO: " << (Multiplicity(acc, oldConfigNumber)) << "term" <<
-                        (energyElectron + energyDifference_m) / energyElectron << "R-Multi." << (Multiplicity(acc,
-                        newConfigNumber)) / (Multiplicity(acc, oldConfigNumber)) << "cast R-Multi." <<
-                        static_cast<float_X>( (Multiplicity(acc, newConfigNumber)) / (Multiplicity(acc,
-                        oldConfigNumber))) << std::endl;
-                        }*/
-
                         energyElectron = energyElectron + m_energyDifference; // unit; ATOMIC_UNIT_ENERGY
                     }
                     else
@@ -278,17 +241,6 @@ namespace picongpu
                         8._X * math::pow(picongpu::PI * picongpu::SI::BOHR_RADIUS, 2.0_X)
                         / math::sqrt(3._X)); // uint: m^2, SI
 
-                    // debug only
-                    /*printf("constant == 0 %s oscillatorStrength %f energy %f gaunt %f \n",
-                        c0_SI == 0 ? "true" : "false",
-                        collisionalOscillatorStrength,
-                        energyElectron,
-                        gauntFactor(energyDifference_m,
-                            energyElectron_SI,
-                            indexTransition,
-                            atomicDataBox));*/
-                    // std::cout << collisionalOscillatorStrength << std::endl;
-
                     // scaling constants * E_Ry^2/deltaE_Trans^2 * f * deltaE_Trans/E_kin
                     // m^2 * (AUE/AUE)^2 * unitless * AUE/AUE * unitless<-[ J, J, unitless, unitless ] = m^2
                     // AUE =^= ATOMIC_UNIT_ENERGY
@@ -304,9 +256,6 @@ namespace picongpu
                     {
                         return 0._X;
                     }
-
-                    // debug only
-                    /*std::cout << "crossSection" << crossSection_SI << std::endl;*/
 
                     return crossSection_SI;
                 }
@@ -330,9 +279,6 @@ namespace picongpu
                     uint32_t numberTransitions;
                     uint32_t startIndexBlock;
                     uint32_t transitionIndex;
-
-                    // debug only
-                    uint16_t loopCount = 0u;
 
                     // iterate over all transitions
                     for(uint32_t i = 0u; i < atomicDataBox.getNumStates(); i++)
@@ -365,15 +311,12 @@ namespace picongpu
                             }
 
 
-                            // debug only
-                            loopCount++;
                             // NaN/inf check
                             if(crossSection == crossSection + 1)
                             {
                                 printf(
-                                    "loop %i crossSectionExcitation %f lowerStateConfigNumber %u, "
+                                    "crossSectionExcitation %f lowerStateConfigNumber %u, "
                                     "upperStateConfigNumber %u energyElectron %f \n",
-                                    loopCount,
                                     collisionalExcitationCrosssection(
                                         acc,
                                         lowerStateConfigNumber, // unitless
@@ -395,13 +338,11 @@ namespace picongpu
                                 energyElectron,
                                 atomicDataBox); // unit: m^2, SI
 
-                            // debug only
                             // NaN/inf check
                             if(crossSection == crossSection + 1)
                             {
                                 printf(
-                                    "loop %i crossSectionDeExcitation %f \n",
-                                    loopCount,
+                                    " crossSectionDeExcitation %f \n",
                                     collisionalExcitationCrosssection(
                                         acc,
                                         upperStateConfigNumber, // unitless
@@ -411,13 +352,6 @@ namespace picongpu
                                         atomicDataBox));
                             }
                         }
-                    }
-
-                    // debug only
-                    if(debug)
-                    {
-                        /*std::cout << "totalElectronInteractionCrossSection " << crossSection << " energyElectron " <<
-                            energyElectron << std::endl;*/
                     }
 
                     return crossSection; // unit: m^2, SI
@@ -464,9 +398,6 @@ namespace picongpu
                         transitionIndex,
                         energyElectron, // unit: ATOMIC_UNIT_ENERGY
                         atomicDataBox); // unit: (m^2), SI
-
-                    // debug only
-                    // std::cout << "    simga_SI " << sigma_SI << std::endl;
 
                     // AU * m^2 * 1/(m^3*AU) * m/s * sqrt( unitless - [ ( (kg*m^2/s^2)/J )^2 = Nm/J = J/J = unitless ]
                     // ) = AU/AU m^3/m^3 * 1/s

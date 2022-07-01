@@ -32,9 +32,6 @@
 #include <stdio.h>
 
 
-// debug only
-#include <iostream>
-
 /** @file
  *
  * This file implements the Atomic Physics stage of the PIC-loop.
@@ -72,7 +69,6 @@ namespace picongpu
                 void runSolver(uint32_t const step) const
                 {
                     // create instance
-                    printf("atomic physics stage for step %d \n", step);
                     callAtomicPhysics(step, cellDescription);
                 }
 

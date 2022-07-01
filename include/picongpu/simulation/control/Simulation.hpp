@@ -104,10 +104,6 @@
 #include <functional>
 #include <memory>
 
-// debug only
-#include <iostream>
-
-
 namespace picongpu
 {
     using namespace pmacc;

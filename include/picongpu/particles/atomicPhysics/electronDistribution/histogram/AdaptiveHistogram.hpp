@@ -39,11 +39,6 @@
 
 #include <utility>
 
-
-// debug only
-#include <cmath>
-#include <iostream>
-
 namespace picongpu
 {
     namespace particles
@@ -490,30 +485,9 @@ namespace picongpu
                             //! getting it's own instance, probably context variable
                             float_X boundary = this->lastLeftBoundary; // Unit: Argument
 
-                            // debug only
-                            // preparation for debug access to run time access
-                            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-                            // debug only access
-                            if(workerIdx == 0)
-                            {
-                                // debug code
-                                /*printf(
-                                    "        getBinLeftBoundary: directionPositive %s, initialBinWidth: %f, boundary: "
-                                    "%f\n",
-                                    directionPositive ? "true" : "false",
-                                    currentBinWidth,
-                                    boundary);*/
-                            }
-
-                            // debug only
-                            uint16_t loopCounter = 0u;
-
                             bool inBin = false;
                             while(!inBin)
                             {
-                                // debug only
-                                loopCounter++;
                                 currentBinWidth = getBinWidth(acc, directionPositive, boundary, atomicDataBox);
 
                                 inBin = AdaptiveHistogram::inBin(directionPositive, boundary, currentBinWidth, x);
@@ -545,14 +519,6 @@ namespace picongpu
                                     // the initial value again
                                     currentBinWidth = this->initialGridWidth;
                                 }
-
-                                /*printf(
-                                    "        getBinLeftBoundary: inBin %s, loopCounter %i, currentBinWidth %f, "
-                                    "boundary %f \n",
-                                    inBin ? "true" : "false",
-                                    loopCounter,
-                                    currentBinWidth,
-                                    boundary);*/
                             }
                             return boundary;
                         }

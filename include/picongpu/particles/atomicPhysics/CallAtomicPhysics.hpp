@@ -39,9 +39,6 @@
 #include <string>
 #include <utility>
 
-// debug only
-#include <iostream>
-
 
 /**@file
  * This file implements the CallAtomicPhyiscs functor called by the AtomicPhysics stage
@@ -260,9 +257,6 @@ namespace picongpu
                      * @TODO get out of param files seperate for each species, Brian Marre 2020
                      */
 
-                    // debug only
-                    std::cout << "read atomic input data" << std::endl;
-
                     // read in atomic data:
                     // levels
                     auto levelDataItems
@@ -362,10 +356,6 @@ namespace picongpu
                     using Kernel = AtomicPhysicsKernel<numWorkers, picongpu::atomicPhysics::maxNumBins>;
                     auto kernel = Kernel{RngFactoryInt{step}, RngFactoryFloat{step}};
 
-                    // debug only
-                    // printf("start atomic physics step\n");
-                    std::cout << "start atomic physics step" << std::endl; // cpu only
-
                     // macro for call of kernel, once for every super cell
                     PMACC_KERNEL(kernel)
                     (mapper.getGridDim(), // how many blocks = how many supercells in local domain
@@ -378,8 +368,6 @@ namespace picongpu
                        picongpu::atomicPhysics::relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
                        step);
 
-                    // debug only
-                    std::cout << "end atomic physics step" << std::endl;
                 }
             };
 

@@ -32,10 +32,6 @@
 
 #include <cstdint>
 
-
-// debug only
-#include <iostream>
-
 namespace picongpu
 {
     namespace particles
