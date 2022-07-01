@@ -46,6 +46,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 namespace picongpu
@@ -54,15 +55,6 @@ namespace picongpu
 
     namespace detail
     {
-        /* Helper to check if a member exists
-         *
-         * Derived from C++17 std::void_t.
-         * This implementation will be removed with Void provided by alpaka 0.6.0 release (not included in the 0.6.0rc3
-         * we currently using).
-         */
-        template<class...>
-        using Void = void;
-
         /** Calculate the scaling factor for each direction.
          *
          * The scaling factor is derived from the reference size of the local domain and a scaling factor provided by
@@ -95,7 +87,7 @@ namespace picongpu
         template<typename T_ExchangeMemCfg>
         struct DirScalingFactor<
             T_ExchangeMemCfg,
-            Void<
+            std::void_t<
                 decltype(std::declval<T_ExchangeMemCfg>().DIR_SCALING_FACTOR),
                 typename T_ExchangeMemCfg::REF_LOCAL_DOM_SIZE>>
         {
