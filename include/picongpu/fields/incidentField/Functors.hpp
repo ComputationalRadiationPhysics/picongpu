@@ -66,6 +66,24 @@ namespace picongpu
                  * @return incident field value in internal units
                  */
                 HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const;
+
+                /** Optional interface to get a given field component
+                 *
+                 * When provided by a functor, this version will be called instead of operator().
+                 * Result of functor.getComponent<T_component>(totalCellIdx) must equal
+                 * functor(totalCellIdx)[T_Component].
+                 *
+                 * This interface exists only for performance optimization purposes for (very) compute-intensive
+                 * functors. Namely, it allows calculation of only components needed by the incident field solver. Note
+                 * however that this is generally not important as incident field is rarely a hot spot.
+                 *
+                 * @tparam T_component field component, 0 = x, 1 = y, 2 = z
+                 *
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
+                 */
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const;
             };
 
             //! Helper incident field functor always returning 0

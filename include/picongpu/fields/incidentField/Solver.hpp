@@ -279,24 +279,12 @@ namespace picongpu
 
                     /* Compute which components of the incidentField are used,
                      * which components of the updatedField they contribute to and with which coefficients.
+                     * The sign and cross combination are consistent with implementation of Functor.
                      */
-
-                    // dir0 is boundary normal axis, dir1 and dir2 are two other axes
-                    constexpr auto dir0 = T_axis;
-                    constexpr auto dir1 = (dir0 + 1) % 3;
-                    constexpr auto dir2 = (dir0 + 2) % 3;
-
-                    /* IncidentField components to be used for the two terms.
-                     * Note the intentional cross combination here, the following calculations rely on it
-                     */
-                    functor.incidentComponent1 = dir2;
-                    functor.incidentComponent2 = dir1;
-
-                    // Coefficients for the respective terms
                     float_X const directionSign = (parameters.direction > 0.0_X ? 1.0_X : -1.0_X);
                     float_X const coeffBase = curlCoefficient / cellSize[T_axis] * directionSign;
-                    functor.coeff1[dir1] = coeffBase;
-                    functor.coeff2[dir2] = -coeffBase;
+                    functor.coeff1[functor.incidentComponent2] = coeffBase;
+                    functor.coeff2[functor.incidentComponent1] = -coeffBase;
 
                     /* For the positive direction, the updated total field index was shifted by 1 earlier.
                      * This index shift is translated to in-cell shift for the incidentField here.
@@ -305,9 +293,9 @@ namespace picongpu
                     if(parameters.direction > 0)
                     {
                         if(isUpdatedFieldTotal)
-                            incidentFieldBaseShift[dir0] = -1.0_X;
+                            incidentFieldBaseShift[T_axis] = -1.0_X;
                         else
-                            incidentFieldBaseShift[dir0] = 1.0_X;
+                            incidentFieldBaseShift[T_axis] = 1.0_X;
                     }
                     auto incidentFieldPositions = traits::FieldPosition<cellType::Yee, T_IncidentField>{}();
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
