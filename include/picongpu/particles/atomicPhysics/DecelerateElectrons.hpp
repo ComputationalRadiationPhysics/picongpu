@@ -49,7 +49,6 @@ namespace picongpu
                 float_64 const energyPhysicalElectron
                     = picongpu::particles::atomicPhysics::GetRealKineticEnergy::KineticEnergy(electron)
                     / picongpu::SI::ATOMIC_UNIT_ENERGY; // unit: ATOMIC_UNIT_ENERGY
-                float_X const weightMacroParticle = electron[weighting_]; // unit: internal
 
                 // look up in the histogram, which bin corresponds to this energy
                 uint16_t binIndex = histogram.getBinIndex(
@@ -96,7 +95,8 @@ namespace picongpu
                 if(previousMomentumVectorLength == 0._X)
                     previousMomentumVectorLength = 1._X; // no need to resize 0-vector
 
-                // if previous momentum == 0, discard electron
+                // if previous momentum == 0, discards electron,
+                // @todo select random direction to apply momentum, Brian Marre, 2022
                 electron[momentum_] *= 1 / previousMomentumVectorLength // get unity vector of momentum
                     * static_cast<float_X>(newPhysicalElectronMomentum
                                            * electron[weighting_] // new momentum scaled and in internal units

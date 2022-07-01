@@ -189,7 +189,6 @@ namespace picongpu
 
                         if(sufficentWeightInBin)
                         {
-
                             // change ion state
                             ion[atomicConfigNumber_] = newState;
 
@@ -363,7 +362,7 @@ namespace picongpu
                 uint16_t histogramBinIndex,
                 float_X energyElectron, // unit: ATOMIC_UNIT_ENERGY
                 float_X deltaEnergyTransition // unit: ATOMIC_UNIT_ENERGY
-                )
+            )
             {
                 using AtomicRate = T_AtomicRate;
 
@@ -444,7 +443,7 @@ namespace picongpu
                 T_ConfigNumberDataType const newState,
                 uint32_t const transitionIndex,
                 float_X const deltaEnergyTransition // unit: ATOMIC_UNIT_ENERGY
-                )
+            )
             {
                 using AtomicRate = T_AtomicRate;
 
