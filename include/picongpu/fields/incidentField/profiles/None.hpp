@@ -35,14 +35,17 @@ namespace picongpu
     {
         namespace incidentField
         {
-            struct None
+            namespace profiles
             {
-                //! Get text name of the incident field profile
-                static HINLINE std::string getName()
+                struct None
                 {
-                    return "None";
-                }
-            };
+                    //! Get text name of the incident field profile
+                    static HINLINE std::string getName()
+                    {
+                        return "None";
+                    }
+                };
+            } // namespace profiles
 
             namespace detail
             {
