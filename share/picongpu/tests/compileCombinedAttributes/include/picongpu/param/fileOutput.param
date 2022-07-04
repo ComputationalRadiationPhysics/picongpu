@@ -51,8 +51,6 @@ namespace picongpu
      *                    particle density
      *       note: this is the same as the sum of kinetic particle energy
      *             divided by a constant for the cell volume
-     *   - MomentumComponent: ratio between a selected momentum component and
-     *                        the absolute momentum with respect to shape
      *   - LarmorPower: radiated Larmor power
      *                  (species must contain the attribute `momentumPrev1`)
      *
@@ -102,12 +100,6 @@ namespace picongpu
     using EnergyDensity_Seq
         = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::EnergyDensity>;
 
-    /* MomentumComponentsection: define "component" as
-       0=X (default), 1=Y or 2=Z (results: [-1.:1.])
-     */
-    using MomentumComponent_Seq
-        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::MomentumComponent<0>>;
-
     using AverageEnergy_Seq = deriveField::CreateEligible_t<
         VectorAllSpecies,
         deriveField::combinedAttributes::AverageAttribute<deriveField::derivedAttributes::Energy>>;
@@ -119,12 +111,8 @@ namespace picongpu
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<
-        ChargeDensity_Seq,
-        EnergyDensity_Seq,
-        MomentumComponent_Seq,
-        AverageEnergy_Seq,
-        RelativisticDensity_Seq>;
+    using FieldTmpSolvers
+        = MakeSeq_t<ChargeDensity_Seq, EnergyDensity_Seq, AverageEnergy_Seq, RelativisticDensity_Seq>;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
