@@ -51,15 +51,6 @@ namespace pmacc
             : Config<T_domainSize, T_numWorkers, T_simdSize>
             , Worker<T_numWorkers>
         {
-            /* Helper to check if a member exists
-             *
-             * Derived from C++17 std::void_t.
-             * This implementation will be removed with Void provided by alpaka 0.6.0 release (not included in the
-             * 0.6.0rc3 we currently using).
-             */
-            template<class...>
-            using Void = void;
-
             /** Get the result of a functor invocation.
              *
              * @attention The behavior is undefined for ill-formed invocations.
@@ -83,11 +74,11 @@ namespace pmacc
             /** Expression will result in a well formed type if the functor can be invoked with Idx as argument */
             template<typename T_Functor>
             using IsCallableWithIndex
-                = Void<decltype(alpaka::core::declval<T_Functor>()(alpaka::core::declval<Idx const>()))>;
+                = std::void_t<decltype(alpaka::core::declval<T_Functor>()(alpaka::core::declval<Idx const>()))>;
 
             /** Expression will result in a well formed type if the functor can be invoked without an argument */
             template<typename T_Functor>
-            using IsCallableWithoutArguments = Void<decltype(alpaka::core::declval<T_Functor>()())>;
+            using IsCallableWithoutArguments = std::void_t<decltype(alpaka::core::declval<T_Functor>()())>;
 
         public:
             using BaseConfig = Config<T_domainSize, T_numWorkers, T_simdSize>;
