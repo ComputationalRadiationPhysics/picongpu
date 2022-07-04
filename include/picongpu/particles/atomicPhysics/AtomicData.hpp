@@ -84,27 +84,24 @@ namespace picongpu
                 using ValueType = typename DataBoxValue::ValueType;
 
             private:
-                uint32_t m_numStates;
-                uint32_t m_maxNumberStates; // max number of States that can be stored
-
                 DataBoxValue m_boxStateEnergy;
                 DataBoxNumber m_boxNumTransitions;
                 DataBoxNumber m_boxStartIndexBlockTransitions;
                 DataBoxStateConfigNumber m_boxStateConfigNumber;
+                uint32_t m_numStates;
+                uint32_t m_maxNumberStates; // max number of States that can be stored
 
-                uint32_t m_numTransitions;
-                uint32_t m_maxNumberTransitions; // max number of Transitions that can be stored
-
+                DataBoxStateConfigNumber m_boxUpperConfigNumber; // lower config numebr is available via index
                 DataBoxValue m_boxCollisionalOscillatorStrength;
-                DataBoxValue m_boxAbsorptionOscillatorStrength;
-
                 DataBoxValue m_boxCinx1;
                 DataBoxValue m_boxCinx2;
                 DataBoxValue m_boxCinx3;
                 DataBoxValue m_boxCinx4;
                 DataBoxValue m_boxCinx5;
-                // DataBoxStateConfigNumber m_boxLowerConfigNumber; // is available via index
-                DataBoxStateConfigNumber m_boxUpperConfigNumber;
+                DataBoxValue m_boxAbsorptionOscillatorStrength;
+
+                uint32_t m_numberTransitions;
+                uint32_t m_maxNumberTransitions; // max number of Transitions that can be stored
 
             public:
                 // Constructor
@@ -124,23 +121,24 @@ namespace picongpu
                     DataBoxValue boxCinx4,
                     DataBoxValue boxCinx5,
                     DataBoxValue boxAbsorptionOscillatorStrength,
-                    uint32_t numTransitions,
+                    uint32_t numberTransitions,
                     uint32_t maxNumberTransitions)
                     : m_boxStateEnergy(boxStateEnergy)
                     , m_boxNumTransitions(boxNumTransitions)
                     , m_boxStartIndexBlockTransitions(boxStartIndexBlockTransitions)
                     , m_boxStateConfigNumber(boxStateConfigNumber)
+                    , m_numStates(numStates)
+                    , m_maxNumberStates(maxNumberStates)
+
                     , m_boxUpperConfigNumber(boxUpperConfigNumber)
                     , m_boxCollisionalOscillatorStrength(boxCollisionalOscillatorStrength)
-                    , m_boxAbsorptionOscillatorStrength(boxAbsorptionOscillatorStrength)
                     , m_boxCinx1(boxCinx1)
                     , m_boxCinx2(boxCinx2)
                     , m_boxCinx3(boxCinx3)
                     , m_boxCinx4(boxCinx4)
                     , m_boxCinx5(boxCinx5)
-                    , m_numStates(numStates)
-                    , m_maxNumberStates(maxNumberStates)
-                    , m_numTransitions(numTransitions)
+                    , m_boxAbsorptionOscillatorStrength(boxAbsorptionOscillatorStrength)
+                    , m_numberTransitions(numberTransitions)
                     , m_maxNumberTransitions(maxNumberTransitions)
                 {
                 }
@@ -151,7 +149,7 @@ namespace picongpu
                  */
                 HINLINE void writeToConsoleAtomicData() const
                 {
-                    std::cout << "(" << m_numStates << ", " << m_numTransitions << ")" << std::endl;
+                    std::cout << "(" << m_numStates << ", " << m_numberTransitions << ")" << std::endl;
 
                     for(uint32_t i = 0u; i < this->m_numStates; i++)
                     {
@@ -220,7 +218,7 @@ namespace picongpu
                     return m_numStates;
                 }
 
-                /** returns index of transition in databox, if retunrs numTransitions not found
+                /** returns index of transition in databox, if retunrs numberTransitions not found
                  *
                  * @TODO: replace linear search
                  */
@@ -242,11 +240,11 @@ namespace picongpu
                                     return this->m_boxStartIndexBlockTransitions(i) + j;
                             }
                         }
-                    return this->m_numTransitions;
+                    return this->m_numberTransitions;
                 }
 
                 /** searches for transition to upper state in block of transitions of lower State,
-                 *  returns index in databox of this transition if found, or m_numTransitions if not
+                 *  returns index in databox of this transition if found, or m_numberTransitions if not
                  */
                 HDINLINE uint32_t
                 findTransitionInBlock(uint32_t const indexLowerState, Idx const upperConfigNumber) const
@@ -258,7 +256,7 @@ namespace picongpu
                         if(this->m_boxUpperConfigNumber(startIndexBlock + i) == upperConfigNumber)
                             return this->m_boxStartIndexBlockTransitions(indexLowerState) + i;
                     }
-                    return this->m_numTransitions;
+                    return this->m_numberTransitions;
                 }
 
                 /** returns upper states ConfigNumber of the transition
@@ -291,7 +289,7 @@ namespace picongpu
                 // number of Transitions stored in this box
                 HDINLINE uint32_t getNumTransitions() const
                 {
-                    return this->m_numTransitions;
+                    return this->m_numberTransitions;
                 }
 
                 // number of atomic states stored in this box
@@ -302,49 +300,49 @@ namespace picongpu
 
                 HDINLINE ValueType getCollisionalOscillatorStrength(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxCollisionalOscillatorStrength(indexTransition);
                     return static_cast<ValueType>(0);
                 }
 
                 HDINLINE ValueType getCinx1(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxCinx1(indexTransition);
                     return static_cast<ValueType>(0);
                 }
 
                 HDINLINE ValueType getCinx2(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxCinx2(indexTransition);
                     return static_cast<ValueType>(0);
                 }
 
                 HDINLINE ValueType getCinx3(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxCinx3(indexTransition);
                     return static_cast<ValueType>(0);
                 }
 
                 HDINLINE ValueType getCinx4(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxCinx4(indexTransition);
                     return static_cast<ValueType>(0);
                 }
 
                 HDINLINE ValueType getCinx5(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxCinx5(indexTransition);
                     return static_cast<ValueType>(0);
                 }
 
                 HDINLINE ValueType getAbsorptionOscillatorStrength(uint32_t const indexTransition) const
                 {
-                    if(indexTransition < this->m_numTransitions)
+                    if(indexTransition < this->m_numberTransitions)
                         return this->m_boxAbsorptionOscillatorStrength(indexTransition);
                     return static_cast<ValueType>(0);
                 }
@@ -406,24 +404,24 @@ namespace picongpu
                     // set start index block in transition collection if first transition of this lowerConfigNumber
                     if(this->m_boxStartIndexBlockTransitions(collectionIndex) == m_maxNumberTransitions)
                     {
-                        this->m_boxStartIndexBlockTransitions(collectionIndex) = m_numTransitions;
+                        this->m_boxStartIndexBlockTransitions(collectionIndex) = m_numberTransitions;
                     }
 
                     // check not too many transitions
-                    if((this->m_numTransitions < m_maxNumberTransitions))
+                    if((this->m_numberTransitions < m_maxNumberTransitions))
                     {
                         // input transition data
-                        this->m_boxUpperConfigNumber[m_numTransitions] = upperConfigNumber;
-                        this->m_boxCollisionalOscillatorStrength[m_numTransitions] = collisionalOscillatorStrength;
-                        this->m_boxCinx1[m_numTransitions] = gauntCoefficent1;
-                        this->m_boxCinx2[m_numTransitions] = gauntCoefficent2;
-                        this->m_boxCinx3[m_numTransitions] = gauntCoefficent3;
-                        this->m_boxCinx4[m_numTransitions] = gauntCoefficent4;
-                        this->m_boxCinx5[m_numTransitions] = gauntCoefficent5;
-                        this->m_boxAbsorptionOscillatorStrength[m_numTransitions] = absorptionOscillatorStrength;
+                        this->m_boxUpperConfigNumber[m_numberTransitions] = upperConfigNumber;
+                        this->m_boxCollisionalOscillatorStrength[m_numberTransitions] = collisionalOscillatorStrength;
+                        this->m_boxCinx1[m_numberTransitions] = gauntCoefficent1;
+                        this->m_boxCinx2[m_numberTransitions] = gauntCoefficent2;
+                        this->m_boxCinx3[m_numberTransitions] = gauntCoefficent3;
+                        this->m_boxCinx4[m_numberTransitions] = gauntCoefficent4;
+                        this->m_boxCinx5[m_numberTransitions] = gauntCoefficent5;
+                        this->m_boxAbsorptionOscillatorStrength[m_numberTransitions] = absorptionOscillatorStrength;
 
                         // update context
-                        this->m_numTransitions += 1u;
+                        this->m_numberTransitions += 1u;
                         this->m_boxNumTransitions(collectionIndex) += 1u;
                     }
                 }
@@ -510,7 +508,7 @@ namespace picongpu
                 }
 
                 //! Get the host data box for the rate matrix values
-                HINLINE DataBoxType getHostDataBox(uint32_t numStates, uint32_t numTransitions)
+                HINLINE DataBoxType getHostDataBox(uint32_t numStates, uint32_t numberTransitions)
                 {
                     return DataBoxType(
                         dataStateEnergy->getHostBuffer().getDataBox(),
@@ -529,12 +527,12 @@ namespace picongpu
                         dataCinx4->getHostBuffer().getDataBox(),
                         dataCinx5->getHostBuffer().getDataBox(),
                         dataAbsorptionOscillatorStrength->getHostBuffer().getDataBox(),
-                        numTransitions,
+                        numberTransitions,
                         this->m_maxNumberTransitions);
                 }
 
                 //! Get the device data box for the rate matrix values
-                HINLINE DataBoxType getDeviceDataBox(uint32_t numStates, uint32_t numTransitions)
+                HINLINE DataBoxType getDeviceDataBox(uint32_t numStates, uint32_t numberTransitions)
                 {
                     return DataBoxType(
                         dataStateEnergy->getDeviceBuffer().getDataBox(),
@@ -552,7 +550,7 @@ namespace picongpu
                         dataCinx4->getDeviceBuffer().getDataBox(),
                         dataCinx5->getDeviceBuffer().getDataBox(),
                         dataAbsorptionOscillatorStrength->getDeviceBuffer().getDataBox(),
-                        numTransitions,
+                        numberTransitions,
                         this->m_maxNumberTransitions);
                 }
 
