@@ -27,13 +27,17 @@
 #include "picongpu/fields/background/templates/twtsfast/twtsfast.hpp"
 
 
+#ifndef PARAM_FIELD_BACKGROUND
+#    define PARAM_FIELD_BACKGROUND 1
+#endif
+
 namespace picongpu
 {
     class FieldBackgroundE
     {
     public:
         /* Add this additional field for pushing particles */
-        static constexpr bool InfluenceParticlePusher = true;
+        static constexpr bool InfluenceParticlePusher = (PARAM_FIELD_BACKGROUND != 0);
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -180,7 +184,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static constexpr bool InfluenceParticlePusher = true;
+        static constexpr bool InfluenceParticlePusher = (PARAM_FIELD_BACKGROUND != 0);
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
