@@ -25,6 +25,7 @@
 #include "picongpu/fields/incidentField/DerivativeCoefficients.hpp"
 
 #include <cstdint>
+#include <type_traits>
 
 /** @note In this file we use camelCase "updatedField" in both code and comments to denote field E or B that is being
  * updated (i.e. corrected) in the kernel. The other of the two fields is called "incidentField". And for the
@@ -41,6 +42,54 @@ namespace picongpu
         {
             namespace detail
             {
+                /** Helper type to check if T_FunctorIncidentField implements getComponent<T_component>()
+                 *
+                 * Is void for those types, ill-formed otherwise.
+                 *
+                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_component field component, 0 = x, 1 = y, 2 = z
+                 */
+                template<typename T_FunctorIncidentField, uint32_t T_component>
+                using HasGetComponent
+                    = std::void_t<decltype(alpaka::core::declval<T_FunctorIncidentField>()
+                                               .template getComponent<T_component>(floatD_X::create(0.0_X)))>;
+
+                /** Functor to get the chosen component of the given incident field functor at the given position
+                 *
+                 * The general implementation calculates full field and takes the component.
+                 * In case a functor implements getComponent<T_component>(), that will be called.
+                 * @see FunctorIncidentFieldConcept for rationale and interface requirements.
+                 *
+                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_component field component, 0 = x, 1 = y, 2 = z
+                 * @tparam T_Sfinae parameter to SFINAE-switch between the cases
+                 *
+                 * @{
+                 */
+
+                template<typename T_FunctorIncidentField, uint32_t T_component, typename T_Sfinae = void>
+                struct GetComponent
+                {
+                    HDINLINE auto operator()(T_FunctorIncidentField const& functor, floatD_X const& totalCellIdx) const
+                    {
+                        return functor(totalCellIdx)[T_component];
+                    }
+                };
+
+                template<typename T_FunctorIncidentField, uint32_t T_component>
+                struct GetComponent<
+                    T_FunctorIncidentField,
+                    T_component,
+                    HasGetComponent<T_FunctorIncidentField, T_component>>
+                {
+                    HDINLINE auto operator()(T_FunctorIncidentField const& functor, floatD_X const& totalCellIdx) const
+                    {
+                        return functor.template getComponent<T_component>(totalCellIdx);
+                    }
+                };
+
+                /** @} */
+
                 /** Helper functor for in-kernel update of the given field using the given incidentField functor
                  *
                  * Performs update by adding terms with the incidentField.
@@ -159,8 +208,12 @@ namespace picongpu
                      */
                     float3_X coeff1, coeff2;
 
-                    //! Indices of the incidentField components for the two terms
-                    uint32_t incidentComponent1, incidentComponent2;
+                    /** Indices of the incidentField components for the two terms
+                     *
+                     * Note the intentional cross combination, this is to match the general vector update stated above.
+                     */
+                    static constexpr uint32_t incidentComponent1 = (T_axis + 2) % 3;
+                    static constexpr uint32_t incidentComponent2 = (T_axis + 1) % 3;
 
                     //! Shifts inside the cell for two functorIncidentField invocations, in cells
                     floatD_X inCellShift1, inCellShift2;
@@ -227,9 +280,10 @@ namespace picongpu
                          * operate as if in 3d.
                          * For 2d the z loop is always for a single iteration.
                          * The resulting 3d indices are shrinked to simDim.
+                         * Note the intentional cross combination here, see declaration of incidentComponent1, 2.
                          */
-                        constexpr auto dir1 = (axis + 1) % 3;
-                        constexpr auto dir2 = (axis + 2) % 3;
+                        constexpr auto dir1 = incidentComponent2;
+                        constexpr auto dir2 = incidentComponent1;
                         constexpr int32_t sizeDir1 = pmacc::math::CT::At_c<NumCoefficients, dir1>::type::value;
                         constexpr int32_t sizeDir2 = pmacc::math::CT::At_c<NumCoefficients, dir2>::type::value;
                         /* Due to indexing of the Yee grid, at the last updated cell we must update only some of the
@@ -261,14 +315,12 @@ namespace picongpu
                                     // coeff1, 2
                                     if(applyIncidentField1)
                                         result += derivativeCoeff * coeff1
-                                            * functorIncidentField(
-                                                      incidentFieldShift1
-                                                      + incidentIdxShift.shrink<simDim>())[incidentComponent1];
+                                            * getIncidentFieldComponent1(
+                                                      incidentFieldShift1 + incidentIdxShift.shrink<simDim>());
                                     if(applyIncidentField2)
                                         result += derivativeCoeff * coeff2
-                                            * functorIncidentField(
-                                                      incidentFieldShift2
-                                                      + incidentIdxShift.shrink<simDim>())[incidentComponent2];
+                                            * getIncidentFieldComponent2(
+                                                      incidentFieldShift2 + incidentIdxShift.shrink<simDim>());
                                     incidentIdxShift[dir2] += 1.0_X;
                                 }
                                 incidentIdxShift[dir1] += 1.0_X;
@@ -314,6 +366,29 @@ namespace picongpu
                             result -= direction;
                         return result;
                     }
+
+                    /** Get individual components of field calculated by the incident field functor
+                     *
+                     * @param totalCellIdx cell index in the total domain
+                     *
+                     * @{
+                     */
+
+                    HDINLINE auto getIncidentFieldComponent1(floatD_X const& totalCellIdx) const
+                    {
+                        return GetComponent<T_FunctorIncidentField, incidentComponent1>{}(
+                            functorIncidentField,
+                            totalCellIdx);
+                    }
+
+                    HDINLINE auto getIncidentFieldComponent2(floatD_X const& totalCellIdx) const
+                    {
+                        return GetComponent<T_FunctorIncidentField, incidentComponent2>{}(
+                            functorIncidentField,
+                            totalCellIdx);
+                    }
+
+                    /** @} */
                 };
 
                 /** Kernel to apply incidentField

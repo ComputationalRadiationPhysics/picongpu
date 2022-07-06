@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Alexander Debus, Axel Huebl
+/* Copyright 2014-2022 Alexander Debus, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -143,6 +143,20 @@ namespace picongpu
                 HDINLINE float3_X operator()(floatD_X const& cellIdx, float_X const currentStep) const;
 
                 /** @} */
+
+                /** Calculate the given component of B(r, t)
+                 *
+                 * Result is same as for the fractional version of operator()(cellIdx, currentStep)[T_component].
+                 * This version exists for optimizing usage in incident field where single components are needed.
+                 *
+                 * @tparam T_component field component, 0 = x, 1 = y, 2 = z
+                 *
+                 * @param cellIdx The total fractional cell id counted from the start at t=0
+                 * @param currentStep The current time step for the field to be calculated at
+                 * @return float_X with field component normalized to amplitude in range [-1.:1.]
+                 */
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& cellIdx, float_X const currentStep) const;
 
                 /** Calculate B(r, t) for given position, time, and extra in-cell shifts
                  *
