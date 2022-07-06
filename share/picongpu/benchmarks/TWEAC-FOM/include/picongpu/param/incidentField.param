@@ -1,0 +1,469 @@
+/* Copyright 2014-2022 Axel Huebl, Alexander Debus, Richard Pausch, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file incidentField.param
+ *
+ * Configure incident field profile and offset of the Huygens surface for each boundary.
+ *
+ * Available profiles:
+ *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
+ *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
+ *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::None                  : no incident field
+ *  - profiles::PlaneWave<>           : plane wave profile with given parameters
+ *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
+ * parameters
+ *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
+ * parameters
+ *
+ * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
+ * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
+ * effects of all profiles in the list. This file also has to define constexpr array `POSITION` that controls
+ * positioning of the generating surface relative to total domain. For example:
+ *
+ * @code{.cpp}
+ * using XMin = profiles::Free<UserFunctorIncidentE>;
+ * using XMax = profiles::None;
+ * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
+ * using YMax = profiles::Free<AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB>;
+ * using ZMin = profiles::Polynom<UserPolynomParams>;
+ * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ *
+ * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
+ * @endcode
+ */
+
+#pragma once
+
+#include "picongpu/fields/background/templates/TWTS/TWTS.hpp"
+#include "picongpu/fields/background/templates/twtsfast/twtsfast.hpp"
+#include "picongpu/fields/incidentField/profiles/profiles.def"
+
+#ifndef PARAM_FIELD_BACKGROUND
+#    define PARAM_FIELD_BACKGROUND 1
+#endif
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            class FunctorE1
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                const templates::twtsfast::EField twtsFieldE1;
+
+                HINLINE FunctorE1(float_X const currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldE1(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::EField::LINEAR_X)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(0.7057829460593135) * amplitude * twtsFieldE1(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorE2
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                const templates::twtsfast::EField twtsFieldE2;
+
+                HINLINE FunctorE2(float_X const currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldE2(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          -3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::EField::LINEAR_X)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(-0.7057829460593135) * amplitude
+                        * twtsFieldE2(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorE3
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                const templates::twtsfast::EField twtsFieldE3;
+
+                HINLINE FunctorE3(float_X const currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldE3(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::EField::LINEAR_YZ)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(0.7084281424758874) * amplitude * twtsFieldE3(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorE4
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                const templates::twtsfast::EField twtsFieldE4;
+
+                HINLINE FunctorE4(float_X const currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldE4(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          -3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::EField::LINEAR_YZ)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(0.7084281424758874) * amplitude * twtsFieldE4(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorB1
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                templates::twtsfast::BField twtsFieldB1;
+
+                HINLINE FunctorB1(const float_X currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldB1(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::BField::LINEAR_X)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(0.7057829460593135) * amplitude * twtsFieldB1(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorB2
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                templates::twtsfast::BField twtsFieldB2;
+
+                HINLINE FunctorB2(const float_X currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldB2(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          -3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::BField::LINEAR_X)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(-0.7057829460593135) * amplitude
+                        * twtsFieldB2(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorB3
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                templates::twtsfast::BField twtsFieldB3;
+
+                HINLINE FunctorB3(const float_X currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldB3(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::BField::LINEAR_YZ)
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(0.7084281424758874) * amplitude * twtsFieldB3(totalCellIdx, m_currentStep);
+                }
+            };
+
+            class FunctorB4
+            {
+            public:
+                const float_X m_currentStep;
+                PMACC_ALIGN(m_unitField, const float3_64);
+                templates::twtsfast::BField twtsFieldB4;
+
+                HINLINE FunctorB4(const float_X currentStep, const float3_64 unitField)
+                    : m_currentStep(currentStep)
+                    , m_unitField(unitField)
+                    , twtsFieldB4(
+                          /* focus_y [m], the distance to the laser focus in y-direction */
+                          30.0e-6,
+                          /* wavelength [m] */
+                          0.8e-6,
+                          /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                          10.0e-15 / 2.3548200450309493820231386529194,
+                          /* w_x [m], cylindrically focused spot size */
+                          1.2e-6,
+                          /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                          -3.5 * (PI / 180.),
+                          /* propagation speed of overlap [speed of light]. */
+                          1.0,
+                          /* manual time delay [s] if auto_tdelay is false */
+                          50.0e-6 / SI::SPEED_OF_LIGHT_SI,
+                          /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                          false,
+                          /* Polarization of TWTS laser field */
+                          templates::twtsfast::BField::LINEAR_YZ)
+
+                {
+                }
+
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float3_64 invUnitField
+                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+                    const float3_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return float3_X::create(0.7084281424758874) * amplitude * twtsFieldB4(totalCellIdx, m_currentStep);
+                }
+            };
+
+            // Enable functors defined in this file depending on PARAM_FIELD_BACKGROUND
+            using MyProfile = MakeSeq_t<
+#if PARAM_FIELD_BACKGROUND
+                profiles::None
+#else
+                profiles::Free<FunctorE1, FunctorB1>,
+                profiles::Free<FunctorE2, FunctorB2>,
+                profiles::Free<FunctorE3, FunctorB3>,
+                profiles::Free<FunctorE4, FunctorB4>
+#endif
+                >;
+
+            using XMin = MyProfile;
+            using XMax = MyProfile;
+            using YMin = MyProfile;
+            using YMax = profiles::None;
+            using ZMin = MyProfile;
+            using ZMax = MyProfile;
+
+            // These values are chosen to match the background, have to be changed for higher order field solvers
+            constexpr int32_t POSITION[3][2] = {
+                {1, -1}, // x direction [negative, positive]
+                {1, -1}, // y direction [negative, positive]
+                {1, -1} // z direction [negative, positive]
+            };
+
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu
