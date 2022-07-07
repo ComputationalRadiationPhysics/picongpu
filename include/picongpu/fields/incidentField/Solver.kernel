@@ -272,7 +272,7 @@ namespace picongpu
                         pmacc::math::Vector<bool, simDim> const& isLastUpdatedCell) const
                     {
                         auto result = float3_X::create(0.0_X);
-                        auto incidentIdxShift = floatD_X::create(0.0_X);
+                        auto incidentIdxShift = float3_X::create(0.0_X);
                         incidentIdxShift[axis] = getInitialIncidentFieldShift(updatedFieldShift);
                         auto const incidentIdxShiftIncrement = getIncidentFieldShiftIncrement(updatedFieldShift);
 
