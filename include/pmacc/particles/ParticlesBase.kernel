@@ -25,6 +25,7 @@
 #include "pmacc/mappings/kernel/ExchangeMapping.hpp"
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/particles/algorithm/ForEach.hpp"
 #include "pmacc/particles/memory/boxes/ExchangePopDataBox.hpp"
 #include "pmacc/particles/memory/boxes/ExchangePushDataBox.hpp"
 #include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
@@ -409,7 +410,6 @@ namespace pmacc
             // count particles per frame
             PMACC_SMEM(acc, destFramesCounter, memory::Array<uint32_t, numExchanges>);
 
-            PMACC_SMEM(acc, frame, FramePtr);
             PMACC_SMEM(acc, isProcessedSupercell, bool);
 
             DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc)));
@@ -423,12 +423,17 @@ namespace pmacc
                     if(isProcessedSupercell)
                     {
                         pb.getSuperCell(superCellIdx).setMustShift(false);
-                        frame = pb.getFirstFrame(superCellIdx);
                     }
                 });
 
+            namespace particleAccAlgos = pmacc::particles::algorithm::acc;
+            auto forEachFrameInSupercell = particleAccAlgos::makeForEachFrame<numWorkers, particleAccAlgos::Forward>(
+                workerIdx,
+                pb,
+                superCellIdx);
+
             cupla::__syncthreads(acc);
-            if(!isProcessedSupercell || !frame.isValid())
+            if(!isProcessedSupercell || !forEachFrameInSupercell.hasParticles())
                 return;
 
             auto forEachExchange = lockstep::makeForEach<numExchanges, numWorkers>(workerIdx);
@@ -470,126 +475,124 @@ namespace pmacc
 
             cupla::__syncthreads(acc);
 
-            /* iterate over the frame list of the current supercell */
-            while(frame.isValid())
-            {
-                auto forEachParticle = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+            forEachFrameInSupercell(
+                acc,
+                /* iterate over the frame list of the current supercell */
+                [&](auto const& accelerator, auto& frameIterCtx)
+                {
+                    auto forEachParticleInFrame = forEachFrameInSupercell.lockstepForEach();
 
-                auto destParticleIdxCtx = lockstep::makeVar<lcellId_t>(forEachParticle, lcellId_t(INV_LOC_IDX));
-                // auto directionCtx = lockstep::makeVar<int>(forEachParticle);
+                    auto destParticleIdxCtx
+                        = lockstep::makeVar<lcellId_t>(forEachParticleInFrame, lcellId_t(INV_LOC_IDX));
 
-                auto directionCtx = forEachParticle(
-                    [&](lockstep::Idx const idx)
-                    {
-                        /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
-                         * -2 is no particle
-                         * -1 is particle but it is not shifted (stays in supercell)
-                         * >=0 particle moves in a certain direction
-                         *     (@see ExchangeType in types.h)
-                         */
-                        int direction = frame[idx][multiMask_] - 2;
-                        if(direction >= 0)
+                    auto directionCtx = forEachParticleInFrame(
+                        [&](lockstep::Idx const idx)
                         {
-                            destParticleIdxCtx[idx] = cupla::atomicAdd(
-                                acc,
-                                &(destFramesCounter[direction]),
-                                1u,
-                                ::alpaka::hierarchy::Threads{});
-                        }
-                        return direction;
-                    });
-                cupla::__syncthreads(acc);
-
-                forEachExchange(
-                    [&](lockstep::Idx const idx)
-                    {
-                        uint32_t const linearIdx = idx;
-                        /* If the master thread (responsible for a certain direction) did not
-                         * obtain a `low frame` from the neighboring super cell before the loop,
-                         * it will create one now.
-                         *
-                         * In case not all particles that are shifted to the neighboring
-                         * supercell fit into the `low frame`, a second frame is created to
-                         * contain further particles, the `high frame` (default: invalid).
-                         */
-                        if(destFramesCounter[linearIdx] > 0u)
-                        {
-                            /* neighborSuperCellIdx should not be stored in a context variable.
-                             * Using a context variable results into 16bit reads.
+                            /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
+                             * -2 is no particle
+                             * -1 is particle but it is not shifted (stays in supercell)
+                             * >=0 particle moves in a certain direction
+                             *     (@see ExchangeType in types.h)
                              */
-                            auto const neighborSuperCellIdx
-                                = superCellIdx + Mask::getRelativeDirections<dim>(linearIdx + 1);
-                            if(isValidSupercellIdx(T_Idx{neighborSuperCellIdx}, numSupercellsWithGuard))
+                            int direction = frameIterCtx[idx][idx % frameSize][multiMask_] - 2;
+                            if(direction >= 0)
                             {
-                                /* if we had no `low frame` we load a new empty one */
-                                if(!destFrames[linearIdx].isValid())
+                                destParticleIdxCtx[idx] = cupla::atomicAdd(
+                                    accelerator,
+                                    &(destFramesCounter[direction]),
+                                    1u,
+                                    ::alpaka::hierarchy::Threads{});
+                            }
+                            return direction;
+                        });
+                    cupla::__syncthreads(accelerator);
+
+                    forEachExchange(
+                        [&](lockstep::Idx const idx)
+                        {
+                            uint32_t const linearIdx = idx;
+                            /* If the master thread (responsible for a certain direction) did not
+                             * obtain a `low frame` from the neighboring super cell before the loop,
+                             * it will create one now.
+                             *
+                             * In case not all particles that are shifted to the neighboring
+                             * supercell fit into the `low frame`, a second frame is created to
+                             * contain further particles, the `high frame` (default: invalid).
+                             */
+                            if(destFramesCounter[linearIdx] > 0u)
+                            {
+                                /* neighborSuperCellIdx should not be stored in a context variable.
+                                 * Using a context variable results into 16bit reads.
+                                 */
+                                auto const neighborSuperCellIdx
+                                    = superCellIdx + Mask::getRelativeDirections<dim>(linearIdx + 1);
+                                if(isValidSupercellIdx(T_Idx{neighborSuperCellIdx}, numSupercellsWithGuard))
                                 {
-                                    FramePtr tmpFrame(pb.getEmptyFrame(acc));
-                                    destFrames[linearIdx] = tmpFrame;
-                                    pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
-                                }
-                                /* check if a `high frame` is needed */
-                                if(destFramesCounter[linearIdx] > frameSize)
-                                {
-                                    FramePtr tmpFrame(pb.getEmptyFrame(acc));
-                                    destFrames[linearIdx + numExchanges] = tmpFrame;
-                                    pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
+                                    /* if we had no `low frame` we load a new empty one */
+                                    if(!destFrames[linearIdx].isValid())
+                                    {
+                                        FramePtr tmpFrame(pb.getEmptyFrame(accelerator));
+                                        destFrames[linearIdx] = tmpFrame;
+                                        pb.setAsLastFrame(accelerator, tmpFrame, neighborSuperCellIdx);
+                                    }
+                                    /* check if a `high frame` is needed */
+                                    if(destFramesCounter[linearIdx] > frameSize)
+                                    {
+                                        FramePtr tmpFrame(pb.getEmptyFrame(accelerator));
+                                        destFrames[linearIdx + numExchanges] = tmpFrame;
+                                        pb.setAsLastFrame(accelerator, tmpFrame, neighborSuperCellIdx);
+                                    }
                                 }
                             }
-                        }
-                    });
-                cupla::__syncthreads(acc);
+                        });
+                    cupla::__syncthreads(accelerator);
 
-                forEachParticle(
-                    [&](lockstep::Idx const idx)
-                    {
-                        /* All threads with a valid index in the neighbor's frame, valid index
-                         * range is [0, frameSize * 2-1], will copy their particle to the new
-                         * frame.
-                         *
-                         * The default value for indexes (in the destination frame) is
-                         * above this range (INV_LOC_IDX) for all particles that are not shifted.
-                         */
-                        if(destParticleIdxCtx[idx] < frameSize * 2)
+                    forEachParticleInFrame(
+                        [&](lockstep::Idx const idx)
                         {
-                            if(destParticleIdxCtx[idx] >= frameSize)
+                            /* All threads with a valid index in the neighbor's frame, valid index
+                             * range is [0, frameSize * 2-1], will copy their particle to the new
+                             * frame.
+                             *
+                             * The default value for indexes (in the destination frame) is
+                             * above this range (INV_LOC_IDX) for all particles that are not shifted.
+                             */
+                            if(destParticleIdxCtx[idx] < frameSize * 2)
                             {
-                                /* use `high frame` */
-                                directionCtx[idx] += numExchanges;
-                                destParticleIdxCtx[idx] -= frameSize;
+                                if(destParticleIdxCtx[idx] >= frameSize)
+                                {
+                                    /* use `high frame` */
+                                    directionCtx[idx] += numExchanges;
+                                    destParticleIdxCtx[idx] -= frameSize;
+                                }
+                                auto dstParticle = destFrames[directionCtx[idx]][destParticleIdxCtx[idx]];
+                                auto srcParticle = frameIterCtx[idx][idx % frameSize];
+                                dstParticle[multiMask_] = 1;
+                                srcParticle[multiMask_] = 0;
+                                auto dstFilteredParticle = particles::operations::deselect<multiMask>(dstParticle);
+                                particles::operations::assign(dstFilteredParticle, srcParticle);
                             }
-                            auto dstParticle = destFrames[directionCtx[idx]][destParticleIdxCtx[idx]];
-                            auto srcParticle = frame[idx];
-                            dstParticle[multiMask_] = 1;
-                            srcParticle[multiMask_] = 0;
-                            auto dstFilteredParticle = particles::operations::deselect<multiMask>(dstParticle);
-                            particles::operations::assign(dstFilteredParticle, srcParticle);
-                        }
-                    });
-                cupla::__syncthreads(acc);
+                        });
+                    cupla::__syncthreads(accelerator);
 
-                forEachExchange(
-                    [&](lockstep::Idx const idx)
-                    {
-                        uint32_t const linearIdx = idx;
-                        /* if the `low frame` is full, each master thread
-                         * uses the `high frame` (is invalid, if still empty) as the next
-                         * `low frame` for the following iteration of the loop
-                         */
-                        if(destFramesCounter[linearIdx] >= frameSize)
+                    forEachExchange(
+                        [&](lockstep::Idx const idx)
                         {
-                            newParticleInFrameCtx[idx] += frameSize;
-                            destFramesCounter[linearIdx] -= frameSize;
-                            destFrames[linearIdx] = destFrames[linearIdx + numExchanges];
-                            destFrames[linearIdx + numExchanges] = FramePtr();
-                        }
-                        if(linearIdx == 0)
-                        {
-                            frame = pb.getNextFrame(frame);
-                        }
-                    });
-                cupla::__syncthreads(acc);
-            }
+                            uint32_t const linearIdx = idx;
+                            /* if the `low frame` is full, each master thread
+                             * uses the `high frame` (is invalid, if still empty) as the next
+                             * `low frame` for the following iteration of the loop
+                             */
+                            if(destFramesCounter[linearIdx] >= frameSize)
+                            {
+                                newParticleInFrameCtx[idx] += frameSize;
+                                destFramesCounter[linearIdx] -= frameSize;
+                                destFrames[linearIdx] = destFrames[linearIdx + numExchanges];
+                                destFrames[linearIdx + numExchanges] = FramePtr();
+                            }
+                        });
+                    cupla::__syncthreads(accelerator);
+                });
 
             forEachExchange(
                 [&](lockstep::Idx const idx)
