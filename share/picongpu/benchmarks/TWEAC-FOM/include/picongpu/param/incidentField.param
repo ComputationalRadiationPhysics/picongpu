@@ -61,6 +61,10 @@
 #    define PARAM_FIELD_BACKGROUND 1
 #endif
 
+#ifndef PARAM_COMPONENTWISE
+#    define PARAM_COMPONENTWISE 1
+#endif
+
 namespace picongpu
 {
     namespace fields
@@ -111,6 +115,22 @@ namespace picongpu
                         = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
                     return float3_X::create(0.7057829460593135) * amplitude * twtsFieldE1(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return 0.7057829460593135_X * amplitude
+                        * twtsFieldE1.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorE2
@@ -158,6 +178,22 @@ namespace picongpu
                     return float3_X::create(-0.7057829460593135) * amplitude
                         * twtsFieldE2(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return -0.7057829460593135_X * amplitude
+                        * twtsFieldE2.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorE3
@@ -204,6 +240,22 @@ namespace picongpu
                         = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
                     return float3_X::create(0.7084281424758874) * amplitude * twtsFieldE3(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return 0.7084281424758874_X * amplitude
+                        * twtsFieldE3.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorE4
@@ -250,6 +302,22 @@ namespace picongpu
                         = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
                     return float3_X::create(0.7084281424758874) * amplitude * twtsFieldE4(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return 0.7084281424758874_X * amplitude
+                        * twtsFieldE4.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorB1
@@ -296,6 +364,22 @@ namespace picongpu
                         = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
                     return float3_X::create(0.7057829460593135) * amplitude * twtsFieldB1(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return 0.7057829460593135_X * amplitude
+                        * twtsFieldB1.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorB2
@@ -343,6 +427,22 @@ namespace picongpu
                     return float3_X::create(-0.7057829460593135) * amplitude
                         * twtsFieldB2(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return -0.7057829460593135_X * amplitude
+                        * twtsFieldB2.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorB3
@@ -389,6 +489,22 @@ namespace picongpu
                         = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
                     return float3_X::create(0.7084281424758874) * amplitude * twtsFieldB3(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return 0.7084281424758874_X * amplitude
+                        * twtsFieldB3.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             class FunctorB4
@@ -436,6 +552,22 @@ namespace picongpu
                         = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
                     return float3_X::create(0.7084281424758874) * amplitude * twtsFieldB4(totalCellIdx, m_currentStep);
                 }
+
+#if PARAM_COMPONENTWISE
+                template<uint32_t T_component>
+                HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
+                {
+                    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                        * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
+                    const float_64 invUnitField = 1.0 / m_unitField[T_component];
+                    const float_X amplitude
+                        = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+                    return 0.7084281424758874_X * amplitude
+                        * twtsFieldB4.getComponent<T_component>(totalCellIdx, m_currentStep);
+                }
+#endif
             };
 
             // Enable functors defined in this file depending on PARAM_FIELD_BACKGROUND
