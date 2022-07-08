@@ -36,6 +36,7 @@
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/particles/memory/boxes/TileDataBox.hpp>
@@ -207,17 +208,13 @@ namespace picongpu
             T_ParticleFunctor particleFunctor,
             T_Mapping mapper) const
         {
-            constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
-
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            using FramePtr = typename T_ParBox::FramePtr;
-
-            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
 
             // relative offset (in cells) to the supercell (including the guard)
-            DataSpace<simDim> const superCellOffset = block * SuperCellSize::toRT();
+            DataSpace<simDim> const superCellOffset = superCellIdx * SuperCellSize::toRT();
 
             /* worker status flag to mark that a particle is leaving the supercell
              * 1 if at least one particle is leaving the supercell else 0
@@ -228,24 +225,20 @@ namespace picongpu
              */
             PMACC_SMEM(acc, mustShiftSupercell, int);
 
-            // current processed frame
-            FramePtr frame;
-            lcellId_t particlesInSuperCell;
-
             auto onlyMaster = lockstep::makeMaster(workerIdx);
 
             onlyMaster([&]() { mustShiftSupercell = 0; });
-
-            frame = pb.getLastFrame(block);
-            particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
 
             auto cachedB = CachedBox::create<0, typename T_BBox::ValueType>(acc, T_DataDomain());
             auto cachedE = CachedBox::create<1, typename T_EBox::ValueType>(acc, T_DataDomain());
 
             cupla::__syncthreads(acc);
 
-            // end kernel if we have no frames
-            if(!frame.isValid())
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
                 return;
 
             pmacc::math::operation::Assign assign;
@@ -259,22 +252,14 @@ namespace picongpu
 
             cupla::__syncthreads(acc);
 
-            // move over frames and call frame solver
-            while(frame.isValid())
-            {
-                // loop over all particles in the frame
-                lockstep::makeForEach<frameSize, numWorkers>(workerIdx)(
-                    [&](uint32_t const linearIdx)
-                    {
-                        if(linearIdx < particlesInSuperCell)
-                        {
-                            particleFunctor(acc, *frame, linearIdx, cachedB, cachedE, currentStep, hasLeavingParticle);
-                        }
-                    });
-                // independent for each worker
-                frame = pb.getPreviousFrame(frame);
-                particlesInSuperCell = frameSize;
-            }
+            forEachParticle(
+                acc,
+                [&cachedB, &cachedE, currentStep, &hasLeavingParticle, &particleFunctor](
+                    auto const& accelerator,
+                    auto& particle)
+                { particleFunctor(accelerator, particle, cachedB, cachedE, currentStep, hasLeavingParticle); });
+
+            cupla::__syncthreads(acc);
 
             // update shared memory marker that particles leaving the supercell
             if(hasLeavingParticle == 1 && mustShiftSupercell == 0)
@@ -302,23 +287,20 @@ namespace picongpu
     template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation>
     struct PushParticlePerFrame
     {
-        template<class FrameType, class BoxB, class BoxE, typename T_Acc>
+        template<typename T_Acc, typename T_Particle, class BoxB, class BoxE>
         DINLINE void operator()(
             T_Acc const& acc,
-            FrameType& frame,
-            int localIdx,
+            T_Particle& particle,
             BoxB& bBox,
             BoxE& eBox,
             uint32_t const currentStep,
-            int& hasLeavingParticle)
+            int& hasLeavingParticle) const
         {
             using Block = TVec;
             using Field2ParticleInterpolation = T_Field2ParticleInterpolation;
 
             using BType = typename BoxB::ValueType;
             using EType = typename BoxE::ValueType;
-
-            auto particle = frame[localIdx];
 
             floatD_X pos = particle[position_];
             const int particleCellIdx = particle[localCellIdx_];

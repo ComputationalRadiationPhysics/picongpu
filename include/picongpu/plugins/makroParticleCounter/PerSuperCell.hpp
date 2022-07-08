@@ -29,6 +29,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -43,57 +44,54 @@ namespace picongpu
 {
     using namespace pmacc;
 
+    /** Count macro particles per superCell
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template<uint32_t T_numWorkers>
     struct CountMakroParticle
     {
         template<typename ParBox, typename CounterBox, typename Mapping, typename T_Acc>
         DINLINE void operator()(T_Acc const& acc, ParBox parBox, CounterBox counterBox, Mapping mapper) const
         {
-            typedef MappingDesc::SuperCellSize SuperCellSize;
-            typedef typename ParBox::FrameType FrameType;
-            typedef typename ParBox::FramePtr FramePtr;
-
-            const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
             /* counterBox has no guarding supercells*/
-            const DataSpace<simDim> counterCell = block - mapper.getGuardingSuperCells();
+            const DataSpace<simDim> superCellIdxNoGuard = superCellIdx - mapper.getGuardingSuperCells();
 
-            const DataSpace<simDim> threadIndex(cupla::threadIdx(acc));
-            const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(threadIndex);
+            constexpr uint32_t numWorkers = T_numWorkers;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             PMACC_SMEM(acc, counterValue, uint64_cu);
-            PMACC_SMEM(acc, frame, FramePtr);
 
-            if(linearThreadIdx == 0)
+            if(workerIdx == 0)
             {
                 counterValue = 0;
-                frame = parBox.getLastFrame(block);
-                if(!frame.isValid())
-                {
-                    counterBox(counterCell) = counterValue;
-                }
             }
             cupla::__syncthreads(acc);
-            if(!frame.isValid())
-                return; // end kernel if we have no frames
 
-            bool isParticle = frame[linearThreadIdx][multiMask_];
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, parBox, superCellIdx);
 
-            while(frame.isValid())
+            forEachParticle(
+                acc,
+                [&counterValue](auto const& accelerator, auto& /*particle*/) {
+                    cupla::atomicAdd(
+                        accelerator,
+                        &counterValue,
+                        static_cast<uint64_cu>(1LU),
+                        ::alpaka::hierarchy::Threads{});
+                });
+
+            cupla::__syncthreads(acc);
+
+            if(workerIdx == 0)
             {
-                if(isParticle)
-                {
-                    cupla::atomicAdd(acc, &counterValue, static_cast<uint64_cu>(1LU), ::alpaka::hierarchy::Blocks{});
-                }
-                cupla::__syncthreads(acc);
-                if(linearThreadIdx == 0)
-                {
-                    frame = parBox.getPreviousFrame(frame);
-                }
-                isParticle = true;
-                cupla::__syncthreads(acc);
+                PMACC_DEVICE_ASSERT_MSG(
+                    counterValue == forEachParticle.numParticles(),
+                    "[makroParticlesCounter] Number of particles counted and given by the iteration algorithm "
+                    "differ.");
+                counterBox(superCellIdxNoGuard) = counterValue;
             }
-
-            if(linearThreadIdx == 0)
-                counterBox(counterCell) = counterValue;
         }
     };
     /** Count makro particle of a species and write down the result to a global HDF5 file.
@@ -237,14 +235,14 @@ namespace picongpu
             auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
 
             /*############ count particles #######################################*/
-            typedef MappingDesc::SuperCellSize SuperCellSize;
+            using SuperCellSize = MappingDesc::SuperCellSize;
             auto const mapper = makeAreaMapper<AREA>(*cellDescription);
+            constexpr uint32_t numWorkers
+                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-            PMACC_KERNEL(CountMakroParticle{})
-            (mapper.getGridDim(), SuperCellSize::toRT())(
-                particles->getDeviceParticlesBox(),
-                localResult->getDeviceBuffer().getDataBox(),
-                mapper);
+            PMACC_KERNEL(CountMakroParticle<numWorkers>{})
+            (mapper.getGridDim(),
+             numWorkers)(particles->getDeviceParticlesBox(), localResult->getDeviceBuffer().getDataBox(), mapper);
 
             localResult->deviceToHost();
 

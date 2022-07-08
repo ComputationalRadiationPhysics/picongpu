@@ -37,6 +37,7 @@
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
@@ -76,12 +77,7 @@ namespace picongpu
         DINLINE void operator()(T_Acc const& acc, T_ParBox pb, T_DBox gEnergy, T_Mapping mapper, T_Filter filter) const
         {
             constexpr uint32_t numWorkers = T_numWorkers;
-            constexpr uint32_t numParticlesPerFrame
-                = pmacc::math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
-
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            using FramePtr = typename T_ParBox::FramePtr;
 
             // shared kinetic energy
             PMACC_SMEM(acc, shEnergyKin, float_X);
@@ -107,72 +103,39 @@ namespace picongpu
 
             DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
 
-            // each virtual thread is working on an own frame
-            FramePtr frame = pb.getLastFrame(superCellIdx);
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
 
-            // end kernel if we have no frames within the supercell
-            if(!frame.isValid())
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
                 return;
 
             auto accFilter
                 = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
 
-            auto forEachParticleInFrame = lockstep::makeForEach<numParticlesPerFrame, numWorkers>(workerIdx);
-
-            auto currentParticleCtx = forEachParticleInFrame(
-
-                [&](uint32_t const linearIdx) -> typename FramePtr::type::ParticleType
+            forEachParticle(
+                acc,
+                [&accFilter, &localEnergyKin, &localEnergy](auto const& accelerator, auto& particle)
                 {
-                    auto particle = frame[linearIdx];
-                    /* - only particles from the last frame must be checked
-                     * - all other particles are always valid
-                     */
-                    if(particle[multiMask_] != 1)
-                        particle.setHandleInvalid();
-                    return particle;
-                });
-
-            while(frame.isValid())
-            {
-                // loop over all particles in the frame
-                forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
+                    if(accFilter(accelerator, particle))
                     {
-                        /* get one particle */
-                        auto& particle = currentParticleCtx[idx];
-                        if(accFilter(acc, particle))
-                        {
-                            float3_X const mom = particle[momentum_];
-                            // compute square of absolute momentum of the particle
-                            float_X const mom2 = pmacc::math::abs2(mom);
-                            float_X const weighting = particle[weighting_];
-                            float_X const mass = attribute::getMass(weighting, particle);
-                            float_X const c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        float3_X const mom = particle[momentum_];
+                        // compute square of absolute momentum of the particle
+                        float_X const mom2 = pmacc::math::abs2(mom);
+                        float_X const weighting = particle[weighting_];
+                        float_X const mass = attribute::getMass(weighting, particle);
+                        float_X const c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                            // calculate kinetic energy of the macro particle
-                            localEnergyKin += KinEnergy<>()(mom, mass);
+                        // calculate kinetic energy of the macro particle
+                        localEnergyKin += KinEnergy<>()(mom, mass);
 
-                            /* total energy for particles:
-                             *    E^2 = p^2*c^2 + m^2*c^4
-                             *        = c^2 * [p^2 + m^2*c^2]
-                             */
-                            localEnergy += math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
-                        }
-                    });
-
-                // set frame to next particle frame
-                frame = pb.getPreviousFrame(frame);
-                forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
-                    {
-                        /* Update particle for the next round.
-                         * The frame list is traverse from the last to the first frame.
-                         * Only the last frame can contain gaps therefore all following
-                         * frames are filled with fully particles.
+                        /* total energy for particles:
+                         *    E^2 = p^2*c^2 + m^2*c^4
+                         *        = c^2 * [p^2 + m^2*c^2]
                          */
-                        currentParticleCtx[idx] = frame[idx];
-                    });
-            }
+                        localEnergy += math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
+                    }
+                });
 
             // each virtual thread adds the energies to the shared memory
             cupla::atomicAdd(acc, &shEnergyKin, localEnergyKin, ::alpaka::hierarchy::Threads{});

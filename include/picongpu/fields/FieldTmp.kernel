@@ -30,6 +30,7 @@
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 
@@ -82,22 +83,25 @@ namespace picongpu
             using FramePtr = typename T_ParBox::FramePtr;
             using SuperCellSize = typename T_BlockDescription::SuperCellSize;
 
-            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
-            auto accFilter
-                = particleFilter(acc, block - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
-            FramePtr frame;
-            lcellId_t particlesInSuperCell;
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            auto accFilter = particleFilter(
+                acc,
+                superCellIdx - mapper.getGuardingSuperCells(),
+                lockstep::Worker<numWorkers>{workerIdx});
 
-            frame = boxPar.getLastFrame(block);
-            particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
+            namespace particleAccAlgos = pmacc::particles::algorithm::acc;
+            auto forEachParticle = particleAccAlgos::makeForEach<numWorkers, particleAccAlgos::Forward>(
+                workerIdx,
+                boxPar,
+                superCellIdx);
 
-            if(!frame.isValid())
-                return; // end kernel if we have no frames
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
+                return;
 
             auto cachedVal = CachedBox::create<0, typename T_TmpBox::ValueType>(acc, T_BlockDescription{});
             Set<typename T_TmpBox::ValueType> set(float_X(0.0));
@@ -107,26 +111,16 @@ namespace picongpu
 
             cupla::__syncthreads(acc);
 
-            while(frame.isValid())
-            {
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
-                    [&](uint32_t const linearIdx)
-                    {
-                        if(linearIdx < particlesInSuperCell)
-                        {
-                            frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), accFilter, cachedVal);
-                        }
-                    });
-
-                frame = boxPar.getPreviousFrame(frame);
-                particlesInSuperCell = cellsPerSuperCell;
-            }
+            forEachParticle(
+                acc,
+                [&accFilter, &cachedVal, &frameSolver](auto const& accelerator, auto& particle)
+                { frameSolver(accelerator, particle, SuperCellSize::toRT(), accFilter, cachedVal); });
 
             cupla::__syncthreads(acc);
 
             pmacc::math::operation::Add add;
-            DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
-            auto fieldTmpBlock = fieldTmp.shift(blockCell);
+            DataSpace<simDim> const superCellCellOffset = superCellIdx * SuperCellSize::toRT();
+            auto fieldTmpBlock = fieldTmp.shift(superCellCellOffset);
             collective(acc, add, fieldTmpBlock, cachedVal);
         }
     };

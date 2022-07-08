@@ -57,11 +57,15 @@ namespace picongpu
             }
 
             template<class T_ParticleShape, class T_DerivedAttribute>
-            template<class FrameType, class TVecSuperCell, class BoxTmp, typename T_Acc, typename T_AccFilter>
+            template<
+                typename T_Particle,
+                typename TVecSuperCell,
+                typename BoxTmp,
+                typename T_Acc,
+                typename T_AccFilter>
             DINLINE void ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()(
                 T_Acc const& acc,
-                FrameType& frame,
-                const int localIdx,
+                T_Particle& particle,
                 const TVecSuperCell superCell,
                 T_AccFilter& accFilter,
                 BoxTmp& tmpBox)
@@ -69,7 +73,6 @@ namespace picongpu
                 /* \todo in the future and if useful, the functor can be a parameter */
                 T_DerivedAttribute particleAttribute;
 
-                auto particle = frame[localIdx];
                 // Only particles passing the filter contribute
                 if(accFilter(acc, particle))
                 {

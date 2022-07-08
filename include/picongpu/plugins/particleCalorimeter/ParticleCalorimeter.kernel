@@ -22,6 +22,7 @@
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 namespace picongpu
 {
@@ -64,61 +65,41 @@ namespace picongpu
             T_Filter filter) const
         {
             constexpr uint32_t numWorkers = T_numWorkers;
-            constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
-
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
 
-            using ParticlesFramePtr = typename T_ParticlesBox::FramePtr;
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, particlesBox, superCellIdx);
 
-            ParticlesFramePtr particlesFrame;
-
-            particlesFrame = particlesBox.getLastFrame(block);
-
-            // end kernel if we have no frames within the supercell
-            if(!particlesFrame.isValid())
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
                 return;
 
             auto accFilter
-                = filter(acc, block - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
-            auto const blockStartCellLocal = (block - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
+                = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
+            auto const superCellCellOffsetNoGuard
+                = (superCellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
 
-            // number of particles in the current frame
-            auto numParticles = particlesBox.getSuperCell(block).getSizeLastFrame();
-
-            while(particlesFrame.isValid())
-            {
-                auto forEachParticleInSuperCell = lockstep::makeForEach<maxParticlesInFrame, numWorkers>(workerIdx);
-
-                // loop over all particles in the frame
-                forEachParticleInSuperCell(
-                    [&](uint32_t const linearIdx)
+            forEachParticle(
+                acc,
+                [&accFilter, &superCellCellOffsetNoGuard, &beginCellIdxLocal, &endCellIdxLocal, &calorimeterFunctor](
+                    auto const& accelerator,
+                    auto& particle)
+                {
+                    if(accFilter(accelerator, particle))
                     {
-                        auto particle = particlesFrame[linearIdx];
-                        if(linearIdx >= numParticles)
-                        {
-                            particle.setHandleInvalid();
-                        }
-
-                        if(accFilter(acc, particle))
-                        {
-                            // Check if it fits the internal cells range
-                            auto const cellInSuperCell
-                                = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
-                            auto const localCell = blockStartCellLocal + cellInSuperCell;
-                            for(uint32_t d = 0; d < simDim; d++)
-                                if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))
-                                    return;
-                            calorimeterFunctor(acc, particlesFrame, linearIdx);
-                        }
-                    });
-
-                // independent for each worker
-                particlesFrame = particlesBox.getPreviousFrame(particlesFrame);
-                numParticles = maxParticlesInFrame;
-            }
+                        // Check if it fits the internal cells range
+                        auto const cellInSuperCell
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
+                        auto const localCell = superCellCellOffsetNoGuard + cellInSuperCell;
+                        for(uint32_t d = 0; d < simDim; d++)
+                            if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))
+                                return;
+                        calorimeterFunctor(accelerator, particle);
+                    }
+                });
         }
     };
 

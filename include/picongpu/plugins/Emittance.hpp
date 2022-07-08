@@ -43,6 +43,7 @@
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
@@ -95,12 +96,7 @@ namespace picongpu
             T_Filter filter) const
         {
             constexpr uint32_t numWorkers = T_numWorkers;
-            constexpr uint32_t numParticlesPerFrame
-                = pmacc::math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
-
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            using FramePtr = typename T_ParBox::FramePtr;
 
             // shared sums of x^2, ux^2, x*ux, particle counter
             PMACC_SMEM(acc, shSumMom2, memory::Array<float_X, SuperCellSize::y::value>);
@@ -108,7 +104,14 @@ namespace picongpu
             PMACC_SMEM(acc, shSumMomPos, memory::Array<float_X, SuperCellSize::y::value>);
             PMACC_SMEM(acc, shCount_e, memory::Array<float_X, SuperCellSize::y::value>);
 
-            auto forEachParticleInFrame = lockstep::makeForEach<numParticlesPerFrame, numWorkers>(workerIdx);
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
+                return;
 
             auto forEachSuperCellInY = lockstep::makeForEach<SuperCellSize::y::value, numWorkers>(workerIdx);
 
@@ -121,95 +124,57 @@ namespace picongpu
                     shSumMomPos[linearIdx] = 0.0_X;
                     shCount_e[linearIdx] = 0.0_X;
                 });
+
             cupla::__syncthreads(acc);
-
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
-
-            // each virtual thread is working on an own frame
-            FramePtr frame = pb.getLastFrame(superCellIdx);
-
-            // end kernel if we have no frames within the supercell
-            if(!frame.isValid())
-                return;
 
             auto accFilter
                 = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
 
-            auto currentParticleCtx = forEachParticleInFrame(
-
-                [&](uint32_t const linearIdx) -> typename FramePtr::type::ParticleType
+            forEachParticle(
+                acc,
+                [&accFilter, &mapper, &globalOffset, &superCellIdx, &shCount_e, &shSumMom2, &shSumPos2, &shSumMomPos](
+                    auto const& accelerator,
+                    auto& particle)
                 {
-                    auto particle = frame[linearIdx];
-                    /* - only particles from the last frame must be checked
-                     * - all other particles are always valid
-                     */
-                    if(particle[multiMask_] != 1)
-                        particle.setHandleInvalid();
-                    return particle;
+                    if(accFilter(accelerator, particle))
+                    {
+                        float_X const weighting = particle[weighting_];
+                        float_X const normedWeighting
+                            = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                        float3_X const mom = particle[momentum_] / weighting;
+                        floatD_X const pos = particle[position_];
+                        lcellId_t const cellIdx = particle[localCellIdx_];
+                        DataSpace<simDim> const frameCellOffset(
+                            DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(cellIdx));
+                        auto const localSupercellStart
+                            = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
+                        int const index_y = frameCellOffset.y();
+                        auto const globalCellOffset = globalOffset + localSupercellStart + frameCellOffset;
+                        float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
+
+                        cupla::atomicAdd(
+                            accelerator,
+                            &(shCount_e[index_y]),
+                            normedWeighting,
+                            ::alpaka::hierarchy::Threads{});
+                        // weighted sum of single Electron values (Momentum = particle_momentum/weighting)
+                        cupla::atomicAdd(
+                            accelerator,
+                            &(shSumMom2[index_y]),
+                            mom.x() * mom.x() * normedWeighting,
+                            ::alpaka::hierarchy::Threads{});
+                        cupla::atomicAdd(
+                            accelerator,
+                            &(shSumPos2[index_y]),
+                            posX * posX * normedWeighting,
+                            ::alpaka::hierarchy::Threads{});
+                        cupla::atomicAdd(
+                            accelerator,
+                            &(shSumMomPos[index_y]),
+                            mom.x() * posX * normedWeighting,
+                            ::alpaka::hierarchy::Threads{});
+                    }
                 });
-
-            while(frame.isValid())
-            {
-                // loop over all particles in the frame
-                forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
-                    {
-                        /* get one particle */
-                        auto& particle = currentParticleCtx[idx];
-                        if(accFilter(acc, particle))
-                        {
-                            float_X const weighting = particle[weighting_];
-                            float_X const normedWeighting
-                                = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                            float3_X const mom = particle[momentum_] / weighting;
-                            floatD_X const pos = particle[position_];
-                            lcellId_t const cellIdx = particle[localCellIdx_];
-                            DataSpace<simDim> const frameCellOffset(
-                                DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(cellIdx));
-                            auto const localSupercellStart
-                                = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
-                            int const index_y = frameCellOffset.y();
-                            auto const globalCellOffset = globalOffset + localSupercellStart + frameCellOffset;
-                            float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
-
-                            cupla::atomicAdd(
-                                acc,
-                                &(shCount_e[index_y]),
-                                normedWeighting,
-                                ::alpaka::hierarchy::Threads{});
-                            // weighted sum of single Electron values (Momentum = particle_momentum/weighting)
-                            cupla::atomicAdd(
-                                acc,
-                                &(shSumMom2[index_y]),
-                                mom.x() * mom.x() * normedWeighting,
-                                ::alpaka::hierarchy::Threads{});
-                            cupla::atomicAdd(
-                                acc,
-                                &(shSumPos2[index_y]),
-                                posX * posX * normedWeighting,
-                                ::alpaka::hierarchy::Threads{});
-                            cupla::atomicAdd(
-                                acc,
-                                &(shSumMomPos[index_y]),
-                                mom.x() * posX * normedWeighting,
-                                ::alpaka::hierarchy::Threads{});
-                        }
-                    });
-
-                // set frame to next particle frame
-                frame = pb.getPreviousFrame(frame);
-                forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
-                    {
-                        /* Update particle for the next round.
-                         * The frame list is traversed from the last to the first frame.
-                         * Only the last frame can contain gaps therefore all following
-                         * frames are fully filled with particles.
-                         */
-                        currentParticleCtx[idx] = frame[idx];
-                    });
-            }
-
 
             // wait that all virtual threads updated the shared memory
             cupla::__syncthreads(acc);

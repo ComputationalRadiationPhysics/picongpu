@@ -49,6 +49,7 @@
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 
@@ -431,8 +432,7 @@ namespace picongpu
         {
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
-            constexpr uint32_t numParticlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            constexpr uint32_t numCellsPerSupercell = numParticlesPerFrame;
+            constexpr uint32_t numCellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
@@ -514,46 +514,41 @@ namespace picongpu
             // wait that shared memory  is set to zero
             cupla::__syncthreads(acc);
 
-            using FramePtr = typename T_ParBox::FramePtr;
-            FramePtr frame = pb.getFirstFrame(suplercellIdx);
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, suplercellIdx);
 
-            // each virtual worker works on a particle in the frame
-            auto forEachParticle = lockstep::makeForEach<numParticlesPerFrame, numWorkers>(workerIdx);
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
+                return;
 
-            while(frame.isValid())
-            {
-                forEachParticle(
-                    [&](uint32_t const linearIdx)
+            forEachParticle(
+                acc,
+                [&supercellCellOffset, &counter, &transpose, sliceDim, slice, localDomainOffset](
+                    auto const& accelerator,
+                    auto& particle)
+                {
+                    int const linearCellIdx = particle[localCellIdx_];
+                    // we only draw the first slice of cells in the super cell (z == 0)
+                    DataSpace<simDim> const particleCellOffset(
+                        DataSpaceOperations<simDim>::template map<SuperCellSize>(linearCellIdx));
+                    bool const isParticleOnSlice = IsPartOfSlice<>{}(
+                        particleCellOffset + supercellCellOffset,
+                        sliceDim,
+                        localDomainOffset,
+                        slice);
+                    if(isParticleOnSlice)
                     {
-                        auto particle = frame[linearIdx];
-                        if(particle[multiMask_] == 1)
-                        {
-                            int const linearCellIdx = particle[localCellIdx_];
-                            // we only draw the first slice of cells in the super cell (z == 0)
-                            DataSpace<simDim> const particleCellOffset(
-                                DataSpaceOperations<simDim>::template map<SuperCellSize>(linearCellIdx));
-                            bool const isParticleOnSlice = IsPartOfSlice<>{}(
-                                particleCellOffset + supercellCellOffset,
-                                sliceDim,
-                                localDomainOffset,
-                                slice);
-                            if(isParticleOnSlice)
-                            {
-                                DataSpace<DIM2> const reducedCell(
-                                    particleCellOffset[transpose.x()],
-                                    particleCellOffset[transpose.y()]);
-                                cupla::atomicAdd(
-                                    acc,
-                                    &(counter(reducedCell)),
-                                    // normalize the value to avoid bad precision for large macro particle weightings
-                                    particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
-                                    ::alpaka::hierarchy::Threads{});
-                            }
-                        }
-                    });
-
-                frame = pb.getNextFrame(frame);
-            }
+                        DataSpace<DIM2> const reducedCell(
+                            particleCellOffset[transpose.x()],
+                            particleCellOffset[transpose.y()]);
+                        cupla::atomicAdd(
+                            accelerator,
+                            &(counter(reducedCell)),
+                            // normalize the value to avoid bad precision for large macro particle weightings
+                            particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+                            ::alpaka::hierarchy::Threads{});
+                    }
+                });
 
             // wait that all worker finsihed the reduce operation
             cupla::__syncthreads(acc);

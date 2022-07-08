@@ -29,6 +29,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -105,40 +106,36 @@ namespace picongpu
     /** write the position of a single particle to a file
      * \warning this plugin MUST NOT be used with more than one (global!)
      * particle and is created for one-particle-test-purposes only
+     *
+     * @tparam T_numWorkers number of workers
      */
+    template<uint32_t T_numWorkers>
     struct KernelPositionsParticles
     {
         template<typename ParBox, typename FloatPos, typename Mapping, typename T_Acc>
         DINLINE void operator()(T_Acc const& acc, ParBox pb, SglParticle<FloatPos>* gParticle, Mapping mapper) const
         {
-            using FramePtr = typename ParBox::FramePtr;
-            PMACC_SMEM(acc, frame, FramePtr);
-
-
-            using SuperCellSize = typename Mapping::SuperCellSize;
-
-            const DataSpace<simDim> threadIndex(cupla::threadIdx(acc));
-            const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(threadIndex);
+            constexpr uint32_t numWorkers = T_numWorkers;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
             const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
 
-            if(linearThreadIdx == 0)
-            {
-                frame = pb.getLastFrame(superCellIdx);
-            }
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
 
-            cupla::__syncthreads(acc);
-            if(!frame.isValid())
-                return; // end kernel if we have no frames
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
+                return;
 
-            /* BUGFIX to issue #538
-             * volatile prohibits that the compiler creates wrong code*/
-            volatile bool isParticle = frame[linearThreadIdx][multiMask_];
+            PMACC_DEVICE_ASSERT_MSG(
+                forEachParticle.numParticles() == 1u,
+                "[PositionsParticles] Plugin supports only a single macro particle in the full simulation! Detected "
+                "more than one macro "
+                "particle.");
 
-            while(frame.isValid())
-            {
-                if(isParticle)
+            forEachParticle(
+                acc,
+                [&mapper, &superCellIdx, &gParticle](auto const& accelerator, auto& particle)
                 {
-                    auto particle = frame[linearThreadIdx];
                     gParticle->position = particle[position_];
                     gParticle->momentum = particle[momentum_];
                     gParticle->weighting = particle[weighting_];
@@ -153,19 +150,10 @@ namespace picongpu
                     const DataSpace<simDim> frameCellOffset(
                         DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(frameCellNr));
 
-
                     gParticle->globalCellOffset
                         = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT()
                         + frameCellOffset;
-                }
-                cupla::__syncthreads(acc);
-                if(linearThreadIdx == 0)
-                {
-                    frame = pb.getPreviousFrame(frame);
-                }
-                isParticle = true;
-                cupla::__syncthreads(acc);
-            }
+                });
         }
     };
 
@@ -242,19 +230,20 @@ namespace picongpu
         template<uint32_t AREA>
         SglParticle<FloatPos> getPositionsParticles(uint32_t currentStep)
         {
-            typedef typename MappingDesc::SuperCellSize SuperCellSize;
+            using SuperCellSize = typename MappingDesc::SuperCellSize;
             SglParticle<FloatPos> positionParticleTmp;
 
             DataConnector& dc = Environment<>::get().DataConnector();
             auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
 
             gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-            auto block = SuperCellSize::toRT();
+            constexpr uint32_t numWorkers
+                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
             auto const mapper = makeAreaMapper<AREA>(*cellDescription);
-            PMACC_KERNEL(KernelPositionsParticles{})
+            PMACC_KERNEL(KernelPositionsParticles<numWorkers>{})
             (mapper.getGridDim(),
-             block)(particles->getDeviceParticlesBox(), gParticle->getDeviceBuffer().getBasePointer(), mapper);
+             numWorkers)(particles->getDeviceParticlesBox(), gParticle->getDeviceBuffer().getBasePointer(), mapper);
 
             gParticle->deviceToHost();
 
