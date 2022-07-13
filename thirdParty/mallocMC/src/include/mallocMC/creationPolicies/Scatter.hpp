@@ -936,6 +936,20 @@ namespace mallocMC
                 //  alignmentstatus); if(linid == 0) printf("c Heap Warning:
                 //  memory to use not 16 byte aligned...\n");
                 //}
+
+                // We have to calculate these values here, before using them for other things.
+                // First calculate how many blocks of the given size fit our memory pages in principle.
+                // However, we do not have to use the exact requested block size.
+                // So we redistribute actual memory between the chosen number of blocks
+                // and ensure that all blocks have the same number of regions.
+                const auto memorysize = static_cast<size_t>(numpages) * pagesize;
+                const auto numblocks = memorysize / accessblocksize;
+                const auto memoryperblock = memorysize / numblocks;
+                const auto pagesperblock = memoryperblock / pagesize;
+                const auto regionsperblock = pagesperblock / regionsize;
+                numregions = numblocks * regionsperblock;
+                numpages = numregions * regionsize;
+
                 PTE* ptes = (PTE*) (page + numpages);
                 uint32* regions = (uint32*) (ptes + numpages);
                 // sec check for mem size
@@ -949,6 +963,10 @@ namespace mallocMC
                         printf("c Heap Warning: needed to reduce number of "
                                "regions to stay within memory limit\n");
                 }
+                // Recalculate since numpages could have changed
+                ptes = (PTE*) (page + numpages);
+                regions = (uint32*) (ptes + numpages);
+
                 // if(linid == 0) printf("Heap info: wasting %d
                 // bytes\n",(((POINTEREQUIVALENT)memory) + memsize) -
                 // (POINTEREQUIVALENT)(regions + numregions));
@@ -971,7 +989,7 @@ namespace mallocMC
                 {
                     _memsize = memsize;
                     _numpages = numpages;
-                    _accessblocks = (static_cast<size_t>(numpages) * pagesize) / accessblocksize;
+                    _accessblocks = numblocks;
                     _ptes = (volatile PTE*) ptes;
                     _page = page;
                     _regions = regions;
