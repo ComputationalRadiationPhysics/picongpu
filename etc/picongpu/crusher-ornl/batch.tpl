@@ -28,11 +28,10 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
-#SBATCH --ntasks-per-node=!TBG_devicesPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem-per-gpu=!TBG_memPerDevice
-#SBATCH --gpus-per-task=1
+#SBATCH --ntasks-per-gpu=1
 #SBATCH --gpu-bind=closest
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
