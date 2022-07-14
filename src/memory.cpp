@@ -33,12 +33,18 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     CUPLA_HEADER_ONLY_FUNC_SPEC
     cuplaError_t cuplaMalloc(void** ptrptr, size_t size)
     {
-        const ::alpaka::Vec<cupla::AlpakaDim<1u>, cupla::MemSizeType> extent(size);
+        try
+        {
+            const ::alpaka::Vec<cupla::AlpakaDim<1u>, cupla::MemSizeType> extent(size);
+            auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<1u>>::get().alloc(extent);
 
-        auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<1u>>::get().alloc(extent);
-
-        // @toto catch errors
-        *ptrptr = ::alpaka::getPtrNative(buf);
+            *ptrptr = ::alpaka::getPtrNative(buf);
+        }
+        catch(...)
+        {
+            *ptrptr = nullptr;
+            return cuplaErrorMemoryAllocation;
+        }
         return cuplaSuccess;
     }
 
@@ -47,27 +53,40 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
         const ::alpaka::Vec<cupla::AlpakaDim<2u>, cupla::MemSizeType> extent(height, width);
 
-        auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<2u>>::get().alloc(extent);
+        try
+        {
+            auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<2u>>::get().alloc(extent);
 
-        // @toto catch errors
-        *devPtr = ::alpaka::getPtrNative(buf);
-        *pitch = ::alpaka::getPitchBytes<1u>(buf);
-
+            *devPtr = ::alpaka::getPtrNative(buf);
+            *pitch = ::alpaka::getPitchBytes<1u>(buf);
+        }
+        catch(...)
+        {
+            *devPtr = nullptr;
+            *pitch = 0u;
+            return cuplaErrorMemoryAllocation;
+        }
         return cuplaSuccess;
     }
 
     CUPLA_HEADER_ONLY_FUNC_SPEC
     cuplaError_t cuplaMalloc3D(cuplaPitchedPtr* const pitchedDevPtr, cuplaExtent const extent)
     {
-        auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<3u>>::get().alloc(extent);
+        try
+        {
+            auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<3u>>::get().alloc(extent);
 
-        // @toto catch errors
-        *pitchedDevPtr = make_cuplaPitchedPtr(
-            ::alpaka::getPtrNative(buf),
-            ::alpaka::getPitchBytes<2u>(buf),
-            extent.width,
-            extent.height);
-
+            *pitchedDevPtr = make_cuplaPitchedPtr(
+                ::alpaka::getPtrNative(buf),
+                ::alpaka::getPitchBytes<2u>(buf),
+                extent.width,
+                extent.height);
+        }
+        catch(...)
+        {
+            *pitchedDevPtr = make_cuplaPitchedPtr(nullptr, 0, extent.width, extent.height);
+            return cuplaErrorMemoryAllocation;
+        }
         return cuplaSuccess;
     }
 
@@ -92,21 +111,30 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     CUPLA_HEADER_ONLY_FUNC_SPEC
     cuplaError_t cuplaMallocHost(void** ptrptr, size_t size)
     {
-        const ::alpaka::Vec<cupla::AlpakaDim<1u>, cupla::MemSizeType> extent(size);
+        try
+        {
+            const ::alpaka::Vec<cupla::AlpakaDim<1u>, cupla::MemSizeType> extent(size);
 
-        auto& buf = cupla::manager::Memory<cupla::AccHost, cupla::AlpakaDim<1u>>::get().alloc(extent);
+            auto& buf = cupla::manager::Memory<cupla::AccHost, cupla::AlpakaDim<1u>>::get().alloc(extent);
 
-        prepareForAsyncCopy(buf);
+            prepareForAsyncCopy(buf);
 
-        // @toto catch errors
-        *ptrptr = ::alpaka::getPtrNative(buf);
+            *ptrptr = ::alpaka::getPtrNative(buf);
+        }
+        catch(...)
+        {
+            *ptrptr = nullptr;
+            return cuplaErrorMemoryAllocation;
+        }
         return cuplaSuccess;
     }
 
     CUPLA_HEADER_ONLY_FUNC_SPEC
     cuplaError_t cuplaFree(void* ptr)
     {
-        if(cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<1u>>::get().free(ptr))
+        if(ptr == nullptr)
+            return cuplaSuccess;
+        else if(cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<1u>>::get().free(ptr))
             return cuplaSuccess;
         else if(cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<2u>>::get().free(ptr))
             return cuplaSuccess;
@@ -119,7 +147,9 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     CUPLA_HEADER_ONLY_FUNC_SPEC
     cuplaError_t cuplaFreeHost(void* ptr)
     {
-        if(cupla::manager::Memory<cupla::AccHost, cupla::AlpakaDim<1u>>::get().free(ptr))
+        if(ptr == nullptr)
+            return cuplaSuccess;
+        else if(cupla::manager::Memory<cupla::AccHost, cupla::AlpakaDim<1u>>::get().free(ptr))
             return cuplaSuccess;
         else
             return cuplaErrorMemoryAllocation;
