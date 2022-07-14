@@ -76,6 +76,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -410,8 +411,6 @@ namespace picongpu
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             size_t heapSize = freeGpuMem - reservedGpuMemorySize;
-            // each MPI rank on the GPU gets the same amount of memory from a GPU
-            heapSize /= numRanksPerDevice;
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if(Environment<>::get().MemoryInfo().isSharedMemoryPool(
                    numRanksPerDevice,
@@ -440,9 +439,11 @@ namespace picongpu
                 logMemoryStatisticsForSpecies;
             logMemoryStatisticsForSpecies(deviceHeap);
 
-            freeGpuMem = freeDeviceMemory();
-            log<picLog::MEMORY>("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
-
+            if(picLog::log_level & picLog::MEMORY::lvl)
+            {
+                freeGpuMem = freeDeviceMemory();
+                log<picLog::MEMORY>("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
+            }
             IdProvider<simDim>::init();
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
@@ -518,8 +519,12 @@ namespace picongpu
                 }
             }
 
-            size_t freeGpuMem = freeDeviceMemory();
-            log<picLog::MEMORY>("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
+            if(picLog::log_level & picLog::MEMORY::lvl)
+            {
+                size_t freeGpuMem = freeDeviceMemory();
+                log<picLog::MEMORY>("free mem after all particles are initialized %1% MiB")
+                    % (freeGpuMem / 1024 / 1024);
+            }
 
             DataConnector& dc = Environment<>::get().DataConnector();
             auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
@@ -680,30 +685,87 @@ namespace picongpu
         uint32_t numRanksPerDevice = 1u;
 
     private:
-        /** Get available memory on device
+        /** Get available allocatable memory on device
          *
          * @attention This method is using MPI collectives and must be called from all MPI processes collectively.
+         *
+         * The function is performing test memory allocations on the device therefore do not call this function within
+         * a loop! This could slowdown the application.
          *
          * @return Available memory on device in bytes.
          */
         size_t freeDeviceMemory() const
         {
-            if(numRanksPerDevice >= 2u)
+            bool const isDeviceSharedBetweenRanks = numRanksPerDevice >= 2u;
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
+            if(isDeviceSharedBetweenRanks)
             {
                 // Synchronize to guarantee that all other MPI process on the same device allocated there memory.
-                GridController<simDim>& gc = Environment<simDim>::get().GridController();
                 MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
             }
+
+            // free memory reported by the driver
             size_t freeDeviceMemory = 0u;
             size_t totalAvailableMemory = 0u;
+
             Environment<>::get().MemoryInfo().getMemoryInfo(&freeDeviceMemory, &totalAvailableMemory);
-            if(numRanksPerDevice >= 2u)
+
+            // amount of memory we reduce the allocation in the case if the test allocation later is failing
+            size_t stepSize = 16llu * 1024 * 1024;
+            // free memory is by default reduced to keep always a few bytes memory for the driver free.
+            if(freeDeviceMemory >= stepSize)
+                freeDeviceMemory -= stepSize;
+
+            if(isDeviceSharedBetweenRanks)
             {
-                // Wait that all MPI processes checked the available memory.
-                GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                // each MPI rank on the GPU gets the same amount of memory from a GPU
+                freeDeviceMemory /= numRanksPerDevice;
+                // Synchronize to guarantee that all other MPI process on the same device see the same amount of free
+                // memory.
                 MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
             }
-            return freeDeviceMemory;
+
+            size_t allocatableMemory = freeDeviceMemory;
+            cuplaError_t err;
+            std::byte* ptr = nullptr;
+
+            // Check how much memory can be allocated with a single allocation call.
+            do
+            {
+                err = cuplaMalloc((void**) &ptr, allocatableMemory * sizeof(std::byte));
+                if(err != cuplaSuccess)
+                {
+                    // reset error
+                    cuplaGetLastError();
+                    // reduce step size if left over memory is too small to be reduced
+                    if(allocatableMemory < stepSize)
+                        stepSize = std::min(allocatableMemory, stepSize / 2u);
+                    // reduce memory to test for the next iteration
+                    allocatableMemory -= stepSize;
+                }
+            } while(err != cuplaSuccess && allocatableMemory != 0u);
+
+            if(allocatableMemory < freeDeviceMemory)
+            {
+                pmacc::log<picLog::MEMORY>(
+                    "WARNING (not critical): Reported free memory by the driver %1% byte can not be allocated, "
+                    "reducing free memory to %2% byte.")
+                    % freeDeviceMemory % allocatableMemory;
+            }
+
+            if(isDeviceSharedBetweenRanks)
+            {
+                // Wait that all MPI processes had checked the available/allocatable memory.
+                MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
+            }
+
+            if(ptr != nullptr)
+            {
+                // free the test allocation after all MPI ranks on the GPU succeed there test allocation
+                CUDA_CHECK(cuplaFree(ptr));
+            }
+
+            return allocatableMemory;
         }
 
         void initFields(DataConnector& dataConnector)
