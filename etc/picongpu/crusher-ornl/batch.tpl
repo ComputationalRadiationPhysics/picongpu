@@ -93,9 +93,19 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 ln -s ../stdout output
 
-# cuda_memtest is available only on CUDA hardware
+# test if cuda_memtest binary is available and we have the node exclusive
+if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_mpiTasksPerNode ] ; then
+  # Run cuda_memtest (HIP version) to check GPU's health
+  echo "GPU memtest started."
+  # do not bind to any GPU, else we can not use the local MPI rank to select a GPU
+  srun -K1 --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh
+else
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
+fi
 
-
-# Run PIConGPU
-srun -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+if [ $? -eq 0 ] ; then
+  # Run PIConGPU
+  echo "Start PIConGPU."
+  srun -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+fi
 
