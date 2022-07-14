@@ -227,9 +227,11 @@ namespace picongpu
                     /** @} */
 
                 protected:
-                    /** Laser center at generation surface when projected along propagation direction
+                    /** Laser center at generation surface when projected from focus along (negative) propagation
+                     * direction
                      *
                      * That point serves as origin in internal coordinate system.
+                     * The laser is transversally centered around the origin.
                      * It is always 3d, z component is set to 0 in 2d.
                      */
                     float3_X const origin;
@@ -250,12 +252,15 @@ namespace picongpu
                     //! Calculate origin position
                     HINLINE static float3_X getOrigin()
                     {
-                        /* Find min value of variable p so that a line
-                         * line(p) = focusPosition + p * direction
-                         * intersects with the Huygens surface.
-                         * That intersection point is where the laser is centered when entering the volume.
-                         * Use that as origin of the internal coordinate system.
-                         * Note that it's generally not the first point of entry, as that is one of vertices.
+                        /* The origin is calculated as a projection from the focus position onto the generation surface
+                         * along the negative propagation direction.
+                         * Thus, this point is an intersection of the Huygens surface with a line
+                         * line(p) = focusPosition + p * direction.
+                         * Between the (normally, two) intersection points we choose one encountered by a laser first,
+                         * so with the smaller of p values in the formula above.
+                         * Note that the origin is generally not the first point of entry to or domain, as that would
+                         * be one of vertices. However it is a transversal center of the laser at the generation
+                         * surface.
                          */
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
                         auto const globalDomainCells = subGrid.getGlobalDomain().size;
@@ -264,27 +269,37 @@ namespace picongpu
                             Unitless::FOCUS_POSITION_X,
                             Unitless::FOCUS_POSITION_Y,
                             Unitless::FOCUS_POSITION_Z);
-                        auto firstIntersectionP = std::numeric_limits<float_X>::infinity();
+                        // Value of line parameter p such that origin = line(originP)
+                        auto originP = -std::numeric_limits<float_X>::infinity();
                         for(uint32_t axis = 0u; axis < simDim; ++axis)
                         {
-                            // The expressions should generally work anyways, but to avoid potential 0/0
+                            // Ignore axes with near-absent propagation direction to avoid numerical issues
                             if(std::abs(direction[axis]) > std::numeric_limits<float_X>::epsilon())
                             {
                                 // Take into account 0.75 cells inwards shift of Huygens surface
                                 auto const minPosition
                                     = (static_cast<float_X>(POSITION[axis][0]) + 0.75_X) * cellSize[axis];
-                                firstIntersectionP
-                                    = std::min(firstIntersectionP, (minPosition - focus[axis]) / direction[axis]);
                                 auto const maxPositionIdx = (POSITION[axis][1] > 0)
                                     ? POSITION[axis][1]
                                     : globalDomainCells[axis] + POSITION[axis][1];
                                 auto const maxPosition
                                     = (static_cast<float_X>(maxPositionIdx) - 0.75_X) * cellSize[axis];
-                                firstIntersectionP
-                                    = std::min(firstIntersectionP, (maxPosition - focus[axis]) / direction[axis]);
+                                /* First we find intersection of line(p) with continuations of the generation planes
+                                 * along the axis. Between these two points we choose the smaller parameter value as
+                                 * described above. Note that a point line(axisP) does not have to be inside the
+                                 * generation surface.
+                                 */
+                                auto const axisP = std::min(
+                                    (minPosition - focus[axis]) / direction[axis],
+                                    (maxPosition - focus[axis]) / direction[axis]);
+                                /* Here we have to use max of those parameter values as only it will give (after this
+                                 * loop is finished) a point at the generation surface. All other axisP values are at
+                                 * continuations of the generation places but outside of the surface as a whole.
+                                 */
+                                originP = std::max(originP, axisP);
                             }
                         }
-                        return focus + firstIntersectionP * direction;
+                        return focus + originP * direction;
                     }
 
                     /** Get unit axis vectors of internal coordinate system
