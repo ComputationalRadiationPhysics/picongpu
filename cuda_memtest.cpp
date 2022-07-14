@@ -133,32 +133,33 @@ thread_func(void* _arg)
 
     display_device_info(&prop);
 
-    unsigned long totmem = prop.totalGlobalMem;
-
-    PRINTF("major=%d, minor=%d\n", prop.major, prop.minor);
-
-    //need to leave a little headroom or later calls will fail
-    unsigned int tot_num_blocks = totmem/BLOCKSIZE -16;
-    if (max_num_blocks != 0){
-	tot_num_blocks = MIN(max_num_blocks+16, tot_num_blocks);
-    }
-
-
     CUERR(MEMTEST_API_PREFIX(SetDevice)(device));
     CUERR(MEMTEST_API_PREFIX(DeviceSynchronize)());
 
     PRINTF("Attached to device %d successfully.\n", device);
 
+    allocate_small_mem();
+
+    CUERR(MEMTEST_API_PREFIX(DeviceSynchronize)());
+
     size_t free, total;
     CUERR(MEMTEST_API_PREFIX(MemGetInfo)(&free, &total));
 
-    allocate_small_mem();
+    char* ptr = nullptr;
+    unsigned int tot_num_blocks = free/BLOCKSIZE;
 
-    char* ptr = NULL;
+    if (max_num_blocks != 0){
+      tot_num_blocks = MIN(max_num_blocks, tot_num_blocks);
+    }
 
-    tot_num_blocks = MIN(tot_num_blocks, free/BLOCKSIZE - 16);
+    unsigned int tot_num_blocks_old = tot_num_blocks;
+    apiError_t err;
+
+    // Try to allocate tot_num_blocks memory, if this fails we reduce the number of blocks
+    // until we find a valid number of blocks which can be allocated.
     do{
-        tot_num_blocks -= 16 ; //magic number 16 MB
+        // reset error
+        MEMTEST_API_PREFIX(GetLastError());
         DEBUG_PRINTF("Trying to allocate %d MB\n", tot_num_blocks);
         if (tot_num_blocks <= 0){
             FPRINTF("ERROR: cannot allocate any memory from GPU\n");
@@ -168,18 +169,32 @@ thread_func(void* _arg)
         {
             //create cuda mapped memory
 #if defined(__CUDACC__)
-            CUERR(cudaHostAlloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,cudaHostAllocMapped));
-            CUERR(cudaHostGetDevicePointer(&ptr,mappedHostPtr,0));
+            err = cudaHostAlloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,cudaHostAllocMapped);
+            if(err == MEMTEST_API_PREFIX(Success)) {
+              CUERR(cudaHostGetDevicePointer(&ptr, mappedHostPtr, 0));
+            }
 #elif defined(__HIP__)
-            CUERR(hipHostMalloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,hipHostRegisterMapped));
-            CUERR(hipHostGetDevicePointer((void**)&ptr,mappedHostPtr,0));
+            err = hipHostMalloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,hipHostRegisterMapped);
+            if(err == MEMTEST_API_PREFIX(Success))
+            {
+                CUERR(hipHostGetDevicePointer((void **)&ptr, mappedHostPtr, 0));
+            }
 #endif
         }
         else
+            err = MEMTEST_API_PREFIX(Malloc)((void**)&ptr, tot_num_blocks * BLOCKSIZE);
+
+        if(err != MEMTEST_API_PREFIX(Success))
         {
-            CUERR(MEMTEST_API_PREFIX(Malloc)((void**)&ptr, tot_num_blocks* BLOCKSIZE));
+          // reduce memory for the next iteration
+          --tot_num_blocks;
         }
-    }while(MEMTEST_API_PREFIX(GetLastError)() != MEMTEST_API_PREFIX(Success));
+    } while(MEMTEST_API_PREFIX(GetLastError)() != MEMTEST_API_PREFIX(Success));
+
+    if(tot_num_blocks_old != tot_num_blocks) {
+      FPRINTF("WARNING: driver reported at least %zu bytes are free but largest possible allocation is %zu bytes.\n",
+              size_t(tot_num_blocks_old * BLOCKSIZE), size_t(tot_num_blocks * BLOCKSIZE));
+    }
 
     PRINTF("Allocated %d MB\n", tot_num_blocks);
 
