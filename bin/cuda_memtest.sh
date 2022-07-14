@@ -35,7 +35,7 @@ if [ ! -x "./mpiInfo" ] ; then
    exit 1
 fi
 host_rank=`mpiInfo --mpi_host_rank | grep mpi_host_rank | cut -d":" -f2 | tr -d " "`
-output=`cuda_memtest --disable_all --device $host_rank $enable_gpu_tests --num_passes 1 --exit_on_error`
+output=`cuda_memtest --disable_all --device $host_rank $enable_gpu_tests --num_passes 1 --exit_on_error 2>&1`
 
 if [ $? -ne 0 ] ; then
    host_name=`hostname`
