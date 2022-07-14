@@ -286,7 +286,7 @@ namespace mallocMC
             {
                 const uint32 low_part = (spot + 1) == sizeof(uint32) * CHAR_BIT ? 0u : (bitfield >> (spot + 1));
                 const uint32 high_part = (bitfield << (spots - (spot + 1)));
-                const uint32 selection_mask = spots == sizeof(uint32) * CHAR_BIT ? ~0 : ((1 << spots) - 1);
+                const uint32 selection_mask = spots == sizeof(uint32) * CHAR_BIT ? ~0 : ((1u << spots) - 1);
                 // wrap around the bitfields from the current spot to the left
                 bitfield = (high_part | low_part) & selection_mask;
                 // compute the step from the current spot in the bitfield
@@ -325,7 +325,7 @@ namespace mallocMC
                 uint32 spot = randInit() % spots;
                 for(;;)
                 {
-                    const uint32 mask = 1 << spot;
+                    const uint32 mask = 1u << spot;
                     const uint32 old = alpaka::atomicOp<alpaka::AtomicOr>(acc, bitfield, mask);
                     if((old & mask) == 0)
                         return spot;
@@ -397,7 +397,7 @@ namespace mallocMC
                 const uint32 segments = fullsegments + (additional_chunks > 0 ? 1 : 0);
                 uint32 spot = randInit() % segments;
                 const uint32 mask = _ptes[page].bitmask;
-                if((mask & (1 << spot)) != 0)
+                if((mask & (1u << spot)) != 0)
                     spot = nextspot(mask, spot, segments);
                 const uint32 tries = segments - popc(mask);
                 uint32* onpagemasks = onPageMasksPosition(page, segments);
@@ -684,7 +684,8 @@ namespace mallocMC
                 {
                     const uint32 region = page / regionsize;
                     alpaka::atomicOp<alpaka::AtomicExch>(acc, (uint32*) (_regions + region), 0u);
-                    const uint32 block = region * regionsize * _accessblocks / _numpages;
+                    const uint32 pagesperblock = _numpages / _accessblocks;
+                    const uint32 block = page / pagesperblock;
                     if(warpid() + laneid() == 0)
                         alpaka::atomicOp<alpaka::AtomicMin>(acc, (uint32*) &_firstfreeblock, block);
                 }
@@ -937,6 +938,20 @@ namespace mallocMC
                 //  alignmentstatus); if(linid == 0) printf("c Heap Warning:
                 //  memory to use not 16 byte aligned...\n");
                 //}
+
+                // We have to calculate these values here, before using them for other things.
+                // First calculate how many blocks of the given size fit our memory pages in principle.
+                // However, we do not have to use the exact requested block size.
+                // So we redistribute actual memory between the chosen number of blocks
+                // and ensure that all blocks have the same number of regions.
+                const auto memorysize = static_cast<size_t>(numpages) * pagesize;
+                const auto numblocks = memorysize / accessblocksize;
+                const auto memoryperblock = memorysize / numblocks;
+                const auto pagesperblock = memoryperblock / pagesize;
+                const auto regionsperblock = pagesperblock / regionsize;
+                numregions = numblocks * regionsperblock;
+                numpages = numregions * regionsize;
+
                 PTE* ptes = (PTE*) (page + numpages);
                 uint32* regions = (uint32*) (ptes + numpages);
                 // sec check for mem size
@@ -950,6 +965,10 @@ namespace mallocMC
                         printf("c Heap Warning: needed to reduce number of "
                                "regions to stay within memory limit\n");
                 }
+                // Recalculate since numpages could have changed
+                ptes = (PTE*) (page + numpages);
+                regions = (uint32*) (ptes + numpages);
+
                 // if(linid == 0) printf("Heap info: wasting %d
                 // bytes\n",(((POINTEREQUIVALENT)memory) + memsize) -
                 // (POINTEREQUIVALENT)(regions + numregions));
@@ -972,7 +991,7 @@ namespace mallocMC
                 {
                     _memsize = memsize;
                     _numpages = numpages;
-                    _accessblocks = (static_cast<size_t>(numpages) * pagesize) / accessblocksize;
+                    _accessblocks = numblocks;
                     _ptes = (volatile PTE*) ptes;
                     _page = page;
                     _regions = regions;
