@@ -28,6 +28,7 @@
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 
 namespace picongpu
@@ -84,11 +85,6 @@ namespace picongpu
                         constexpr uint32_t numWorkers = T_numWorkers;
 
                         using SuperCellSize = typename MappingDesc::SuperCellSize;
-                        using FramePtr = typename T_ParBox::FramePtr;
-                        constexpr uint32_t maxParticlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
-
-                        PMACC_SMEM(acc, frame, FramePtr);
-                        PMACC_SMEM(acc, particlesInSuperCell, lcellId_t);
 
                         // our workers per block are started 1D
                         uint32_t const workerIdx = cupla::threadIdx(acc).x;
@@ -96,6 +92,7 @@ namespace picongpu
                         // supercell index of current (frame-wise) supercell including GUARD
                         DataSpace<simDim> const superCellIdx(
                             mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+
                         /* index inside local energy histogram in averaged space (has no GUARD)
                          * integer division: we average over multiples of supercells;
                          *                   this index selects the according local energy
@@ -112,15 +109,6 @@ namespace picongpu
                         // shared memory for local energy histogram
                         PMACC_SMEM(acc, shLocalEnergyHistogram, memory::Array<float_X, numBins>);
 
-                        auto onlyMaster = lockstep::makeMaster(workerIdx);
-
-                        // get frame lists of this supercell
-                        onlyMaster(
-                            [&]()
-                            {
-                                frame = pb.getLastFrame(superCellIdx);
-                                particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-                            });
 
                         // empty the histogram to contain only zeroes
                         lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
@@ -133,67 +121,53 @@ namespace picongpu
 
                         cupla::__syncthreads(acc);
 
-                        // return if the supercell has no particles
-                        if(!frame.isValid())
+                        auto forEachParticle
+                            = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+
+                        // end kernel if we have no particles
+                        if(!forEachParticle.hasParticles())
                             return;
 
-                        // iterate the frame list
-                        while(frame.isValid())
-                        {
-                            // move over all particles in a frame
-                            lockstep::makeForEach<maxParticlesPerFrame, numWorkers>(workerIdx)(
-                                [&](uint32_t const linearIdx)
+                        forEachParticle(
+                            acc,
+                            [minEnergy, maxEnergy, numBins, &shLocalEnergyHistogram](
+                                auto const& accelerator,
+                                auto& particle)
+                            {
+                                /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                                 *                                   = c^2 * [p^2 + m^2*c^2]
+                                 */
+                                float3_X const mom = particle[momentum_];
+                                float_X const weighting = particle[weighting_];
+                                float_X const mass = attribute::getMass(weighting, particle);
+
+                                // calculate kinetic energy of the macro particle
+                                float_X particleEnergy = KinEnergy<>()(mom, mass);
+
+                                particleEnergy /= weighting;
+
+                                // calculate bin number
+                                int binNumber = math::floor(
+                                    (particleEnergy - minEnergy) / (maxEnergy - minEnergy)
+                                    * static_cast<float_X>(numBins));
+
+                                /* all entries larger than maxEnergy or smaller
+                                 * than minEnergy are ignored
+                                 */
+                                if(binNumber >= 0 and binNumber < numBins)
                                 {
-                                    if(linearIdx < particlesInSuperCell)
-                                    {
-                                        auto const particle = frame[linearIdx];
-                                        /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-                                         *                                   = c^2 * [p^2 + m^2*c^2]
-                                         */
-                                        float3_X const mom = particle[momentum_];
+                                    // artifical norm for reduce
+                                    float_X const normedWeighting
+                                        = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
-                                        float_X const weighting = particle[weighting_];
-                                        float_X const mass = attribute::getMass(weighting, particle);
-
-                                        // calculate kinetic energy of the macro particle
-                                        float_X particleEnergy = KinEnergy<>()(mom, mass);
-
-                                        particleEnergy /= weighting;
-
-                                        // calculate bin number
-                                        int binNumber = math::floor(
-                                            (particleEnergy - minEnergy) / (maxEnergy - minEnergy)
-                                            * static_cast<float_X>(numBins));
-
-                                        /* all entries larger than maxEnergy or smaller
-                                         * than minEnergy are ignored
-                                         */
-                                        if(binNumber >= 0 and binNumber < numBins)
-                                        {
-                                            // artifical norm for reduce
-                                            float_X const normedWeighting = weighting
-                                                / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-
-                                            cupla::atomicAdd(
-                                                acc,
-                                                &(shLocalEnergyHistogram[binNumber]),
-                                                normedWeighting,
-                                                ::alpaka::hierarchy::Threads{});
-                                        }
-                                    }
-                                });
-
-                            cupla::__syncthreads(acc);
-
-                            // go to next frame
-                            onlyMaster(
-                                [&]()
-                                {
-                                    frame = pb.getPreviousFrame(frame);
-                                    particlesInSuperCell = maxParticlesPerFrame;
-                                });
-                            cupla::__syncthreads(acc);
-                        }
+                                    cupla::atomicAdd(
+                                        accelerator,
+                                        &(shLocalEnergyHistogram[binNumber]),
+                                        normedWeighting,
+                                        ::alpaka::hierarchy::Threads{});
+                                }
+                            });
+                        cupla::__syncthreads(acc);
 
                         // write histogram back to global memory (add)
                         lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(

@@ -88,15 +88,14 @@ namespace picongpu
                 HINLINE static std::string getName();
 
                 template<
-                    typename FrameType,
+                    typename T_Particle,
                     typename TVecSuperCell,
                     typename BoxTmp,
                     typename T_Acc,
                     typename T_AccFilter>
                 DINLINE void operator()(
                     T_Acc const& acc,
-                    FrameType& frame,
-                    const int localIdx,
+                    T_Particle& particle,
                     const TVecSuperCell superCell,
                     T_AccFilter& accFilter,
                     BoxTmp& tmpBox);

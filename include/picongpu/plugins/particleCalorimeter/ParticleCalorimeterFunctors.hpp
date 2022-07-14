@@ -86,10 +86,10 @@ namespace picongpu
             this->calorimeterCur = calorimeterCur;
         }
 
-        template<typename ParticlesFrame, typename T_Acc>
-        DINLINE void operator()(const T_Acc& acc, ParticlesFrame& particlesFrame, const uint32_t linearThreadIdx)
+        template<typename T_Particle, typename T_Acc>
+        DINLINE void operator()(const T_Acc& acc, T_Particle& particle)
         {
-            const float3_X mom = particlesFrame[linearThreadIdx][momentum_];
+            const float3_X mom = particle[momentum_];
             const float_X mom2 = pmacc::math::dot(mom, mom);
             float3_X dirVec = mom * math::rsqrt(mom2);
 
@@ -123,10 +123,9 @@ namespace picongpu
                 pitchBin = pitchBin < 0 ? 0 : pitchBin;
 
                 // energy
-                const float_X weighting = particlesFrame[linearThreadIdx][weighting_];
+                const float_X weighting = particle[weighting_];
                 const float_X normedWeighting
                     = weighting / static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                const auto particle = particlesFrame[linearThreadIdx];
                 const float_X mass = attribute::getMass(weighting, particle);
                 const float_X energy = KinEnergy<>()(mom, mass) / weighting;
 

@@ -24,6 +24,7 @@
 #include "picongpu/traits/frame/GetMass.hpp"
 
 #include <pmacc/lockstep.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <cstdint>
 
@@ -108,7 +109,6 @@ namespace picongpu
                     pmacc::DataSpace<simDim> const supercellIdx,
                     T_EstimateBox estimateBox) const
                 {
-                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     constexpr uint32_t numWorkers = T_numWorkers;
                     /* Estimate variance in momentum of macroparticles in the supercell.
                      * Each thread processes its particles, then the master thread performs reduction.
@@ -118,28 +118,24 @@ namespace picongpu
                     auto sumWeighting = float_64{0.0};
                     auto sumMomentum = float3_64::create(0.0);
                     auto sumMomentumSquared = float3_64::create(0.0);
-                    auto frame = electronBox.getLastFrame(supercellIdx);
-                    auto particlesInFrame = electronBox.getSuperCell(supercellIdx).getSizeLastFrame();
+
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
-                    while(frame.isValid())
-                    {
-                        lockstep::makeForEach<frameSize, numWorkers>(workerIdx)(
-                            [&](uint32_t const linearIdx)
-                            {
-                                if(linearIdx < particlesInFrame)
-                                {
-                                    auto const particle = frame[linearIdx];
-                                    auto const weighting = float_64{particle[weighting_]};
-                                    sumWeighting += weighting;
-                                    auto const singleParticleMomentum
-                                        = precisionCast<float_64>(particle[momentum_]) / weighting;
-                                    sumMomentum += weighting * singleParticleMomentum;
-                                    sumMomentumSquared += weighting * singleParticleMomentum * singleParticleMomentum;
-                                }
-                            });
-                        frame = electronBox.getPreviousFrame(frame);
-                        particlesInFrame = frameSize;
-                    }
+                    auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
+                        workerIdx,
+                        electronBox,
+                        supercellIdx);
+
+                    forEachParticle(
+                        acc,
+                        [&sumWeighting, &sumMomentum, &sumMomentumSquared](auto const& /*accelerator*/, auto& particle)
+                        {
+                            auto const weighting = float_64{particle[weighting_]};
+                            sumWeighting += weighting;
+                            auto const singleParticleMomentum
+                                = precisionCast<float_64>(particle[momentum_]) / weighting;
+                            sumMomentum += weighting * singleParticleMomentum;
+                            sumMomentumSquared += weighting * singleParticleMomentum * singleParticleMomentum;
+                        });
 
                     // Reduce for supercell in shared memory
                     PMACC_SMEM(acc, supercellSumWeighting, float_64);
