@@ -35,13 +35,47 @@
 
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    /** allocate device memory
+     *
+     * @param[out] ptrptr Address to store the address of the allocated chunk.
+     *                    Will be set to nullptr if allocation is failing.
+     * @param size Aize to allocate (in byte).
+     *
+     * @return cuplaSuccess if allocation succeed, else cuplaErrorMemoryAllocation.
+     */
     cuplaError_t cuplaMalloc(void** ptrptr, size_t size);
 
+    /** allocate pinned host memory
+     *
+     * @param[out] ptrptr Address to store the address of the allocated chunk.
+     *                    Will be set to nullptr if allocation is failing.
+     * @param size Aize to allocate (in byte).
+     *
+     * @return cuplaSuccess if allocation succeed, else cuplaErrorMemoryAllocation.
+     */
     cuplaError_t cuplaMallocHost(void** ptrptr, size_t size);
 
-
+    /** allocate 2D memory
+     *
+     * @param[out] devPtr Address to store the address of the allocated memory chunk.
+     *                    Will be set to nullptr if allocation is failing.
+     * @param[out] pitch address to store the number of bytes of pitch
+     *                   Will be set to zero if allocation is failing.
+     * @param width with of the memory chunk (in byte)
+     * @param height number of rows
+     *
+     * @return cuplaSuccess if allocation succeed, else cuplaErrorMemoryAllocation
+     */
     cuplaError_t cuplaMallocPitch(void** devPtr, size_t* pitch, size_t const width, size_t const height);
 
+    /** allocate memory
+     *
+     * @param[out] pitchedDevPtr address pitch pointer data
+     *                           Pitch pointer pointer will be set to nullptr if allocation is failing.
+     * @param extent extent of the memory to allocate
+     *
+     * @return cuplaSuccess if allocation succeed, else cuplaErrorMemoryAllocation
+     */
     cuplaError_t cuplaMalloc3D(cuplaPitchedPtr* pitchedDevPtr, cuplaExtent const extent);
 
 
@@ -51,8 +85,16 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
     cuplaPitchedPtr make_cuplaPitchedPtr(void* const d, size_t const p, size_t const xsz, size_t const ysz);
 
+    /** free device memory allocated with cuplaMalloc, cuplaMallocPitch, or cuplaMalloc3D
+     *
+     * @param ptr Pointer to free, nullptr is allowed.
+     */
     cuplaError_t cuplaFree(void* ptr);
 
+    /** free host memory allocated with cuplaMallocHost
+     *
+     * @param ptr Pointer to free, nullptr is allowed.
+     */
     cuplaError_t cuplaFreeHost(void* ptr);
 
     cuplaError_t cuplaMemcpy(void* dst, const void* src, size_t count, enum cuplaMemcpyKind kind);
