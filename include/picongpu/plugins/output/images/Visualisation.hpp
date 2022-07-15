@@ -723,8 +723,12 @@ namespace picongpu
             sliceDim = 0;
             if(m_transpose.x() == 0 || m_transpose.y() == 0)
                 sliceDim = 1;
-            if((m_transpose.x() == 1 || m_transpose.y() == 1) && sliceDim == 1)
-                sliceDim = 2;
+            /* sliceDim can not be two if the simulation is 2D.
+             * sliceDim is only required for a 3D simulation
+             */
+            if constexpr(simDim == DIM3)
+                if((m_transpose.x() == 1 || m_transpose.y() == 1) && sliceDim == 1)
+                    sliceDim = 2;
 
             Environment<>::get().PluginConnector().registerPlugin(this);
             Environment<>::get().PluginConnector().setNotificationPeriod(this, m_notifyPeriod);
@@ -949,6 +953,7 @@ namespace picongpu
 
 
         DataSpace<DIM2> m_transpose;
+        //! dimension to slice range [0,simDim)
         uint32_t sliceDim;
 
         MessageHeader* header;
