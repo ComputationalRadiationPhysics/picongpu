@@ -112,13 +112,22 @@ namespace picongpu
                      * It should then be passed to the kernel by value
                      *
                      * @param currentStep current time step index, note that it is fractional
+                     * @param directionValue direction of the incidentField propagation:
+                     *                       +1.0_X (from the min boundary inwards) or -1.0_X (from the max boundary
+                     * inwards)
+                     * @param curlCoefficient coefficient in front of the curl(incidentField) in the Maxwell's
+                     * equations
                      * @param unitField conversion factor from SI to internal units,
                      *                  field_internal = field_SI / unitField
                      */
-                    HINLINE UpdateFunctor(float_X const currentStep, float3_64 const unitField)
+                    HINLINE UpdateFunctor(
+                        float_X const currentStep,
+                        float_X const directionValue,
+                        float_X const curlCoefficient,
+                        float3_64 const& unitField)
                         : functorIncidentField(currentStep, unitField)
-                        , coeff1(float3_X::create(0.0_X))
-                        , coeff2(float3_X::create(0.0_X))
+                        , direction(directionValue)
+                        , baseCoefficient(getBaseCoefficient(directionValue, curlCoefficient))
                     {
                     }
 
@@ -137,7 +146,7 @@ namespace picongpu
                     HDINLINE void operator()(
                         pmacc::DataSpace<simDim> const& beginGridIdx,
                         pmacc::DataSpace<simDim> const& updatedGridIdx,
-                        pmacc::math::Vector<bool, 3> const& isLastUpdatedCell)
+                        pmacc::math::Vector<bool, 3> const& isLastUpdatedCell) const
                     {
                         // Determine Huygens surface position for the current updatedField value
                         auto huygensSurfaceIdx = updatedGridIdx;
@@ -180,20 +189,28 @@ namespace picongpu
                     //! IncidentField functor
                     T_FunctorIncidentField functorIncidentField;
 
+                    /** Direction of the incidentField propagation
+                     *
+                     * +1._X is positive direction (from the min boundary inwards).
+                     * -1._X is negative direction (from the max boundary inwards).
+                     */
+                    float_X const direction;
+
                     /** Parameters of the update to be used for each affected updatedField value.
                      *
-                     * We formulate correction of the updatedField in the following vector form:
-                     * updateField(gridIdx) += sum(
-                     *     coeff1 * functorIncidentField(idx + inCellShift1)[incidentComponent1] +
-                     *     coeff2 * functorIncidentField(idx + inCellShift2)[incidentComponent2];
+                     * We formulate correction of the two affected components of updatedField as follows:
+                     * updatedField(gridIdx)[incidentComponent2] += baseCoefficient * sum(
+                     *     derivativeCoefficients(idx) * functorIncidentField(idx + inCellShift1)[incidentComponent1];
+                     *     idx is in range around gridIdx depending on T_CurlIncidentField)
+                     * updatedField(gridIdx)[incidentComponent1] += -baseCoefficient * sum(
+                     *     derivativeCoefficients(idx) * functorIncidentField(idx + inCellShift2)[incidentComponent2];
                      *     idx is in range around gridIdx depending on T_CurlIncidentField)
                      *
                      * The update only uses tangential components of both updatedField and incidentField, in a cross
                      * combination. Thus, updateField[T_axis] is never changed and functorIncidentField()[T_axis] is
-                     * never used. incidentComponent1, 2 are different and both not equal to T_axis. inCellShift1, 2
-                     * match the Yee grid layout for incidentField for incidentComponent1, 2. coeff1, 2 are non-zero
-                     * only along incidentComponent2, 1 respectively. Which of the components/terms is first or second
-                     * is irrelevant, as long as the variables with 1, 2 match the described scheme.
+                     * never used. incidentComponent1, 2 are different and both not equal to T_axis. Which of the
+                     * two incident field components is called 1 or 2 is selected so that the equation above holds.
+                     * inCellShift1, 2 match the Yee grid layout for incidentField for incidentComponent1, 2.
                      *
                      * For the last cells updated along axes other than T_axis, only some field components are updated.
                      * This is due to configuration of the Yee grid and indexing used. This special case is handled
@@ -202,16 +219,12 @@ namespace picongpu
                      * @{
                      */
 
-                    /** Coefficients for two functorIncidentField invocations assuming Yee field solver
-                     *
-                     * The coefficients have a single non-zero component (different between those two).
-                     * Thus, they define both the updatedField component and the corresponding coefficient.
-                     */
-                    float3_X coeff1, coeff2;
+                    //! Base coefficient for the update
+                    float_X const baseCoefficient;
 
                     /** Indices of the incidentField components for the two terms
                      *
-                     * Note the intentional cross combination, this is to match the general vector update stated above.
+                     * Note the intentional cross combination, this is to match the update scheme stated above.
                      */
                     static constexpr uint32_t incidentComponent1 = (T_axis + 2) % 3;
                     static constexpr uint32_t incidentComponent2 = (T_axis + 1) % 3;
@@ -224,13 +237,6 @@ namespace picongpu
                     //! Index shift: totalCellIdx (that a user functor gets) = gridIdx + gridIdxShirt
                     pmacc::DataSpace<simDim> gridIdxShift;
 
-                    /** Direction of the incidentField propagation
-                     *
-                     * +1._X is positive direction (from the min boundary inwards).
-                     * -1._X is negative direction (from the max boundary inwards)
-                     */
-                    float_X direction;
-
                     //! Boundary axis, 0 = x, 1 = y, 2 = z
                     static constexpr uint32_t axis = T_axis;
 
@@ -238,6 +244,23 @@ namespace picongpu
                     bool isUpdatedFieldTotal;
 
                 private:
+                    /* Calculate base coefficient value for the given parameters
+                     *
+                     * This coefficient combines the curl coefficient, correct sign, and relevant grid step.
+                     *
+                     * @param directionValue direction of the incidentField propagation:
+                     *                       +1.0_X (from the min boundary inwards) or -1.0_X (from the max boundary
+                     * inwards)
+                     * @param curlCoefficient coefficient in front of the curl(incidentField) in the Maxwell's
+                     * equations
+                     */
+                    static auto getBaseCoefficient(float_X const direction, float_X const curlCoefficient)
+                    {
+                        auto const directionSign = (direction > 0.0_X ? 1.0_X : -1.0_X);
+                        auto const baseCoefficient = curlCoefficient / cellSize[T_axis] * directionSign;
+                        return baseCoefficient;
+                    }
+
                     /** Calculate correction for the updatedField due to incidentField for the given distance
                      * updatedFieldShift from Huygens surface.
                      *
@@ -246,19 +269,19 @@ namespace picongpu
                      *
                      * The correction is calculated as follows.
                      * We consider all grid nodes of the incidentField involved in finite-difference calculation of
-                     * d(incidentField)/d(T_axis) at the given position of the updatedField.
+                     * d(incidentField)/d(axis) at the given position of the updatedField.
                      * Out of those nodes, we only use ones located near and on the opposite side of the Huygens
                      * surface from the updatedField position. The number of such nodes depends on the derivative
                      * operators used and the given value of updatedFieldShift, it varies between 1 and (operator width
                      * - 1).
                      *
-                     * IncidentField values are evaluated on those places and accumulated with coefficients
-                     * derived from the curl coefficients.
-                     * The total coefficient in front of incidentField over all updatedFieldShift values
+                     * IncidentField values are evaluated on those places and accumulated with coefficients derived
+                     * from derivativeCoefficients according to the scheme described earlier in this struct.
+                     * The total coefficient in front of incidentField summed over all updatedFieldShift values
                      * is the same for all FDTD-type Maxwell's solvers (i.e. T_CurlIncidentField).
-                     * Those total coefficients are equal to coeff1, 2 and are by absolute value c^2 * dt / dT_axis
-                     * for updating the E field and dt / dT_axis for updating the B field.
-                     * The difference between solvers is basically in how it is scattered between the nodes.
+                     * Those summed coefficients are by absolute value equal to baseCoefficient and are
+                     * c^2 * dt / cellSize[axis] for updating the E field and dt / d(axis) for updating the B field.
+                     * The difference between solvers is basically in how this value is scattered between the nodes.
                      * The scattering coefficients are taken from the finite-difference derivative operator used.
                      *
                      * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
@@ -311,24 +334,25 @@ namespace picongpu
                                 for(int32_t dir2Shift = 1 - sizeDir2; dir2Shift < sizeDir2; dir2Shift++)
                                 {
                                     coeffIdx[dir2] = abs(dir2Shift);
-                                    auto const derivativeCoeff
+                                    // Implement the update scheme, multiply by baseCoefficient after the loops
+                                    auto const derivativeCoefficient
                                         = derivativeCoefficients.value[coeffIdx[0]][coeffIdx[1]][coeffIdx[2]];
-                                    // Note: the vector update scheme and notation is described at declaration of
-                                    // coeff1, 2
                                     if(applyIncidentField1)
-                                        result += derivativeCoeff * coeff1
+                                        result[dir1] += derivativeCoefficient
                                             * getIncidentFieldComponent1(
-                                                      incidentFieldShift1 + incidentIdxShift.shrink<simDim>());
+                                                            incidentFieldShift1 + incidentIdxShift.shrink<simDim>());
                                     if(applyIncidentField2)
-                                        result += derivativeCoeff * coeff2
+                                        result[dir2] += derivativeCoefficient
                                             * getIncidentFieldComponent2(
-                                                      incidentFieldShift2 + incidentIdxShift.shrink<simDim>());
+                                                            incidentFieldShift2 + incidentIdxShift.shrink<simDim>());
                                     incidentIdxShift[dir2] += 1.0_X;
                                 }
                                 incidentIdxShift[dir1] += 1.0_X;
                             }
                             incidentIdxShift[axis] += incidentIdxShiftIncrement;
                         }
+                        result[dir1] *= baseCoefficient;
+                        result[dir2] *= -baseCoefficient;
                         return result;
                     }
 
@@ -416,7 +440,7 @@ namespace picongpu
                     template<typename T_Acc, typename T_UpdateFunctor>
                     HDINLINE void operator()(
                         T_Acc& acc,
-                        T_UpdateFunctor functor,
+                        T_UpdateFunctor const functor,
                         DataSpace<simDim> beginGridIdx,
                         DataSpace<simDim> endGridIdx) const
                     {
