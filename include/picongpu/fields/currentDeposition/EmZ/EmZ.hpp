@@ -45,7 +45,8 @@ namespace picongpu
 
             PMACC_CASSERT_MSG(
                 __EmZ_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
-                pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
+                sizeof(T_ParticleShape*) // defer assert evaluation
+                    && pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
                         >= currentLowerMargin
                     && pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
                         >= currentUpperMargin);
