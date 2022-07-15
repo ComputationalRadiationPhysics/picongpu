@@ -42,12 +42,7 @@ namespace picongpu
                  */
                 constexpr int validateAndAdjustWorkerMultiplier(int const multiplicator)
                 {
-#if BOOST_COMP_HIP && PIC_COMPUTE_CURRENT_THREAD_LIMITER
-                    // HIP-clang creates wrong results if more threads than particles in a frame will be used
-                    return 1;
-#else
                     return multiplicator >= 1 ? multiplicator : 1;
-#endif
                 }
 
                 struct ShapeStrategy
@@ -225,7 +220,7 @@ namespace picongpu
             struct GetDefaultStrategy<alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_Args...>>
             {
                 // GPU Utilization is higher compared to `StridedCachedSupercells`
-                using type = strategy::CachedSupercells;
+                using type = strategy::CachedSupercellsScaled<2>;
             };
 #endif
 
