@@ -131,12 +131,13 @@ namespace picongpu
                      * @param beginGridIdx grid index of the first updatedField value to be corrected at all
                      * (not necessarily by this call)
                      * @param updatedGridIdx grid index of updatedField to be corrected by this function
-                     * @param isLastUpdatedCell whether the cell is the last updated one along each direction
+                     * @param isLastUpdatedCell whether the cell is the last updated one along each direction,
+                     *                          note it is always 3d, for 2d the last element must be false
                      */
                     HDINLINE void operator()(
                         pmacc::DataSpace<simDim> const& beginGridIdx,
                         pmacc::DataSpace<simDim> const& updatedGridIdx,
-                        pmacc::math::Vector<bool, simDim> const& isLastUpdatedCell)
+                        pmacc::math::Vector<bool, 3> const& isLastUpdatedCell)
                     {
                         // Determine Huygens surface position for the current updatedField value
                         auto huygensSurfaceIdx = updatedGridIdx;
@@ -263,13 +264,14 @@ namespace picongpu
                      * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
                      * @param incidentFieldShift1 base shift of the first incidentField component
                      * @param incidentFieldShift2 base shift of the second incidentField component
-                     * @param isLastUpdatedCell whether the cell is last updated one along each direction
+                     * @param isLastUpdatedCell whether the cell is last updated one along each direction,
+                     *                          note it is always 3d, for 2d the last element must be false
                      */
                     HDINLINE float3_X getUpdatedFieldCorrection(
                         int32_t updatedFieldShift,
                         floatD_X const& incidentFieldShift1,
                         floatD_X const& incidentFieldShift2,
-                        pmacc::math::Vector<bool, simDim> const& isLastUpdatedCell) const
+                        pmacc::math::Vector<bool, 3> const& isLastUpdatedCell) const
                     {
                         auto result = float3_X::create(0.0_X);
                         auto incidentIdxShift = float3_X::create(0.0_X);
@@ -437,7 +439,7 @@ namespace picongpu
                                  * information here.
                                  */
                                 bool isInside = true;
-                                auto isLastUpdatedCell = pmacc::math::Vector<bool, simDim>::create(false);
+                                auto isLastUpdatedCell = pmacc::math::Vector<bool, 3>::create(false);
                                 for(uint32_t d = 0; d < simDim; d++)
                                 {
                                     isInside = isInside && (updatedGridIdx[d] < endGridIdx[d]);
