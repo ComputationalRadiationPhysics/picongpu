@@ -26,3 +26,5 @@
 #include "picongpu/fields/incidentField/profiles/PlaneWave.hpp"
 #include "picongpu/fields/incidentField/profiles/Polynom.hpp"
 #include "picongpu/fields/incidentField/profiles/Wavepacket.hpp"
+#include "picongpu/fields/incidentField/profiles/SpectralLaser.hpp"
+#include "picongpu/fields/incidentField/profiles/DispersiveLaser.hpp"

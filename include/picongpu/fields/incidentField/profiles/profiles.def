@@ -27,3 +27,5 @@
 #include "picongpu/fields/incidentField/profiles/Polynom.def"
 #include "picongpu/fields/incidentField/profiles/PulseFrontTilt.def"
 #include "picongpu/fields/incidentField/profiles/Wavepacket.def"
+#include "picongpu/fields/incidentField/profiles/SpectralLaser.def"
+#include "picongpu/fields/incidentField/profiles/DispersiveLaser.def"

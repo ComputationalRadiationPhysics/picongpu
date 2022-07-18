@@ -75,7 +75,7 @@ namespace picongpu
                      *                      = what a experimentalist calls "pulse duration"
                      *  unit: seconds (1 sigma)
                      */
-                    static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+                    static constexpr float_64 PULSE_LENGTH_SI = 10.0e-15 / 1.17741;
 
                     /** Laser phase shift (no shift: 0.0)
                      *
@@ -117,9 +117,9 @@ namespace picongpu
                      *
                      * @{
                      */
-                    static constexpr float_64 FOCUS_POSITION_X_SI = 8.0e-5;
-                    static constexpr float_64 FOCUS_POSITION_Y_SI = 5.0e-5;
-                    static constexpr float_64 FOCUS_POSITION_Z_SI = 8.0e-5;
+                    static constexpr float_64 FOCUS_POSITION_X_SI = 5.0e-5;
+                    static constexpr float_64 FOCUS_POSITION_Y_SI = 2.0e-5;
+                    static constexpr float_64 FOCUS_POSITION_Z_SI = 5.0e-5;
                     /** @} */
 
                     /** E polarization type

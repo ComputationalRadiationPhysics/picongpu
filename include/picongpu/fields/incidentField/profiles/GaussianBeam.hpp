@@ -170,7 +170,9 @@ namespace picongpu
                          * with zR = PI * w0^2 / lambda0
                          *
                          * Uses only radial modes (m) of Laguerre-Polynomials: L_m(x)=L_m^n=0(x)
-                         * z is the direction of laser propagation. In PIConGPU, the direction of propagation is y.
+                         * In the formula above, z is the direction of laser propagation. 
+                         * In PIConGPU, the propagation direction can be chosen freely. In the following code,
+                         * pos[0] is the propagation direction.
                          *
                          * References:
                          * F. Pampaloni et al. (2004), Gaussian, Hermite-Gaussian, and Laguerre-Gaussian beams: A
@@ -251,7 +253,9 @@ namespace picongpu
                             // inverse radius of curvature of the beam's  wavefronts
                             auto const R_inv = -focusPos / (Unitless::R * Unitless::R + focusPos * focusPos);
                             // the Gouy phase shift
-                            auto const xi = math::atan(-focusPos / Unitless::R);
+                            auto xi = math::atan(-focusPos / Unitless::R);
+                            if(simDim == DIM2)
+                                xi *= 0.5_X;
                             auto etrans = 0.0_X;
                             auto const r2OverW2 = transversalDistanceSquared / w / w;
                             auto const r = 0.5_X * transversalDistanceSquared * R_inv;

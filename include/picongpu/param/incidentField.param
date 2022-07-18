@@ -32,6 +32,7 @@
  *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
+ *  - profiles::DispersiveLaser<>     : dispersive Gaussian Beam with possibilities to set SD, AD, GDD and TOD
  *
  * All profiles but `Free<>` and `None` are parametrized with a profile-specific structure.
  * Their interfaces are defined in the corresponding `.def` files inside directory
