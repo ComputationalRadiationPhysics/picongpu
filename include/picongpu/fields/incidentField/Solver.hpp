@@ -268,23 +268,17 @@ namespace picongpu
                     auto endGridIdx = endLocalUserIdx + numGuardCells;
 
                     // Indexing is done, now prepare the update functor
-                    auto functor = Functor{parameters.sourceTimeIteration, incidentField.getUnit()};
+                    auto functor = Functor{
+                        parameters.sourceTimeIteration,
+                        parameters.direction,
+                        curlCoefficient,
+                        incidentField.getUnit()};
                     functor.updatedField = dataBox;
                     functor.isUpdatedFieldTotal = isUpdatedFieldTotal;
-                    functor.direction = parameters.direction;
                     /* Shift between local grid idx and fractional total cell idx that a user functor needs:
                      * total cell idx = local grid idx + functor.gridIdxShift.
                      */
                     functor.gridIdxShift = totalCellOffset - numGuardCells;
-
-                    /* Compute which components of the incidentField are used,
-                     * which components of the updatedField they contribute to and with which coefficients.
-                     * The sign and cross combination are consistent with implementation of Functor.
-                     */
-                    float_X const directionSign = (parameters.direction > 0.0_X ? 1.0_X : -1.0_X);
-                    float_X const coeffBase = curlCoefficient / cellSize[T_axis] * directionSign;
-                    functor.coeff1[functor.incidentComponent2] = coeffBase;
-                    functor.coeff2[functor.incidentComponent1] = -coeffBase;
 
                     /* For the positive direction, the updated total field index was shifted by 1 earlier.
                      * This index shift is translated to in-cell shift for the incidentField here.
