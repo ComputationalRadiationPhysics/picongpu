@@ -333,7 +333,7 @@ namespace picongpu
             this->atomicPhysics = std::make_unique<simulation::stage::AtomicPhysics>(*cellDescription);
 
             // initialize runtime density file paths
-            runtimeDensityFile.init()
+            runtimeDensityFile.init();
 
             // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung
             // Photons
