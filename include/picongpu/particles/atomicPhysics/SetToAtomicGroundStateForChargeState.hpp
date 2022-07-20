@@ -50,6 +50,8 @@ namespace picongpu
                      *      like Cu.
                      */
 
+                    PMACC_DEVICE_ASSERT_MSG(numberBoundElectrons >= 0, "Number of bound electrons must be >= 0");
+
                     using Particle = T_Particle;
 
                     particle[boundElectrons_] = numberBoundElectrons;
