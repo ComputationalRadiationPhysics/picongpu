@@ -24,6 +24,7 @@
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
 #include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
@@ -265,7 +266,7 @@ namespace picongpu
                      */
                     picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
                         parentIon,
-                        static_cast<uint8_t>(parentIon[boundElectrons_]) - 1u);
+                        parentIon[boundElectrons_] - 1);
                 }
             };
 

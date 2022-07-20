@@ -26,6 +26,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
+#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
@@ -252,7 +253,7 @@ namespace picongpu
                      */
                     picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
                         parentIon,
-                        static_cast<uint8_t>(parentIon[boundElectrons_] - 1u));
+                        parentIon[boundElectrons_] - 1);
                 }
             };
 

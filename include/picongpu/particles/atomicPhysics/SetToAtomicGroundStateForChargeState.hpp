@@ -30,7 +30,7 @@ namespace picongpu
             struct SetToAtomicGroundStateForChargeState
             {
                 template<typename T_Particle>
-                DINLINE void operator()(T_Particle& particle, uint8_t numberBoundElectrons)
+                DINLINE void operator()(T_Particle& particle, float_X numberBoundElectrons)
                 {
                     /** set a given ion to its ground state for a given number of bound
                      *  electrons
@@ -42,11 +42,11 @@ namespace picongpu
                      *  Example:
                      *    Ar(Z=18), boundElectrons=3 --> super configuration(2,1,0,0,...)
                      *
-                     *  BEWARE: Different Useage from previous SetIonization(),
+                     *  BEWARE: Different Usage from previous SetIonization(),
                      *      specify NUMBER of bound electrons NOT charge state.
                      *  BEWARE: Uses simple fill from bottom shell wise for ground state
                      *      determination, not actually entire truth.
-                     *  @todo : implement full madelung ocucpation schema, and excpetions,
+                     *  @todo : implement full madelung occupation schema, and exceptions,
                      *      like Cu.
                      */
 
@@ -61,22 +61,22 @@ namespace picongpu
                         // get current Configuration number object
                         auto configNumber = particle[atomicConfigNumber_];
 
-                        // create blanck occupation number vector
+                        // create blank occupation number vector
                         auto occupationNumberVector
-                            = pmacc::math::Vector<uint8_t, configNumber.numberLevels>::create(0u);
-                        // uint8_t sufficient since Z<=98(Californium), for our purposes
+                            = pmacc::math::Vector<float_X, configNumber.numberLevels>::create(0);
+                        // could actually be reduced to uint8_t since Z<=98(Californium) for our purposes
 
-                        uint8_t numberElectronsRemaining = numberBoundElectrons;
+                        float_X numberElectronsRemaining = numberBoundElectrons;
 
                         // fill from bottom up until no electrons remaining -> ground state init
-                        // TODO : implement Mandelung Schema and exceptions
-                        for(uint8_t level = 1u; level <= configNumber.numberLevels; level++)
+                        /// @todo : implement Mandelung Schema and exceptions, Brian Marre, 2022
+                        for(uint32_t level = 1u; level <= static_cast<uint32_t>(configNumber.numberLevels); level++)
                         {
                             // g(n) = 2*n^2; for hydrogen like states
-                            if(numberElectronsRemaining >= 2u * level * level)
+                            if(numberElectronsRemaining >= static_cast<float_X>(2u * level * level))
                             {
-                                (occupationNumberVector)[level - 1u] = 2u * level * level;
-                                numberElectronsRemaining -= 2u * level * level;
+                                (occupationNumberVector)[level - 1u] = static_cast<float_X>(2u * level * level);
+                                numberElectronsRemaining -= static_cast<float_X>(2u * level * level);
                             }
                             else
                             {

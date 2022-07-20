@@ -315,13 +315,13 @@ namespace picongpu
                     /** ionization of the ion by reducing the number of bound electrons
                      *  and reset of atomic state to ground state of new charge state
                      *
-                     * @warning substracting a float from a float can potentially
+                     * @warning subtracting a float from a float can potentially
                      *          create a negative boundElectrons number for the ion,
                      *          see #1850 for details
                      */
                     picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
                         parentIon,
-                        static_cast<uint16_t>(parentIon[boundElectrons_]) - 1u);
+                        parentIon[boundElectrons_] - 1);
                 }
             };
 
