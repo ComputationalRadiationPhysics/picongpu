@@ -134,7 +134,7 @@ namespace picongpu
                      */
                     HDINLINE static uint16_t numberOfOccupationNumberValuesInShell(uint8_t n)
                     {
-                        PMACC_ASSERT_MSG(n < 255, "n too large, must be < 255");
+                        PMACC_DEVICE_ASSERT_MSG(n < 255, "n too large, must be < 255");
                         return math::min(g(n), static_cast<uint16_t>(T_atomicNumber)) + 1;
                     }
 
