@@ -130,7 +130,7 @@ namespace picongpu
                     [&, this](auto&& dataBoxJ)
                     {
                         /* For Jz we consider the whole movement on a step.
-                         * This movement is not necessarily on support.
+                         * Note that this movement is not necessarily on support.
                          * A naive implementation would be to extend the bounds in x, y by 1 in both sides, and use
                          * general assignment function. To optimize it, we redefine shiftEnd as component-wise minimum
                          * between old shiftEnd and shiftStart. We calculate everything relative to the new shiftEnd.
@@ -148,8 +148,16 @@ namespace picongpu
                          * no computeCurrentZ() method.
                          * In this case it is parsed even though the invokeIf condition is false and dataBoxJ is passed
                          * as auto&&.
+                         * As we are generally not on support, use T_ParticleShape::ChargeAssignment and not
+                         * ParticleAssign.
                          */
-                        emz::DepositCurrent<T_Strategy, ParticleAssign, begin, end + 1, DIM2> depositZ;
+                        emz::DepositCurrent<
+                            T_Strategy,
+                            typename T_ParticleShape::ChargeAssignment,
+                            begin,
+                            end + 1,
+                            DIM2>
+                            depositZ;
                         depositZ.computeCurrentZ(
                             acc,
                             dataBoxJ.shift(shiftEnd).toCursor(),
