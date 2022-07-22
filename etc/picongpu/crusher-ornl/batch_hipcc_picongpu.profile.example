@@ -25,6 +25,11 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   - project for allocation and shared directories
 export PROJID=<yourProject>
 
+# Job control
+# Allocate more nodes then required to execute the jobs to be able to handle broken nodes
+# Oversubscribe the nodes allocated by N per thousand required nodes.
+export PIC_NODE_OVERSUBSCRIPTION_PT=2
+
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="vim"

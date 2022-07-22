@@ -26,8 +26,8 @@
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
-#SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks=!TBG_tasks
+#SBATCH --nodes=!TBG_nodes_adjusted
+#SBATCH --ntasks=!TBG_tasks_adjusted
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem-per-gpu=!TBG_memPerDevice
@@ -72,17 +72,25 @@ export OMP_NUM_THREADS=!TBG_coresPerGPU
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_devicesPerNode - 1 ) / TBG_devicesPerNode))"
 
+# oversubscribe the node allocation by N per thousand
+# The default can be overwritten by setting the environment variable PIC_NODE_OVERSUBSCRIPTION_PT
+.TBG_node_oversubscription_pt=${PIC_NODE_OVERSUBSCRIPTION_PT:-2}
+
+# adjust number of nodes for fault tolerance adjustments
+.TBG_nodes_adjusted=$((!TBG_nodes * (1000 + !TBG_node_oversubscription_pt) / 1000))
+.TBG_tasks_adjusted=$((!TBG_nodes_adjusted * !TBG_numHostedDevicesPerNode))
+
 ## end calculations ##
 
-echo 'Running program...'
+echo 'Start job with !TBG_nodes_adjusted nodes. Required are !TBG_nodes nodes.'
 
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
 if [ $? -ne 0 ] ; then
-  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
-  exit 1
+    echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
+    exit 1
 fi
 unset MODULES_NO_OUTPUT
 
@@ -93,19 +101,63 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 ln -s ../stdout output
 
-# test if cuda_memtest binary is available and we have the node exclusive
+# number of broken nodes
+n_broken_nodes=0
+
+# return code of cuda_memcheck
+node_check_err=1
+
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_mpiTasksPerNode ] ; then
-  # Run cuda_memtest (HIP version) to check GPU's health
-  echo "GPU memtest started."
-  # do not bind to any GPU, else we can not use the local MPI rank to select a GPU
-  srun -K1 --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh
+    run_cuda_memtest=1
 else
-  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
+    run_cuda_memtest=0
 fi
 
-if [ $? -eq 0 ] ; then
-  # Run PIConGPU
-  echo "Start PIConGPU."
-  srun -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+# test if cuda_memtest binary is available and we have the node exclusive
+if [ $run_cuda_memtest -eq 1 ] ; then
+    touch bad_nodes.txt
+    n_tasks=$((!TBG_nodes_adjusted * !TBG_numHostedDevicesPerNode))
+    for((i=0; ($n_tasks >= !TBG_tasks) && ($node_check_err != 0); ++i)) ; do
+        n_tasks_last_check=$n_tasks
+        mkdir "cuda_memtest_$i"
+        cd "cuda_memtest_$i"
+        # Run cuda_memtest (HIP version) to check GPU's health
+        echo "GPU memtest started with $n_tasks tasks. Required are !TBG_tasks tasks."
+        test $n_broken_nodes -ne 0 && exclude_nodes="-x../bad_nodes.txt"
+        # do not bind to any GPU, else we can not use the local MPI rank to select a GPU
+        # - test always all except the broken nodes
+        # - catch error to avoid that the batch script stops processing in case an error happened
+        node_check_err=$(srun -n $n_tasks --nodes=$((n_tasks / !TBG_numHostedDevicesPerNode)) $exclude_nodes -K1 --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
+        cd ..
+        ls -1 "cuda_memtest_$i" | sed -n -e 's/cuda_memtest_\([^_]*\)_.*/\1/p' | sort -u >> ./bad_nodes.txt
+        n_broken_nodes=$(cat ./bad_nodes.txt | sort -u | wc -l)
+        n_tasks=$(((!TBG_nodes_adjusted - n_broken_nodes) * !TBG_numHostedDevicesPerNode))
+        if [ $n_tasks_last_check -eq $n_tasks ] ; then
+            echo "cuda_memtest: Number of broken nodes has not increased but for unknown reasons cuda_memtest reported errors." >&2
+            break
+        fi
+        # if cuda_memtest not passed and we have no broken nodes something else went wrong
+        if [ $node_check_err -ne 0 ] ; then
+            if [ $n_broken_nodes -eq 0 ] ; then
+                echo "cuda_memtest: unknown error" >&2
+                break
+            else
+                echo "cuda_memtest: "$n_broken_nodes" broken node(s) detected!. The test will be repeated with healthy nodes only." >&2
+            fi
+        fi
+    done
+    echo "GPU memtest with $n_tasks tasks finished with error code $node_check_err."
+else
+    echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
+fi
+
+if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
+    # Run PIConGPU
+    echo "Start PIConGPU."
+    test $n_broken_nodes -ne 0 && exclude_nodes="-x./bad_nodes.txt"
+    srun -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+else
+    echo "Job stopped because of previous issues."
+    echo "Job stopped because of previous issues." >&2
 fi
 
