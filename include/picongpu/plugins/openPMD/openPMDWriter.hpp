@@ -74,6 +74,8 @@
 
 #include <openPMD/openPMD.hpp>
 
+#include "scr.h"
+
 #if !defined(_WIN32)
 #    include <unistd.h>
 #endif
@@ -135,6 +137,7 @@ namespace picongpu
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
+                //SCR_Start_output(fullName, SCR_FLAG_OUTPUT);
                 openPMDSeries = std::make_unique<::openPMD::Series>(
                     fullName,
                     at,
@@ -175,6 +178,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 log<picLog::INPUT_OUTPUT>("openPMD: close file: %1%") % fileName;
                 openPMDSeries.reset();
                 MPI_Barrier(this->communicator);
+                //SCR_Complete_output(1);
                 log<picLog::INPUT_OUTPUT>("openPMD: successfully closed file: %1%") % fileName;
             }
             else
