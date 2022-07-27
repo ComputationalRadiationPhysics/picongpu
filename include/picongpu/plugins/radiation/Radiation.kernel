@@ -266,14 +266,20 @@ namespace picongpu
                                                     + DataSpaceOperations<simDim>::template map<SuperCellSize>(
                                                         cellIdx));
 
-                                                // add global position of cell with local position of particle in cell
-                                                vector_X particle_locationNow;
+                                                /* add global position of cell with local position of particle in cell
+                                                 *
+                                                 * Info:
+                                                 * Mandatory 64 bit precision to avoid artefacts above betatron
+                                                 * critical frequency.
+                                                 * https://github.com/ComputationalRadiationPhysics/picongpu/issues/4208
+                                                 */
+                                                vector_64 particle_locationNow;
                                                 // set z component to zero in case of simDim==DIM2
                                                 particle_locationNow[2] = 0.0;
                                                 // run over all components and compute gobal position
                                                 for(uint32_t i = 0; i < simDim; ++i)
                                                     particle_locationNow[i]
-                                                        = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
+                                                        = (float_64(globalPos[i]) + pos[i]) * cellSize[i];
 
                                                 /* get macro-particle weighting
                                                  *
