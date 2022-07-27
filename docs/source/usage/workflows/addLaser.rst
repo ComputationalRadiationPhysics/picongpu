@@ -22,6 +22,10 @@ The source is applied at a generating surface that is a boundary of an axis-alig
 The implementation is based on the total field/scattered field formulation described in detail :ref:`here <model-TFSF>`.
 A user defines positioning of this box in the total domain in :ref:`incidentField.param <usage-params-core>`.
 
+With properly chosen sources, the generated waves only propagate inwards the volume bounded by the generation surface and there is no considerable leakage or noise.
+The generating surface is otherwise transparent for all signals, such as reflections of lasers from a target.
+A typical setup includes field absorber located outside of the surface (directly or at a distance) for these waves.
+
 The surface must be offset inwards relative to each boundary by at least the field absorber thickness along the boundary so that the generating surface is located in the internal area.
 An exception to this requirement is made for simulations using the moving window.
 Then the surface positions along window movement direction can be located outside of the initially simulated volume.
@@ -29,6 +33,13 @@ In this case, parts of the surface located outside of the currently simulated vo
 
 For each of the generation planes ``XMin, XMax, YMin, YMax, ZMin, ZMax`` (the latter two for 3d) a user sets an incident profile, or a typelist of such profiles, to be applied.
 In case a typelist is used, the result is a sum of all profiles in the list.
+
+In principle, the same sources should be applied at the whole generating surface, not just at planes where the lasers enter.
+Then the generated incident field will only exist in the internal volume, with application at the opposite side compensating and effectively removing it.
+Note that this effect is not related to having a field absorber, but a property of the total field/scattered field formulation.
+In practice there may be some noise due to numerical dispersion or imprecise source formulation.
+In this case, a user may apply sources only at the "enter" parts of the generating surface but not on the opposite side (which will then be transparent), and employ a field absorber if needed.
+
 The configuration is done through parameter structures, depending on the profile type.
 Both profiles and parameter structures generally match their laser counterparts.
 The differences between matching incident field- and laser profiles are:
