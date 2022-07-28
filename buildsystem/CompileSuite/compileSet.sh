@@ -21,7 +21,7 @@
 # compile a specific set of an example
 #
 # $1: example name ($example_name)
-# $2: cmakePreset number
+# $2: cmakePreset number: -1 means we do not have presets
 # $3: globalCMakeOptions
 # $4: tmp dir we use ($tmpRun_path)
 # $5: build dir in the tmp folder
@@ -62,10 +62,19 @@ cS_this_dir=$(cd `dirname $0` && pwd)
 #
     cd $cS_buildDir
 
-    param_folder="$cS_tmpRun_path/params/$cS_example_name/cmakePreset_$cS_testFlagNr"
+    caseId=$cS_testFlagNr;
+    if [ $caseId -eq -1 ] ; then
+        # cmakeFlags file is not available, do not use '-t' option
+        caseId=0;
+    else
+        # cmakeFlags file is available '-t` option can be used
+        $caseOption="-t $caseId"
+    fi
+
+    param_folder="$cS_tmpRun_path/params/$cS_example_name/cmakePreset_$caseId"
     execute_and_validate $cS_this_dir/../../bin/pic-create -f $cS_examples_path/$cS_example_name $param_folder
 
-    execute_and_validate $cS_this_dir/../../bin/pic-configure $cS_globalCMakeOptions -t $cS_testFlagNr $param_folder
+    execute_and_validate $cS_this_dir/../../bin/pic-configure $cS_globalCMakeOptions $caseOption $param_folder
     execute_and_validate make install
 
     echo "$myError" > ./returnCode

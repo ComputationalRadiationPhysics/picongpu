@@ -102,15 +102,22 @@ do
         example_name=`basename $examples_path`
     fi
 
-    # the default is 1 to allow examples without the file `cmakeFlags`
-    testFlag_cnt=1
+
+    testFlag_cnt=0
+    # will be set to -1 if `cmakeFlags` file not exists to compile with default parameters
+    testFlagNr=0
     if [ -f "$examples_path/$i/cmakeFlags" ]; then
         testFlag_cnt=`$examples_path/$i/cmakeFlags -l`
+    else
+        testFlagNr=-1
     fi
 
-    testFlagNr=0
     while [ $testFlagNr -lt $testFlag_cnt ] ; do
-        buildDir="$tmpRun_path/build/build_"$example_name"_cmakePreset_$testFlagNr"
+        caseId=$testFlagNr;
+        if [ $caseId -eq -1 ] ; then
+            caseId=0;
+        fi
+        buildDir="$tmpRun_path/build/build_"$example_name"_cmakePreset_$caseId"
         mkdir -p $buildDir
 
         if [ "$num_parallel" -gt "1" ] ; then
@@ -120,7 +127,7 @@ do
                 "$quiet_run" &> $buildDir"/compile.log" &
 
             running="`jobs -p | wc -l`"
-            echo $compileSuite"Spawned $example_name $testFlagNr"
+            echo $compileSuite"Spawned $example_name $caseId"
 
             while [ "$running" -ge "$num_parallel" ]
             do

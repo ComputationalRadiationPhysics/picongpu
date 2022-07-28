@@ -24,6 +24,12 @@ this_dir=$(cd $(dirname $0) && pwd)
 # PIConGPU prefix path
 picongpu_prefix=$(cd $this_dir/.. && pwd)
 
+function absolute_path()
+{
+    cd $1
+    pwd
+}
+
 help()
 {
     echo "Configure PIConGPU with CMake"
@@ -112,7 +118,7 @@ fi
 
 # configure a specific preset in the cmakeFlags file
 # note: can be overwritten with a command line flag
-cmakeFlagsNr=0
+cmakeFlagsNr=-1
 
 # set a default backend (and architecture) if supplied via environment var
 # note: can be overwritten with a command line flag
@@ -157,7 +163,7 @@ while true ; do
     shift
 done
 
-extension_param="$*"
+extension_param="$(absolute_path $*)"
 
 if [ ! -d "$extension_param" ] ; then
     echo "Path \"$extension_param\" does not exist." >&2
@@ -165,10 +171,24 @@ if [ ! -d "$extension_param" ] ; then
 fi
 # check for cmakeFlags file (interprete with sh)
 if [ -f "$extension_param/cmakeFlags" ] ; then
+    if [ $cmakeFlagsNr -eq -1 ] ; then
+        # if the user has not given this value use zero as default.
+        cmakeFlagsNr=0
+    fi
+    num_cmake_flags=$($extension_param/cmakeFlags -l)
+    if [ $? -ne 0 ] ; then
+        echo "ERROR: Executing '$extension_param/cmakeFlags -l' failed!" >&2
+        echo "       Is the file executable? (chmod u+x cmakeFlags)" >&2
+        exit 2
+    fi
+    if [ $cmakeFlagsNr -ge $num_cmake_flags ] ; then
+        echo "ERROR: Executing '$extension_param/cmakeFlags $cmakeFlagsNr' failed!" >&2
+        echo "       Requested preset '$cmakeFlagsNr' does not exist, '$num_cmake_flags' presets found." >&2
+        exit 2
+    fi
     cmake_flags=$($extension_param/cmakeFlags $cmakeFlagsNr)
     if [ $? -ne 0 ] ; then
         echo "ERROR: Executing '$extension_param/cmakeFlags' failed!" >&2
-        echo "       Is the file executable? (chmod u+x cmakeFlags)" >&2
         exit 2
     fi
     # save the cmakeFlags setup number for future reference
@@ -178,11 +198,14 @@ if [ -f "$extension_param/cmakeFlags" ] ; then
     touch $extension_param/cmakeFlagsSetup
     echo "Last configured cmakeFlags setup was the setup No.: $cmakeFlagsNr" > $extension_param/cmakeFlagsSetup
     echo $cmake_flags >> $extension_param/cmakeFlagsSetup
-
+elif [ $cmakeFlagsNr -ne -1 ] ; then
+    echo "ERROR: '$extension_param/cmakeFlags' not exists!" >&2
+    echo "       Therefore option -t can not be used." >&2
+    exit 2
 fi
 
 # legacy check: we removed simulation_defines/ after PIConGPU 0.3.X
-if [ -d "$extension_param/include/picongpu/simulation_defines" ]; then
+if [ -d "$extension_param/include/picongpu/simulation_defines" ] ; then
     echo "ERROR: simulation_defines/ directory found!" >&2
     echo "       Please update your input directory to the new structure!" >&2
     exit 3
