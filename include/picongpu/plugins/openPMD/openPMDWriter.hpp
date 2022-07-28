@@ -216,8 +216,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             plugins::multi::Option<std::string> fileNameExtension
                 = {"ext",
-                   "openPMD filename extension (this controls the"
-                   "backend picked by the openPMD API)",
+                   "openPMD filename extension. This controls the"
+                   "backend picked by the openPMD API. Available extensions: ["
+                       + openPMD::printAvailableExtensions() + "]",
                    openPMD::getDefaultExtension().c_str()};
 
             plugins::multi::Option<std::string> fileNameInfix
