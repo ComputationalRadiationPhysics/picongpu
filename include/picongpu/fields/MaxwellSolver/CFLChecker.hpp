@@ -49,7 +49,10 @@ namespace picongpu
                  */
                 float_X operator()() const
                 {
-                    constexpr auto minCellSize = std::min({CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH});
+                    // For 2d the value of dz does not matter for this check.
+                    // Using dx instead is fine here since we are taking min grid step.
+                    constexpr auto usedDz = (simDim == 3) ? CELL_DEPTH : CELL_WIDTH;
+                    constexpr auto minCellSize = std::min({CELL_WIDTH, CELL_HEIGHT, usedDz});
                     /* Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
                      * (in this case, could have depended on T_FieldSolver as well)
                      */
