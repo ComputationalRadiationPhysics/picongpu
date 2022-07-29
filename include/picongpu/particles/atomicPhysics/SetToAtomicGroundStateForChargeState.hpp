@@ -65,20 +65,20 @@ namespace picongpu
 
                         // create blank occupation number vector
                         auto occupationNumberVector
-                            = pmacc::math::Vector<float_X, configNumber.numberLevels>::create(0);
+                            = pmacc::math::Vector<uint8_t, configNumber.numberLevels>::create(0);
                         // could actually be reduced to uint8_t since Z<=98(Californium) for our purposes
 
-                        float_X numberElectronsRemaining = numberBoundElectrons;
+                        uint8_t numberElectronsRemaining = static_cast<uint8_t>(numberBoundElectrons);
 
                         // fill from bottom up until no electrons remaining -> ground state init
                         /// @todo : implement Mandelung Schema and exceptions, Brian Marre, 2022
-                        for(uint32_t level = 1u; level <= static_cast<uint32_t>(configNumber.numberLevels); level++)
+                        for(uint8_t level = 1u; level <= configNumber.numberLevels; level++)
                         {
                             // g(n) = 2*n^2; for hydrogen like states
-                            if(numberElectronsRemaining >= static_cast<float_X>(2u * level * level))
+                            if(numberElectronsRemaining >= 2u * level * level)
                             {
-                                (occupationNumberVector)[level - 1u] = static_cast<float_X>(2u * level * level);
-                                numberElectronsRemaining -= static_cast<float_X>(2u * level * level);
+                                (occupationNumberVector)[level - 1u] = 2u * level * level;
+                                numberElectronsRemaining -= 2u * level * level;
                             }
                             else
                             {
