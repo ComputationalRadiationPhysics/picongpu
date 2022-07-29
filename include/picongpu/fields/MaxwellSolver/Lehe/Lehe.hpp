@@ -23,6 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
@@ -40,6 +41,35 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
+            /** Specialization of the CFL condition checker for Lehe solver
+             *
+             * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
+             *                            0 = x, 1 = y, 2 = z
+             * @tparam T_Defer technical parameter to defer evaluation
+             */
+            template<uint32_t T_cherenkovFreeDir, typename T_Defer>
+            struct CFLChecker<Lehe<T_cherenkovFreeDir>, T_Defer>
+            {
+                /** Check the CFL condition according to the paper, doesn't compile when failed
+                 *
+                 * @return value of 'X' to fulfill the condition 'c * dt <= X`
+                 */
+                float_X operator()() const
+                {
+                    // cellSize is not constexpr currently, so make an own constexpr array
+                    constexpr float_X step[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
+                    constexpr auto stepFreeDirection = step[T_cherenkovFreeDir];
+
+                    // Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
+                    constexpr auto dt = getTimeStep();
+                    PMACC_CASSERT_MSG(
+                        Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
+                        (SPEED_OF_LIGHT * dt) <= stepFreeDirection && sizeof(T_Defer*) != 0);
+
+                    return stepFreeDirection;
+                }
+            };
+
             /** Specialization of the dispersion relation for Lehe solver
              *
              * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation

@@ -43,8 +43,10 @@
 
 #include <boost/mpl/accumulate.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <memory>
 
 
@@ -225,6 +227,17 @@ namespace picongpu
     template<uint32_t T_area, class T_Species>
     void FieldJ::computeCurrent(T_Species& species, uint32_t)
     {
+        /* Current deposition logic (for all schemes we implement) requires that a particle cannot pass more than a
+         * cell in a time step. For 2d this concerns only steps in x, y. This check is same as in particle pusher, but
+         * we do not require that pusher and current deposition are both enabled for a species, so check in both
+         * places.
+         */
+        constexpr auto dz = (simDim == 3) ? CELL_DEPTH : std::numeric_limits<float_X>::infinity();
+        constexpr auto minCellSize = std::min({CELL_WIDTH, CELL_HEIGHT, dz});
+        PMACC_CASSERT_MSG(
+            Particle_in_current_deposition_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
+            (SPEED_OF_LIGHT * DELTA_T / minCellSize <= 1.0) && sizeof(T_Species*) != 0);
+
         using FrameType = typename T_Species::FrameType;
         using ParticleCurrentSolver =
             typename pmacc::traits::Resolve<typename GetFlagType<FrameType, current<>>::type>::type;
