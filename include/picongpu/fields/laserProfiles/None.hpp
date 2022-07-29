@@ -76,7 +76,7 @@ namespace picongpu
 
                 /** constructor
                  */
-                HINLINE None(uint32_t)
+                HINLINE None(float_X)
                 {
                 }
 

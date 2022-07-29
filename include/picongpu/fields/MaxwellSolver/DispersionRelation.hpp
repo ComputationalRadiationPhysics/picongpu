@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+
 #include <cstdint>
 
 
@@ -47,7 +49,7 @@ namespace picongpu
 
             protected:
                 //! Field solver time step as float_64
-                float_64 const timeStep = static_cast<float_64>(DELTA_T);
+                float_64 const timeStep = static_cast<float_64>(getTimeStep());
 
                 //! Grid steps as float_64
                 float3_64 const step = precisionCast<float_64>(cellSize);

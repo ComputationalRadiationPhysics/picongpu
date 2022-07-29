@@ -33,6 +33,15 @@
 
 #include "picongpu/fields/MaxwellSolver/Solvers.def"
 
+#ifndef PARAM_SUBSTEPPINGSOLVER
+#    define PARAM_SUBSTEPPINGSOLVER 0
+#endif
+
+#if PARAM_SUBSTEPPINGSOLVER
+#    define SOLVER maxwellSolver::Substepping<maxwellSolver::PARAM_FIELDSOLVER, 5>
+#else
+#    define SOLVER maxwellSolver::PARAM_FIELDSOLVER
+#endif
 
 namespace picongpu
 {
@@ -50,7 +59,7 @@ namespace picongpu
          * method is a special case of this using one neighbor to each direction.
          *  - None: disable the vacuum update of E and B
          */
-        using Solver = maxwellSolver::PARAM_FIELDSOLVER;
+        using Solver = SOLVER;
 
     } // namespace fields
 } // namespace picongpu

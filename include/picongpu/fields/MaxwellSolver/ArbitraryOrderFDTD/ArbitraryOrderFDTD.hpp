@@ -27,6 +27,7 @@
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Weights.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
 
@@ -65,7 +66,8 @@ namespace picongpu
                     }
                     auto const invCorrectedCell2Sum = INV_CELL2_SUM * additionalFactor * additionalFactor;
                     auto const maxC_DT = 1.0_X / math::sqrt(invCorrectedCell2Sum);
-                    if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * invCorrectedCell2Sum > 1.0_X)
+                    constexpr auto dt = getTimeStep();
+                    if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * invCorrectedCell2Sum > 1.0_X)
                     {
                         throw std::runtime_error(
                             std::string("Courant-Friedrichs-Lewy condition check failed, check your grid.param file\n")

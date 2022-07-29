@@ -78,7 +78,7 @@ namespace picongpu
                      * @param currentStep index of the current time iteration
                      */
                     template<typename T_CurlB, uint32_t T_Area>
-                    UpdateEFunctor<T_CurlB> getUpdateEFunctor(uint32_t const currentStep)
+                    UpdateEFunctor<T_CurlB> getUpdateEFunctor(float_X const currentStep)
                     {
                         auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateEFunctor<T_CurlB>{
@@ -96,9 +96,7 @@ namespace picongpu
                      * up-to-date
                      */
                     template<typename T_CurlE, uint32_t T_Area>
-                    UpdateBHalfFunctor<T_CurlE> getUpdateBHalfFunctor(
-                        uint32_t const currentStep,
-                        bool const updatePsiB)
+                    UpdateBHalfFunctor<T_CurlE> getUpdateBHalfFunctor(float_X const currentStep, bool const updatePsiB)
                     {
                         auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateBHalfFunctor<T_CurlE>{
@@ -123,7 +121,7 @@ namespace picongpu
 
                     //! Get parameters for the local domain
                     template<typename T_Mapper>
-                    LocalParameters getLocalParameters(T_Mapper mapper, uint32_t const currentStep) const
+                    LocalParameters getLocalParameters(T_Mapper mapper, float_X const currentStep) const
                     {
                         Thickness localThickness = getLocalThickness(currentStep);
                         checkLocalThickness(localThickness);
@@ -138,13 +136,13 @@ namespace picongpu
                      *
                      * It depends on the current step because of the moving window.
                      */
-                    Thickness getLocalThickness(uint32_t const currentStep) const
+                    Thickness getLocalThickness(float_X const currentStep) const
                     {
                         /* The logic of the following checks is to disable the absorber
                          * at a border we set the corresponding thickness to 0.
                          */
                         auto& movingWindow = MovingWindow::getInstance();
-                        auto const numSlides = movingWindow.getSlideCounter(currentStep);
+                        auto const numSlides = movingWindow.getSlideCounter(static_cast<uint32_t>(currentStep));
                         auto const numExchanges = NumberOfExchanges<simDim>::value;
                         auto const communicationMask
                             = Environment<simDim>::get().GridController().getCommunicationMask();
@@ -182,7 +180,8 @@ namespace picongpu
                             }
 
                             // Disable PML at the far side of the moving window
-                            if(movingWindow.isSlidingWindowActive(currentStep) && exchange == BOTTOM)
+                            if(movingWindow.isSlidingWindowActive(static_cast<uint32_t>(currentStep))
+                               && exchange == BOTTOM)
                                 localThickness(axis, direction) = 0;
                         }
                         return localThickness;

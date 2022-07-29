@@ -286,7 +286,7 @@ namespace picongpu
                  *
                  * @param currentStep current simulation time step
                  */
-                HINLINE GaussianBeam(uint32_t currentStep)
+                HINLINE GaussianBeam(float_X currentStep)
                 {
                     // get data
                     DataConnector& dc = Environment<>::get().DataConnector();

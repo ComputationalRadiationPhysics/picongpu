@@ -204,7 +204,7 @@ namespace picongpu
                  *
                  * @param currentStep current simulation time step
                  */
-                HINLINE PulseFrontTilt(uint32_t currentStep)
+                HINLINE PulseFrontTilt(float_X currentStep)
                 {
                     // get data
                     DataConnector& dc = Environment<>::get().DataConnector();

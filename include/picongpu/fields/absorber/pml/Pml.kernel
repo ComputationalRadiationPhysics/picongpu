@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/FDTD/StencilFunctor.hpp"
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
@@ -271,7 +272,7 @@ namespace picongpu
                         T_LocalEBox localE)
                     {
                         constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-                        constexpr auto dt = DELTA_T;
+                        constexpr auto dt = maxwellSolver::getTimeStep();
                         // with the current Yee grid, no shift needed here
                         auto const pmlIdx = precisionCast<float_X>(gridIndex);
                         auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
@@ -368,7 +369,7 @@ namespace picongpu
                         T_LocalEBox const localE,
                         T_LocalBBox localB)
                     {
-                        constexpr auto dt = DELTA_T;
+                        constexpr auto dt = maxwellSolver::getTimeStep();
                         constexpr auto halfDt = 0.5_X * dt;
 
                         // with the current Yee grid, a half cell shift is needed here

@@ -28,6 +28,7 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/MaxwellSolver/traits/IsSubstepping.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
@@ -91,6 +92,7 @@
 
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/IdProvider.hpp>
@@ -319,7 +321,6 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
             initFields(dc);
 
-            // create field solver
             myFieldSolver = std::make_unique<fields::Solver>(*cellDescription);
 
             // initialize field background stage,
@@ -685,7 +686,7 @@ namespace picongpu
         uint32_t numRanksPerDevice = 1u;
 
     private:
-        /** Get available allocatable memory on device
+        /** Get available memory on device
          *
          * @attention This method is using MPI collectives and must be called from all MPI processes collectively.
          *

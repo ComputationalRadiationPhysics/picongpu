@@ -23,6 +23,8 @@
 
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+#include "picongpu/fields/MaxwellSolver/Substepping/Substepping.def"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Solver.kernel"
@@ -88,8 +90,8 @@ namespace picongpu
                     //! Time iteration at which the source incidentField values will be calculated
                     float_X sourceTimeIteration;
 
-                    //! Time increment in the target field, in iterations
-                    float_X timeIncrementIteration;
+                    //! Time increment in the target field (in time, not in iterations)
+                    float_X timeIncrement;
 
                     //! Cell description for kernels
                     MappingDesc const cellDescription;
@@ -368,12 +370,11 @@ namespace picongpu
                     template<typename T_Parameters>
                     void operator()(T_Parameters const& parameters)
                     {
-                        auto const timeIncrement = parameters.timeIncrementIteration * DELTA_T;
                         /* The update is structurally
                          * E(t + timeIncrement) = E(t) + timeIncrement * c2 * curl(B(t + timeIncrement/2))
                          */
                         constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-                        auto const curlCoefficient = timeIncrement * c2;
+                        auto const curlCoefficient = parameters.timeIncrement * c2;
                         using UpdatedField = picongpu::FieldE;
                         using IncidentField = picongpu::FieldB;
                         using Curl = traits::GetCurlB<Solver>::type;
@@ -399,11 +400,10 @@ namespace picongpu
                     template<typename T_Parameters>
                     void operator()(T_Parameters const& parameters)
                     {
-                        auto const timeIncrement = parameters.timeIncrementIteration * DELTA_T;
                         /* The update is structurally
                          * B(t + timeIncrement) = B(t) - timeIncrement * curl(E(t + timeIncrement/2))
                          */
-                        auto const curlCoefficient = -timeIncrement;
+                        auto const curlCoefficient = -parameters.timeIncrement;
                         using UpdatedField = picongpu::FieldB;
                         using IncidentField = picongpu::FieldE;
                         using Curl = traits::GetCurlE<Solver>::type;
@@ -578,7 +578,7 @@ namespace picongpu
                     parameters.totalPositionMaxBorder = totalPositionMaxBorder;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
-                    parameters.timeIncrementIteration = 1.0_X;
+                    parameters.timeIncrement = maxwellSolver::getTimeStep();
                     meta::ForEach<T_MinProfiles, ApplyUpdateE<bmpl::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
@@ -625,7 +625,7 @@ namespace picongpu
                     parameters.totalPositionMaxBorder = totalPositionMaxBorder;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
-                    parameters.timeIncrementIteration = 0.5_X;
+                    parameters.timeIncrement = 0.5_X * maxwellSolver::getTimeStep();
                     meta::ForEach<T_MinProfiles, ApplyUpdateB<bmpl::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
