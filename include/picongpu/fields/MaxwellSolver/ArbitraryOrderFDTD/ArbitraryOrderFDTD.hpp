@@ -72,7 +72,7 @@ namespace picongpu
                         throw std::runtime_error(
                             std::string("Courant-Friedrichs-Lewy condition check failed, check your grid.param file\n")
                             + "Courant Friedrichs Lewy condition: c * dt <= " + std::to_string(maxC_DT)
-                            + " ? (c * dt = " + std::to_string(SPEED_OF_LIGHT * DELTA_T) + ")");
+                            + " ? (c * dt = " + std::to_string(SPEED_OF_LIGHT * dt) + ")");
                     }
 
                     return maxC_DT;
