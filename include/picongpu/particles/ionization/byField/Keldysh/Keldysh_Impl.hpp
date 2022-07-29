@@ -266,7 +266,7 @@ namespace picongpu
                      */
                     picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
                         parentIon,
-                        parentIon[boundElectrons_] - 1);
+                        parentIon[boundElectrons_] - float_X(1.));
                 }
             };
 
