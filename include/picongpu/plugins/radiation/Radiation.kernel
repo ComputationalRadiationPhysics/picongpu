@@ -344,7 +344,7 @@ namespace picongpu
                                                 for(uint32_t d = 0; d < simDim; ++d)
                                                 {
                                                     windowFactor *= winFkt(
-                                                        particle_locationNow[d],
+                                                        particle_locationNow[d] - globalOffset[d] * cellSize[d],
                                                         simBoxSize[d] * cellSize[d]);
                                                 }
 
