@@ -26,6 +26,7 @@
 #include "picongpu/fields/LaserPhysics.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelationSolver.hpp"
+#include "picongpu/fields/MaxwellSolver/traits/IsSubstepping.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/profiles.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
@@ -130,8 +131,11 @@ namespace picongpu
             if(Environment<simDim>::get().GridController().getGlobalRank() == 0)
             {
                 auto maxC_DT = fields::maxwellSolver::CFLChecker<fields::Solver>{}();
-                log<picLog::PHYSICS>("Field solver condition: c * dt <= %1% ? (c * dt = %2%)") % maxC_DT
-                    % (SPEED_OF_LIGHT * DELTA_T);
+                auto const isSubstepping = fields::maxwellSolver::traits::IsSubstepping<fields::Solver>::value;
+                auto const dtName = std::string{isSubstepping ? "substepping_dt" : "dt"};
+                auto const cflMessage
+                    = std::string{"Field solver condition: c * "} + dtName + " <= %1% ? (c * " + dtName + " = %2%)";
+                log<picLog::PHYSICS>(cflMessage.c_str()) % maxC_DT % (SPEED_OF_LIGHT * DELTA_T);
 
                 printDispersionInformation();
 

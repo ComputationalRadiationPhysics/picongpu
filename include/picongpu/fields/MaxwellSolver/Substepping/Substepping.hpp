@@ -64,8 +64,6 @@ namespace picongpu
                      */
                     SubsteppingBase(MappingDesc const cellDescription) : Base(cellDescription)
                     {
-                        // We still have to check the basic PIC condition c * dt < dx as particles need it
-                        CFLChecker<SubsteppingBase>{}();
                         PMACC_CASSERT_MSG(
                             Substepping_field_solver_wrong_number_of_substeps____must_be_at_least_1,
                             numSubsteps >= 1);
@@ -178,6 +176,19 @@ namespace picongpu
                             fieldJ.addCurrentToEMF<area>(currentInterpolation::Binomial{});
                     }
                 }
+            };
+
+            /** Specialization of the CFL condition checker for substepping solver
+             *
+             * Uses CFL of the base solver, those already take care of using the correct time (sub)step.
+             *
+             * @tparam T_BaseSolver base field solver, follows requirements of field solvers
+             * @tparam T_numSubsteps number of substeps per PIC time iteration
+             * @tparam T_Defer technical parameter to defer evaluation
+             */
+            template<typename T_BaseSolver, uint32_t T_numSubsteps, typename T_Defer>
+            struct CFLChecker<Substepping<T_BaseSolver, T_numSubsteps>, T_Defer> : CFLChecker<T_BaseSolver, T_Defer>
+            {
             };
 
         } // namespace maxwellSolver

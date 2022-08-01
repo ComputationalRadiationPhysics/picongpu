@@ -28,7 +28,6 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/MaxwellSolver/traits/IsSubstepping.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"

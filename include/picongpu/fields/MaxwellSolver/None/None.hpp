@@ -21,12 +21,15 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/types.hpp>
+
+#include <limits>
 
 
 namespace picongpu
@@ -60,6 +63,23 @@ namespace picongpu
                 {
                     pmacc::traits::StringProperty propList("name", "none");
                     return propList;
+                }
+            };
+
+            /** Specialization of the CFL condition checker for the None solver
+             *
+             * @tparam T_Defer technical parameter to defer evaluation
+             */
+            template<typename T_Defer>
+            struct CFLChecker<None, T_Defer>
+            {
+                /** No limitations for this solver, allow any dt
+                 *
+                 * @return value of 'X' to fulfill the condition 'c * dt <= X`
+                 */
+                float_X operator()() const
+                {
+                    return std::numeric_limits<float_X>::infinity();
                 }
             };
 
