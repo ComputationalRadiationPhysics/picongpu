@@ -140,5 +140,7 @@ namespace picongpu
                 pmacc::math::UInt64<DIM> const& globalDimensions,
                 std::string const& datasetName);
         };
+
+        std::string printAvailableExtensions();
     } // namespace openPMD
 } // namespace picongpu
