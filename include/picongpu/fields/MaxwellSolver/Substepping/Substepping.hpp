@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
@@ -28,6 +29,7 @@
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 #include <pmacc/types.hpp>
 
@@ -114,7 +116,8 @@ namespace picongpu
 
                 /** Perform the first part of E and B propagation by a PIC time step.
                  *
-                 * Together with update_afterCurrent() forms the full propagation by a PIC time step.
+                 * Does not account for the J term, which will be added by addCurrent().
+                 * Together with addCurrent() and update_afterCurrent() forms the full propagation by a PIC time step.
                  *
                  * Here we only do the update_beforeCurrent for the first substep.
                  * However the calling side should not rely on any particular state of fields after this function.
@@ -126,9 +129,31 @@ namespace picongpu
                     this->updateBeforeCurrent(static_cast<float_X>(currentStep));
                 }
 
+                /** Add contribution of FieldJ in the given area according to Ampere's law
+                 *
+                 * @tparam T_area area to operate on
+                 */
+                template<uint32_t T_area>
+                void addCurrent()
+                {
+                    // Since this is also called internally, check if currents exist in the simulation
+                    using namespace pmacc;
+                    using SpeciesWithCurrentSolver =
+                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
+                    constexpr auto numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
+                    constexpr auto existsCurrent = numSpeciesWithCurrentSolver > 0;
+                    if constexpr(existsCurrent)
+                    {
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        this->template addCurrentImpl<T_area>(fieldJ);
+                    }
+                }
+
                 /** Perform the last part of E and B propagation by a PIC time step
                  *
-                 * Together with update_beforeCurrent() forms the full propagation by a PIC time step.
+                 * Does not account for the J term, which has been added by addCurrent().
+                 * Together with addCurrent() and update_beforeCurrent() forms the full propagation by a PIC time step.
                  *
                  * Here we finish the first substep and then iterate over all remaining substeps doing a full update.
                  * However the calling side should not rely on any particular state of fields before this function.
@@ -145,35 +170,9 @@ namespace picongpu
                         auto const currentStepAndSubstep
                             = static_cast<float_X>(currentStep) + static_cast<float_X>(subStep) * getTimeStep();
                         this->updateBeforeCurrent(currentStepAndSubstep);
-                        addCurrent();
+                        // By now FieldJ has been communicated so we can directly add it
+                        addCurrent<type::CORE + type::BORDER>();
                         this->updateAfterCurrent(currentStepAndSubstep);
-                    }
-                }
-
-            private:
-                /** Interpolate current and add its contribution to the field
-                 *
-                 * This function assumes fieldJ already has values after synchronization between ranks.
-                 * It is always true given the computational loop structure as we always call it inside
-                 * update_afterCurrent() and so (some) currents were already added.
-                 */
-                void addCurrent()
-                {
-                    using namespace pmacc;
-                    using SpeciesWithCurrentSolver =
-                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
-                    constexpr auto numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
-                    constexpr auto existsCurrent = numSpeciesWithCurrentSolver > 0;
-                    if constexpr(existsCurrent)
-                    {
-                        DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
-                        constexpr auto area = type::CORE + type::BORDER;
-                        auto const kind = currentInterpolation::CurrentInterpolation::get().kind;
-                        if(kind == currentInterpolation::CurrentInterpolation::Kind::None)
-                            fieldJ.addCurrentToEMF<area>(currentInterpolation::None{});
-                        else
-                            fieldJ.addCurrentToEMF<area>(currentInterpolation::Binomial{});
                     }
                 }
             };

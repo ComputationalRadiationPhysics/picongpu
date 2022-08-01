@@ -29,6 +29,7 @@
 
 #include <pmacc/types.hpp>
 
+#include <cstdint>
 #include <limits>
 
 
@@ -52,6 +53,11 @@ namespace picongpu
                 }
 
                 void update_beforeCurrent(uint32_t)
+                {
+                }
+
+                template<uint32_t T_area>
+                void addCurrent()
                 {
                 }
 

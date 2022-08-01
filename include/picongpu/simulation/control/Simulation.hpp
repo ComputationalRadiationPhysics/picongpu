@@ -570,7 +570,7 @@ namespace picongpu
             atomicPhysics->runSolver(currentStep);
             CurrentBackground{*cellDescription}(currentStep);
             CurrentDeposition{}(currentStep);
-            currentInterpolationAndAdditionToEMF(currentStep);
+            currentInterpolationAndAdditionToEMF(currentStep, *myFieldSolver);
             myFieldSolver->update_afterCurrent(currentStep);
         }
 

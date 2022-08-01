@@ -22,6 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
@@ -29,6 +30,7 @@
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 
 #include <cstdint>
@@ -60,7 +62,8 @@ namespace picongpu
 
                 /** Perform the first part of E and B propagation by a PIC time step.
                  *
-                 * Together with update_afterCurrent() forms the full propagation by a PIC time step.
+                 * Does not account for the J term, which will be added by addCurrent().
+                 * Together with addCurrent() and update_afterCurrent() forms the full propagation by a PIC time step.
                  *
                  * @param currentStep index of the current time iteration
                  */
@@ -69,9 +72,22 @@ namespace picongpu
                     this->updateBeforeCurrent(static_cast<float_X>(currentStep));
                 }
 
+                /** Add contribution of FieldJ in the given area according to Ampere's law
+                 *
+                 * @tparam T_area area to operate on
+                 */
+                template<uint32_t T_area>
+                void addCurrent()
+                {
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    this->template addCurrentImpl<T_area>(fieldJ);
+                }
+
                 /** Perform the last part of E and B propagation by a PIC time step
                  *
-                 * Together with update_beforeCurrent() forms the full propagation by a PIC time step.
+                 * Does not account for the J term, which has been added by addCurrent().
+                 * Together with addCurrent() and update_beforeCurrent() forms the full propagation by a PIC time step.
                  *
                  * @param currentStep index of the current time iteration
                  */
