@@ -185,8 +185,12 @@ namespace picongpu
         else
             exchangeBytes = ExchangeMemCfg::BYTES_CORNER;
 
+        /* PIConGPU default case is running with 32bit (4byte) precision. In case double precision is used the particle
+         * buffers must be twice as large to avoid that a communication must be split into multiple sends.
+         */
+        double precisionMultiplier = static_cast<double>(sizeof(float_X)) / static_cast<double>(sizeof(float));
         // using double to calculate the memory size is fine, double can precise store integer values up too 2^53
-        return exchangeBytes * exchangeScalingFactor;
+        return exchangeBytes * exchangeScalingFactor * precisionMultiplier;
     }
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>
