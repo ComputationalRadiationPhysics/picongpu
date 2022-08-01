@@ -122,7 +122,7 @@ if __name__ == '__main__':
         elif opt in ("-i", "--ifile"):
             file = arg
 
-    if(type in ["compile", "run"]):
+    if (type in ["compile", "run"]):
         print(parse(file, type))
     else:
         print("-t option not understood! Either choose 'compile' or 'run'!")
