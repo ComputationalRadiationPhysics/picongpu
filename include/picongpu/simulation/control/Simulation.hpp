@@ -1,6 +1,7 @@
 /* Copyright 2013-2022 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
+ *                     Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -40,6 +41,7 @@
 #include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
+#include "picongpu/simulation/stage/AtomicPhysics.hpp"
 #include "picongpu/simulation/stage/Bremsstrahlung.hpp"
 #include "picongpu/simulation/stage/Collision.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
@@ -103,7 +105,6 @@
 
 #include <functional>
 #include <memory>
-
 
 namespace picongpu
 {
@@ -328,6 +329,9 @@ namespace picongpu
 
             // initialize particle boundaries
             particleBoundaries.init();
+
+            // create atomic physics instance, stored as protected member
+            this->atomicPhysics = std::make_unique<simulation::stage::AtomicPhysics>(*cellDescription);
 
             // initialize runtime density file paths
             runtimeDensityFile.init();
@@ -563,6 +567,7 @@ namespace picongpu
             fieldBackground.subtract(currentStep);
             myFieldSolver->update_beforeCurrent(currentStep);
             __setTransactionEvent(commEvent);
+            atomicPhysics->runSolver(currentStep);
             CurrentBackground{*cellDescription}(currentStep);
             CurrentDeposition{}(currentStep);
             currentInterpolationAndAdditionToEMF(currentStep);
@@ -643,6 +648,8 @@ namespace picongpu
         // Field background stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::FieldBackground fieldBackground;
+
+        std::unique_ptr<simulation::stage::AtomicPhysics> atomicPhysics;
 
         // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

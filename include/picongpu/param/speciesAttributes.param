@@ -1,5 +1,5 @@
 /* Copyright 2014-2022 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
- *                     Heiko Burau
+ *                     Heiko Burau, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -119,6 +119,14 @@ namespace picongpu
      * see also flylite.param
      */
     value_identifier(flylite::Superconfig, superconfig, flylite::Superconfig::create(0.));
+
+    //! alias for one of two representations of the atomic state, see also atomicPhysics.param
+    alias(atomicLevels);
+
+    //! alias for atomic state of ion, see also atomicPhysics.param
+    alias(atomicConfigNumber);
+
+    alias(atomicPhysicsSolver);
 
     /** Total cell index of a particle.
      *
