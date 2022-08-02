@@ -24,15 +24,18 @@
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.kernel"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/absorber/pml/Pml.hpp"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
+#include <cstdint>
 #include <memory>
 
 
@@ -83,7 +86,8 @@ namespace picongpu
                     /** Perform the first part of E and B propagation
                      *  from t_start = currentStep * DELTA_T to t_end = t_start + timeStep.
                      *
-                     * Together with updateAfterCurrent() forms the full propagation by timeStep.
+                     * Does not account for the J term, which will be added by addCurrent().
+                     * Together with addCurrent() and updateAfterCurrent() forms the full propagation by timeStep.
                      *
                      * @param currentStep index of the current time iteration,
                      *                    note that it is in units of DELTA_T, not timeStep
@@ -115,10 +119,25 @@ namespace picongpu
                         updateE<BORDER>(currentStep);
                     }
 
+                    /** Add contribution of the given current density according to Ampere's law
+                     *
+                     * @param fieldJ current density to be added
+                     */
+                    template<uint32_t T_area>
+                    void addCurrentImpl(FieldJ& fieldJ)
+                    {
+                        auto const kind = currentInterpolation::CurrentInterpolation::get().kind;
+                        if(kind == currentInterpolation::CurrentInterpolation::Kind::None)
+                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::None{});
+                        else
+                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::Binomial{});
+                    }
+
                     /** Perform the last part of E and B propagation
                      *  from t_start = currentStep * DELTA_T to t_end = t_start + timeStep.
                      *
-                     * Together with updateBeforeCurrent() forms the full propagation by timeStep.
+                     * Does not account for the J term, which has been added by addCurrent().
+                     * Together with addCurrent() and updateBeforeCurrent() forms the full propagation by timeStep.
                      *
                      * @param currentStep index of the current time iteration,
                      *                    note that it is in units of DELTA_T, not timeStep

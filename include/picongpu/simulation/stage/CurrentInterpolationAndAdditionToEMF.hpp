@@ -86,8 +86,9 @@ namespace picongpu
                 /** Compute the current created by particles and add it to the current density
                  *
                  * @param step index of time iteration
+                 * @param fieldSolver field solver
                  */
-                void operator()(uint32_t const step) const
+                void operator()(uint32_t const step, fields::Solver& fieldSolver) const
                 {
                     using namespace pmacc;
                     using SpeciesWithCurrentSolver =
@@ -109,9 +110,9 @@ namespace picongpu
                         if(currentRecvLower == DataSpace<simDim>::create(0)
                            && currentRecvUpper == DataSpace<simDim>::create(0))
                         {
-                            addCurrentToEMF<type::CORE>(fieldJ);
+                            fieldSolver.addCurrent<type::CORE>();
                             __setTransactionEvent(eRecvCurrent);
-                            addCurrentToEMF<type::BORDER>(fieldJ);
+                            fieldSolver.addCurrent<type::BORDER>();
                         }
                         else
                         {
@@ -123,7 +124,7 @@ namespace picongpu
                              * \todo split the last `receive` part in a separate method to
                              *       allow already a computation of CORE */
                             __setTransactionEvent(eRecvCurrent);
-                            addCurrentToEMF<type::CORE + type::BORDER>(fieldJ);
+                            fieldSolver.addCurrent<type::CORE + type::BORDER>();
                         }
                     }
                 }
@@ -131,30 +132,6 @@ namespace picongpu
             private:
                 //! Name set by program option
                 std::string kindName = "none";
-
-                /* Call addCurrentToEMF method of fieldJ for the given area
-                 *
-                 * This function performs a transition from the run-time realm of CurrentInterpolation into the
-                 * template realm of fieldJ.addCurrentToEMF() operating with interpolation functors.
-                 *
-                 * @tparam T_area area to operate once
-                 *
-                 * @param fieldJ object representing the current field
-                 */
-                template<std::uint32_t T_area>
-                void addCurrentToEMF(FieldJ& fieldJ) const
-                {
-                    // None solver does not integrate Ampere's law, so will not have J added to E
-                    bool isNoneFieldSolver = std::is_same_v<fields::Solver, fields::maxwellSolver::None>;
-                    if(isNoneFieldSolver)
-                        return;
-                    using namespace fields::currentInterpolation;
-                    auto const kind = CurrentInterpolation::get().kind;
-                    if(kind == CurrentInterpolation::Kind::None)
-                        fieldJ.addCurrentToEMF<T_area>(None{});
-                    else
-                        fieldJ.addCurrentToEMF<T_area>(Binomial{});
-                }
             };
 
         } // namespace stage
