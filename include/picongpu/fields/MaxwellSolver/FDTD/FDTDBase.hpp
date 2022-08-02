@@ -126,11 +126,13 @@ namespace picongpu
                     template<uint32_t T_area>
                     void addCurrentImpl(FieldJ& fieldJ)
                     {
+                        // Coefficient in front of J in Ampere's law
+                        constexpr float_X coeff = -(1.0_X / EPS0) * timeStep;
                         auto const kind = currentInterpolation::CurrentInterpolation::get().kind;
                         if(kind == currentInterpolation::CurrentInterpolation::Kind::None)
-                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::None{});
+                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::None{}, coeff);
                         else
-                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::Binomial{});
+                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::Binomial{}, coeff);
                     }
 
                     /** Perform the last part of E and B propagation

@@ -152,15 +152,16 @@ namespace picongpu
         template<uint32_t T_area, class T_Species>
         HINLINE void computeCurrent(T_Species& species, uint32_t currentStep);
 
-        /** Smooth current density and add it to the electric field
+        /** Smooth current density and add it to the electric field with the given coefficient
          *
          * @tparam T_area area to operate on
          * @tparam T_CurrentInterpolationFunctor current interpolation functor type
          *
          * @param myCurrentInterpolationFunctor current interpolation functor
+         * @param coeff coefficient to be used in the current interpolation functor
          */
         template<uint32_t T_area, class T_CurrentInterpolationFunctor>
-        HINLINE void addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor);
+        HINLINE void addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor, float_X coeff);
 
         /** Bash field in a direction.
          *

@@ -266,7 +266,7 @@ namespace picongpu
     }
 
     template<uint32_t T_area, class T_CurrentInterpolationFunctor>
-    void FieldJ::addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor)
+    void FieldJ::addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor, float_X const coeff)
     {
         DataConnector& dc = Environment<>::get().DataConnector();
         auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
@@ -283,6 +283,7 @@ namespace picongpu
             fieldB->getDeviceDataBox(),
             buffer.getDeviceBuffer().getDataBox(),
             myCurrentInterpolationFunctor,
+            coeff,
             mapper);
     }
 

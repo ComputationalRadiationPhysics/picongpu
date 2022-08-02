@@ -173,6 +173,7 @@ namespace picongpu
                 typename FieldB::DataBoxType fieldB,
                 typename FieldJ::DataBoxType fieldJ,
                 T_CurrentInterpolationFunctor currentInterpolationFunctor,
+                float_X const coeff,
                 T_Mapping mapper) const
             {
                 /* Caching of fieldJ */
@@ -209,11 +210,11 @@ namespace picongpu
                             = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
                         DataSpace<simDim> const cell(blockCell + cellIdx);
 
-                        // Amperes Law:
-                        //   Change of the dE = - j / EPS0 * dt
-                        //                        j = current density (= current per area)
-                        //                          = fieldJ
-                        currentInterpolationFunctor(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx));
+                        currentInterpolationFunctor(
+                            fieldE.shift(cell),
+                            fieldB.shift(cell),
+                            cachedJ.shift(cellIdx),
+                            coeff);
                     });
             }
         };
