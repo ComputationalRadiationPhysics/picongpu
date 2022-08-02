@@ -57,7 +57,7 @@ second order accurate approximation of the derivative.
 Using more neighbors for finite difference calculation of the spatial derivatives is possible in PIConGPU and increases the approximation order of these derivatives.
 Note, however, that the order of the whole Maxwell's solver also depends on accuracy of :math:`\vec{J}` calculation on the grid.
 For those values PIConGPU provides only second-order accuracy in terms of time and spatial grid steps (as the underlying discretized continuity equation is of that order) regardless of the chosen field solver.
-Thus, in the general case the arbitrary order finite difference solver as a whole still has second order accuracy in space, and only provides arbitrary order in finite difference approximation of curls.
+Thus, in the general case the Maxwell's solver as a whole still has second order accuracy in space, and only provides arbitrary order in finite difference approximation of curls.
 
 For the latter, the accuracy order scales with twice the number of neighbors :math:`M` used to approximate the derivative.
 The arbitrary order finite difference derivative approximation of order :math:`2M` reads
