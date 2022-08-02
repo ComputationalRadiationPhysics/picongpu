@@ -30,8 +30,7 @@ namespace picongpu
         {
             namespace aoFDTD
             {
-                /** Tag for forward derivative used in CurlE
-                 *  of the ArbitraryOrderFDTD solver
+                /** Tag for derivative used in CurlE of the ArbitraryOrderFDTD solver
                  *
                  * @tparam T_neighbors Number of neighbors used to calculate
                  *                     the spatial derivatives with finite differences.
@@ -40,8 +39,7 @@ namespace picongpu
                 template<uint32_t T_neighbors>
                 struct Forward;
 
-                /** Tag for forward derivative used in CurlE
-                 *  of the ArbitraryOrderFDTD solver
+                /** Tag for derivative used in CurlB of the ArbitraryOrderFDTD solver
                  *
                  * @tparam T_neighbors Number of neighbors used to calculate
                  *                     the spatial derivatives with finite differences.
