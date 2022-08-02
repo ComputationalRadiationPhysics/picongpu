@@ -94,8 +94,8 @@ namespace picongpu
                     using SpeciesWithCurrentSolver =
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
                     auto const numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
-                    auto const existsCurrent = numSpeciesWithCurrentSolver > 0;
-                    if(existsCurrent)
+                    auto const existsParticleCurrent = numSpeciesWithCurrentSolver > 0;
+                    if(existsParticleCurrent)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
@@ -124,6 +124,16 @@ namespace picongpu
                              * \todo split the last `receive` part in a separate method to
                              *       allow already a computation of CORE */
                             __setTransactionEvent(eRecvCurrent);
+                            fieldSolver.addCurrent<type::CORE + type::BORDER>();
+                        }
+                    }
+                    else
+                    {
+                        /* With no current from macroparticles, there is no need for communication.
+                         * However we may still have J from the background (if it is activated) in CORE and BORDER.
+                         */
+                        if(FieldBackgroundJ::activated)
+                        {
                             fieldSolver.addCurrent<type::CORE + type::BORDER>();
                         }
                     }
