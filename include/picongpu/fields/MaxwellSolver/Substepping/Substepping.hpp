@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
+#include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
@@ -189,6 +190,30 @@ namespace picongpu
             template<typename T_BaseSolver, uint32_t T_numSubsteps, typename T_Defer>
             struct CFLChecker<Substepping<T_BaseSolver, T_numSubsteps>, T_Defer> : CFLChecker<T_BaseSolver, T_Defer>
             {
+            };
+
+            /** Specialization of the dispersion relation for substepping solver
+             *
+             * Uses dispersion relation of the base solver, those already take care of using the correct time
+             * (sub)step.
+             *
+             * @tparam T_BaseSolver base field solver, follows requirements of field solvers
+             * @tparam T_numSubsteps number of substeps per PIC time iteration
+             */
+            template<typename T_BaseSolver, uint32_t T_numSubsteps>
+            class DispersionRelation<Substepping<T_BaseSolver, T_numSubsteps>>
+                : public DispersionRelation<T_BaseSolver>
+            {
+            public:
+                /** Create an instance with the given parameters
+                 *
+                 * @param omega angular frequency = 2pi * c / lambda
+                 * @param direction normalized propagation direction
+                 */
+                DispersionRelation(float_64 const omega, float3_64 const direction)
+                    : DispersionRelation<T_BaseSolver>(omega, direction)
+                {
+                }
             };
 
         } // namespace maxwellSolver
