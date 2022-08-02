@@ -38,6 +38,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 
 namespace picongpu
@@ -143,6 +144,10 @@ namespace picongpu
                 template<std::uint32_t T_area>
                 void addCurrentToEMF(FieldJ& fieldJ) const
                 {
+                    // None solver does not integrate Ampere's law, so will not have J added to E
+                    bool isNoneFieldSolver = std::is_same_v<fields::Solver, fields::maxwellSolver::None>;
+                    if(isNoneFieldSolver)
+                        return;
                     using namespace fields::currentInterpolation;
                     auto const kind = CurrentInterpolation::get().kind;
                     if(kind == CurrentInterpolation::Kind::None)

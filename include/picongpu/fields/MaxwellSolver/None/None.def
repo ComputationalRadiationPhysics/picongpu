@@ -31,6 +31,10 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
+            /** None solver does nothing and effectively skips integration of Maxwell's equations
+             *
+             * In particular, no J contribution is added to E.
+             */
             class None;
 
         } // namespace maxwellSolver

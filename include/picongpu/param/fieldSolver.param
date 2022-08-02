@@ -49,7 +49,7 @@ namespace picongpu
          * integer number. The order of the solver will be twice the number of neighbors in each direction. Yee's
          * method is a special case of this using one neighbor to each direction.
          *  - Substepping<Solver, 4>: use the given Solver (Yee, etc.) and substep each time step by factor 4
-         *  - None: disable the vacuum update of E and B
+         *  - None: disable the vacuum update of E and B, including no J contribution to E
          */
         using Solver = maxwellSolver::Yee;
 
