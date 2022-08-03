@@ -149,7 +149,7 @@ namespace picongpu
                         auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
                         // Coefficient in front of J in Ampere's law
                         constexpr float_X coeff = -(1.0_X / EPS0) * getTimeStep();
-                        this->template addCurrentImpl<T_area>(fieldJ, coeff);
+                        this->template addCurrentImpl<T_area>(fieldJ.getDeviceDataBox(), coeff);
                     }
                 }
 
