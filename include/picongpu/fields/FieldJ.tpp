@@ -25,7 +25,6 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldJ.kernel"
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
@@ -263,28 +262,6 @@ namespace picongpu
 
         auto const deposit = currentSolver::Deposit<Strategy>{};
         deposit.template execute<T_area, numWorkers>(cellDescription, depositionKernel, solver, jBox, pBox);
-    }
-
-    template<uint32_t T_area, class T_CurrentInterpolationFunctor>
-    void FieldJ::addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor, float_X const coeff)
-    {
-        DataConnector& dc = Environment<>::get().DataConnector();
-        auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-        auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
-
-        auto const mapper = makeAreaMapper<T_area>(cellDescription);
-
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
-        PMACC_KERNEL(currentSolver::KernelAddCurrentToEMF<numWorkers>{})
-        (mapper.getGridDim(), numWorkers)(
-            fieldE->getDeviceDataBox(),
-            fieldB->getDeviceDataBox(),
-            buffer.getDeviceBuffer().getDataBox(),
-            myCurrentInterpolationFunctor,
-            coeff,
-            mapper);
     }
 
     void FieldJ::bashField(uint32_t exchangeType)

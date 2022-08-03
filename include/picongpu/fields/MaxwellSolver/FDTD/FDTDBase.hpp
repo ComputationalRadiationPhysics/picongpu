@@ -26,6 +26,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/MaxwellSolver/AddCurrentDensity.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.kernel"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/absorber/Absorber.hpp"
@@ -128,11 +129,12 @@ namespace picongpu
                     {
                         // Coefficient in front of J in Ampere's law
                         constexpr float_X coeff = -(1.0_X / EPS0) * timeStep;
+                        auto const addCurrentDensity = AddCurrentDensity<T_area>{cellDescription};
                         auto const kind = currentInterpolation::CurrentInterpolation::get().kind;
                         if(kind == currentInterpolation::CurrentInterpolation::Kind::None)
-                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::None{}, coeff);
+                            addCurrentDensity(fieldJ.getDeviceDataBox(), currentInterpolation::None{}, coeff);
                         else
-                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::Binomial{}, coeff);
+                            addCurrentDensity(fieldJ.getDeviceDataBox(), currentInterpolation::Binomial{}, coeff);
                     }
 
                     /** Perform the last part of E and B propagation
