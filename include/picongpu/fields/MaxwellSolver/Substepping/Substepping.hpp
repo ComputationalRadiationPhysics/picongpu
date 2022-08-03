@@ -142,7 +142,7 @@ namespace picongpu
                     using SpeciesWithCurrentSolver =
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
                     constexpr auto numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
-                    constexpr auto existsCurrent = numSpeciesWithCurrentSolver > 0;
+                    constexpr auto existsCurrent = (numSpeciesWithCurrentSolver > 0) || FieldBackgroundJ::activated;
                     if constexpr(existsCurrent)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
