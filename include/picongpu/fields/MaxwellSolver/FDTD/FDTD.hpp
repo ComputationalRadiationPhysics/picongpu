@@ -25,7 +25,6 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.hpp"
-#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -81,7 +80,9 @@ namespace picongpu
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
-                    this->template addCurrentImpl<T_area>(fieldJ);
+                    // Coefficient in front of J in Ampere's law
+                    constexpr float_X coeff = -(1.0_X / EPS0) * DELTA_T;
+                    this->template addCurrentImpl<T_area>(fieldJ, coeff);
                 }
 
                 /** Perform the last part of E and B propagation by a PIC time step
