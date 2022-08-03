@@ -59,10 +59,12 @@ namespace picongpu
                  */
                 void registerHelp(po::options_description& desc)
                 {
+                    // Current backround and binomial interpolation are incompatible #4250
+                    auto const options = std::string{"[none"} + (hasCurrentBackground ? "" : ", binomial") + "]";
                     desc.add_options()(
                         "currentInterpolation",
                         po::value<std::string>(&kindName),
-                        std::string("Current interpolation kind [none, binomial] default: " + kindName).c_str());
+                        (std::string{"Current interpolation kind "} + options + " default: " + kindName).c_str());
                 }
 
                 /** Initialize the current interpolation stage
@@ -78,7 +80,13 @@ namespace picongpu
                     if(kindName == "none")
                         interpolation.kind = CurrentInterpolation::Kind::None;
                     else if(kindName == "binomial")
+                    {
+                        // Current backround and binomial interpolation are incompatible #4250
+                        if(hasCurrentBackground)
+                            throw std::runtime_error(
+                                "With current background enabled, only None current interpolation is allowed");
                         interpolation.kind = CurrentInterpolation::Kind::Binomial;
+                    }
                     else
                         throw std::runtime_error("Unsupported current interpolation type");
                 }
@@ -132,7 +140,7 @@ namespace picongpu
                         /* With no current from macroparticles, there is no need for communication.
                          * However we may still have J from the background (if it is activated) in CORE and BORDER.
                          */
-                        if(FieldBackgroundJ::activated)
+                        if(hasCurrentBackground)
                         {
                             fieldSolver.addCurrent<type::CORE + type::BORDER>();
                         }
@@ -142,6 +150,9 @@ namespace picongpu
             private:
                 //! Name set by program option
                 std::string kindName = "none";
+
+                //! Whether current background is activated
+                static constexpr auto hasCurrentBackground = FieldBackgroundJ::activated;
             };
 
         } // namespace stage
