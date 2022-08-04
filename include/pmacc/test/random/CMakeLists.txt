@@ -19,10 +19,19 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 3.15.0)
+cmake_minimum_required(VERSION 3.18.0)
 project("TestRandomGenerators")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+
+###############################################################################
+# Language Flags
+###############################################################################
+
+# enforce C++17
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 17)
 
 
 ################################################################################
@@ -39,16 +48,13 @@ endif()
 # PMacc
 ################################################################################
 find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${PMacc_LIBRARIES})
-add_definitions(${PMacc_DEFINITIONS})
 
 ###############################################################################
 # Targets
 ###############################################################################
 
 cupla_add_executable(TestRng 2DDistribution.cpp)
-target_link_libraries(TestRng ${LIBS})
+target_link_libraries(TestRng PRIVATE pmacc::pmacc)
 
 add_custom_target(run
     COMMAND mpiexec -n 1 TestRng

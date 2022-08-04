@@ -72,9 +72,6 @@ get_filename_component(PMACC_ROOT_DIR "${PMACC_ROOT_DIR}" ABSOLUTE)
 ################################################################################
 
 find_package(PMacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${PMacc_LIBRARIES})
-add_definitions(${PMacc_DEFINITIONS})
 
 
 ###############################################################################
@@ -85,13 +82,10 @@ add_subdirectory(${PMACC_ROOT_DIR}/../../thirdParty/catch2/catch_main ${CMAKE_BI
 
 
 ################################################################################
-# Find MPI
+# MPI
 ################################################################################
 
-find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
-
+# MPI is provided by pmacc but to execute the binaries via root additional flags must be given to the execution command
 option(USE_MPI_AS_ROOT_USER "add --allow-run-as-root mpiexec used by ctest" OFF)
 
 if(USE_MPI_AS_ROOT_USER)
@@ -117,8 +111,8 @@ foreach(dim 2 3)
         set(testExe "${PROJECT_NAME}-${testCase}-${dim}D")
         cupla_add_executable(${testExe} ${testCaseFilepath})
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
-        target_link_libraries(${testExe} PUBLIC ${LIBS})
         target_link_libraries(${testExe} PUBLIC CatchMain)
+        target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
         add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe})
     endforeach()
     string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
