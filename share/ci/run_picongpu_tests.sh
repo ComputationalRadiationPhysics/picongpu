@@ -24,15 +24,21 @@ if [ -n "$CI_CLANG_AS_CUDA_COMPILER" ] ; then
   CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CUDA_COMPILER=${CXX_VERSION}"
 fi
 
-# enforce optional dependencies
-CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
+if [[ "$PIC_TEST_CASE_FOLDER" =~ .*Empty.* ]] ; then
+    # For the empty test case (default param files) we disable all optional dependencies to have at least one check
+    # where all dependencies are disabled.
+    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF -DPIC_USE_openPMD=OFF -DPIC_USE_PNGwriter=OFF"
+else
+    # enforce optional dependencies
+    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
 
-# ISAAC together with the example FoilLCT is to complex therefore the CI is always running out of memory.
-if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* || "$PIC_TEST_CASE_FOLDER" =~ .*WarmCopper.* ]] ; then
-    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
-    export CI_CPUS=1
-elif [ -z "$DISABLE_ISAAC" ] ; then
-    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+    # ISAAC together with the example FoilLCT is to complex therefore the CI is always running out of memory.
+    if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* || "$PIC_TEST_CASE_FOLDER" =~ .*WarmCopper.* ]] ; then
+        CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
+        export CI_CPUS=1
+    elif [ -z "$DISABLE_ISAAC" ] ; then
+        CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+    fi
 fi
 
 # Test is running out of memory, therefore we do not run in parallel.

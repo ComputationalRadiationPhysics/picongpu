@@ -17,11 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
-#include <iterator>
-#include <sstream>
+#if(ENABLE_OPENPMD == 1)
 
-#include <openPMD/openPMD.hpp>
+#    include <algorithm>
+#    include <iterator>
+#    include <sstream>
+
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu::openPMD
 {
@@ -50,3 +52,5 @@ namespace picongpu::openPMD
         }
     }
 } // namespace picongpu::openPMD
+
+#endif
