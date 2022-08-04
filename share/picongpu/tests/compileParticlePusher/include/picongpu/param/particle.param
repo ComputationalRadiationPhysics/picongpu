@@ -70,14 +70,21 @@ namespace picongpu
             };
             using AssignXDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
 
-            struct TemperatureParam
+            //! Functor for a temperature assignment, follows requirements of param::TemperatureFunctor
+            struct TemperatureFunctor
             {
-                /* Initial temperature
-                 *  unit: keV
+                /** Return the temperature in keV for the given position
+                 *
+                 * Return type may be float_X or float_64.
+                 *
+                 * @param totalCellOffset total offset including all slides [in cells]
                  */
-                static constexpr float_64 temperature = 0.0005;
+                HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+                {
+                    return 0.0005_X;
+                }
             };
-            using AddTemperature = unary::Temperature<TemperatureParam>;
+            using AddFreeTemperature = unary::FreeTemperature<TemperatureFunctor>;
 
         } // namespace manipulators
     } // namespace particles
