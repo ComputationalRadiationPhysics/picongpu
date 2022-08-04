@@ -94,6 +94,9 @@ Temperature
 .. doxygentypedef:: picongpu::particles::manipulators::unary::Temperature
    :project: PIConGPU
 
+.. doxygentypedef:: picongpu::particles::manipulators::unary::FreeTemperature
+   :project: PIConGPU
+
 Assign
 ~~~~~~
 
