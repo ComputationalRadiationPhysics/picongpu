@@ -21,8 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
-
 #include <pmacc/dimensions/DataSpace.hpp>
 
 
@@ -46,8 +44,23 @@ namespace picongpu
                     using LowerMargin = typename pmacc::math::CT::make_Int<dim, 1>::type;
                     using UpperMargin = LowerMargin;
 
+                    /** Perform pointwise E(idx) += coeff * BinomialFilter(J(idx))
+                     *
+                     * @tparam T_DataBoxE electric field data box type
+                     * @tparam T_DataBoxB magnetic field data box type
+                     * @tparam T_DataBoxJ current density data box type
+                     *
+                     * @param fieldE electric field data box
+                     * @param fieldB magnetic field data box
+                     * @param fieldJ current density data box
+                     * @param coeff coefficient value
+                     */
                     template<typename T_DataBoxE, typename T_DataBoxB, typename T_DataBoxJ>
-                    HDINLINE void operator()(T_DataBoxE fieldE, T_DataBoxB const, T_DataBoxJ const fieldJ)
+                    HDINLINE void operator()(
+                        T_DataBoxE fieldE,
+                        T_DataBoxB const,
+                        T_DataBoxJ const fieldJ,
+                        float_X const coeff)
                     {
                         using TypeJ = typename T_DataBoxJ::ValueType;
                         using DS = DataSpace<dim>;
@@ -91,10 +104,9 @@ namespace picongpu
                          */
                         constexpr float_X inverseDivisor = 1._X / (M + 6._X * S + 12._X * D + 8._X * T);
                         averagedJ *= inverseDivisor;
-                        *fieldE -= averagedJ * (1._X / EPS0) * maxwellSolver::getTimeStep();
+                        *fieldE += coeff * averagedJ;
                     }
                 };
-
 
                 //! Specialization for 2D
                 template<>
@@ -105,8 +117,23 @@ namespace picongpu
                     using LowerMargin = typename pmacc::math::CT::make_Int<dim, 1>::type;
                     using UpperMargin = LowerMargin;
 
+                    /** Perform pointwise E(idx) += coeff * BinomialFilter(J(idx))
+                     *
+                     * @tparam T_DataBoxE electric field data box type
+                     * @tparam T_DataBoxB magnetic field data box type
+                     * @tparam T_DataBoxJ current density data box type
+                     *
+                     * @param fieldE electric field data box
+                     * @param fieldB magnetic field data box
+                     * @param fieldJ current density data box
+                     * @param coeff coefficient value
+                     */
                     template<typename T_DataBoxE, typename T_DataBoxB, typename T_DataBoxJ>
-                    HDINLINE void operator()(T_DataBoxE fieldE, T_DataBoxB const, T_DataBoxJ const fieldJ)
+                    HDINLINE void operator()(
+                        T_DataBoxE fieldE,
+                        T_DataBoxB const,
+                        T_DataBoxJ const fieldJ,
+                        float_X const coeff)
                     {
                         using TypeJ = typename T_DataBoxJ::ValueType;
                         using DS = DataSpace<dim>;
@@ -134,7 +161,7 @@ namespace picongpu
                          */
                         constexpr float_X inverseDivisor = 1._X / (M + 4._X * S + 4._X * D);
                         averagedJ *= inverseDivisor;
-                        *fieldE -= averagedJ * (1._X / EPS0) * maxwellSolver::getTimeStep();
+                        *fieldE += coeff * averagedJ;
                     }
                 };
 

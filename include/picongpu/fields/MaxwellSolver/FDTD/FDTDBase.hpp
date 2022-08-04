@@ -26,6 +26,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/MaxwellSolver/AddCurrentDensity.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.kernel"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/absorber/Absorber.hpp"
@@ -119,18 +120,23 @@ namespace picongpu
                         updateE<BORDER>(currentStep);
                     }
 
-                    /** Add contribution of the given current density according to Ampere's law
+                    /** Add contribution of the given current density with the given coefficient
                      *
-                     * @param fieldJ current density to be added
+                     * @tparam T_area area to operate on
+                     * @tparam T_JBox type of device data box with current density values
+                     *
+                     * @param dataBoxJ device data box with current density values
+                     * @param coeff coefficient value
                      */
-                    template<uint32_t T_area>
-                    void addCurrentImpl(FieldJ& fieldJ)
+                    template<uint32_t T_area, typename T_JBox>
+                    void addCurrentImpl(T_JBox dataBoxJ, float_X const coeff)
                     {
+                        auto const addCurrentDensity = AddCurrentDensity<T_area>{cellDescription};
                         auto const kind = currentInterpolation::CurrentInterpolation::get().kind;
                         if(kind == currentInterpolation::CurrentInterpolation::Kind::None)
-                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::None{});
+                            addCurrentDensity(dataBoxJ, currentInterpolation::None{}, coeff);
                         else
-                            fieldJ.addCurrentToEMF<T_area>(currentInterpolation::Binomial{});
+                            addCurrentDensity(dataBoxJ, currentInterpolation::Binomial{}, coeff);
                     }
 
                     /** Perform the last part of E and B propagation
