@@ -123,9 +123,7 @@ namespace picongpu
         const DataSpace<simDim> endRecvGuard = interpolationUpperMargin;
         if(originRecvGuard != DataSpace<simDim>::create(0) || endRecvGuard != DataSpace<simDim>::create(0))
         {
-            fieldJrecv = std::make_unique<GridBuffer<ValueType, simDim>>(
-                buffer.getDeviceBuffer(),
-                cellDescription.getGridLayout());
+            fieldJrecv = std::make_unique<Buffer>(buffer.getDeviceBuffer(), cellDescription.getGridLayout());
 
             /*go over all directions*/
             for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
@@ -146,7 +144,7 @@ namespace picongpu
         }
     }
 
-    GridBuffer<FieldJ::ValueType, simDim>& FieldJ::getGridBuffer()
+    FieldJ::Buffer& FieldJ::getGridBuffer()
     {
         return buffer;
     }

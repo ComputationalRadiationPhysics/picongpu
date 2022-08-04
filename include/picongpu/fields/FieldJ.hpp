@@ -65,6 +65,9 @@ namespace picongpu
         //! Unit type of field components
         using UnitValueType = promoteType<float_64, ValueType>::type;
 
+        //! Type of host-device buffer for field values
+        using Buffer = pmacc::GridBuffer<ValueType, simDim>;
+
         //! Type of data box for field values on host and device
         using DataBoxType = DataBox<PitchedBox<ValueType, simDim>>;
 
@@ -78,7 +81,7 @@ namespace picongpu
         HINLINE virtual ~FieldJ() = default;
 
         //! Get a reference to the host-device buffer for the field values
-        HINLINE GridBuffer<ValueType, simDim>& getGridBuffer();
+        HINLINE Buffer& getGridBuffer();
 
         //! Get the grid layout
         HINLINE GridLayout<simDim> getGridLayout();
@@ -168,10 +171,10 @@ namespace picongpu
 
     private:
         //! Host-device buffer for current density values
-        GridBuffer<ValueType, simDim> buffer;
+        Buffer buffer;
 
         //! Buffer for receiving near-boundary values
-        std::unique_ptr<GridBuffer<ValueType, simDim>> fieldJrecv;
+        std::unique_ptr<Buffer> fieldJrecv;
     };
 
 } // namespace picongpu
