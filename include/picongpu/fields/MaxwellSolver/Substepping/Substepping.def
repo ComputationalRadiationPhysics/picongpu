@@ -46,6 +46,8 @@ namespace picongpu
              * Thus, it is transparent for the rest of the simulation (except code called inside field solver).
              * This solver is fully equivalent to T_BaseSolver when T_numSubsteps == 1.
              *
+             * This solver uses more memory as it requires a copy of FieldJ at the previous time step.
+             *
              * @tparam T_BaseSolver base field solver, follows requirements of field solvers
              * @tparam T_numSubsteps number of substeps per PIC time iteration
              */
