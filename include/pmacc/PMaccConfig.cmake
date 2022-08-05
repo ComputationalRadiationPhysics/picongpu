@@ -133,10 +133,14 @@ endif()
 # PMacc target
 ################################################################################
 
+file(GLOB_RECURSE PMACC_SRC_FILES "${PMacc_DIR}/*.cpp")
+# remove files located in the directory 'test'
+string(REGEX REPLACE "${PMacc_DIR}/test/.*" "" PMACC_SRC_FILES "${PMACC_SRC_FILES}")
+
 alpaka_add_library(
         pmacc
         STATIC
-        ${PMacc_DIR}/dummy.cpp
+        ${PMACC_SRC_FILES}
 )
 
 target_include_directories(pmacc
