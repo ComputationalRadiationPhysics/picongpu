@@ -66,7 +66,7 @@ namespace pmacc
          *
          * @return true if the task is finished, else otherwise
          */
-        inline bool isFinished();
+        bool isFinished();
 
         /**
          * Returns the EventStream this StreamTask is using.
@@ -94,7 +94,7 @@ namespace pmacc
         /**
          * Activates this task by recording an event on its stream.
          */
-        inline void activate();
+        void activate();
 
 
         EventStream* stream{nullptr};

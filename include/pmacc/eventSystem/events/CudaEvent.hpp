@@ -21,79 +21,83 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/events/CudaEvent.def"
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/assert.hpp"
 #include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
-    CudaEvent::CudaEvent()
+    /** Wrapper for cuplaEvent_t
+     *
+     * This class follows the RAII rules
+     */
+    class CudaEvent
     {
-        log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
-        CUDA_CHECK(cuplaEventCreateWithFlags(&event, cuplaEventDisableTiming));
-    }
+    private:
+        /** native cupla event */
+        cuplaEvent_t event;
+        /** native cupla stream where the event is recorded
+         *
+         *  only valid if isRecorded is true
+         */
+        cuplaStream_t stream;
+        /** state if event is recorded */
+        bool isRecorded{false};
+        /** state if a recorded event is finished
+         *
+         * avoid cupla driver calls after `isFinished()` returns the first time true
+         */
+        bool finished{true};
+
+        /** number of CudaEventHandle's to the instance */
+        uint32_t refCounter{0u};
 
 
-    CudaEvent::~CudaEvent()
-    {
-        PMACC_ASSERT(refCounter == 0u);
-        log(ggLog::CUDA_RT() + ggLog::EVENT(), "sync and delete event");
-        // free cupla event
-        CUDA_CHECK_NO_EXCEPT(cuplaEventSynchronize(event));
-        CUDA_CHECK_NO_EXCEPT(cuplaEventDestroy(event));
-    }
+    public:
+        /** Constructor
+         *
+         * if called before the cupla device is initialized the behavior is undefined
+         */
+        CudaEvent();
 
-    void CudaEvent::registerHandle()
-    {
-        ++refCounter;
-    }
+        /** Destructor */
+        ~CudaEvent();
 
-    void CudaEvent::releaseHandle()
-    {
-        assert(refCounter != 0u);
-        // get old value and decrement
-        uint32_t oldCounter = refCounter--;
-        if(oldCounter == 1u)
+        /** register a existing handle to a event instance */
+        void registerHandle();
+
+        /** free a registered handle */
+        void releaseHandle();
+
+        /** get native cuplaEvent_t object
+         *
+         * @return native cupla event
+         */
+        cuplaEvent_t operator*() const
         {
-            // reset event meta data
-            isRecorded = false;
-            finished = true;
-
-            Environment<>::get().EventPool().push(this);
+            return event;
         }
-    }
 
-
-    bool CudaEvent::isFinished()
-    {
-        // avoid cupla driver calls if event is already finished
-        if(finished)
-            return true;
-        assert(isRecorded);
-
-        cuplaError_t rc = cuplaEventQuery(event);
-
-        if(rc == cuplaSuccess)
+        /** get stream in which this event is recorded
+         *
+         * @return native cupla stream
+         */
+        cuplaStream_t getStream() const
         {
-            finished = true;
-            return true;
+            assert(isRecorded);
+            return stream;
         }
-        else if(rc == cuplaErrorNotReady)
-            return false;
-        else
-            PMACC_PRINT_CUPLA_ERROR_AND_THROW(rc, "Event query failed");
-    }
 
+        /** check whether the event is finished
+         *
+         * @return true if event is finished else false
+         */
+        bool isFinished();
 
-    void CudaEvent::recordEvent(cuplaStream_t stream)
-    {
-        /* disallow double recording */
-        assert(isRecorded == false);
-        isRecorded = true;
-        finished = false;
-        this->stream = stream;
-        CUDA_CHECK(cuplaEventRecord(event, stream));
-    }
-
+        /** record event in a device stream
+         *
+         * @param stream native cupla stream
+         */
+        void recordEvent(cuplaStream_t stream);
+    };
 } // namespace pmacc

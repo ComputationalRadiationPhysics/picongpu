@@ -19,21 +19,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "pmacc/eventSystem/events/EventTask.hpp"
 
+#include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/TaskLogicalAnd.hpp"
 
 namespace pmacc
 {
-    inline EventTask::EventTask(id_t taskId) : taskId(taskId)
+    EventTask::EventTask(id_t taskId) : taskId(taskId)
     {
     }
 
-    inline EventTask::EventTask() = default;
-
-    inline std::string EventTask::toString()
+    std::string EventTask::toString()
     {
         ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(taskId);
         if(task != nullptr)
@@ -42,28 +41,28 @@ namespace pmacc
         return std::string();
     }
 
-    inline id_t EventTask::getTaskId() const
-    {
-        return taskId;
-    }
-
-    inline bool EventTask::isFinished()
+    bool EventTask::isFinished()
     {
         return (Environment<>::get().Manager().getITaskIfNotFinished(taskId) == nullptr);
     }
 
-    inline void EventTask::waitForFinished() const
+    id_t EventTask::getTaskId() const
+    {
+        return taskId;
+    }
+
+    void EventTask::waitForFinished() const
     {
         Environment<>::get().Manager().waitForFinished(taskId);
     }
 
-    inline EventTask EventTask::operator+(const EventTask& other)
+    EventTask EventTask::operator+(const EventTask& other)
     {
         EventTask tmp = *this;
         return tmp += other;
     }
 
-    inline EventTask& EventTask::operator+=(const EventTask& other)
+    EventTask& EventTask::operator+=(const EventTask& other)
     {
         // If one of the two tasks is already finished, the other task is returned.
         // Otherwise, a TaskLogicalAnd is created and added to the Manager's queue.
@@ -91,7 +90,5 @@ namespace pmacc
 
         return *this;
     }
-
-    inline EventTask& EventTask::operator=(const EventTask& other) = default;
 
 } // namespace pmacc

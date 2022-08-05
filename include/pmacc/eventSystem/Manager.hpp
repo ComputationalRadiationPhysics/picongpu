@@ -50,7 +50,7 @@ namespace pmacc
         /*! Return a ITask pointer if ITask is not finished
          * @return ITask pointer if Task is not finished else nullptr
          */
-        inline ITask* getITaskIfNotFinished(id_t taskId) const;
+        ITask* getITaskIfNotFinished(id_t taskId) const;
 
         /**
          * blocks until the task with taskId is finished
@@ -67,7 +67,13 @@ namespace pmacc
          *             The functor is not allowed to execute MPI collectives or any other blocking function.
          */
         template<typename T_Functor>
-        void waitFor(T_Functor&& func);
+        void waitFor(T_Functor&& func)
+        {
+            while(!func())
+            {
+                this->execute();
+            }
+        }
 
         /**
          * blocks until all tasks in the manager are finished
@@ -88,13 +94,13 @@ namespace pmacc
     private:
         friend struct detail::Environment;
 
-        inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
+         ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 
-        inline ITask* getActiveITaskIfNotFinished(id_t taskId) const;
+         ITask* getActiveITaskIfNotFinished(id_t taskId) const;
 
-        Manager();
+        Manager() = default;
 
-        Manager(const Manager& cc);
+        Manager(const Manager& cc) = default;
 
         ~Manager() override;
 

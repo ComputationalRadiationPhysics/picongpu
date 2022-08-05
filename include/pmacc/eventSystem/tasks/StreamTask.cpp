@@ -19,34 +19,33 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 #include "pmacc/Environment.hpp"
-//#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/assert.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 namespace pmacc
 {
-    inline StreamTask::StreamTask() : ITask()
+    StreamTask::StreamTask() : ITask()
     {
         this->setTaskType(ITask::TASK_DEVICE);
     }
 
-    inline CudaEventHandle StreamTask::getCudaEventHandle() const
+    CudaEventHandle StreamTask::getCudaEventHandle() const
     {
         PMACC_ASSERT(hasCudaEventHandle);
         return cuplaEvent;
     }
 
-    inline void StreamTask::setCudaEventHandle(const CudaEventHandle& cuplaEvent)
+    void StreamTask::setCudaEventHandle(const CudaEventHandle& cuplaEvent)
     {
         this->hasCudaEventHandle = true;
         this->cuplaEvent = cuplaEvent;
     }
 
-    inline bool StreamTask::isFinished()
+    bool StreamTask::isFinished()
     {
         if(alwaysFinished)
             return true;
@@ -61,28 +60,28 @@ namespace pmacc
         return false;
     }
 
-    inline EventStream* StreamTask::getEventStream()
+    EventStream* StreamTask::getEventStream()
     {
         if(stream == nullptr)
             stream = __getEventStream(TASK_DEVICE);
         return stream;
     }
 
-    inline void StreamTask::setEventStream(EventStream* newStream)
+    void StreamTask::setEventStream(EventStream* newStream)
     {
         PMACC_ASSERT(newStream != nullptr);
         PMACC_ASSERT(stream == nullptr); // it is only allowed to set a stream if no stream is set before
         this->stream = newStream;
     }
 
-    inline cuplaStream_t StreamTask::getCudaStream()
+    cuplaStream_t StreamTask::getCudaStream()
     {
         if(stream == nullptr)
             stream = Environment<>::get().TransactionManager().getEventStream(TASK_DEVICE);
         return stream->getCudaStream();
     }
 
-    inline void StreamTask::activate()
+    void StreamTask::activate()
     {
         cuplaEvent = Environment<>::get().EventPool().pop();
         cuplaEvent.recordEvent(getCudaStream());

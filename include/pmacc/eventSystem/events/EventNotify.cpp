@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund
+/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -20,19 +20,29 @@
  */
 
 
-#pragma once
-
-#include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
+#include "pmacc/eventSystem/events/EventNotify.hpp"
 
 namespace pmacc
 {
-    void TaskKernel::activateChecks()
+    void EventNotify::notify(id_t eventId, EventType type, IEventData* data)
     {
-        canBeChecked = true;
-        this->activate();
+        auto iter = observers.begin();
+        for(; iter != observers.end(); iter++)
+        {
+            if(*iter != nullptr)
+                (*iter)->event(eventId, type, data);
+        }
+        /* if notify is not called from destructor
+         * other tasks can register after this call.
+         * But any ITask must call this function in destrctor again"
+         */
+        observers.clear();
 
-        Environment<>::get().Manager().addTask(this);
-        __setTransactionEvent(EventTask(this->getId()));
+        /**
+         * \TODO are we sure that data won't be deleted anywhere else?
+         * if (data != nullptr)
+         *  delete data;
+         **/
     }
+
 } // namespace pmacc

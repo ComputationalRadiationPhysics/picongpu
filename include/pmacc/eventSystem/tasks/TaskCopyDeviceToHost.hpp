@@ -24,6 +24,7 @@
 
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 #include <iomanip>

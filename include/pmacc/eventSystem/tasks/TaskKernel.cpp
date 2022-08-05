@@ -19,6 +19,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
-#include "pmacc/eventSystem/tasks/Factory.tpp"
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
+
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
+
+namespace pmacc
+{
+    void TaskKernel::activateChecks()
+    {
+        canBeChecked = true;
+        this->activate();
+
+        Environment<>::get().Manager().addTask(this);
+        __setTransactionEvent(EventTask(this->getId()));
+    }
+} // namespace pmacc

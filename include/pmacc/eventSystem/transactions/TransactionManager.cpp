@@ -19,7 +19,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "pmacc/eventSystem/transactions/TransactionManager.hpp"
 
 #include "pmacc/eventSystem/EventSystem.hpp"
 
@@ -28,7 +29,7 @@
 
 namespace pmacc
 {
-    inline TransactionManager::~TransactionManager() /*noexcept(false)*/
+    TransactionManager::~TransactionManager() /*noexcept(false)*/
     {
         if(transactions.size() == 0)
             std::cerr << "[PMacc] [TransactionManager] "
@@ -39,21 +40,21 @@ namespace pmacc
         transactions.pop();
     }
 
-    inline TransactionManager::TransactionManager()
+    TransactionManager::TransactionManager()
     {
         startTransaction(EventTask());
     }
 
-    inline TransactionManager::TransactionManager(const TransactionManager&)
+    TransactionManager::TransactionManager(const TransactionManager&)
     {
     }
 
-    inline void TransactionManager::startTransaction(EventTask serialEvent)
+    void TransactionManager::startTransaction(EventTask serialEvent)
     {
         transactions.push(Transaction(serialEvent));
     }
 
-    inline EventTask TransactionManager::endTransaction()
+    EventTask TransactionManager::endTransaction()
     {
         if(transactions.size() == 0)
             throw std::runtime_error("Calling endTransaction on empty transaction stack is not allowed");
@@ -63,7 +64,7 @@ namespace pmacc
         return event;
     }
 
-    inline void TransactionManager::startOperation(ITask::TaskType op)
+    void TransactionManager::startOperation(ITask::TaskType op)
     {
         if(transactions.size() == 0)
             throw std::runtime_error("Calling startOperation on empty transaction stack is not allowed");
@@ -71,7 +72,7 @@ namespace pmacc
         transactions.top().operation(op);
     }
 
-    inline EventStream* TransactionManager::getEventStream(ITask::TaskType op)
+    EventStream* TransactionManager::getEventStream(ITask::TaskType op)
     {
         if(transactions.size() == 0)
             throw std::runtime_error("Calling startOperation on empty transaction stack is not allowed");
@@ -79,7 +80,7 @@ namespace pmacc
         return transactions.top().getEventStream(op);
     }
 
-    inline EventTask TransactionManager::setTransactionEvent(const EventTask& event)
+    EventTask TransactionManager::setTransactionEvent(const EventTask& event)
     {
         if(transactions.size() == 0)
             throw std::runtime_error("Calling setTransactionEvent on empty transaction stack is not allowed");
@@ -87,7 +88,7 @@ namespace pmacc
         return transactions.top().setTransactionEvent(event);
     }
 
-    inline EventTask TransactionManager::getTransactionEvent()
+    EventTask TransactionManager::getTransactionEvent()
     {
         if(transactions.size() == 0)
             throw std::runtime_error("Calling getTransactionEvent on empty transaction stack is not allowed");
@@ -95,11 +96,10 @@ namespace pmacc
         return transactions.top().getTransactionEvent();
     }
 
-    inline TransactionManager& TransactionManager::getInstance()
+    TransactionManager& TransactionManager::getInstance()
     {
         static TransactionManager instance;
         return instance;
     }
-
 
 } // namespace pmacc
