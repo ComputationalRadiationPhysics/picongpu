@@ -94,9 +94,9 @@ namespace pmacc
     private:
         friend struct detail::Environment;
 
-         ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
+        ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 
-         ITask* getActiveITaskIfNotFinished(id_t taskId) const;
+        ITask* getActiveITaskIfNotFinished(id_t taskId) const;
 
         Manager() = default;
 

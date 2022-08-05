@@ -62,7 +62,7 @@ namespace pmacc
          *
          * @return true should be stopped else false
          */
-         bool stopSimulation();
+        bool stopSimulation();
 
     } // namespace signal
 } // namespace pmacc

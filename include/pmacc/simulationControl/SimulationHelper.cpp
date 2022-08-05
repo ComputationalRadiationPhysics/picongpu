@@ -88,7 +88,7 @@ namespace pmacc
         checkSignals(currentStep);
     }
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::dumpOneStep(uint32_t currentStep)
     {
         /* trigger checkpoint notification */
@@ -136,7 +136,7 @@ namespace pmacc
         }
     }
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::dumpTimes(
         TimeIntervall& tSimCalculation,
         TimeIntervall&,
@@ -162,7 +162,7 @@ namespace pmacc
     }
 
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::startSimulation()
     {
         if(useMpiDirect)
@@ -275,7 +275,7 @@ namespace pmacc
         } // softRestarts loop
     }
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::pluginRegisterHelp(po::options_description& desc)
     {
         // clang-format off
@@ -308,7 +308,7 @@ namespace pmacc
     }
 
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::pluginLoad()
     {
         Environment<>::get().SimulationDescription().setRunSteps(runSteps);
@@ -323,7 +323,7 @@ namespace pmacc
     }
 
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::checkSignals(uint32_t const currentStep)
     {
         /* Avoid signal handling if the last signal is still processed.
@@ -413,7 +413,7 @@ namespace pmacc
     }
 
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::calcProgress()
     {
         if(progress == 0 || progress > 100)
@@ -426,7 +426,7 @@ namespace pmacc
     }
 
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     void SimulationHelper<DIM>::writeCheckpointStep(const uint32_t checkpointStep)
     {
         std::ofstream file;
@@ -441,7 +441,7 @@ namespace pmacc
         file.close();
     }
 
-        template<unsigned DIM>
+    template<unsigned DIM>
     std::vector<uint32_t> SimulationHelper<DIM>::readCheckpointMasterFile()
     {
         std::vector<uint32_t> checkpoints;

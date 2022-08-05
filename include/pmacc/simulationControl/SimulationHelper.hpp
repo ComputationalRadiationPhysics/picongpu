@@ -25,7 +25,6 @@
 
 #include "TimeInterval.hpp"
 #include "pmacc/Environment.hpp"
-
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/types.hpp"

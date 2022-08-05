@@ -21,9 +21,9 @@
 
 
 #include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/dimensions/Definition.hpp"
 
 #include "pmacc/assert.hpp"
+#include "pmacc/dimensions/Definition.hpp"
 
 #include <algorithm>
 #include <memory>

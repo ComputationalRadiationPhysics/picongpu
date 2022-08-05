@@ -40,7 +40,6 @@ namespace pmacc
     class CommunicatorMPI : public ICommunicator
     {
     public:
-
         CommunicatorMPI() = default;
 
         virtual ~CommunicatorMPI() = default;
@@ -135,7 +134,8 @@ namespace pmacc
 
         /*! converts an exchangeType (e.g. RIGHT) to an MPI-rank
          */
-        int ExchangeTypeToRank(uint32_t type){
+        int ExchangeTypeToRank(uint32_t type)
+        {
             return ranks[type];
         }
 

@@ -21,8 +21,9 @@
 
 
 #include "pmacc/eventSystem/events/CudaEvent.hpp"
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+
 #include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
 #include "pmacc/types.hpp"
 
 
