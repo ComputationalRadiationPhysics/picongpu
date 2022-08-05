@@ -148,9 +148,6 @@ unset(IN_SRC_POS)
 ################################################################################
 
 find_package(PMacc REQUIRED CONFIG PATHS "${PIConGPUapp_SOURCE_DIR}/../pmacc")
-include_directories(${PMacc_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${PMacc_LIBRARIES})
-add_definitions(${PMacc_DEFINITIONS})
 
 ################################################################################
 # Find MPI
@@ -515,6 +512,7 @@ cupla_add_executable(picongpu
 )
 
 target_link_libraries(picongpu PUBLIC ${LIBS} ${HOST_LIBS} picongpu-hostonly)
+target_link_libraries(picongpu PRIVATE pmacc::pmacc)
 
 if(PIC_HAVE_openPMD)
     # Including <nlohmann/json.hpp> will throw loads of warnings. Quiet them.

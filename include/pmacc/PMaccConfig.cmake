@@ -20,11 +20,7 @@
 #
 
 
-# - Config file for the pmacc package
-# It defines the following variables
-#  PMacc_INCLUDE_DIRS - include directories for pmacc
-#  PMacc_LIBRARIES    - libraries to link against
-#  PMacc_DEFINITIONS  - definitions of pmacc
+# - Config file for the pmacc package and provide the target pmacc::pmacc
 
 ###############################################################################
 # PMacc
@@ -44,6 +40,117 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${PMacc_DIR}/../../thirdParty/cmake-modules/)
 
 
+################################################################################
+# alpaka path
+################################################################################
+
+# workaround for native CMake CUDA
+# CMake is not forwarding CMAKE_CUDA_ARCHITECTURES to the CMake CUDA compiler check
+# error: clang: error: cannot find libdevice for sm_20. Provide path to different CUDA installation via --cuda-path, or pass -nocudalib to build without linking with libdevice.
+# The workaround is parsing CMAKE_CUDA_ARCHITECTURES and forward command line parameter directly to clang++.
+if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER)
+    string(REGEX MATCH "(.*clang.*)" IS_CLANGCUDA_COMPILER ${CMAKE_CUDA_COMPILER})
+    if(IS_CLANGCUDA_COMPILER)
+        foreach(_CUDA_ARCH_ELEM ${CMAKE_CUDA_ARCHITECTURES})
+            set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --cuda-gpu-arch=sm_${_CUDA_ARCH_ELEM}")
+        endforeach()
+    endif()
+endif()
+
+# workaround for a CMake bug which is not handled in alpaka 0.7.0
+# https://github.com/alpaka-group/alpaka/pull/1423
+if(alpaka_ACC_GPU_CUDA_ENABLE)
+    include(CheckLanguage)
+    check_language(CUDA)
+    # Use user selected CMake CXX compiler as cuda host compiler to avoid fallback to the default system CXX host compiler.
+    # CMAKE_CUDA_HOST_COMPILER is reset by check_language(CUDA) therefore definition passed by the user via -DCMAKE_CUDA_HOST_COMPILER are
+    # ignored by CMake (looks like a CMake bug).
+    # The if condition used here should work correct after the CMake bug is fixed, too.
+    # Check the environment variable CUDAHOSTCXX to prefer the CUDA host compiler set by the user.
+    if("$ENV{CUDAHOSTCXX}" STREQUAL "" AND NOT CMAKE_CUDA_HOST_COMPILER)
+        set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    endif()
+    enable_language(CUDA)
+endif()
+
+# set path to internal
+set(PMACC_alpaka_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
+set_property(CACHE PMACC_alpaka_PROVIDER PROPERTY STRINGS "intern;extern")
+mark_as_advanced(PMACC_alpaka_PROVIDER)
+
+if(${PMACC_alpaka_PROVIDER} STREQUAL "intern")
+    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
+endif()
+
+# Set alpaka CXX standard because the default is currently C++14.
+if(NOT DEFINED alpaka_CXX_STANDARD)
+    set(alpaka_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "C++ standard version")
+endif()
+
+################################################################################
+# Find cupla
+################################################################################
+
+# set path to internal
+set(PMACC_CUPLA_PROVIDER "intern" CACHE STRING "Select which cupla is used")
+set_property(CACHE PMACC_CUPLA_PROVIDER PROPERTY STRINGS "intern;extern")
+mark_as_advanced(PMACC_CUPLA_PROVIDER)
+
+# force activate CUDA backend if CMAKE_CUDA_ARCHITECTURES is defined
+if(
+(CMAKE_CUDA_ARCHITECTURES) AND
+(NOT alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE) AND
+(NOT alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE) AND
+(NOT alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE) AND
+(NOT alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE) AND
+(NOT alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE) AND
+(NOT alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE) AND
+(NOT alpaka_ACC_CPU_BT_OMP4_ENABLE)
+)
+    option(alpaka_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" ON)
+    option(alpaka_ACC_GPU_CUDA_ONLY_MODE
+            "Only back-ends using CUDA can be enabled in this mode \
+        (This allows to mix alpaka code with native CUDA code)."
+            ON)
+endif()
+
+if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
+    add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla ${CMAKE_BINARY_DIR}/cupla)
+else()
+    find_package("cupla" PATHS $ENV{CUPLA_ROOT} REQUIRED)
+endif()
+
+# disable CUDA only mode if cuda backend is disabled
+if((NOT alpaka_ACC_GPU_CUDA_ENABLE) AND alpaka_ACC_GPU_CUDA_ONLY_MODE)
+    set(alpaka_ACC_GPU_CUDA_ONLY_MODE OFF CACHE BOOL
+            "Only back-ends using CUDA can be enabled in this mode \
+        (This allows to mix alpaka code with native CUDA code)."
+            FORCE)
+    message(WARNING "alpaka_ACC_GPU_CUDA_ONLY_MODE is set to OFF because cuda backend is not activated")
+endif()
+
+################################################################################
+# PMacc target
+################################################################################
+
+alpaka_add_library(
+        pmacc
+        STATIC
+        ${PMacc_DIR}/dummy.cpp
+)
+
+target_include_directories(pmacc
+        PUBLIC
+        $<BUILD_INTERFACE:${PMacc_DIR}/..>
+        $<INSTALL_INTERFACE:${PMacc_DIR}/..>)
+
+# Even if there are no sources CMAKE has to know the language.
+set_target_properties(pmacc PROPERTIES LINKER_LANGUAGE CXX)
+
+add_library(pmacc::pmacc ALIAS pmacc)
+target_link_libraries(pmacc PUBLIC cupla::cupla)
+
+
 ###############################################################################
 # Build Flags
 ###############################################################################
@@ -59,7 +166,7 @@ set(PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT "ON" CACHE STRING "Use atomicCas
 set_property(CACHE PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT PROPERTY STRINGS "ON;OFF")
 
 if(PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT STREQUAL ON)
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DPMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT=1)
+    target_compile_definitions(pmacc PUBLIC "-DPMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT=1")
 endif()
 
 ################################################################################
@@ -102,101 +209,6 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         message(FATAL_ERROR "Clang too old! Use Clang 3.9 or newer")
     endif()
 endif()
-
-
-################################################################################
-# alpaka path
-################################################################################
-
-# workaround for native CMake CUDA
-# CMake is not forwarding CMAKE_CUDA_ARCHITECTURES to the CMake CUDA compiler check
-# error: clang: error: cannot find libdevice for sm_20. Provide path to different CUDA installation via --cuda-path, or pass -nocudalib to build without linking with libdevice.
-# The workaround is parsing CMAKE_CUDA_ARCHITECTURES and forward command line parameter directly to clang++.
-if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER)
-    string(REGEX MATCH "(.*clang.*)" IS_CLANGCUDA_COMPILER ${CMAKE_CUDA_COMPILER})
-    if(IS_CLANGCUDA_COMPILER)
-        foreach(_CUDA_ARCH_ELEM ${CMAKE_CUDA_ARCHITECTURES})
-            set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --cuda-gpu-arch=sm_${_CUDA_ARCH_ELEM}")
-        endforeach()
-    endif()
-endif()
-
-# workaround for a CMake bug which is not handled in alpaka 0.7.0
-# https://github.com/alpaka-group/alpaka/pull/1423
-if(alpaka_ACC_GPU_CUDA_ENABLE)
-        include(CheckLanguage)
-        check_language(CUDA)
-        # Use user selected CMake CXX compiler as cuda host compiler to avoid fallback to the default system CXX host compiler.
-        # CMAKE_CUDA_HOST_COMPILER is reset by check_language(CUDA) therefore definition passed by the user via -DCMAKE_CUDA_HOST_COMPILER are
-        # ignored by CMake (looks like a CMake bug).
-        # The if condition used here should work correct after the CMake bug is fixed, too.
-        # Check the environment variable CUDAHOSTCXX to prefer the CUDA host compiler set by the user.
-        if("$ENV{CUDAHOSTCXX}" STREQUAL "" AND NOT CMAKE_CUDA_HOST_COMPILER)
-            set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-        endif()
-        enable_language(CUDA)
-endif()
-
-# set path to internal
-set(PMACC_alpaka_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
-set_property(CACHE PMACC_alpaka_PROVIDER PROPERTY STRINGS "intern;extern")
-mark_as_advanced(PMACC_alpaka_PROVIDER)
-
-if(${PMACC_alpaka_PROVIDER} STREQUAL "intern")
-    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
-endif()
-
-# Set alpaka CXX standard because the default is currently C++14.
-if(NOT DEFINED alpaka_CXX_STANDARD)
-    set(alpaka_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "C++ standard version")
-endif()
-
-################################################################################
-# Find cupla
-################################################################################
-
-# set path to internal
-set(PMACC_CUPLA_PROVIDER "intern" CACHE STRING "Select which cupla is used")
-set_property(CACHE PMACC_CUPLA_PROVIDER PROPERTY STRINGS "intern;extern")
-mark_as_advanced(PMACC_CUPLA_PROVIDER)
-
-# force activate CUDA backend if CMAKE_CUDA_ARCHITECTURES is defined
-if(
-    (CMAKE_CUDA_ARCHITECTURES) AND
-    (NOT alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE) AND
-    (NOT alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE) AND
-    (NOT alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE) AND
-    (NOT alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE) AND
-    (NOT alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE) AND
-    (NOT alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE) AND
-    (NOT alpaka_ACC_CPU_BT_OMP4_ENABLE)
-)
-    option(alpaka_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" ON)
-    option(alpaka_ACC_GPU_CUDA_ONLY_MODE
-        "Only back-ends using CUDA can be enabled in this mode \
-        (This allows to mix alpaka code with native CUDA code)."
-        ON)
-endif()
-
-if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
-    add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla ${CMAKE_BINARY_DIR}/cupla)
-else()
-    find_package("cupla" PATHS $ENV{CUPLA_ROOT} REQUIRED)
-endif()
-
-# disable CUDA only mode if cuda backend is disabled
-if((NOT alpaka_ACC_GPU_CUDA_ENABLE) AND alpaka_ACC_GPU_CUDA_ONLY_MODE)
-    set(alpaka_ACC_GPU_CUDA_ONLY_MODE OFF CACHE BOOL
-        "Only back-ends using CUDA can be enabled in this mode \
-        (This allows to mix alpaka code with native CUDA code)."
-        FORCE)
-    message(WARNING "alpaka_ACC_GPU_CUDA_ONLY_MODE is set to OFF because cuda backend is not activated")
-endif()
-
-# add possible indirect/transient library dependencies from alpaka backends
-# note: includes and definitions are already added in the cupla_add_executable
-#       wrapper
-set(PMacc_LIBRARIES ${PMacc_LIBRARIES} cupla::cupla)
 
 
 ###############################################################################
@@ -256,71 +268,16 @@ endif()
 
 
 ################################################################################
-# VampirTrace
-################################################################################
-
-option(VAMPIR_ENABLE "Create PMacc with VampirTrace support" OFF)
-
-# set filters: please do NOT use line breaks WITHIN the string!
-set(VT_INST_FILE_FILTER
-    "stl,usr/include,libgpugrid,vector_types.h,Vector.hpp,DeviceBuffer.hpp,DeviceBufferIntern.hpp,Buffer.hpp,StrideMapping.hpp,StrideMappingMethods.hpp,MappingDescription.hpp,AreaMapping.hpp,AreaMappingMethods.hpp,ExchangeMapping.hpp,ExchangeMappingMethods.hpp,DataSpace.hpp,Manager.hpp,Manager.tpp,Transaction.hpp,Transaction.tpp,TransactionManager.hpp,TransactionManager.tpp,Vector.tpp,Mask.hpp,ITask.hpp,EventTask.hpp,EventTask.tpp,StandardAccessor.hpp,StandardNavigator.hpp,HostBuffer.hpp,HostBufferIntern.hpp"
-    CACHE STRING "VampirTrace: Files to exclude from instrumentation")
-set(VT_INST_FUNC_FILTER
-    "vector,Vector,dim3,GPUGrid,execute,allocator,Task,Manager,Transaction,Mask,operator,DataSpace,PitchedBox,Event,new,getGridDim,GetCurrentDataSpaces,MappingDescription,getOffset,getParticlesBuffer,getDataSpace,getInstance"
-    CACHE STRING "VampirTrace: Functions to exclude from instrumentation")
-
-if(VAMPIR_ENABLE)
-    message(STATUS "Building with VampirTrace support")
-    set(VAMPIR_ROOT "$ENV{VT_ROOT}")
-    if(NOT VAMPIR_ROOT)
-        message(FATAL_ERROR "Environment variable VT_ROOT not set!")
-    endif(NOT VAMPIR_ROOT)
-
-    # compile flags
-    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-compile
-                    OUTPUT_VARIABLE VT_COMPILEFLAGS
-                    RESULT_VARIABLE VT_CONFIG_RETURN
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT VT_CONFIG_RETURN EQUAL 0)
-        message(FATAL_ERROR "Can NOT execute 'vtc++' at $ENV{VT_ROOT}/bin/vtc++ - check file permissions")
-    endif()
-    # link flags
-    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-link
-                    OUTPUT_VARIABLE VT_LINKFLAGS
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    # bugfix showme
-    string(REPLACE "--as-needed" "--no-as-needed" VT_LINKFLAGS "${VT_LINKFLAGS}")
-
-    # modify our flags
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${VT_LINKFLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VT_COMPILEFLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finstrument-functions-exclude-file-list=${VT_INST_FILE_FILTER}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finstrument-functions-exclude-function-list=${VT_INST_FUNC_FILTER}")
-
-    # nvcc flags (rly necessary?)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-        -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${VT_INST_FILE_FILTER}\\\"
-        -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${VT_INST_FUNC_FILTER}\\\"
-        -Xcompiler=-DVTRACE -Xcompiler=-I\\\"${VT_ROOT}/include/vampirtrace\\\"
-        -v)
-
-    # for manual instrumentation and hints that vampir is enabled in our code
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DVTRACE)
-endif(VAMPIR_ENABLE)
-
-
-################################################################################
 # Find MPI
 ################################################################################
 
 find_package(MPI REQUIRED)
-set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH})
-set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_C_LIBRARIES})
+target_include_directories(pmacc PUBLIC ${MPI_C_INCLUDE_PATH})
+target_link_libraries(pmacc PUBLIC ${MPI_C_LIBRARIES})
 
 # bullxmpi fails if it can not find its c++ counter part
 if(MPI_CXX_FOUND)
-    set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_CXX_LIBRARIES})
+    target_link_libraries(pmacc PUBLIC ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 
 
@@ -330,24 +287,26 @@ endif(MPI_CXX_FOUND)
 
 find_package(Boost 1.74 REQUIRED COMPONENTS filesystem system math_tr1)
 if(TARGET Boost::filesystem)
-    set(PMacc_LIBRARIES ${PMacc_LIBRARIES} Boost::boost Boost::filesystem
-                                           Boost::system Boost::math_tr1)
+    target_link_libraries(pmacc PUBLIC Boost::boost)
+    target_link_libraries(pmacc PUBLIC Boost::filesystem)
+    target_link_libraries(pmacc PUBLIC Boost::system)
+    target_link_libraries(pmacc PUBLIC Boost::math_tr1)
 else()
-    set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
-    set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${Boost_LIBRARIES})
+    target_include_directories(pmacc PUBLIC ${Boost_INCLUDE_DIRS})
+    target_link_libraries(pmacc PUBLIC ${Boost_LIBRARIES})
 endif()
 
 # Boost 1.55 added support for a define that makes result_of look for
 # the result<> template and falls back to decltype if none is found. This is
 # great for the transition from the "wrong" usage to the "correct" one as
 message(STATUS "Boost: result_of with TR1 style and decltype fallback")
-set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
+target_compile_definitions(pmacc PUBLIC "-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK")
 
 # We do not use std::auto_ptr and keeping this enabled in Boost causes a
 # warning with NVCC+GCC and is unnecessary time spend in compile time
 # (note that std::auto_ptr is deprecated in C++11 and removed in C++17)
 message(STATUS "Boost: deactivate std::auto_ptr")
-set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_AUTO_PTR)
+target_compile_definitions(pmacc PUBLIC "-DBOOST_NO_AUTO_PTR")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     message(STATUS "Boost: Disable variadic templates")
@@ -399,9 +358,9 @@ if(alpaka_ACC_GPU_CUDA_ENABLE OR alpaka_ACC_GPU_HIP_ENABLE)
         find_package(mallocMC 2.6.0 REQUIRED)
     endif(NOT mallocMC_FOUND)
 
-    set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${mallocMC_INCLUDE_DIRS})
-    set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${mallocMC_LIBRARIES})
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} ${mallocMC_DEFINITIONS})
+    target_include_directories(pmacc PUBLIC ${mallocMC_INCLUDE_DIRS})
+    target_link_libraries(pmacc PUBLIC ${mallocMC_LIBRARIES})
+    target_compile_definitions(pmacc PUBLIC ${mallocMC_DEFINITIONS})
 endif()
 
 
@@ -412,11 +371,8 @@ endif()
 option(PMACC_BLOCKING_KERNEL
     "activate checks for every kernel call and synch after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
+    target_compile_definitions(pmacc PUBLIC "-DPMACC_SYNC_KERNEL=1")
 endif(PMACC_BLOCKING_KERNEL)
 
 set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for PMacc")
-set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
-
-# PMacc header files
-set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/..")
+target_compile_definitions(pmacc PUBLIC "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")

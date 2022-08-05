@@ -71,18 +71,6 @@ set(CMAKE_CXX_STANDARD 17)
 ################################################################################
 
 find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/pmacc")
-include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${PMacc_LIBRARIES})
-add_definitions(${PMacc_DEFINITIONS})
-
-
-################################################################################
-# Find MPI
-################################################################################
-
-find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 
 ################################################################################
@@ -100,15 +88,6 @@ else(GOL_RELEASE)
 endif(GOL_RELEASE)
 
 
-###############################################################################
-# Find Boost
-###############################################################################
-
-find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
-
-
 ################################################################################
 # PNGwriter
 ################################################################################
@@ -118,17 +97,7 @@ find_package(PNGwriter 0.7.0 REQUIRED CONFIG)
 
 if(PNGwriter_FOUND)
     list(APPEND PNGwriter_DEFINITIONS "-DGOL_ENABLE_PNG=1")
-    set(LIBS ${LIBS} PNGwriter::PNGwriter)
 endif(PNGwriter_FOUND)
-
-################################################################################
-# Math
-################################################################################
-
-if(NOT WIN32)
-    # automatically added on windows
-    set(LIBS ${LIBS} m)
-endif()
 
 
 ################################################################################
@@ -164,7 +133,19 @@ cupla_add_executable(gameOfLife
     ${SRCFILES}
 )
 
-target_link_libraries(gameOfLife PRIVATE ${LIBS})
+target_link_libraries(gameOfLife PRIVATE pmacc::pmacc)
+if(PNGwriter_FOUND)
+    target_link_libraries(PNGwriter::PNGwriter)
+endif()
+
+################################################################################
+# Math
+################################################################################
+
+if(NOT WIN32)
+    # automatically added on windows
+    target_link_libraries(gameOfLife PRIVATE m)
+endif()
 
 
 ################################################################################
