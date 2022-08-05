@@ -31,8 +31,11 @@
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 #include <pmacc/types.hpp>
+
+#include <boost/mpl/size.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -113,6 +116,14 @@ namespace picongpu
                  */
                 Substepping(MappingDesc const cellDescription) : Base(cellDescription)
                 {
+                    previousJInitialized = false;
+                    if(existsCurrent)
+                    {
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        auto const& gridBuffer = fieldJ.getGridBuffer();
+                        previousJ = pmacc::makeDeepCopy(gridBuffer.getDeviceBuffer());
+                    }
                 }
 
                 /** Perform the first part of E and B propagation by a PIC time step.
@@ -132,25 +143,70 @@ namespace picongpu
 
                 /** Add contribution of FieldJ in the given area according to Ampere's law
                  *
+                 * The first time addCurrent is called from the main simulation loop, it is default subStep 0.
+                 * Later calls happen from inside update_afterCurrent().
+                 *
                  * @tparam T_area area to operate on
+                 *
+                 * @param subStep substep index, in [0, numSubsteps)
                  */
                 template<uint32_t T_area>
-                void addCurrent()
+                void addCurrent(uint32_t const subStep = 0u)
                 {
-                    // Since this is also called internally, check if currents exist in the simulation
-                    using namespace pmacc;
-                    using SpeciesWithCurrentSolver =
-                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
-                    constexpr auto numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
-                    constexpr auto existsCurrent = (numSpeciesWithCurrentSolver > 0) || FieldBackgroundJ::activated;
-                    if constexpr(existsCurrent)
-                    {
-                        DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
-                        // Coefficient in front of J in Ampere's law
-                        constexpr float_X coeff = -(1.0_X / EPS0) * getTimeStep();
-                        this->template addCurrentImpl<T_area>(fieldJ.getDeviceDataBox(), coeff);
-                    }
+                    if(!existsCurrent)
+                        return;
+
+                    // J values in the middle of the current PIC time iteration
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+
+                    /* Initialize previousJ if necessary so that we can process everything uniformly.
+                     * The condition can only be true at the very first time step or just after a restart.
+                     * For these cases we approximate J with first and not second order of accuracy.
+                     * The issue is in principle minor as it only concerns a fixed number of time iterations.
+                     *
+                     * @TODO Remove this limitation by implementing current deposition at step -1 and saving the
+                     * resulting J as previous; save previous J in checkpointing. Note: with existing code base
+                     * there can only be a single FieldJ object due to IDs of communications, so checkpointing of
+                     * previous J would require some fix or workaround for it.
+                     */
+                    if(!previousJInitialized)
+                        copyToPreviousJ(fieldJ);
+
+                    /* In order to keep the central nature of time derivatives in the field solver (and the consequent
+                     * approximation order in time), we have to add contribution of J in the middle of the given
+                     * subStep, so at time
+                     *     t_sub = currentStep * DELTA_T + (subStep + 0.5) * DELTA_T / numSubsteps.
+                     * We process each grid point separately and independently, so the following only concerts time.
+                     * With Esirkepov/EmZ current deposition we have, assuming sufficient smoothness of J(t):
+                     *     fieldJ = J(t_curr) + O(DELTA_T^2) with t_curr = (currentStep + 0.5) * DELTA_T,
+                     *     previousJ = J(t_prev) + O(DELTA_T^2) with t_prev = (currentStep - 0.5) * DELTA_T.
+                     * Using linear interpolation or extrapolation (depending on subStep) of J(t) yields
+                     *     J_sub = J(t_prev) + (t_sub - t_prev) / (t_curr - t_prev) * (J(t_curr) - J(t_prev)).
+                     * Applying Taylor expansion and again assuming sufficient smoothness of J(t) one can obtain
+                     *     J_sub =  J(t_sub) + O(DELTA_T^2).
+                     * Since J(t_curr), J(t_prev) terms appear linearly in J_sub, same approximation order holds when
+                     * fieldJ, previousJ are used instead.
+                     * Denoting
+                     *     alpha = (subStep + 0.5) / numSubsteps,
+                     * substepping solver then has to apply the following current density value:
+                     *     J = (0.5 - alpha) * previousJ + (0.5 + alpha) * fieldJ.
+                     */
+
+                    // Base coefficient in front of J in Ampere's law
+                    constexpr float_X baseCoeff = -(1.0_X / EPS0) * getTimeStep();
+                    auto const alpha = static_cast<float_X>((subStep + 0.5) / this->numSubsteps);
+                    auto const prevCoeff = (0.5_X - alpha) * baseCoeff;
+                    auto const currentCoeff = (0.5_X + alpha) * baseCoeff;
+                    this->template addCurrentImpl<T_area>(previousJ->getDataBox(), prevCoeff);
+                    this->template addCurrentImpl<T_area>(fieldJ.getDeviceDataBox(), currentCoeff);
+
+                    /* After the last substep copy current J to previous.
+                     * In case numSubsteps > 1 we are here once per PIC time iteration and T_area == CORE + BORDER.
+                     * In case numSubsteps == 1 we may be here more than once, but prevCoeff == 0 and so copy is safe.
+                     */
+                    if(subStep == this->numSubsteps - 1)
+                        copyToPreviousJ(fieldJ);
                 }
 
                 /** Perform the last part of E and B propagation by a PIC time step
@@ -174,10 +230,45 @@ namespace picongpu
                             = static_cast<float_X>(currentStep) + static_cast<float_X>(subStep) * getTimeStep();
                         this->updateBeforeCurrent(currentStepAndSubstep);
                         // By now FieldJ has been communicated so we can directly add it
-                        addCurrent<type::CORE + type::BORDER>();
+                        addCurrent<type::CORE + type::BORDER>(subStep);
                         this->updateAfterCurrent(currentStepAndSubstep);
                     }
                 }
+
+            private:
+                /** Copy given current density device values to previousJ
+                 *
+                 * @param fieldJ current density
+                 */
+                void copyToPreviousJ(FieldJ& fieldJ)
+                {
+                    auto& currentGridBuffer = fieldJ.getGridBuffer();
+                    previousJ->copyFrom(currentGridBuffer.getDeviceBuffer());
+                    previousJInitialized = true;
+                }
+
+                //! Buffer type to store previous J values
+                using DeviceBufferJ = FieldJ::Buffer::DBuffer;
+
+                /** Device buffer for values of J on previous PIC time step
+                 *
+                 * Not used when existsCurrent is false.
+                 */
+                std::unique_ptr<DeviceBufferJ> previousJ;
+
+                //! Typelist of species with current solver
+                using SpeciesWithCurrentSolver =
+                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
+                //! Whether the simulation has any current sources
+                static constexpr auto existsCurrent
+                    = (bmpl::size<SpeciesWithCurrentSolver>::type::value > 0) || FieldBackgroundJ::activated;
+
+                /** Whether previousJ is initialized with data of J from previous time step
+                 *
+                 * The only times it isn't initialized are the very first time step in simulation or after a restart.
+                 * In these cases assume previous field J is same as current field J.
+                 */
+                bool previousJInitialized;
             };
 
             /** Specialization of the CFL condition checker for substepping solver
