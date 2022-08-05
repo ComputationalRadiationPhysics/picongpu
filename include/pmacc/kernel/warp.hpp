@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <alpaka/warp/Traits.hpp>
+
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
 
 #    include "pmacc/types.hpp"
