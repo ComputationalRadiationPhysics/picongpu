@@ -434,6 +434,30 @@ Usage
 The field solver can be chosen and configured in :ref:`fieldSolver.param <usage-params-core>`.
 
 
+Substepping
+-----------
+Any field solver can be combined with substepping in time.
+In this case, each iteration of the main PIC loop involves multiple invocations of the chosen field solver.
+Substepping is fully compatible with other numerics, such as absorbers, incident field, laser generation.
+A substepping field solver has the same orders of accuracy in spatial and time steps as the base solver.
+
+A user sets main PIC time step value as usual in :ref:`grid.param <usage-params-core>`, and selects the number of field solver substeps via template argument `T_numSubsteps`.
+Field solver will internally operate with :math:`\Delta t_{sub} = \Delta t / \mathrm{T\_numSubsteps}`.
+Solver properties including the Courant-Friedrichs-Lewy condition are then expressed with :math:`\Delta t_{sub}`, which is less restricting.
+However, regardless of field solver and substepping PIConGPU also limits its main time step to
+
+.. math::
+
+   \Delta t < \Delta t_{max}, \Delta t_{max} = \frac{1}{c} \min\{ \Delta x, \Delta y, \Delta z \}
+
+for 3D; for 2D the requirement is similar but does not involve :math:`\Delta z`.
+
+Still, with substepping solver a user could sometimes increase the value of :math:`\Delta t` used.
+Consider a simplified case of :math:`\Delta x = \Delta y = \Delta z`, and Yee solver with a time step value near the  Courant-Friedrichs-Lewy condition threshold :math:`\Delta t_{base} = 0.995 \frac{\Delta x}{c \sqrt 3}`.
+Raising the main time step to :math:`t_{max}` and substepping by 2 would make the field solver have :math:`\Delta t_{sub} < \Delta t_{base}` thus satisfying the Courant-Friedrichs-Lewy condition and providing slightly better resolution.
+Whether this approach is applicable then depends on whether :math:`t_{max}` sufficiently resolves plasma wavelength and other time scales in the rest of the PIC loop.
+
+
 References
 ----------
 .. [Esirkepov2001]

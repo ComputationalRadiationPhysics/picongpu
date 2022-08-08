@@ -35,9 +35,7 @@ namespace picongpu
              * with dt = DELTA_T / T_numSubsteps.
              * Is suited for the case when plasma dynamics can be sufficiently resolved with a larger dt than laser.
              *
-             * CFL for this solver is a combination of two conditions:
-             *     - CFL of T_BaseSolver for dt = DELTA_T / T_numSubsteps
-             *     - c * DELTA_T < dx, dy, dz as this is required by PIConGPU in general
+             * CFL for this solver is CFL of T_BaseSolver for dt = DELTA_T / T_numSubsteps.
              * Note that with substepping we would often be relatively far off the CFL for the base solver.
              * Depending on the solver type, this may be undesired due to numerical dispersion, e.g. for classic Yee.
              * For higher order solvers, on the contrary, it may be beneficial wrt dispersion.
