@@ -132,12 +132,12 @@ if [ $run_cuda_memtest -eq 1 ] ; then
         ls -1 "cuda_memtest_$i" | sed -n -e 's/cuda_memtest_\([^_]*\)_.*/\1/p' | sort -u >> ./bad_nodes.txt
         n_broken_nodes=$(cat ./bad_nodes.txt | sort -u | wc -l)
         n_tasks=$(((!TBG_nodes_adjusted - n_broken_nodes) * !TBG_numHostedDevicesPerNode))
-        if [ $n_tasks_last_check -eq $n_tasks ] ; then
-            echo "cuda_memtest: Number of broken nodes has not increased but for unknown reasons cuda_memtest reported errors." >&2
-            break
-        fi
         # if cuda_memtest not passed and we have no broken nodes something else went wrong
         if [ $node_check_err -ne 0 ] ; then
+            if [ $n_tasks_last_check -eq $n_tasks ] ; then
+                echo "cuda_memtest: Number of broken nodes has not increased but for unknown reasons cuda_memtest reported errors." >&2
+                break
+            fi
             if [ $n_broken_nodes -eq 0 ] ; then
                 echo "cuda_memtest: unknown error" >&2
                 break
