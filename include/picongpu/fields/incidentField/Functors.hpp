@@ -344,12 +344,14 @@ namespace picongpu
                     //! Check that the input units are valid
                     HINLINE static void checkUnit(float3_64 const unitField)
                     {
-                        // Ensure that we always get unitField = (UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD) so that
-                        // we can always calculate in internal units and avoid conversions in child types.
-                        // We can afford it each time, as this is done on host before kernel
+                        /* Ensure that we always get unitField = (UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD) so that
+                         * we can always calculate in internal units and avoid conversions in child types.
+                         * We can afford it each time, as this is done on host before kernel.
+                         */
                         for(uint32_t axis = 0; axis < 3; axis++)
                         {
-                            constexpr double ulp = 1.0;
+                            // In principle 1 ulp should work, but just to be safe against changes in unit system
+                            constexpr double ulp = 4.0;
                             constexpr double eps = std::numeric_limits<double>::epsilon();
                             bool const isMatchingUnit = (std::fabs(unitField[axis] - UNIT_EFIELD) <= eps * ulp);
                             if(!isMatchingUnit)
