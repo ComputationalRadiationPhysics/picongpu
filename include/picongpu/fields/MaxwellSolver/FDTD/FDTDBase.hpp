@@ -250,7 +250,7 @@ namespace picongpu
                         {
                             auto& pmlImpl = absorberImpl.asPmlImpl();
                             auto const updateFunctor
-                                = pmlImpl.template getUpdateBHalfFunctor<CurlE, T_Area>(currentStep, updatePsiB);
+                                = pmlImpl.template getUpdateBHalfFunctor<CurlE>(currentStep, updatePsiB);
                             PMACC_KERNEL(Kernel{})
                             (mapper.getGridDim(), numWorkers)(
                                 mapper,
@@ -288,7 +288,7 @@ namespace picongpu
                         if(absorber.getKind() == absorber::Absorber::Kind::Pml)
                         {
                             auto& pmlImpl = absorberImpl.asPmlImpl();
-                            auto const updateFunctor = pmlImpl.template getUpdateEFunctor<CurlB, T_Area>(currentStep);
+                            auto const updateFunctor = pmlImpl.template getUpdateEFunctor<CurlB>(currentStep);
                             PMACC_KERNEL(Kernel{})
                             (mapper.getGridDim(), numWorkers)(
                                 mapper,
