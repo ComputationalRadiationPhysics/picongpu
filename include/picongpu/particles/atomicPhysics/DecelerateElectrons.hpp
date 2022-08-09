@@ -74,7 +74,9 @@ namespace picongpu
                 float_64 newEnergyPhysicalElectron
                     = energyPhysicalElectron
                     + static_cast<float_64>(
-                          deltaEnergyBin / (picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * weightBin));
+                          deltaEnergyBin
+                          / (static_cast<float_X>(picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
+                             * weightBin));
                 // unit:: ATOMIC_UNIT_ENERGY
 
                 // case: too much energy removed

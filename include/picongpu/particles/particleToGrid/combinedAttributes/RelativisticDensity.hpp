@@ -50,7 +50,7 @@ namespace picongpu
                     HDINLINE void operator()(T_Acc const& acc, float1_X& density, const float1_X& energyDensity) const
                     {
                         const float_X densityPICUnits
-                            = density[0] * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                            = density[0] * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
                         // avoid dividing by zero.
                         if(densityPICUnits > std::numeric_limits<float_X>::min())
                         {

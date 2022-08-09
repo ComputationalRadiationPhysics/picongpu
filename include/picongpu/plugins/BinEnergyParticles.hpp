@@ -481,14 +481,14 @@ namespace picongpu
                 for(int i = 0; i < realNumBins; ++i)
                 {
                     count_particles += float_64(binReduced[i]);
-                    outFile << std::scientific
-                            << (binReduced[i]) * float_64(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) << " ";
+                    outFile << std::scientific << (binReduced[i]) * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                            << " ";
                 }
                 /* endl: Flush any step to the file.
                  * Thus, we will have data if the program should crash.
                  */
-                outFile << std::scientific
-                        << count_particles * float_64(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) << std::endl;
+                outFile << std::scientific << count_particles * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                        << std::endl;
             }
         }
     };

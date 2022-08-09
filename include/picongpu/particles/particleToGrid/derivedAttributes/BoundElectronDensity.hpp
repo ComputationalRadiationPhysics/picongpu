@@ -50,7 +50,7 @@ namespace picongpu
 
                     // calculate new attribute
                     float_X const boundElectronDensity = weighting * boundElectrons
-                        / (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME);
+                        / (static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME);
 
                     return boundElectronDensity;
                 }

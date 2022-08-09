@@ -165,7 +165,8 @@ namespace picongpu
 
                 /* TODO: obtain the ion density from the molare ion density in order to avoid the rescaling.
                  * So this should be: ionDensity = ionMolDensity / UNIT_AMOUNT_SUBSTANCE */
-                const float_X ionDensity = ionDensity_norm.x() * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                const float_X ionDensity
+                    = ionDensity_norm.x() * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
                 const float_X weighting = particle[weighting_];
 

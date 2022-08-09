@@ -302,18 +302,18 @@ namespace picongpu
                             float3_COLL const labMomentum1
                                 = precisionCast<float_COLL>(par1[momentum_]) / normalizedWeight1;
                             float_COLL const mass0 = precisionCast<float_COLL>(picongpu::traits::attribute::getMass(
-                                particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+                                static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
                                 par0));
                             float_COLL const mass1 = precisionCast<float_COLL>(picongpu::traits::attribute::getMass(
-                                particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+                                static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
                                 par1));
                             float_COLL const charge0
                                 = precisionCast<float_COLL>(picongpu::traits::attribute::getCharge(
-                                    particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+                                    static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
                                     par0));
                             float_COLL const charge1
                                 = precisionCast<float_COLL>(picongpu::traits::attribute::getCharge(
-                                    particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+                                    static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
                                     par1));
                             auto const gamma0 = picongpu::gamma<float_COLL>(labMomentum0, mass0);
                             auto const gamma1 = picongpu::gamma<float_COLL>(labMomentum1, mass1);

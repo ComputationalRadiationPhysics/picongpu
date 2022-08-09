@@ -103,7 +103,8 @@ namespace picongpu
 #else
             constexpr auto baseCharge = BASE_CHARGE;
             const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
-                * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * math::abs(baseCharge) / DELTA_T;
+                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
+                / DELTA_T;
             const float_X tyEField = fields::laserProfiles::Selected::Unitless::AMPLITUDE + FLT_MIN;
             const float_X tyBField = tyEField * MUE0_EPS0;
 
@@ -153,7 +154,8 @@ namespace picongpu
             const float_X tyEField = fields::laserProfiles::Selected::Unitless::W0 * BASE_DENSITY / 3.0f / EPS0;
             const float_X tyBField = tyEField * MUE0_EPS0;
             const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
-                * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * math::abs(baseCharge) / DELTA_T;
+                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
+                / DELTA_T;
 
             return float3_X(tyBField, tyEField, tyCurrent);
 #endif
@@ -192,7 +194,8 @@ namespace picongpu
 #else
             constexpr auto baseCharge = BASE_CHARGE;
             const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
-                * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * math::abs(baseCharge) / DELTA_T;
+                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
+                / DELTA_T;
             const float_X tyEField = getAmplitude() + FLT_MIN;
             const float_X tyBField = tyEField * MUE0_EPS0;
             return float3_X(tyBField, tyEField, tyCurrent);
@@ -545,7 +548,8 @@ namespace picongpu
                             accelerator,
                             &(counter(reducedCell)),
                             // normalize the value to avoid bad precision for large macro particle weightings
-                            particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+                            particle[weighting_]
+                                / static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
                             ::alpaka::hierarchy::Threads{});
                     }
                 });
