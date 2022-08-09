@@ -159,7 +159,7 @@ namespace picongpu
                     // offsetToTotalDomain.y() = 0
 
                     // a symmetric pulse will be initialized at position z=0 for
-                    // a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
+                    // a time of PULSE_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
                     // we shift the complete pulse for the half of this time to start with
                     // the front of the laser pulse.
                     const float_64 mue = 0.5 * Unitless::INIT_TIME;

@@ -72,13 +72,13 @@ namespace picongpu
                     template<typename T_Params>
                     struct PolynomFunctorIncidentE
                         : public PolynomUnitless<T_Params>
-                        , public incidentField::detail::BaseSeparableTransveralGaussianFunctorE<T_Params>
+                        , public incidentField::detail::BaseSeparableTransversalGaussianFunctorE<T_Params>
                     {
                         //! Unitless parameters type
                         using Unitless = PolynomUnitless<T_Params>;
 
                         //! Base functor type
-                        using Base = incidentField::detail::BaseSeparableTransveralGaussianFunctorE<T_Params>;
+                        using Base = incidentField::detail::BaseSeparableTransversalGaussianFunctorE<T_Params>;
 
                         /** Create a functor on the host side for the given time step
                          *
