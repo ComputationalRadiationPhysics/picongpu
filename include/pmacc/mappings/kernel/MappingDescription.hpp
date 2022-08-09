@@ -125,9 +125,17 @@ namespace pmacc
             return Environment<DIM>::get().GridController().getGpuNodes() * (gridSuperCells - 2 * guardingSuperCells);
         }
 
+        HDINLINE bool operator==(MappingDescription const& other)
+        {
+            return (gridSuperCells == other.gridSuperCells) && (guardingSuperCells == other.guardingSuperCells);
+        }
+
+        HDINLINE bool operator!=(MappingDescription const& other)
+        {
+            return !((*this) == other);
+        }
 
     protected:
-        //\todo: keine Eigenschaft einer Zelle
         PMACC_ALIGN(gridSuperCells, DataSpace<DIM>);
         PMACC_ALIGN(guardingSuperCells, DataSpace<DIM>);
     };

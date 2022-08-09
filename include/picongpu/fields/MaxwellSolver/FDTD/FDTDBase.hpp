@@ -71,13 +71,15 @@ namespace picongpu
                      *
                      * @param cellDescription mapping description for kernels
                      */
-                    FDTDBase(MappingDesc const cellDescription) : cellDescription(cellDescription)
+                    FDTDBase(MappingDesc const cellDescription)
+                        : cellDescription(cellDescription)
+                        ,
+                        // Make sure the absorber instance is created here, before particle memory allocation
+                        absorberImpl(fields::absorber::AbsorberImpl::getImpl(cellDescription))
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
                         fieldE = dc.get<FieldE>(FieldE::getName(), true);
                         fieldB = dc.get<FieldB>(FieldB::getName(), true);
-                        auto& absorberFactory = fields::absorber::AbsorberFactory::get();
-                        absorberImpl = absorberFactory.makeImpl(cellDescription);
                     }
 
                 protected:
@@ -153,7 +155,7 @@ namespace picongpu
                         auto& absorber = absorber::Absorber::get();
                         if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
                         {
-                            auto& exponentialImpl = absorberImpl->asExponentialImpl();
+                            auto& exponentialImpl = absorberImpl.asExponentialImpl();
                             exponentialImpl.run(currentStep, fieldE->getDeviceDataBox());
                         }
                         if(LaserPhysics::isEnabled())
@@ -176,7 +178,7 @@ namespace picongpu
 
                         if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
                         {
-                            auto& exponentialImpl = absorberImpl->asExponentialImpl();
+                            auto& exponentialImpl = absorberImpl.asExponentialImpl();
                             exponentialImpl.run(currentStep, fieldB->getDeviceDataBox());
                         }
 
@@ -246,9 +248,9 @@ namespace picongpu
                         auto& absorber = absorber::Absorber::get();
                         if(absorber.getKind() == absorber::Absorber::Kind::Pml)
                         {
-                            auto& pmlImpl = absorberImpl->asPmlImpl();
+                            auto& pmlImpl = absorberImpl.asPmlImpl();
                             auto const updateFunctor
-                                = pmlImpl.getUpdateBHalfFunctor<CurlE, T_Area>(currentStep, updatePsiB);
+                                = pmlImpl.template getUpdateBHalfFunctor<CurlE, T_Area>(currentStep, updatePsiB);
                             PMACC_KERNEL(Kernel{})
                             (mapper.getGridDim(), numWorkers)(
                                 mapper,
@@ -285,8 +287,8 @@ namespace picongpu
                         auto& absorber = absorber::Absorber::get();
                         if(absorber.getKind() == absorber::Absorber::Kind::Pml)
                         {
-                            auto& pmlImpl = absorberImpl->asPmlImpl();
-                            auto const updateFunctor = pmlImpl.getUpdateEFunctor<CurlB, T_Area>(currentStep);
+                            auto& pmlImpl = absorberImpl.asPmlImpl();
+                            auto const updateFunctor = pmlImpl.template getUpdateEFunctor<CurlB, T_Area>(currentStep);
                             PMACC_KERNEL(Kernel{})
                             (mapper.getGridDim(), numWorkers)(
                                 mapper,
@@ -317,7 +319,7 @@ namespace picongpu
                     std::shared_ptr<FieldB> fieldB;
 
                     // Absorber implementation
-                    std::unique_ptr<fields::absorber::AbsorberImpl> absorberImpl;
+                    fields::absorber::AbsorberImpl& absorberImpl;
                 };
             } // namespace fdtd
         } // namespace maxwellSolver

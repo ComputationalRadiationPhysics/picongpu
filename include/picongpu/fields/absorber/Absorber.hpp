@@ -190,6 +190,8 @@ namespace picongpu
              * So the base class interface does not offer any common interface but type casts.
              *
              * The reason it is separated from the Absorber class is to better manage lifetime.
+             *
+             * For clients the class behaves in a singleton-like fashion, with getImpl() for instance access.
              */
             class AbsorberImpl : public Absorber
             {
@@ -202,6 +204,16 @@ namespace picongpu
 
                 //! Destructor
                 ~AbsorberImpl() override = default;
+
+                /** Get absorber implementation instance
+                 *
+                 * Must always be called with same cellDescription, this is checked inside.
+                 * This is a bit awkward and ultimately caused by absorbers being stuck in intermediate state
+                 * between compile- and runtime polymorphism.
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                static AbsorberImpl& getImpl(MappingDesc cellDescription);
 
                 /** Interpret this as ExponentialImpl instance
                  *
