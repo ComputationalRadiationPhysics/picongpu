@@ -427,7 +427,7 @@ namespace picongpu
                  * profiles::T_BaseTransversalGaussianParam requirements
                  */
                 template<typename T_BaseTransversalGaussianParam>
-                struct BaseSeparableTransveralGaussianFunctorE
+                struct BaseSeparableTransversalGaussianFunctorE
                     : public BaseSeparableFunctorE<T_BaseTransversalGaussianParam>
                 {
                     //! Base class
@@ -443,7 +443,7 @@ namespace picongpu
                      * @param unitField conversion factor from SI to internal units,
                      *                  fieldE_internal = fieldE_SI / unitField
                      */
-                    HINLINE BaseSeparableTransveralGaussianFunctorE(
+                    HINLINE BaseSeparableTransversalGaussianFunctorE(
                         float_X const currentStep,
                         float3_64 const unitField)
                         : Base(currentStep, unitField)

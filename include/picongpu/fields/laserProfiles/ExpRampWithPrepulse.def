@@ -94,7 +94,7 @@ namespace picongpu
                         static constexpr float_64 W0_X_SI = 2.5 * WAVE_LENGTH_SI;
                         static constexpr float_64 W0_Z_SI = W0_X_SI;
 
-                        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before
+                        /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_LENGTH before
                          * plateau and half at the end of the plateau unit: none */
                         static constexpr float_64 RAMP_INIT = 16.0;
 

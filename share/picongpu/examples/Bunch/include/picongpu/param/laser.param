@@ -102,7 +102,7 @@ namespace picongpu
                  */
                 static constexpr uint32_t initPlaneY = 0;
 
-                /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after
+                /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_LENGTH before and after
                  * the plateau unit: none */
                 static constexpr float_64 RAMP_INIT = 20.6146;
 

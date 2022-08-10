@@ -38,7 +38,7 @@
  * picongpu/fields/incidentField/profiles/. Note that all these parameter structures inherit common base structures
  * from `BaseParam.def`. Thus, a user-provided structure must also define all members according to the base struct.
  *
- * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
+ * In the end, this file needs to define `XMin`, `XMax`, `YMin`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
  * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
  * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
  * effects of all profiles in the list. This file also has to define constexpr array `POSITION` that controls
