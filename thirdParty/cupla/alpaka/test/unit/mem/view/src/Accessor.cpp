@@ -14,7 +14,7 @@
 #include <alpaka/mem/view/ViewStdVector.hpp>
 #include <alpaka/mem/view/ViewSubView.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 namespace alpakaex = alpaka::experimental;
 

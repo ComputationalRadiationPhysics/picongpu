@@ -1,4 +1,4 @@
-/* Copyright 2022 Jeffrey Kelling
+/* Copyright 2022 Jeffrey Kelling, Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,8 @@
 #include <alpaka/workdiv/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 //! This tests checks if block-shared memory is shared correctly: only between all threads in a block.
 //!

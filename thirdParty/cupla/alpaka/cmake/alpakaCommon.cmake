@@ -175,8 +175,8 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Check supported compilers.
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.0)
-    message(FATAL_ERROR "Clang versions < 4.0 are not supported!")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
+    message(FATAL_ERROR "Clang versions < 6.0 are not supported!")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
@@ -185,10 +185,6 @@ endif()
 
 if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE AND (alpaka_ACC_GPU_CUDA_ENABLE OR alpaka_ACC_GPU_HIP_ENABLE))
     message(FATAL_ERROR "Fibers and CUDA or HIP back-end can not be enabled both at the same time.")
-endif()
-
-if (alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
-    message(FATAL_ERROR "Clang versions < 6.0 do not support Boost.Fiber!")
 endif()
 
 #-------------------------------------------------------------------------------
@@ -363,12 +359,12 @@ if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR a
         if(alpaka_ACC_ANY_BT_OMP5_ENABLED)
             if(OpenMP_CXX_VERSION VERSION_LESS 5.0)
                 message(FATAL_ERROR "alpaka_ACC_ANY_BT_OMP5_ENABLE requires compiler support for OpenMP 5.0.")
+            endif()
 
-                if((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 12.0.5))
-                    message(FATAL_ERROR "The OpenMP 5.0 back-end requires Xcode 12.5 or later")
-                elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 11.0))
-                    message(FATAL_ERROR "The OpenMP 5.0 back-end requires clang 11.0 or later")
-                endif()
+            if((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 12.0.5))
+                message(FATAL_ERROR "The OpenMP 5.0 back-end requires Xcode 12.5 or later")
+            elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 11.0))
+                message(FATAL_ERROR "The OpenMP 5.0 back-end requires clang 11.0 or later")
             endif()
         endif()
 
@@ -376,6 +372,19 @@ if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR a
 
         # Clang versions support OpenMP 5.0 only when given the corresponding flag
         if(alpaka_ACC_ANY_BT_OMP5_ENABLE)
+            if(alpaka_ACC_GPU_CUDA_ENABLE)
+                # See https://github.com/alpaka-group/alpaka/issues/1755
+                if((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND
+                   (${CMAKE_CXX_COMPILER_ID} VERSION_GREATER_EQUAL 13.1.6) AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 14.0.0))
+                    message(FATAL_ERROR "The OpenMP 5.0 back-end cannot be used together with both Xcode 13.4 and CUDA.")
+                endif()
+
+                if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND
+                   (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 13) AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 14.0.0))
+                    message(FATAL_ERROR "The OpenMP 5.0 back-end cannot be used together with both clang 13 and CUDA.")
+                endif()
+            endif()
+
             target_link_options(alpaka INTERFACE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fopenmp-version=50>)
         endif()
     else()
@@ -509,6 +518,21 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR alpaka_ACC_ANY_BT_OMP5_ENABLE)
                 if(NOT MSVC)
                     alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp>)
+
+                    # See https://github.com/alpaka-group/alpaka/issues/1755
+                    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND
+                       (${CMAKE_CXX_COMPILER_ID} VERSION_GREATER_EQUAL 13.1.6) AND
+                       (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 14.0.0))
+                       message(STATUS "Xcode 13.4 detected. Force-setting OpenMP to version 4.5.")
+                       alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp-version=45>)
+                    endif()
+
+                    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND
+                       (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 13) AND
+                       (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 14))
+                       message(STATUS "clang 13 detected. Force-setting OpenMP to version 4.5.")
+                       alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp-version=45>)
+                    endif()
                 else()
                     alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/openmp>)
                 endif()

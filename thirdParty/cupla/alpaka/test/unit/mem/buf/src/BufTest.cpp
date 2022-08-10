@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -13,7 +13,9 @@
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <numeric>
 #include <type_traits>
@@ -107,7 +109,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncBasicTest", "[memBuf]", alpaka::test::TestAc
     }
     else
     {
-        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+        INFO("Stream-ordered memory buffers are not supported in this configuration.");
     }
 }
 
@@ -124,7 +126,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncZeroSizeTest", "[memBuf]", alpaka::test::Tes
     }
     else
     {
-        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+        INFO("Stream-ordered memory buffers are not supported in this configuration.");
     }
 }
 
@@ -210,7 +212,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncConstTest", "[memBuf]", alpaka::test::TestAc
     }
     else
     {
-        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+        INFO("Stream-ordered memory buffers are not supported in this configuration.");
     }
 }
 
@@ -236,8 +238,8 @@ static auto testBufferAccessorAdaptor(
 
     // check that the array subscript operator access the correct element
     auto const& pitch = alpaka::getPitchBytesVec(buf);
-    INFO("buffer extent: " << extent << " elements")
-    INFO("buffer pitch: " << pitch << " bytes")
+    INFO("buffer extent: " << extent << " elements");
+    INFO("buffer pitch: " << pitch << " bytes");
     CHECK((index < extent).foldrAll(std::logical_and<bool>(), true));
 
     auto base = reinterpret_cast<uintptr_t>(std::data(buf));
@@ -257,8 +259,8 @@ static auto testBufferAccessorAdaptor(
     if constexpr(Dim::value > 0)
         expected += sizeof(Elem) * static_cast<std::size_t>(index[Dim::value - 1]);
 
-    INFO("element " << index << " expected at offset " << expected - base)
-    INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base)
+    INFO("element " << index << " expected at offset " << expected - base);
+    INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base);
     CHECK(reinterpret_cast<Elem*>(expected) == &buf[index]);
 
     // check that an out-of-bound access is detected

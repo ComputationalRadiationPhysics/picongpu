@@ -1,4 +1,4 @@
-/* Copyright 2021 Bernhard Manfred Gruber
+/* Copyright 2022 Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -9,7 +9,7 @@
 
 #include <alpaka/meta/TypeListOps.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <tuple>
 #include <type_traits>

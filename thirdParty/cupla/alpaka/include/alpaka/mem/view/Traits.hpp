@@ -16,6 +16,7 @@
 #include <alpaka/elem/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/meta/Fold.hpp>
+#include <alpaka/meta/Integral.hpp>
 #include <alpaka/offset/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
@@ -149,37 +150,45 @@ namespace alpaka
     //! \param view The memory view to fill.
     //! \param byte Value to set for each element of the specified view.
     //! \param extent The extent of the view to fill.
-    template<typename TExtent, typename TView>
-    ALPAKA_FN_HOST auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& extent)
+    template<typename TExtent, typename TViewFwd>
+    ALPAKA_FN_HOST auto createTaskMemset(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
     {
+        using TView = std::remove_reference_t<TViewFwd>;
+        static_assert(!std::is_const_v<TView>, "The view must not be const!");
         static_assert(
             Dim<TView>::value == Dim<TExtent>::value,
             "The view and the extent are required to have the same dimensionality!");
+        static_assert(
+            meta::IsIntegralSuperset<Idx<TView>, Idx<TExtent>>::value,
+            "The view and the extent must have compatible index types!");
 
-        return trait::CreateTaskMemset<Dim<TView>, Dev<TView>>::createTaskMemset(view, byte, extent);
+        return trait::CreateTaskMemset<Dim<TView>, Dev<TView>>::createTaskMemset(
+            std::forward<TViewFwd>(view),
+            byte,
+            extent);
     }
 
-    //! Sets the memory to the given value.
+    //! Sets the bytes of the memory of view, described by extent, to the given value.
     //!
     //! \param queue The queue to enqueue the view fill task into.
-    //! \param view The memory view to fill.
+    //! \param[in,out] view The memory view to fill. May be a temporary object.
     //! \param byte Value to set for each element of the specified view.
     //! \param extent The extent of the view to fill.
-    template<typename TExtent, typename TView, typename TQueue>
-    ALPAKA_FN_HOST auto memset(TQueue& queue, TView& view, std::uint8_t const& byte, TExtent const& extent) -> void
+    template<typename TExtent, typename TViewFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memset(TQueue& queue, TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent) -> void
     {
-        enqueue(queue, createTaskMemset(view, byte, extent));
+        enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, extent));
     }
 
-    //! Sets the whole view to the given value.
+    //! Sets each byte of the memory of the entire view to the given value.
     //!
     //! \param queue The queue to enqueue the view fill task into.
-    //! \param view The memory view to fill.
+    //! \param[in,out] view The memory view to fill. May be a temporary object.
     //! \param byte Value to set for each element of the specified view.
-    template<typename TView, typename TQueue>
-    ALPAKA_FN_HOST auto memset(TQueue& queue, TView& view, std::uint8_t const& byte) -> void
+    template<typename TViewFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memset(TQueue& queue, TViewFwd&& view, std::uint8_t const& byte) -> void
     {
-        enqueue(queue, createTaskMemset(view, byte, getExtentVec(view)));
+        enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, getExtentVec(view)));
     }
 
     //! Creates a memory copy task.
@@ -187,47 +196,64 @@ namespace alpaka
     //! \param viewDst The destination memory view.
     //! \param viewSrc The source memory view.
     //! \param extent The extent of the view to copy.
-    template<typename TExtent, typename TViewSrc, typename TViewDst>
-    ALPAKA_FN_HOST auto createTaskMemcpy(TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
+    template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
+    ALPAKA_FN_HOST auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
     {
+        using TViewDst = std::remove_reference_t<TViewDstFwd>;
+        using SrcElem = Elem<TViewSrc>;
+        using DstElem = Elem<TViewDst>;
+        using ExtentIdx = Idx<TExtent>;
+        using DstIdx = Idx<TViewDst>;
+        using SrcIdx = Idx<TViewSrc>;
+
+        static_assert(!std::is_const_v<TViewDst>, "The destination view must not be const!");
+        static_assert(!std::is_const_v<DstElem>, "The destination view's element type must not be const!");
         static_assert(
             Dim<TViewDst>::value == Dim<TViewSrc>::value,
-            "The source and the destination view are required to have the same dimensionality!");
+            "The source and the destination view must have the same dimensionality!");
         static_assert(
             Dim<TViewDst>::value == Dim<TExtent>::value,
-            "The destination view and the extent are required to have the same dimensionality!");
+            "The destination view and the extent must have the same dimensionality!");
         static_assert(
-            std::is_same_v<Elem<TViewDst>, std::remove_const_t<Elem<TViewSrc>>>,
-            "The source and the destination view are required to have the same element type!");
+            std::is_same_v<DstElem, std::remove_const_t<SrcElem>>,
+            "The source and destination view must have the same element type!");
+        static_assert(
+            meta::IsIntegralSuperset<DstIdx, ExtentIdx>::value,
+            "The destination view and the extent are required to have compatible index types!");
+        static_assert(
+            meta::IsIntegralSuperset<SrcIdx, ExtentIdx>::value,
+            "The source view and the extent are required to have compatible index types!");
 
         return trait::CreateTaskMemcpy<Dim<TViewDst>, Dev<TViewDst>, Dev<TViewSrc>>::createTaskMemcpy(
-            viewDst,
+            std::forward<TViewDstFwd>(viewDst),
             viewSrc,
             extent);
     }
 
-    //! Copies memory possibly between different memory spaces.
+    //! Copies memory from a part of viewSrc to viewDst, described by extent. Possibly copies between different memory
+    //! spaces.
     //!
     //! \param queue The queue to enqueue the view copy task into.
-    //! \param viewDst The destination memory view.
-    //! \param viewSrc The source memory view.
+    //! \param[in,out] viewDst The destination memory view. May be a temporary object.
+    //! \param viewSrc The source memory view. May be a temporary object.
     //! \param extent The extent of the view to copy.
-    template<typename TExtent, typename TViewSrc, typename TViewDst, typename TQueue>
-    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
+    template<typename TExtent, typename TViewSrc, typename TViewDstFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
         -> void
     {
-        enqueue(queue, createTaskMemcpy(viewDst, viewSrc, extent));
+        enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, extent));
     }
 
-    //! Copies the whole view possibly between different memory spaces.
+    //! Copies the entire memory of viewSrc to viewDst. Possibly copies between different memory
+    //! spaces.
     //!
     //! \param queue The queue to enqueue the view copy task into.
-    //! \param viewDst The destination memory view.
-    //! \param viewSrc The source memory view.
-    template<typename TViewSrc, typename TViewDst, typename TQueue>
-    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDst& viewDst, TViewSrc const& viewSrc) -> void
+    //! \param[in,out] viewDst The destination memory view. May be a temporary object.
+    //! \param viewSrc The source memory view. May be a temporary object.
+    template<typename TViewSrc, typename TViewDstFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDstFwd&& viewDst, TViewSrc const& viewSrc) -> void
     {
-        enqueue(queue, createTaskMemcpy(viewDst, viewSrc, getExtentVec(viewSrc)));
+        enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, getExtentVec(viewSrc)));
     }
 
     namespace detail

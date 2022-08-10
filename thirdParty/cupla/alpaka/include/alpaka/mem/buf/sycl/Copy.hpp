@@ -75,8 +75,8 @@ namespace alpaka::trait
     template<typename TDim, typename TPltf>
     struct CreateTaskMemcpy<TDim, experimental::DevGenericSycl<TPltf>, DevCpu>
     {
-        template<typename TExtent, typename TViewSrc, typename TViewDst>
-        static auto createTaskMemcpy(TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& ext)
+        template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
+        static auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& ext)
         {
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
@@ -84,20 +84,6 @@ namespace alpaka::trait
             using ElemType = Elem<std::remove_const_t<TViewSrc>>;
             using SrcType = ElemType const*;
             using DstType = alpaka::experimental::detail::DstAccessor<ElemType, copy_dim>;
-
-            static_assert(!std::is_const_v<TViewDst>, "The destination view cannot be const!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<std::remove_const_t<TViewSrc>>::value,
-                "The source and the destination view are required to have the same dimensionality!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<TExtent>::value,
-                "The views and the extent are required to have the same dimensionality!");
-
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, ElemType>,
-                "The source and the destination view are required to have the same element type!");
 
             auto const range = experimental::detail::make_sycl_range(ext);
             auto const offset = experimental::detail::make_sycl_offset(viewDst);
@@ -112,8 +98,8 @@ namespace alpaka::trait
     template<typename TDim, typename TPltf>
     struct CreateTaskMemcpy<TDim, DevCpu, experimental::DevGenericSycl<TPltf>>
     {
-        template<typename TExtent, typename TViewSrc, typename TViewDst>
-        static auto createTaskMemcpy(TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& ext)
+        template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
+        static auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& ext)
         {
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
@@ -121,20 +107,6 @@ namespace alpaka::trait
             using ElemType = Elem<std::remove_const_t<TViewSrc>>;
             using SrcType = alpaka::experimental::detail::SrcAccessor<ElemType, copy_dim>;
             using DstType = ElemType*;
-
-            static_assert(!std::is_const_v<TViewDst>, "The destination view cannot be const!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<std::remove_const_t<TViewSrc>>::value,
-                "The source and the destination view are required to have the same dimensionality!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<TExtent>::value,
-                "The views and the extent are required to have the same dimensionality!");
-
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, ElemType>,
-                "The source and the destination view are required to have the same element type!");
 
             auto const range = experimental::detail::make_sycl_range(ext);
             auto const offset = experimental::detail::make_sycl_offset(viewSrc);
@@ -151,8 +123,8 @@ namespace alpaka::trait
     template<typename TDim, typename TPltfDst, typename TPltfSrc>
     struct CreateTaskMemcpy<TDim, experimental::DevGenericSycl<TPltfDst>, experimental::DevGenericSycl<TPltfSrc>>
     {
-        template<typename TExtent, typename TViewSrc, typename TViewDst>
-        static auto createTaskMemcpy(TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& ext)
+        template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
+        static auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& ext)
         {
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
@@ -160,20 +132,6 @@ namespace alpaka::trait
             using ElemType = Elem<std::remove_const_t<TViewSrc>>;
             using SrcType = alpaka::experimental::detail::SrcAccessor<ElemType, copy_dim>;
             using DstType = alpaka::experimental::detail::DstAccessor<ElemType, copy_dim>;
-
-            static_assert(!std::is_const_v<TViewDst>, "The destination view cannot be const!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<std::remove_const_t<TViewSrc>>::value,
-                "The source and the destination view are required to have the same dimensionality!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<TExtent>::value,
-                "The views and the extent are required to have the same dimensionality!");
-
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, ElemType>,
-                "The source and the destination view are required to have the same element type!");
 
             auto const range = experimental::detail::make_sycl_range(ext);
             auto const offset_src = experimental::detail::make_sycl_offset(viewSrc);

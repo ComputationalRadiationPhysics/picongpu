@@ -1,4 +1,4 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -12,7 +12,7 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
 
 #include <algorithm>
 #include <fstream>

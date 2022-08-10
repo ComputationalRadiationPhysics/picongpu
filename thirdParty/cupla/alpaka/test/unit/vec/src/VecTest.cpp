@@ -1,4 +1,4 @@
-/* Copyright 2021 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -11,7 +11,8 @@
 #include <alpaka/test/dim/TestDims.hpp>
 #include <alpaka/vec/Vec.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <numeric>
 #include <utility>

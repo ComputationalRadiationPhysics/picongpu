@@ -12,7 +12,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/workdiv/WorkDivHelpers.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <tuple>
 

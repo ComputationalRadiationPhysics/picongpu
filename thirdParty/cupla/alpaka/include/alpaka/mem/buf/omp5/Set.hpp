@@ -42,9 +42,10 @@ namespace alpaka::trait
     template<typename TDim>
     struct CreateTaskMemset<TDim, DevOmp5>
     {
-        template<typename TExtent, typename TView>
-        ALPAKA_FN_HOST static auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& extent)
+        template<typename TExtent, typename TViewFwd>
+        ALPAKA_FN_HOST static auto createTaskMemset(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
         {
+            using TView = std::remove_reference_t<TViewFwd>;
             using Idx = typename alpaka::trait::IdxType<TExtent>::type;
             auto pitch = getPitchBytesVec(view);
             auto byteExtent = getExtentVec(extent);
@@ -91,12 +92,13 @@ namespace alpaka::trait
     template<>
     struct CreateTaskMemset<DimInt<0u>, DevOmp5>
     {
-        template<typename TExtent, typename TView>
-        ALPAKA_FN_HOST static auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& /* extent */)
+        template<typename TExtent, typename TViewFwd>
+        ALPAKA_FN_HOST static auto createTaskMemset(
+            TViewFwd&& view,
+            std::uint8_t const& byte,
+            TExtent const& /* extent */)
         {
-            static_assert(Dim<TView>::value == 0u, "The view is required to have dimensionality 0!");
-            static_assert(Dim<TExtent>::value == 0u, "The extent is required to have dimensionality 0!");
-
+            using TView = std::remove_reference_t<TViewFwd>;
             using ExtIdx = Idx<TExtent>;
             using Dim0 = DimInt<0u>;
             using Acc = AccOmp5<Dim0, ExtIdx>;

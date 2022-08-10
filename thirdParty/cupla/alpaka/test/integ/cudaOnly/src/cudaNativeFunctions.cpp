@@ -10,7 +10,7 @@
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 

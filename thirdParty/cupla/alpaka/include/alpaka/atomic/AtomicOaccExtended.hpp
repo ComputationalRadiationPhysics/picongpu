@@ -206,7 +206,14 @@ namespace alpaka
                     {
                         auto& ref(*addr);
                         T old = ref;
+#    if defined(__GNUC__)
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wfloat-equal"
+#    endif
                         ref = (ref == compare ? value : ref);
+#    if defined(__GNUC__)
+#        pragma GCC diagnostic pop
+#    endif
                         return old;
                     },
                     atomic);

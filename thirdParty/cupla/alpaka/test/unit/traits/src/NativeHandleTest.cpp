@@ -1,4 +1,4 @@
-/* Copyright 2022 Antonio Di Pilato
+/* Copyright 2022 Antonio Di Pilato, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -11,7 +11,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/traits/Traits.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 TEMPLATE_LIST_TEST_CASE("NativeHandle", "[handle]", alpaka::test::TestAccs)
 {

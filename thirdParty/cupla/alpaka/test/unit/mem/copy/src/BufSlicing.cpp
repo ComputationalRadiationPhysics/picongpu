@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jakob Krude, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jakob Krude, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,7 +12,10 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/mem/view/Iterator.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
 #    pragma warning(push)
@@ -100,11 +103,11 @@ struct TestContainer
         TData const* const ptrB = alpaka::getPtrNative(bufferB);
         for(TIdx i(0); i < extents.prod(); ++i)
         {
-            INFO("Dim: " << TDim::value)
-            INFO("Idx: " << alpaka::core::demangled<TIdx>)
-            INFO("Acc: " << alpaka::trait::GetAccName<TAcc>::getAccName())
-            INFO("i: " << i)
-            REQUIRE(ptrA[i] == Approx(ptrB[i]));
+            INFO("Dim: " << TDim::value);
+            INFO("Idx: " << alpaka::core::demangled<TIdx>);
+            INFO("Acc: " << alpaka::trait::GetAccName<TAcc>::getAccName());
+            INFO("i: " << i);
+            REQUIRE(ptrA[i] == Catch::Approx(ptrB[i]));
         }
     }
 };

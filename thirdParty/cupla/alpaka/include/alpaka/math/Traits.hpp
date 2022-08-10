@@ -22,7 +22,7 @@ namespace alpaka::math
 {
     namespace constants
     {
-        /* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because
+        /* TODO: Remove the following pragmas once support for clang 6 is removed. They are necessary because
         these /  clang versions incorrectly warn about a missing 'extern'. */
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic push
