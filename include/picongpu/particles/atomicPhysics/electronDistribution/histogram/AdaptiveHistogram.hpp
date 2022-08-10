@@ -610,7 +610,8 @@ namespace picongpu
                         {
                             if((this->binWeight[index] + this->binDeltaWeight[index])
                                        * this->getEnergyBin(acc, index, atomicDataBox)
-                                       * picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                                       * static_cast<float_X>(
+                                           picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
                                    + deltaEnergy
                                >= 0.0)
                             {

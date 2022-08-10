@@ -48,8 +48,8 @@ namespace picongpu
                     const float_X weighting = particle[weighting_];
 
                     /* calculate new attribute */
-                    const float_X particleDensity
-                        = weighting / (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME);
+                    const float_X particleDensity = weighting
+                        / (static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME);
 
                     /* return attribute */
                     return particleDensity;

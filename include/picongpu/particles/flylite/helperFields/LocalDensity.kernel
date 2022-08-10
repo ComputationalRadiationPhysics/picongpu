@@ -117,7 +117,8 @@ namespace picongpu
                         if(linearThreadIdx == 0)
                         {
                             ValueType localAverageResult = shReduceBuffer[0]
-                                * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / float_X(numAvgCells);
+                                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
+                                / float_X(numAvgCells);
 
                             localDensity(avgBoxCell)
                                 = static_cast<typename T_LocalDensityBox::ValueType>(localAverageResult);

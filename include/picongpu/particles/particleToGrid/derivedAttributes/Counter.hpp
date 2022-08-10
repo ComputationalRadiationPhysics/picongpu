@@ -47,7 +47,8 @@ namespace picongpu
                     const float_X weighting = particle[weighting_];
 
                     /* calculate new attribute */
-                    const float_X particleCounter = weighting / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                    const float_X particleCounter
+                        = weighting / static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
                     /* return attribute */
                     return particleCounter;
