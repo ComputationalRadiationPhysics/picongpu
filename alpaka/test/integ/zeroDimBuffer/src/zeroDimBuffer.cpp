@@ -14,7 +14,9 @@
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
 #include <cstring>
@@ -66,30 +68,30 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
 
     // check that a Scalar extent has exactly 1 element
     Scalar scalar;
-    INFO("Scalar size: " << scalar.prod())
+    INFO("Scalar size: " << scalar.prod());
     CHECK(scalar.prod() == 1u);
 
     // CPU host
     auto const host = alpaka::getDevByIdx<Host>(0u);
-    INFO("Using alpaka accelerator: " << alpaka::getAccName<HostAcc>())
+    INFO("Using alpaka accelerator: " << alpaka::getAccName<HostAcc>());
     HostQueue hostQueue(host);
 
     // host buffer
     auto h_buffer1 = alpaka::allocBuf<int, Idx>(host, Scalar{});
     INFO(
         "host buffer allocated at " << std::data(h_buffer1) << " with " << alpaka::getExtentProduct(h_buffer1)
-                                    << " element(s)")
+                                    << " element(s)");
 
     // async host buffer
     auto h_buffer2 = allocAsyncBufIfSupported<HostAcc, int, Idx>(hostQueue, Scalar{});
     INFO(
         "second host buffer allocated at " << std::data(h_buffer2) << " with " << alpaka::getExtentProduct(h_buffer2)
-                                           << " element(s)")
+                                           << " element(s)");
 
     // host-side buffer memset
     const int value1 = 42;
     const int expected1 = memset_value<int>(value1);
-    INFO("host-side buffer memset")
+    INFO("host-side buffer memset");
     alpaka::memset(hostQueue, h_buffer1, value1);
     alpaka::wait(hostQueue);
     CHECK(expected1 == *h_buffer1);
@@ -97,13 +99,13 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
     // host-side async buffer memset
     const int value2 = 99;
     const int expected2 = memset_value<int>(value2);
-    INFO("host-side async buffer memset")
+    INFO("host-side async buffer memset");
     alpaka::memset(hostQueue, h_buffer2, value2);
     alpaka::wait(hostQueue);
     CHECK(expected2 == *h_buffer2);
 
     // host-host copies
-    INFO("buffer host-host copies")
+    INFO("buffer host-host copies");
     alpaka::memcpy(hostQueue, h_buffer2, h_buffer1);
     alpaka::wait(hostQueue);
     CHECK(expected1 == *h_buffer2);
@@ -113,38 +115,38 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
 
     // GPU device
     auto const device = alpaka::getDevByIdx<Device>(0u);
-    INFO("Using alpaka accelerator: " << alpaka::getAccName<DeviceAcc>())
+    INFO("Using alpaka accelerator: " << alpaka::getAccName<DeviceAcc>());
     DeviceQueue deviceQueue(device);
 
     // device buffer
     auto d_buffer1 = alpaka::allocBuf<int, Idx>(device, Scalar{});
     INFO(
         "device buffer allocated at " << std::data(d_buffer1) << " with " << alpaka::getExtentProduct(d_buffer1)
-                                      << " element(s)")
+                                      << " element(s)");
 
     // async or second sync device buffer
     auto d_buffer2 = allocAsyncBufIfSupported<DeviceAcc, int, Idx>(deviceQueue, Scalar{});
     INFO(
         "second device buffer allocated at " << std::data(d_buffer2) << " with " << alpaka::getExtentProduct(d_buffer2)
-                                             << " element(s)")
+                                             << " element(s)");
 
     // host-device copies
-    INFO("host-device copies")
+    INFO("host-device copies");
     alpaka::memcpy(deviceQueue, d_buffer1, h_buffer1);
     alpaka::memcpy(deviceQueue, d_buffer2, h_buffer2);
 
     // device-device copies
-    INFO("device-device copies")
+    INFO("device-device copies");
     alpaka::memcpy(deviceQueue, d_buffer1, d_buffer2);
     alpaka::memcpy(deviceQueue, d_buffer2, d_buffer1);
 
     // device-side buffer memset
-    INFO("device-side buffer memset")
+    INFO("device-side buffer memset");
     alpaka::memset(deviceQueue, d_buffer1, value1);
     alpaka::memset(deviceQueue, d_buffer2, value2);
 
     // device-host copies
-    INFO("device-host copies")
+    INFO("device-host copies");
     alpaka::memcpy(deviceQueue, h_buffer1, d_buffer1);
     alpaka::memcpy(deviceQueue, h_buffer2, d_buffer2);
 

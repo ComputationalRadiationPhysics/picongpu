@@ -1,4 +1,4 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -10,7 +10,7 @@
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 //! It is not possible to use a alpaka kernel function object without a templated operator() when the CUDA accelerator
 //! is hard-coded.

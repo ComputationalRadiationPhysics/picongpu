@@ -13,6 +13,7 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
+#include <iostream>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -29,7 +30,14 @@ namespace alpaka::core
             m_stop = true;
             m_cond.notify_one();
             if(m_thread.joinable())
+            {
+                if(std::this_thread::get_id() == m_thread.get_id())
+                {
+                    std::cerr << "ERROR in ~CallbackThread: thread joins itself" << std::endl;
+                    std::abort();
+                }
                 m_thread.join();
+            }
         }
         auto submit(Task&& newTask) -> std::future<void>
         {

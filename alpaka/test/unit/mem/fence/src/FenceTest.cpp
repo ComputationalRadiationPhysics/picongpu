@@ -12,7 +12,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 // Trait to detect whether an accelerator supports or not multiple threads per block
 template<typename TAcc>
@@ -20,7 +21,7 @@ struct IsSingleThreaded : public std::false_type
 {
 };
 
-/* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because these
+/* TODO: Remove the following pragmas once support for clang 6 is removed. They are necessary because these
 /  clang versions incorrectly warn about a missing 'extern'. */
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic push

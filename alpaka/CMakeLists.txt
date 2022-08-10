@@ -13,7 +13,7 @@
 
 cmake_minimum_required(VERSION 3.18)
 
-cmake_policy(SET CMP0091 OLD)
+cmake_policy(SET CMP0091 NEW)
 
 include(CMakePrintHelpers)
 
@@ -48,6 +48,7 @@ include(CTest)
 
 include(CMakeDependentOption)
 cmake_dependent_option(alpaka_CHECK_HEADERS "Check all alpaka headers as part of the tests whether they can be compiled standalone." OFF BUILD_TESTING OFF)
+cmake_dependent_option(alpaka_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON BUILD_TESTING OFF)
 
 ################################################################################
 # Internal variables.
@@ -134,6 +135,8 @@ endif()
 
 ################################################################################
 # Add subdirectories
+
+add_subdirectory(thirdParty)
 
 if(alpaka_BUILD_EXAMPLES)
     add_subdirectory("example/")

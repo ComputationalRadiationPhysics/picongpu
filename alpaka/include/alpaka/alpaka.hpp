@@ -177,6 +177,7 @@
 #include <alpaka/mem/view/Accessor.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/mem/view/ViewAccessor.hpp>
+#include <alpaka/mem/view/ViewConst.hpp>
 #include <alpaka/mem/view/ViewPlainPtr.hpp>
 #include <alpaka/mem/view/ViewStdArray.hpp>
 #include <alpaka/mem/view/ViewStdVector.hpp>

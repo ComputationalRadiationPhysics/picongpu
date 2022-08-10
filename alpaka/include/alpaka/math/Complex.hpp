@@ -53,7 +53,7 @@ namespace alpaka
         }
 
         //! Copy constructor
-        constexpr ALPAKA_FN_HOST_ACC Complex(Complex const& other) = default;
+        constexpr Complex(Complex const& other) = default;
 
         //! Constructor from Complex of another type
         template<typename U>
@@ -75,7 +75,7 @@ namespace alpaka
         }
 
         //! Assignment
-        ALPAKA_FN_HOST_ACC Complex& operator=(Complex const&) = default;
+        Complex& operator=(Complex const&) = default;
 
         //! Get the real part
         constexpr ALPAKA_FN_HOST_ACC T real() const

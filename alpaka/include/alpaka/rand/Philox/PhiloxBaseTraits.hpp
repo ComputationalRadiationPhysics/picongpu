@@ -19,7 +19,7 @@
 namespace alpaka::rand::engine::trait
 {
 #if BOOST_COMP_CLANG
-    /* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because these
+    /* TODO: Remove the following pragmas once support for clang 6 is removed. They are necessary because these
     /  clang versions incorrectly warn about a missing 'extern'. */
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wmissing-variable-declarations"

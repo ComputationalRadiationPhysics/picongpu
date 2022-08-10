@@ -1,5 +1,5 @@
 #
-# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
+# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -20,15 +20,16 @@ concurrency:
 # NOTE: Testing the full matrix is not practical.
 # Therefore we aim to have each value been set in at lest one job.
 # CXX                                           : {g++, clang++}
-#   [g++] ALPAKA_CI_GCC_VER                     : {7, 8, 9, 10, 11}
-#   [clang++] ALPAKA_CI_CLANG_VER               : {5.0, 6.0, 7, 8, 9, 10, 11, 12}
+#   [g++] ALPAKA_CI_GCC_VER                     : {7, 8, 9, 10, 11, 12}
+#   [clang++] ALPAKA_CI_CLANG_VER               : {6.0, 7, 8, 9, 10, 11, 12}
 #   [cl.exe] ALPAKA_CI_CL_VER                   : {2019, 2022}
 #   ALPAKA_CI_STDLIB                            : {libstdc++, [CXX==clang++]:libc++}
 # CMAKE_BUILD_TYPE                              : {Debug, Release}
 # alpaka_CI                                     : {GITHUB}
-# ALPAKA_CI_DOCKER_BASE_IMAGE_NAME              : {ubuntu:20.04}
-# ALPAKA_CI_BOOST_BRANCH                        : {boost-1.74.0, boost-1.75.0, boost-1.76.0, boost-1.77.0, boost-1.78.0}
-# ALPAKA_CI_CMAKE_VER                           : {3.18.6, 3.19.8, 3.20.6, 3.21.6, 3.22.3}
+# ALPAKA_CI_DOCKER_BASE_IMAGE_NAME              : {ubuntu:18.04, ubuntu:20.04, ubuntu:22.04}
+# ALPAKA_CI_BOOST_BRANCH                        : {boost-1.74.0, boost-1.75.0, boost-1.76.0, boost-1.77.0, boost-1.78.0, boost-1.79.0}
+# ALPAKA_CI_CMAKE_VER                           : {3.18.6, 3.19.8, 3.20.6, 3.21.6, 3.22.3, 3.23.2}
+# ALPAKA_CI_XCODE_VER                           : {13.2.1, 13.4.1}
 # ALPAKA_CI_SANITIZERS                          : {ASan, UBsan, TSan}
 #    TSan is not currently used because it produces many unexpected errors
 # ALPAKA_CI_ANALYSIS                            : {ON, OFF}
@@ -84,9 +85,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: DoozyX/clang-format-lint-action@v0.13
+    - uses: DoozyX/clang-format-lint-action@v0.14
       with:
         clangFormatVersion: 12.0.1
+        exclude: './thirdParty'
 
   ci:
     name: ${{ matrix.name }}
@@ -102,25 +104,28 @@ jobs:
           os: ubuntu-latest
           env: {CXX: g++,     CC: gcc,    ALPAKA_CI_GCC_VER: 8,        ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", ALPAKA_CI_ANALYSIS: ON, alpaka_DEBUG: 2}
         - name: linux_clang-8_debug_analysis
-          os: ubuntu-latest
+          os: ubuntu-18.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 8,      ALPAKA_CI_STDLIB: libc++,    CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.77.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", ALPAKA_CI_ANALYSIS: ON, alpaka_DEBUG: 2, alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: OFF}
         - name: linux_clang-9_cuda-9.2_debug_analysis
-          os: ubuntu-latest
+          os: ubuntu-20.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 9,      ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.77.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", ALPAKA_CI_ANALYSIS: ON, ALPAKA_CI_RUN_TESTS: OFF, alpaka_DEBUG: 1, alpaka_ACC_GPU_CUDA_ENABLE: ON, ALPAKA_CI_CUDA_VERSION: "9.2", CMAKE_CUDA_COMPILER: clang++,   alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: OFF, alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: OFF}
         - name: windows_cl-2019_debug_analysis
           os: windows-2019
           env: {CXX: cl.exe,  CC: cl.exe, ALPAKA_CI_CL_VER: 2019,                                   CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.20.6,                     ALPAKA_CI_ANALYSIS: ON, alpaka_DEBUG: 2,                                                                                                                                                  alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF}
-        - name: macos_xcode-12.4.0_debug_analysis
-          os: macos-10.15
-          env: {CXX: clang++, CC: clang,  ALPAKA_CI_XCODE_VER: 12.4.0,                              CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0,                                                  ALPAKA_CI_ANALYSIS: ON, alpaka_DEBUG: 2,                                                                                                                                                  alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: ON, alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: ON, ALPAKA_CI_BUILD_JOBS: 3}
+        - name: macos_xcode-13.4.1_debug_analysis
+          os: macos-12
+          env: {CXX: clang++, CC: clang,  ALPAKA_CI_XCODE_VER: 13.4.1,                              CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0,                                                  ALPAKA_CI_ANALYSIS: ON, alpaka_DEBUG: 2,                                                                                                                                                  alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: ON, alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: ON, ALPAKA_CI_BUILD_JOBS: 3}
+        - name: linux_gcc-12_debug_analysis
+          os: ubuntu-22.04
+          env: {CXX: g++,     CC: gcc,    ALPAKA_CI_GCC_VER: 12,       ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.79.0, ALPAKA_CI_CMAKE_VER: 3.23.1, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:22.04", ALPAKA_CI_ANALYSIS: ON, alpaka_DEBUG: 2}
 
         ### macOS
-        - name: macos_xcode-12.4.0_release
-          os: macos-10.15
-          env: {CXX: clang++, CC: clang,  ALPAKA_CI_XCODE_VER: 12.4.0,                              CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.75.0,                                                  alpaka_CXX_STANDARD: 17,                                                                                                                                                                  alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: ON, alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: ON, ALPAKA_CI_BUILD_JOBS: 3}
         - name: macos_xcode-13.2.1_debug
           os: macos-11
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_XCODE_VER: 13.2.1,                              CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.76.0,                                                  alpaka_CXX_STANDARD: 17,                                                                                                                                                                  alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: ON, alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: ON, ALPAKA_CI_BUILD_JOBS: 3}
+        - name: macos_xcode-13.4.1_release
+          os: macos-12
+          env: {CXX: clang++, CC: clang,  ALPAKA_CI_XCODE_VER: 13.4.1,                              CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.79.0,                                                                                                                                                                                                                                            alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: ON, alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: ON, ALPAKA_CI_BUILD_JOBS: 3}
 
         ### Windows
         - name: windows_cl-2019_release
@@ -211,34 +216,37 @@ jobs:
         - name: linux_gcc-11_debug_omp5
           os: ubuntu-latest
           env: {CXX: g++,     CC: gcc,    ALPAKA_CI_GCC_VER: 11,       ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.18.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", alpaka_DEBUG: 2, alpaka_ACC_ANY_BT_OMP5_ENABLE: ON, CMAKE_CXX_FLAGS: "-foffload=disable", OMP_TARGET_OFFLOAD: "DISABLED", alpaka_OFFLOAD_MAX_BLOCK_SIZE: 2, alpaka_CHECK_HEADERS: ON}
+        - name: linux_gcc-12_release_c++20
+          os: ubuntu-22.04
+          env: {CXX: g++,     CC: gcc,    ALPAKA_CI_GCC_VER: 12,       ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.79.0, ALPAKA_CI_CMAKE_VER: 3.23.1, OMP_NUM_THREADS: 2, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:22.04", alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_CXX_STANDARD: 20}
+        - name: linux_gcc-12_debug_omp5
+          os: ubuntu-22.04
+          env: {CXX: g++,     CC: gcc,    ALPAKA_CI_GCC_VER: 12,       ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.18.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:22.04", alpaka_DEBUG: 2, alpaka_ACC_ANY_BT_OMP5_ENABLE: ON, CMAKE_CXX_FLAGS: "-foffload=disable", OMP_TARGET_OFFLOAD: "DISABLED", alpaka_OFFLOAD_MAX_BLOCK_SIZE: 2, alpaka_CHECK_HEADERS: ON}
 
         # clang++
-        - name: linux_clang-5_debug_c++17
-          os: ubuntu-latest
-          env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: "5.0",  ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.76.0, ALPAKA_CI_CMAKE_VER: 3.19.8, OMP_NUM_THREADS: 3, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:18.04", alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: OFF, alpaka_CXX_STANDARD: 17}
         - name: linux_clang-6_release_asan_c++17
-          os: ubuntu-latest
+          os: ubuntu-18.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: "6.0",  ALPAKA_CI_STDLIB: libc++,    CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 2, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:18.04", alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: OFF, ALPAKA_CI_SANITIZERS: ASan, alpaka_CXX_STANDARD: 17}
         - name: linux_clang-7_release_c++17
-          os: ubuntu-latest
+          os: ubuntu-18.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 7,      ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.75.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 1, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", alpaka_CXX_STANDARD: 17, CMAKE_CXX_EXTENSIONS: OFF}
         - name: linux_clang-8_release
-          os: ubuntu-latest
+          os: ubuntu-18.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 8,      ALPAKA_CI_STDLIB: libc++,    CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.18.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: OFF, CMAKE_CXX_EXTENSIONS: OFF}
         - name: linux_clang-9_debug
-          os: ubuntu-latest
+          os: ubuntu-20.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 9,      ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.77.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 1, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04"}
         - name: linux_clang-10_release
-          os: ubuntu-latest
+          os: ubuntu-20.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 10,     ALPAKA_CI_STDLIB: libc++,    CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.75.0, ALPAKA_CI_CMAKE_VER: 3.22.3, OMP_NUM_THREADS: 2, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: OFF, alpaka_CXX_STANDARD: 17}
         - name: linux_clang-13_debug_omp5
-          os: ubuntu-latest
+          os: ubuntu-22.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 13,     ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.77.0, ALPAKA_CI_CMAKE_VER: 3.19.8, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", CMAKE_CXX_FLAGS: "-fopenmp=libomp -fopenmp-targets=x86_64-pc-linux-gnu -Wno-openmp-mapping", alpaka_ACC_ANY_BT_OMP5_ENABLE: ON, alpaka_OFFLOAD_MAX_BLOCK_SIZE: 1, CMAKE_EXE_LINKER_FLAGS: "-fopenmp", alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: OFF}
         - name: linux_clang-12_release
-          os: ubuntu-latest
+          os: ubuntu-20.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 12,     ALPAKA_CI_STDLIB: libc++,    CMAKE_BUILD_TYPE: Release, ALPAKA_CI_BOOST_BRANCH: boost-1.76.0, ALPAKA_CI_CMAKE_VER: 3.21.6, OMP_NUM_THREADS: 4, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: OFF, CMAKE_CXX_EXTENSIONS: OFF}
         - name: linux_clang-13_debug
-          os: ubuntu-latest
+          os: ubuntu-22.04
           env: {CXX: clang++, CC: clang,  ALPAKA_CI_CLANG_VER: 13,     ALPAKA_CI_STDLIB: libstdc++, CMAKE_BUILD_TYPE: Debug,   ALPAKA_CI_BOOST_BRANCH: boost-1.74.0, ALPAKA_CI_CMAKE_VER: 3.20.6, OMP_NUM_THREADS: 3, ALPAKA_CI_DOCKER_BASE_IMAGE_NAME: "ubuntu:20.04", CMAKE_CXX_EXTENSIONS: OFF}
 
         # icpx
