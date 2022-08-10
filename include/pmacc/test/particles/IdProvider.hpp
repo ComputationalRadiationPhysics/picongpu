@@ -28,10 +28,6 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/types.hpp>
 
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/list.hpp>
-
 #include <algorithm>
 #include <cstdint>
 #include <set>
@@ -45,8 +41,6 @@ namespace pmacc
     {
         namespace particles
         {
-            namespace bmpl = boost::mpl;
-
             template<uint32_t T_numWorkers, uint32_t T_numIdsPerBlock, typename T_IdProvider>
             struct GenerateIds
             {
