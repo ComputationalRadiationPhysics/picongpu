@@ -26,8 +26,6 @@
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/fields/absorber/pml/Pml.kernel"
 
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-
 #include <cstdint>
 #include <string>
 
@@ -73,35 +71,31 @@ namespace picongpu
                     /** Functor to update electric field by a time step using FDTD with the given curl and PML
                      *
                      * @tparam T_CurlB curl functor type according to the Curl concept
-                     * @tparam T_Area area to apply updates to
                      *
                      * @param currentStep index of the current time iteration
                      */
-                    template<typename T_CurlB, uint32_t T_Area>
+                    template<typename T_CurlB>
                     UpdateEFunctor<T_CurlB> getUpdateEFunctor(float_X const currentStep)
                     {
-                        auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateEFunctor<T_CurlB>{
                             psiE->getDeviceOuterLayerBox(),
-                            getLocalParameters(mapper, currentStep)};
+                            getLocalParameters(currentStep)};
                     }
 
                     /** Functor to update magnetic field by half a time step using FDTD with the given curl and PML
                      *
                      * @tparam T_CurlE curl functor type according to the Curl concept
-                     * @tparam T_Area area to apply updates to
                      *
                      * @param currentStep index of the current time iteration
                      * @param updatePsiB whether convolutional magnetic fields need to be updated, or are
                      * up-to-date
                      */
-                    template<typename T_CurlE, uint32_t T_Area>
+                    template<typename T_CurlE>
                     UpdateBHalfFunctor<T_CurlE> getUpdateBHalfFunctor(float_X const currentStep, bool const updatePsiB)
                     {
-                        auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateBHalfFunctor<T_CurlE>{
                             psiB->getDeviceOuterLayerBox(),
-                            getLocalParameters(mapper, currentStep),
+                            getLocalParameters(currentStep),
                             updatePsiB};
                     }
 
@@ -120,16 +114,15 @@ namespace picongpu
                     }
 
                     //! Get parameters for the local domain
-                    template<typename T_Mapper>
-                    LocalParameters getLocalParameters(T_Mapper mapper, float_X const currentStep) const
+                    LocalParameters getLocalParameters(float_X const currentStep) const
                     {
                         Thickness localThickness = getLocalThickness(currentStep);
                         checkLocalThickness(localThickness);
                         return LocalParameters(
                             parameters,
                             localThickness,
-                            mapper.getGridSuperCells() * SuperCellSize::toRT(),
-                            mapper.getGuardingSuperCells() * SuperCellSize::toRT());
+                            cellDescription.getGridSuperCells() * SuperCellSize::toRT(),
+                            cellDescription.getGuardingSuperCells() * SuperCellSize::toRT());
                     }
 
                     /** Get PML thickness for the local domain at the current time step.
