@@ -54,6 +54,7 @@
 #endif
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"
+#include "picongpu/param/shadowgraphy.param"
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"

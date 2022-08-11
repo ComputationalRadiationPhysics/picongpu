@@ -43,6 +43,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{FFTW3_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
@@ -176,6 +177,13 @@ if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(HOST_LIBS ${HOST_LIBS} m)
 endif()
 
+# https://stackoverflow.com/questions/44277114/how-to-use-fftw-library-in-cmake
+find_package(PkgConfig REQUIRED)
+pkg_search_module(FFTW3 REQUIRED fftw3 IMPORTED_TARGET)
+include_directories(PkgConfig::FFTW3)
+link_libraries     (PkgConfig::FFTW3)
+#find_package(FFTW3 REQUIRED)
+#set(HOST_LIBS ${HOST_LIBS} FFTW3::FFTW3)
 
 ################################################################################
 # Find Boost

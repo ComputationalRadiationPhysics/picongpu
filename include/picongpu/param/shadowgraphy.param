@@ -1,0 +1,218 @@
+#pragma once
+
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <pmacc/dataManagement/DataConnector.hpp>
+//#include "picongpu/include/picongpu/param/grid.param"
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace shadowgraphy
+        {
+            namespace params
+            {
+                // The time integration part of the plugin will be called each t_res'ed step
+                // until t_n / t_res steps after the start of the integration in the .cfg file
+
+                // Make sure that the Nyquist-Shannon theorem is fulfilled
+                //     t_res * dt * c < lambda_probe / 2
+                constexpr unsigned int t_res = 2;
+
+                // Make sure that the Time-Bandwidth product is fulfilled @TODO
+                //     omega_n = t_n
+                //     domega = 2pi / (t_res * dt)
+                //     domega * omega_n * fwhm_probe[t] / 2 pi > 0.441 (for gauss)
+
+                constexpr unsigned int t_wf_buffer = 32;
+
+
+                // Transverse resolution of shadowgram in PIConGPU cell size units
+                constexpr unsigned int x_res = 1;//2
+                constexpr unsigned int y_res = 1;//4
+
+                constexpr unsigned int pos_wf_buffer = 12;
+
+                constexpr unsigned int plugin_wf_buffer_x = pos_wf_buffer / x_res;
+                constexpr unsigned int plugin_wf_buffer_y = pos_wf_buffer / y_res;
+
+                constexpr float NA = 0.23;
+
+                // Windowfunction drop off over (thingy * k_probe) kperps
+                constexpr float NA_wf_thingy = 0.5;
+
+
+                constexpr float_64 probe_wavelength = 750e-9;
+                constexpr float_64 pulse_duration = 12e-15 / 2.0; //FWHM
+                constexpr float_64 timebandwidthproduct = 0.441; //0.441 for Gauss, 0.315 for sech2
+
+                constexpr float_64 probe_omega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / probe_wavelength;
+
+                constexpr float_64 delta_omega = 2.0 * PI * timebandwidthproduct / pulse_duration;
+
+                constexpr float ndo = 3.0;
+
+                constexpr float_64 omega_min = probe_omega - ndo * delta_omega / 2.0;
+                constexpr float_64 omega_max = probe_omega + ndo * delta_omega / 2.0;
+
+                constexpr float ndo_wf = 2.0;
+
+                constexpr float_64 omega_min_wf = omega_min - ndo_wf * delta_omega / 2.0;
+                constexpr float_64 omega_max_wf = omega_max + ndo_wf * delta_omega / 2.0;
+            }
+
+
+            namespace fourierhelper
+            {   
+                
+                HINLINE int get_omega_min_index(int duration){
+                    float_64 const actual_step = params::t_res * SI::DELTA_T_SI;
+                    int const actual_n = duration / params::t_res;
+                    int tmpindex = math::floor(actual_n * ((actual_step * params::omega_min_wf) / (2.0 * PI) + 0.5));
+                    int retindex = tmpindex > actual_n / 2 + 1 ? tmpindex : actual_n / 2 + 1;
+                    return retindex;
+                }
+
+                HINLINE int get_omega_max_index(int duration){
+                    float_64 const actual_step = params::t_res * SI::DELTA_T_SI;
+                    int const actual_n = duration / params::t_res;
+                    int tmpindex = math::ceil(actual_n * ((actual_step * params::omega_max_wf) / (2.0 * PI) + 0.5));
+                    int retindex =  tmpindex <= actual_n ? tmpindex : actual_n;
+                    return retindex + 1;
+                }
+
+                HINLINE int get_n_omegas(int duration){
+                    return 2 * (get_omega_max_index(duration) - get_omega_min_index(duration));
+                }
+
+                HINLINE int get_omega_index(int i, int t_n){
+                    int const n_omegas = get_n_omegas(t_n) / 2;
+                    if (i < n_omegas){
+                        return t_n / params::t_res - get_omega_min_index(t_n) - n_omegas + i + 1;//(get_omega_min_index() % n_omegas) + i + 1;
+                    } else {
+                        return (i % n_omegas) + get_omega_min_index(t_n);
+                    }
+                }
+
+                
+                
+            }
+
+
+            namespace masks
+            {
+                // Numerical aperture to remove e.g. side scattered light from probe laser and drive laser from shadowgraphy simulations
+                //constexpr float_64 numerical_aperture = 0.23;
+                HINLINE float_64 position_wf(int i, int j, int plugin_x_n, int plugin_y_n){
+                    float_64 x_factor = 1.0;
+                    //int const plugin_x_n = params::x_n / params::x_res - 2;
+
+                    if (i <= params::plugin_wf_buffer_x ){
+                        x_factor = ( 1.0 - math::cos(PI * i / float_64(params::plugin_wf_buffer_x)) ) / 2.0;
+                    }  else if ((i > (plugin_x_n - params::plugin_wf_buffer_x))){
+                        x_factor =  math::cos(PI * (i - (plugin_x_n - params::plugin_wf_buffer_x)) / float_64(params::plugin_wf_buffer_x)) / 2.0 + 0.5;
+                    }
+
+                    float_64 y_factor = 1.0;
+                    //int const plugin_y_n = params::y_n / params::y_res - 2;
+
+                    if (j <= params::plugin_wf_buffer_y){
+                        y_factor = ( 1.0 - math::cos(PI * j / float_64(params::plugin_wf_buffer_y)) ) / 2.0;
+                    }  else if ((j > (plugin_y_n - params::plugin_wf_buffer_y))){
+                        y_factor =  math::cos(PI * (j - (plugin_y_n - params::plugin_wf_buffer_y)) / float_64(params::plugin_wf_buffer_y)) / 2.0 + 0.5;
+                    }
+
+                    return x_factor * y_factor;
+                }
+
+                HINLINE float_64 t_wf(int t, int t_n){
+                    float_64 t_factor = 1.0;
+
+                    int t_max = t_n / params::t_res;
+                    float buffer_res = params::t_wf_buffer / params::t_res;
+
+                    if (t < buffer_res ){
+                        t_factor = ( 1.0 - math::cos(PI * t / float_64(buffer_res)) ) / 2.0;
+                    }  else if ((t > (t_max - buffer_res))){
+                        t_factor =  math::cos(PI * (t - (t_max - buffer_res)) / float_64(buffer_res)) / 2.0 + 0.5;
+                    }
+
+                    return t_factor;
+                }
+
+
+
+                HINLINE float_64 frequency_filter_f(float_64 omeganonabs){
+                    /**
+                      * o is integer for omega coordinate from 0 to n_omega
+                      */
+                    //float_64 const max_omega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / params::min_lambda;
+                    //float_64 const min_omega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / params::max_lambda;
+                    //float_64 const omega = math::abs(fourierhelper::omega(o));
+
+                    float_64 const omega = math::abs(omeganonabs);
+
+                    
+
+                    if(params::ndo_wf == 0.0)
+                    {                        
+                        if( omega >= params::omega_min && omega <= params::omega_max ){
+                            //std::cout << "a";
+                            return 1.0;
+                        } else {
+                            return 0.0;
+                        }
+
+                    } else {
+
+                        float_64 const d_omega = params::ndo_wf * params::delta_omega / 2.0;
+                        
+                        if( (omega >= params::omega_min_wf) && (omega < params::omega_min) ){
+                            return ( 1.0 - math::cos(PI * (omega - params::omega_min + d_omega) / d_omega) ) / 2.0;
+                        } else if ( (omega >= params::omega_min) && (omega < params::omega_max) ) {
+                            return 1.0;
+                        } else if ( (omega >= params::omega_max) && (omega <= params::omega_max_wf) ) {
+                            return math::cos(PI * (omega - params::omega_max) / d_omega) / 2.0 + 0.5;
+                        } else {
+                            return 0.0;
+                        }
+                    }
+                }
+
+                HINLINE float_64 numerical_aperture_f(float_64 kx, float_64 ky, float_64 omega){
+
+                    float_64 const kperp = math::sqrt(kx * kx + ky * ky);
+                    float_64 const k = math::abs(omega / SI::SPEED_OF_LIGHT_SI);
+
+                    float_64 const wf_offset = params::probe_omega * params::NA_wf_thingy / SI::SPEED_OF_LIGHT_SI;
+
+                    float_64 const NAk = params::NA * k;
+
+                    if(kperp <= NAk ){
+                        return 1.0;
+                    } else if(kperp <= (NAk + wf_offset)) {
+                        return ( 1.0 - math::cos(PI * (kperp - NAk - wf_offset) / wf_offset) ) / 2.0;
+                    } else {
+                        return 0.0;
+                    }
+                }
+
+                HINLINE float_64 mask_f(float_64 kx, float_64 ky, float_64 omega){
+                    /** 
+                      * i is integer for x coordinate from 0 to n_x
+                      * j is integer for j coordinate from 0 to n_y
+                      * o is integer for omega coordinate from 0 to n_omega
+                      */
+                    return frequency_filter_f(omega) * numerical_aperture_f(kx, ky, omega);
+                }
+            }
+            // The amount of cells to remove from each (!) side of the simulation box
+            // This is necessary to remove the boundary artifacts from the PIConGPU simulation
+            // constexpr unsigned int x_gap = 16;
+            // constexpr unsigned int y_gap = 16;
+
+        }
+    }
+}
