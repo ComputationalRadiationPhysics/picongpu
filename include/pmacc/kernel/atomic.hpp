@@ -88,47 +88,6 @@ namespace pmacc
                     ::atomicAddNoRet(ptr, value);
                 }
             };
-#elif(                                                                                                                \
-    PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT == 1 && ALPAKA_ACC_GPU_HIP_ENABLED == 1                               \
-    && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) >= 403)
-            /** HIP backend specialization for atomic add float
-             *
-             * atomicAdd(float*,float) into shared memory is very slow for HIP 4.3+.
-             * HIP 4.3 introduced scoped atomics, it looks like atomicAdd for float, even on shared memory data, is
-             * always actually executed in global memory. This spezilization is only overwriting the atomicAdd
-             * implementation for float, for atomics between threads.
-             *
-             * Note: The HIP atomicAdd implementation for double is not effected by this performance bug.
-             */
-            template<typename... T_AccArgs>
-            struct AtomicOpNoRet<
-                ::alpaka::AtomicAdd,
-                alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...>,
-                float,
-                ::alpaka::hierarchy::Threads>
-            {
-                template<typename T_Hierarchy>
-                DINLINE void operator()(
-                    alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...> const& acc,
-                    float* address,
-                    float const val,
-                    T_Hierarchy const& hierarchy)
-                {
-                    unsigned int* address_as_u(reinterpret_cast<unsigned int*>(address));
-                    unsigned int old = __atomic_load_n(address_as_u, __ATOMIC_RELAXED);
-                    unsigned int assumed;
-                    do
-                    {
-                        assumed = old;
-                        old = ::atomicCAS(
-                            address_as_u,
-                            assumed,
-                            static_cast<unsigned int>(
-                                __float_as_uint(val + __uint_as_float(static_cast<unsigned int>(assumed)))));
-                        // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-                    } while(assumed != old);
-                }
-            };
 #endif
 
             template<typename T_Type, bool T_isKepler>
