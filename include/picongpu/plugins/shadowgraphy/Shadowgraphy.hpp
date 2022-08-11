@@ -137,20 +137,11 @@ namespace picongpu
 
                 shadowgraphy::Helper* helper = nullptr;
                 pmacc::mpi::MPIReduce reduce;
-    /*
-            std::string name;
-            std::string prefix;
-            std::vector<std::string> notifyPeriod;
-            std::vector<std::string> fileName;
-            std::vector<int> plane;
-            std::vector<float_X> slicePoint;
-            MappingDesc* cellDescription;
-            std::vector<SliceFieldPrinter<Field>> childs;
-    */
 
             public:
                 Shadowgraphy()
-                    : pluginName("TransitionRadiation: calculate transition radiation of species")
+                    : pluginName("Shadowgraphy: calculate the energy density of a laser by integrating
+                                    the Poynting vectors of a slice over a given time interval")
                     , isIntegrating(false)
                 {
                     /* register our plugin during creation */
@@ -239,8 +230,6 @@ namespace picongpu
                             size.shrink<simDim - 1>((this->plane + 1) % simDim));
                         this->dBuffer_SI2 = std::make_unique<container::DeviceBuffer<float3_64, simDim - 1>>(
                             size.shrink<simDim - 1>((this->plane + 1) % simDim));
-                        //this->dBBuffer_SI = std::make_unique<container::DeviceBuffer<float3_64, simDim - 1>>(
-                        //    size.shrink<simDim - 1>((this->plane + 1) % simDim));
                     }
                     else
                     {
@@ -258,9 +247,9 @@ namespace picongpu
                 }
 
                 /** Implementation of base class function. Sets mapping description.
-                    *
-                    * @param cellDescription
-                    */
+                 *
+                 * @param cellDescription
+                 */
                 void setMappingDescription(MappingDesc* cellDescription) override
                 {
                     this->cellDescription = cellDescription;
@@ -271,16 +260,11 @@ namespace picongpu
                 {
                     /* notification callback for simulation step currentStep
                     * called every notifyPeriod steps */
-                    //std::cout << "Shadowgraphy notify period is: " << currentStep << std::endl;
-                    //std::cout << "231 " << picongpu::SI::DELTA_T_SI << std::endl;
-                    //printf("231 %e\n", float(picongpu::SI::DELTA_T_SI));
 
                     if(sliceIsOK)
                     {
                         
                         isMaster = reduce.hasResult(pmacc::mpi::reduceMethods::Reduce());
-                        //if(isMaster)
-                        //{
 
                         // First time the plugin is called:
                         if(isIntegrating == false)
@@ -365,7 +349,6 @@ namespace picongpu
                             }
                             isIntegrating = false;
                         }
-                        //}
                     }
                 }
 
@@ -464,12 +447,7 @@ namespace picongpu
                     vec::Size_t<simDim - 1> globalSliceSize2 = globalDomainSize2.shrink<simDim - 1>((nAxis + 1) % simDim);
                     container::HostBuffer<float3_64, simDim - 1> globalBuffer2(globalSliceSize2);
 
-
                     gather(globalBuffer1, hBuffer1, nAxis);
-                    //if(!gather.root()){
-                    //    printf("r1\n");
-                    //    return;
-                    //}
                     gather2(globalBuffer2, hBuffer2, nAxis);
 
                     if(!gather2.root()){
@@ -497,71 +475,6 @@ namespace picongpu
 
                     helper->store_field<Field>(localStep, currentStep, &globalBuffer1, &globalBuffer2);
                     
-                    /*
-                    // SECOND SLICE OF FIELD FOR YEE OFFSET
-                    int globalPlane2 = globalGridSize[nAxis] * slicePoint + 1;
-                    int localPlane2 = globalPlane2 % field.size()[nAxis];
-                    int gpuPlane2 = globalPlane2 / field.size()[nAxis];
-
-                    vec::Int<simDim> nVector2(vec::Int<simDim>::create(0));
-                    nVector2[nAxis] = 1;
-
-                    zone::SphericZone<simDim> gpuGatheringZone2(gpuDim, nVector2 * gpuPlane2);
-                    gpuGatheringZone2.size[nAxis] = 1;
-
-                    algorithm::mpi::Gather<simDim> gather2(gpuGatheringZone2);
-
-                    if(!gather2.participate()){
-                        if(debugoutput){
-                            printf("p2\n");
-                        }
-                        return;
-                    }
-
-                    if(debugoutput){
-                        printf("line 401\n");
-                    }
-
-                    vec::UInt32<3> twistedAxesVec2((nAxis + 1) % 3, (nAxis + 2) % 3, nAxis);
-
-                    // convert data to higher precision and to SI units 
-                    ShadowgraphyHelper::ConversionFunctor<Field> cf2;
-                    algorithm::kernel::RT::Foreach()(
-                        dBuffer_SI2->zone(),
-                        dBuffer_SI2->origin(),
-                        cursor::tools::slice(field.originCustomAxes(twistedAxesVec2)(0, 0, localPlane2)),
-                        cf2);
-            
-
-                    // copy selected plane from device to host 
-                    container::HostBuffer<float3_64, simDim - 1> hBuffer2(dBuffer_SI2->size());
-                    hBuffer2 = *dBuffer_SI2;
-
-                    /// collect data from all nodes/GPUs 
-                    vec::Size_t<simDim> globalDomainSize2 = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
-                    vec::Size_t<simDim - 1> globalSliceSize2 = globalDomainSize2.shrink<simDim - 1>((nAxis + 1) % simDim);
-                    container::HostBuffer<float3_64, simDim - 1> globalBuffer2(globalSliceSize2);
-                    gather2(globalBuffer2, hBuffer2, nAxis);
-                    if(!gather2.root()){
-                        if(debugoutput){
-                            printf("r2\n");
-                        }
-                        return;
-                    }
-
-                    if(debugoutput){
-                        printf("line 427\n");
-                    }
-                    
-
-                    //if(isMaster)
-                    //{
-                    printf("master2\n");
-                    helper->store_field<Field>(localStep, currentStep, &globalBuffer1, &globalBuffer2);
-                    //}
-                    //std::ofstream file(filename.c_str());
-                    //file << globalBuffer;
-                    */
 
                 }
 

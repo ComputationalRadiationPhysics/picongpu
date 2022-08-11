@@ -177,13 +177,6 @@ if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(HOST_LIBS ${HOST_LIBS} m)
 endif()
 
-# https://stackoverflow.com/questions/44277114/how-to-use-fftw-library-in-cmake
-find_package(PkgConfig REQUIRED)
-pkg_search_module(FFTW3 REQUIRED fftw3 IMPORTED_TARGET)
-include_directories(PkgConfig::FFTW3)
-link_libraries     (PkgConfig::FFTW3)
-#find_package(FFTW3 REQUIRED)
-#set(HOST_LIBS ${HOST_LIBS} FFTW3::FFTW3)
 
 ################################################################################
 # Find Boost
@@ -459,6 +452,16 @@ if(PIC_SEARCH_ISAAC)
 endif()
 
 PIC_dependency_set_status(ISAAC ${ISAAC_FOUND})
+
+################################################################################
+# Find FFTW3
+################################################################################
+
+# taken from https://stackoverflow.com/questions/44277114/how-to-use-fftw-library-in-cmake
+find_package(PkgConfig "Fast Fourier Transform Framework for shadowgraphy plugin" AUTO)
+pkg_search_module(FFTW3 REQUIRED fftw3 IMPORTED_TARGET)
+include_directories(PkgConfig::FFTW3)
+link_libraries(PkgConfig::FFTW3)
 
 ################################################################################
 # PIConGPU Workarounds

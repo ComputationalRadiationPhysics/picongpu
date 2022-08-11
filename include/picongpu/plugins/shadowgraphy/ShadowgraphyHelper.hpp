@@ -19,7 +19,6 @@ namespace picongpu
             {
             private:
                 using complex_64 = alpaka::Complex<float_64>;
-                //using complex_64 = pmacc::math::Complex<float_64>;
 
                 typedef std::vector< std::vector< std::vector< complex_64 > > > vec3c;
                 typedef std::vector< std::vector< complex_64 > > vec2c;
@@ -129,7 +128,6 @@ namespace picongpu
                     if(isSlidingWindowEnabled){
                         // movingWindowCorrection makes the resulting shadowgram smaller if the moving Window is enabled
                         // The resulting loss in the size of the shadowgram comes from the duration of the time integration
-                        //movingWindowCorrection =  n_z * SI::CELL_DEPTH_SI + nt * dt * float_64(SI::SPEED_OF_LIGHT_SI) / 2.0;
                         movingWindowCorrection =  n_z * SI::CELL_DEPTH_SI + nt * dt * float_64(SI::SPEED_OF_LIGHT_SI);
                         printf("1: %e \n", n_z * SI::CELL_DEPTH_SI);
                         printf("2: %e \n", nt * dt * float_64(SI::SPEED_OF_LIGHT_SI));
@@ -208,18 +206,6 @@ namespace picongpu
                 template<typename F>
                 void store_field(int t, int currentStep, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer1, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer2)
                 {
-                    /*
-                        movingWindowCorrection =  slicepoint * globalGridSize.z() * SI::CELL_DEPTH_SI + nt * dt * SI::DELTA_T_SI * float_64(SI::SPEED_OF_LIGHT_SI);
-                        printf("1: %e \n", slicepoint * globalGridSize.z() * SI::CELL_DEPTH_SI);
-                        printf("2: %e \n", nt * dt * float_64(SI::SPEED_OF_LIGHT_SI));
-                        n_y = math::ceil((globalGridSize.y() - movingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::y_res) - 2);
-                    */
-                    printf("t: %d, currentStep: %d \n", t, currentStep);
-                    // @TODO
-                    printf("cpgu: %f \n", cellspergpu);
-                    printf("cpgu: %e \n", cellspergpu);
-                    printf("duariotn: %d\n", duration);
-                    // prev: float const lost_index_from_sw = math::fmod((SI::SPEED_OF_LIGHT_SI * duration * SI::DELTA_T_SI / 2.0 / SI::CELL_HEIGHT_SI), cellspergpu); // MUSS DAS NIHCT EIN GANZER INDEX SEIN @TODO
                     float const tmax_sim_c = SI::SPEED_OF_LIGHT_SI * SI::DELTA_T_SI * (startTime + duration);
                     float const mwsy = mwstart * globalgridsizey * SI::CELL_HEIGHT_SI * float(ngpus - 1) / float(ngpus);
 
@@ -228,59 +214,14 @@ namespace picongpu
                     float const jumped_gpu_cells = (math::floor((tmax_sim_c - mwsy) / SI::CELL_HEIGHT_SI / cellspergpu) 
                                                 - math::floor((currentStep * SI::SPEED_OF_LIGHT_SI * SI::DELTA_T_SI - mwsy) / SI::CELL_HEIGHT_SI / cellspergpu)) * cellspergpu;// / params::y_res;
 
-                    printf("lost index: %f\n", lost_index_from_sw);
-
                     for(int i = 0; i < n_x; ++i){
-
                         int const grid_i = i * params::x_res;
-                        //std::cout << "i:" << i << std::endl;
                         for(int j = 0; j < n_y; ++j){
-                            //printf("i: %d, j: %d \n", i, j);
-                            //printf("i = %d, j = %d \n", i, j);
                             if(isSlidingWindowEnabled){
-                                //int const grid_j = j * params::y_res;
-                                //prev: float const jumped_gpu_cells = math::floor(SI::SPEED_OF_LIGHT_SI * (startTime + duration - currentStep) // @TODO
-                                //                                            * SI::DELTA_T_SI / SI::CELL_HEIGHT_SI / cellspergpu) * cellspergpu;// / params::y_res;
-                                float gridPos = float(j * params::y_res) + jumped_gpu_cells + lost_index_from_sw;
-                                                //+ (math::fmod((SI::SPEED_OF_LIGHT_SI * (currentStep - mwstartStep) * SI::DELTA_T_SI / SI::CELL_HEIGHT_SI), cellspergpu))
-                                                //+ (float_64(nt - 1 - t) / float_64(nt - 1)) * (0 * n_z * SI::CELL_DEPTH_SI + nt * dt * SI::SPEED_OF_LIGHT_SI) / (params::y_res * SI::CELL_HEIGHT_SI);
-                                                //+  (float_64(nt - t - 1) * dt * SI::SPEED_OF_LIGHT_SI) / (SI::CELL_HEIGHT_SI);
-
-                                /*if(F::getName() == "E"){
-                                    if(t % 16 == 0 && i == 0){
-                                        printf("--1: gridpos: %e \n", gridPos);
-                                    }
-                                }*/
-
-                                //float const amount_of_moving_windows = math::floor();
-                                float wr = math::fmod(gridPos, 1.0);
-
-                                /*if(F::getName() == "E"){
-                                    if(t % 16 == 0 && i == 0){
-                                        printf("--2: gridpos: %e \n", gridPos);
-                                    }
-                                }*/
-
-                                //if (wr > 0.5){
-                                //    gridPos++;
-                                //    wr = 1.0 - wr;
-                                 // }
-
-                                /*if(F::getName() == "E"){
-                                    if(t % 16 == 0 && i == 0){
-                                        printf("--3: gridpos: %e \n", gridPos);
-                                    }
-                                }*/
-
-
+                                float const gridPos = float(j * params::y_res) + jumped_gpu_cells + lost_index_from_sw;
+                                float const  wr = math::fmod(gridPos, 1.0);
                                 float const wl = 1.0 - wr;
                                 int const grid_j = math::floor(gridPos);
-
-                                /*if(F::getName() == "E"){
-                                    if(t % 16 == 0 && i == 0){
-                                        printf("--4: gridpos: %e, gridj %d, t:%d \n", gridPos, grid_j, t);
-                                    }
-                                }*/
 
                                 float_64 const wf = masks::position_wf(i, j, n_x, n_y) * masks::t_wf(t, duration);
 
@@ -420,9 +361,6 @@ namespace picongpu
                             float_64 const omega_SI = omega(omegaIndex);
                             float_64 const k_SI = omega_SI / float_64(SI::SPEED_OF_LIGHT_SI) ;
                             printf("omegaIndex: %d \n", omegaIndex);
-                            //printf("omega: %e \n", omega(omegaIndex));
-                            //printf("fourierhelper frequencyfilter: %f \n", masks::frequency_filter_f(omega(omegaIndex)));
-
 
                             // put field into fftw array
                             for(int i = 0; i < n_x; ++i){
@@ -445,7 +383,7 @@ namespace picongpu
 
                                 }
                             }
-                            //writeKlausFile(o, fieldindex);
+                            //writeIntermediateFile(o, fieldindex);
 
                             fftw_execute(plan_forward);
                             writeFourierFile(o, fieldindex, false);
@@ -459,7 +397,6 @@ namespace picongpu
                                     int const index = i + j * n_x;
                                     int const j_ffs = (j  + n_y / 2) % n_y;
                                     
-                                    
                                     float_64 const sqrt1 = k_SI * k_SI;
                                     float_64 const sqrt2 = kx(i) * kx(i);
                                     float_64 const sqrt3 = ky(j) * ky(j);
@@ -468,22 +405,14 @@ namespace picongpu
                                     if(sqrtContent >= 0.0)
                                     {
                                         // Put origin into center of array with this, necessary due to FFT
-                                        //int const j_ffs = (j + n_y / 2) % n_y;
                                         int const index_ffs = i_ffs + j_ffs * n_x;
 
                                         complex_64 const field = complex_64(fftw_out_f[index_ffs][0], fftw_out_f[index_ffs][1]);
 
-                                        float const sign = omega_SI > 0.0 ? 1.0 : -1.0;
-
-                                        //float_64 const phase = - delta_z *
-                                        //        (  0*math::sqrt(sqrtContent) +  omega_SI / float_64(SI::SPEED_OF_LIGHT_SI) );
-                                        //float_64 const phase = delta_z * (k_SI - (kx(i) * kx(i) + ky(j) * ky(j)) / (2 * k_SI));
                                         float_64 const phase = (k_SI == 0.0) ? 0.0 : delta_z * k_SI * math::sqrt(sqrtContent);
-                                        //float_64 const phase = delta_z * k_SI;
-
                                         complex_64 const propagator = math::exp(complex_64(0, phase));
+
                                         complex_64 const propagated_field = masks::mask_f(kx(i), ky(j), omega(omegaIndex)) * field * propagator;
-                                        //complex_64 const propagated_field = field;
 
                                         fftw_in_b[index][0] = propagated_field.real();
                                         fftw_in_b[index][1] = propagated_field.imag();
@@ -491,10 +420,6 @@ namespace picongpu
                                         fftw_in_b[index][0] = 0.0;
                                         fftw_in_b[index][1] = 0.0;
                                     }
-                                    
-                                    //int const index_ffs = i_ffs + j_ffs * n_x;
-                                    //fftw_in_b[index][0] = fftw_out_f[index_ffs][0];
-                                    //fftw_in_b[index][1] = fftw_out_f[index_ffs][1];
                                 }
                             }
 
@@ -503,14 +428,8 @@ namespace picongpu
 
                             // yoink fields from fftw array
                             for(int i = 0; i < n_x; ++i){
-                                // Put origin into center of array with this, necessary due to FFT
-                                int const i_ffs = (i  + n_x/2) % n_x;
-
                                 for(int j = 0; j < n_y; ++j){
-                                // Put origin into center of array with this, necessary due to FFT
-                                int const j_ffs = (j  + n_y / 2) % n_y;
-                                //int const index_ffs = i_ffs + j_ffs * n_x;
-                                int const index = i + j * n_x; //@TODO
+                                int const index = i + j * n_x;
 
                                 if(fieldindex == 0){
                                     Ex_omega_propagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
@@ -554,11 +473,6 @@ namespace picongpu
                                     complex_64 const Ey = Ey_omega_propagated[i][j][o] * exponential;
                                     complex_64 const Bx = Bx_omega_propagated[i][j][o] * exponential;
                                     complex_64 const By = By_omega_propagated[i][j][o] * exponential;
-
-                                    //complex_64 const pv = Ex_omega_propagated[i][j][o1] * By_omega_propagated[i][j][o2] 
-                                    //                        -  Ey_omega_propagated[i][j][o1] * Bx_omega_propagated[i][j][o2];
-                                    
-                                    //shadowgram[i][j] += (pv * exponential).real();
                                     shadowgram[i][j] += (dt / (SI::MUE0_SI * nt * nt * n_x * n_x * n_y * n_y)) * (Ex * By - Ey * Bx 
                                                         + Ex_tmpsum[i][j] * By + Ex * By_tmpsum[i][j]
                                                         - Ey_tmpsum[i][j] * Bx - Ey * Bx_tmpsum[i][j]).real();
@@ -607,7 +521,7 @@ namespace picongpu
                     plan_forward = fftw_plan_dft_2d(n_y, n_x, fftw_in_f, fftw_out_f, FFTW_FORWARD, FFTW_MEASURE);
 
                     // Create fftw plan for transverse ifft for complex to complex
-                    // Even more iffts will be performed -> use FFTW_MEASURE as flag (this is a lie)
+                    // Even more iffts will be performed -> use FFTW_MEASURE as flag
                     plan_backward = fftw_plan_dft_2d(n_y, n_x, fftw_in_b, fftw_out_b, FFTW_BACKWARD, FFTW_MEASURE);
 
                     std::cout << "fftw inited" << std::endl;
@@ -630,13 +544,10 @@ namespace picongpu
                         filename <<"By";
                     }
 
-                    filename << "_fourierspace";// << ".dat";
-
+                    filename << "_fourierspace";
                     if(masksapplied){
                         filename << "_with_masks";
                     }
-                    
-                    //for(int o = 0; o < n_omegas; ++o){
                     filename << "_" << omegaIndex << ".dat";
 
                     outFile.open(filename.str(), std::ofstream::out | std::ostream::trunc);
@@ -675,10 +586,9 @@ namespace picongpu
 
                         outFile.close();
                     }
-                    //}
                 }
 
-                void writeKlausFile(int o, int fieldindex)
+                void writeIntermediateFile(int o, int fieldindex)
                 {
                     int const omegaIndex = fourierhelper::get_omega_index(o, duration);
                     std::ofstream outFile;
@@ -694,9 +604,7 @@ namespace picongpu
                         filename <<"By";
                     }
 
-                    filename << "_omegaspace";// << ".dat";
-                    
-                    //for(int o = 0; o < n_omegas; ++o){
+                    filename << "_omegaspace";
                     filename << "_" << omegaIndex << ".dat";
 
                     outFile.open(filename.str(), std::ofstream::out | std::ostream::trunc);
@@ -710,12 +618,9 @@ namespace picongpu
                     {
                         for( unsigned int i = 0; i < get_n_x(); ++i ) // over all x
                         {
-                            int const i_ffs = (i + n_x/2) % n_x;
                             for(unsigned int j = 0;  j < get_n_y(); ++j) // over all y
                             {
                                 int const index = i + j * n_x;
-                                int const j_ffs = (j + n_y / 2) % n_y;
-                                int const index_ffs = i_ffs + j_ffs * n_x;
                                 outFile << fftw_in_f[index][0] << "+" << fftw_in_f[index][1] << "j" << "\t";
                             } // for loop over all y
 
