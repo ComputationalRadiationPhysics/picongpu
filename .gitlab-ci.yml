@@ -40,7 +40,7 @@ pull-request-validation:
     # Test Python Files for PEP8 conformance
     - flake8 --exclude=thirdParty .
     # Warnings, unused code, etc.
-    - pyflakes .
+    - pyflakes $(ls -w 1 -d */ | grep -v thirdParty | tr "\n" " ")
     # install clang-format-12
     - apt install -y -q gnupg2
     - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -

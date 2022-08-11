@@ -38,7 +38,13 @@ if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
 endif()
 
 target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE alpaka::alpaka)
-target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE CatchMain)
+
+# Prevent warnings from shady code inside Catch2
+get_target_property(alpaka_CATCH2_INCLUDE_DIRS Catch2::Catch2 INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(${_COMMON_TARGET_NAME} SYSTEM INTERFACE ${alpaka_CATCH2_INCLUDE_DIRS})
+
+# Now we can safely link to Catch2
+target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE Catch2::Catch2WithMain)
 
 if(TARGET ${_COMMON_TARGET_NAME})
     # HACK: Workaround for the limitation that files added to INTERFACE targets (target_sources) can not be marked as PUBLIC or PRIVATE but only as INTERFACE.

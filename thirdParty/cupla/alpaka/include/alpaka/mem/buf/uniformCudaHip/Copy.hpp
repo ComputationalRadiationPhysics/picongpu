@@ -43,20 +43,11 @@ namespace alpaka
         template<typename TApi, typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyUniformCudaHip<TApi, DimInt<0u>, TViewDst, TViewSrc, TExtent>
         {
-            static_assert(!std::is_const_v<TViewDst>, "The destination view can not be const!");
-
-            static_assert(Dim<TViewSrc>::value == 0u, "The source view is required to have dimensionality 0!");
-            static_assert(Dim<TViewDst>::value == 0u, "The destination view is required to have dimensionality 0!");
-            static_assert(Dim<TExtent>::value == 0u, "The extent is required to have dimensionality 0!");
-            // TODO: Maybe check for Idx of TViewDst and TViewSrc to have greater or equal range than TExtent.
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, std::remove_const_t<Elem<TViewSrc>>>,
-                "The source and the destination views are required to have the same element type!");
-
             using Idx = alpaka::Idx<TExtent>;
 
+            template<typename TViewDstFwd>
             ALPAKA_FN_HOST TaskCopyUniformCudaHip(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
                 [[maybe_unused]] TExtent const& extent,
                 typename TApi::MemcpyKind_t const& uniformMemCpyKind,
@@ -123,20 +114,11 @@ namespace alpaka
         template<typename TApi, typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyUniformCudaHip<TApi, DimInt<1u>, TViewDst, TViewSrc, TExtent>
         {
-            static_assert(!std::is_const_v<TViewDst>, "The destination view can not be const!");
-
-            static_assert(Dim<TViewSrc>::value == 1u, "The source view is required to have dimensionality 1!");
-            static_assert(Dim<TViewDst>::value == 1u, "The destination view is required to have dimensionality 1!");
-            static_assert(Dim<TExtent>::value == 1u, "The extent is required to have dimensionality 1!");
-            // TODO: Maybe check for Idx of TViewDst and TViewSrc to have greater or equal range than TExtent.
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, std::remove_const_t<Elem<TViewSrc>>>,
-                "The source and the destination views are required to have the same element type!");
-
             using Idx = alpaka::Idx<TExtent>;
 
+            template<typename TViewDstFwd>
             ALPAKA_FN_HOST TaskCopyUniformCudaHip(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
                 TExtent const& extent,
                 typename TApi::MemcpyKind_t const& uniformMemCpyKind,
@@ -212,19 +194,11 @@ namespace alpaka
         template<typename TApi, typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyUniformCudaHip<TApi, DimInt<2u>, TViewDst, TViewSrc, TExtent>
         {
-            static_assert(!std::is_const_v<TViewDst>, "The destination view can not be const!");
-            static_assert(Dim<TViewSrc>::value == 2u, "The source view is required to have dimensionality 2!");
-            static_assert(Dim<TViewDst>::value == 2u, "The destination view is required to have dimensionality 2!");
-            static_assert(Dim<TExtent>::value == 2u, "The extent is required to have dimensionality 2!");
-            // TODO: Maybe check for Idx of TViewDst and TViewSrc to have greater or equal range than TExtent.
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, std::remove_const_t<Elem<TViewSrc>>>,
-                "The source and the destination views are required to have the same element type!");
-
             using Idx = alpaka::Idx<TExtent>;
 
+            template<typename TViewDstFwd>
             ALPAKA_FN_HOST TaskCopyUniformCudaHip(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
                 TExtent const& extent,
                 typename TApi::MemcpyKind_t const& uniformMemcpyKind,
@@ -331,19 +305,11 @@ namespace alpaka
         template<typename TApi, typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyUniformCudaHip<TApi, DimInt<3u>, TViewDst, TViewSrc, TExtent>
         {
-            static_assert(!std::is_const_v<TViewDst>, "The destination view can not be const!");
-            static_assert(Dim<TViewSrc>::value == 3u, "The source view is required to have dimensionality 3!");
-            static_assert(Dim<TViewDst>::value == 3u, "The destination view is required to have dimensionality 3!");
-            static_assert(Dim<TExtent>::value == 3u, "The extent is required to have dimensionality 3!");
-            // TODO: Maybe check for Idx of TViewDst and TViewSrc to have greater or equal range than TExtent.
-            static_assert(
-                std::is_same_v<Elem<TViewDst>, std::remove_const_t<Elem<TViewSrc>>>,
-                "The source and the destination views are required to have the same element type!");
-
             using Idx = alpaka::Idx<TExtent>;
 
+            template<typename TViewDstFwd>
             ALPAKA_FN_HOST TaskCopyUniformCudaHip(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
                 TExtent const& extent,
                 typename TApi::MemcpyKind_t const& uniformMemcpyKind,
@@ -484,24 +450,24 @@ namespace alpaka
         template<typename TApi, typename TDim>
         struct CreateTaskMemcpy<TDim, DevCpu, DevUniformCudaHipRt<TApi>>
         {
-            template<typename TExtent, typename TViewSrc, typename TViewDst>
+            template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
-                TExtent const& extent)
-                -> alpaka::detail::TaskCopyUniformCudaHip<TApi, TDim, TViewDst, TViewSrc, TExtent>
+                TExtent const& extent) -> alpaka::detail::
+                TaskCopyUniformCudaHip<TApi, TDim, std::remove_reference_t<TViewDstFwd>, TViewSrc, TExtent>
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                 auto const iDevice = getDev(viewSrc).getNativeHandle();
 
-                return alpaka::detail::TaskCopyUniformCudaHip<TApi, TDim, TViewDst, TViewSrc, TExtent>(
-                    viewDst,
+                return {
+                    std::forward<TViewDstFwd>(viewDst),
                     viewSrc,
                     extent,
                     TApi::memcpyDeviceToHost,
                     iDevice,
-                    iDevice);
+                    iDevice};
             }
         };
 
@@ -509,24 +475,24 @@ namespace alpaka
         template<typename TApi, typename TDim>
         struct CreateTaskMemcpy<TDim, DevUniformCudaHipRt<TApi>, DevCpu>
         {
-            template<typename TExtent, typename TViewSrc, typename TViewDst>
+            template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
-                TExtent const& extent)
-                -> alpaka::detail::TaskCopyUniformCudaHip<TApi, TDim, TViewDst, TViewSrc, TExtent>
+                TExtent const& extent) -> alpaka::detail::
+                TaskCopyUniformCudaHip<TApi, TDim, std::remove_reference_t<TViewDstFwd>, TViewSrc, TExtent>
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                 auto const iDevice = getDev(viewDst).getNativeHandle();
 
-                return alpaka::detail::TaskCopyUniformCudaHip<TApi, TDim, TViewDst, TViewSrc, TExtent>(
-                    viewDst,
+                return {
+                    std::forward<TViewDstFwd>(viewDst),
                     viewSrc,
                     extent,
                     TApi::memcpyHostToDevice,
                     iDevice,
-                    iDevice);
+                    iDevice};
             }
         };
 
@@ -534,22 +500,24 @@ namespace alpaka
         template<typename TApi, typename TDim>
         struct CreateTaskMemcpy<TDim, DevUniformCudaHipRt<TApi>, DevUniformCudaHipRt<TApi>>
         {
-            template<typename TExtent, typename TViewSrc, typename TViewDst>
+            template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
-                TExtent const& extent)
-                -> alpaka::detail::TaskCopyUniformCudaHip<TApi, TDim, TViewDst, TViewSrc, TExtent>
+                TExtent const& extent) -> alpaka::detail::
+                TaskCopyUniformCudaHip<TApi, TDim, std::remove_reference_t<TViewDstFwd>, TViewSrc, TExtent>
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                return alpaka::detail::TaskCopyUniformCudaHip<TApi, TDim, TViewDst, TViewSrc, TExtent>(
-                    viewDst,
+                auto const iDstDevice = getDev(viewDst).getNativeHandle();
+
+                return {
+                    std::forward<TViewDstFwd>(viewDst),
                     viewSrc,
                     extent,
                     TApi::memcpyDeviceToDevice,
-                    getDev(viewDst).getNativeHandle(),
-                    getDev(viewSrc).getNativeHandle());
+                    iDstDevice,
+                    getDev(viewSrc).getNativeHandle()};
             }
         };
 

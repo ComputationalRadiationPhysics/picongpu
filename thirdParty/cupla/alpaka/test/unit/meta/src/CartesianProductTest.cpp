@@ -1,4 +1,4 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -10,7 +10,7 @@
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/meta/CartesianProduct.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <tuple>
 #include <type_traits>

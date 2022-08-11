@@ -44,9 +44,10 @@ namespace alpaka::test
         };
 #endif
     } // namespace trait
-    //! The queue type that should be used for the given accelerator.
-    template<typename TAcc>
-    using DefaultQueue = typename trait::DefaultQueueType<TAcc>::type;
+
+    //! The queue type that should be used for the given device.
+    template<typename TDev>
+    using DefaultQueue = typename trait::DefaultQueueType<TDev>::type;
 
     namespace trait
     {

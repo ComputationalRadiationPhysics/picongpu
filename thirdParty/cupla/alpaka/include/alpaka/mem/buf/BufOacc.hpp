@@ -1,5 +1,5 @@
-/* Copyright 2022 Jeffrey Kelling, Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred
- * Gruber, Antonio Di Pilato
+/* Copyright 2022 Jeffrey Kelling, Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera,
+ *                Bernhard Manfred Gruber, Antonio Di Pilato, Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -51,7 +51,7 @@ namespace alpaka
         public:
             //! Constructor
             template<typename TExtent>
-            ALPAKA_FN_HOST BufOaccImpl(DevOacc const& dev, TElem* const pMem, TExtent const& extent)
+            ALPAKA_FN_HOST BufOaccImpl(DevOacc const& dev, TElem* const pMem, TExtent const& extent) noexcept
                 : m_dev(dev)
                 , m_extentElements(getExtentVecEnd<TDim>(extent))
                 , m_pMem(pMem)

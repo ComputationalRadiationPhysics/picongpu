@@ -65,12 +65,13 @@ namespace alpaka
         template<typename TDim, typename TPltf>
         struct CreateTaskMemset<TDim, experimental::DevGenericSycl<TPltf>>
         {
-            template<typename TExtent, typename TView>
-            static auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& ext)
+            template<typename TExtent, typename TViewFwd>
+            static auto createTaskMemset(TViewFwd&& view, std::uint8_t const& byte, TExtent const& ext)
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                 constexpr auto set_dim = static_cast<int>(Dim<TExtent>::value);
+                using TView = std::remove_reference_t<TViewFwd>;
                 using ElemType = Elem<TView>;
                 using DstType = alpaka::experimental::detail::Accessor<set_dim>;
 

@@ -1,4 +1,4 @@
-/* Copyright 2020 Benjamin Worpitz, Bernhard Manfred Gruber
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -13,7 +13,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <iostream>
 #include <typeinfo>

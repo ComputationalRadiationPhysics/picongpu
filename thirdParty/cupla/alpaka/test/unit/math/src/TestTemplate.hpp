@@ -1,4 +1,4 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov
+/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -17,7 +17,9 @@
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <cmath>
 
@@ -131,14 +133,16 @@ struct TestTemplate
         alpaka::wait(queue);
         std::cout.precision(std::numeric_limits<Underlying>::digits10 + 1);
 
-        INFO("Operator: " << functor)
-        INFO("Type: " << alpaka::core::demangled<TData>) // Compiler specific.
+        INFO("Operator: " << functor);
+        INFO("Type: " << alpaka::core::demangled<TData>); // Compiler specific.
 #if ALPAKA_DEBUG_FULL
-        INFO("The args buffer: \n" << std::setprecision(std::numeric_limits<Underlying>::digits10 + 1) << args << "\n")
+        INFO(
+            "The args buffer: \n"
+            << std::setprecision(std::numeric_limits<Underlying>::digits10 + 1) << args << "\n");
 #endif
         for(size_t i = 0; i < Args::capacity; ++i)
         {
-            INFO("Idx i: " << i)
+            INFO("Idx i: " << i);
             TData std_result = functor(args(i));
             REQUIRE(isApproxEqual(results(i), std_result));
         }
@@ -148,7 +152,7 @@ struct TestTemplate
     template<typename T>
     static bool isApproxEqual(T const& a, T const& b)
     {
-        return a == Approx(b).margin(std::numeric_limits<T>::epsilon());
+        return a == Catch::Approx(b).margin(std::numeric_limits<T>::epsilon());
     }
 
     //! Is complex number considered finite for math testing.
@@ -176,7 +180,7 @@ struct TestTemplate
         // For the same reason use relative difference comparison with a large margin
         auto const scalingFactor = static_cast<T>(std::is_same_v<T, float> ? 1.1e4 : 1.1e6);
         auto const marginValue = scalingFactor * std::numeric_limits<T>::epsilon();
-        return (a.real() == Approx(b.real()).margin(marginValue).epsilon(marginValue))
-            && (a.imag() == Approx(b.imag()).margin(marginValue).epsilon(marginValue));
+        return (a.real() == Catch::Approx(b.real()).margin(marginValue).epsilon(marginValue))
+            && (a.imag() == Catch::Approx(b.imag()).margin(marginValue).epsilon(marginValue));
     }
 };

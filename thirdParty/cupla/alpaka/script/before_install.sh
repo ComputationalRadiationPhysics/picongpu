@@ -170,17 +170,3 @@ then
         fi
     fi
 fi
-
-if [ ! -z "${ALPAKA_CI_CLANG_VER+x}" ]
-then
-    if [ "${ALPAKA_CI_CLANG_VER}" == 5 ]
-    then
-        if [ "${ALPAKA_CI_INSTALL_FIBERS}" == "ON" ]
-        then
-            # https://github.com/boostorg/fiber/issues/272
-            echo "clang-5 is not compatible with boost.fibers."
-            exit 1
-        fi
-    fi
-fi
-

@@ -11,7 +11,8 @@
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 // CUDA C Programming guide says: "__host__ __device__ extended lambdas cannot be generic lambdas"
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED)

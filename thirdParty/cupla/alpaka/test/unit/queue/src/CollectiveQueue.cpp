@@ -1,4 +1,4 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -18,7 +18,7 @@
 #    include <alpaka/test/queue/QueueCpuOmp2Collective.hpp>
 #    include <alpaka/test/queue/QueueTestFixture.hpp>
 
-#    include <catch2/catch.hpp>
+#    include <catch2/catch_test_macros.hpp>
 
 #    include <vector>
 
