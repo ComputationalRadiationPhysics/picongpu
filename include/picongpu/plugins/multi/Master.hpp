@@ -26,6 +26,8 @@
 #include "picongpu/plugins/multi/IHelp.hpp"
 #include "picongpu/plugins/multi/IInstance.hpp"
 
+#include "scr.h"
+
 #include <list>
 #include <stdexcept>
 #include <vector>
@@ -85,8 +87,11 @@ namespace picongpu
                  */
                 void restart(uint32_t restartStep, std::string const restartDirectory) override
                 {
+                    char scr_dset[SCR_MAX_FILENAME];
+                    SCR_Start_restart(&scr_dset);
                     for(auto& instance : instanceList)
                         instance->restart(restartStep, restartDirectory);
+                    SCR_Complete_restart(1);
                 }
 
                 /** Call the onParticleLeave() method for all instances.
@@ -108,8 +113,10 @@ namespace picongpu
                  */
                 void checkpoint(uint32_t currentStep, std::string const checkpointDirectory) override
                 {
+                    SCR_Start_output(std::to_string(currentStep).c_str(), SCR_FLAG_CHECKPOINT /* | SCR_FLAG_OUTPUT */);
                     for(auto& instance : instanceList)
                         instance->checkpoint(currentStep, checkpointDirectory);
+                    SCR_Complete_output(1);
                 }
 
             private:

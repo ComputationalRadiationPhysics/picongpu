@@ -34,6 +34,8 @@
 #include "pmacc/simulationControl/signal.hpp"
 #include "pmacc/types.hpp"
 
+#include "scr.h"
+
 #include <boost/filesystem.hpp>
 
 #include <chrono>
@@ -168,6 +170,8 @@ namespace pmacc
                 // avoid deadlock between not finished PMacc tasks and MPI_Barrier
                 __getTransactionEvent().waitForFinished();
 
+                SCR_Start_output(std::to_string(currentStep), SCR_FLAG_CHECKPOINT /* | SCR_FLAG_OUTPUT */);
+
                 GridController<DIM>& gc = Environment<DIM>::get().GridController();
                 /* can be spared for better scalings, but allows to spare the
                  * time for checkpointing if some ranks died */
@@ -199,6 +203,8 @@ namespace pmacc
                     writeCheckpointStep(currentStep);
                 }
                 numCheckpoints++;
+
+                SCR_Complete_output(1);
             }
         }
 
@@ -254,6 +260,8 @@ namespace pmacc
                     });
 
             init();
+
+            SCR_Init();
 
             // translate checkpointPeriod string into checkpoint intervals
             seqCheckpointPeriod = pluginSystem::toTimeSlice(checkpointPeriod);
@@ -339,6 +347,8 @@ namespace pmacc
                 }
 
             } // softRestarts loop
+
+            SCR_Finalize();
         }
 
         void pluginRegisterHelp(po::options_description& desc) override
