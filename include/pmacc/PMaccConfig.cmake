@@ -162,12 +162,6 @@ endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "${PMACC_BUILD_TYPE}")
 unset(PMACC_BUILD_TYPE)
 
-set(PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT "ON" CACHE STRING "Use atomicCas to emulate atomicAdd(float)")
-set_property(CACHE PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT PROPERTY STRINGS "ON;OFF")
-
-if(PMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT STREQUAL ON)
-    target_compile_definitions(pmacc PUBLIC "-DPMACC_HIP_EMULATE_SHAREDMEM_ATOMICADD_32BIT=1")
-endif()
 
 ################################################################################
 # CMake policies
