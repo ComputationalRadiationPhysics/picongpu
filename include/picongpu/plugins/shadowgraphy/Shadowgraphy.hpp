@@ -140,8 +140,8 @@ namespace picongpu
 
             public:
                 Shadowgraphy()
-                    : pluginName("Shadowgraphy: calculate the energy density of a laser by integrating
-                                    the Poynting vectors of a slice over a given time interval")
+                    : pluginName("Shadowgraphy: calculate the energy density of a laser by integrating"
+                                 "the Poynting vectors of a slice over a given time interval")
                     , isIntegrating(false)
                 {
                     /* register our plugin during creation */
@@ -157,10 +157,7 @@ namespace picongpu
 
                 void pluginRegisterHelp(po::options_description& desc) override
                 {
-                    /* register command line parameters for your plugin */
-                    //desc.add_options()
-                    //("shadowgraphy.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
-                    //"Enable Shadowgraphy [for each n-th step]")   
+#if(PIC_ENABLE_FFTW3 == 1) 
                     desc.add_options()(
                         (this->pluginPrefix + ".period").c_str(),
                         po::value<std::string>(&this->notifyPeriod)->multitoken(),
@@ -197,13 +194,16 @@ namespace picongpu
                         (this->pluginPrefix + ".movingwindowstop").c_str(),
                         po::value<int>(&this->movingwindowstop)->multitoken(),
                         "when moving window stops timestep");
+#else
+                    desc.add_options()((pluginPrefix).c_str(), "plugin disabled [compiled without dependency PNGwriter]");
+#endif
                 }
 
                 void pluginLoad() override
                 {
                     /* called when plugin is loaded, command line flags are available here
                     * set notification period for our plugin at the PluginConnector */
-                    if(float_X(0.0) <= slicePoint && slicePoint <= float_X(1.0))
+                    if(0 != notifyPeriod.size() && float_X(0.0) <= slicePoint && slicePoint <= float_X(1.0))
                     {
                         /* in case the slice point is inside of [0.0,1.0] */
                         sliceIsOK = true;
