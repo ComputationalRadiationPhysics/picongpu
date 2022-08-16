@@ -22,11 +22,10 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
 #include "pmacc/pluginSystem/INotify.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/TimeSlice.hpp"
-#include "pmacc/pluginSystem/containsStep.hpp"
-#include "pmacc/pluginSystem/toTimeSlice.hpp"
 
 #include <list>
 #include <string>
@@ -56,105 +55,38 @@ namespace pmacc
          *
          * @param plugin plugin to register
          */
-        void registerPlugin(IPlugin* plugin)
-        {
-            if(plugin != nullptr)
-            {
-                plugins.push_back(plugin);
-            }
-            else
-                throw PluginException("Registering nullptr as a plugin is not allowed.");
-        }
+        void registerPlugin(IPlugin* plugin);
 
         /**
          * Calls load on all registered, not loaded plugins
          */
-        void loadPlugins()
-        {
-            // load all plugins
-            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
-            {
-                if(!(*iter)->isLoaded())
-                {
-                    (*iter)->load();
-                }
-            }
-        }
+        void loadPlugins();
 
         /**
          * Unloads all registered, loaded plugins
          */
-        void unloadPlugins()
-        {
-            // unload all plugins
-            for(auto iter = plugins.rbegin(); iter != plugins.rend(); ++iter)
-            {
-                if((*iter)->isLoaded())
-                {
-                    (*iter)->unload();
-                }
-            }
-            // Make sure plugin instances are deleted and so resources are freed
-            plugins.clear();
-        }
+        void unloadPlugins();
 
         /**
          * Publishes command line parameters for registered plugins.
          *
          * @return list of boost program_options command line parameters
          */
-        std::list<po::options_description> registerHelp()
-        {
-            std::list<po::options_description> help_options;
-
-            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
-            {
-                // create a new help options section for this plugin,
-                // fill it and add to list of options
-                po::options_description desc((*iter)->pluginGetName());
-                (*iter)->pluginRegisterHelp(desc);
-                help_options.push_back(desc);
-            }
-
-            return help_options;
-        }
+        std::list<po::options_description> registerHelp();
 
         /** Set the notification period
          *
          * @param notifiedObj the object to notify, e.g. an IPlugin instance
          * @param period notification period
          */
-        void setNotificationPeriod(INotify* notifiedObj, std::string const& period)
-        {
-            if(notifiedObj != nullptr)
-            {
-                if(!period.empty())
-                {
-                    SeqOfTimeSlices seqTimeSlices = pluginSystem::toTimeSlice(period);
-                    notificationList.push_back(std::make_pair(notifiedObj, seqTimeSlices));
-                }
-            }
-            else
-                throw PluginException("Notifications for a nullptr object are not allowed.");
-        }
+        void setNotificationPeriod(INotify* notifiedObj, std::string const& period);
 
         /**
          * Notifies plugins that data should be dumped.
          *
          * @param currentStep current simulation iteration step
          */
-        void notifyPlugins(uint32_t currentStep)
-        {
-            for(auto iter = notificationList.begin(); iter != notificationList.end(); ++iter)
-            {
-                if(containsStep((*iter).second, currentStep))
-                {
-                    INotify* notifiedObj = iter->first;
-                    notifiedObj->notify(currentStep);
-                    notifiedObj->setLastNotify(currentStep);
-                }
-            }
-        }
+        void notifyPlugins(uint32_t currentStep);
 
         /**
          * Notifies plugins that a restartable checkpoint should be dumped.
@@ -162,14 +94,7 @@ namespace pmacc
          * @param currentStep current simulation iteration step
          * @param checkpointDirectory common directory for checkpoints
          */
-        void checkpointPlugins(uint32_t currentStep, const std::string checkpointDirectory)
-        {
-            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
-            {
-                (*iter)->checkpoint(currentStep, checkpointDirectory);
-                (*iter)->setLastCheckpoint(currentStep);
-            }
-        }
+        void checkpointPlugins(uint32_t currentStep, const std::string checkpointDirectory);
 
         /**
          * Notifies plugins that a restart is required.
@@ -177,13 +102,7 @@ namespace pmacc
          * @param restartStep simulation iteration to restart from
          * @param restartDirectory common restart directory (contains checkpoints)
          */
-        void restartPlugins(uint32_t restartStep, const std::string restartDirectory)
-        {
-            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
-            {
-                (*iter)->restart(restartStep, restartDirectory);
-            }
-        }
+        void restartPlugins(uint32_t restartStep, const std::string restartDirectory);
 
         /**
          * Get a vector of pointers of all registered plugin instances of a given type.
@@ -194,24 +113,23 @@ namespace pmacc
         template<typename Plugin>
         std::vector<Plugin*> getPluginsFromType()
         {
-            std::vector<Plugin*> result;
-            for(auto iter = plugins.begin(); iter != plugins.end(); iter++)
             {
-                auto* plugin = dynamic_cast<Plugin*>(*iter);
-                if(plugin != nullptr)
-                    result.push_back(plugin);
+                std::vector<Plugin*> result;
+                for(auto iter = plugins.begin(); iter != plugins.end(); iter++)
+                {
+                    auto* plugin = dynamic_cast<Plugin*>(*iter);
+                    if(plugin != nullptr)
+                        result.push_back(plugin);
+                }
+                return result;
             }
-            return result;
         }
 
 
         /**
          * Return a copied list of pointers to all registered plugins.
          */
-        std::list<IPlugin*> getAllPlugins() const
-        {
-            return this->plugins;
-        }
+        std::list<IPlugin*> getAllPlugins() const;
 
     private:
         friend struct detail::Environment;

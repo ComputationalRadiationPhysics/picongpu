@@ -133,10 +133,14 @@ endif()
 # PMacc target
 ################################################################################
 
+file(GLOB_RECURSE PMACC_SRC_FILES "${PMacc_DIR}/*.cpp")
+# remove files located in the directory 'test'
+string(REGEX REPLACE "${PMacc_DIR}/test/.*" "" PMACC_SRC_FILES "${PMACC_SRC_FILES}")
+
 alpaka_add_library(
         pmacc
         STATIC
-        ${PMacc_DIR}/dummy.cpp
+        ${PMACC_SRC_FILES}
 )
 
 target_include_directories(pmacc
@@ -279,12 +283,13 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.74 REQUIRED COMPONENTS filesystem system math_tr1)
+find_package(Boost 1.74 REQUIRED COMPONENTS filesystem system math_tr1 program_options)
 if(TARGET Boost::filesystem)
     target_link_libraries(pmacc PUBLIC Boost::boost)
     target_link_libraries(pmacc PUBLIC Boost::filesystem)
     target_link_libraries(pmacc PUBLIC Boost::system)
     target_link_libraries(pmacc PUBLIC Boost::math_tr1)
+    target_link_libraries(pmacc PUBLIC Boost::program_options)
 else()
     target_include_directories(pmacc PUBLIC ${Boost_INCLUDE_DIRS})
     target_link_libraries(pmacc PUBLIC ${Boost_LIBRARIES})

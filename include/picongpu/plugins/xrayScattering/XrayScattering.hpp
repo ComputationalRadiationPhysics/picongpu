@@ -42,6 +42,7 @@
 #include <pmacc/math/operation.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/pluginSystem/containsStep.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 

@@ -1,5 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
- *                     Benjamin Worpitz, Alexander Grund
+/* Copyright 2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,36 +22,17 @@
 
 #pragma once
 
-#include <csignal>
-
 namespace pmacc
 {
     namespace signal
     {
         namespace detail
         {
-            namespace
-            {
-                volatile std::sig_atomic_t gStatusCreateCheckpoint = 0;
-                volatile std::sig_atomic_t gStatusStopSimulation = 0;
-            } // namespace
+            void setCreateCheckpoint(int signal);
 
+            void setStopSimulation(int signal);
 
-            inline void setCreateCheckpoint(int signal)
-            {
-                gStatusCreateCheckpoint = 1;
-            }
-
-            inline void setStopSimulation(int signal)
-            {
-                gStatusStopSimulation = 1;
-            }
-
-            inline void setCreateCheckpointAndStopSimulation(int signal)
-            {
-                gStatusCreateCheckpoint = 1;
-                gStatusStopSimulation = 1;
-            }
+            void setCreateCheckpointAndStopSimulation(int signal);
         } // namespace detail
 
         /** Activate signal handling.
@@ -60,28 +40,13 @@ namespace pmacc
          * @attention  Signals will not be registered on Windows operating system.
          * This function is in this cas empty.
          */
-        inline void activate()
-        {
-#ifndef _WIN32
-            std::signal(SIGHUP, detail::setStopSimulation);
-            std::signal(SIGINT, detail::setStopSimulation);
-            std::signal(SIGQUIT, detail::setStopSimulation);
-            std::signal(SIGABRT, detail::setStopSimulation);
-            std::signal(SIGUSR1, detail::setCreateCheckpoint);
-            std::signal(SIGUSR2, detail::setStopSimulation);
-            std::signal(SIGALRM, detail::setCreateCheckpointAndStopSimulation);
-            std::signal(SIGTERM, detail::setStopSimulation);
-#endif
-        }
+        void activate();
 
         /** Check if a signal is received
          *
          * @return true if at least one signal is received else false
          */
-        inline bool received()
-        {
-            return detail::gStatusCreateCheckpoint != 0 || detail::gStatusStopSimulation != 0;
-        }
+        bool received();
 
         /** Status if checkpoint creation is requested.
          *
@@ -89,13 +54,7 @@ namespace pmacc
          *
          * @return true if a checkpoint should be created else false.
          */
-        inline bool createCheckpoint()
-        {
-            auto result = detail::gStatusCreateCheckpoint != 0;
-            if(result)
-                detail::gStatusCreateCheckpoint = 0;
-            return result;
-        }
+        bool createCheckpoint();
 
         /** Status if should be stopped.
          *
@@ -103,12 +62,7 @@ namespace pmacc
          *
          * @return true should be stopped else false
          */
-        inline bool stopSimulation()
-        {
-            auto result = detail::gStatusStopSimulation != 0;
-            if(result)
-                detail::gStatusCreateCheckpoint = 0;
-            return result;
-        }
+        bool stopSimulation();
+
     } // namespace signal
 } // namespace pmacc

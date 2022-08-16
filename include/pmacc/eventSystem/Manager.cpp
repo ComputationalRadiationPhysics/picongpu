@@ -19,11 +19,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "pmacc/eventSystem/Manager.hpp"
 
 #include "pmacc/assert.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 
 #include <cstdio>
@@ -35,14 +34,14 @@
 
 namespace pmacc
 {
-    inline Manager::~Manager()
+    Manager::~Manager()
     {
         CUDA_CHECK_NO_EXCEPT(cuplaGetLastError());
         waitForAllTasks();
         CUDA_CHECK_NO_EXCEPT(cuplaGetLastError());
     }
 
-    inline bool Manager::execute(id_t taskToWait)
+    bool Manager::execute(id_t taskToWait)
     {
 #ifdef DEBUG_EVENTS
         static int old_max = 0;
@@ -103,12 +102,12 @@ namespace pmacc
         return false;
     }
 
-    inline void Manager::event(id_t eventId, EventType, IEventData*)
+    void Manager::event(id_t eventId, EventType, IEventData*)
     {
         passiveTasks.erase(eventId);
     }
 
-    inline ITask* Manager::getITaskIfNotFinished(id_t taskId) const
+    ITask* Manager::getITaskIfNotFinished(id_t taskId) const
     {
         if(taskId == 0)
             return nullptr;
@@ -119,7 +118,7 @@ namespace pmacc
         return getActiveITaskIfNotFinished(taskId);
     }
 
-    inline ITask* Manager::getPassiveITaskIfNotFinished(id_t taskId) const
+    ITask* Manager::getPassiveITaskIfNotFinished(id_t taskId) const
     {
         auto itPassive = passiveTasks.find(taskId);
         if(itPassive != passiveTasks.end())
@@ -127,7 +126,7 @@ namespace pmacc
         return nullptr;
     }
 
-    inline ITask* Manager::getActiveITaskIfNotFinished(id_t taskId) const
+    ITask* Manager::getActiveITaskIfNotFinished(id_t taskId) const
     {
         auto it = tasks.find(taskId);
         if(it != tasks.end())
@@ -135,7 +134,7 @@ namespace pmacc
         return nullptr;
     }
 
-    inline void Manager::waitForFinished(id_t taskId)
+    void Manager::waitForFinished(id_t taskId)
     {
         if(taskId == 0)
             return;
@@ -163,16 +162,8 @@ namespace pmacc
         }
     }
 
-    template<typename T_Functor>
-    void Manager::waitFor(T_Functor&& func)
-    {
-        while(!func())
-        {
-            this->execute();
-        }
-    }
 
-    inline void Manager::waitForAllTasks()
+    void Manager::waitForAllTasks()
     {
         while(tasks.size() != 0 || passiveTasks.size() != 0)
         {
@@ -181,13 +172,13 @@ namespace pmacc
         PMACC_ASSERT(tasks.size() == 0);
     }
 
-    inline void Manager::addTask(ITask* task)
+    void Manager::addTask(ITask* task)
     {
         PMACC_ASSERT(task != nullptr);
         tasks[task->getId()] = task;
     }
 
-    inline void Manager::addPassiveTask(ITask* task)
+    void Manager::addPassiveTask(ITask* task)
     {
         PMACC_ASSERT(task != nullptr);
 
@@ -195,14 +186,8 @@ namespace pmacc
         passiveTasks[task->getId()] = task;
     }
 
-    inline Manager::Manager() = default;
 
-    inline Manager::Manager(const Manager&)
-    {
-    }
-
-
-    inline std::size_t Manager::getCount()
+    std::size_t Manager::getCount()
     {
         for(auto iter = tasks.begin(); iter != tasks.end(); ++iter)
         {

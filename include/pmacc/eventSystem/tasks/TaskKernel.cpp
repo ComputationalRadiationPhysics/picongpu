@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Rene Widera
+/* Copyright 2015-2022 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -19,26 +19,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
-#include <string>
-#include <vector>
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
 
 namespace pmacc
 {
-    namespace misc
+    void TaskKernel::activateChecks()
     {
-        /** split a string in a vector of strings
-         *
-         * Based on Stack Overflow post:
-         *   source: https://stackoverflow.com/a/28142357
-         *   author: Marcin
-         *   date: Jan 25 '15
-         *
-         * @param input string to split
-         * @param regex separator between two elements
-         */
-        std::vector<std::string> splitString(std::string const& input, std::string const& delimiter = ",");
-    } // namespace misc
+        canBeChecked = true;
+        this->activate();
+
+        Environment<>::get().Manager().addTask(this);
+        __setTransactionEvent(EventTask(this->getId()));
+    }
 } // namespace pmacc

@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/Environment.def"
 #include "pmacc/types.hpp"
 
-#include <boost/filesystem.hpp>
+#include <string>
 
 namespace pmacc
 {
@@ -42,52 +42,27 @@ namespace pmacc
          *
          * @param dir name of directory
          */
-        void createDirectory(const std::string dir) const
-        {
-            /* does not throw if the directory exists or has been created */
-            bfs::create_directories(dir);
-        }
-
+        void createDirectory(const std::string dir) const;
         /**
          * Set 755 permissions for a directory
          *
          * @param dir name of directory
          */
-        void setDirectoryPermissions(const std::string dir) const
-        {
-            /* set permissions */
-            bfs::permissions(
-                dir,
-                bfs::owner_all | bfs::group_read | bfs::group_exe | bfs::others_read | bfs::others_exe);
-        }
+        void setDirectoryPermissions(const std::string dir) const;
 
         /**
          * Create directory and set 755 permissions by root rank.
          *
          * @param dir name of directory
          */
-        void createDirectoryWithPermissions(const std::string dir) const
-        {
-            GridController<DIM>& gc = Environment<DIM>::get().GridController();
-
-            createDirectory(dir);
-
-            if(gc.getGlobalRank() == 0)
-            {
-                /* must be set by only one process to avoid races */
-                setDirectoryPermissions(dir);
-            }
-        }
+        void createDirectoryWithPermissions(const std::string dir) const;
 
         /**
          * Strip path from absolute or relative paths to filenames
          *
          * @param path and filename
          */
-        std::string basename(const std::string pathFilename) const
-        {
-            return bfs::path(pathFilename).filename().string();
-        }
+        std::string basename(const std::string pathFilename) const;
 
     private:
         friend class Environment<DIM>;

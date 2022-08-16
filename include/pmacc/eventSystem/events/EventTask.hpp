@@ -48,10 +48,9 @@ namespace pmacc
         /**
          * Constructor.
          */
-        EventTask();
+        EventTask() = default;
 
         virtual ~EventTask() = default;
-        ;
 
         /**
          * Returns the task id.
@@ -94,7 +93,8 @@ namespace pmacc
          *
          * This task effectively becomes other.
          */
-        EventTask& operator=(const EventTask& other);
+        EventTask& operator=(const EventTask& other) = default;
+        ;
 
         std::string toString();
 

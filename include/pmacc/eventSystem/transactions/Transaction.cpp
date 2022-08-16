@@ -19,12 +19,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "pmacc/eventSystem/transactions/Transaction.hpp"
 
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/events/EventTask.hpp"
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
-#include "pmacc/eventSystem/transactions/Transaction.hpp"
 
 namespace pmacc
 {

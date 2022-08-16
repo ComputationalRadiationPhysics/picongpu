@@ -24,17 +24,21 @@
 #include "pmacc/assert.hpp"
 #include "pmacc/dataManagement/AbstractInitialiser.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/debug/PMaccVerbose.hpp"
 
 #include <algorithm>
+#include <list>
 #include <memory>
-#include <sstream>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 
 namespace pmacc
 {
+    namespace detail
+    {
+        struct Environment;
+    }
     /** Singleton class which collects and shares simulation data
      *
      * All members are kept as shared pointers, which allows their factories to
@@ -43,13 +47,7 @@ namespace pmacc
     class DataConnector
     {
     private:
-        std::list<std::shared_ptr<ISimulationData>>::iterator findId(SimulationDataId id)
-        {
-            return std::find_if(
-                datasets.begin(),
-                datasets.end(),
-                [&id](std::shared_ptr<ISimulationData> data) -> bool { return data->getUniqueId() == id; });
-        }
+        std::list<std::shared_ptr<ISimulationData>>::iterator findId(SimulationDataId id);
 
     public:
         /** Returns if data with identifier id is shared
@@ -57,10 +55,7 @@ namespace pmacc
          * @param id id of the Dataset to query
          * @return if dataset with id is registered
          */
-        bool hasId(SimulationDataId id)
-        {
-            return findId(id) != datasets.end();
-        }
+        bool hasId(SimulationDataId id);
 
         /**
          * Initialises all Datasets using initialiser.
@@ -69,17 +64,7 @@ namespace pmacc
          * @param initialiser class used for initialising Datasets
          * @param currentStep current simulation step
          */
-        void initialise(AbstractInitialiser& initialiser, uint32_t currentStep)
-        {
-            currentStep = initialiser.setup();
-
-            for(auto& data : datasets)
-            {
-                initialiser.init(*data, currentStep);
-            }
-
-            initialiser.teardown();
-        }
+        void initialise(AbstractInitialiser& initialiser, uint32_t currentStep);
 
         /** Register a new Dataset and share its ownership.
          *
@@ -88,19 +73,7 @@ namespace pmacc
          *
          * @param data simulation data to share ownership
          */
-        void share(const std::shared_ptr<ISimulationData>& data)
-        {
-            PMACC_ASSERT(data != nullptr);
-
-            SimulationDataId id = data->getUniqueId();
-
-            log<ggLog::MEMORY>("DataConnector: data shared '%1%'") % id;
-
-            if(hasId(id))
-                throw std::runtime_error(getExceptionStringForID("dataset ID already exists", id));
-
-            datasets.push_back(data);
-        }
+        void share(const std::shared_ptr<ISimulationData>& data);
 
         /** Register a new Dataset and transfer its ownership.
          *
@@ -110,43 +83,17 @@ namespace pmacc
          *
          * @param data simulation data to transfer ownership
          */
-        void consume(std::unique_ptr<ISimulationData> data)
-        {
-            std::shared_ptr<ISimulationData> newOwner(std::move(data));
-            share(newOwner);
-        }
+        void consume(std::unique_ptr<ISimulationData> data);
 
         /** End sharing a dataset with identifier id
          *
          * @param id id of the dataset to remove
          */
-        void deregister(SimulationDataId id)
-        {
-            const auto it = findId(id);
-
-            if(it == datasets.end())
-                throw std::runtime_error(getExceptionStringForID("dataset not found", id));
-
-            log<ggLog::MEMORY>("DataConnector: unshared '%1%' (%2% uses left)") % id % (it->use_count() - 1);
-
-            datasets.erase(it);
-        }
+        void deregister(SimulationDataId id);
 
         /** Unshare all associated datasets
          */
-        void clean()
-        {
-            log<ggLog::MEMORY>("DataConnector: being cleaned (%1% datasets left to unshare)") % datasets.size();
-
-            // verbose version of: datasets.clear();
-            while(!datasets.empty())
-            {
-                auto it = datasets.rbegin();
-                log<ggLog::MEMORY>("DataConnector: unshared '%1%' (%2% uses left)") % (*it)->getUniqueId()
-                    % (it->use_count() - 1);
-                datasets.pop_back();
-            }
-        }
+        void clean();
 
         /** Returns shared pointer to managed data.
          *
@@ -189,23 +136,13 @@ namespace pmacc
             return instance;
         }
 
-        std::list<std::shared_ptr<ISimulationData>> datasets;
-
         DataConnector() = default;
-        ;
 
-        virtual ~DataConnector()
-        {
-            log<ggLog::MEMORY>("DataConnector: being destroyed (%1% datasets left to destroy)") % datasets.size();
-            clean();
-        }
+        virtual ~DataConnector();
 
-        std::string getExceptionStringForID(const char* msg, SimulationDataId id)
-        {
-            std::stringstream stream;
-            stream << "DataConnector: " << msg << " (" << id << ")";
-            return stream.str();
-        }
+        std::string getExceptionStringForID(const char* msg, SimulationDataId id);
+
+        std::list<std::shared_ptr<ISimulationData>> datasets;
     };
 
 } // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund
+/* Copyright 2017-2022 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -19,20 +19,25 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "pmacc/misc/splitString.hpp"
 
-#pragma once
+#include <regex>
+#include <string>
+#include <vector>
 
-#include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 
 namespace pmacc
 {
-    void TaskKernel::activateChecks()
+    namespace misc
     {
-        canBeChecked = true;
-        this->activate();
+        std::vector<std::string> splitString(std::string const& input, std::string const& delimiter)
+        {
+            std::regex re(delimiter);
+            // passing -1 as the submatch index parameter performs splitting
+            std::sregex_token_iterator first{input.begin(), input.end(), re, -1};
+            std::sregex_token_iterator last;
 
-        Environment<>::get().Manager().addTask(this);
-        __setTransactionEvent(EventTask(this->getId()));
-    }
+            return {first, last};
+        }
+    } // namespace misc
 } // namespace pmacc

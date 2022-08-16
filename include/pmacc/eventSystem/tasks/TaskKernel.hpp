@@ -53,7 +53,7 @@ namespace pmacc
         {
         }
 
-        HINLINE void activateChecks();
+        void activateChecks();
 
         std::string toString() override
         {

@@ -23,7 +23,7 @@
 #pragma once
 
 #include "pmacc/assert.hpp"
-#include "pmacc/eventSystem/events/CudaEvent.def"
+#include "pmacc/eventSystem/events/CudaEvent.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
