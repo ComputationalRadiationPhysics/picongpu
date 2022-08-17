@@ -195,7 +195,7 @@ namespace picongpu
                         po::value<int>(&this->movingwindowstop)->multitoken(),
                         "when moving window stops timestep");
 #else
-                    desc.add_options()((pluginPrefix).c_str(), "plugin disabled [compiled without dependency PNGwriter]");
+                    desc.add_options()((this->pluginPrefix).c_str(), "plugin disabled [compiled without dependency FFTW]");
 #endif
                 }
 

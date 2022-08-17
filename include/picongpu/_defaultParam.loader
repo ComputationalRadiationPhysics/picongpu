@@ -54,9 +54,7 @@
 #endif
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"
-#if(ENABLE_FFTW3)
-#    include "picongpu/param/shadowgraphy.param"
-#endif
+#include "picongpu/param/shadowgraphy.param"
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"

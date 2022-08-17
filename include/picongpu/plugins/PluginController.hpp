@@ -35,9 +35,7 @@
 #include "picongpu/plugins/output/images/Visualisation.hpp"
 #include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
 
-#if(ENABLE_FFTW3)
-#   include "picongpu/plugins/shadowgraphy/Shadowgraphy.hpp"
-#endif
+#include "picongpu/plugins/shadowgraphy/Shadowgraphy.hpp"
 
 #include <pmacc/assert.hpp>
 /* That's an abstract plugin for image output with the possibility
@@ -141,11 +139,8 @@ namespace picongpu
         /* define stand alone plugins */
         using StandAlonePlugins = bmpl::vector<
             Checkpoint,
-            EnergyFields
-#if(ENABLE_FFTW3)
-            ,
+            EnergyFields,
             plugins::shadowgraphy::Shadowgraphy
-#endif
 
 #if(ENABLE_OPENPMD == 1)
             ,

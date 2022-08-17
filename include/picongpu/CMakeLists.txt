@@ -470,6 +470,7 @@ if(PIC_SEARCH_FFTW3)
         pkg_check_modules(FFTW3 fftw3 IMPORTED_TARGET)
         #message(STATUS "Oy")
         message(STATUS "Found FFTW3: ${FFTW3_LIBRARY_DIRS}")
+        add_definitions(-DPIC_ENABLE_FFTW3=1)
     else(PkgConfig_FOUND)
         message(STATUS "Could NOT find PkgConfig for fftw- "
                        "set Pkgconfig_DIR or check your CMAKE_PREFIX_PATH")
