@@ -353,11 +353,14 @@ namespace picongpu
                             // In principle 1 ulp should work, but just to be safe against changes in unit system
                             constexpr double ulp = 4.0;
                             constexpr double eps = std::numeric_limits<double>::epsilon();
-                            bool const isMatchingUnit = (std::fabs(unitField[axis] - UNIT_EFIELD) <= eps * ulp);
+                            bool const isMatchingUnit
+                                = (std::fabs(unitField[axis] - UNIT_EFIELD) <= eps * UNIT_EFIELD * ulp);
                             if(!isMatchingUnit)
+                            {
                                 throw std::runtime_error(
                                     "Incident field BaseFunctorE created with wrong unit: expected "
                                     + std::to_string(UNIT_EFIELD) + ", got " + std::to_string(unitField[axis]));
+                            }
                         }
                     }
                 };
