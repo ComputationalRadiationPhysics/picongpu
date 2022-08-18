@@ -151,7 +151,12 @@ namespace picongpu
                             T_Particle& particle,
                             T_Args&&...)
                         {
-                            auto const temperatureKeV = UserFunctor::operator()(totalCellOffset);
+                            auto const unitLength = UNIT_LENGTH;
+                            auto const cellSize_SI = precisionCast<float_64>(cellSize) * unitLength;
+                            auto const position_SI = (precisionCast<float_64>(totalCellOffset)
+                                                      + precisionCast<float_64>(particle[position_]))
+                                * cellSize_SI.shrink<simDim>();
+                            auto const temperatureKeV = UserFunctor::operator()(position_SI, cellSize_SI);
                             Base::operator()(standardNormalRng, particle, temperatureKeV);
                         }
                     };

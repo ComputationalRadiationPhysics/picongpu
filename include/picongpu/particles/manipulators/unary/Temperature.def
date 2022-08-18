@@ -111,9 +111,10 @@ namespace picongpu
                          *
                          * Return type may be float_X or float_64.
                          *
-                         * @param totalCellOffset total offset including all slides [in cells]
+                         * @param position_SI total offset including all slides [meter]
+                         * @param cellSize_SI cell sizes [meter]
                          */
-                        HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+                        HDINLINE float_X operator()(floatD_64 const& position_SI, float3_64 const& cellSize_SI)
                         {
                             return 0.0_X;
                         }
