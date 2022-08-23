@@ -6,6 +6,12 @@
 #include <cmath> // what
 #include "pmacc/assert.hpp"
 #include <stdio.h>
+#include <pmacc/mappings/simulation/GridController.hpp>
+
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/math/vector/Float.hpp>
+#include <pmacc/math/vector/Int.hpp>
+#include <pmacc/math/vector/Size_t.hpp>
 
 namespace picongpu
 {
@@ -109,6 +115,15 @@ namespace picongpu
 
                     delta_z = focuspos;
                     printf("deltaz = %e \n", delta_z);
+
+
+                    pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
+                    pmacc::math::Size_t<simDim> gpuDim = (pmacc::math::Size_t<simDim>) con.getGpuNodes();
+                    //vec::Size_t<simDim> globalGridSize = gpuDim * field.size();
+
+                    printf("gpuDim[0]: = %d\n", gpuDim[0]);
+                    printf("gpuDim[1]: = %d\n", gpuDim[1]);
+                    printf("gpuDim[2]: = %d\n", gpuDim[2]);
 
                     ngpus = ngpuslong;
 
