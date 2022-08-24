@@ -207,9 +207,9 @@ namespace picongpu
                     propList[directionName]["name"] = "reflecting";
                     break;
                 case particles::boundary::Kind::Thermal:
-                    propList[directionName]["name"] = "thermal";
+                    propList[directionName]["name"] = "reinjecting";
                     propList[directionName]["param"]
-                        = std::string("temperature ") + std::to_string(temperature) + " keV";
+                        = std::string("thermal, T=") + std::to_string(temperature) + "keV";
                     break;
                 default:
                     propList[directionName]["name"] = "unknown";
