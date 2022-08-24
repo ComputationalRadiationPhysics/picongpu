@@ -21,6 +21,7 @@
 
 #    include "picongpu/plugins/openPMD/Json.hpp"
 
+#    include "picongpu/plugins/common/openPMDVersion.def"
 #    include "picongpu/plugins/openPMD/Json_private.hpp"
 
 #    include <algorithm> // std::copy_n, std::find
@@ -332,7 +333,7 @@ The key 'select' must point to either a single string or an array of strings.)EN
                 adios2EngineParams["BufferChunkSize"] = "2147381248";
             }
         }
-#if OPENPMDAPI_VERSION_GE(0,15,0)
+        if constexpr(picongpu::openPMD::detail::FlushSeries<openPMD::Series>::supportsFlushParameters)
         {
             auto& adios2Engine = config["adios2"]["engine"];
             if(!adios2Engine.contains("preferred_flush_target"))
@@ -349,7 +350,6 @@ The key 'select' must point to either a single string or an array of strings.)EN
                 adios2Engine["preferred_flush_target"] = "buffer";
             }
         }
-#endif
     }
 } // namespace
 

@@ -174,6 +174,7 @@ namespace picongpu
             template<typename Series = ::openPMD::Series, typename Dummy = void>
             struct FlushSeries
             {
+                constexpr static bool supportsFlushParameters = false;
                 static void run(Series& series, PreferredFlushTarget)
                 {
                     series.flush();
@@ -186,6 +187,7 @@ namespace picongpu
             template<typename Series>
             struct FlushSeries<Series, decltype(std::declval<Series>().flush(std::declval<std::string>()))>
             {
+                constexpr static bool supportsFlushParameters = true;
                 static constexpr char const* jsonConfigBP5TargetBuffer
                     = R"({"adios2": {"engine": {"preferred_flush_target": "buffer"}}})";
                 static constexpr char const* jsonConfigBP5TargetDisk
