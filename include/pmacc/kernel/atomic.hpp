@@ -100,7 +100,7 @@ namespace pmacc
                 }
             };
 
-#if CUPLA_DEVICE_COMPILE == 1
+#if CUPLA_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
             /**
              * Trait that returns whether an optimized version of AtomicAllInc
              * exists for Kepler architectures (and up)
@@ -233,7 +233,7 @@ namespace pmacc
         template<typename T_Type, typename T_Acc, typename T_Hierarchy>
         DINLINE void atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarchy& hierarchy)
         {
-#if CUPLA_DEVICE_COMPILE == 1
+#if CUPLA_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
             const auto mask = alpaka::warp::activemask(acc);
             const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
             if(getLaneId() == leader)
