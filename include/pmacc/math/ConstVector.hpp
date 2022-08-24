@@ -26,7 +26,8 @@
 #include "pmacc/types.hpp"
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
-#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+#if(CUPLA_DEVICE_COMPILE == 1 && /* we are on gpu ... and not using an offloading backend: */                         \
+    !(defined ALPAKA_ACC_ANY_BT_OMP5_ENABLED || defined ALPAKA_ACC_ANY_BT_OACC_ENABLED))
 #    define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id)                                                             \
         using namespace PMACC_JOIN(pmacc_static_const_vector_device, id)
 #else
