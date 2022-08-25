@@ -273,7 +273,7 @@ namespace picongpu
 
                                 printf("focus: %e \n", this->focuspos * 1e-6);
 
-                                helper = new Helper(this->slicePoint, this->mwstart, this->focuspos * 1e-6, this->duration, this->startTime, this->movingwindowstop);
+                                helper = new Helper(currentStep, this->slicePoint, this->focuspos * 1e-6, this->duration);
                             }
 
 
