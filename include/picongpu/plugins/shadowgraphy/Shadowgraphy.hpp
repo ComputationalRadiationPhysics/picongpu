@@ -116,7 +116,6 @@ namespace picongpu
 
                 float focuspos;
 
-                int ngpuslong;
                 float_X mwstart;
                 int duration;
                 int movingwindowstop;
@@ -163,10 +162,6 @@ namespace picongpu
                         (this->pluginPrefix + ".slicePoint").c_str(),
                         po::value<float_X>(&this->slicePoint)->multitoken(),
                         "slice point 0.0 <= x <= 1.0");
-                    desc.add_options()(
-                        (this->pluginPrefix + ".ngpuslong").c_str(),
-                        po::value<int>(&this->ngpuslong)->multitoken(),
-                        "n gpus longitudinal");
                     desc.add_options()(
                         (this->pluginPrefix + ".mwstart").c_str(),
                         po::value<float_X>(&this->mwstart)->multitoken(),
@@ -278,7 +273,7 @@ namespace picongpu
 
                                 printf("focus: %e \n", this->focuspos * 1e-6);
 
-                                helper = new Helper(globalGridSize, this->slicePoint, this->ngpuslong, this->mwstart, this->focuspos * 1e-6, this->duration, this->startTime, this->movingwindowstop);
+                                helper = new Helper(globalGridSize, this->slicePoint, this->mwstart, this->focuspos * 1e-6, this->duration, this->startTime, this->movingwindowstop);
                             }
 
 

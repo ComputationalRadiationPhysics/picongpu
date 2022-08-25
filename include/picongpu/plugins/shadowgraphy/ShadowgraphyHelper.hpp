@@ -12,6 +12,7 @@
 #include <pmacc/math/vector/Float.hpp>
 #include <pmacc/math/vector/Int.hpp>
 #include <pmacc/math/vector/Size_t.hpp>
+#include "picongpu/simulation/control/Window.hpp"
 
 namespace picongpu
 {
@@ -80,20 +81,21 @@ namespace picongpu
                 float globalgridsizey;
 
                 int y_mw_stop_offset;
+                float left_border;
 
                 float delta_z;
 
                 float domega;
 
                 int startTime;
-                bool isSlidingWindowEnabled;
+                bool isSlidingWindowActive;
 
                 int amount_of_moving_windows = -1;
 
             public:
                 // Constructor of the shadowgraphy helper class
                 // To be called at the first time step when the shadowgraphy time integration starts
-                Helper(pmacc::math::Size_t<simDim> globalGridSize, float slicepoint, int ngpuslong, float mwstart, float focuspos, int duration, int pluginstart, int movingwindowstop):
+                Helper(pmacc::math::Size_t<simDim> globalGridSize, float slicepoint, float mwstart, float focuspos, int duration, int pluginstart, int movingwindowstop):
                     n_x(globalGridSize.x() / params::x_res - 2),
                     duration(duration),
                     startTime(pluginstart),
@@ -118,14 +120,15 @@ namespace picongpu
 
 
                     pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
-                    pmacc::math::Size_t<simDim> gpuDim = (pmacc::math::Size_t<simDim>) con.getGpuNodes();
+                    //pmacc::math::Size_t<simDim> gpuDim = (pmacc::math::Size_t<simDim>) con.getGpuNodes();
                     //vec::Size_t<simDim> globalGridSize = gpuDim * field.size();
 
-                    printf("gpuDim[0]: = %d\n", gpuDim[0]);
-                    printf("gpuDim[1]: = %d\n", gpuDim[1]);
-                    printf("gpuDim[2]: = %d\n", gpuDim[2]);
+                    //printf("gpuDim[0]: = %d\n", gpuDim[0]);
+                    //printf("gpuDim[1]: = %d\n", gpuDim[1]);
+                    //printf("gpuDim[2]: = %d\n", gpuDim[2]);
 
-                    ngpus = ngpuslong;
+                    ngpus = ((pmacc::math::Size_t<simDim>) con.getGpuNodes())[1];
+                    printf("ngpus = %d\n",ngpus);
 
                     //time step when moving window started:
                     mwstartStep = (mwstart * float(globalGridSize.y()) * (ngpus - 1) / float(ngpus) / SI::SPEED_OF_LIGHT_SI) / SI::DELTA_T_SI;
@@ -138,9 +141,100 @@ namespace picongpu
                     n_z = slicepoint * globalGridSize.z();
 
                     // This is currently not allowed to change during plugin run!
-                    isSlidingWindowEnabled = MovingWindow::getInstance().isSlidingWindowActive(pluginstart);
+                    isSlidingWindowActive = MovingWindow::getInstance().isSlidingWindowActive(pluginstart);
+                    bool const isSlidingWindowEnabled = MovingWindow::getInstance().isEnabled();
 
                     if(isSlidingWindowEnabled){
+                        printf("pluginstart %d\n", pluginstart);
+
+                        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                        //subGrid.getGlobalDomain();
+                        DataSpace<3> globalDomainOffset(subGrid.getGlobalDomain().offset);
+                        printf("gdo 0: %d\n", globalDomainOffset[0]);
+                        printf("gdo 1: %d\n", globalDomainOffset[1]);
+                        printf("gdo 2: %d\n", globalDomainOffset[2]);
+                        printf("gdo 3: %d\n", globalDomainOffset[3]);
+                        std::cout << subGrid.getGlobalDomain().toString() << std::endl;
+
+
+                        DataSpace<3> totalDomainOffset(subGrid.getTotalDomain().offset);
+                        printf("gdo 0: %d\n", totalDomainOffset[0]);
+                        printf("gdo 1: %d\n", totalDomainOffset[1]);
+                        printf("gdo 2: %d\n", totalDomainOffset[2]);
+                        printf("gdo 3: %d\n", totalDomainOffset[3]);
+                        std::cout << subGrid.getTotalDomain().toString() << std::endl;
+
+
+                        DataSpace<3> localDomainOffset(subGrid.getLocalDomain().offset);
+                        printf("gdo 0: %d\n", localDomainOffset[0]);
+                        printf("gdo 1: %d\n", localDomainOffset[1]);
+                        printf("gdo 2: %d\n", localDomainOffset[2]);
+                        printf("gdo 3: %d\n", localDomainOffset[3]);
+                        std::cout << subGrid.getLocalDomain().toString() << std::endl;
+/*
+                        //MovingWindow::getInstance().getDomainAsWindow(currentStep)
+                        DataSpace<3> movingWindowLocalOffset(MovingWindow::getInstance().getWindow(pluginstart).localDimensions.offset);
+                        printf("gdo 0: %d\n", movingWindowLocalOffset[0]);
+                        printf("gdo 1: %d\n", movingWindowLocalOffset[1]);
+                        printf("gdo 2: %d\n", movingWindowLocalOffset[2]);
+                        printf("gdo 3: %d\n", movingWindowLocalOffset[3]);
+                        //std::cout << subGrid.getLocalDomain().toString() << std::endl;
+*/
+                        DataSpace<3> movingWindowGlobalOffset(MovingWindow::getInstance().getWindow(pluginstart).globalDimensions.offset);
+                        printf("gdo 0: %d\n", movingWindowGlobalOffset[0]);
+                        printf("gdo 1: %d\n", movingWindowGlobalOffset[1]);
+                        printf("gdo 2: %d\n", movingWindowGlobalOffset[2]);
+                        printf("gdo 3: %d\n", movingWindowGlobalOffset[3]);
+/*
+                        DataSpace<3> movingWindowDomainLocalOffset(MovingWindow::getInstance().getDomainAsWindow(pluginstart).localDimensions.offset);
+                        printf("gdo 0: %d\n", movingWindowDomainLocalOffset[0]);
+                        printf("gdo 1: %d\n", movingWindowDomainLocalOffset[1]);
+                        printf("gdo 2: %d\n", movingWindowDomainLocalOffset[2]);
+                        printf("gdo 3: %d\n", movingWindowDomainLocalOffset[3]);
+                        //std::cout << subGrid.getLocalDomain().toString() << std::endl;
+
+                        DataSpace<3> movingWindowDomainGlobalOffset(MovingWindow::getInstance().getDomainAsWindow(pluginstart).globalDimensions.offset);
+                        printf("gdo 0: %d\n", movingWindowDomainGlobalOffset[0]);
+                        printf("gdo 1: %d\n", movingWindowDomainGlobalOffset[1]);
+                        printf("gdo 2: %d\n", movingWindowDomainGlobalOffset[2]);
+                        printf("gdo 3: %d\n", movingWindowDomainGlobalOffset[3]);
+*/
+                        printf("current slides: %d\n", MovingWindow::getInstance().getSlideCounter(pluginstart));
+
+
+                        /*DataSpace<3> totalDomainOffset(subGrid.getTotalDomain().offset);
+                        printf("gdo 0: %.4e\n", totalDomainOffset[0]);
+                        printf("gdo 1: %.4e\n", totalDomainOffset[1]);
+                        printf("gdo 2: %.4e\n", totalDomainOffset[2]);
+                        printf("gdo 2: %.4e\n", totalDomainOffset[3]);
+                        std::cout << subGrid.getTotalDomain().toString() << std::endl;*/
+                        // moving window is enabled
+                        if(isSlidingWindowActive){
+                            //moving window is active
+                        } else {
+
+                        }
+
+                        printf("what are we doing here\n");
+                        movingWindowCorrection =  n_z * SI::CELL_DEPTH_SI + nt * dt * float_64(SI::SPEED_OF_LIGHT_SI);
+
+                        n_y = math::ceil(((float(ngpus - 1) / float(ngpus)) * globalGridSize.y() - movingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::y_res) - 2);
+                        y_mw_stop_offset = 0;
+                    } else {
+                        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                        //subGrid.getGlobalDomain();
+                        DataSpace<3> globalDomainOffset(subGrid.getGlobalDomain().offset);
+                        printf("gdo 0: %.4e\n", globalDomainOffset[0]);
+                        printf("gdo 1: %.4e\n", globalDomainOffset[1]);
+                        printf("gdo 2: %.4e\n", globalDomainOffset[2]);
+                        printf("this should appear\n");
+                        // this means that moving window was never on
+                        n_y = globalGridSize.y() / params::y_res - 2;
+                        y_mw_stop_offset = 0;
+                        left_border = 0.0;
+                    }
+
+                    if(false){
                         // movingWindowCorrection makes the resulting shadowgram smaller if the moving Window is enabled
                         // The resulting loss in the size of the shadowgram comes from the duration of the time integration
                         movingWindowCorrection =  n_z * SI::CELL_DEPTH_SI + nt * dt * float_64(SI::SPEED_OF_LIGHT_SI);
@@ -171,7 +265,7 @@ namespace picongpu
                         }
                     }
 
-                    // Make sure spacial grid is even
+                    // Make sure spatial grid is even
                     n_x = n_x % 2 == 0 ? n_x : n_x - 1;
                     n_y = n_y % 2 == 0 ? n_y : n_y - 1;
 
@@ -232,7 +326,7 @@ namespace picongpu
                     for(int i = 0; i < n_x; ++i){
                         int const grid_i = i * params::x_res;
                         for(int j = 0; j < n_y; ++j){
-                            if(isSlidingWindowEnabled){
+                            if(isSlidingWindowActive){
                                 float const gridPos = float(j * params::y_res) + jumped_gpu_cells + lost_index_from_sw;
                                 float const  wr = math::fmod(gridPos, 1.0);
                                 float const wl = 1.0 - wr;
@@ -672,6 +766,8 @@ namespace picongpu
                     float const actual_step = params::y_res * SI::CELL_HEIGHT_SI;
                     return 2.0 * PI  * (float(i) - float(actual_n) / 2.0) / float(actual_n) / actual_step;
                 }
+
+                
 
             }; // class Helper
         } // namespace shadowgraphy
