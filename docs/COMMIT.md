@@ -11,6 +11,9 @@ We agree on the following simple rules to make our lives easier :)
 Format Code
 -----------
 
+Python code must adhere to [PEP 8](https://peps.python.org/pep-0008/) guidelines.
+The following describes formatting of C++ code.
+
 - Install *ClangFormat 12* from LLVM 12.0.1
 - To format all files in your working copy, you can run this command in bash from the root folder of PIConGPU:
   ```bash
