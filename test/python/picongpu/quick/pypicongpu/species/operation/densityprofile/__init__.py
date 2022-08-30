@@ -1,3 +1,3 @@
 # flake8: noqa
-from .densityprofile import *
-from .uniform import *
+from .densityprofile import * # pyflakes.ignore
+from .uniform import * # pyflakes.ignore

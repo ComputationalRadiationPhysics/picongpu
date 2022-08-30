@@ -40,7 +40,10 @@ pull-request-validation:
     # Test Python Files for PEP8 conformance
     - flake8 --exclude=thirdParty .
     # Warnings, unused code, etc.
-    - pyflakes $(ls -w 1 -d */ | grep -v thirdParty | tr "\n" " ")
+    - pyflakes $(ls -d */ | grep -Ev "thirdParty|test") $(find test/ | grep "\.py$" | grep -Ev "__init__.py|__main__.py")
+    # standard files: not thirdParty or test + .py files in test but __init__.py or __main__.py
+    # [necessary since python Tests need to be imported directly into base namespace to be
+    #   found, but pyflakes disallows that and can not be silenced]
     # install clang-format-12
     - apt install -y -q gnupg2
     - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -

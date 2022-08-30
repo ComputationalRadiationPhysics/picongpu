@@ -1,3 +1,3 @@
 # flake8: noqa
-from .pypicongpu import *
-from .picmi import *
+from .pypicongpu import * # pyflakes.ignore
+from .picmi import * # pyflakes.ignore
