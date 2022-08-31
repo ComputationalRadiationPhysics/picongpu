@@ -139,20 +139,27 @@ namespace picongpu
                         yWindowSize = globalGridSize[1];
                     }
 
-                    n_y = math::ceil(( yWindowSize - movingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::y_res) - 2);
+                    n_y = math::floor(( yWindowSize - movingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::y_res) - 2);
+
+                    printf("n_y: %d\n", n_y);
+                    printf("yWindowSize: %d\n", yWindowSize);
+                    printf("movingWindowCorrection: %e\n", movingWindowCorrection);
+                    printf("movingWindowCorrection: %d\n", int(movingWindowCorrection / SI::CELL_HEIGHT_SI));
                     int yGlobalOffset = (MovingWindow::getInstance().getWindow(currentStep).globalDimensions.offset)[1];
                     int yTotalOffset = int(startSlideCount * globalGridSize[1] / nGpus);
 
-                    // The total domain indices of the integration slice are constant, because the screen is not co-propagating with the moving window
-                    yTotalMaxIndex = yTotalOffset + yGlobalOffset + yWindowSize;
-                    yTotalMinIndex = yTotalMaxIndex - n_y;
-
-                    printf("ytotalmaxindex: %d\n", yTotalMaxIndex);
-                    printf("ytotalminindex: %d\n", yTotalMinIndex);
 
                     // Make sure spatial grid is even
                     n_x = n_x % 2 == 0 ? n_x : n_x - 1;
                     n_y = n_y % 2 == 0 ? n_y : n_y - 1;
+
+                    // The total domain indices of the integration slice are constant, because the screen is not co-propagating with the moving window
+                    yTotalMinIndex = yTotalOffset + yGlobalOffset + math::floor(movingWindowCorrection / SI::CELL_HEIGHT_SI) - 1; // yTotalMaxIndex - n_y;
+                    yTotalMaxIndex = yTotalMinIndex + n_y; // yTotalOffset + yGlobalOffset + n_y - 1;
+                    printf("movingWindowCorrection: %e\n", movingWindowCorrection);
+                    printf("n_y: %d\n", n_y);
+                    printf("ytotalmaxindex: %d\n", yTotalMaxIndex);
+                    printf("ytotalminindex: %d\n", yTotalMinIndex);
 
                     std::cout << "initialized with "<< n_x << ", " << n_y << std::endl;
 
@@ -201,13 +208,19 @@ namespace picongpu
                 void store_field(int t, int currentStep, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer1, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer2)
                 {   
                     int currentSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
+                    printf("currentslidecount = %d\n", currentSlideCount);
+                    //printf("fieldbuffer1 size: %zu \n", fieldBuffer1->origin().getCurrentSize());
+                    //printf("fieldbuffer2 size: %zu \n", fieldBuffer2->origin().getCurrentSize());
+                    //std::cout << "fieldbuffer1 size: " << fieldBuffer1.getCurrentSize() <<std::endl;
+                    //std::cout << "fieldbuffer2 size: " << fieldBuffer2.getCurrentSize() <<std::endl;
 
                     for(int i = 0; i < n_x; i++){
                         int const grid_i = i * params::x_res;
                         for(int j = 0; j < n_y; ++j){
-                            int const grid_j = yTotalMinIndex - (startSlideCount - currentSlideCount) * cellsPerGpu + j * params::y_res;
+                            // Transform the total coordinates of the fixed shadowgraphy screen to the global coordinates of the field-buffers
+                            int const grid_j = yTotalMinIndex - currentSlideCount * cellsPerGpu + j * params::y_res;
 
-                            printf("grid_i = %d, grid_j = %d\n", grid_i, grid_j);
+                            printf("grid_i = %d, grid_j = %d", grid_i, grid_j);
                             
                             //float_64 const wf = masks::position_wf(i, j, n_x, n_y) * masks::t_wf(t, duration);
                             float_64 const wf = 1.0;
@@ -227,7 +240,8 @@ namespace picongpu
                                                     + (*(fieldBuffer1->origin()(grid_i+1, grid_j+1))).y() 
                                                     + (*(fieldBuffer2->origin()(grid_i, grid_j+1))).y() 
                                                     + (*(fieldBuffer2->origin()(grid_i+1, grid_j+1))).y()) / 4.0;
-                            } 
+                            }
+                            printf("  done \n"); 
                         }
                     }
                 }
