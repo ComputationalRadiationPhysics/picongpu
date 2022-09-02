@@ -520,10 +520,6 @@ namespace picongpu
             auto forEachParticle
                 = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, suplercellIdx);
 
-            // end kernel if we have no particles
-            if(!forEachParticle.hasParticles())
-                return;
-
             forEachParticle(
                 acc,
                 [&supercellCellOffset, &counter, &transpose, sliceDim, slice, localDomainOffset](
