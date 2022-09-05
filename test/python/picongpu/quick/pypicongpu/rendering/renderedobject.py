@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 Copyright 2021-2022 PIConGPU contributors
-Authors: Hannes Tröpgen, Brian Edward Marré
+Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
@@ -104,7 +104,7 @@ class TestRenderedObject(unittest.TestCase):
         uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
         # note: this is very evil injection, do not *ever* do this
         RenderedObject._schema_by_uri[uri] = {
-            "type": "invalid_type_HJJE§L!BGCDHS",
+            "type": "invalid_type_HJJE$L!BGCDHS",
         }
 
         h = HasInvalidSchema()

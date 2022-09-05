@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 Copyright 2021-2022 PIConGPU contributors
-Authors: Hannes Tröpgen, Brian Edward Marré
+Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
@@ -257,7 +257,7 @@ class TestRunner(unittest.TestCase):
         """forbidden character (not alphanum.-_) produce an error"""
         allowed_dir_names = ["abas", "-123", "123", "/ahjsd",
                              "hnaxbcnxyci8HJBASDJASG61723", "/tmp/hadjs/7123"]
-        forbidden_dir_names = ["", "ä", ";asd", "&/(12)", "try#123", "a:colon",
+        forbidden_dir_names = ["", ";asd", "&/(12)", "try#123", "a:colon",
                                "why is space not allowed"]
 
         for allowed_name in allowed_dir_names:

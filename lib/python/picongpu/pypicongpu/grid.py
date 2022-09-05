@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 Copyright 2021-2022 PIConGPU contributors
-Authors: Hannes Tröpgen, Brian Edward Marré, Richard Pausch
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 

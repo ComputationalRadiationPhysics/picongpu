@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 Copyright 2021-2022 PIConGPU contributors
-Authors: Hannes Tröpgen, Brian Edward Marré
+Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
@@ -181,7 +181,7 @@ class TestSpecies(unittest.TestCase):
             self.assertTrue(txt in get_typename(txt))
 
         # 3. reject invalid strings (not alphanum)
-        for invalid in ["", "\n", " ", "var\n", "abc sad", ".", "é", "-"]:
+        for invalid in ["", "\n", " ", "var\n", "abc sad", ".", "-"]:
             with self.assertRaises(ValueError):
                 get_typename(invalid)
 
