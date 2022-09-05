@@ -48,16 +48,16 @@ namespace picongpu
                 fftw_plan plan_backward;
 
                 // Arrays for DFT sum
-                vec3c Ex_omega;
-                vec3c Ey_omega;
-                vec3c Bx_omega;
-                vec3c By_omega;
+                vec3c ExOmega;
+                vec3c EyOmega;
+                vec3c BxOmega;
+                vec3c ByOmega;
 
                 // Arrays for propagated fields
-                vec3c Ex_omega_propagated;
-                vec3c Ey_omega_propagated;
-                vec3c Bx_omega_propagated;
-                vec3c By_omega_propagated;
+                vec3c ExOmegaPropagated;
+                vec3c EyOmegaPropagated;
+                vec3c BxOmegaPropagated;
+                vec3c ByOmegaPropagated;
 
                 vec2r shadowgram;
 
@@ -65,26 +65,16 @@ namespace picongpu
                 int n_x, n_y;
                 int omega_min_index, omega_max_index, n_omegas;
 
-                float_64 movingWindowCorrection;
-
                 // Variables for omega calculations @TODO some initializations and bla
                 float dt;
                 int nt;
                 int duration;
 
-                int nGpus;
                 int cellsPerGpu;
-
-                int y_mw_stop_offset;
-                float left_border;
 
                 float propagationDistance;
 
                 bool isSlidingWindowActive;
-
-                int startSlideCount;
-
-                int amount_of_moving_windows = -1;
 
                 int yTotalMinIndex, yTotalMaxIndex;
 
@@ -94,11 +84,8 @@ namespace picongpu
                 Helper(int currentStep, float slicePoint, float focusPos, int duration):
                     duration(duration)
                 {
-                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-
-                    pmacc::math::Size_t<simDim> globalGridSize = subGrid.getGlobalDomain().size;
-                    std::cout << "globalgridsize: " << subGrid.getGlobalDomain().toString() << std::endl;
-
+                    dt = params::t_res * SI::DELTA_T_SI;
+                    nt = duration / params::t_res;
 
                     // Same amount of omegas as ts 
                     // @TODO int division
@@ -109,54 +96,61 @@ namespace picongpu
                     
                     printf("minindex: %d, maxindex: %d, n: %d \n", omega_min_index, omega_max_index, n_omegas);
 
-                    dt = params::t_res * SI::DELTA_T_SI;
-                    nt = duration / params::t_res;
-
                     propagationDistance = focusPos;
                     printf("propagationDistance = %e \n", propagationDistance);
+                    
+                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+
+                    pmacc::math::Size_t<simDim> globalGridSize = subGrid.getGlobalDomain().size;
+                    std::cout << "globalgridsize: " << subGrid.getGlobalDomain().toString() << std::endl;
 
                     pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
-                    nGpus = con.getGpuNodes()[1]; //((pmacc::math::Size_t<simDim>) con.getGpuNodes())[1];
+                    int const nGpus = con.getGpuNodes()[1]; //((pmacc::math::Size_t<simDim>) con.getGpuNodes())[1];
                     cellsPerGpu = int(globalGridSize[1] / nGpus);
                     printf("nGpus = %d\n",nGpus);
 
                     n_x = globalGridSize[0] / params::x_res - 2;
-                    int const cellsUntilIntegrationPlane = slicePoint * globalGridSize[2];
 
-                    startSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
+                    int const startSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
 
-                    // This is currently not allowed to change during plugin run!
+                    // These are currently not allowed to change during plugin run!
                     isSlidingWindowActive = MovingWindow::getInstance().isSlidingWindowActive(currentStep);
                     bool const isSlidingWindowEnabled = MovingWindow::getInstance().isEnabled();
 
+                    // If the sliding window is enabled, the resulting shadowgram will be smaller to not show the "invisible" GPU fields in the shadowgram
                     int yWindowSize;
-
                     if(isSlidingWindowEnabled){
-                        movingWindowCorrection =  cellsUntilIntegrationPlane * SI::CELL_DEPTH_SI + nt * dt * float_64(SI::SPEED_OF_LIGHT_SI);
                         yWindowSize = int((float(nGpus - 1) / float(nGpus)) * globalGridSize[1]);
                     } else {
-                        movingWindowCorrection = 0.0;
                         yWindowSize = globalGridSize[1];
                     }
 
-                    n_y = math::floor(( yWindowSize - movingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::y_res) - 2);
+                    // If the sliding window is active, the resulting shadowgram will also be smaller to adjust for the laser propagation distance
+                    float slidingWindowCorrection;
+                    if(isSlidingWindowActive){
+                        int const cellsUntilIntegrationPlane = slicePoint * globalGridSize[2];
+                        slidingWindowCorrection =  cellsUntilIntegrationPlane * SI::CELL_DEPTH_SI + nt * dt * float_64(SI::SPEED_OF_LIGHT_SI);
+                    } else {
+                        slidingWindowCorrection = 0.0;
+                    }
 
-                    printf("n_y: %d\n", n_y);
-                    printf("yWindowSize: %d\n", yWindowSize);
-                    printf("movingWindowCorrection: %e\n", movingWindowCorrection);
-                    printf("movingWindowCorrection: %d\n", int(movingWindowCorrection / SI::CELL_HEIGHT_SI));
-                    int yGlobalOffset = (MovingWindow::getInstance().getWindow(currentStep).globalDimensions.offset)[1];
-                    int yTotalOffset = int(startSlideCount * globalGridSize[1] / nGpus);
-
+                    n_y = math::floor(( yWindowSize - slidingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::y_res) - 2);
 
                     // Make sure spatial grid is even
                     n_x = n_x % 2 == 0 ? n_x : n_x - 1;
                     n_y = n_y % 2 == 0 ? n_y : n_y - 1;
 
+                    printf("n_y: %d\n", n_y);
+                    printf("yWindowSize: %d\n", yWindowSize);
+                    printf("slidingWindowCorrection: %e\n", slidingWindowCorrection);
+                    printf("slidingWindowCorrection: %d\n", int(slidingWindowCorrection / SI::CELL_HEIGHT_SI));
+                    int const yGlobalOffset = (MovingWindow::getInstance().getWindow(currentStep).globalDimensions.offset)[1];
+                    int const yTotalOffset = int(startSlideCount * globalGridSize[1] / nGpus);
+
                     // The total domain indices of the integration slice are constant, because the screen is not co-propagating with the moving window
-                    yTotalMinIndex = yTotalOffset + yGlobalOffset + math::floor(movingWindowCorrection / SI::CELL_HEIGHT_SI) - 1; // yTotalMaxIndex - n_y;
+                    yTotalMinIndex = yTotalOffset + yGlobalOffset + math::floor(slidingWindowCorrection / SI::CELL_HEIGHT_SI) - 1; // yTotalMaxIndex - n_y;
                     yTotalMaxIndex = yTotalMinIndex + n_y; // yTotalOffset + yGlobalOffset + n_y - 1;
-                    printf("movingWindowCorrection: %e\n", movingWindowCorrection);
+                    printf("slidingWindowCorrection: %e\n", slidingWindowCorrection);
                     printf("n_y: %d\n", n_y);
                     printf("ytotalmaxindex: %d\n", yTotalMaxIndex);
                     printf("ytotalminindex: %d\n", yTotalMinIndex);
@@ -164,18 +158,18 @@ namespace picongpu
                     std::cout << "initialized with "<< n_x << ", " << n_y << std::endl;
 
                     printf("nGpus: %d, (%e) \n", nGpus, (float(nGpus - 1) / float(nGpus)) * globalGridSize[1]);
-                    printf("things: %e\n",  movingWindowCorrection / SI::CELL_HEIGHT_SI);
+                    printf("things: %e\n",  slidingWindowCorrection / SI::CELL_HEIGHT_SI);
 
                     // Initialization of storage arrays
-                    Ex_omega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
-                    Ey_omega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
-                    Bx_omega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
-                    By_omega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    ExOmega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    EyOmega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    BxOmega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    ByOmega = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
 
-                    Ex_omega_propagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
-                    Ey_omega_propagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
-                    Bx_omega_propagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
-                    By_omega_propagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    ExOmegaPropagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    EyOmegaPropagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    BxOmegaPropagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
+                    ByOmegaPropagated = vec3c(n_x, vec2c(n_y, vec1c(n_omegas)));
 
                     tmpEx = vec2r(n_x, vec1r(n_y));
                     tmpEy = vec2r(n_x, vec1r(n_y));
@@ -207,12 +201,8 @@ namespace picongpu
                 template<typename F>
                 void store_field(int t, int currentStep, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer1, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer2)
                 {   
-                    int currentSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
+                    int const currentSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
                     printf("currentslidecount = %d\n", currentSlideCount);
-                    //printf("fieldbuffer1 size: %zu \n", fieldBuffer1->origin().getCurrentSize());
-                    //printf("fieldbuffer2 size: %zu \n", fieldBuffer2->origin().getCurrentSize());
-                    //std::cout << "fieldbuffer1 size: " << fieldBuffer1.getCurrentSize() <<std::endl;
-                    //std::cout << "fieldbuffer2 size: " << fieldBuffer2.getCurrentSize() <<std::endl;
 
                     for(int i = 0; i < n_x; i++){
                         int const grid_i = i * params::x_res;
@@ -220,10 +210,12 @@ namespace picongpu
                             // Transform the total coordinates of the fixed shadowgraphy screen to the global coordinates of the field-buffers
                             int const grid_j = yTotalMinIndex - currentSlideCount * cellsPerGpu + j * params::y_res;
 
-                            printf("grid_i = %d, grid_j = %d", grid_i, grid_j);
+                            //if(j == (n_y - 1)){
+                            //    printf("grid_i = %d, grid_j = %d\n", grid_i, grid_j);
+                            //}
                             
-                            //float_64 const wf = masks::position_wf(i, j, n_x, n_y) * masks::t_wf(t, duration);
-                            float_64 const wf = 1.0;
+                            float_64 const wf = masks::position_wf(i, j, n_x, n_y) * masks::t_wf(t, duration);
+                            //float_64 const wf = 1.0;
 
                             // fix yee offset
                             if(F::getName() == "E"){
@@ -241,7 +233,7 @@ namespace picongpu
                                                     + (*(fieldBuffer2->origin()(grid_i, grid_j+1))).y() 
                                                     + (*(fieldBuffer2->origin()(grid_i+1, grid_j+1))).y()) / 4.0;
                             }
-                            printf("  done \n"); 
+                            //printf("  done \n"); 
                         }
                     }
                 }
@@ -259,10 +251,10 @@ namespace picongpu
 
                         for(int i = 0; i < n_x; ++i){
                             for(int j = 0; j < n_y; ++j){
-                                Ex_omega[i][j][o] += tmpEx[i][j] * exponential;
-                                Ey_omega[i][j][o] += tmpEy[i][j] * exponential;
-                                Bx_omega[i][j][o] += tmpBx[i][j] * exponential;
-                                By_omega[i][j][o] += tmpBy[i][j] * exponential;
+                                ExOmega[i][j][o] += tmpEx[i][j] * exponential;
+                                EyOmega[i][j][o] += tmpEy[i][j] * exponential;
+                                BxOmega[i][j][o] += tmpBx[i][j] * exponential;
+                                ByOmega[i][j][o] += tmpBy[i][j] * exponential;
                             }
                         }
                     }
@@ -270,7 +262,7 @@ namespace picongpu
 
                 void propagate_fields()
                 {
-                    for(int fieldindex = 0; fieldindex < 4; fieldindex++){
+                    for(int fieldIndex = 0; fieldIndex < 4; fieldIndex++){
                         for(int o = 0; o < n_omegas; ++o){
                             
                             int const omegaIndex = fourierhelper::get_omega_index(o, duration);
@@ -283,35 +275,35 @@ namespace picongpu
                                 for(int j = 0; j < n_y; ++j){
                                 int const index = i + j * n_x;
 
-                                if(fieldindex == 0){
-                                    fftw_in_f[index][0] = Ex_omega[i][j][o].real();
-                                    fftw_in_f[index][1] = Ex_omega[i][j][o].imag();
-                                } else if(fieldindex == 1){
-                                    fftw_in_f[index][0] = Ey_omega[i][j][o].real();
-                                    fftw_in_f[index][1] = Ey_omega[i][j][o].imag();
-                                } else if(fieldindex == 2){
-                                    fftw_in_f[index][0] = Bx_omega[i][j][o].real();
-                                    fftw_in_f[index][1] = Bx_omega[i][j][o].imag();
-                                } else if(fieldindex == 3){
-                                    fftw_in_f[index][0] = By_omega[i][j][o].real();
-                                    fftw_in_f[index][1] = By_omega[i][j][o].imag();
+                                if(fieldIndex == 0){
+                                    fftw_in_f[index][0] = ExOmega[i][j][o].real();
+                                    fftw_in_f[index][1] = ExOmega[i][j][o].imag();
+                                } else if(fieldIndex == 1){
+                                    fftw_in_f[index][0] = EyOmega[i][j][o].real();
+                                    fftw_in_f[index][1] = EyOmega[i][j][o].imag();
+                                } else if(fieldIndex == 2){
+                                    fftw_in_f[index][0] = BxOmega[i][j][o].real();
+                                    fftw_in_f[index][1] = BxOmega[i][j][o].imag();
+                                } else if(fieldIndex == 3){
+                                    fftw_in_f[index][0] = ByOmega[i][j][o].real();
+                                    fftw_in_f[index][1] = ByOmega[i][j][o].imag();
                                 }
 
                                 }
                             }
-                            //writeIntermediateFile(o, fieldindex);
+                            //writeIntermediateFile(o, fieldIndex);
 
                             fftw_execute(plan_forward);
-                            writeFourierFile(o, fieldindex, false);
+                            writeFourierFile(o, fieldIndex, false);
 
                             // put field into fftw array
                             for(int i = 0; i < n_x; ++i){
                                 // Put origin into center of array with this, necessary due to FFT
-                                int const i_ffs = (i + n_x/2) % n_x;
+                                int const iffs = (i + n_x/2) % n_x;
 
                                 for(int j = 0; j < n_y; ++j){
                                     int const index = i + j * n_x;
-                                    int const j_ffs = (j  + n_y / 2) % n_y;
+                                    int const jffs = (j  + n_y / 2) % n_y;
                                     
                                     float_64 const sqrt1 = kSI * kSI;
                                     float_64 const sqrt2 = kx(i) * kx(i);
@@ -321,17 +313,17 @@ namespace picongpu
                                     if(sqrtContent >= 0.0)
                                     {
                                         // Put origin into center of array with this, necessary due to FFT
-                                        int const index_ffs = i_ffs + j_ffs * n_x;
+                                        int const indexffs = iffs + jffs * n_x;
 
-                                        complex_64 const field = complex_64(fftw_out_f[index_ffs][0], fftw_out_f[index_ffs][1]);
+                                        complex_64 const field = complex_64(fftw_out_f[indexffs][0], fftw_out_f[indexffs][1]);
 
                                         float_64 const phase = (kSI == 0.0) ? 0.0 : propagationDistance * kSI * math::sqrt(sqrtContent);
                                         complex_64 const propagator = math::exp(complex_64(0, phase));
 
-                                        complex_64 const propagated_field = masks::mask_f(kx(i), ky(j), omega(omegaIndex)) * field * propagator;
+                                        complex_64 const propagatedField = masks::mask_f(kx(i), ky(j), omega(omegaIndex)) * field * propagator;
 
-                                        fftw_in_b[index][0] = propagated_field.real();
-                                        fftw_in_b[index][1] = propagated_field.imag();
+                                        fftw_in_b[index][0] = propagatedField.real();
+                                        fftw_in_b[index][1] = propagatedField.imag();
                                     } else {
                                         fftw_in_b[index][0] = 0.0;
                                         fftw_in_b[index][1] = 0.0;
@@ -339,7 +331,7 @@ namespace picongpu
                                 }
                             }
 
-                            writeFourierFile(o, fieldindex, true);
+                            writeFourierFile(o, fieldIndex, true);
                             fftw_execute(plan_backward);
 
                             // yoink fields from fftw array
@@ -347,14 +339,14 @@ namespace picongpu
                                 for(int j = 0; j < n_y; ++j){
                                 int const index = i + j * n_x;
 
-                                if(fieldindex == 0){
-                                    Ex_omega_propagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                } else if(fieldindex == 1){
-                                    Ey_omega_propagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                } else if(fieldindex == 2){
-                                    Bx_omega_propagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                } else if(fieldindex == 3){
-                                    By_omega_propagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                if(fieldIndex == 0){
+                                    ExOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                } else if(fieldIndex == 1){
+                                    EyOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                } else if(fieldIndex == 2){
+                                    BxOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                } else if(fieldIndex == 3){
+                                    ByOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
                                 }
                                 }
                             }
@@ -385,10 +377,10 @@ namespace picongpu
 
                             for(int i = 0; i < n_x; ++i){
                                 for(int j = 0; j < n_y; ++j){
-                                    complex_64 const Ex = Ex_omega_propagated[i][j][o] * exponential;
-                                    complex_64 const Ey = Ey_omega_propagated[i][j][o] * exponential;
-                                    complex_64 const Bx = Bx_omega_propagated[i][j][o] * exponential;
-                                    complex_64 const By = By_omega_propagated[i][j][o] * exponential;
+                                    complex_64 const Ex = ExOmegaPropagated[i][j][o] * exponential;
+                                    complex_64 const Ey = EyOmegaPropagated[i][j][o] * exponential;
+                                    complex_64 const Bx = BxOmegaPropagated[i][j][o] * exponential;
+                                    complex_64 const By = ByOmegaPropagated[i][j][o] * exponential;
                                     shadowgram[i][j] += (dt / (SI::MUE0_SI * nt * nt * n_x * n_x * n_y * n_y)) * (Ex * By - Ey * Bx 
                                                         + Ex_tmpsum[i][j] * By + Ex * By_tmpsum[i][j]
                                                         - Ey_tmpsum[i][j] * Bx - Ey * Bx_tmpsum[i][j]).real();
@@ -444,47 +436,47 @@ namespace picongpu
                 }
 
 
-                void writeFourierFile(int o, int fieldindex, bool masksapplied)
+                void writeFourierFile(int o, int fieldIndex, bool masksApplied)
                 {
                     int const omegaIndex = fourierhelper::get_omega_index(o, duration);
                     std::ofstream outFile;
-                    std::ostringstream filename;
+                    std::ostringstream fileName;
 
-                    if(fieldindex == 0){
-                        filename <<"Ex";
-                    } else if(fieldindex == 1){
-                        filename <<"Ey";
-                    } else if(fieldindex == 2){
-                        filename <<"Bx";
-                    } else if(fieldindex == 3){
-                        filename <<"By";
+                    if(fieldIndex == 0){
+                        fileName <<"Ex";
+                    } else if(fieldIndex == 1){
+                        fileName <<"Ey";
+                    } else if(fieldIndex == 2){
+                        fileName <<"Bx";
+                    } else if(fieldIndex == 3){
+                        fileName <<"By";
                     }
 
-                    filename << "_fourierspace";
-                    if(masksapplied){
-                        filename << "_with_masks";
+                    fileName << "_fourierspace";
+                    if(masksApplied){
+                        fileName << "_with_masks";
                     }
-                    filename << "_" << omegaIndex << ".dat";
+                    fileName << "_" << omegaIndex << ".dat";
 
-                    outFile.open(filename.str(), std::ofstream::out | std::ostream::trunc);
+                    outFile.open(fileName.str(), std::ofstream::out | std::ostream::trunc);
 
                     if(!outFile)
                     {
-                        std::cerr << "Can't open file [" << filename.str() << "] for output, disable plugin output. Chuchu"
+                        std::cerr << "Can't open file [" << fileName.str() << "] for output, disable plugin output. Chuchu"
                                 << std::endl;
                     }
                     else
                     {
                         for( unsigned int i = 0; i < get_n_x(); ++i ) // over all x
                         {
-                            int const i_ffs = (i + n_x/2) % n_x;
+                            int const iffs = (i + n_x/2) % n_x;
                             for(unsigned int j = 0;  j < get_n_y(); ++j) // over all y
                             {
                                 int const index = i + j * n_x;
-                                int const j_ffs = (j + n_y / 2) % n_y;
-                                int const index_ffs = i_ffs + j_ffs * n_x;
-                                if(!masksapplied){
-                                    outFile << fftw_out_f[index_ffs][0] << "+" << fftw_out_f[index_ffs][1] << "j" << "\t";
+                                int const jffs = (j + n_y / 2) % n_y;
+                                int const indexffs = iffs + jffs * n_x;
+                                if(!masksApplied){
+                                    outFile << fftw_out_f[indexffs][0] << "+" << fftw_out_f[indexffs][1] << "j" << "\t";
                                 }
                                 else {
                                     outFile << fftw_in_b[index][0] << "+" << fftw_in_b[index][1] << "j" << "\t";
@@ -498,36 +490,36 @@ namespace picongpu
                         outFile << std::endl; // now all data are written to file
 
                         if(outFile.fail())
-                            std::cerr << "Error on flushing file [" << filename.str() << "]. " << std::endl;
+                            std::cerr << "Error on flushing file [" << fileName.str() << "]. " << std::endl;
 
                         outFile.close();
                     }
                 }
 
-                void writeIntermediateFile(int o, int fieldindex)
+                void writeIntermediateFile(int o, int fieldIndex)
                 {
                     int const omegaIndex = fourierhelper::get_omega_index(o, duration);
                     std::ofstream outFile;
-                    std::ostringstream filename;
+                    std::ostringstream fileName;
 
-                    if(fieldindex == 0){
-                        filename <<"Ex";
-                    } else if(fieldindex == 1){
-                        filename <<"Ey";
-                    } else if(fieldindex == 2){
-                        filename <<"Bx";
-                    } else if(fieldindex == 3){
-                        filename <<"By";
+                    if(fieldIndex == 0){
+                        fileName <<"Ex";
+                    } else if(fieldIndex == 1){
+                        fileName <<"Ey";
+                    } else if(fieldIndex == 2){
+                        fileName <<"Bx";
+                    } else if(fieldIndex == 3){
+                        fileName <<"By";
                     }
 
-                    filename << "_omegaspace";
-                    filename << "_" << omegaIndex << ".dat";
+                    fileName << "_omegaspace";
+                    fileName << "_" << omegaIndex << ".dat";
 
-                    outFile.open(filename.str(), std::ofstream::out | std::ostream::trunc);
+                    outFile.open(fileName.str(), std::ofstream::out | std::ostream::trunc);
 
                     if(!outFile)
                     {
-                        std::cerr << "Can't open file [" << filename.str() << "] for output, disable plugin output. Chuchu"
+                        std::cerr << "Can't open file [" << fileName.str() << "] for output, disable plugin output. Chuchu"
                                 << std::endl;
                     }
                     else
@@ -547,7 +539,7 @@ namespace picongpu
                         outFile << std::endl; // now all data are written to file
 
                         if(outFile.fail())
-                            std::cerr << "Error on flushing file [" << filename.str() << "]. " << std::endl;
+                            std::cerr << "Error on flushing file [" << fileName.str() << "]. " << std::endl;
 
                         outFile.close();
                     }
@@ -573,9 +565,6 @@ namespace picongpu
                     float const actual_step = params::y_res * SI::CELL_HEIGHT_SI;
                     return 2.0 * PI  * (float(i) - float(actual_n) / 2.0) / float(actual_n) / actual_step;
                 }
-
-                
-
             }; // class Helper
         } // namespace shadowgraphy
     } // namespace plugins
