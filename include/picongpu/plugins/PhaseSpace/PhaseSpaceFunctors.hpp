@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "picongpu/particles/access/Cell2Particle.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
 #include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
@@ -27,6 +26,7 @@
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <utility>
 
@@ -70,22 +70,19 @@ namespace picongpu
 
         /** Functor implementation
          *
-         * @param frame current frame for this block
-         * @param particleID id of the particle in the current frame
+         * @param particle particle to process
          * @param curDBufferOriginInBlock section of the phase space, shifted to the start of the block
          * @param el_p coordinate of the momentum @see PhaseSpace::axis_element @see AxisDescription
          * @param axis_p_range range of the momentum coordinate @see PhaseSpace::axis_p_range
          */
-        template<typename FramePtr, typename float_PS, typename Pitch, typename T_Acc>
+        template<typename T_Particle, typename float_PS, typename Pitch, typename T_Acc>
         DINLINE void operator()(
             const T_Acc& acc,
-            FramePtr frame,
-            uint16_t particleID,
+            T_Particle particle,
             cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
             const uint32_t el_p,
             const std::pair<float_X, float_X>& axis_p_range)
         {
-            auto particle = frame[particleID];
             /** \todo this can become a functor to be even more flexible */
             const float_X mom_i = particle[momentum_][el_p];
 
@@ -181,7 +178,7 @@ namespace picongpu
         /** Called for the first cell of each block #-of-cells-in-block times
          *
          * @param indexBlockOffset cell index in global memory, describes where
-         *                         the current block starts
+         *                         the current block starts, including guard cells
          *                         @see cuSTL/algorithm/kernel/Foreach.hpp
          */
         template<typename T_Acc>
@@ -189,9 +186,6 @@ namespace picongpu
         {
             constexpr uint32_t numWorkers = T_numWorkers;
             const uint32_t workerIdx = cupla::threadIdx(acc).x;
-
-            /** \todo write math::Vector constructor that supports dim3 */
-            const pmacc::math::Int<simDim> indexGlobal = indexBlockOffset;
 
             /* create shared mem */
             const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
@@ -209,19 +203,23 @@ namespace picongpu
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
 
-            particleAccess::Cell2Particle<SuperCellSize, numWorkers> forEachParticleInCell;
-            forEachParticleInCell(
-                acc,
-                /* mandatory params */
-                particlesBox,
+            auto superCellIdx = indexBlockOffset / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT());
+
+            auto accFilter
+                = particleFilter(acc, superCellIdx - GuardSize::toRT(), lockstep::Worker<numWorkers>{workerIdx});
+
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
                 workerIdx,
-                indexGlobal,
-                functorParticle,
-                particleFilter,
-                /* optional params */
-                dBufferInBlock.origin(),
-                p_element,
-                axis_p_range);
+                particlesBox,
+                DataSpace<simDim>(superCellIdx));
+
+            forEachParticle(
+                acc,
+                [&](auto const& accelerator, auto& particle)
+                {
+                    if(accFilter(accelerator, particle))
+                        functorParticle(accelerator, particle, dBufferInBlock.origin(), p_element, axis_p_range);
+                });
 
             cupla::__syncthreads(acc);
             /* add to global dBuffer */
