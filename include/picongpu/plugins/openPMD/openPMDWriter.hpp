@@ -85,6 +85,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib> // getenv
+#include <exception>
 #include <iostream>
 #include <list>
 #include <sstream>
@@ -972,6 +973,76 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 dumpData(currentStep);
             }
 
+            /** Checks if a loaded openPMD series is supported for restarting.
+             *
+             * The openPMD series attribute 'picongpuIOVersionMajor', 'picongpuIOVersionMinor', and the current
+             * PIConGPU IO version is compared to find incompatible versions. In case the loaded series is incompatible
+             * an runtime error is thrown.
+             *
+             * @attention Loading a series with older IO major file version as the current PIConGPU IO version is only
+             * possible if it is explicitly allowed by this function e.g. in cases the IO plugin is guaranteeing the
+             * compatibility. Loading a file with a newer IO major version is not possible.
+             *
+             * @param series OpenPMD series which is used to load restart data.
+             */
+            void checkIOFileVersionRestartCompatibility(std::unique_ptr<::openPMD::Series>& series) const
+            {
+                /* Major version 0 and not having the attribute picongpuIOVersionMajor is handled equally later on.
+                 * Major version 0 will never have any other minor version than 1.
+                 */
+                int ioVersionUsedFileMajor = 0;
+                int ioVersionUsedFileMinor = 1;
+
+                if(series->containsAttribute("picongpuIOVersionMajor"))
+                {
+                    ioVersionUsedFileMajor = series->getAttribute("picongpuIOVersionMajor").get<int>();
+                }
+                else
+                {
+                    /* No version available. An old file before the version feature was introduced is loaded.
+                     * Use the default version zero in that case.
+                     */
+                    log<picLog::INPUT_OUTPUT>(
+                        "openPMD: Restart from file without attribute 'picongpuIOVersionMajor'.");
+                }
+
+                if(series->containsAttribute("picongpuIOVersionMinor"))
+                {
+                    ioVersionUsedFileMinor = series->getAttribute("picongpuIOVersionMinor").get<int>();
+                }
+                else if(ioVersionUsedFileMajor != 0)
+                {
+                    // We require a minor version number only if major version is not 0.
+                    throw std::runtime_error(
+                        "openPMD: Restart file openPMD series attribute 'picongpuIOVersionMinor' is missing.");
+                }
+
+                std::string seriesIoVersion
+                    = std::to_string(ioVersionUsedFileMajor) + "." + std::to_string(ioVersionUsedFileMinor);
+
+                std::string picongpuIoVersion
+                    = std::to_string(picongpuIOVersionMajor) + "." + std::to_string(picongpuIOVersionMinor);
+
+                log<picLog::INPUT_OUTPUT>("openPMD: Restart file IO version is %1% and PIConGPU's version is %2%")
+                    % seriesIoVersion % picongpuIoVersion;
+
+                // handle compatibility between picongpu io file versions
+                if(picongpuIOVersionMajor < ioVersionUsedFileMajor)
+                {
+                    throw std::runtime_error(
+                        std::string("openPMD: Restart file IO version ") + seriesIoVersion
+                        + " is newer and incompatible to the current supported file format version "
+                        + picongpuIoVersion + ".");
+                }
+                else if(picongpuIOVersionMajor > ioVersionUsedFileMajor)
+                {
+                    throw std::runtime_error(
+                        std::string("openPMD: Restart file IO version ") + seriesIoVersion
+                        + " is older and incompatible to the current supported file format version "
+                        + picongpuIoVersion + ".");
+                }
+            }
+
             void doRestart(
                 const uint32_t restartStep,
                 const std::string& restartDirectory,
@@ -989,6 +1060,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mThreadParams.cellDescription = m_cellDescription;
 
                 mThreadParams.openSeries(::openPMD::Access::READ_ONLY);
+
+                checkIOFileVersionRestartCompatibility(mThreadParams.openPMDSeries);
 
                 ::openPMD::Iteration iteration = mThreadParams.openPMDSeries->iterations[mThreadParams.currentStep];
 

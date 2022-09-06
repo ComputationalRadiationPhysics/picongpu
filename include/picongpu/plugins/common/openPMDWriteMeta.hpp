@@ -22,6 +22,7 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/traits/SIBaseUnits.hpp"
@@ -137,6 +138,10 @@ namespace picongpu
                 if(!std::string(PICONGPU_VERSION_LABEL).empty())
                     softwareVersion << "-" << PICONGPU_VERSION_LABEL;
                 series.setSoftware(software, softwareVersion.str());
+
+                // PIConGPU IO file format version
+                series.setAttribute("picongpuIOVersionMajor", picongpuIOVersionMajor);
+                series.setAttribute("picongpuIOVersionMinor", picongpuIOVersionMinor);
 
                 // don't write this if a previous run already wrote it
                 if(!series.containsAttribute("date"))
