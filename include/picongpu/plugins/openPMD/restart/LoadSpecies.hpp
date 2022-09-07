@@ -94,7 +94,9 @@ namespace picongpu
                     = series.iterations[params->currentStep].particles;
                 ::openPMD::ParticleSpecies particleSpecies = particles[speciesName];
 
-                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                DataSpace<simDim> cellOffsetToTotalDomain
+                    = subGrid.getLocalDomain().offset + subGrid.getGlobalDomain().offset;
 
                 /* load particle without copying particle data to host */
                 auto speciesTmp = dc.get<ThisSpecies>(FrameType::getName(), true);
@@ -156,7 +158,7 @@ namespace picongpu
                         deviceFrame,
                         totalNumParticles,
                         restartChunkSize,
-                        localDomain.offset,
+                        cellOffsetToTotalDomain,
                         totalCellIdx_,
                         *(params->cellDescription),
                         picLog::INPUT_OUTPUT());
@@ -206,15 +208,19 @@ namespace picongpu
                     }
                 }
 
-                // Note: the global domain offset is already included in params->window.globalDimensions.offset
-                DataSpace<simDim> const patchOffset
-                    = params->window.globalDimensions.offset + params->window.localDimensions.offset;
+                const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                auto globalDOmainOffset = subGrid.getGlobalDomain().offset;
+                /* window.localDimensions.offset is in PIConGPU for a restart zero but to stay generic we take
+                 * the variable into account.
+                 */
+                DataSpace<simDim> const patchTotalOffset = globalDOmainOffset + params->window.globalDimensions.offset
+                    + params->window.localDimensions.offset;
                 DataSpace<simDim> const patchExtent = params->window.localDimensions.size;
 
                 // search the patch index based on the offset and extents of local domain size
                 for(size_t i = 0; i < numRanks; ++i)
                 {
-                    if(patchOffset == offsets[i] && patchExtent == extents[i])
+                    if(patchTotalOffset == offsets[i] && patchExtent == extents[i])
                         return i;
                 }
                 // If no patch fits the conditions, something went wrong before

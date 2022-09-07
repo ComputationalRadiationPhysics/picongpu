@@ -60,7 +60,7 @@ namespace picongpu
     {
         using namespace pmacc;
 
-        template<typename SpeciesTmp, typename Filter, typename ParticleFilter, typename ParticleOffset>
+        template<typename SpeciesTmp, typename Filter, typename ParticleFilter, typename T_WindowOffset>
         struct StrategyRunParameters
         {
             pmacc::DataConnector& dc;
@@ -68,7 +68,7 @@ namespace picongpu
             SpeciesTmp& speciesTmp;
             Filter& filter;
             ParticleFilter& particleFilter;
-            ParticleOffset& particleOffset;
+            T_WindowOffset& windowCellOffsetToTotalDomain;
             uint64_t myNumParticles, globalNumParticles;
             StrategyRunParameters(
                 pmacc::DataConnector& c_dc,
@@ -76,7 +76,7 @@ namespace picongpu
                 SpeciesTmp& c_speciesTmp,
                 Filter& c_filter,
                 ParticleFilter& c_particleFilter,
-                ParticleOffset& c_particleOffset,
+                T_WindowOffset& c_windowCellOffsetToTotalDomain,
                 uint64_t c_myNumParticles,
                 uint64_t c_globalNumParticles)
                 : dc(c_dc)
@@ -84,7 +84,7 @@ namespace picongpu
                 , speciesTmp(c_speciesTmp)
                 , filter(c_filter)
                 , particleFilter(c_particleFilter)
-                , particleOffset(c_particleOffset)
+                , windowCellOffsetToTotalDomain(c_windowCellOffsetToTotalDomain)
                 , myNumParticles(c_myNumParticles)
                 , globalNumParticles(c_globalNumParticles)
             {
@@ -161,8 +161,7 @@ namespace picongpu
                     hostFrame,
                     particlesBox,
                     rp.filter,
-                    rp.particleOffset, /*relative to data domain (not to physical
-                                       domain)*/
+                    rp.windowCellOffsetToTotalDomain,
                     totalCellIdx_,
                     mapper,
                     rp.particleFilter);
@@ -220,7 +219,7 @@ namespace picongpu
                     deviceFrame,
                     rp.speciesTmp->getDeviceParticlesBox(),
                     rp.filter,
-                    rp.particleOffset,
+                    rp.windowCellOffsetToTotalDomain,
                     totalCellIdx_,
                     mapper,
                     rp.particleFilter);
@@ -330,8 +329,7 @@ namespace picongpu
                 }
             }
 
-            template<typename Space> // has operator[] -> integer type
-            HINLINE void operator()(ThreadParams* params, const Space particleOffset)
+            HINLINE void operator()(ThreadParams* params, const DataSpace<simDim> windowCellOffsetToTotalDomain)
             {
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) write species: %1%") % T_SpeciesFilter::getName();
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -362,7 +360,7 @@ namespace picongpu
                     decltype(speciesTmp),
                     decltype(filter),
                     decltype(particleFilter),
-                    const Space>;
+                    const DataSpace<simDim>>;
 
                 using AStrategy = Strategy<openPMDFrameType, RunParameters_T>;
                 std::unique_ptr<AStrategy> strategy;
@@ -429,7 +427,7 @@ namespace picongpu
                     speciesTmp,
                     filter,
                     particleFilter,
-                    particleOffset,
+                    windowCellOffsetToTotalDomain,
                     myNumParticles,
                     globalNumParticles);
                 if(globalNumParticles > 0)
@@ -496,10 +494,7 @@ namespace picongpu
                         ds.options = params->jsonMatcher->get(basename + "/particlePatches/extent/" + name_lookup[d]);
                         extent_x.resetDataset(ds);
 
-                        // particleOffset[d] is allowed to be negative for the first GPU
-                        using OffsetType = std::remove_reference_t<decltype(particleOffset[d])>;
-                        auto const patchParticleOffset = std::max(static_cast<OffsetType>(0), particleOffset[d]);
-                        offset_x.store<index_t>(mpiRank, patchParticleOffset);
+                        offset_x.store<index_t>(mpiRank, windowCellOffsetToTotalDomain[d]);
                         extent_x.store<index_t>(mpiRank, patchExtent[d]);
                     }
 

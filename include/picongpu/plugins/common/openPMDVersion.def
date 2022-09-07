@@ -38,7 +38,7 @@ namespace picongpu
          *
          * @attention If the version is changed please update openPMDWriter::checkIOFileVersionCompatibility().
          */
-        static constexpr int picongpuIOVersionMajor = 0;
+        static constexpr int picongpuIOVersionMajor = 1;
 
         /** PIConGPU's IO minor file version.
          *
@@ -48,7 +48,7 @@ namespace picongpu
          * @attention If the version is changed please update openPMDWriter::checkIOFileVersionCompatibility() if
          * needed.
          */
-        static constexpr int picongpuIOVersionMinor = 1;
+        static constexpr int picongpuIOVersionMinor = 0;
         /*
          * Do some SFINAE tricks to detect whether the openPMD API has
          * dataset-specific configuration or not.
