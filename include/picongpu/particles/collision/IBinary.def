@@ -27,6 +27,11 @@ namespace picongpu
     {
         namespace collision
         {
+            namespace acc
+            {
+                template<typename T_BinaryFunctor>
+                using IBinary = pmacc::functor::acc::Interface<T_BinaryFunctor, 2u, void>;
+            }
             /**  interface for a binary particle functor
              *
              *

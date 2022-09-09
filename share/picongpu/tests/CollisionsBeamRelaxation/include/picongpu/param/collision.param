@@ -20,7 +20,14 @@
 #pragma once
 
 #include "picongpu/particles/collision/collision.def"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
+
+#ifndef PARAM_DYNAMIC_LOG
+#    define PARAM_DYNAMIC_LOG 0
+#endif
 
 namespace picongpu
 {
@@ -32,32 +39,48 @@ namespace picongpu
             {
                 using float_COLL = float_64;
             } // namespace precision
-            /** CollisionPipeline defines in which order species interact with each other
-             *
-             * the functors are called in order (from first to last functor)
-             */
+
+#if(PARAM_DYNAMIC_LOG == 1)
+            constexpr bool calculateScreeningLength = true;
+#else
+            constexpr bool calculateScreeningLength = false;
+#endif
+            constexpr bool debugScreeningLength = true;
+            using namespace picongpu::plugins;
+            // not ideal, better would be to combine filters with an AND but it is ok
+            using CollisionScreeningSpecies = MakeSeq_t<
+                misc::SpeciesFilter<IonsMore, filter::LowerXPosition>,
+                misc::SpeciesFilter<ElectronsMore, filter::LowerXPosition>,
+                misc::SpeciesFilter<IonsLess, filter::MiddleXPosition>,
+                misc::SpeciesFilter<ElectronsMore, filter::MiddleXPosition>,
+                misc::SpeciesFilter<ElectronsLess, filter::UpperXPosition>,
+                misc::SpeciesFilter<IonsMore, filter::UpperXPosition>>;
+
 
             struct Params
             {
                 static constexpr float_X coulombLog = 3.0_X;
             };
 
+#if(PARAM_DYNAMIC_LOG == 1)
+            using ColliderFunctor = relativistic::RelativisticCollisionDynamicLog<true>;
+#else
+            using ColliderFunctor = relativistic::RelativisticCollisionConstLog<Params, true>;
+#endif
 
+            /** CollisionPipeline defines in which order species interact with each other
+             *
+             * the functors are called in order (from first to last functor)
+             */
             using CollisionPipeline = bmpl::vector<
+                Collider<ColliderFunctor, MakeSeq_t<Pair<ElectronsMore, IonsMore>>, OneFilter<filter::LowerXPosition>>,
                 Collider<
-                    binary::RelativisticBinaryCollision,
-                    MakeSeq_t<Pair<ElectronsMore, IonsMore>>,
-                    Params,
-                    OneFilter<filter::LowerXPosition>>,
-                Collider<
-                    binary::RelativisticBinaryCollision,
+                    ColliderFunctor,
                     MakeSeq_t<Pair<ElectronsMore, IonsLess>>,
-                    Params,
                     OneFilter<filter::MiddleXPosition>>,
                 Collider<
-                    binary::RelativisticBinaryCollision,
+                    ColliderFunctor,
                     MakeSeq_t<Pair<ElectronsLess, IonsMore>>,
-                    Params,
                     OneFilter<filter::UpperXPosition>>>;
         } // namespace collision
     } // namespace particles

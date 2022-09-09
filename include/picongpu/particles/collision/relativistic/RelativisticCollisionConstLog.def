@@ -1,0 +1,46 @@
+/* Copyright 2022 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "picongpu/particles/collision/IBinary.def"
+#pragma once
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace collision
+        {
+            namespace relativistic
+            {
+                template<typename T_Param, bool ifDebug>
+                struct RelativisticCollisionConstLogImpl;
+
+                /** Host side binary collision functor for using a constant coulomb logarithm value
+                 *
+                 * @tparam T_Param param class with a static constexpr member coulombLog
+                 * @tparam ifDebug if true the simulation output will include a file (or files, one for each collided
+                 *      pair of species) with an average coulomb log and s parameter (averaged over all collisions
+                 *      in the whole simulation, for each timestep)
+                 */
+                template<typename T_Param, bool ifDebug = false>
+                using RelativisticCollisionConstLog = RelativisticCollisionConstLogImpl<T_Param, ifDebug>;
+            } // namespace relativistic
+        } // namespace collision
+    } // namespace particles
+} // namespace picongpu

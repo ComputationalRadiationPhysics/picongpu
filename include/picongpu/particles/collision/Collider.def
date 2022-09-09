@@ -66,14 +66,12 @@ namespace picongpu
             template<
                 typename T_CollisionFunctor,
                 typename T_SpeciesPairs,
-                typename T_Params,
                 typename T_FilterPair = OneFilter<filter::All>>
             struct Collider
             {
                 using Functor = T_CollisionFunctor;
                 using SpeciesPairs = T_SpeciesPairs;
                 using FilterPair = T_FilterPair;
-                using Params = T_Params;
             };
         } // namespace collision
     } // namespace particles

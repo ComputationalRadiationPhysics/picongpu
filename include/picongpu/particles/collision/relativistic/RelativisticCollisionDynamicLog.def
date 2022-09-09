@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Rene Widera, Pawel Ordyna
+/* Copyright 2022 Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -16,8 +16,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
-
+#include "picongpu/particles/collision/IBinary.def"
 #pragma once
 
 namespace picongpu
@@ -26,11 +25,19 @@ namespace picongpu
     {
         namespace collision
         {
-            namespace binary
+            namespace relativistic
             {
-                struct RelativisticBinaryCollision;
+                template<bool ifDebug>
+                struct RelativisticCollisionDynamicLogImpl;
 
-            } // namespace binary
+                /** Host side binary collision functor using dynamic coulomb log calculation
+                 * @tparam ifDebug if true the simulation output will include a file (or files, one for each collided
+                 *      pair of species) with an average coulomb log and s parameter (averaged over all collisions
+                 *      in the whole simulation, for each timestep)
+                 */
+                template<bool ifDebug = false>
+                using RelativisticCollisionDynamicLog = RelativisticCollisionDynamicLogImpl<ifDebug>;
+            } // namespace relativistic
         } // namespace collision
     } // namespace particles
 } // namespace picongpu

@@ -24,6 +24,7 @@
 #include "picongpu/particles/collision/detail/CollisionContext.hpp"
 #include "picongpu/particles/collision/detail/ListEntry.hpp"
 #include "picongpu/particles/collision/detail/cellDensity.hpp"
+#include "picongpu/particles/collision/fieldSlots.hpp"
 
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -31,6 +32,7 @@
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
+#include <cstddef>
 #include <cstdio>
 
 namespace picongpu
@@ -39,9 +41,22 @@ namespace picongpu
     {
         namespace collision
         {
-            template<uint32_t T_numWorkers>
+            template<uint32_t T_numWorkers, bool useScreeningLength>
             struct IntraCollision
             {
+                HINLINE IntraCollision()
+                {
+                    if constexpr(useScreeningLength)
+                    {
+                        constexpr uint32_t slot = screeningLengthSlot;
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto field = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot), true);
+                        screeningLengthSquared = field->getGridBuffer().getDeviceBuffer().getDataBox();
+                    }
+                }
+
+            private:
+                PMACC_ALIGN(screeningLengthSquared, FieldTmp::DataBoxType);
                 /* Get the duplication correction for a collision
                  *
                  * A particle duplication is how many times a particle collides in the current time step.
@@ -64,6 +79,7 @@ namespace picongpu
                         return (idx == 0u || idx == sizeAll - 1u) ? 2u : 1u;
                 }
 
+            public:
                 template<
                     typename T_ParBox,
                     typename T_Mapping,
@@ -71,7 +87,10 @@ namespace picongpu
                     typename T_DeviceHeapHandle,
                     typename T_RngHandle,
                     typename T_CollisionFunctor,
-                    typename T_Filter>
+                    typename T_Filter,
+                    typename T_SumCoulombLogBox,
+                    typename T_SumSParamBox,
+                    typename T_TimesCollidedBox>
                 DINLINE void operator()(
                     T_Acc const& acc,
                     T_ParBox pb,
@@ -79,8 +98,10 @@ namespace picongpu
                     T_DeviceHeapHandle deviceHeapHandle,
                     T_RngHandle rngHandle,
                     T_CollisionFunctor const collisionFunctor,
-                    float_X coulombLog,
-                    T_Filter filter) const
+                    T_Filter filter,
+                    T_SumCoulombLogBox sumCoulombLogBox,
+                    T_SumSParamBox sumSParamBox,
+                    T_TimesCollidedBox timesCollidedBox) const
                 {
                     using namespace pmacc::particles::operations;
 
@@ -97,6 +118,12 @@ namespace picongpu
                     PMACC_SMEM(acc, densityArray, memory::Array<float_X, frameSize>);
 
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                    auto onlyMaster = lockstep::makeMaster(workerIdx);
+
+                    constexpr bool ifAverageLog = !std::is_same<T_SumCoulombLogBox, std::nullptr_t>::value;
+                    constexpr bool ifAverageSParam = !std::is_same<T_SumSParamBox, std::nullptr_t>::value;
+                    constexpr bool ifTimesCollided = !std::is_same<T_TimesCollidedBox, std::nullptr_t>::value;
+                    constexpr bool ifDebug = ifAverageLog && ifAverageSParam && ifTimesCollided;
 
                     DataSpace<simDim> const superCellIdx
                         = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
@@ -145,8 +172,7 @@ namespace picongpu
                         alpaka::core::declval<lockstep::Worker<frameSize> const>(),
                         alpaka::core::declval<float_X const>(),
                         alpaka::core::declval<float_X const>(),
-                        alpaka::core::declval<uint32_t const>(),
-                        alpaka::core::declval<float_X const>()))>(forEachFrameElem);
+                        alpaka::core::declval<uint32_t const>()))>(forEachFrameElem);
 
                     forEachFrameElem(
                         [&](lockstep::Idx const idx)
@@ -163,18 +189,26 @@ namespace picongpu
                                 lockstep::Worker<T_numWorkers>{workerIdx},
                                 densityArray[idx],
                                 densityArray[idx],
-                                potentialPartners,
-                                coulombLog);
+                                potentialPartners);
+                            if constexpr(useScreeningLength)
+                            {
+                                auto const shifted
+                                    = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
+                                auto const idxInSuperCell
+                                    = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                                collisionFunctorCtx[idx].coulombLogFunctor.screeningLengthSquared_m
+                                    = shifted(idxInSuperCell)[0];
+                            }
                             for(uint32_t i = 0; i < sizeAll; i += 2)
                             {
                                 auto parEven = detail::getParticle(pb, firstFrame, listAll[i]);
                                 auto parOdd = detail::getParticle(pb, firstFrame, listAll[(i + 1) % sizeAll]);
-                                // TODO: duplicationCorrection * 2 is just a quick fix. The formula for s12 in the
-                                // RelativisticBinaryCollision functor has an additional 1/2 factor for
-                                // intraCollisions. We should instead let RelativisticBinaryCollision know which type
-                                // of collision it is and multiply the 1/2 inside the functor.
-                                collisionFunctorCtx[idx].duplicationCorrection
-                                    = duplicationCorrection(i, sizeAll) * 2u;
+                                // In Higginson 2020 eq. (31) s has an additional 1/2 factor for
+                                // intraCollisions (compare with 29 and use m_aa = 1/2 m_a). Bu this seams to be a typo
+                                // smilei doesn't include this extra factor. It was applied here in the previous
+                                // version, via the duplication correction.
+
+                                collisionFunctorCtx[idx].duplicationCorrection = duplicationCorrection(i, sizeAll);
                                 (collisionFunctorCtx[idx])(
                                     detail::makeCollisionContext(acc, rngHandle),
                                     parEven,
@@ -186,6 +220,65 @@ namespace picongpu
 
                     forEachFrameElem([&](uint32_t const linearIdx)
                                      { parCellList[linearIdx].finalize(acc, deviceHeapHandle); });
+                    if constexpr(ifDebug)
+                    {
+                        PMACC_SMEM(acc, sumCoulombLogBlock, float_X);
+                        PMACC_SMEM(acc, sumSParamBlock, float_X);
+                        PMACC_SMEM(acc, timesCollidedBlock, uint64_t);
+                        onlyMaster(
+                            [&]()
+                            {
+                                sumCoulombLogBlock = 0.0_X;
+                                sumSParamBlock = 0.0_X;
+                                timesCollidedBlock = 0.0_X;
+                            });
+                        cupla::__syncthreads(acc);
+                        forEachFrameElem(
+                            [&](lockstep::Idx const idx)
+                            {
+                                auto timesUsed = static_cast<uint64_t>(collisionFunctorCtx[idx].timesUsed);
+                                if(timesUsed > 0u)
+                                {
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &sumCoulombLogBlock,
+                                        static_cast<float_X>(collisionFunctorCtx[idx].sumCoulombLog),
+                                        ::alpaka::hierarchy::Threads{});
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &sumSParamBlock,
+                                        static_cast<float_X>(collisionFunctorCtx[idx].sumSParam),
+                                        ::alpaka::hierarchy::Threads{});
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &timesCollidedBlock,
+                                        timesUsed,
+                                        ::alpaka::hierarchy::Threads{});
+                                }
+                            });
+
+                        cupla::__syncthreads(acc);
+
+                        onlyMaster(
+                            [&]()
+                            {
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(sumCoulombLogBox[0]),
+                                    sumCoulombLogBlock,
+                                    ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(sumSParamBox[0]),
+                                    sumSParamBlock,
+                                    ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(timesCollidedBox[0]),
+                                    timesCollidedBlock,
+                                    ::alpaka::hierarchy::Blocks{});
+                            });
+                    }
                 }
             };
 
@@ -193,19 +286,28 @@ namespace picongpu
              *
              * @tparam T_CollisionFunctor A binary particle functor defining a single macro particle collision in the
              *     binary-collision algorithm.
-             * @tparam T_Params A struct defining `coulombLog` for the collisions.
              * @tparam T_FilterPair A pair of particle filters, each for each species
              *     in the colliding pair.
              * @tparam T_Species0 Colliding species.
              * @tparam T_Species1 2nd colliding species.
              */
-            template<typename T_CollisionFunctor, typename T_Params, typename T_FilterPair, typename T_Species>
+            template<
+                typename T_CollisionFunctor,
+                typename T_FilterPair,
+                typename T_Species,
+                uint32_t colliderId,
+                uint32_t pairId>
             struct DoIntraCollision;
 
             // A single template specialization. This ensures that the code won't compile if the FilterPair contains
             // two different filters. That wouldn't make much sense for internal collisions.
-            template<typename T_CollisionFunctor, typename T_Params, typename T_Filter, typename T_Species>
-            struct DoIntraCollision<T_CollisionFunctor, T_Params, FilterPair<T_Filter, T_Filter>, T_Species>
+            template<
+                typename T_CollisionFunctor,
+                typename T_Filter,
+                typename T_Species,
+                uint32_t colliderId,
+                uint32_t pairId>
+            struct DoIntraCollision<T_CollisionFunctor, FilterPair<T_Filter, T_Filter>, T_Species, colliderId, pairId>
             {
                 /* Run kernel
                  *
@@ -226,19 +328,88 @@ namespace picongpu
 
                     constexpr uint32_t numWorkers
                         = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
-                    /* random number generator */
                     using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
-                    constexpr float_X coulombLog = T_Params::coulombLog;
-                    PMACC_KERNEL(IntraCollision<numWorkers>{})
-                    (mapper.getGridDim(), numWorkers)(
-                        species->getDeviceParticlesBox(),
-                        mapper,
-                        deviceHeap->getAllocatorHandle(),
-                        RNGFactory::createHandle(),
-                        CollisionFunctor(currentStep),
-                        coulombLog,
-                        particles::filter::IUnary<Filter>{currentStep});
+                    using Kernel = typename CollisionFunctor::template CallingIntraKernel<numWorkers>;
+
+                    constexpr bool ifDebug = CollisionFunctor::ifDebug_m;
+                    if constexpr(ifDebug)
+                    {
+                        GridBuffer<float_X, DIM1> sumCoulombLog(DataSpace<DIM1>(1));
+                        sumCoulombLog.getDeviceBuffer().setValue(0.0_X);
+                        GridBuffer<float_X, DIM1> sumSParam(DataSpace<DIM1>(1));
+                        sumSParam.getDeviceBuffer().setValue(0.0_X);
+                        GridBuffer<uint64_t, DIM1> timesCollided(DataSpace<DIM1>(1));
+                        timesCollided.getDeviceBuffer().setValue(0u);
+
+                        /* random number generator */
+
+                        PMACC_KERNEL(Kernel{})
+                        (mapper.getGridDim(), numWorkers)(
+                            species->getDeviceParticlesBox(),
+                            mapper,
+                            deviceHeap->getAllocatorHandle(),
+                            RNGFactory::createHandle(),
+                            CollisionFunctor(currentStep),
+                            particles::filter::IUnary<Filter>{currentStep},
+                            sumCoulombLog.getDeviceBuffer().getDataBox(),
+                            sumSParam.getDeviceBuffer().getDataBox(),
+                            timesCollided.getDeviceBuffer().getDataBox());
+
+                        sumCoulombLog.deviceToHost();
+                        sumSParam.deviceToHost();
+                        timesCollided.deviceToHost();
+
+                        float_X reducedAverageCoulombLog;
+                        float_X reducedSParam;
+                        uint64_t reducedTimesCollided;
+
+                        mpi::MPIReduce reduce{};
+                        reduce(
+                            pmacc::math::operation::Add(),
+                            &reducedAverageCoulombLog,
+                            sumCoulombLog.getHostBuffer().getBasePointer(),
+                            1,
+                            mpi::reduceMethods::Reduce());
+                        reduce(
+                            pmacc::math::operation::Add(),
+                            &reducedSParam,
+                            sumSParam.getHostBuffer().getBasePointer(),
+                            1,
+                            mpi::reduceMethods::Reduce());
+                        reduce(
+                            pmacc::math::operation::Add(),
+                            &reducedTimesCollided,
+                            timesCollided.getHostBuffer().getBasePointer(),
+                            1,
+                            mpi::reduceMethods::Reduce());
+
+                        if(reduce.hasResult(mpi::reduceMethods::Reduce()))
+                        {
+                            std::ofstream outFile{};
+                            std::string fileName = "debug_values_collider_" + std::to_string(colliderId)
+                                + "_species_pair_" + std::to_string(pairId) + ".dat";
+                            outFile.open(fileName.c_str(), std::ofstream::out | std::ostream::app);
+                            outFile << currentStep << " "
+                                    << reducedAverageCoulombLog / static_cast<float_X>(reducedTimesCollided) << " "
+                                    << reducedSParam / static_cast<float_X>(reducedTimesCollided) << std::endl;
+                            outFile.flush();
+                            outFile.close();
+                        }
+                    }
+                    else
+                    {
+                        PMACC_KERNEL(Kernel{})
+                        (mapper.getGridDim(), numWorkers)(
+                            species->getDeviceParticlesBox(),
+                            mapper,
+                            deviceHeap->getAllocatorHandle(),
+                            RNGFactory::createHandle(),
+                            CollisionFunctor(currentStep),
+                            particles::filter::IUnary<Filter>{currentStep},
+                            nullptr,
+                            nullptr,
+                            nullptr);
+                    }
                 }
             };
 

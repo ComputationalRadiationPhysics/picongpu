@@ -25,6 +25,12 @@
 #    define PARAM_COLLISION_PRECISION float_64
 #endif
 
+#ifndef PARAM_DYNAMIC_LOG_INTER
+#    define PARAM_DYNAMIC_LOG_INTER 0
+#endif
+#ifndef PARAM_DYNAMIC_LOG_INTRA
+#    define PARAM_DYNAMIC_LOG_INTRA 0
+#endif
 namespace picongpu
 {
     namespace particles
@@ -35,6 +41,15 @@ namespace picongpu
             {
                 using float_COLL = PARAM_COLLISION_PRECISION;
             } // namespace precision
+
+#if(PARAM_DYNAMIC_LOG_INTER == 1 || PARAM_DYNAMIC_LOG_INTRA == 1)
+            constexpr bool calculateScreeningLength = true;
+#else
+            constexpr bool calculateScreeningLength = false;
+#endif
+            constexpr bool debugScreeningLength = true;
+            using CollisionScreeningSpecies = VectorAllSpecies;
+
             /** CollisionPipeline defines in which order species interact with each other
              *
              * the functors are called in order (from first to last functor)
@@ -50,9 +65,19 @@ namespace picongpu
             };
             using Pairs1 = MakeSeq_t<Pair<Electrons, Ions>>;
             using Pairs2 = MakeSeq_t<Pair<Electrons, Electrons>, Pair<Ions, Ions>>;
-            using CollisionPipeline = bmpl::vector<
-                Collider<binary::RelativisticBinaryCollision, Pairs1, Params1>,
-                Collider<binary::RelativisticBinaryCollision, Pairs2, Params2>>;
+
+#if(PARAM_DYNAMIC_LOG_INTER == 1)
+            using InterCollider = Collider<relativistic::RelativisticCollisionDynamicLog<true>, Pairs1>;
+#else
+            using InterCollider = Collider<relativistic::RelativisticCollisionConstLog<Params1, true>, Pairs1>;
+#endif
+#if(PARAM_DYNAMIC_LOG_INTRA == 1)
+            using IntraCollider = Collider<relativistic::RelativisticCollisionDynamicLog<true>, Pairs2>;
+#else
+            using IntraCollider = Collider<relativistic::RelativisticCollisionConstLog<Params2, true>, Pairs2>;
+#endif
+            using CollisionPipeline = bmpl::vector<IntraCollider, InterCollider>;
+
         } // namespace collision
     } // namespace particles
 } // namespace picongpu

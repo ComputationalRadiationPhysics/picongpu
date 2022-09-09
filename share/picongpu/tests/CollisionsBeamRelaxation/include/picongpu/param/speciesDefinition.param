@@ -49,14 +49,8 @@ namespace picongpu
     /** describe attributes of a particle*/
     using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting, particleId>;
     using IonParticleAttributes = MakeSeq_t<DefaultParticleAttributes, boundElectrons>;
-/** The default example keeps particles in place and does not create a current
- */
-#ifndef PARAM_ENABLE_PUSHER
-#    define PARAM_ENABLE_PUSHER 0
-#endif
-#ifndef PARAM_ENABLE_CURRENT
-#    define PARAM_ENABLE_CURRENT 0
-#endif
+    /** The default example keeps particles in place and does not create a current
+     */
 
     /*########################### end particle attributes ########################*/
 
@@ -69,14 +63,8 @@ namespace picongpu
     value_identifier(float_X, DensityRatioElectrons, 10.0);
 
     using ParticleFlagsElectrons = MakeSeq_t<
-#if(PARAM_ENABLE_PUSHER == 1)
-        particlePusher<UsedParticlePusher>,
-#endif
         shape<UsedParticleShape>,
         interpolation<UsedField2Particle>,
-#if(PARAM_ENABLE_CURRENT == 1)
-        current<UsedParticleCurrentSolver>,
-#endif
         massRatio<MassRatioElectrons>,
         chargeRatio<ChargeRatioElectrons>,
         densityRatio<DensityRatioElectrons>
@@ -97,14 +85,8 @@ namespace picongpu
     value_identifier(float_X, DensityRatioIons, PARAM_DENSITY_RATIO_IONS);
 
     using ParticleFlagsIons = MakeSeq_t<
-#if(PARAM_ENABLE_PUSHER == 1)
-        particlePusher<UsedParticlePusher>,
-#endif
         shape<UsedParticleShape>,
         interpolation<UsedField2Particle>,
-#if(PARAM_ENABLE_CURRENT == 1)
-        current<UsedParticleCurrentSolver>,
-#endif
         massRatio<MassRatioIons>,
         chargeRatio<ChargeRatioIons>,
         densityRatio<DensityRatioIons>,

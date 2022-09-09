@@ -39,6 +39,7 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/GetShape.hpp"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
 #include <pmacc/meta/conversion/ToSeq.hpp>
 
@@ -158,6 +159,22 @@ namespace picongpu
             template<typename T_Species, typename T_DerivedAttribute, typename T_Filter = filter::All>
             using CreateFieldTmpOperation_t =
                 typename CreateFieldTmpOperation<T_Species, T_DerivedAttribute, T_Filter>::type;
+
+
+            //!  CreateFieldTmpOperation interface for using the SpeciesFilter class
+            template<typename T_FilteredSpecies, typename T_DerivedAttribute>
+            struct GetFieldTmpOperationForFilteredSpecies;
+            template<typename T_DerivedAttribute, typename... T>
+            struct GetFieldTmpOperationForFilteredSpecies<plugins::misc::SpeciesFilter<T...>, T_DerivedAttribute>
+            {
+                using type = CreateFieldTmpOperation_t<
+                    typename plugins::misc::SpeciesFilter<T...>::Species,
+                    T_DerivedAttribute,
+                    typename plugins::misc::SpeciesFilter<T...>::Filter>;
+            };
+            template<typename T_FilteredSpecies, typename T_DerivedAttribute>
+            using GetFieldTmpOperationForFilteredSpecies_t =
+                typename GetFieldTmpOperationForFilteredSpecies<T_FilteredSpecies, T_DerivedAttribute>::type;
 
             /** Create a list solvers for derived fields for eligible species
              *

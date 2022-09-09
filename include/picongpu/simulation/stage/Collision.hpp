@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Rene Widera
+/* Copyright 2019-2022 Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -21,16 +21,20 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/particles/collision/collision.hpp"
+#include "picongpu/particles/collision/fieldSlots.hpp"
+#include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
+#include "picongpu/particles/particleToGrid/FoldDeriveFields.hpp"
+#include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/math/operation/SqrtAdd.hpp>
 #include <pmacc/meta/ForEach.hpp>
-#include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/type/Area.hpp>
 
 #include <cstdint>
+#include <iostream>
+#include <utility>
 
 
 namespace picongpu
@@ -39,6 +43,22 @@ namespace picongpu
     {
         namespace stage
         {
+            //! For each implementation for calling collisions with a loop index
+            struct CallColliders
+            {
+                template<std::size_t... I>
+                HINLINE void operator()(
+                    std::index_sequence<I...>,
+                    std::shared_ptr<DeviceHeap> const& deviceHeap,
+                    uint32_t const& currentStep)
+                {
+                    (particles::collision::CallCollider<
+                         typename bmpl::at_c<particles::collision::CollisionPipeline, I>::type,
+                         I>{}(deviceHeap, currentStep),
+                     ...);
+                }
+            };
+
             //! Functor for the stage of the PIC loop performing particle collision
             class Collision
             {
@@ -47,19 +67,135 @@ namespace picongpu
                 {
                 }
 
+                //! Calculates the Debye length squared from the sum of the species contributions
+                struct GetSquaredScreeningLength
+                {
+                    template<typename T_Acc>
+                    DINLINE void operator()(T_Acc const& acc, float1_X& lengthInvSquared, const float1_X& dens) const
+                    {
+                        /* avoid dividing by zero, lengthInvSquared is zero if there were no charged particles.
+                         * In that case the Debye length should also be set to zero.
+                         */
+                        if(lengthInvSquared[0] <= std::numeric_limits<float_X>::min())
+                        {
+                            // if no particles set debye length to zero
+                            lengthInvSquared[0] = 0.0_X;
+                            return;
+                        }
+                        // the default case
+                        const float_X squaredLength = 1.0_X / lengthInvSquared[0];
+
+                        // enforce a lower cutoff for the Debye length equal to the mean inter atomic distance
+                        // of the species with the highest density
+                        const float_X maxDens = dens[0] * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                        const float_X val = 2.0_X * pmacc::math::Pi<float_X>::doubleValue / 3.0_X * maxDens;
+                        const float_X rMin = 1.0_X / math::cbrt(val);
+                        const float_X rMin2 = rMin * rMin;
+                        lengthInvSquared[0] = math::max(squaredLength, rMin2);
+                    }
+                };
                 /** Perform particle particle collision
                  *
                  * @param step index of time iteration
                  */
-                void operator()(uint32_t const step) const
+                void operator()(uint32_t const currentStep) const
                 {
-                    pmacc::meta::ForEach<
-                        particles::collision::CollisionPipeline,
-                        particles::collision::CallCollider<bmpl::_1>>{}(m_heap, step);
+                    // Calculate squared Debye length using the formula form [Perez 2012].
+                    // A species temperature is assumed to be (2/3)<E_kin>
+                    if constexpr(particles::collision::calculateScreeningLength)
+                    {
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        using SpeciesSeq = picongpu::particles::collision::CollisionScreeningSpecies;
+                        constexpr uint32_t slot = picongpu::particles::collision::screeningLengthSlot;
+                        // get a FieldTmp for storring the result
+                        auto screeningLengthSquared = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot), true);
+                        // The inverse of the Debye length squared is the sum over ScreeningInvSquared of each
+                        // species. Calculate it using the fold algorithm:
+                        particles::particleToGrid::FoldDeriveFields<
+                            CORE + BORDER,
+                            SpeciesSeq,
+                            pmacc::math::operation::Add,
+                            particles::particleToGrid::combinedAttributes::ScreeningInvSquared>{}(
+                            *screeningLengthSquared,
+                            currentStep,
+                            slot + 1u);
+
+                        // The Debye length is bound to be greater than the mean inter-atomic distance of the most
+                        // dense species ( this definition of the lower cut-off comes from [Perez 2012]).
+                        // To find this cut-off we need to find the highest density:
+                        auto maxDensity = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot + 1u), true);
+                        particles::particleToGrid::FoldDeriveFields<
+                            CORE + BORDER,
+                            SpeciesSeq,
+                            pmacc::math::operation::Max,
+                            particles::particleToGrid::derivedAttributes::Density>{}(
+                            *maxDensity,
+                            currentStep,
+                            slot + 2u);
+
+                        // Invert the calculated value and apply the cut-off to get the squared debye length
+                        screeningLengthSquared->modifyByField<CORE + BORDER, GetSquaredScreeningLength>(*maxDensity);
+                        // the FieldTmp slot used for storing  the max density is not longer needed beyond this point
+                        maxDensity.reset();
+
+                        // write Debye length averaged over the whole simulation volume to a text file for debugging
+                        if constexpr(particles::collision::debugScreeningLength)
+                        {
+                            device::Reduce deviceReduce(1024);
+                            using D1Box = DataBoxDim1Access<typename GridBuffer<float1_X, simDim>::DataBoxType>;
+                            D1Box d1access(
+                                screeningLengthSquared->getDeviceDataBox().shift(
+                                    screeningLengthSquared->getGridLayout().getGuard()),
+                                screeningLengthSquared->getGridLayout().getDataSpaceWithoutGuarding());
+                            int elements = screeningLengthSquared->getGridLayout()
+                                               .getDataSpaceWithoutGuarding()
+                                               .productOfComponents();
+                            auto sumRank = deviceReduce(pmacc::math::operation::SqrtAdd(), d1access, elements);
+
+                            // calculate the average of square roots
+                            float1_X reducedValue;
+                            mpi::MPIReduce reduce{};
+                            reduce(
+                                pmacc::math::operation::Add(),
+                                &reducedValue,
+                                &sumRank,
+                                1,
+                                mpi::reduceMethods::Reduce());
+
+                            auto localCells = static_cast<uint64_t>(elements);
+                            uint64_t reducedCellAmount;
+                            reduce(
+                                pmacc::math::operation::Add(),
+                                &reducedCellAmount,
+                                &localCells,
+                                1,
+                                mpi::reduceMethods::Reduce());
+
+                            if(reduce.hasResult(mpi::reduceMethods::Reduce()))
+                            {
+                                std::ofstream outFile{};
+                                std::string fileName = "average_debye_length_for_collisions.dat";
+                                outFile.open(fileName.c_str(), std::ofstream::out | std::ostream::app);
+                                outFile << currentStep << " " << std::scientific
+                                        << static_cast<float_64>(reducedValue[0])
+                                        / static_cast<float_64>(reducedCellAmount) * UNIT_LENGTH
+                                        << std::endl;
+                                outFile.flush();
+                                outFile.close();
+                            }
+                        }
+                    }
+
+                    // Call all colliders
+                    constexpr size_t numColliders = bmpl::size<particles::collision::CollisionPipeline>::type::value;
+                    std::make_index_sequence<numColliders> indexColliders{};
+                    CallColliders{}(indexColliders, m_heap, currentStep);
                 }
+
 
             private:
                 std::shared_ptr<DeviceHeap> m_heap;
+                std::ofstream outFileAverageDebye;
             };
 
         } // namespace stage

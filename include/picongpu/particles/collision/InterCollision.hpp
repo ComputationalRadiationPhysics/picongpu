@@ -24,6 +24,7 @@
 #include "picongpu/particles/collision/detail/CollisionContext.hpp"
 #include "picongpu/particles/collision/detail/ListEntry.hpp"
 #include "picongpu/particles/collision/detail/cellDensity.hpp"
+#include "picongpu/particles/collision/fieldSlots.hpp"
 
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -31,6 +32,7 @@
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
+#include <cstddef>
 #include <cstdio>
 
 
@@ -40,9 +42,22 @@ namespace picongpu
     {
         namespace collision
         {
-            template<uint32_t T_numWorkers>
+            template<uint32_t T_numWorkers, bool useScreeningLength>
             struct InterCollision
             {
+                HINLINE InterCollision()
+                {
+                    if constexpr(useScreeningLength)
+                    {
+                        constexpr uint32_t slot = screeningLengthSlot;
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto field = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot), true);
+                        screeningLengthSquared = (field->getGridBuffer().getDeviceBuffer().getDataBox());
+                    }
+                }
+
+            private:
+                PMACC_ALIGN(screeningLengthSquared, FieldTmp::DataBoxType);
                 /* Get the duplication correction for a collision
                  *
                  * A particle duplication is how many times a particle collides in the current time step.
@@ -72,6 +87,7 @@ namespace picongpu
                     return duplication_correction;
                 }
 
+            public:
                 template<
                     typename T_ParBox0,
                     typename T_ParBox1,
@@ -81,7 +97,10 @@ namespace picongpu
                     typename T_RngHandle,
                     typename T_CollisionFunctor,
                     typename T_Filter0,
-                    typename T_Filter1>
+                    typename T_Filter1,
+                    typename T_SumCoulombLogBox,
+                    typename T_SumSParamBox,
+                    typename T_TimesCollidedBox>
                 DINLINE void operator()(
                     T_Acc const& acc,
                     T_ParBox0 pb0,
@@ -90,9 +109,11 @@ namespace picongpu
                     T_DeviceHeapHandle deviceHeapHandle,
                     T_RngHandle rngHandle,
                     T_CollisionFunctor const collisionFunctor,
-                    float_X coulombLog,
                     T_Filter0 filter0,
-                    T_Filter1 filter1) const
+                    T_Filter1 filter1,
+                    T_SumCoulombLogBox sumCoulombLogBox,
+                    T_SumSParamBox sumSParamBox,
+                    T_TimesCollidedBox timesCollidedBox) const
                 {
                     using namespace pmacc::particles::operations;
 
@@ -111,6 +132,13 @@ namespace picongpu
                     PMACC_SMEM(acc, densityArray1, memory::Array<float_X, frameSize>);
 
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                    auto onlyMaster = lockstep::makeMaster(workerIdx);
+
+                    constexpr bool ifAverageLog = !std::is_same<T_SumCoulombLogBox, std::nullptr_t>::value;
+                    constexpr bool ifAverageSParam = !std::is_same<T_SumSParamBox, std::nullptr_t>::value;
+                    constexpr bool ifTimesCollided = !std::is_same<T_TimesCollidedBox, std::nullptr_t>::value;
+                    constexpr bool ifDebug = ifAverageLog && ifAverageSParam && ifTimesCollided;
+
 
                     DataSpace<simDim> const superCellIdx
                         = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
@@ -182,8 +210,7 @@ namespace picongpu
                         alpaka::core::declval<lockstep::Worker<frameSize> const>(),
                         alpaka::core::declval<float_X const>(),
                         alpaka::core::declval<float_X const>(),
-                        alpaka::core::declval<uint32_t const>(),
-                        alpaka::core::declval<float_X const>()))>(forEachFrameElem);
+                        alpaka::core::declval<uint32_t const>()))>(forEachFrameElem);
 
                     forEachFrameElem(
                         [&](lockstep::Idx const idx)
@@ -196,6 +223,7 @@ namespace picongpu
                                     rngHandle,
                                     collisionFunctor,
                                     localSuperCellOffset,
+                                    superCellIdx,
                                     workerIdx,
                                     densityArray0[linearIdx],
                                     densityArray1[linearIdx],
@@ -207,7 +235,6 @@ namespace picongpu
                                     pb1,
                                     firstFrame0,
                                     firstFrame1,
-                                    coulombLog,
                                     collisionFunctorCtx,
                                     idx);
                             }
@@ -218,6 +245,7 @@ namespace picongpu
                                     rngHandle,
                                     collisionFunctor,
                                     localSuperCellOffset,
+                                    superCellIdx,
                                     workerIdx,
                                     densityArray1[linearIdx],
                                     densityArray0[linearIdx],
@@ -229,7 +257,6 @@ namespace picongpu
                                     pb0,
                                     firstFrame1,
                                     firstFrame0,
-                                    coulombLog,
                                     collisionFunctorCtx,
                                     idx);
                             }
@@ -243,6 +270,66 @@ namespace picongpu
                             parCellList0[linearIdx].finalize(acc, deviceHeapHandle);
                             parCellList1[linearIdx].finalize(acc, deviceHeapHandle);
                         });
+
+                    if constexpr(ifDebug)
+                    {
+                        PMACC_SMEM(acc, sumCoulombLogBlock, float_X);
+                        PMACC_SMEM(acc, sumSParamBlock, float_X);
+                        PMACC_SMEM(acc, timesCollidedBlock, uint64_t);
+                        onlyMaster(
+                            [&]()
+                            {
+                                sumCoulombLogBlock = 0.0_X;
+                                sumSParamBlock = 0.0_X;
+                                timesCollidedBlock = 0.0_X;
+                            });
+                        cupla::__syncthreads(acc);
+                        forEachFrameElem(
+                            [&](lockstep::Idx const idx)
+                            {
+                                const auto timesUsed = static_cast<uint64_t>(collisionFunctorCtx[idx].timesUsed);
+                                if(timesUsed > 0u)
+                                {
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &sumCoulombLogBlock,
+                                        static_cast<float_X>(collisionFunctorCtx[idx].sumCoulombLog),
+                                        ::alpaka::hierarchy::Threads{});
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &sumSParamBlock,
+                                        static_cast<float_X>(collisionFunctorCtx[idx].sumSParam),
+                                        ::alpaka::hierarchy::Threads{});
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &timesCollidedBlock,
+                                        timesUsed,
+                                        ::alpaka::hierarchy::Threads{});
+                                }
+                            });
+
+                        cupla::__syncthreads(acc);
+
+                        onlyMaster(
+                            [&]()
+                            {
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(sumCoulombLogBox[0]),
+                                    sumCoulombLogBlock,
+                                    ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(sumSParamBox[0]),
+                                    sumSParamBlock,
+                                    ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(timesCollidedBox[0]),
+                                    timesCollidedBlock,
+                                    ::alpaka::hierarchy::Blocks{});
+                            });
+                    }
                 }
 
 
@@ -264,6 +351,7 @@ namespace picongpu
                     T_RngHandle& rngHandle,
                     T_CollisionFunctor const& collisionFunctor,
                     DataSpace<simDim> const& localSuperCellOffset,
+                    DataSpace<simDim> const& superCellIdx,
                     uint32_t const& workerIdx,
                     float_X const& densityLong,
                     float_X const& densityShort,
@@ -275,7 +363,6 @@ namespace picongpu
                     T_PBoxShort const& pBoxShort,
                     T_FrameLong const& frameLong,
                     T_FrameShort const& frameShort,
-                    float_X const& coulombLog,
                     T_CollisionFunctorCtx& collisionFunctorCtx,
                     lockstep::Idx idx
 
@@ -287,8 +374,17 @@ namespace picongpu
                         lockstep::Worker<T_numWorkers>{workerIdx},
                         densityLong,
                         densityShort,
-                        sizeLong,
-                        coulombLog);
+                        sizeLong);
+
+
+                    if constexpr(useScreeningLength)
+                    {
+                        auto const shifted = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
+                        auto const idxInSuperCell = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                        collisionFunctorCtx[idx].coulombLogFunctor.screeningLengthSquared_m
+                            = shifted(idxInSuperCell)[0];
+                    }
+
                     if(sizeShort == 0u)
                         return;
                     for(uint32_t i = 0; i < sizeLong; ++i)
@@ -303,9 +399,8 @@ namespace picongpu
 
             /* Run kernel for collisions between two species.
              *
-             * @tparam T_CollisionFunctor A binary particle functor defining a single macro particle collision in the
-             *     binary-collision algorithm.
-             * @tparam T_Params A struct defining `coulombLog` for the collisions.
+             * @tparam T_CollisionFunctor A binary particle functor defining a single macro particle collision in
+             * the binary-collision algorithm.
              * @tparam T_FilterPair A pair of particle filters, each for each species
              *     in the colliding pair.
              * @tparam T_Species0 1st colliding species.
@@ -313,10 +408,11 @@ namespace picongpu
              */
             template<
                 typename T_CollisionFunctor,
-                typename T_Params,
                 typename T_FilterPair,
                 typename T_Species0,
-                typename T_Species1>
+                typename T_Species1,
+                uint32_t colliderId,
+                uint32_t pairId>
             struct DoInterCollision
             {
                 /* Run kernel
@@ -349,19 +445,88 @@ namespace picongpu
 
                     //! random number generator
                     using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
-                    constexpr float_X coulombLog = T_Params::coulombLog;
+                    using Kernel = typename CollisionFunctor::template CallingInterKernel<numWorkers>;
 
-                    PMACC_KERNEL(InterCollision<numWorkers>{})
-                    (mapper.getGridDim(), numWorkers)(
-                        species0->getDeviceParticlesBox(),
-                        species1->getDeviceParticlesBox(),
-                        mapper,
-                        deviceHeap->getAllocatorHandle(),
-                        RNGFactory::createHandle(),
-                        CollisionFunctor(currentStep),
-                        coulombLog,
-                        particles::filter::IUnary<Filter0>{currentStep},
-                        particles::filter::IUnary<Filter1>{currentStep});
+                    constexpr bool ifDebug = CollisionFunctor::ifDebug_m;
+                    if constexpr(ifDebug)
+                    {
+                        GridBuffer<float_X, DIM1> sumCoulombLog(DataSpace<DIM1>(1));
+                        sumCoulombLog.getDeviceBuffer().setValue(0.0_X);
+                        GridBuffer<float_X, DIM1> sumSParam(DataSpace<DIM1>(1));
+                        sumSParam.getDeviceBuffer().setValue(0.0_X);
+                        GridBuffer<uint64_t, DIM1> timesCollided(DataSpace<DIM1>(1));
+                        timesCollided.getDeviceBuffer().setValue(0u);
+
+                        PMACC_KERNEL(Kernel{})
+                        (mapper.getGridDim(), numWorkers)(
+                            species0->getDeviceParticlesBox(),
+                            species1->getDeviceParticlesBox(),
+                            mapper,
+                            deviceHeap->getAllocatorHandle(),
+                            RNGFactory::createHandle(),
+                            CollisionFunctor(currentStep),
+                            particles::filter::IUnary<Filter0>{currentStep},
+                            particles::filter::IUnary<Filter1>{currentStep},
+                            sumCoulombLog.getDeviceBuffer().getDataBox(),
+                            sumSParam.getDeviceBuffer().getDataBox(),
+                            timesCollided.getDeviceBuffer().getDataBox());
+
+                        sumCoulombLog.deviceToHost();
+                        sumSParam.deviceToHost();
+                        timesCollided.deviceToHost();
+
+                        float_X reducedAverageCoulombLog;
+                        float_X reducedSParam;
+                        uint64_t reducedTimesCollided;
+                        mpi::MPIReduce reduce{};
+                        reduce(
+                            pmacc::math::operation::Add(),
+                            &reducedAverageCoulombLog,
+                            sumCoulombLog.getHostBuffer().getBasePointer(),
+                            1,
+                            mpi::reduceMethods::Reduce());
+                        reduce(
+                            pmacc::math::operation::Add(),
+                            &reducedSParam,
+                            sumSParam.getHostBuffer().getBasePointer(),
+                            1,
+                            mpi::reduceMethods::Reduce());
+                        reduce(
+                            pmacc::math::operation::Add(),
+                            &reducedTimesCollided,
+                            timesCollided.getHostBuffer().getBasePointer(),
+                            1,
+                            mpi::reduceMethods::Reduce());
+
+                        if(reduce.hasResult(mpi::reduceMethods::Reduce()))
+                        {
+                            std::ofstream outFile{};
+                            std::string fileName = "debug_values_collider_" + std::to_string(colliderId)
+                                + "_species_pair_" + std::to_string(pairId) + ".dat";
+                            outFile.open(fileName.c_str(), std::ofstream::out | std::ostream::app);
+                            outFile << currentStep << " "
+                                    << reducedAverageCoulombLog / static_cast<float_X>(reducedTimesCollided) << " "
+                                    << reducedSParam / static_cast<float_X>(reducedTimesCollided) << std::endl;
+                            outFile.flush();
+                            outFile.close();
+                        }
+                    }
+                    else
+                    {
+                        PMACC_KERNEL(Kernel{})
+                        (mapper.getGridDim(), numWorkers)(
+                            species0->getDeviceParticlesBox(),
+                            species1->getDeviceParticlesBox(),
+                            mapper,
+                            deviceHeap->getAllocatorHandle(),
+                            RNGFactory::createHandle(),
+                            CollisionFunctor(currentStep),
+                            particles::filter::IUnary<Filter0>{currentStep},
+                            particles::filter::IUnary<Filter1>{currentStep},
+                            nullptr,
+                            nullptr,
+                            nullptr);
+                    }
                 }
             };
 

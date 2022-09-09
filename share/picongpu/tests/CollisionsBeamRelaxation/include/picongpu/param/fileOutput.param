@@ -24,6 +24,8 @@
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/particleToGrid/CombinedDerive.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 #include <boost/mpl/vector.hpp>
@@ -31,6 +33,62 @@
 
 namespace picongpu
 {
+    namespace particles
+    {
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                /** Transverse velocity squared (weighted)
+                 *
+                 * computes squared transverse velocity as  weight (v_y^2 + v_z^2)
+                 */
+                struct WeightedTransverseVelocitySquared
+                {
+                    //! Get unit
+                    HDINLINE float1_64 getUnit() const;
+
+                    //! Get unit dimension
+                    HINLINE std::vector<float_64> getUnitDimension() const
+                    {
+                        /* L, M, T, I, theta, N, J
+                         *
+                         * momentum is in mass times speed: kg * m / s
+                         *   -> L * M * T^-1
+                         */
+                        std::vector<float_64> unitDimension(7, 0.0);
+                        unitDimension.at(SIBaseUnits::length) = 1.0;
+                        unitDimension.at(SIBaseUnits::mass) = 1.0;
+                        unitDimension.at(SIBaseUnits::time) = -1.0;
+                        return unitDimension;
+                    }
+
+                    //! Get text name
+                    HINLINE static std::string getName()
+                    {
+                        return "vPerp2";
+                    }
+
+                    /** Calculate value of the derived attribute per particle
+                     *
+                     * Returns an on-the-fly calculated value of a derived particle attribute for the given particle.
+                     * The result can then be mapped to the cells the particle contributes to according to the
+                     * assignment function.
+                     *
+                     * @tparam T_Particle particle type
+                     * @param particle particle handle
+                     *
+                     * @return values of the derived attribute
+                     */
+                    template<typename T_Particle>
+                    DINLINE float_X operator()(T_Particle& particle) const;
+                };
+
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
+
+
     /** FieldTmp output (calculated at runtime) *******************************
      *
      * Those operations derive scalar field quantities from particle species
@@ -61,13 +119,21 @@ namespace picongpu
     namespace deriveField = particles::particleToGrid;
 
     /* Density section */
-    using Density_Seq = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::Density>;
-
+    using TransverseSolver = deriveField::combinedAttributes::AverageAttribute<
+        deriveField::derivedAttributes::WeightedTransverseVelocitySquared>;
+    using TrasverseVelocitySquared = MakeSeq_t<
+        deriveField::CreateFieldTmpOperation_t<ElectronsLess, TransverseSolver>,
+        deriveField::CreateFieldTmpOperation_t<ElectronsMore, TransverseSolver>>;
+    using VelocityX
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::combinedAttributes::AverageVelocity<0>>;
+    using AverageEnergyIons = deriveField::CreateEligible_t<
+        MakeSeq_t<IonsMore, IonsLess>,
+        deriveField::combinedAttributes::AverageAttribute<deriveField::derivedAttributes::Energy>>;
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<Density_Seq>;
+    using FieldTmpSolvers = MakeSeq_t<TrasverseVelocitySquared, VelocityX, AverageEnergyIons>;
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
@@ -81,8 +147,8 @@ namespace picongpu
     /** FileOutputParticles: Groups all Species that shall be dumped **********
      *
      * hint: to disable particle output set to
-     *   using FileOutputParticles = MakeSeq_t< >;
+     *   using FileOutputParticles = MakeSeq_t<>;
      */
-    using FileOutputParticles = VectorAllSpecies;
+    using FileOutputParticles = MakeSeq_t<>;
 
 } // namespace picongpu

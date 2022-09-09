@@ -47,10 +47,10 @@ namespace picongpu
          */
         using InitPipeline = bmpl::vector<
             // Generate Densities
-            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet100ppc, ElectronsLess>,
-            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet1000ppc, ElectronsMore>,
-            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet100ppc, IonsLess>,
-            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet100ppc, IonsMore>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Center100ppc, ElectronsLess>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Center1000ppc, ElectronsMore>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Center100ppc, IonsLess>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Center1000ppc, IonsMore>,
             // Set initial temperatures
             Manipulate<manipulators::AddTemperatureElectrons, ElectronsLess>,
             Manipulate<manipulators::AddTemperatureElectrons, ElectronsMore>,
