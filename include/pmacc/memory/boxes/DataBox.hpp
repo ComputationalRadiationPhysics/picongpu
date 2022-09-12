@@ -70,10 +70,5 @@ namespace pmacc
             result.fixedPointer = &((*this)(offset));
             return result;
         }
-
-        HDINLINE DataBox<typename Base::ReducedType> reduceZ(const int zOffset) const
-        {
-            return Base::reduceZ(zOffset);
-        }
     };
 } // namespace pmacc
