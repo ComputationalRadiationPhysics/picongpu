@@ -13,29 +13,24 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
-# General modules #############################################################
+# Load modules #############################################################
 #
 module purge
-module load git
-module load gcc/7.3.0
-module load cmake/3.20.2
+module load gcc/9.2.0
 module load cuda/11.2-kepler
-module load openmpi/4.0.4-cuda112
-module load boost/1.68.0
-
-# Other Software ##############################################################
-#
+module load ucx/1.10.0
+module load openmpi/4.1.1-cuda112
 module load zlib/1.2.11
-module load c-blosc/1.14.4
-
-module load hdf5-parallel/1.12.0-cuda112
+module load hdf5-parallel/1.12.0-cuda112-omp411
+module load boost/1.78.0
+module load git/2.30.1
 module load python/3.6.5
 module load libfabric/1.11.1-co79
-module load adios2/2.7.1-cuda112
-module load openpmd/0.13.2-cuda112-adios271
-
+module load c-blosc/1.14.4
+module load cmake/3.20.2
 module load libpng/1.6.35
 module load pngwriter/0.7.0
+module load adios2/2.7.1-cuda112-kepler
 
 # Environment #################################################################
 #
