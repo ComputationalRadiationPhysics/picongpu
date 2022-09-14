@@ -174,11 +174,6 @@ namespace pmacc
         }
 
     protected:
-        HDINLINE PitchedBox<TYPE, DIM2> reduceZ(const int zOffset) const
-        {
-            return {(TYPE*) ((char*) (this->fixedPointer) + pitch2D * zOffset), pitch};
-        }
-
         PMACC_ALIGN(pitch, size_t);
         PMACC_ALIGN(pitch2D, size_t);
     };
