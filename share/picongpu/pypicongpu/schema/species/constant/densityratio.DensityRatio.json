@@ -1,0 +1,14 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.densityratio.DensityRatio",
+    "description": "ratio for weighting calculations",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": ["ratio"],
+    "properties": {
+        "ratio": {
+            "description": "numerical density ratio",
+            "type": "number",
+            "exclusiveMinimum": 0
+        }
+    }
+}

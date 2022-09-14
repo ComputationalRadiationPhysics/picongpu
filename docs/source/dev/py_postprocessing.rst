@@ -9,16 +9,20 @@ Each plugin should implement at least the following Python classes.
 2. A visualizer class that outputs a matplotlib plot
 3. A jupyter-widget class that exposes the parameters of the matplotlib visualizer to the user via other widgets.
 
-The repository directory for PIConGPU Python modules for plugins is ``lib/python/picongpu/plugins/``.
+The repository directory for PIConGPU Python modules for plugins is ``lib/python/picongpu/extra/plugins/``.
+
+.. note::
+
+   The plugins have been moved to the `picongpu.extra` submodule.
 
 Data Reader
 ~~~~~~~~~~~
 
-The data readers should reside in the ``lib/python/picongpu/plugins/data`` directory.
+The data readers should reside in the ``lib/python/picongpu/extra/plugins/data`` directory.
 There is a base class in ``base_reader.py`` defining the interface of a reader.
 Each reader class should derive from this class and implement the interface functions not implemented in this class.
 
-.. autoclass:: picongpu.plugins.data.base_reader.DataReader
+.. autoclass:: picongpu.extra.plugins.data.base_reader.DataReader
    :members:
    :private-members:
 
@@ -27,7 +31,7 @@ To shorten the import statements for the readers, please also add an entry in th
 Matplotlib visualizer
 ~~~~~~~~~~~~~~~~~~~~~
 
-The visualizers should reside in the ``lib/python/picongpu/plugins/plot_mpl/`` directory.
+The visualizers should reside in the ``lib/python/picongpu/extra/plugins/plot_mpl/`` directory.
 The module names should end on ``_visualizer.py`` and the class name should only be ``Visualizer``.
 
 To shorten the import statements for the visualizers, please also add an entry in the ``__init__.py`` file of the ``plot_mpl`` directory with an alias that ends on "MPL".
@@ -36,7 +40,7 @@ There is a base class for visualization found in ``base_visualizer.py`` which al
 It uses (possibly multiple) instances of the data reader classes for accessing the data. Visualizing data simultaneously for more than one scan is supported by creating as many readers and plot objects as there are simulations for visualization.
 After getting the data, it ensures that (for performance reasons) a matplotlib artist is created only for the first plot and later only gets updated with fresh data.
 
-.. autoclass:: picongpu.plugins.plot_mpl.base_visualizer.Visualizer
+.. autoclass:: picongpu.extra.plugins.plot_mpl.base_visualizer.Visualizer
    :members:
    :private-members:
 
@@ -60,14 +64,14 @@ Jupyter Widget
 The widget is essentially only a wrapper around the matplotlib visualizer that allows dynamical adjustment of the parameters the visualizer accepts for plotting.
 This allows to adjust e.g. species, filter and other plugin-dependent options without having to write new lines of Python code.
 
-The widgets should reside in the ``lib/python/picongpu/plugins/jupyter_widgets/`` directory.
+The widgets should reside in the ``lib/python/picongpu/extra/plugins/jupyter_widgets/`` directory.
 The module names should end on ``_widget.py``.
 
 To shorten the import statements for the widgets, please also add an entry in the ``__init__.py`` file of the ``jupyter_widget`` directory.
 
 There is a base class for visualization found in ``base_widget.py`` which already handles most of the widget logic.
 
-.. autoclass:: picongpu.plugins.jupyter_widgets.base_widget.BaseWidget
+.. autoclass:: picongpu.extra.plugins.jupyter_widgets.base_widget.BaseWidget
    :members:
    :private-members:
 

@@ -239,7 +239,7 @@ The spectral intensity is stored in the units **[J s]**.
 
 Analysing tools
 ^^^^^^^^^^^^^^^^
-The ``transition_radiation_visualizer.py`` in ``lib/python/picongpu/plugins/plot_mpl`` can be used to analyze the radiation data after the simulation.
+The ``transition_radiation_visualizer.py`` in ``lib/python/picongpu/extra/plugins/plot_mpl`` can be used to analyze the radiation data after the simulation.
 See ``transition-radiation_visualizer.py --help`` for more information.
 It only works, if the input frequency are on a divided logarithmically!
 

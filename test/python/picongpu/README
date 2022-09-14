@@ -1,0 +1,7 @@
+quickly running (unit) tests in `quick`
+
+(unit) tests that take several minutes to run in `compiling`
+
+to run from this directory:
+python -m quick
+python -m compiling

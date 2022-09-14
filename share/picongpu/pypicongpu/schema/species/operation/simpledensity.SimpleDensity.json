@@ -1,0 +1,32 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.simpledensity.SimpleDensity",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [
+        "ppc",
+        "profile",
+        "placed_species_initial",
+        "placed_species_copied"
+    ],
+    "properties": {
+        "ppc": {
+            "description": "Number of macro particles per cell (random position).",
+            "type": "integer",
+            "exclusiveMinimum": 0
+        },
+        "profile": {
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.densityprofile.DensityProfile"
+        },
+        "placed_species_initial": {
+            "description": "species to be placed first, lowest ratio of species placed in this operation",
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
+        },
+        "placed_species_copied": {
+            "type": "array",
+            "description": "species to be placed which have their position copied from placed_species_initial",
+            "items": {
+                "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
+            }
+        }
+    }
+}

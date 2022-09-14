@@ -1,0 +1,88 @@
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/meta/String.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+
+namespace picongpu
+{
+    {{#species_initmanager.species}}
+        /****************************************
+            Definition of Species {{{name}}}
+        ****************************************/
+
+        {{#constants}}
+            {{#mass}}
+                value_identifier(float_X, MassRatio_{{{typename}}}, {{{mass_si}}} / SI::BASE_MASS_SI);
+            {{/mass}}
+            {{#charge}}
+                value_identifier(float_X, ChargeRatio_{{{typename}}}, {{{charge_si}}} / SI::BASE_CHARGE_SI);
+            {{/charge}}
+            {{#density_ratio}}
+                value_identifier(float_X, DensityRatio_{{{typename}}}, {{{ratio}}});
+            {{/density_ratio}}
+        {{/constants}}
+
+        using ParticleFlags_{{{typename}}} = MakeSeq_t<
+            {{! note: put defaults at end, s.t. that generated section may always safely end in comma }}
+            {{#constants}}
+                {{#mass}}
+                    massRatio<MassRatio_{{{typename}}}>,
+                {{/mass}}
+                {{#charge}}
+                    chargeRatio<ChargeRatio_{{{typename}}}>,
+                {{/charge}}
+                {{#density_ratio}}
+                    densityRatio<DensityRatio_{{{typename}}}>,
+                {{/density_ratio}}
+
+                {{#ionizers}}
+                    ionizers<MakeSeq_t<
+                        particles::ionization::BSI<{{{electron_species.typename}}}, particles::ionization::current::None>,
+                        particles::ionization::ADKCircPol<{{{electron_species.typename}}}, particles::ionization::current::None>,
+                        particles::ionization::ThomasFermi<{{{electron_species.typename}}}>>>,
+                {{/ionizers}}
+
+                {{#element_properties}}
+                    atomicNumbers<ionization::atomicNumbers::{{{element.picongpu_name}}}_t>,
+                    ionizationEnergies<ionization::energies::AU::{{{element.picongpu_name}}}_t>,
+                {{/element_properties}}
+            {{/constants}}
+
+            particlePusher<UsedParticlePusher>,
+            shape<UsedParticleShape>,
+            interpolation<UsedField2Particle>,
+            current<UsedParticleCurrentSolver>>;
+
+        using ParticleAttributes_{{{typename}}} = MakeSeq_t<
+            {{#attributes}}
+                {{{picongpu_name}}}
+                {{^_last}}
+                    ,
+                {{/_last}}
+            {{/attributes}}
+            >;
+
+        using {{{typename}}} = Particles<
+            PMACC_CSTRING("{{{name}}}"),
+            ParticleFlags_{{{typename}}},
+            ParticleAttributes_{{{typename}}}>;
+    {{/species_initmanager.species}}
+
+
+    using VectorAllSpecies = MakeSeq_t<
+        {{#species_initmanager.species}}
+            {{{typename}}}
+            {{^_last}}
+                ,
+            {{/_last}}
+        {{/species_initmanager.species}}
+        >;
+
+} // namespace picongpu

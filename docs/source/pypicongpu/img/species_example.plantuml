@@ -1,0 +1,139 @@
+@startuml
+' legend
+legend bottom
+    **Legend**
+
+    | **Color** | **Category** |
+    | <#DodgerBlue>        | Species |
+    | <#Salmon> | Constant |
+    | <#Lime> | Attribute |
+    | <#Orchid> | Operation |
+    | <#DarkTurquoise> | DensityProfile |
+endlegend
+
+' init manager
+object ":InitManager" as initmgr
+
+' helium first because it renders more beautiful
+
+package Helium {
+    ' species
+
+    object "helium: Species" as helium #DodgerBlue
+    helium : name = "helium"
+    initmgr o-- helium
+
+    ' constants
+
+    object ":Charge" as he_charge #Salmon
+    he_charge : charge_si = 3.2e-19
+    helium o-- he_charge
+
+    object ":Mass" as he_mass #Salmon
+    he_mass : mass_si = 6.6e-27
+    helium o-- he_mass
+
+    object ":DensityRatio" as he_ratio #Salmon
+    he_ratio : ratio = 0.4
+    helium o-- he_ratio
+
+    object ":ElementProperties" as he_element #Salmon
+    he_element : element = He
+    helium o-- he_element
+
+    object ":Ionizers" as he_ionizers #Salmon
+    helium o-- he_ionizers
+    ' Note: connection to electron established later
+
+    ' operations
+
+    object ":SetBoundElectrons" as he_setboundelectrons #Orchid
+    he_setboundelectrons : bound_electrons = 1
+    initmgr o-- he_setboundelectrons
+    he_setboundelectrons o-- helium
+
+    object ":SimpleMomentum" as he_simplemom #Orchid
+    he_simplemom : temperature = 0.4
+    he_simplemom : drift = None
+    initmgr o-- he_simplemom
+    he_simplemom o-- helium
+
+    object ":Uniform" as he_profile #DarkTurquoise
+    he_profile : density_si = 8e24
+
+    object ":SimpleDensity" as he_placement #Orchid
+    he_placement : ppc = 2
+    initmgr o-- he_placement
+    he_placement o-- helium
+    he_placement o-- he_profile
+
+    ' attributes
+
+    !ifdef SHOWATTRS
+    object ":Position" as he_pos #Lime
+    he_placement o-- he_pos
+    helium o-- he_pos
+    object ":Weighting" as he_weighting #Lime
+    he_placement o-- he_weighting
+    helium o-- he_weighting
+
+    object ":Momentum" as he_mom #Lime
+    he_simplemom o-- he_mom
+    helium o-- he_mom
+
+    object ":BoundElectrons" as he_boundelectrons #Lime
+    he_setboundelectrons o-- he_boundelectrons
+    helium o-- he_boundelectrons
+    !endif
+}
+
+package Electron {
+
+    ' electron section
+
+    object "electron: Species" as electron #DodgerBlue
+    electron : name = "e"
+    initmgr o-- electron
+
+    he_ionizers o-- electron : used electron species
+
+    ' constants
+
+    object ":Charge" as e_charge #Salmon
+    e_charge : charge_si = -1.6e-19
+    electron o-- e_charge
+
+    object ":Mass" as e_mass #Salmon
+    e_mass : mass_si = 9.1e-31
+    electron o-- e_mass
+
+    ' operations
+
+    object ":NotPlaced" as e_notplaced #Orchid
+    initmgr o-- e_notplaced
+    e_notplaced o-- electron
+
+    object ":SimpleMomentum" as e_simplemom #Orchid
+    e_simplemom : temperature = None
+    e_simplemom : drift = None
+    initmgr o-- e_simplemom
+    e_simplemom o-- electron
+
+    ' attributes
+
+    !ifdef SHOWATTRS
+    object ":Position" as e_pos #Lime
+    e_notplaced o-- e_pos
+    electron o-- e_pos
+    object ":Weighting" as e_weighting #Lime
+    e_notplaced o-- e_weighting
+    electron o-- e_weighting
+
+    object ":Momentum" as e_mom #Lime
+    e_simplemom o-- e_mom
+    electron o-- e_mom
+    !endif
+
+}
+
+@enduml

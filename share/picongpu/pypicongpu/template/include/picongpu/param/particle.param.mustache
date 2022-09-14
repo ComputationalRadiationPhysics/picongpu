@@ -1,0 +1,125 @@
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * Picongpu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <picongpu/unitless/precision.unitless>
+
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+
+#include <pmacc/math/operation.hpp>
+
+#include <picongpu/pypicongpu/util.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *  unit: none
+         */
+        constexpr float_X MIN_WEIGHTING = 1.0;
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 10;
+
+        namespace startPosition
+        {
+            namespace pypicongpu
+            {
+                {{#species_initmanager.operations.simple_density}}
+                    struct random_ppc_{{{placed_species_initial.typename}}}
+                    {
+                        /** Count of particles per cell at initial state
+                         *  unit: none
+                         */
+                        static constexpr uint32_t numParticlesPerCell = {{{ppc}}};
+                    };
+                    using init_{{{placed_species_initial.typename}}} = RandomImpl<random_ppc_{{{placed_species_initial.typename}}}>;
+                {{/species_initmanager.operations.simple_density}}
+            } // namespace pypicongpu
+        } // namespace startPosition
+
+        namespace manipulators
+        {
+            namespace pypicongpu {
+                {{#species_initmanager.operations.simple_momentum}}
+                    {{! note: this is a loop }}
+                    {{! -> there can be multiple "simple momentum"s }}
+
+                    {{#drift}}
+                        {{! note: this is an "if" condition }}
+                        {{! -> simple momentum does not require a drift }}
+
+                        {{#direction_normalized}}
+                            {{! this only serves to enter the "direction_normalized" context}}
+                            CONST_VECTOR(float_X, 3, drift_{{{species.typename}}}_direction, {{{x}}}, {{{y}}}, {{{z}}});
+                        {{/direction_normalized}}
+
+                        struct AssignDrift_{{{species.typename}}}_Param
+                        {
+                            /** Initial particle drift velocity for electrons and ions
+                            *  Examples:
+                            *    - No drift is equal to 1.0
+                            *  unit: none
+                            */
+                            static constexpr float_64 gamma = {{{gamma}}};
+                            const drift_{{{species.typename}}}_direction_t direction;
+                        };
+                        using AssignDrift_{{{species.typename}}} = unary::Drift<AssignDrift_{{{species.typename}}}_Param, pmacc::math::operation::Assign>;
+                    {{/drift}}
+
+                    {{#temperature}}
+                        {{! note: this is an "if" condition }}
+                        {{! -> simple momentum does not require a temperature }}
+                            struct AddTemperature_{{{species.typename}}}_Param
+                            {
+                                /* Initial temperature
+                                *  unit: keV
+                                */
+                                static constexpr float_64 temperature = {{{temperature_kev}}};
+                            };
+                            using AddTemperature_{{{species.typename}}} = unary::Temperature<AddTemperature_{{{species.typename}}}_Param>;
+                    {{/temperature}}
+                {{/species_initmanager.operations.simple_momentum}}
+
+                {{#species_initmanager.operations.set_bound_electrons}}
+                    struct PreIonize_{{{species.typename}}}_Impl
+                    {
+                        template<typename T_Particle>
+                        DINLINE void operator()(T_Particle& particle)
+                        {
+                            particle[boundElectrons_] = {{{bound_electrons}}}._X;
+                        }
+                    };
+
+                    //! definition of TwiceIonizedImpl manipulator
+                    using PreIonize_{{{species.typename}}} = generic::Free<PreIonize_{{{species.typename}}}_Impl>;
+                {{/species_initmanager.operations.set_bound_electrons}}
+            } // namespace pypicongpu
+        } // namespace manipulators
+    } // namespace particles
+} // namespace picongpu

@@ -1,0 +1,30 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.auto.Auto",
+    "description": "enable as many output plugins as feasable with only the period specified",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": ["period", "png_axis"],
+    "properties": {
+        "period": {
+            "description": "number of time steps: at each multiple output is generated",
+            "type": "integer",
+            "minimum": 1
+        },
+        "png_axis": {
+            "description": "axis pairs (i.e. planes) for which to generate png output",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["axis"],
+                "unevaluatedProperties": false,
+                "properties": {
+                    "axis": {
+                        "description": "actually a plane of two axis, but name follows PIConGPU",
+                        "type": "string",
+                        "pattern": "^(x|y|z)(x|y|z)$"
+                    }
+                }
+            }
+        }
+    }
+}

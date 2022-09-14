@@ -1,0 +1,89 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.laser.GaussianLaser",
+    "type": "object",
+    "properties": {
+        "wave_length_si": {
+            "type": "number",
+            "exclusiveMinimum": 0
+        },
+        "waist_si": {
+            "type": "number",
+            "exclusiveMinimum": 0
+        },
+        "pulse_length_si": {
+            "type": "number",
+            "exclusiveMinimum": 0
+        },
+        "focus_pos_si": {
+            "type": "number"
+        },
+        "phase": {
+            "type": "number",
+            "minimum": -3.1416,
+            "exclusiveMaximum": 6.2832
+        },
+        "E0_si": {
+            "type": "number",
+            "exclusiveMinimum": 0
+        },
+        "pulse_init": {
+            "type": "number",
+            "exclusiveMinimum": 0
+        },
+        "init_plane_y": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "polarization_type": {
+            "type": "string",
+            "pattern": "^(LINEAR_X|LINEAR_Z|CIRCULAR)$"
+        },
+        "laguerre_modes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["single_laguerre_mode"],
+                "unevaluatedProperties": false,
+                "properties": {
+                    "single_laguerre_mode": {
+                        "type": "number"
+                    }
+                }   
+            }
+        },
+        "laguerre_phases": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["single_laguerre_phase"],
+                "unevaluatedProperties": false,
+                "properties": {
+                    "single_laguerre_phase": {
+                        "type": "number"
+                    }
+                }   
+            }
+        },
+        "modenumber": {
+            "type": "integer",
+            "minimum": 0
+        }
+    },
+    "required": [
+        "wave_length_si",
+        "waist_si",
+        "pulse_length_si",
+        "focus_pos_si",
+        "phase",
+        "E0_si",
+        "pulse_init",
+        "init_plane_y",
+        "polarization_type",
+        "laguerre_modes",
+        "laguerre_phases",
+        "modenumber"
+    ],
+    "unevaluatedProperties": false
+}

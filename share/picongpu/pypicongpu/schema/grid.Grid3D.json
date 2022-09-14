@@ -1,0 +1,89 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.grid.Grid3D",
+    "description": "Specification of a (cartesian) grid of cells with 3 spacial dimensions.",
+    "type": "object",
+    "properties": {
+        "cell_size": {
+            "description": "width of a single cell in m",
+            "type": "object",
+            "unevaluatedProperties": false,
+            "required": ["x", "y", "z"],
+            "properties": {
+                "x": {
+                    "$anchor": "cell_size_component",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "y": {
+                    "$ref": "#cell_size_component"
+                },
+                "z": {
+                    "$ref": "#cell_size_component"
+                }
+            }
+        },
+        "cell_cnt": {
+            "description": "number of cells",
+            "type": "object",
+            "unevaluatedProperties": false,
+            "required": ["x", "y", "z"],
+            "properties": {
+                "x": {
+                    "$anchor": "cell_cnt_component",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "y": {
+                    "$ref": "#cell_cnt_component"
+                },
+                "z": {
+                    "$ref": "#cell_cnt_component"
+                }
+            }
+        },
+        "gpu_cnt": {
+            "description": "number of gpus",
+            "type": "object",
+            "unevaluatedProperties": false,
+            "required": ["x", "y", "z"],
+            "properties": {
+                "x": {
+                    "$anchor": "gpu_cnt_component",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "y": {
+                    "$ref": "#gpu_cnt_component"
+                },
+                "z": {
+                    "$ref": "#gpu_cnt_component"
+                }
+            }
+        },
+        "boundary_condition": {
+            "description": "boundary condition to be passed to --periodic (encoded as number)",
+            "type": "object",
+            "unevaluatedProperties": false,
+            "required": ["x", "y", "z"],
+            "properties": {
+                "x": {
+                    "$anchor": "boundary_condition_component",
+                    "type": "string",
+                    "pattern": "^(0|1)$"
+                },
+                "y": {
+                    "$ref": "#boundary_condition_component"
+                },
+                "z": {
+                    "$ref": "#boundary_condition_component"
+                }
+            }
+        }
+    },
+    "required": [
+        "cell_size",
+        "cell_cnt",
+        "boundary_condition"
+    ],
+    "unevaluatedProperties": false
+}

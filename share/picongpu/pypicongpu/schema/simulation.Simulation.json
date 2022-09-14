@@ -1,0 +1,61 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.simulation.Simulation",
+    "type": "object",
+    "description": "Holds all data associated with a single simulation run. Gets passed into the rendering engine.",
+    "properties": {
+        "delta_t_si": {
+            "type": "number",
+            "description": "width of a single timestamp in s"
+        },
+        "time_steps": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "total number of time steps to run for"
+        },
+        "solver": {
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.solver.YeeSolver"
+        },
+        "grid": {
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.grid.Grid3D"
+        },
+        "laser": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.laser.GaussianLaser"
+                }
+            ]
+        },
+        "species_initmanager": {
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.initmanager.InitManager"
+        },
+        "output": {
+            "description": "configuration for all output profiles",
+            "type": "object",
+            "unevaluatedProperties": false,
+            "required": ["auto"],
+            "properties": {
+                "auto": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.auto.Auto"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "delta_t_si",
+        "time_steps",
+        "solver",
+        "grid",
+        "laser"
+    ],
+    "unevaluatedProperties": false
+}
