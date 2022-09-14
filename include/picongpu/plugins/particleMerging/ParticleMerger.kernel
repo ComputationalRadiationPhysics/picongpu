@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "picongpu/particles/access/Cell2Particle.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/plugins/particleMerging/VoronoiCell.hpp"
 
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/IndexPool.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 namespace picongpu
 {
@@ -86,7 +86,7 @@ namespace picongpu
                 /** map cell index to the initial Voronoi cell by aggregating N^simDim 'normal'
                  * cells to a single Voronoi cell.
                  *
-                 * @param cellIdx cell index
+                 * @param cellIdx cell index, including guard cells
                  */
                 DINLINE voronoiCellId::type mapCellIdxToInitialVoronoiCell(const uint32_t cellIdx) const
                 {
@@ -115,21 +115,20 @@ namespace picongpu
                     constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     const uint32_t workerIdx
                         = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
-                    particleAccess::Cell2Particle<SuperCellSize, numWorkers> forEachFrame;
-                    forEachFrame(
-                        acc,
-                        this->particlesBox,
-                        workerIdx,
-                        cellIdx,
-                        [this](const T_Acc& acc, FramePtr frame, const int linearThreadIdx)
-                        {
-                            auto particle = frame[linearThreadIdx];
 
+                    auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
+                        workerIdx,
+                        particlesBox,
+                        cellIdx / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT()));
+
+                    forEachParticle(
+                        acc,
+                        [this](auto const&, auto& particle)
+                        {
                             const lcellId_t particleCellIdx = particle[localCellIdx_];
 
                             particle[voronoiCellId_] = this->mapCellIdxToInitialVoronoiCell(particleCellIdx);
-                        },
-                        particles::filter::All{});
+                        });
                 }
 
                 /** calculate position of particle within a super cell.
@@ -159,7 +158,7 @@ namespace picongpu
                  * Depending on the state of the Voronoi cell where the particle belongs
                  * to the execution is forked into distinct sub-processes.
                  *
-                 * @param cellIdx n-dim. cell index from the origin of the local domain
+                 * @param cellIdx n-dim. cell index, including guard cells
                  * @param listVoronoiCells fixed-sized array of Voronoi cells
                  */
                 template<typename T_Acc>
@@ -172,16 +171,17 @@ namespace picongpu
                     constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     const uint32_t workerIdx
                         = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
-                    particleAccess::Cell2Particle<SuperCellSize, numWorkers> forEachFrame;
-                    forEachFrame(
-                        acc,
-                        this->particlesBox,
-                        workerIdx,
-                        cellIdx,
-                        [&](const T_Acc& acc, FramePtr frame, const int linearThreadIdx)
-                        {
-                            auto particle = frame[linearThreadIdx];
 
+                    auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
+                        workerIdx,
+                        particlesBox,
+                        cellIdx / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT()));
+
+                    forEachParticle(
+                        acc,
+                        [&](auto const& accelerator, auto& particle)
+
+                        {
                             const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
                             if(voronoiCellId == -1)
                                 return;
@@ -196,7 +196,7 @@ namespace picongpu
                             switch(voronoiCell.status)
                             {
                             case VoronoiStatus::collecting:
-                                voronoiCell.addParticle(acc, position, momentum, weighting);
+                                voronoiCell.addParticle(accelerator, position, momentum, weighting);
 
                                 break;
 
@@ -209,7 +209,8 @@ namespace picongpu
                                     particle[voronoiCellId_] = subVoronoiCellId;
 
                                     /* place particle into one of the two sub-Voronoi cells */
-                                    listVoronoiCells[subVoronoiCellId].addParticle(acc, position, momentum, weighting);
+                                    listVoronoiCells[subVoronoiCellId]
+                                        .addParticle(accelerator, position, momentum, weighting);
                                 }
 
                                 break;
@@ -222,7 +223,7 @@ namespace picongpu
 
                             case VoronoiStatus::readyForMerging:
                                 /* merge all particles of this Voronoi cell */
-                                if(voronoiCell.isFirstParticle(acc))
+                                if(voronoiCell.isFirstParticle(accelerator))
                                 {
                                     /* I am the first particle in the Voronoi cell
                                      * => get dressed with Voronoi cell's attributes */
@@ -239,8 +240,7 @@ namespace picongpu
                                 /* check out of the Voronoi cell */
                                 particle[voronoiCellId_] = -1;
                             }
-                        },
-                        particles::filter::All{});
+                        });
                 }
 
                 /** This method handles the merging process on the Voronoi cell level.
