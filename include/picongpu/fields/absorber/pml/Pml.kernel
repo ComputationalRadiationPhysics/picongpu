@@ -45,14 +45,40 @@ namespace picongpu
                 {
                     /** PML size in cells, stored as floats to avoid type casts later,
                      *  negative and positive borders defined the same way as for Thickness
+                     *
+                     * @{
                      */
-                    floatD_X const negativeBorderSize;
-                    floatD_X const positiveBorderSize;
+                    floatD_X negativeBorderSize;
+                    floatD_X positiveBorderSize;
 
-                    //! Local domain characteristics, including guard cells
-                    DataSpace<simDim> const numLocalDomainCells;
-                    DataSpace<simDim> const numGuardCells;
+                    /** @} */
 
+                    //! Number of cells in the local domain including guards
+                    DataSpace<simDim> numLocalDomainCells;
+
+                    //! Number of guard cells
+                    DataSpace<simDim> numGuardCells;
+
+                    /** Default constructor setting all members to 0
+                     *
+                     * This constructor only exists for deferred initialization on the host side.
+                     */
+                    LocalParameters()
+                        : Parameters()
+                        , negativeBorderSize(floatD_X::create(0.0_X))
+                        , positiveBorderSize(floatD_X::create(0.0_X))
+                        , numLocalDomainCells(DataSpace<simDim>::create(0))
+                        , numGuardCells(DataSpace<simDim>::create(0))
+                    {
+                    }
+
+                    /** Constructor with given parameters
+                     *
+                     * @param parameters base parameters instance
+                     * @param localThickness local thickness values
+                     * @param numLocalDomainCells number of cells in the local domain including guards
+                     * @param numGuardCells number of guard cells
+                     */
                     LocalParameters(
                         Parameters const parameters,
                         Thickness const localThickness,
@@ -163,6 +189,33 @@ namespace picongpu
                         }
                     }
 
+                    /** Get normalized sigma value at a given position
+                     *
+                     * Apply polynomial grading, as described in fieldAbsorber.param.
+                     *
+                     * @param cellIdx local cell index without the guard, can be fractional
+                     * @param parameters parameters of PML in the local domain
+                     * @param axis axis index, 0 = x, 1 = y, 2 = z
+                     */
+                    DINLINE float_X
+                    getNormalizedSigma(float_X const& cellIdx, LocalParameters const& parameters, uint32_t const axis)
+                    {
+                        auto const relativeDepth = detail::getRelativeDepth(
+                            cellIdx + parameters.numGuardCells[axis],
+                            parameters.negativeBorderSize[axis],
+                            parameters.positiveBorderSize[axis],
+                            parameters.numLocalDomainCells[axis],
+                            parameters.numGuardCells[axis]);
+                        if(relativeDepth != 0._X)
+                        {
+                            // Same grading as in detail::getAbsorptionParameters()
+                            auto const gradingCoeff = math::pow(relativeDepth, parameters.sigmaKappaGradingOrder);
+                            return parameters.normalizedSigmaMax[axis] * gradingCoeff;
+                        }
+                        else
+                            return 0._X;
+                    }
+
                     //! Coefficients for E or B updates at a particular point
                     struct Coefficients
                     {
@@ -229,6 +282,110 @@ namespace picongpu
                         return coeffs.b.productOfComponents() != 1.0_X;
                     }
                 } // namespace detail
+
+                /** Calculate an integral of normalized sigma along the given axis:
+                 *  I = integral(sigma_axis(pos_axis(t)) / eps0 * dt; t in [startT, startT + durationT])
+                 *
+                 * We only consider the given axis and for brevity omit axis "subscript".
+                 * Same as in the rest of PML implementation, we denote normalizedSigma = sigma / eps0.
+                 *
+                 * The integral is used for procedure to treat J in PML proposed in section II C of
+                 * R. Lehe, A. Blelly, L. Giacomel, R. Jambunathan, J.-L. Vay
+                 * Absorption of charged particles in Perfectly-Matched-Layers by optimal damping of the deposited
+                 * current (2022) - version 2 from arXiv preprint at the time of our implementation.
+                 * We further refer to this paper as [Lehe2022].
+                 *
+                 * Note that it is similar but not exactly same integral as in [Lehe2022].
+                 * Here a time interval is arbitrary and not fixed to a particle crossing the PML interface.
+                 * So this utility function uses the general integral formulation as stated above.
+                 * Our general approach and relation to [Lehe2022] are described at the client side of this function.
+                 *
+                 * For given values of startPos = pos(startT), finishPos = pos(startT + durationT)
+                 * we assume a linear trajectory with constant velocity:
+                 *     vel = (finishPos - startPos) / durationT,
+                 *     pos(t) = startPos + vel * (t - startT).
+                 * This function will be used to integrate over a PIC time step, thus the assumption is harmless.
+                 *
+                 * For |vel| < eps, using the trapezoidal rule (to avoid potential numerical issues) the result is
+                 *     I = durationT * 0.5 * (normalizedSigma(startPos) + normalizedSigma(finishPos)).
+                 * Otherwise, change the variable from t to pos:
+                 *     d(pos) = vel * dt,
+                 *     I = integral(normalizedSigma(pos) * d(pos) / vel; pos in [startPos, finishPos]).
+                 * Note that with the division by velocity due to variable substitution, it becomes more similar to
+                 * eq. (4) in [Lehe2022], which is probably why it was proposed in section II C.
+                 *
+                 * For polynomially graded sigma values, the latter integral is calculated analytically.
+                 * Special care is taken to account for sigma(pos) = 0 when pos is outside of PML.
+                 *
+                 * @param startPos start position, in local domain and without guard [cells]
+                 * @param finishPos finish position, in local domain and without guard [cells]
+                 * @param timeDuration integration time duration (only duration is required as start and finish
+                 *        positions already take into account start time)
+                 * @param parameters parameters of PML in the local domain
+                 * @param axis axis index, 0 = x, 1 = y, 2 = z
+                 */
+                DINLINE float_X getNormalizedSigmaIntegral(
+                    float_X const startPos,
+                    float_X const finishPos,
+                    float_X const timeDuration,
+                    LocalParameters const& parameters,
+                    uint32_t const axis)
+                {
+                    // Note that velocity in units of [cellSize[axis] / time], which is more natural here
+                    auto const vel = (finishPos - startPos) / timeDuration;
+
+                    // For near-zero velocity use an approximate formula
+                    constexpr auto eps = 1e-5;
+                    if(abs(vel) < eps * cellSize[axis])
+                    {
+                        auto const startNormalizedSigma = detail::getNormalizedSigma(startPos, parameters, axis);
+                        auto const finishNormalizedSigma = detail::getNormalizedSigma(finishPos, parameters, axis);
+                        return timeDuration * 0.5_X * (startNormalizedSigma + finishNormalizedSigma);
+                    }
+
+                    /* In case only part of the trajectory is in PML, the result is equal to the integral over only
+                     * that part, since sigma(pos) = 0 for any pos outside of PML.
+                     * In this case adjust the positions and time duration to only represent that part.
+                     * It has no effect when both points are in or both are out of the PML area.
+                     * At most one of the following adjustments will be done as PMLs do not overlap.
+                     */
+                    auto adjustedStartPos = startPos;
+                    auto adjustedFinishPos = finishPos;
+                    // Left-side PML interface end, without guard same as our positions
+                    auto const negativePmlFinishPos = static_cast<float_X>(parameters.negativeBorderSize[axis]);
+                    if((finishPos < negativePmlFinishPos) && (startPos >= negativePmlFinishPos))
+                        adjustedStartPos = negativePmlFinishPos;
+                    if((startPos < negativePmlFinishPos) && (finishPos >= negativePmlFinishPos))
+                        adjustedFinishPos = negativePmlFinishPos;
+                    // Right-side PML interface start, without guard same as our positions
+                    auto const positivePmlStartPos = static_cast<float_X>(
+                        parameters.numLocalDomainCells[axis] - 2 * parameters.numGuardCells[axis]
+                        - parameters.positiveBorderSize[axis]);
+                    if((finishPos > positivePmlStartPos) && (startPos <= positivePmlStartPos))
+                        adjustedStartPos = positivePmlStartPos;
+                    if((startPos > positivePmlStartPos) && (finishPos <= positivePmlStartPos))
+                        adjustedFinishPos = positivePmlStartPos;
+                    auto const adjustedTimeDuration = (adjustedFinishPos - adjustedStartPos) / vel;
+
+                    /* After the adjustment both start and finish position are at the same side from PML interface.
+                     * And the resulting integral is
+                     *     I = integral(normalizedSigma(pos) * d(pos) / vel;
+                     *                  pos in [adjustedStartPosition, adjustedFinishPosition]).
+                     * With normalizedSigma(pos) being a polynomial we calculated it analytically.
+                     * The resulting expression is formulated to reuse the function to calculate normalizedSigma.
+                     */
+                    auto depthCoeff = 0.0_X;
+                    if(adjustedStartPos <= negativePmlFinishPos)
+                        depthCoeff = adjustedStartPos - negativePmlFinishPos;
+                    if(adjustedStartPos >= positivePmlStartPos)
+                        depthCoeff = adjustedStartPos - positivePmlStartPos;
+                    auto const startNormalizedSigma = detail::getNormalizedSigma(adjustedStartPos, parameters, axis);
+                    auto const finishNormalizedSigma = detail::getNormalizedSigma(adjustedFinishPos, parameters, axis);
+                    auto integral = (finishNormalizedSigma * adjustedTimeDuration
+                                     + (finishNormalizedSigma - startNormalizedSigma) * depthCoeff / vel)
+                        / (parameters.sigmaKappaGradingOrder + 1.0_X);
+                    return integral;
+                }
 
                 /** Stencil functor to update electric field by a time step using FDTD with the given curl and PML
                  *
