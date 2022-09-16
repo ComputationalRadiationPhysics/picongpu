@@ -116,10 +116,11 @@ namespace picongpu
                     const uint32_t workerIdx
                         = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
 
+                    auto const superCellIdx = pmacc::DataSpace<simDim>{cellIdx / SuperCellSize::toRT()};
                     auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
                         workerIdx,
                         particlesBox,
-                        cellIdx / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT()));
+                        superCellIdx);
 
                     forEachParticle(
                         acc,
@@ -172,10 +173,11 @@ namespace picongpu
                     const uint32_t workerIdx
                         = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
 
+                    auto const superCellIdx = pmacc::DataSpace<simDim>{cellIdx / SuperCellSize::toRT()};
                     auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
                         workerIdx,
                         particlesBox,
-                        cellIdx / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT()));
+                        superCellIdx);
 
                     forEachParticle(
                         acc,
