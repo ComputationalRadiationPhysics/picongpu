@@ -128,6 +128,7 @@ namespace picongpu
                         : functorIncidentField(currentStep, unitField)
                         , direction(directionValue)
                         , baseCoefficient(getBaseCoefficient(directionValue, curlCoefficient))
+                        , isLastLocalDomain(pmacc::math::Vector<bool, simDim>::create(false))
                     {
                     }
 
@@ -140,7 +141,7 @@ namespace picongpu
                      * @param beginGridIdx grid index of the first updatedField value to be corrected at all
                      * (not necessarily by this call)
                      * @param updatedGridIdx grid index of updatedField to be corrected by this function
-                     * @param isLastUpdatedCell whether the cell is the last updated one along each direction,
+                     * @param isLastUpdatedCell whether the cell is the last updated globally along each direction,
                      *                          note it is always 3d, for 2d the last element must be false
                      */
                     HDINLINE void operator()(
@@ -243,6 +244,9 @@ namespace picongpu
                     //! Whether the updatedField is total or scattered
                     bool isUpdatedFieldTotal;
 
+                    //! Whether the local domain is last one along each axis
+                    pmacc::math::Vector<bool, simDim> isLastLocalDomain;
+
                 private:
                     /* Calculate base coefficient value for the given parameters
                      *
@@ -287,7 +291,7 @@ namespace picongpu
                      * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
                      * @param incidentFieldShift1 base shift of the first incidentField component
                      * @param incidentFieldShift2 base shift of the second incidentField component
-                     * @param isLastUpdatedCell whether the cell is last updated one along each direction,
+                     * @param isLastUpdatedCell whether the cell is last updated globally along each direction,
                      *                          note it is always 3d, for 2d the last element must be false
                      */
                     HDINLINE float3_X getUpdatedFieldCorrection(
@@ -459,15 +463,16 @@ namespace picongpu
                                 auto const updatedGridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
 
                                 /* The index may be outside since the active area is not generally a multiple of block
-                                 * size. Last updated cells may be treated differently in the functor, prepare this
-                                 * information here.
+                                 * size. Globally last updated cells may be treated differently in the functor, prepare
+                                 * this information here.
                                  */
                                 bool isInside = true;
                                 auto isLastUpdatedCell = pmacc::math::Vector<bool, 3>::create(false);
                                 for(uint32_t d = 0; d < simDim; d++)
                                 {
                                     isInside = isInside && (updatedGridIdx[d] < endGridIdx[d]);
-                                    isLastUpdatedCell[d] = (updatedGridIdx[d] == endGridIdx[d] - 1);
+                                    isLastUpdatedCell[d]
+                                        = functor.isLastLocalDomain[d] && (updatedGridIdx[d] == endGridIdx[d] - 1);
                                 }
                                 if(isInside)
                                     functor(beginGridIdx, updatedGridIdx, isLastUpdatedCell);
