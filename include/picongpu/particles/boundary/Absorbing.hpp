@@ -30,6 +30,7 @@
 #include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/functor/misc/Parametrized.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
+#include "picongpu/traits/attribute/DampedWeighting.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -155,16 +156,9 @@ namespace picongpu
                             m_parameters.localParameters,
                             axis);
 
-                        // Adjust weighting according to [Lehe2022], cap at MIN_WEIGHTING
+                        // Adjust weighting according to [Lehe2022]
                         auto const weightingMultiplier = math::exp(-timeStepIntegral);
-                        auto const dampedWeighting = particle[weighting_] * weightingMultiplier;
-                        auto const minWeighting = MIN_WEIGHTING; // to avoid taking address of constexpr in max()
-                        /* Update macroparticle weighting and values of all weighted attributes.
-                         * We currently have no generic and consistent way to do that #4299.
-                         * So at least update weighted momentums so that particles don't artificially accelerate.
-                         */
-                        particle[weighting_] = math::max(dampedWeighting, minWeighting);
-                        particle[momentum_] *= weightingMultiplier;
+                        attribute::dampWeighting(particle, weightingMultiplier);
                     }
                 };
 
