@@ -297,6 +297,13 @@ namespace picongpu
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
                     functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
 
+                    // Set local domain information
+                    auto& gridController = pmacc::Environment<simDim>::get().GridController();
+                    auto const localDomainIdx = gridController.getPosition();
+                    auto const numLocalDomains = gridController.getGpuNodes();
+                    for(uint32_t d = 0; d < simDim; d++)
+                        functor.isLastLocalDomain[d] = (localDomainIdx[d] == numLocalDomains[d] - 1);
+
                     // Check that incidentField can be applied
                     checkRequirements(functor, beginLocalUserIdx);
 
