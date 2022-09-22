@@ -70,6 +70,18 @@ namespace picongpu
     //! weighting of the macro particle
     value_identifier(float_X, weighting, 0._X);
 
+    /** optional damping factor for weighting of the macro particle
+     *
+     * This factor is only used for current deposition with absorbing particle boundaries and PML.
+     * In case this attribute is defined, affected particles would have their weightings damped only for that
+     * procedure. Otherwise, the damping would affect weighting directly and so potentially overall properties like
+     * density. It should be generally not a considerable issue, except lots of particles move from PML to internal
+     * area.
+     *
+     * Thus, for efficiency reasons it is recommended to not enable this attribute by default.
+     */
+    value_identifier(float_X, weightingDampingFactor, 1._X);
+
     //! Voronoi cell of the macro particle
     value_identifier(int16_t, voronoiCellId, -1);
 
