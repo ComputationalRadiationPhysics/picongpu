@@ -41,6 +41,19 @@ namespace picongpu
                  */
                 struct Parameters
                 {
+                    /** Default constructor setting all members to 0
+                     *
+                     * This constructor only exists for deferred initialization on the host side.
+                     */
+                    Parameters()
+                        : normalizedSigmaMax(floatD_X::create(0.0_X))
+                        , sigmaKappaGradingOrder(0.0_X)
+                        , kappaMax(floatD_X::create(0.0_X))
+                        , normalizedAlphaMax(floatD_X::create(0.0_X))
+                        , alphaGradingOrder(0.0_X)
+                    {
+                    }
+
                     /** Max value of artificial electric conductivity
                      *
                      * Components correspond to directions. Normalized, so that

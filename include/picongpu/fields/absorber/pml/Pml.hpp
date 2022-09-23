@@ -99,6 +99,21 @@ namespace picongpu
                             updatePsiB};
                     }
 
+                    /** Get parameters for the local domain
+                     *
+                     * @param currentStep index of the current time iteration
+                     */
+                    LocalParameters getLocalParameters(float_X const currentStep) const
+                    {
+                        Thickness localThickness = getLocalThickness(currentStep);
+                        checkLocalThickness(localThickness);
+                        return LocalParameters(
+                            parameters,
+                            localThickness,
+                            cellDescription.getGridSuperCells() * SuperCellSize::toRT(),
+                            cellDescription.getGuardingSuperCells() * SuperCellSize::toRT());
+                    }
+
                 private:
                     //! Read parameters from fieldAbsorber.param
                     void initParameters()
@@ -111,18 +126,6 @@ namespace picongpu
                             parameters.kappaMax[dim] = KAPPA_MAX[dim];
                             parameters.normalizedAlphaMax[dim] = NORMALIZED_ALPHA_MAX[dim];
                         }
-                    }
-
-                    //! Get parameters for the local domain
-                    LocalParameters getLocalParameters(float_X const currentStep) const
-                    {
-                        Thickness localThickness = getLocalThickness(currentStep);
-                        checkLocalThickness(localThickness);
-                        return LocalParameters(
-                            parameters,
-                            localThickness,
-                            cellDescription.getGridSuperCells() * SuperCellSize::toRT(),
-                            cellDescription.getGuardingSuperCells() * SuperCellSize::toRT());
                     }
 
                     /** Get PML thickness for the local domain at the current time step.
