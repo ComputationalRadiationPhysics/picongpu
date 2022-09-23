@@ -334,6 +334,45 @@ namespace picongpu
             }
         };
 
+        template<>
+        struct Unit<weightingDampingFactor>
+        {
+            // unitless and not scaled by a factor: 1.0
+            static std::vector<double> get()
+            {
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<weightingDampingFactor>
+        {
+            static std::vector<float_64> get()
+            {
+                // weighting damping factor is unitless
+                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
+
+                return unitDimension;
+            }
+        };
+        template<>
+        struct MacroWeighted<weightingDampingFactor>
+        {
+            // the weighting damping factor is not macro weighted
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<weightingDampingFactor>
+        {
+            // flag * weightingDampingFactor^0 == flag: same for real and macro particle
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
 
         template<>
         struct Unit<voronoiCellId>
