@@ -140,7 +140,7 @@ namespace pmacc
                     const auto mask = alpaka::warp::activemask(acc);
                     const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
 
-                    T_Type result;
+                    auto result = T_Type{};
                     const int laneId = getLaneId();
                     /* Get the start value for this warp */
                     if(laneId == leader)
