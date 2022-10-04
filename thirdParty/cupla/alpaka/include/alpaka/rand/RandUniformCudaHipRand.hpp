@@ -76,13 +76,7 @@ namespace alpaka::rand
         public:
             // After calling this constructor the instance is not valid initialized and
             // need to be overwritten with a valid object
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-            ALPAKA_FN_HOST_ACC Xor() : state(curandStateXORWOW_t{})
-#        else
-            ALPAKA_FN_HOST_ACC Xor() : state(hiprandStateXORWOW_t{})
-#        endif
-            {
-            }
+            Xor() = default;
 
             __device__ Xor(
                 std::uint32_t const& seed,
@@ -105,9 +99,9 @@ namespace alpaka::rand
             friend class distribution::uniform_cuda_hip::UniformUint;
 
 #        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-            curandStateXORWOW_t state;
+            curandStateXORWOW_t state = curandStateXORWOW_t{};
 #        else
-            hiprandStateXORWOW_t state;
+            hiprandStateXORWOW_t state = hiprandStateXORWOW_t{};
 #        endif
 
         public:

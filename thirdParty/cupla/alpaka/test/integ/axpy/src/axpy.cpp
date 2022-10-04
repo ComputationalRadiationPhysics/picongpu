@@ -111,10 +111,10 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
               << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
               << ", kernel: " << typeid(kernel).name() << ", workDiv: " << workDiv << ")" << std::endl;
 
-    // Allocate host memory buffers.
-    auto memBufHostX = alpaka::allocBuf<Val, Idx>(devHost, extent);
-    auto memBufHostOrigY = alpaka::allocBuf<Val, Idx>(devHost, extent);
-    auto memBufHostY = alpaka::allocBuf<Val, Idx>(devHost, extent);
+    // Allocate host memory buffers in pinned memory.
+    auto memBufHostX = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
+    auto memBufHostOrigY = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
+    auto memBufHostY = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
     Val* const pBufHostX = alpaka::getPtrNative(memBufHostX);
     Val* const pBufHostOrigY = alpaka::getPtrNative(memBufHostOrigY);
     Val* const pBufHostY = alpaka::getPtrNative(memBufHostY);

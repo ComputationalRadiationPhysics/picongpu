@@ -31,22 +31,6 @@ constexpr auto memset_value(int c) -> T
     return t;
 }
 
-template<typename TAcc, typename TElem, typename TIdx, typename TQueue, typename TExtent>
-auto allocAsyncBufIfSupported(TQueue const& queue, TExtent const& extent)
-    -> alpaka::Buf<alpaka::Dev<TQueue>, TElem, alpaka::Dim<TExtent>, TIdx>
-{
-    if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<TAcc>, alpaka::Dim<TExtent>>)
-    {
-        return alpaka::allocAsyncBuf<TElem, TIdx>(queue, extent);
-    }
-    else
-    {
-        return alpaka::allocBuf<TElem, TIdx>(alpaka::getDev(queue), extent);
-    }
-
-    ALPAKA_UNREACHABLE(alpaka::allocBuf<TElem, TIdx>(alpaka::getDev(queue), extent));
-}
-
 // 0- and 1- dimensional space
 using Idx = std::size_t;
 using Dim0D = alpaka::DimInt<0u>;
@@ -83,7 +67,7 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
                                     << " element(s)");
 
     // async host buffer
-    auto h_buffer2 = allocAsyncBufIfSupported<HostAcc, int, Idx>(hostQueue, Scalar{});
+    auto h_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(hostQueue, Scalar{});
     INFO(
         "second host buffer allocated at " << std::data(h_buffer2) << " with " << alpaka::getExtentProduct(h_buffer2)
                                            << " element(s)");
@@ -125,7 +109,7 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
                                       << " element(s)");
 
     // async or second sync device buffer
-    auto d_buffer2 = allocAsyncBufIfSupported<DeviceAcc, int, Idx>(deviceQueue, Scalar{});
+    auto d_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(deviceQueue, Scalar{});
     INFO(
         "second device buffer allocated at " << std::data(d_buffer2) << " with " << alpaka::getExtentProduct(d_buffer2)
                                              << " element(s)");

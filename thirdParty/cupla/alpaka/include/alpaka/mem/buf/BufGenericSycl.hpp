@@ -202,81 +202,6 @@ namespace alpaka::trait
         }
     };
 
-    //! The BufGenericSycl SYCL device memory mapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Map<
-        experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>,
-        experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto map(
-            experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>> const&,
-            experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl SYCL device memory unmapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Unmap<
-        experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>,
-        experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto unmap(
-            experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>> const&,
-            experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl memory pinning trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct Pin<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static_assert(!sizeof(TElem), "Memory pinning is not supported by the SYCL back-end");
-
-        static auto pin(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl memory unpinning trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct Unpin<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static_assert(!sizeof(TElem), "Memory pinning is not supported by the SYCL back-end");
-
-        static auto unpin(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl memory pin state trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct IsPinned<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static_assert(!sizeof(TElem), "Memory pinning is not supported by the SYCL back-end");
-
-        static auto isPinned(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const&) -> bool
-        {
-            return false;
-        }
-    };
-
-    //! The BufGenericSycl memory prepareForAsyncCopy trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct PrepareForAsyncCopy<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static auto prepareForAsyncCopy(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> void
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            // Everything in SYCL is async by default.
-        }
-    };
-
     //! The BufGenericSycl offset get trait specialization.
     template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx, typename TDev>
     struct GetOffset<TIdxIntegralConst, experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
@@ -292,28 +217,6 @@ namespace alpaka::trait
     struct IdxType<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
     {
         using type = TIdx;
-    };
-
-    //! The BufCpu SYCL device memory mapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Map<BufCpu<TElem, TDim, TIdx>, experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto map(BufCpu<TElem, TDim, TIdx>&, experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl device memory unmapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Unmap<BufCpu<TElem, TDim, TIdx>, experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto unmap(BufCpu<TElem, TDim, TIdx>&, experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
     };
 
     //! The BufCpu pointer on SYCL device get trait specialization.

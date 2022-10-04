@@ -1,4 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -13,6 +14,8 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+
+#include <type_traits>
 
 class RandTestKernel
 {
@@ -94,4 +97,34 @@ TEMPLATE_LIST_TEST_CASE("defaultRandomGeneratorIsWorking", "[rand]", alpaka::tes
     RandTestKernel kernel;
 
     REQUIRE(fixture(kernel));
+}
+
+//! Helper trait to check if the given accelerator is HIP
+template<typename TAcc>
+struct IsAccHIP : public std::false_type
+{
+};
+
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+template<typename TDim, typename TIdx>
+struct IsAccHIP<alpaka::AccGpuHipRt<TDim, TIdx>> : public std::true_type
+{
+};
+#endif
+
+TEMPLATE_LIST_TEST_CASE("defaultRandomGeneratorIsTriviallyCopyable", "[rand]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using DefaultEngine = decltype(alpaka::rand::engine::createDefault(std::declval<Acc>(), 0u, 0u, 0u));
+    constexpr auto isEngineTriviallyCopyable = std::is_trivially_copyable_v<DefaultEngine>;
+    // For older HIP versions the internal HIPrand/ROCrand state was not trivially copyable.
+    // This causes alpaka rand state for the HIP accelerator and those versions to also not be trivially copyable.
+    // It was fixed on AMD side in https://github.com/ROCmSoftwarePlatform/rocRAND/pull/252.
+    // Thus we guard the test to skip HIP accelerator and older HIP versions.
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && (BOOST_LANG_HIP < BOOST_VERSION_NUMBER(5, 2, 0))
+    if constexpr(!IsAccHIP<Acc>::value)
+        STATIC_REQUIRE(isEngineTriviallyCopyable);
+#else
+    STATIC_REQUIRE(isEngineTriviallyCopyable);
+#endif
 }

@@ -239,7 +239,7 @@ namespace alpaka
                 return {
                     dev,
                     reinterpret_cast<TElem*>(memPtr),
-                    [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::free(ptr)); },
+                    [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::free(ptr)); },
                     static_cast<TIdx>(pitchBytes),
                     extent};
             }
@@ -287,7 +287,7 @@ namespace alpaka
                     dev,
                     reinterpret_cast<TElem*>(memPtr),
                     [queue = std::move(queue)](TElem* ptr)
-                    { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::freeAsync(ptr, queue.getNativeHandle())); },
+                    { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::freeAsync(ptr, queue.getNativeHandle())); },
                     width * static_cast<TIdx>(sizeof(TElem)),
                     extent);
             }
@@ -306,109 +306,31 @@ namespace alpaka
 
         //! The pinned/mapped memory allocation trait specialization for the CUDA/HIP devices.
         template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct BufAllocMapped<TElem, TDim, TIdx, DevUniformCudaHipRt<TApi>>
+        struct BufAllocMapped<PltfUniformCudaHipRt<TApi>, TElem, TDim, TIdx>
         {
             template<typename TExtent>
-            ALPAKA_FN_HOST static auto allocMappedBuf(
-                DevCpu const& host,
-                DevUniformCudaHipRt<TApi> const&,
-                TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
+            ALPAKA_FN_HOST static auto allocMappedBuf(DevCpu const& host, TExtent const& extent)
+                -> BufCpu<TElem, TDim, TIdx>
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 // Allocate CUDA/HIP page-locked memory on the host, mapped into the CUDA/HIP address space and
                 // accessible to all CUDA/HIP devices.
                 TElem* memPtr;
-                TApi::hostMalloc(
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::hostMalloc(
                     reinterpret_cast<void**>(&memPtr),
                     sizeof(TElem) * static_cast<std::size_t>(getExtentProduct(extent)),
-                    TApi::hostMallocMapped | TApi::hostMallocPortable);
-                auto deleter = [](TElem* ptr) { TApi::hostFree(ptr); };
+                    TApi::hostMallocMapped | TApi::hostMallocPortable));
+                auto deleter = [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::hostFree(ptr)); };
 
                 return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);
             }
         };
 
-        //! The BufUniformCudaHipRt CUDA/HIP device memory mapping trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct Map<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
+        //! The pinned/mapped memory allocation capability trait specialization.
+        template<typename TApi>
+        struct HasMappedBufSupport<PltfUniformCudaHipRt<TApi>> : public std::true_type
         {
-            ALPAKA_FN_HOST static auto map(
-                BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf,
-                DevUniformCudaHipRt<TApi> const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    throw std::runtime_error(
-                        "Mapping memory from one CUDA/HIP device into an other CUDA/HIP device not implemented!");
-                }
-                // If it is already the same device, nothing has to be mapped.
-            }
-        };
-        //! The BufUniformCudaHipRt CUDA/HIP device memory unmapping trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
-        {
-            ALPAKA_FN_HOST static auto unmap(
-                BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf,
-                DevUniformCudaHipRt<TApi> const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    throw std::runtime_error("Unmapping memory mapped from one CUDA/HIP device into an other CUDA/HIP "
-                                             "device not implemented!");
-                }
-                // If it is already the same device, nothing has to be unmapped.
-            }
-        };
-        //! The BufUniformCudaHipRt memory pinning trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct Pin<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto pin(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // CUDA/HIP device memory is always pinned, it can not be swapped out.
-            }
-        };
-        //! The BufUniformCudaHipRt memory unpinning trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct Unpin<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto unpin(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // CUDA/HIP device memory is always pinned, it can not be swapped out.
-            }
-        };
-        //! The BufUniformCudaHipRt memory pin state trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct IsPinned<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto isPinned(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const&) -> bool
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // CUDA/HIP device memory is always pinned, it can not be swapped out.
-                return true;
-            }
-        };
-        //! The BufUniformCudaHipRt memory prepareForAsyncCopy trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct PrepareForAsyncCopy<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // CUDA/HIP device memory is always ready for async copy
-            }
         };
 
         //! The BufUniformCudaHipRt offset get trait specialization.
@@ -426,49 +348,6 @@ namespace alpaka
         struct IdxType<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
         {
             using type = TIdx;
-        };
-
-        //! The BufCpu CUDA/HIP device memory mapping trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct Map<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
-        {
-            ALPAKA_FN_HOST static auto map(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt<TApi> const& dev)
-                -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // If it is already the same device, nothing has to be mapped.
-                if(getDev(buf) != dev)
-                {
-                    // cuda/hip-HostRegisterMapped:
-                    //   Maps the allocation into the CUDA/HIP address space.The device pointer to the memory may be
-                    //   obtained by calling cudaHostGetDevicePointer(). This feature is available only on GPUs with
-                    //   compute capability greater than or equal to 1.1.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::hostRegister(
-                        const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf))),
-                        getExtentProduct(buf) * sizeof(Elem<BufCpu<TElem, TDim, TIdx>>),
-                        TApi::hostRegisterMapped));
-                }
-            }
-        };
-        //! The BufCpu CUDA/HIP device memory unmapping trait specialization.
-        template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufCpu<TElem, TDim, TIdx>, DevUniformCudaHipRt<TApi>>
-        {
-            ALPAKA_FN_HOST static auto unmap(BufCpu<TElem, TDim, TIdx>& buf, DevUniformCudaHipRt<TApi> const& dev)
-                -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    // Unmaps the memory range whose base address is specified by ptr, and makes it pageable again.
-                    // \FIXME: If the memory has separately been pinned before we destroy the pinning state.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        TApi::hostUnregister(const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf)))));
-                }
-                // If it is already the same device, nothing has to be unmapped.
-            }
         };
 
         //! The BufCpu pointer on CUDA/HIP device get trait specialization.

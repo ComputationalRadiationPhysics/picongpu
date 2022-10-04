@@ -11,8 +11,7 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#    include <alpaka/core/BoostPredef.hpp>
-
+#    include <boost/predef.h>
 #    include <cuda_runtime_api.h>
 
 namespace alpaka
@@ -21,7 +20,7 @@ namespace alpaka
     {
         // Names
         static constexpr char name[] = "Cuda";
-        static constexpr auto version = BOOST_LANG_CUDA;
+        static constexpr auto version = BOOST_PREDEF_MAKE_10_VVRRP(CUDART_VERSION);
 
         // Types
         using DeviceAttr_t = ::cudaDeviceAttr;
@@ -171,7 +170,7 @@ namespace alpaka
 
         static inline Error_t freeAsync([[maybe_unused]] void* devPtr, [[maybe_unused]] Stream_t stream)
         {
-#    if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(11, 2, 0)
+#    if CUDART_VERSION >= 11020
             return ::cudaFreeAsync(devPtr, stream);
 #    else
             // Not implemented.
@@ -253,7 +252,7 @@ namespace alpaka
 
         static inline Error_t launchHostFunc(Stream_t stream, HostFn_t fn, void* userData)
         {
-#    if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(10, 0, 0)
+#    if CUDART_VERSION >= 10000
             // Wrap the host function using the proper calling convention
             return ::cudaLaunchHostFunc(stream, HostFnAdaptor::hostFunction, new HostFnAdaptor{fn, userData});
 #    else
@@ -277,7 +276,7 @@ namespace alpaka
             [[maybe_unused]] size_t size,
             [[maybe_unused]] Stream_t stream)
         {
-#    if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(11, 2, 0)
+#    if CUDART_VERSION >= 11020
             return ::cudaMallocAsync(devPtr, size, stream);
 #    else
             // Not implemented.
