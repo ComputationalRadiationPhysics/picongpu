@@ -115,9 +115,9 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         {
             const ::alpaka::Vec<cupla::AlpakaDim<1u>, cupla::MemSizeType> extent(size);
 
-            auto& buf = cupla::manager::Memory<cupla::AccHost, cupla::AlpakaDim<1u>>::get().alloc(extent);
-
-            prepareForAsyncCopy(buf);
+            auto& buf
+                = cupla::manager::Memory<cupla::AccHost, cupla::AlpakaDim<1u>>::get().alloc_mapped<cupla::AccDev>(
+                    extent);
 
             *ptrptr = ::alpaka::getPtrNative(buf);
         }

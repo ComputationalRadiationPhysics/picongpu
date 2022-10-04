@@ -56,7 +56,6 @@ namespace cupla
                     return mem;
                 }
 
-
                 auto alloc(MemVec<dim> const& extent) -> BufType&
                 {
                     auto& device = Device<DeviceType>::get();
@@ -64,6 +63,20 @@ namespace cupla
                     std::unique_ptr<BufType> bufPtr(
                         new BufType(::alpaka::allocBuf<uint8_t, MemSizeType>(device.current(), extent)));
 
+                    uint8_t* nativePtr = ::alpaka::getPtrNative(*bufPtr);
+                    m_mapVector[device.id()].insert(std::make_pair(nativePtr, std::move(bufPtr)));
+                    return *m_mapVector[device.id()][nativePtr];
+                }
+
+                template<typename T_MappedDeviceType>
+                auto alloc_mapped(MemVec<dim> const& extent) -> BufType&
+                {
+                    auto& device = Device<DeviceType>::get();
+
+                    std::unique_ptr<BufType> bufPtr(new BufType(
+                        ::alpaka::allocMappedBufIfSupported<::alpaka::Pltf<T_MappedDeviceType>, uint8_t, MemSizeType>(
+                            device.current(),
+                            extent)));
 
                     uint8_t* nativePtr = ::alpaka::getPtrNative(*bufPtr);
                     m_mapVector[device.id()].insert(std::make_pair(nativePtr, std::move(bufPtr)));

@@ -241,84 +241,6 @@ namespace alpaka
             }
         };
 
-        //! The BufOmp5 device memory mapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Map<BufOmp5<TElem, TDim, TIdx>, DevOmp5>
-        {
-            ALPAKA_FN_HOST static auto map(BufOmp5<TElem, TDim, TIdx> const& buf, DevOmp5 const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    throw std::runtime_error(
-                        "Mapping memory from one OMP5 device into an other OMP5 device not implemented!");
-                }
-                // If it is already the same device, nothing has to be mapped.
-            }
-        };
-        //! The BufOmp5 device memory unmapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufOmp5<TElem, TDim, TIdx>, DevOmp5>
-        {
-            ALPAKA_FN_HOST static auto unmap(BufOmp5<TElem, TDim, TIdx> const& buf, DevOmp5 const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    throw std::runtime_error(
-                        "Unmapping memory mapped from one OMP5 device into an other OMP5 device not implemented!");
-                }
-                // If it is already the same device, nothing has to be unmapped.
-            }
-        };
-        //! The BufOmp5 memory pinning trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Pin<BufOmp5<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto pin(BufOmp5<TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // No explicit pinning in OMP5? GPU would be pinned anyway.
-            }
-        };
-        //! The BufOmp5 memory unpinning trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unpin<BufOmp5<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto unpin(BufOmp5<TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // No explicit pinning in OMP5? GPU would be pinned anyway.
-            }
-        };
-        //! The BufOmp5 memory pin state trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct IsPinned<BufOmp5<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto isPinned(BufOmp5<TElem, TDim, TIdx> const&) -> bool
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // No explicit pinning in OMP5? GPU would be pinned anyway.
-                return true;
-            }
-        };
-        //! The BufOmp5 memory prepareForAsyncCopy trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct PrepareForAsyncCopy<BufOmp5<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufOmp5<TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // OMP5 device memory is always ready for async copy
-            }
-        };
-
         //! The BufOmp5 offset get trait specialization.
         template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
         struct GetOffset<TIdxIntegralConst, BufOmp5<TElem, TDim, TIdx>>
@@ -336,40 +258,7 @@ namespace alpaka
             using type = TIdx;
         };
 
-        //! The BufCpu CUDA device memory mapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Map<BufCpu<TElem, TDim, TIdx>, DevOmp5>
-        {
-            ALPAKA_FN_HOST static auto map(BufCpu<TElem, TDim, TIdx>& buf, DevOmp5 const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev) //! \TODO WTF?
-                {
-                    //   Maps the allocation into the CUDA address space.The device pointer to the memory may be
-                    //   obtained by calling cudaHostGetDevicePointer().
-                    throw std::runtime_error("Mapping host memory to OMP5 device not implemented!");
-                }
-                // If it is already the same device, nothing has to be mapped.
-            }
-        };
-        //! The BufCpu CUDA device memory unmapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufCpu<TElem, TDim, TIdx>, DevOmp5>
-        {
-            ALPAKA_FN_HOST static auto unmap(BufCpu<TElem, TDim, TIdx>& buf, DevOmp5 const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev) //! \TODO WTF?
-                {
-                    throw std::runtime_error("Mapping host memory to OMP5 device not implemented!");
-                }
-                // If it is already the same device, nothing has to be unmapped.
-            }
-        };
-
-        //! The BufCpu pointer on CUDA device get trait specialization.
+        //! The BufCpu pointer on OpenMP 5 device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevOmp5>
         {

@@ -39,23 +39,38 @@ namespace alpaka::rand::engine
      * @tparam TBackend device-dependent backend, specifies the array types
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
      * @tparam TImpl engine type implementation (CRTP)
+     *
+     * static const data members are transformed into functions, because GCC
+     * assumes types with static data members to be not mappable and makes not
+     * exception for constexpr ones. This is a valid interpretation of the
+     * OpenMP <= 4.5 standard. In OpenMP >= 5.0 types with any kind of static
+     * data member are mappable.
      */
     template<typename TBackend, typename TParams, typename TImpl>
     class PhiloxBaseCommon
         : public TBackend
         , public PhiloxConstants<TParams>
     {
-        static unsigned const numRounds = TParams::rounds;
-        static unsigned const vectorSize = TParams::counterSize;
-        static unsigned const numberWidth = TParams::width;
+        static constexpr unsigned numRounds()
+        {
+            return TParams::rounds;
+        }
+        static constexpr unsigned vectorSize()
+        {
+            return TParams::counterSize;
+        }
+        static constexpr unsigned numberWidth()
+        {
+            return TParams::width;
+        }
 
-        static_assert(numRounds > 0, "Number of Philox rounds must be > 0.");
-        static_assert(vectorSize % 2 == 0, "Philox counter size must be an even number.");
-        static_assert(vectorSize <= 16, "Philox SP network is not specified for sizes > 16.");
-        static_assert(numberWidth % 8 == 0, "Philox number width in bits must be a multiple of 8.");
+        static_assert(numRounds() > 0, "Number of Philox rounds must be > 0.");
+        static_assert(vectorSize() % 2 == 0, "Philox counter size must be an even number.");
+        static_assert(vectorSize() <= 16, "Philox SP network is not specified for sizes > 16.");
+        static_assert(numberWidth() % 8 == 0, "Philox number width in bits must be a multiple of 8.");
 
         // static_assert(TWidth == 32 || TWidth == 64, "Philox implemented only for 32 and 64 bit numbers.");
-        static_assert(numberWidth == 32, "Philox implemented only for 32 bit numbers.");
+        static_assert(numberWidth() == 32, "Philox implemented only for 32 bit numbers.");
 
     public:
         using Counter = typename TBackend::Counter;
@@ -71,8 +86,8 @@ namespace alpaka::rand::engine
         ALPAKA_FN_HOST_ACC auto singleRound(Counter const& counter, Key const& key)
         {
             std::uint32_t H0, L0, H1, L1;
-            multiplyAndSplit64to32(counter[0], this->MULTIPLITER_4x32_0, H0, L0);
-            multiplyAndSplit64to32(counter[2], this->MULTIPLITER_4x32_1, H1, L1);
+            multiplyAndSplit64to32(counter[0], this->MULTIPLITER_4x32_0(), H0, L0);
+            multiplyAndSplit64to32(counter[2], this->MULTIPLITER_4x32_1(), H1, L1);
             return Counter{H1 ^ counter[1] ^ key[0], L1, H0 ^ counter[3] ^ key[1], L0};
         }
 
@@ -83,7 +98,7 @@ namespace alpaka::rand::engine
          */
         ALPAKA_FN_HOST_ACC auto bumpKey(Key const& key)
         {
-            return Key{key[0] + this->WEYL_32_0, key[1] + this->WEYL_32_1};
+            return Key{key[0] + this->WEYL_32_0(), key[1] + this->WEYL_32_1()};
         }
 
         /** Advance the \a counter to the next state
@@ -152,7 +167,7 @@ namespace alpaka::rand::engine
             Counter counter = singleRound(counter_in, key);
 
             // TODO: Consider unrolling the loop for performance
-            for(unsigned int n = 0; n < numRounds; ++n)
+            for(unsigned int n = 0; n < numRounds(); ++n)
             {
                 key = bumpKey(key);
                 counter = singleRound(counter, key);

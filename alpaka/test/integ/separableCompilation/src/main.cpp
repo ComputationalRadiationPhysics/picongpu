@@ -106,22 +106,22 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
               << "accelerator: " << alpaka::getAccName<Acc>() << ", workDiv: " << workDiv
               << ", numElements:" << numElements << ")" << std::endl;
 
-    // Allocate host memory buffers.
-    auto memBufHostA(alpaka::allocBuf<Val, Idx>(devHost, extent));
-    auto memBufHostB(alpaka::allocBuf<Val, Idx>(devHost, extent));
-    auto memBufHostC(alpaka::allocBuf<Val, Idx>(devHost, extent));
+    // Allocate host memory buffers, potentially pinned for faster copy to/from the accelerator.
+    auto memBufHostA = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
+    auto memBufHostB = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
+    auto memBufHostC = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
 
     // Initialize the host input vectors
     for(Idx i(0); i < numElements; ++i)
     {
-        alpaka::getPtrNative(memBufHostA)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
-        alpaka::getPtrNative(memBufHostB)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
+        memBufHostA[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
+        memBufHostB[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
     }
 
     // Allocate the buffers on the accelerator.
-    auto memBufAccA(alpaka::allocBuf<Val, Idx>(devAcc, extent));
-    auto memBufAccB(alpaka::allocBuf<Val, Idx>(devAcc, extent));
-    auto memBufAccC(alpaka::allocBuf<Val, Idx>(devAcc, extent));
+    auto memBufAccA = alpaka::allocBuf<Val, Idx>(devAcc, extent);
+    auto memBufAccB = alpaka::allocBuf<Val, Idx>(devAcc, extent);
+    auto memBufAccC = alpaka::allocBuf<Val, Idx>(devAcc, extent);
 
     // Copy Host -> Acc.
     alpaka::memcpy(queueAcc, memBufAccA, memBufHostA);
@@ -149,8 +149,7 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
     for(Idx i(0u); i < numElements; ++i)
     {
         auto const& val(pHostData[i]);
-        auto const correctResult(
-            std::sqrt(alpaka::getPtrNative(memBufHostA)[i]) + std::sqrt(alpaka::getPtrNative(memBufHostB)[i]));
+        auto const correctResult(std::sqrt(memBufHostA[i]) + std::sqrt(memBufHostB[i]));
         auto const absDiff = (val - correctResult);
         if(absDiff > std::numeric_limits<Val>::epsilon())
         {

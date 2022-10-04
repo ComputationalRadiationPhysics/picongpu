@@ -27,21 +27,6 @@ constexpr auto memset_value(int c) -> T
     return t;
 }
 
-template<typename TElem, typename TQueue, typename TExtent>
-auto allocAsyncBufIfSupported(TQueue const& queue, TExtent const& extent)
-    -> alpaka::Buf<alpaka::Dev<TQueue>, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>
-{
-    using Idx = alpaka::Idx<TExtent>;
-    if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<TQueue>, alpaka::Dim<TExtent>>)
-    {
-        return alpaka::allocAsyncBuf<TElem, Idx>(queue, extent);
-    }
-    else
-    {
-        return alpaka::allocBuf<TElem, Idx>(alpaka::getDev(queue), extent);
-    }
-}
-
 // 0- and 1- dimensional space
 using Idx = std::size_t;
 using Dim1D = alpaka::DimInt<1u>;
@@ -64,13 +49,13 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     HostQueue hostQueue(host);
 
     // host buffer
-    auto h_buffer1 = alpaka::allocBuf<int, Idx>(host, Vec1D{Idx{42}});
+    auto h_buffer1 = alpaka::allocMappedBufIfSupported<alpaka::Pltf<Device>, int, Idx>(host, Vec1D{Idx{42}});
     INFO(
         "host buffer allocated at " << alpaka::getPtrNative(h_buffer1) << " with "
                                     << alpaka::getExtentProduct(h_buffer1) << " element(s)");
 
     // async host buffer
-    auto h_buffer2 = allocAsyncBufIfSupported<int>(hostQueue, Vec1D{Idx{42}});
+    auto h_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(hostQueue, Vec1D{Idx{42}});
     INFO(
         "second host buffer allocated at " << alpaka::getPtrNative(h_buffer2) << " with "
                                            << alpaka::getExtentProduct(h_buffer2) << " element(s)");
@@ -112,7 +97,7 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
                                       << alpaka::getExtentProduct(d_buffer1) << " element(s)");
 
     // async or second sync device buffer
-    auto d_buffer2 = allocAsyncBufIfSupported<int>(deviceQueue, Vec1D{Idx{42}});
+    auto d_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(deviceQueue, Vec1D{Idx{42}});
     INFO(
         "second device buffer allocated at " << alpaka::getPtrNative(d_buffer2) << " with "
                                              << alpaka::getExtentProduct(d_buffer2) << " element(s)");

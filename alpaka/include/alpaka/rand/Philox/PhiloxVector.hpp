@@ -92,10 +92,6 @@ namespace alpaka::rand::engine
             nextVector();
         }
 
-        ALPAKA_FN_HOST_ACC PhiloxVector(PhiloxVector const& other) : state{other.state}
-        {
-        }
-
         /** Get the next vector of random numbers
          *
          * @return The next vector of random numbers

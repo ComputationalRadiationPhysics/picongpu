@@ -244,84 +244,6 @@ namespace alpaka
             }
         };
 
-        //! The BufOacc device memory mapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Map<BufOacc<TElem, TDim, TIdx>, DevOacc>
-        {
-            ALPAKA_FN_HOST static auto map(BufOacc<TElem, TDim, TIdx> const& buf, DevOacc const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    throw std::runtime_error(
-                        "Mapping memory from one OpenACC device into an other OpenACC device not implemented!");
-                }
-                // If it is already the same device, nothing has to be mapped.
-            }
-        };
-        //! The BufOacc device memory unmapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufOacc<TElem, TDim, TIdx>, DevOacc>
-        {
-            ALPAKA_FN_HOST static auto unmap(BufOacc<TElem, TDim, TIdx> const& buf, DevOacc const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev)
-                {
-                    throw std::runtime_error("Unmapping memory mapped from one OpenACC device into an other OpenACC "
-                                             "device not implemented!");
-                }
-                // If it is already the same device, nothing has to be unmapped.
-            }
-        };
-        //! The BufOacc memory pinning trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Pin<BufOacc<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto pin(BufOacc<TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // No explicit pinning in OpenACC? GPU would be pinned anyway.
-            }
-        };
-        //! The BufOacc memory unpinning trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unpin<BufOacc<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto unpin(BufOacc<TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // No explicit pinning in OpenACC? GPU would be pinned anyway.
-            }
-        };
-        //! The BufOacc memory pin state trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct IsPinned<BufOacc<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto isPinned(BufOacc<TElem, TDim, TIdx> const&) -> bool
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // No explicit pinning in OpenACC? GPU would be pinned anyway.
-                return true;
-            }
-        };
-        //! The BufOacc memory prepareForAsyncCopy trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct PrepareForAsyncCopy<BufOacc<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufOacc<TElem, TDim, TIdx>&) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                // OpenACC device memory is always ready for async copy
-            }
-        };
-
         //! The BufOacc offset get trait specialization.
         template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
         struct GetOffset<TIdxIntegralConst, BufOacc<TElem, TDim, TIdx>>
@@ -339,40 +261,7 @@ namespace alpaka
             using type = TIdx;
         };
 
-        //! The BufCpu CUDA device memory mapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Map<BufCpu<TElem, TDim, TIdx>, DevOacc>
-        {
-            ALPAKA_FN_HOST static auto map(BufCpu<TElem, TDim, TIdx>& buf, DevOacc const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev) //! \TODO WTF?
-                {
-                    //   Maps the allocation into the CUDA address space.The device pointer to the memory may be
-                    //   obtained by calling cudaHostGetDevicePointer().
-                    throw std::runtime_error("Mapping host memory to OpenACC device not implemented!");
-                }
-                // If it is already the same device, nothing has to be mapped.
-            }
-        };
-        //! The BufCpu CUDA device memory unmapping trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct Unmap<BufCpu<TElem, TDim, TIdx>, DevOacc>
-        {
-            ALPAKA_FN_HOST static auto unmap(BufCpu<TElem, TDim, TIdx>& buf, DevOacc const& dev) -> void
-            {
-                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                if(getDev(buf) != dev) //! \TODO WTF?
-                {
-                    throw std::runtime_error("Mapping host memory to OpenACC device not implemented!");
-                }
-                // If it is already the same device, nothing has to be unmapped.
-            }
-        };
-
-        //! The BufCpu pointer on CUDA device get trait specialization.
+        //! The BufCpu pointer on OpenAcc device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevOacc>
         {
