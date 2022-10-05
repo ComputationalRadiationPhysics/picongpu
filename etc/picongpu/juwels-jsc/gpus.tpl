@@ -57,7 +57,7 @@
 .TBG_devicesPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi)
 
 # host memory per device
-.TBG_memPerDevice="$((180000 / $TBG_devicesPerNode))"
+.TBG_memPerDevice="$((180000 / $TBG_numHostedDevicesPerNode))"
 # host memory per node
 .TBG_memPerNode="$((TBG_memPerDevice * TBG_devicesPerNode))"
 

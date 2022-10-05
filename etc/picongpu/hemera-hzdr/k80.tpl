@@ -65,7 +65,7 @@
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
 
 # host memory per gpu
-.TBG_memPerGPU="$((238000 / $TBG_gpusPerNode))"
+.TBG_memPerGPU="$((238000 / $TBG_numHostedGPUPerNode))"
 # host memory per node
 .TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
 
