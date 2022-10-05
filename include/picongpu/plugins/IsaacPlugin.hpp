@@ -342,7 +342,7 @@ namespace picongpu
                     local_grid_coord.x + guarding[0],
                     local_grid_coord.y + guarding[1],
                     local_grid_coord.z + guarding[2]);
-                const auto& superCell = pb[0].getSuperCell(superCellIdx);
+                auto& superCell = pb[0].getSuperCell(superCellIdx);
                 size_t size = superCell.getNumParticles();
                 FramePtr currentFrame = pb[0].getFirstFrame(superCellIdx);
                 return ParticleIterator<featureDim, ParticlesBoxType>(size, pb[0], currentFrame, frameSize);

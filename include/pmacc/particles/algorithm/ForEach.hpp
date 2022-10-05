@@ -179,7 +179,7 @@ namespace pmacc::particles::algorithm
                 constexpr bool isSupportedOrder = std::is_same_v<Reverse, T_Order> || std::is_same_v<Forward, T_Order>;
                 static_assert(isSupportedOrder, "Unsupported order policy");
 
-                auto const& superCell = m_particlesBox.getSuperCell(m_superCellIdx);
+                auto& superCell = m_particlesBox.getSuperCell(m_superCellIdx);
                 uint32_t const numParticlesInSupercell = superCell.getNumParticles();
 
                 // end kernel if we have no particles
@@ -292,7 +292,7 @@ namespace pmacc::particles::algorithm
 
             DINLINE uint32_t numParticles() const
             {
-                auto const& superCell = m_particlesBox.getSuperCell(m_superCellIdx);
+                auto& superCell = m_particlesBox.getSuperCell(m_superCellIdx);
                 return superCell.getNumParticles();
             }
         };

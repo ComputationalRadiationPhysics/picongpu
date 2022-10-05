@@ -83,7 +83,7 @@ namespace picongpu
                     T_EstimateBox estimateBox) const
                 {
                     auto const supercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
-                    auto const& supercell = electronBox.getSuperCell(supercellIdx);
+                    auto& supercell = electronBox.getSuperCell(supercellIdx);
                     if(supercell.getNumParticles() >= minMacroparticlesPerSupercell)
                         process(acc, electronBox, supercellIdx, estimateBox);
                 }

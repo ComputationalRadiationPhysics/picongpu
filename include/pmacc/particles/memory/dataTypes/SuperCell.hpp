@@ -66,13 +66,25 @@ namespace pmacc
             mustShiftVal = value;
         }
 
-        HDINLINE uint32_t getSizeLastFrame() const
+        HDINLINE uint32_t getSizeLastFrame()
+#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1 && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
+            /* ROCm 5.2.0 producing particle loss in KernelShiftParticles if this method is defined as `const`.
+             * see: https://github.com/ComputationalRadiationPhysics/picongpu/issues/4305
+             */
+            volatile
+#endif
         {
             constexpr uint32_t frameSize = math::CT::volume<typename T_FrameType::SuperCellSize>::type::value;
             return numParticles ? ((numParticles - 1u) % frameSize + 1u) : 0u;
         }
 
-        HDINLINE uint32_t getNumParticles() const
+        HDINLINE uint32_t getNumParticles()
+#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1 && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
+            /* ROCm 5.2.0 producing particle loss in KernelShiftParticles if this method is defined as `const`.
+             * see: https://github.com/ComputationalRadiationPhysics/picongpu/issues/4305
+             */
+            volatile
+#endif
         {
             return numParticles;
         }
