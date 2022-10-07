@@ -45,7 +45,6 @@ namespace picongpu
 {
     namespace SI
     {
-
         /** Duration of one timestep
          *  unit: seconds */
         constexpr float_64 DELTA_T_SI = 1.79e-16 * 0.86;
