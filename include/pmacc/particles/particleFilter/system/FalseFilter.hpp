@@ -38,8 +38,8 @@ namespace pmacc
         {
         }
 
-        template<class FRAME>
-        bool operator()(FRAME& frame, lcellId_t id)
+        template<class T_Particle>
+        bool operator()(T_Particle const& particle)
         {
             return false;
         }

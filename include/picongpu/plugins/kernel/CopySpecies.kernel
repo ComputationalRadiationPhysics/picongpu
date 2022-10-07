@@ -136,7 +136,7 @@ namespace picongpu
                         auto parSrc = (srcFramePtr[idx]);
                         storageOffsetCtx[idx] = -1;
                         // count particle in frame
-                        if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, idx))
+                        if(parSrc[multiMask_] == 1 && filter(parSrc))
                             if(accParFilter(acc, parSrc))
                                 storageOffsetCtx[idx]
                                     = kernel::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});

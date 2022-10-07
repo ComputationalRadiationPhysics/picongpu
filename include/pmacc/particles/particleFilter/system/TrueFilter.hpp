@@ -32,8 +32,8 @@ namespace pmacc
     public:
         HDINLINE TrueFilter() = default;
 
-        template<class FRAME>
-        HDINLINE bool operator()(FRAME&, lcellId_t)
+        template<class T_Particle>
+        HDINLINE bool operator()(T_Particle const& particle)
         {
             return true;
         }
