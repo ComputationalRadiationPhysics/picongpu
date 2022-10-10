@@ -200,7 +200,7 @@ TEMPLATE_LIST_TEST_CASE("FenceTest", "[fence]", TestAccs)
 
     auto const numElements = Idx{2ul};
     auto const extent = alpaka::Vec<Dim, Idx>{numElements};
-    auto vars_host = alpaka::allocBuf<int, Idx>(host, extent);
+    auto vars_host = alpaka::allocMappedBufIfSupported<Pltf, int, Idx>(host, extent);
     auto vars_dev = alpaka::allocBuf<int, Idx>(dev, extent);
     vars_host[0] = 1;
     vars_host[1] = 2;

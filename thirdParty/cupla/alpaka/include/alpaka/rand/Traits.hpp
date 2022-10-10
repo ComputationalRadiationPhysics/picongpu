@@ -83,7 +83,9 @@ namespace alpaka::rand
             template<typename TRand, typename TSfinae = void>
             struct CreateDefault;
         } // namespace trait
-        //! \return A default random number generator engine.
+        //! \return A default random number generator engine. Its type is guaranteed to be trivially copyable.
+        //!         Except HIP accelerator for HIP versions below 5.2 as its internal state was not trivially copyable.
+        //!         The limitation was discussed in PR #1778.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TRand>
         ALPAKA_FN_HOST_ACC auto createDefault(

@@ -41,11 +41,12 @@ namespace alpaka
                     using Idx = typename alpaka::trait::IdxType<TAcc>::type;
 
                     // Defines using's for alpaka-buffer.
-                    using DevAcc = alpaka::Dev<TAcc>;
                     using DevHost = alpaka::DevCpu;
                     using PltfHost = alpaka::Pltf<DevHost>;
-
                     using BufHost = alpaka::Buf<DevHost, TData, Dim, Idx>;
+
+                    using DevAcc = alpaka::Dev<TAcc>;
+                    using PltfAcc = alpaka::Pltf<DevAcc>;
                     using BufAcc = alpaka::Buf<DevAcc, TData, Dim, Idx>;
 
                     DevHost devHost;
@@ -57,7 +58,6 @@ namespace alpaka
                     TData* const pHostBuffer;
                     TData* const pDevBuffer;
 
-
                     // This constructor cant be used,
                     // because BufHost and BufAcc need to be initialised.
                     Buffer() = delete;
@@ -65,7 +65,7 @@ namespace alpaka
                     // Constructor needs to initialize all Buffer.
                     Buffer(const DevAcc& devAcc)
                         : devHost{alpaka::getDevByIdx<PltfHost>(0u)}
-                        , hostBuffer{alpaka::allocBuf<TData, Idx>(devHost, Tcapacity)}
+                        , hostBuffer{alpaka::allocMappedBufIfSupported<PltfAcc, TData, Idx>(devHost, Tcapacity)}
                         , devBuffer{alpaka::allocBuf<TData, Idx>(devAcc, Tcapacity)}
                         , pHostBuffer{alpaka::getPtrNative(hostBuffer)}
                         , pDevBuffer{alpaka::getPtrNative(devBuffer)}

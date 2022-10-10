@@ -135,10 +135,6 @@ namespace alpaka::rand::engine
             advanceState();
         }
 
-        ALPAKA_FN_HOST_ACC PhiloxSingle(PhiloxSingle const& other) : state{other.state}
-        {
-        }
-
         /** Get the next random number
          *
          * @return The next random number

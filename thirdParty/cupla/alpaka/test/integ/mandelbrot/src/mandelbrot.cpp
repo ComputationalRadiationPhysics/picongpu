@@ -308,8 +308,8 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
               << ", accelerator: " << alpaka::getAccName<Acc>() << ", kernel: " << typeid(kernel).name()
               << ", workDiv: " << workDiv << ")" << std::endl;
 
-    // allocate host memory
-    auto bufColorHost = alpaka::allocBuf<Val, Idx>(devHost, extent);
+    // allocate host memory, potentially pinned for faster copy to/from the accelerator.
+    auto bufColorHost = alpaka::allocMappedBufIfSupported<PltfAcc, Val, Idx>(devHost, extent);
 
     // Allocate the buffer on the accelerator.
     auto bufColorAcc = alpaka::allocBuf<Val, Idx>(devAcc, extent);
