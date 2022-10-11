@@ -68,7 +68,7 @@ cS_this_dir=$(cd `dirname $0` && pwd)
         caseId=0;
     else
         # cmakeFlags file is available '-t` option can be used
-        $caseOption="-t $caseId"
+        caseOption="-t $caseId"
     fi
 
     param_folder="$cS_tmpRun_path/params/$cS_example_name/cmakePreset_$caseId"
