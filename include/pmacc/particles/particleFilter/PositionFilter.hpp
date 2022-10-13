@@ -61,16 +61,17 @@ namespace pmacc
                 return offset;
             }
 
-            template<class FRAME>
-            HDINLINE bool operator()(FRAME& frame, lcellId_t id)
+            template<class T_Particle>
+            HDINLINE bool operator()(T_Particle const& particle)
             {
-                DataSpace<dim> localCellIdx = DataSpaceOperations<dim>::template map<typename FRAME::SuperCellSize>(
-                    (uint32_t) (frame[id][localCellIdx_]));
+                DataSpace<dim> localCellIdx
+                    = DataSpaceOperations<dim>::template map<typename T_Particle::SuperCellSize>(
+                        (uint32_t) (particle[localCellIdx_]));
                 DataSpace<dim> pos = this->superCellIdx + localCellIdx;
                 bool result = true;
                 for(uint32_t d = 0; d < dim; ++d)
                     result = result && (this->offset[d] <= pos[d]) && (pos[d] < this->max[d]);
-                return Base::operator()(frame, id) && result;
+                return Base::operator()(particle) && result;
             }
         };
 

@@ -126,7 +126,7 @@ namespace pmacc
                                 localIdxs[particleIdx] = -1;
                                 auto parSrc = (srcFramePtr[particleIdx]);
                                 /* Check if particle exists and is not filtered */
-                                if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, particleIdx))
+                                if(parSrc[multiMask_] == 1 && filter(parSrc))
                                     if(accParFilter(
                                            1, /* @todo this is a hack, please add a alpaka accelerator here*/
                                            parSrc))

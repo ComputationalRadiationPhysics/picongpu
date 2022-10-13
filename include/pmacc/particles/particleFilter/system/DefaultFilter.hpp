@@ -36,10 +36,10 @@ namespace pmacc
     public:
         HDINLINE DefaultFilter() = default;
 
-        template<class FRAME>
-        HDINLINE bool operator()(FRAME& frame, lcellId_t id)
+        template<class T_Particle>
+        HDINLINE bool operator()(T_Particle const& particle)
         {
-            return (!filterActive) || Base::operator()(frame, id);
+            return (!filterActive) || Base::operator()(particle);
         }
 
         /*disable or enable filter

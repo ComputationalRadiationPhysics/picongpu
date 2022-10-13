@@ -26,6 +26,7 @@
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/memory/buffers/GridBuffer.hpp"
 #include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/particles/algorithm/ForEach.hpp"
 #include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
 #include "pmacc/particles/particleFilter/FilterFactory.hpp"
 #include "pmacc/particles/particleFilter/PositionFilter.hpp"
@@ -67,38 +68,26 @@ namespace pmacc
             T_Mapping const mapper,
             T_ParticleFilter parFilter) const
         {
-            using Frame = typename T_PBox::FrameType;
-            using FramePtr = typename T_PBox::FramePtr;
             constexpr uint32_t dim = T_Mapping::Dim;
-            constexpr uint32_t frameSize = math::CT::volume<typename Frame::SuperCellSize>::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
-            PMACC_SMEM(acc, frame, FramePtr);
             PMACC_SMEM(acc, counter, int);
-            PMACC_SMEM(acc, particlesInSuperCell, lcellId_t);
 
-            using SuperCellSize = typename T_Mapping::SuperCellSize;
-
-            DataSpace<dim> const threadIndex(cupla::threadIdx(acc));
-            auto const workerIdx
-                = static_cast<uint32_t>(DataSpaceOperations<dim>::template map<SuperCellSize>(threadIndex));
-
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
             DataSpace<dim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))));
 
             auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-            onlyMaster(
-                [&]()
-                {
-                    frame = pb.getLastFrame(superCellIdx);
-                    particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-                    counter = 0;
-                });
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+
+            onlyMaster([&]() { counter = 0; });
 
             cupla::__syncthreads(acc);
 
-            if(!frame.isValid())
-                return; // end kernel if we have no frames
+            // end kernel if we have no particles
+            if(!forEachParticle.hasParticles())
+                return;
             filter.setSuperCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
 
             auto accParFilter = parFilter(
@@ -106,36 +95,19 @@ namespace pmacc
                 superCellIdx - mapper.getGuardingSuperCells(),
                 lockstep::Worker<numWorkers>{workerIdx});
 
-            auto forEachParticle = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
-
-            while(frame.isValid())
-            {
-                forEachParticle(
-                    [&](uint32_t const linearIdx)
+            forEachParticle(
+                acc,
+                [&counter, &filter, &accParFilter](auto const& accelerator, auto& particle)
+                {
+                    bool const useParticle = filter(particle);
+                    if(useParticle)
                     {
-                        if(linearIdx < particlesInSuperCell)
-                        {
-                            bool const useParticle = filter(*frame, linearIdx);
-                            if(useParticle)
-                            {
-                                auto parSrc = (frame[linearIdx]);
-                                if(accParFilter(acc, parSrc))
-                                    kernel::atomicAllInc(acc, &counter, ::alpaka::hierarchy::Threads{});
-                            }
-                        }
-                    });
+                        if(accParFilter(accelerator, particle))
+                            kernel::atomicAllInc(accelerator, &counter, ::alpaka::hierarchy::Threads{});
+                    }
+                });
 
-                cupla::__syncthreads(acc);
-
-                onlyMaster(
-                    [&]()
-                    {
-                        frame = pb.getPreviousFrame(frame);
-                        particlesInSuperCell = frameSize;
-                    });
-
-                cupla::__syncthreads(acc);
-            }
+            cupla::__syncthreads(acc);
 
             onlyMaster(
                 [&]()
