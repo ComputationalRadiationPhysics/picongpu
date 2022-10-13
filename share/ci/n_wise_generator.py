@@ -101,7 +101,9 @@ def is_valid_combination(row):
         # hipcc is only valid in one combination
         if is_hip:
             if is_hipcc and is_clang:
-                if v_hip == 4.3 and v_compiler == 13:
+                if 4.3 <= v_hip < 5.0 and v_compiler == 13:
+                    return True
+                if 5.0 <= v_hip < 6.0 and v_compiler == 14:
                     return True
             return False
 
@@ -128,7 +130,8 @@ def is_valid_combination(row):
                 return True
             if v_cuda == 10.1 and v_compiler >= 9:
                 return True
-            if v_cuda >= 11.0 and v_compiler >= 11:
+            # CUDA 11.4 is the last container called '*cuda114-clang'
+            if 11.0 <= v_cuda <= 11.4 and v_compiler >= 11:
                 return True
 
             return False
@@ -151,7 +154,8 @@ def is_valid_combination(row):
                 # for C++17 support CUDA >= 11 is required
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
-                if v_cuda >= 11.1 and v_compiler <= 10:
+                # CUDA 11.4 is the last container called '*cuda114-clang'
+                if 11.1 <= v_cuda <= 11.4 and v_compiler <= 10:
                     return True
 
             return False
@@ -194,9 +198,11 @@ compilers.append(hip_clang_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("hip", 4.3),
+backends = [("hip", 4.3), ("hip", 4.5), ("hip", 5.0),
+            ("hip", 5.1), ("hip", 5.2),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
+            ("cuda", 11.3), ("cuda", 11.4),
             ("omp2b", ), ("serial", )]
 
 boost_libs_all = ["1.74.0", "1.75.0"]
