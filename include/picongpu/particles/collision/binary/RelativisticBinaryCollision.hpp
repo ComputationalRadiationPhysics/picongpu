@@ -22,7 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/collision/binary/RelativisticBinaryCollision.def"
-#include "picongpu/unitless/collision.unitless"
 
 #include <pmacc/random/distributions/Uniform.hpp>
 
