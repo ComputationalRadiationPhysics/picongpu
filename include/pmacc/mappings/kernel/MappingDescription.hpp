@@ -120,11 +120,6 @@ namespace pmacc
                 SuperCellSize::toRT() * guardingSuperCells);
         }
 
-        HINLINE DataSpace<DIM> getGlobalSuperCells() const
-        {
-            return Environment<DIM>::get().GridController().getGpuNodes() * (gridSuperCells - 2 * guardingSuperCells);
-        }
-
         HDINLINE bool operator==(MappingDescription const& other)
         {
             return (gridSuperCells == other.gridSuperCells) && (guardingSuperCells == other.guardingSuperCells);
