@@ -185,8 +185,6 @@ namespace picongpu
                     shadowgram = vec2r(n_x, vec1r(n_y));
 
                     //printf("min lambda= %e, max lambda = %e \n", params::min_lambda, params::max_lambda);
-                    printf("probe omega = %e \n", params::probe_omega);
-                    printf("tbp omega = %e \n", params::delta_omega);
                     printf("min omega wf = %e, max omega wf = %e \n", params::omega_min_wf, params::omega_max_wf);
                     printf("min omega = %e, max omega = %e \n", params::omega_min, params::omega_max);
 
@@ -446,7 +444,7 @@ namespace picongpu
                 }
 
             private:
-                //! Initialize fftw memory things, supposed to be called once per plugin loop
+                //! Initialize fftw memory things, supposed to be called once at the start of the plugin loop
                 void init_fftw()
                 {
                     std::cout << "init fftw" << std::endl;
@@ -468,9 +466,9 @@ namespace picongpu
                     std::cout << "fftw inited" << std::endl;
                 }
 
-                /** Store fields in helper class with proper resolution and fixed Yee offset
+                /** Store fields in helper class with proper resolution and fixed Yee offset in (k_x, k_y, \omega)-domain
                  *
-                 * @param o
+                 * @param o omega index from trimmed array in plugin
                  * @param fieldIndex value from 0 to 3 (Ex, Ey, Bx, By)
                  * @param masksApplied have masks been applied in Fourier space yet
                  */
@@ -534,6 +532,12 @@ namespace picongpu
                     }
                 }
 
+                /** Store fields in helper class with proper resolution and fixed Yee offset in (x, y, \omega)-domain directly 
+                 * after loading the field
+                 *
+                 * @param o omega index from trimmed array in plugin
+                 * @param fieldIndex value from 0 to 3 (Ex, Ey, Bx, By)
+                 */
                 void writeIntermediateFile(int o, int fieldIndex)
                 {
                     int const omegaIndex = get_omega_index(o);
@@ -581,7 +585,6 @@ namespace picongpu
 
                         outFile.close();
                     }
-                    //}
                 }
 
                 //! Return minimum omega index for trimmed arrays in omega dimension
