@@ -204,9 +204,9 @@ namespace pmacc
                                     && !(linearIdx != 0u && linearIdx >= active_threads);
                                 if(isActiveCtx[idx])
                                     func(acc, sharedMem[linearIdx], sharedMem[linearIdx + chunk_count]);
-
-                                cupla::__syncthreads(acc);
                             });
+
+                        cupla::__syncthreads(acc);
                     }
                 }
             };
