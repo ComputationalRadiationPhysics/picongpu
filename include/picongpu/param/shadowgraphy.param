@@ -64,41 +64,7 @@ namespace picongpu
             }
 
 
-            namespace fourierhelper
-            {   
-                
-                HINLINE int get_omega_min_index(int duration){
-                    float_64 const actual_step = params::t_res * SI::DELTA_T_SI;
-                    int const actual_n = duration / params::t_res;
-                    int tmpindex = math::floor(actual_n * ((actual_step * params::omega_min_wf) / (2.0 * PI) + 0.5));
-                    int retindex = tmpindex > actual_n / 2 + 1 ? tmpindex : actual_n / 2 + 1;
-                    return retindex;
-                }
-
-                HINLINE int get_omega_max_index(int duration){
-                    float_64 const actual_step = params::t_res * SI::DELTA_T_SI;
-                    int const actual_n = duration / params::t_res;
-                    int tmpindex = math::ceil(actual_n * ((actual_step * params::omega_max_wf) / (2.0 * PI) + 0.5));
-                    int retindex =  tmpindex <= actual_n ? tmpindex : actual_n;
-                    return retindex + 1;
-                }
-
-                HINLINE int get_n_omegas(int duration){
-                    return 2 * (get_omega_max_index(duration) - get_omega_min_index(duration));
-                }
-
-                HINLINE int get_omega_index(int i, int t_n){
-                    int const n_omegas = get_n_omegas(t_n) / 2;
-                    if (i < n_omegas){
-                        return t_n / params::t_res - get_omega_min_index(t_n) - n_omegas + i + 1;//(get_omega_min_index() % n_omegas) + i + 1;
-                    } else {
-                        return (i % n_omegas) + get_omega_min_index(t_n);
-                    }
-                }
-
-                
-                
-            }
+            
 
 
             namespace masks
@@ -126,7 +92,15 @@ namespace picongpu
 
                     return x_factor * y_factor;
                 }
-
+                
+                /** Time domain window function that will be multiplied with the electric and magnetic fields 
+                 * in time-position domain to reduce ringing artifacts in the omega domain after the DFT.
+                 * The implemented window function is a Tukey-Window with sinusoidal slopes.
+                 *
+                 * @param t timestep from 0 to t_n
+                 * @param t_n amount of total time steps for time integration from plugin
+                 * @return value between 0.0 and 1.0
+                 */
                 HINLINE float_64 t_wf(int t, int t_n){
                     float_64 t_factor = 1.0;
 
@@ -143,23 +117,21 @@ namespace picongpu
                 }
 
 
-
+                /** Calculate filter for electric and magnetic field in Fourier space.
+                 * The function returns 1 for frequencies between `params::omega_min` and `params::omega_max`. 
+                 * Furthermore, sinusoidal slopes are implemented like a Tukey window function, that reduce
+                 * ringing artifacts before the inverse DFT back to time domain.
+                 *
+                 * @param omeganonabs frequency in SI units
+                 * @return value between 0.0 and 1.0
+                 */
                 HINLINE float_64 frequency_filter_f(float_64 omeganonabs){
-                    /**
-                      * o is integer for omega coordinate from 0 to n_omega
-                      */
-                    //float_64 const max_omega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / params::min_lambda;
-                    //float_64 const min_omega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / params::max_lambda;
-                    //float_64 const omega = math::abs(fourierhelper::omega(o));
 
                     float_64 const omega = math::abs(omeganonabs);
-
-                    
 
                     if(params::ndo_wf == 0.0)
                     {                        
                         if( omega >= params::omega_min && omega <= params::omega_max ){
-                            //std::cout << "a";
                             return 1.0;
                         } else {
                             return 0.0;
@@ -181,6 +153,16 @@ namespace picongpu
                     }
                 }
 
+                /** Calculate filter for electric and magnetic field in Fourier space.
+                 * The function mimics the Numerical Aperture of lenses in an experimental setup by returning
+                 * 0 for side-scattered light. Additionally, sinusoidal slopes are implemented like a Tukey 
+                 * window function to reduce ringing artifacts before the inverse DFT back to position domain.
+                 *
+                 * @param kx perpendicular k vector component in SI units
+                 * @param ky perpendicular k vector component in SI units
+                 * @param omega frequency in SI units
+                 * @return value between 0.0 and 1.0
+                 */
                 HINLINE float_64 numerical_aperture_f(float_64 kx, float_64 ky, float_64 omega){
 
                     float_64 const kperp = math::sqrt(kx * kx + ky * ky);
@@ -199,12 +181,14 @@ namespace picongpu
                     }
                 }
 
+                /** Calculate filter which will be multiplied to the electric and magnetic field in Fourier space.
+                 *
+                 * @param kx perpendicular k vector component in SI units
+                 * @param ky perpendicular k vector component in SI units
+                 * @param omega frequency in SI units
+                 * @return value between 0.0 and 1.0
+                 */
                 HINLINE float_64 mask_f(float_64 kx, float_64 ky, float_64 omega){
-                    /** 
-                      * i is integer for x coordinate from 0 to n_x
-                      * j is integer for j coordinate from 0 to n_y
-                      * o is integer for omega coordinate from 0 to n_omega
-                      */
                     return frequency_filter_f(omega) * numerical_aperture_f(kx, ky, omega);
                 }
             }

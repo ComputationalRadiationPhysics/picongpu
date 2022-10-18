@@ -79,8 +79,14 @@ namespace picongpu
                 int yTotalMinIndex, yTotalMaxIndex;
 
             public:
-                // Constructor of the shadowgraphy helper class
-                // To be called at the first time step when the shadowgraphy time integration starts
+                /** Constructor of shadowgraphy helper class
+                 * To be called at the first timestep when the shadowgraphy time integration starts
+                 *
+                 * @param currentStep current simulation timestep
+                 * @param slicePoint value between 0.0 and 1.0 where the fields are extracted
+                 * @param focusPos focus position of lens system, e.g. the propagation distance of the vacuum propagator
+                 * @param duration duration of time extraction in simulation time steps
+                 */
                 Helper(int currentStep, float slicePoint, float focusPos, int duration):
                     duration(duration)
                 {
@@ -90,9 +96,9 @@ namespace picongpu
                     // Same amount of omegas as ts 
                     // @TODO int division
                     // n_omegas = params::omega_n;
-                    omega_min_index = fourierhelper::get_omega_min_index(duration);
-                    omega_max_index = fourierhelper::get_omega_max_index(duration);
-                    n_omegas = fourierhelper::get_n_omegas(duration); //omega_max_index - omega_min_index;
+                    omega_min_index = get_omega_min_index();
+                    omega_max_index = get_omega_max_index();
+                    n_omegas = get_n_omegas(); //omega_max_index - omega_min_index;
                     
                     printf("minindex: %d, maxindex: %d, n: %d \n", omega_min_index, omega_max_index, n_omegas);
 
@@ -187,8 +193,9 @@ namespace picongpu
                     init_fftw();
                 }
 
-                // Destructor of the shadowgraphy helper class
-                // To be called at the last time step when the shadowgraphy time integration ends
+                /** Destructor of the shadowgraphy helper class
+                 * To be called at the last time step when the shadowgraphy time integration ends
+                 */
                 ~Helper()
                 {
                     fftw_free(fftw_in_f);
@@ -197,9 +204,18 @@ namespace picongpu
                     fftw_free(fftw_out_b);
                 }
 
-                // Store fields in helper class with proper resolution
+                /** Store fields in helper class with proper resolution and fixed Yee offset
+                 *
+                 * @tparam F Field
+                 * @param t current plugin timestep (simulation timestep - plugin start)
+                 * @param currentStep current simulation timestep
+                 * @param fieldBuffer1 2D array of field at slicePos
+                 * @param fieldBuffer2 2D array of field at slicePos with 1 offset (to fix Yee offset)
+                 */
                 template<typename F>
-                void store_field(int t, int currentStep, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer1, pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer2)
+                void store_field(int t, int currentStep, 
+                                 pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer1, 
+                                 pmacc::container::HostBuffer<float3_64, 2>* fieldBuffer2)
                 {   
                     int const currentSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
                     printf("currentslidecount = %d\n", currentSlideCount);
@@ -238,12 +254,18 @@ namespace picongpu
                     }
                 }
 
+                /** Time domain window function that will be multiplied with the electric and magnetic fields 
+                 * in time-position domain to reduce ringing artifacts in the omega domain after the DFT.
+                 * The implemented window function is a Tukey-Window with sinusoidal slopes.
+                 *
+                 * @param t timestep from 0 to t_n
+                 */
                 void calculate_dft(int t)
                 {
                     float_64 const tSI = t * int(params::t_res) * float_64(picongpu::SI::DELTA_T_SI);
 
                     for(int o = 0; o < n_omegas; ++o){
-                        int const omegaIndex = fourierhelper::get_omega_index(o, duration);
+                        int const omegaIndex = get_omega_index(o);
                         float_64 const omegaSI = omega(omegaIndex);
 
                         complex_64 const phase = complex_64(0, omegaSI * tSI);
@@ -260,12 +282,18 @@ namespace picongpu
                     }
                 }
 
+                /** Propagate the electric and magnetic field from the extraction position 
+                 * to the focus position of the virtual lens system. This is done by Fourier transforming the field
+                 * with a FFT into $(k_\perp, \omega)$-domain, applying the defined masks in the .param files, multiplying with 
+                 * the propagator $\exp^{i \Delta z k \sqrt{\omega^2/c^2 - k_x^2 - k_y^2}}$ and transforming it back into
+                 * $(x, y, \omega)$-domain.
+                 */
                 void propagate_fields()
                 {
                     for(int fieldIndex = 0; fieldIndex < 4; fieldIndex++){
                         for(int o = 0; o < n_omegas; ++o){
                             
-                            int const omegaIndex = fourierhelper::get_omega_index(o, duration);
+                            int const omegaIndex = get_omega_index(o);
                             float_64 const omegaSI = omega(omegaIndex);
                             float_64 const kSI = omegaSI / float_64(SI::SPEED_OF_LIGHT_SI) ;
                             printf("omegaIndex: %d \n", omegaIndex);
@@ -337,26 +365,29 @@ namespace picongpu
                             // yoink fields from fftw array
                             for(int i = 0; i < n_x; ++i){
                                 for(int j = 0; j < n_y; ++j){
-                                int const index = i + j * n_x;
+                                    int const index = i + j * n_x;
 
-                                if(fieldIndex == 0){
-                                    ExOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                } else if(fieldIndex == 1){
-                                    EyOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                } else if(fieldIndex == 2){
-                                    BxOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                } else if(fieldIndex == 3){
-                                    ByOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
-                                }
+                                    if(fieldIndex == 0){
+                                        ExOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                    } else if(fieldIndex == 1){
+                                        EyOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                    } else if(fieldIndex == 2){
+                                        BxOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                    } else if(fieldIndex == 3){
+                                        ByOmegaPropagated[i][j][o] = complex_64(fftw_out_b[index][0], fftw_out_b[index][1]);
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
+                /** Perform an inverse Fourier transform into time domain of both the electric and magnetic field
+                 * and then perform a time integration to generate a 2D image out of the 3D array.
+                 */
                 void calculate_shadowgram()
                 {
-                    // Loop through all omega
+                    // Loop over all timesteps
                     for(int t = 0; t < nt; ++t){
                         float_64 const tSI = t * int(params::t_res) * float_64(picongpu::SI::DELTA_T_SI);
 
@@ -368,8 +399,9 @@ namespace picongpu
                         vec2c Bx_tmpsum = vec2c(n_x, vec1c(n_y));
                         vec2c By_tmpsum = vec2c(n_x, vec1c(n_y));
 
+                        // DFT loop to time domain
                         for(int o = 0; o < n_omegas; ++o){
-                            int const omegaIndex = fourierhelper::get_omega_index(o, duration);
+                            int const omegaIndex = get_omega_index(o);
                             float_64 const omegaSI = omega(omegaIndex);
                                 
                             complex_64 const phase = complex_64(0, -tSI * omegaSI);
@@ -398,22 +430,23 @@ namespace picongpu
                     }
                 }
 
-                vec2r get_shadowgram()
-                {
+                //! Get shadowgram as a 2D image
+                vec2r get_shadowgram() const{
                     return shadowgram;
                 }
 
-
-                int get_n_x(){
+                //! Get amount of shadowgram pixels in x direction
+                int get_n_x() const{
                     return n_x;
                 }
 
-                int get_n_y(){
+                //! Get amount of shadowgram pixels in y direction
+                int get_n_y() const{
                     return n_y;
                 }
 
             private:
-                // Initialize fftw memory things, supposed to be called once per plugin loop
+                //! Initialize fftw memory things, supposed to be called once per plugin loop
                 void init_fftw()
                 {
                     std::cout << "init fftw" << std::endl;
@@ -435,10 +468,15 @@ namespace picongpu
                     std::cout << "fftw inited" << std::endl;
                 }
 
-
+                /** Store fields in helper class with proper resolution and fixed Yee offset
+                 *
+                 * @param o
+                 * @param fieldIndex value from 0 to 3 (Ex, Ey, Bx, By)
+                 * @param masksApplied have masks been applied in Fourier space yet
+                 */
                 void writeFourierFile(int o, int fieldIndex, bool masksApplied)
                 {
-                    int const omegaIndex = fourierhelper::get_omega_index(o, duration);
+                    int const omegaIndex = get_omega_index(o);
                     std::ofstream outFile;
                     std::ostringstream fileName;
 
@@ -498,7 +536,7 @@ namespace picongpu
 
                 void writeIntermediateFile(int o, int fieldIndex)
                 {
-                    int const omegaIndex = fourierhelper::get_omega_index(o, duration);
+                    int const omegaIndex = get_omega_index(o);
                     std::ofstream outFile;
                     std::ostringstream fileName;
 
@@ -546,24 +584,74 @@ namespace picongpu
                     //}
                 }
 
-                float_64 omega(int i){
-                    int const actual_n = nt;
-                    float const actual_step = dt;
-                    return 2.0 * PI  * (float(i) - float(actual_n) / 2.0) / float(actual_n) / actual_step;
-                }
-                
-                // kx so that it is the proper kx for FFTs
-                float_64 kx(int i){ // @TODO x_n
-                    int const actual_n = n_x;
-                    float const actual_step = params::x_res * SI::CELL_WIDTH_SI;
-                    return 2.0 * PI  * (float(i) - float(actual_n) / 2.0) / float(actual_n) / actual_step;
+                //! Return minimum omega index for trimmed arrays in omega dimension
+                int get_omega_min_index() const {
+                    float_64 const actual_step = params::t_res * SI::DELTA_T_SI;
+                    int const tmpindex = math::floor(nt * ((actual_step * params::omega_min_wf) / (2.0 * PI) + 0.5));
+                    int retindex = tmpindex > nt / 2 + 1 ? tmpindex : nt / 2 + 1;
+                    return retindex;
                 }
 
-                // ky so that it is the proper ky for FFTs
-                float_64 ky(int i){ // @TODO y_n
-                    int const actual_n = n_y;
+                //! Return maximum omega index for trimmed arrays in omega dimension
+                int get_omega_max_index() const {
+                    float_64 const actual_step = params::t_res * SI::DELTA_T_SI;
+                    int const tmpindex = math::ceil(nt * ((actual_step * params::omega_max_wf) / (2.0 * PI) + 0.5));
+                    int retindex =  tmpindex <= nt ? tmpindex : nt;
+                    return retindex + 1;
+                }
+
+                //! Return size of trimmed arrays in omega dimension
+                int get_n_omegas() const {
+                    return 2 * (get_omega_max_index() - get_omega_min_index());
+                }
+
+                /** Return omega index for a matrix that doesn't remove the zero-valued frequencies.
+                 * Used for properly treating raw Fourier space data of this plugin.
+                 *
+                 * @param i frequency index for trimmed plugin array
+                 *
+                 * @return index for non-trimmed array in frequency domain
+                 */
+                int get_omega_index(int i) const {
+                    int const n_omegas = get_n_omegas() / 2;
+                    if (i < n_omegas){
+                        return duration / params::t_res - get_omega_min_index() - n_omegas + i + 1;//(get_omega_min_index() % n_omegas) + i + 1;
+                    } else {
+                        return (i % n_omegas) + get_omega_min_index();
+                    }
+                }
+                
+                /** angular frequency in SI units
+                 *
+                 * @param i frequency index for trimmed plugin array
+                 *
+                 * @return angular frequency in SI units
+                 */
+                float omega(int i) const {
+                    float const actual_step = dt;
+                    return 2.0 * PI  * (float(i) - float(nt) / 2.0) / float(nt) / actual_step;
+                }
+                
+                /** x component of k vector in SI units for FFTs
+                 *
+                 * @param i k vector index
+                 *
+                 * @return x component of k vector in SI units
+                 */
+                float kx(int i) const { 
+                    float const actual_step = params::x_res * SI::CELL_WIDTH_SI;
+                    return 2.0 * PI  * (float(i) - float(n_x) / 2.0) / float(n_x) / actual_step;
+                }
+
+                /** y component of k vector in SI units for FFTs
+                 *
+                 * @param i k vector index
+                 *
+                 * @return y component of k vector in SI units
+                 */
+                float ky(int i) const { 
                     float const actual_step = params::y_res * SI::CELL_HEIGHT_SI;
-                    return 2.0 * PI  * (float(i) - float(actual_n) / 2.0) / float(actual_n) / actual_step;
+                    return 2.0 * PI  * (float(i) - float(n_y) / 2.0) / float(n_y) / actual_step;
                 }
             }; // class Helper
         } // namespace shadowgraphy

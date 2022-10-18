@@ -262,6 +262,7 @@ FFTW3
 """""
 - required for Shadowgraphy plugin
 - *from tarball:*
+
   - ``mkdir -p ~/src ~/lib``
   - ``cd ~/src``
   - ``wget -O fftw-3.3.10.tar.gz http://fftw.org/fftw-3.3.10.tar.gz``
@@ -269,6 +270,7 @@ FFTW3
   - ``make``
   - ``make install``
 - *environment:* (assumes install from source in ``$HOME/lib/fftw-3.3.10``)
+
   - ``export FFTW3_ROOT =$HOME/lib/fftw-3.3.10
   - ``export LD_LIBRARY_PATH=$FFTW3_ROOT/lib:$LD_LIBRARY_PATH``
 

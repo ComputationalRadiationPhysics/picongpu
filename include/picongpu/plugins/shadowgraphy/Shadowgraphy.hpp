@@ -116,9 +116,7 @@ namespace picongpu
 
                 float focuspos;
 
-                float_X mwstart;
                 int duration;
-                int movingwindowstop;
 
                 bool isMaster = false;
                 bool debugoutput = false;
@@ -163,10 +161,6 @@ namespace picongpu
                         po::value<float_X>(&this->slicePoint)->multitoken(),
                         "slice point 0.0 <= x <= 1.0");
                     desc.add_options()(
-                        (this->pluginPrefix + ".mwstart").c_str(),
-                        po::value<float_X>(&this->mwstart)->multitoken(),
-                        "mwstart");
-                    desc.add_options()(
                         (this->pluginPrefix + ".focuspos").c_str(),
                         po::value<float_X>(&this->focuspos)->multitoken(),
                         "focus position relative to slice point in microns");
@@ -174,10 +168,6 @@ namespace picongpu
                         (this->pluginPrefix + ".duration").c_str(),
                         po::value<int>(&this->duration)->multitoken(),
                         "nt");
-                    desc.add_options()(
-                        (this->pluginPrefix + ".movingwindowstop").c_str(),
-                        po::value<int>(&this->movingwindowstop)->multitoken(),
-                        "when moving window stops timestep");
 #else
                     desc.add_options()((this->pluginPrefix).c_str(), "plugin disabled [compiled without dependency FFTW]");
 #endif
