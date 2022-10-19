@@ -1,0 +1,107 @@
+/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
+ *                     Fabia Dietrich, Klaus Steiniger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/incidentField/profiles/BaseParam.def"
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            namespace profiles
+            {
+                namespace defaults
+                {
+                    struct DispersiveLaserParam : public BaseParam
+                    {
+                        /** Beam waist: distance from the axis where the pulse intensity (E^2)
+                         *              decreases to its 1/e^2-th part,
+                         *              at the focus position of the laser
+                         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                         *                             [   1.17741    ]
+                         *
+                         * unit: meter
+                         */
+                        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                         * WATCH OUT! Dispersion parameters may lead to pulse lenghtening
+                         * Please ensure to choose a value high enough to cover the whole pulse,
+                         * otherwise the Fourier Transformation will misbehave.
+                         *
+                         *  unit: none
+                         */
+                        static constexpr float_64 PULSE_INIT = 20.0;
+
+                        // Dispersion Parameters
+
+                        /** SD: spatial dispersion in focus
+                         * = d x_0 / d Omega
+                         *
+                         * unit: m * s
+                         */
+                        static constexpr float_64 SD_SI = 0.0;
+
+                        /** AD: angular dispersion in focus
+                         * d theta / d Omega, e.g.
+                         * AD = tan(alpha_tilt) / Omega_0
+                         *
+                         * unit: rad * s
+                         */
+                        static constexpr float_64 AD_SI = 0.0;
+
+                        /** GDD: Dispersion of group velocity in focus
+                         *     = (d^2 phi / d Omega^2)
+                         * with phi being the spectral laser phase.
+                         * The pulse's electric field in frequency domain is therefore
+                         * ~ exp(-i * 1/2 * GDD*(Omega - Omega_0)^2)
+                         *
+                         * unit: s^2
+                         */
+                        static constexpr float_64 GDD_SI = 0.0;
+
+                        /** TOD: third order dispersion in focus
+                         *     = (d^3 phi / d Omega^3)
+                         * with phi being the spectral laser phase.
+                         * The pulse's electric field in frequency domain is therefore
+                         * ~ exp(-i * 1/6 * TOD*(Omega - Omega_0)^3)
+                         *
+                         * unit: s^3
+                         */
+                        static constexpr float_64 TOD_SI = 0.0;
+                    };
+                } // namespace defaults
+
+                /** Dispersive laser profile with finite pulse length tag
+                 *
+                 * @tparam T_Params class parameter to configure the dispersive laser profile,
+                 *                  see members of defaults::DispersiveLaserParam
+                 *                  for required members
+                 */
+                template<typename T_Params = defaults::DispersiveLaserParam>
+                struct DispersiveLaser;
+            } // namespace profiles
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu

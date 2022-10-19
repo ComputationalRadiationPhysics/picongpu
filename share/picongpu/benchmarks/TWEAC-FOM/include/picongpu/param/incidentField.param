@@ -22,6 +22,8 @@
  * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
+ *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ * in focus. That is, SD, AD, GDD, and TOD, respectively.
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
  *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
