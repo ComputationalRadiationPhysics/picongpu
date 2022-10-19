@@ -35,13 +35,13 @@ namespace pmacc
                 template<typename Dst, typename Src>
                 HDINLINE void operator()(Dst& dst, const Src& src) const
                 {
-                    dst += sqrt(src);
+                    dst += math::sqrt(src);
                 }
 
                 template<typename Dst, typename Src, typename T_Acc>
                 HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
                 {
-                    dst += sqrt(src);
+                    dst += math::sqrt(acc, src);
                 }
             };
         } // namespace operation
