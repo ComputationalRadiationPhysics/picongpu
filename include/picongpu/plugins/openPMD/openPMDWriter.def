@@ -95,6 +95,7 @@ namespace picongpu
             std::string fileInfix;
 
             std::unique_ptr<AbstractJsonMatcher> jsonMatcher;
+            std::string jsonRestartParams;
 
             std::unique_ptr<toml::DataSources> tomlDataSources;
 

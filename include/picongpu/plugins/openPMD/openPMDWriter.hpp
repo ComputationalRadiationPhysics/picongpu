@@ -149,7 +149,7 @@ namespace picongpu
                      * The openPMD plugin only supports configuring writing routines via JSON.
                      * Reading routines get an empty JSON set.
                      */
-                    at == ::openPMD::Access::READ_ONLY ? "{}" : jsonMatcher->getDefault());
+                    at == ::openPMD::Access::READ_ONLY ? jsonRestartParams : jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -232,7 +232,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "_%06T"};
 
             plugins::multi::Option<std::string> jsonConfig
-                = {"json", "advanced (backend) configuration for openPMD in JSON format", "{}"};
+                = {"json", "advanced (backend) configuration for openPMD in JSON format (used when writing)", "{}"};
+
+            plugins::multi::Option<std::string> jsonRestartConfig
+                = {"jsonRestart",
+                   "advanced (backend) configuration for openPMD in JSON format (used when reading from a checkpoint)",
+                   "{}"};
 
             plugins::multi::Option<std::string> dataPreparationStrategy
                 = {"dataPreparationStrategy",
@@ -290,8 +295,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 tomlSources.registerHelp(desc, masterPrefix + prefix);
                 fileName.registerHelp(desc, masterPrefix + prefix);
 
-                expandHelp(desc, "");
                 selfRegister = true;
+                expandHelp(desc, "");
             }
 
             void expandHelp(
@@ -302,6 +307,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 fileNameInfix.registerHelp(desc, masterPrefix + prefix);
                 jsonConfig.registerHelp(desc, masterPrefix + prefix);
                 dataPreparationStrategy.registerHelp(desc, masterPrefix + prefix);
+                if(!selfRegister)
+                {
+                    jsonRestartConfig.registerHelp(desc, masterPrefix + prefix);
+                }
             }
 
             void validateOptions() override
@@ -428,6 +437,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     strategyString = help.dataPreparationStrategy.get(id);
                     jsonString = help.jsonConfig.get(id);
+                    jsonRestartParams = help.jsonRestartConfig.get(id);
                     break;
                 }
             }
@@ -460,6 +470,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
             log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % jsonMatcher->getDefault();
+            if(jsonRestartParams != "{}")
+            {
+                log<picLog::INPUT_OUTPUT>("openPMD: global JSON restart config: %1%") % jsonRestartParams;
+            }
 
             {
                 if(strategyString == "adios" || strategyString == "doubleBuffer")
