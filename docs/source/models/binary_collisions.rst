@@ -55,9 +55,8 @@ To enable collisions between the Ions and Electrons with a constant coulomb loga
                    using float_COLL = float_64;
                } // namespace precision
 
-               constexpr bool calculateScreeningLength = false;
                constexpr bool debugScreeningLength = false;
-               using CollisionScreeningSpecies = VectorAllSpecies;
+               using CollisionScreeningSpecies = MakeSeq_t<>;
 
                struct Params
                {
@@ -118,9 +117,9 @@ For example the previous setup with automatic calculation for the inter-species 
             Collider<relativistic::RelativisticCollisionConstLog<Params2>, Pairs2>
         >;
 The dynamic logarithm implementation uses a Debye length that is pre-calculated once for all colliders on each time step.
-So, whenever there is at least one collider with the ``RelativisticCollisionDynamicLog`` present in the ``CollisionPipeline`` this precalculation needs to be enabled by setting ``constexpr bool calculateScreeningLength = true;``.
-The species included in the Debye length calculation are set by default to ``using CollisionScreeningSpecies = VectorAllSpecies;``.
-This can be changed to an arbitrary list of (filtered) species, see the ``CollisionsBeamRelaxation`` test for reference.
+So, whenever there is at least one collider with the ``RelativisticCollisionDynamicLog`` present in the ``CollisionPipeline`` this precalculation needs to be enabled by adding Species to the ``CollisionScreeningSpecies`` sequence.
+To include all species just set ``using CollisionScreeningSpecies = VectorAllSpecies;``.
+But, this can be an arbitrary list of (filtered) species, see the ``CollisionsBeamRelaxation`` test for reference.
 
 .. note::
     The Debye length calculation requires at least 2 ``FieldTmp`` slots enabled in ``memory.param`` when ``CollisionScreeningSpecies`` has only one element and at least 3 otherwise.

@@ -47,6 +47,11 @@ namespace picongpu
             {
                 HINLINE InterCollision()
                 {
+                    constexpr auto numScreeningSpecies
+                        = picongpu::particles::collision::CollisionScreeningSpecies::size::value;
+                    PMACC_CASSERT_MSG(
+                        _CollisionScreeningSpecies_can_not_be_empty_when_dynamic_coulomb_log_is_used,
+                        (useScreeningLength && numScreeningSpecies > 0u) || !useScreeningLength);
                     if constexpr(useScreeningLength)
                     {
                         constexpr uint32_t slot = screeningLengthSlot;

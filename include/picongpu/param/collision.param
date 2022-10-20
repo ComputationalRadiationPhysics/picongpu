@@ -33,8 +33,6 @@ namespace picongpu
                 using float_COLL = float_64;
             } // namespace precision
 
-            // needs to be enabled if a collider with dynamic coulomb log calculation is used
-            constexpr bool calculateScreeningLength = false;
             // write average (over all cells) Debye length for all timesteps to a file
             constexpr bool debugScreeningLength = false;
 
@@ -42,7 +40,7 @@ namespace picongpu
              *
              * Elements must be either a species types or a misc::SpeciesFilter specialization.
              */
-            using CollisionScreeningSpecies = VectorAllSpecies;
+            using CollisionScreeningSpecies = MakeSeq_t<>;
             /** CollisionPipeline defines in which order species interact with each other
              *
              * the functors are called in order (from first to last functor)

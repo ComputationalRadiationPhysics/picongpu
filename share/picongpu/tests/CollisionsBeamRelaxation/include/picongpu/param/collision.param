@@ -40,14 +40,9 @@ namespace picongpu
                 using float_COLL = float_64;
             } // namespace precision
 
-#if(PARAM_DYNAMIC_LOG == 1)
-            constexpr bool calculateScreeningLength = true;
-#else
-            constexpr bool calculateScreeningLength = false;
-#endif
-            constexpr bool debugScreeningLength = true;
             using namespace picongpu::plugins;
-            // not ideal, better would be to combine filters with an AND but it is ok
+
+#if(PARAM_DYNAMIC_LOG == 1)
             using CollisionScreeningSpecies = MakeSeq_t<
                 misc::SpeciesFilter<IonsMore, filter::LowerXPosition>,
                 misc::SpeciesFilter<ElectronsMore, filter::LowerXPosition>,
@@ -55,6 +50,12 @@ namespace picongpu
                 misc::SpeciesFilter<ElectronsMore, filter::MiddleXPosition>,
                 misc::SpeciesFilter<ElectronsLess, filter::UpperXPosition>,
                 misc::SpeciesFilter<IonsMore, filter::UpperXPosition>>;
+#else
+            using CollisionScreeningSpecies = MakeSeq_t<>;
+#endif
+            constexpr bool debugScreeningLength = true;
+            // not ideal, better would be to combine filters with an AND but it is ok
+
 
 
             struct Params

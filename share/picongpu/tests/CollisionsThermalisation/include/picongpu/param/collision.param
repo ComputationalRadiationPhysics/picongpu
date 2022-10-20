@@ -43,9 +43,9 @@ namespace picongpu
             } // namespace precision
 
 #if(PARAM_DYNAMIC_LOG_INTER == 1 || PARAM_DYNAMIC_LOG_INTRA == 1)
-            constexpr bool calculateScreeningLength = true;
+            using CollisionScreeningSpecies = VectorAllSpecies;
 #else
-            constexpr bool calculateScreeningLength = false;
+            using CollisionScreeningSpecies = MakeSeq_t<>;
 #endif
             constexpr bool debugScreeningLength = true;
             using CollisionScreeningSpecies = VectorAllSpecies;

@@ -56,7 +56,6 @@ namespace picongpu
                         using type = RelativisticCollisionConstLogImpl<T_Param, ifDebug>;
                     };
                     static constexpr bool ifDebug_m = ifDebug;
-
                     HINLINE RelativisticCollisionConstLogImpl(uint32_t currentStep){};
 
                     using AccFunctorImpl = acc::RelativisticCollision<acc::ConstCoulombLog<T_Param>, ifDebug>;
