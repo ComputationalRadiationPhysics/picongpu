@@ -29,7 +29,6 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/math/operation/SqrtAdd.hpp>
 #include <pmacc/meta/ForEach.hpp>
 
 #include <cstdint>
@@ -43,21 +42,36 @@ namespace picongpu
     {
         namespace stage
         {
-            //! For each implementation for calling collisions with a loop index
-            struct CallColliders
+            namespace collision
             {
-                template<std::size_t... I>
-                HINLINE void operator()(
-                    std::index_sequence<I...>,
-                    std::shared_ptr<DeviceHeap> const& deviceHeap,
-                    uint32_t const& currentStep)
+                //! For each implementation for calling collisions with a loop index
+                struct CallColliders
                 {
-                    (particles::collision::CallCollider<
-                         typename bmpl::at_c<particles::collision::CollisionPipeline, I>::type,
-                         I>{}(deviceHeap, currentStep),
-                     ...);
-                }
-            };
+                    template<std::size_t... I>
+                    HINLINE void operator()(
+                        std::index_sequence<I...>,
+                        std::shared_ptr<DeviceHeap> const& deviceHeap,
+                        uint32_t const& currentStep)
+                    {
+                        (particles::collision::CallCollider<
+                             typename bmpl::at_c<particles::collision::CollisionPipeline, I>::type,
+                             I>{}(deviceHeap, currentStep),
+                         ...);
+                    }
+                };
+
+                template<typename T_Type>
+                struct Sqrt1DimVector
+                {
+                    using result = T_Type;
+
+                    HDINLINE result operator()(T_Type& vector) const
+                    {
+                        using ScalarType = typename T_Type::type;
+                        return T_Type(math::sqrt(static_cast<ScalarType>(vector)));
+                    }
+                };
+            } // namespace collision
 
             //! Functor for the stage of the PIC loop performing particle collision
             class Collision
@@ -87,7 +101,8 @@ namespace picongpu
 
                         // enforce a lower cutoff for the Debye length equal to the mean inter atomic distance
                         // of the species with the highest density
-                        const float_X maxDens = dens[0] * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                        const float_X maxDens
+                            = dens[0] * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
                         const float_X val = 2.0_X * pmacc::math::Pi<float_X>::doubleValue / 3.0_X * maxDens;
                         const float_X rMin = 1.0_X / math::cbrt(val);
                         const float_X rMin2 = rMin * rMin;
@@ -141,27 +156,20 @@ namespace picongpu
                         // write Debye length averaged over the whole simulation volume to a text file for debugging
                         if constexpr(particles::collision::debugScreeningLength)
                         {
-                            device::Reduce deviceReduce(1024);
-                            using D1Box = DataBoxDim1Access<typename GridBuffer<float1_X, simDim>::DataBoxType>;
-                            D1Box d1access(
-                                screeningLengthSquared->getDeviceDataBox().shift(
-                                    screeningLengthSquared->getGridLayout().getGuard()),
+                            algorithms::GlobalReduce globalReduce(1024);
+                            using SqrtBox = DataBoxUnaryTransform<
+                                typename GridBuffer<float1_X, simDim>::DataBoxType,
+                                collision::Sqrt1DimVector>;
+                            DataBoxDim1Access<GridBuffer<float1_X, simDim>::DataBoxType> d1access(
+                                SqrtBox(screeningLengthSquared->getDeviceDataBox().shift(
+                                    screeningLengthSquared->getGridLayout().getGuard())),
                                 screeningLengthSquared->getGridLayout().getDataSpaceWithoutGuarding());
-                            int elements = screeningLengthSquared->getGridLayout()
-                                               .getDataSpaceWithoutGuarding()
-                                               .productOfComponents();
-                            auto sumRank = deviceReduce(pmacc::math::operation::SqrtAdd(), d1access, elements);
+                            const auto elements = static_cast<uint32_t>(screeningLengthSquared->getGridLayout()
+                                                                            .getDataSpaceWithoutGuarding()
+                                                                            .productOfComponents());
+                            auto reducedValue = globalReduce(pmacc::math::operation::Add(), d1access, elements);
 
-                            // calculate the average of square roots
-                            float1_X reducedValue;
                             mpi::MPIReduce reduce{};
-                            reduce(
-                                pmacc::math::operation::Add(),
-                                &reducedValue,
-                                &sumRank,
-                                1,
-                                mpi::reduceMethods::Reduce());
-
                             auto localCells = static_cast<uint64_t>(elements);
                             uint64_t reducedCellAmount;
                             reduce(
@@ -189,7 +197,7 @@ namespace picongpu
                     // Call all colliders
                     constexpr size_t numColliders = bmpl::size<particles::collision::CollisionPipeline>::type::value;
                     std::make_index_sequence<numColliders> indexColliders{};
-                    CallColliders{}(indexColliders, m_heap, currentStep);
+                    collision::CallColliders{}(indexColliders, m_heap, currentStep);
                 }
 
 
