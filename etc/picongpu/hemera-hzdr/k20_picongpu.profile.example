@@ -31,6 +31,7 @@ module load cmake/3.20.2
 module load libpng/1.6.35
 module load pngwriter/0.7.0
 module load adios2/2.7.1-cuda112-kepler
+module load openpmd/0.14.5-cuda112-kepler
 
 # Environment #################################################################
 #
