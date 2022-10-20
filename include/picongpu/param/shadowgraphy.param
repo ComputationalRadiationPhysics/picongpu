@@ -20,11 +20,11 @@ namespace picongpu
                 //     domega * omega_n * fwhm_probe[t] / 2 pi > 0.441 (for gauss)
 
                 /** time domain parameters
-                 * 
+                 *
                  * t_res : The time integration part of the plugin will be called each t_res'ed step
                  *  until t_n / t_res steps after the start of the integration in the .cfg file.
                  *  Make sure that the Nyquist-Shannon theorem is fulfilled `t_res * dt * c < lambda_probe / 2`
-                 * t_wf_buffer : A Tukey-like, time-domain window function with sinusoidal slopes will be applied 
+                 * t_wf_buffer : A Tukey-like, time-domain window function with sinusoidal slopes will be applied
                  *  if t_wf_buffer != 0. The sinusoidal slopes have a duration of t_wf_buffer / t_res in PIConGPU
                  *  timesteps.
                  */
@@ -33,13 +33,12 @@ namespace picongpu
 
                 /** position domain parameters
                  *
-                 * x_res : transverse resolution of shadowgram 
-                 * y_res : transverse resolution of shadowgram 
-                 * plugin_wf_buffer_x : A Tukey-like, time-domain window function with sinusoidal slopes will be applied 
-                 *  if plugin_wf_buffer_x != 0. The slope length is plugin_wf_buffer_x.
-                 * plugin_wf_buffer_y : A Tukey-like, time-domain window function with sinusoidal slopes will be applied 
-                 *  if plugin_wf_buffer_y != 0. The slope length is plugin_wf_buffer_y.
-                 *  cells.
+                 * x_res : transverse resolution of shadowgram
+                 * y_res : transverse resolution of shadowgram
+                 * plugin_wf_buffer_x : A Tukey-like, time-domain window function with sinusoidal slopes will be
+                 * applied if plugin_wf_buffer_x != 0. The slope length is plugin_wf_buffer_x. plugin_wf_buffer_y : A
+                 * Tukey-like, time-domain window function with sinusoidal slopes will be applied if plugin_wf_buffer_y
+                 * != 0. The slope length is plugin_wf_buffer_y. cells.
                  */
                 constexpr unsigned int x_res = 1;
                 constexpr unsigned int y_res = 1;
@@ -52,7 +51,7 @@ namespace picongpu
                 /** Fourier space parameters
                  *
                  * NA : size of the numerical aperture to remove side-scattered light
-                 * NA_wf_thingy : Sinusoidal slopes over NA * k < k_perp < (NA * k + NA_wf_thingy * k_probe) 
+                 * NA_wf_thingy : Sinusoidal slopes over NA * k < k_perp < (NA * k + NA_wf_thingy * k_probe)
                  *  in the numerical aperture
                  *
                  * omega_min : Smallest frequency for plateau value in band-pass filter
@@ -68,20 +67,19 @@ namespace picongpu
                 constexpr float d_lambda = 20e-9;
                 constexpr float d_lambda_wf = 20e-9;
 
-                constexpr float omega_min = 2.0 * PI * SI::SPEED_OF_LIGHT_SI /( probe_wavelength + d_lambda );
-                constexpr float omega_max = 2.0 * PI * SI::SPEED_OF_LIGHT_SI /( probe_wavelength - d_lambda );
+                constexpr float omega_min = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (probe_wavelength + d_lambda);
+                constexpr float omega_max = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (probe_wavelength - d_lambda);
 
-                constexpr float omega_min_wf = 2.0 * PI * SI::SPEED_OF_LIGHT_SI /( probe_wavelength + d_lambda + d_lambda_wf);
-                constexpr float omega_max_wf = 2.0 * PI * SI::SPEED_OF_LIGHT_SI /( probe_wavelength - d_lambda - d_lambda_wf);
-            }
-
-
-            
+                constexpr float omega_min_wf
+                    = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (probe_wavelength + d_lambda + d_lambda_wf);
+                constexpr float omega_max_wf
+                    = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (probe_wavelength - d_lambda - d_lambda_wf);
+            } // namespace params
 
 
             namespace masks
             {
-                /** Time domain window function that will be multiplied with the electric and magnetic fields 
+                /** Time domain window function that will be multiplied with the electric and magnetic fields
                  * in time-position domain to reduce ringing artifacts in the omega domain after the DFT.
                  * The implemented window function is a Tukey-Window with sinusoidal slopes.
                  *
@@ -91,27 +89,42 @@ namespace picongpu
                  * @param plugin_y_n amount of cells in y direction for resulting shadowgram
                  * @return value between 0.0 and 1.0
                  */
-                HINLINE float_64 position_wf(int i, int j, int plugin_x_n, int plugin_y_n){
+                HINLINE float_64 position_wf(int i, int j, int plugin_x_n, int plugin_y_n)
+                {
                     float_64 x_factor = 1.0;
 
-                    if (i <= params::plugin_wf_buffer_x){
-                        x_factor = ( 1.0 - math::cos(PI * i / float_64(params::plugin_wf_buffer_x)) ) / 2.0;
-                    }  else if ((i > (plugin_x_n - params::plugin_wf_buffer_x))){
-                        x_factor =  math::cos(PI * (i - (plugin_x_n - params::plugin_wf_buffer_x)) / float_64(params::plugin_wf_buffer_x)) / 2.0 + 0.5;
+                    if(i <= params::plugin_wf_buffer_x)
+                    {
+                        x_factor = (1.0 - math::cos(PI * i / float_64(params::plugin_wf_buffer_x))) / 2.0;
+                    }
+                    else if((i > (plugin_x_n - params::plugin_wf_buffer_x)))
+                    {
+                        x_factor = math::cos(
+                                       PI * (i - (plugin_x_n - params::plugin_wf_buffer_x))
+                                       / float_64(params::plugin_wf_buffer_x))
+                                / 2.0
+                            + 0.5;
                     }
 
                     float_64 y_factor = 1.0;
 
-                    if (j <= params::plugin_wf_buffer_y){
-                        y_factor = ( 1.0 - math::cos(PI * j / float_64(params::plugin_wf_buffer_y)) ) / 2.0;
-                    }  else if ((j > (plugin_y_n - params::plugin_wf_buffer_y))){
-                        y_factor =  math::cos(PI * (j - (plugin_y_n - params::plugin_wf_buffer_y)) / float_64(params::plugin_wf_buffer_y)) / 2.0 + 0.5;
+                    if(j <= params::plugin_wf_buffer_y)
+                    {
+                        y_factor = (1.0 - math::cos(PI * j / float_64(params::plugin_wf_buffer_y))) / 2.0;
+                    }
+                    else if((j > (plugin_y_n - params::plugin_wf_buffer_y)))
+                    {
+                        y_factor = math::cos(
+                                       PI * (j - (plugin_y_n - params::plugin_wf_buffer_y))
+                                       / float_64(params::plugin_wf_buffer_y))
+                                / 2.0
+                            + 0.5;
                     }
 
                     return x_factor * y_factor;
                 }
-                
-                /** Time domain window function that will be multiplied with the electric and magnetic fields 
+
+                /** Time domain window function that will be multiplied with the electric and magnetic fields
                  * in time-position domain to reduce ringing artifacts in the omega domain after the DFT.
                  * The implemented window function is a Tukey-Window with sinusoidal slopes.
                  *
@@ -119,16 +132,20 @@ namespace picongpu
                  * @param t_n amount of total time steps for time integration from plugin
                  * @return value between 0.0 and 1.0
                  */
-                HINLINE float_64 t_wf(int t, int t_n){
+                HINLINE float_64 t_wf(int t, int t_n)
+                {
                     float_64 t_factor = 1.0;
 
                     int t_max = t_n / params::t_res;
                     float buffer_res = params::t_wf_buffer / params::t_res;
 
-                    if (t < buffer_res ){
-                        t_factor = ( 1.0 - math::cos(PI * t / float_64(buffer_res)) ) / 2.0;
-                    }  else if ((t > (t_max - buffer_res))){
-                        t_factor =  math::cos(PI * (t - (t_max - buffer_res)) / float_64(buffer_res)) / 2.0 + 0.5;
+                    if(t < buffer_res)
+                    {
+                        t_factor = (1.0 - math::cos(PI * t / float_64(buffer_res))) / 2.0;
+                    }
+                    else if((t > (t_max - buffer_res)))
+                    {
+                        t_factor = math::cos(PI * (t - (t_max - buffer_res)) / float_64(buffer_res)) / 2.0 + 0.5;
                     }
 
                     return t_factor;
@@ -136,34 +153,41 @@ namespace picongpu
 
 
                 /** Calculate filter for electric and magnetic field in Fourier space.
-                 * The function returns 1 for frequencies between `params::omega_min` and `params::omega_max`. 
+                 * The function returns 1 for frequencies between `params::omega_min` and `params::omega_max`.
                  * Furthermore, sinusoidal slopes are implemented like a Tukey window function, that reduce
                  * ringing artifacts before the inverse DFT back to time domain.
                  *
                  * @param omeganonabs frequency in SI units
                  * @return value between 0.0 and 1.0
                  */
-                HINLINE float_64 frequency_filter_f(float_64 omeganonabs){
-
+                HINLINE float_64 frequency_filter_f(float_64 omeganonabs)
+                {
                     float_64 const omega = math::abs(omeganonabs);
 
                     float_64 const d_omega_min = params::omega_min - params::omega_min_wf;
                     float_64 const d_omega_max = params::omega_max_wf - params::omega_max;
 
-                    if((omega >= params::omega_min) && (omega <= params::omega_max)) {  
+                    if((omega >= params::omega_min) && (omega <= params::omega_max))
+                    {
                         return 1.0;
-                    } else if ((omega > params::omega_min_wf) && (omega < params::omega_min)) {
-                        return ( 1.0 - math::cos(PI * (omega - params::omega_min + d_omega_min) / d_omega_min) ) / 2.0;
-                    } else if ((omega > params::omega_max) && (omega < params::omega_max_wf)) {
-                        return ( 1.0 + math::cos(PI * (omega - params::omega_max) / d_omega_max) ) / 2.0;
-                    } else {
+                    }
+                    else if((omega > params::omega_min_wf) && (omega < params::omega_min))
+                    {
+                        return (1.0 - math::cos(PI * (omega - params::omega_min + d_omega_min) / d_omega_min)) / 2.0;
+                    }
+                    else if((omega > params::omega_max) && (omega < params::omega_max_wf))
+                    {
+                        return (1.0 + math::cos(PI * (omega - params::omega_max) / d_omega_max)) / 2.0;
+                    }
+                    else
+                    {
                         return 0.0;
                     }
                 }
 
                 /** Calculate filter for electric and magnetic field in Fourier space.
                  * The function mimics the Numerical Aperture of lenses in an experimental setup by returning
-                 * 0 for side-scattered light. Additionally, sinusoidal slopes are implemented like a Tukey 
+                 * 0 for side-scattered light. Additionally, sinusoidal slopes are implemented like a Tukey
                  * window function to reduce ringing artifacts before the inverse DFT back to position domain.
                  *
                  * @param kx perpendicular k vector component in SI units
@@ -171,8 +195,8 @@ namespace picongpu
                  * @param omega frequency in SI units
                  * @return value between 0.0 and 1.0
                  */
-                HINLINE float_64 numerical_aperture_f(float_64 kx, float_64 ky, float_64 omega){
-
+                HINLINE float_64 numerical_aperture_f(float_64 kx, float_64 ky, float_64 omega)
+                {
                     float_64 const kperp = math::sqrt(kx * kx + ky * ky);
                     float_64 const k = math::abs(omega / SI::SPEED_OF_LIGHT_SI);
 
@@ -180,11 +204,16 @@ namespace picongpu
 
                     float_64 const NAk = params::NA * k;
 
-                    if(kperp <= NAk ){
+                    if(kperp <= NAk)
+                    {
                         return 1.0;
-                    } else if(kperp <= (NAk + wf_offset)) {
-                        return ( 1.0 - math::cos(PI * (kperp - NAk - wf_offset) / wf_offset) ) / 2.0;
-                    } else {
+                    }
+                    else if(kperp <= (NAk + wf_offset))
+                    {
+                        return (1.0 - math::cos(PI * (kperp - NAk - wf_offset) / wf_offset)) / 2.0;
+                    }
+                    else
+                    {
                         return 0.0;
                     }
                 }
@@ -196,15 +225,16 @@ namespace picongpu
                  * @param omega frequency in SI units
                  * @return value between 0.0 and 1.0
                  */
-                HINLINE float_64 mask_f(float_64 kx, float_64 ky, float_64 omega){
+                HINLINE float_64 mask_f(float_64 kx, float_64 ky, float_64 omega)
+                {
                     return frequency_filter_f(omega) * numerical_aperture_f(kx, ky, omega);
                 }
-            }
+            } // namespace masks
             // The amount of cells to remove from each (!) side of the simulation box
             // This is necessary to remove the boundary artifacts from the PIConGPU simulation
             // constexpr unsigned int x_gap = 16;
             // constexpr unsigned int y_gap = 16;
 
-        }
-    }
-}
+        } // namespace shadowgraphy
+    } // namespace plugins
+} // namespace picongpu
