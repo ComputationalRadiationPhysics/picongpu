@@ -124,10 +124,13 @@ namespace picongpu
                 shadowgraphy::Helper* helper = nullptr;
                 pmacc::mpi::MPIReduce reduce;
 
+                bool fourieroutput = false;
+                bool intermediateoutput = false;
+
             public:
                 Shadowgraphy()
                     : pluginName("Shadowgraphy: calculate the energy density of a laser by integrating"
-                                 "the Poynting vectors of a slice over a given time interval")
+                                 "the Poynting vectors in a spatially fixed slice over a given time interval")
                     , isIntegrating(false)
                 {
                     /* register our plugin during creation */
@@ -135,12 +138,14 @@ namespace picongpu
                     pluginPrefix = "shadowgraphy";
                 }
 
+                //! Implementation of base class function. 
                 std::string pluginGetName() const override
                 {
                     return "Shadowgraphy";
                 }
 
 
+                //! Implementation of base class function. 
                 void pluginRegisterHelp(po::options_description& desc) override
                 {
 #if(PIC_ENABLE_FFTW3 == 1) 
@@ -168,11 +173,20 @@ namespace picongpu
                         (this->pluginPrefix + ".duration").c_str(),
                         po::value<int>(&this->duration)->multitoken(),
                         "nt");
+                    desc.add_options()(
+                        (this->pluginPrefix + ".fourieroutput").c_str(),
+                        po::value<bool>(&fourieroutput)->zero_tokens(),
+                        "optional output: E and B fields in (kx, ky, omega) Fourier space");
+                    desc.add_options()(
+                        (this->pluginPrefix + ".intermediateoutput").c_str(),
+                        po::value<bool>(&intermediateoutput)->zero_tokens(),
+                        "optional output: E and B fields in (x, y, omega) Fourier space");
 #else
                     desc.add_options()((this->pluginPrefix).c_str(), "plugin disabled [compiled without dependency FFTW]");
 #endif
                 }
 
+                //! Implementation of base class function. 
                 void pluginLoad() override
                 {
                     /* called when plugin is loaded, command line flags are available here
@@ -182,16 +196,12 @@ namespace picongpu
                         /* in case the slice point is inside of [0.0,1.0] */
                         sliceIsOK = true;
 
-                        // Time integration from param files
-                        std::cout<<"hello world what what what "<< SI::DELTA_T_SI << std::endl;
-                        std::cout<<std::stoi(this->notifyPeriod) << std::endl;
+                        /* The plugin integrates the Poynting vectors over time and must thus be called every t_res-th 
+                         * time-step of the simulation until the integration is done */
                         int startTime = std::stoi(this->notifyPeriod);
                         int endTime = std::stoi(this->notifyPeriod) + this->duration;
 
-                        std::cout<<endTime<<std::endl;
                         std::string internalNotifyPeriod = std::to_string(startTime) + ":" + std::to_string(endTime) + ":" + std::to_string(params::t_res);
-
-                        std::cout<<internalNotifyPeriod<<std::endl;
                         
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, internalNotifyPeriod);
                         namespace vec = ::pmacc::math;
@@ -209,12 +219,13 @@ namespace picongpu
                     {
                         /* in case the slice point is outside of [0.0,1.0] */
                         sliceIsOK = false;
-                        std::cerr << "In the Shadowgraphy plugin a slice point"
-                                << " (slice_point=" << slicePoint << ") is outside of [0.0, 1.0]. " << std::endl
+                        std::cerr << "In the Shadowgraphy plugin the slice point"
+                                << " (slicePoint=" << slicePoint << ") is outside of [0.0, 1.0]. " << std::endl
                                 << "The request will be ignored. " << std::endl;
                     }
                 }
-
+                
+                //! Implementation of base class function. 
                 void pluginUnload() override
                 {
                     /* called when plugin is unloaded, cleanup here */
@@ -229,15 +240,13 @@ namespace picongpu
                     this->cellDescription = cellDescription;
                 }
 
-
+                //! Implementation of base class function. 
                 void notify(uint32_t currentStep) override
                 {
                     /* notification callback for simulation step currentStep
                     * called every notifyPeriod steps */
-
                     if(sliceIsOK)
                     {
-                        
                         isMaster = reduce.hasResult(pmacc::mpi::reduceMethods::Reduce());
 
                         // First time the plugin is called:
@@ -263,7 +272,8 @@ namespace picongpu
 
                                 printf("focus: %e \n", this->focuspos * 1e-6);
 
-                                helper = new Helper(currentStep, this->slicePoint, this->focuspos * 1e-6, this->duration);
+                                helper = new Helper(currentStep, this->slicePoint, this->focuspos * 1e-6, 
+                                                    this->duration, this->fourieroutput, this->intermediateoutput);
                             }
 
 
@@ -271,6 +281,7 @@ namespace picongpu
                             isIntegrating = true;
                         }
 
+                        // convert currentStep (simulation time-step) into localStep for time domain DFT
                         int localStep = (currentStep - startTime) / params::t_res;
 
                         if (isMaster){
@@ -326,6 +337,12 @@ namespace picongpu
                     }
                 }
 
+                /* Stores the field slices from the host on the device. 2 field slices are required to adjust for the 
+                 * Yee-offset in the plugin.
+                 * https://picongpu.readthedocs.io/en/latest/models/AOFDTD.html#maxwell-s-equations-on-the-mesh
+                 * The current implementation is based on the (outdated) slice field printer printer and uses custl! 
+                 * It works, but it's not nice.
+                 */
                 template<typename Field, typename TField>
                 void storeSlice(const TField& field, int nAxis, float slicePoint, int localStep, int currentStep)
                 {

@@ -65,18 +65,19 @@ namespace picongpu
                 int n_x, n_y;
                 int omega_min_index, omega_max_index, n_omegas;
 
+                int yTotalMinIndex, yTotalMaxIndex;
+                int cellsPerGpu;
+                bool isSlidingWindowActive;
+
                 // Variables for omega calculations @TODO some initializations and bla
                 float dt;
                 int nt;
                 int duration;
 
-                int cellsPerGpu;
-
                 float propagationDistance;
 
-                bool isSlidingWindowActive;
-
-                int yTotalMinIndex, yTotalMaxIndex;
+                bool fourieroutput;
+                bool intermediateoutput;
 
             public:
                 /** Constructor of shadowgraphy helper class
@@ -87,8 +88,10 @@ namespace picongpu
                  * @param focusPos focus position of lens system, e.g. the propagation distance of the vacuum propagator
                  * @param duration duration of time extraction in simulation time steps
                  */
-                Helper(int currentStep, float slicePoint, float focusPos, int duration):
-                    duration(duration)
+                Helper(int currentStep, float slicePoint, float focusPos, int duration, bool fourieroutput, bool intermediateoutput):
+                    duration(duration),
+                    fourieroutput(fourieroutput),
+                    intermediateoutput(intermediateoutput)
                 {
                     dt = params::t_res * SI::DELTA_T_SI;
                     nt = duration / params::t_res;
@@ -317,10 +320,13 @@ namespace picongpu
 
                                 }
                             }
-                            //writeIntermediateFile(o, fieldIndex);
+                            if(intermediateoutput)
+                                writeIntermediateFile(o, fieldIndex);
 
                             fftw_execute(plan_forward);
-                            writeFourierFile(o, fieldIndex, false);
+
+                            if(fourieroutput)
+                                writeFourierFile(o, fieldIndex, false);
 
                             // put field into fftw array
                             for(int i = 0; i < n_x; ++i){
@@ -357,7 +363,9 @@ namespace picongpu
                                 }
                             }
 
-                            writeFourierFile(o, fieldIndex, true);
+                            if(fourieroutput)
+                                writeFourierFile(o, fieldIndex, true);
+                                
                             fftw_execute(plan_backward);
 
                             // yoink fields from fftw array
