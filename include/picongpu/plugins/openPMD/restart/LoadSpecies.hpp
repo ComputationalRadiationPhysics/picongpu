@@ -394,10 +394,10 @@ namespace picongpu
                 auto [fullMatches, partialMatches] = getPatchIdx(params, particleSpecies);
 
                 std::shared_ptr<uint64_t> numParticlesShared
-                    = particleSpecies.particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR]
+                    = particleSpecies.particlePatches["numParticles"]
                           .load<uint64_t>();
                 std::shared_ptr<uint64_t> numParticlesOffsetShared
-                    = particleSpecies.particlePatches["numParticlesOffset"][::openPMD::RecordComponent::SCALAR]
+                    = particleSpecies.particlePatches["numParticlesOffset"]
                           .load<uint64_t>();
                 particles.seriesFlush();
                 uint64_t* patchNumParticles = numParticlesShared.get();

@@ -294,14 +294,13 @@ namespace picongpu
                 {
                     float_64 const mass(getMassOrZero());
                     auto& massRecord = record["mass"];
-                    auto& massComponent = massRecord[::openPMD::RecordComponent::SCALAR];
                     dataSet.options = matcher.get(basename + "/mass");
-                    massComponent.resetDataset(dataSet);
-                    massComponent.makeConstant(mass);
+                    massRecord.resetDataset(dataSet);
+                    massRecord.makeConstant(mass);
 
                     auto unitMap = convertToUnitDimension(getMassOrZero.dimension());
                     massRecord.setUnitDimension(unitMap);
-                    massComponent.setUnitSI(::picongpu::sim.unit.mass());
+                    massRecord.setUnitSI(::picongpu::sim.unit.mass());
                     massRecord.setAttribute("macroWeighted", int32_t(false));
                     massRecord.setAttribute("weightingPower", float_64(1.0));
                     massRecord.setAttribute("timeOffset", float_64(0.0));
@@ -314,14 +313,13 @@ namespace picongpu
                 {
                     float_64 const charge(getChargeOrZero());
                     auto& chargeRecord = record["charge"];
-                    auto& chargeComponent = chargeRecord[::openPMD::RecordComponent::SCALAR];
                     dataSet.options = matcher.get(basename + "/charge");
-                    chargeComponent.resetDataset(dataSet);
-                    chargeComponent.makeConstant(charge);
+                    chargeRecord.resetDataset(dataSet);
+                    chargeRecord.makeConstant(charge);
 
                     auto unitMap = convertToUnitDimension(getChargeOrZero.dimension());
                     chargeRecord.setUnitDimension(unitMap);
-                    chargeComponent.setUnitSI(::picongpu::sim.unit.charge());
+                    chargeRecord.setUnitSI(::picongpu::sim.unit.charge());
                     chargeRecord.setAttribute("macroWeighted", int32_t(false));
                     chargeRecord.setAttribute("weightingPower", float_64(1.0));
                     chargeRecord.setAttribute("timeOffset", float_64(0.0));
@@ -543,10 +541,8 @@ namespace picongpu
                     ::openPMD::Dataset ds(datatype, {mpiSize});
 
                     ::openPMD::ParticlePatches particlePatches = particleSpecies.particlePatches;
-                    ::openPMD::PatchRecordComponent numParticles
-                        = particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR];
-                    ::openPMD::PatchRecordComponent numParticlesOffset
-                        = particlePatches["numParticlesOffset"][::openPMD::RecordComponent::SCALAR];
+                    ::openPMD::PatchRecordComponent numParticles = particlePatches["numParticles"];
+                    ::openPMD::PatchRecordComponent numParticlesOffset = particlePatches["numParticlesOffset"];
 
                     ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticles");
                     numParticles.resetDataset(ds);

@@ -115,7 +115,7 @@ namespace picongpu
                     log<picLog::INPUT_OUTPUT>("openPMD: Read from domain: offset=%1% size=%2%") % domain_offset
                         % local_domain_size;
                     ::openPMD::RecordComponent rc
-                        = numComponents > 1 ? mesh[name_lookup_tpl[n]] : mesh[::openPMD::RecordComponent::SCALAR];
+                        = numComponents > 1 ? mesh[name_lookup_tpl[n]] : mesh;
 
                     log<picLog::INPUT_OUTPUT>("openPMD: Read from field '%1%'") % objectName;
 
