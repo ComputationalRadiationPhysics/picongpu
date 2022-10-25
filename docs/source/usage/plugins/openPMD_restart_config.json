@@ -1,14 +1,14 @@
 {
-    "adios2": {
-      "dataset": {
-        "operators": [
-          {
-            "type": "blosc",
-            "parameters": {
-              "nthreads": 8
-            }
+  "adios2": {
+    "dataset": {
+      "operators": [
+        {
+          "type": "blosc",
+          "parameters": {
+            "nthreads": 8
           }
-        ]
-      }
+        }
+      ]
     }
   }
+}
