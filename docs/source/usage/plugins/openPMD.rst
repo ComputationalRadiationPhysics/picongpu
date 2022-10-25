@@ -101,6 +101,12 @@ A full example:
 
 .. literalinclude:: openPMD_extended_config.json
 
+The extended format is only available for configuration of the writing procedures.
+The reading procedures (i.e. for restarting from a checkpoint) can be configured via ``--checkpoint.openPMD.jsonRestart``, e.g. see the example below for configuring the number of blosc decompression threads in ADIOS2.
+Note that most sensible use cases for this command line option (including this example) require openPMD-api >= 0.15 (or a recent dev version until the 0.15 release).
+
+.. literatlinclude:: openPMD_restart_config.json
+
 Two data preparation strategies are available for downloading particle data off compute devices.
 
 * Set ``--openPMD.dataPreparationStrategy doubleBuffer`` for use of the strategy that has been optimized for use with ADIOS-based backends.
@@ -122,7 +128,8 @@ PIConGPU command line option          description
 ``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
 ``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).
 ``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).
-``--openPMD.json``                    Set backend-specific parameters for openPMD backends in JSON format.
+``--openPMD.json``                    Set backend-specific parameters for openPMD backends in JSON format. Used in writing procedures.
+``--checkpoint.openPMD.jsonRestart``  Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
 ``--openPMD.dataPreparationStrategy`` Strategy for preparation of particle data ('doubleBuffer' or 'mappedMemory'). Aliases 'adios' and 'hdf5' may be used respectively.
 ===================================== ====================================================================================================================================================
 

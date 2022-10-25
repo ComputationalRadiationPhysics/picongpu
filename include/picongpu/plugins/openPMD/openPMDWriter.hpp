@@ -146,8 +146,10 @@ namespace picongpu
                     at,
                     communicator,
                     /*
-                     * The openPMD plugin only supports configuring writing routines via JSON.
-                     * Reading routines get an empty JSON set.
+                     * The writing routines are configured via the JSON set passed
+                     * in --openPMD.json / --checkpoint.openPMD.json, or TOML parameter backend_config.
+                     * The reading routines (for restarting from a checkpoint)
+                     * are configured via --checkpoint.openPMD.jsonRestart.
                      */
                     at == ::openPMD::Access::READ_ONLY ? jsonRestartParams : jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
