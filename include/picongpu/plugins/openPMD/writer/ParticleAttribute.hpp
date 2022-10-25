@@ -187,8 +187,7 @@ namespace picongpu
 
                 for(uint32_t d = 0; d < components; d++)
                 {
-                    ::openPMD::RecordComponent recordComponent
-                        = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+                    ::openPMD::RecordComponent recordComponent = components > 1 ? record[name_lookup[d]] : record;
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
                     // ask openPMD to create a buffer for us
