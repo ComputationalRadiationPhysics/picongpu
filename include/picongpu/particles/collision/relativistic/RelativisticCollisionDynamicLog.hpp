@@ -59,7 +59,7 @@ namespace picongpu
 
                             // formula in line above eq. (22) in [Perez2012]:
                             const float_COLL minImpactParam = pmacc::math::max(
-                                HBAR * pmacc::math::Pi<float_COLL>::doubleValue
+                                static_cast<float_COLL>(HBAR) * pmacc::math::Pi<float_COLL>::doubleValue
                                     / (2._COLL * math::sqrt(v.comsMomentum0Abs2) / precision::WEIGHT_NORM_COLL),
                                 twoRadImpactParam);
 
