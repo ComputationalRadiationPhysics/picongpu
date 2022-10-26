@@ -58,8 +58,6 @@ export LD_LIBRARY_PATH=$FFTW3_ROOT/lib:$LD_LIBRARY_PATH
 
 #include <stdio.h>
 
-#include <pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp>
-
 namespace picongpu
 {
     using namespace pmacc;
@@ -113,13 +111,12 @@ namespace picongpu
                 int duration;
 
                 bool isMaster = false;
-                bool debugoutput = false;
 
                 shadowgraphy::Helper* helper = nullptr;
                 pmacc::mpi::MPIReduce reduce;
 
-                bool fourieroutput = false;
-                bool intermediateoutput = false;
+                bool fourierOutputEnabled = false;
+                bool intermediateOutputEnabled = false;
 
             public:
                 Shadowgraphy()
@@ -169,11 +166,11 @@ namespace picongpu
                         "nt");
                     desc.add_options()(
                         (this->pluginPrefix + ".fourieroutput").c_str(),
-                        po::value<bool>(&fourieroutput)->zero_tokens(),
+                        po::value<bool>(&fourierOutputEnabled)->zero_tokens(),
                         "optional output: E and B fields in (kx, ky, omega) Fourier space");
                     desc.add_options()(
                         (this->pluginPrefix + ".intermediateoutput").c_str(),
-                        po::value<bool>(&intermediateoutput)->zero_tokens(),
+                        po::value<bool>(&intermediateOutputEnabled)->zero_tokens(),
                         "optional output: E and B fields in (x, y, omega) Fourier space");
 #else
                     desc.add_options()(
@@ -192,13 +189,13 @@ namespace picongpu
                         /* in case the slice point is inside of [0.0,1.0] */
                         sliceIsOK = true;
 
-                        /* The plugin integrates the Poynting vectors over time and must thus be called every t_res-th
+                        /* The plugin integrates the Poynting vectors over time and must thus be called every tRes-th
                          * time-step of the simulation until the integration is done */
                         int startTime = std::stoi(this->notifyPeriod);
                         int endTime = std::stoi(this->notifyPeriod) + this->duration;
 
                         std::string internalNotifyPeriod = std::to_string(startTime) + ":" + std::to_string(endTime)
-                            + ":" + std::to_string(params::t_res);
+                            + ":" + std::to_string(params::tRes);
 
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, internalNotifyPeriod);
                         namespace vec = ::pmacc::math;
@@ -268,15 +265,13 @@ namespace picongpu
                                 vec::Size_t<simDim> gpuDim = (vec::Size_t<simDim>) con.getGpuNodes();
                                 vec::Size_t<simDim> globalGridSize = gpuDim * field.size();
 
-                                printf("focus: %e \n", this->focuspos * 1e-6);
-
                                 helper = new Helper(
                                     currentStep,
                                     this->slicePoint,
                                     this->focuspos * 1e-6,
                                     this->duration,
-                                    this->fourieroutput,
-                                    this->intermediateoutput);
+                                    this->fourierOutputEnabled,
+                                    this->intermediateOutputEnabled);
                             }
 
 
@@ -285,14 +280,9 @@ namespace picongpu
                         }
 
                         // convert currentStep (simulation time-step) into localStep for time domain DFT
-                        int localStep = (currentStep - startTime) / params::t_res;
+                        int localStep = (currentStep - startTime) / params::tRes;
 
-                        if(isMaster)
-                        {
-                            std::cout << "localStep: " << localStep << std::endl;
-                        }
-
-                        if(localStep != int(this->duration / params::t_res))
+                        if(localStep != int(this->duration / params::tRes))
                         {
                             namespace vec = ::pmacc::math;
                             typedef SuperCellSize BlockDim;
@@ -325,7 +315,6 @@ namespace picongpu
 
                             if(isMaster)
                             {
-                                printf("master1\n");
                                 helper->calculate_dft(localStep);
                             }
                         }
@@ -333,19 +322,14 @@ namespace picongpu
                         {
                             if(isMaster)
                             {
-                                helper->propagate_fields();
-                                printf("Fields propagated");
+                                helper->propagateFields();
                                 helper->calculate_shadowgram();
-                                printf("Shadowgram calculated");
 
                                 std::ostringstream filename;
                                 filename << this->fileName << "_" << startTime << ":" << currentStep << ".dat";
 
-                                // helper->get_shadowgram();
-
                                 writeFile(helper->get_shadowgram(), filename.str());
 
-                                std::cout << "destructor called" << std::endl;
                                 delete(helper);
                             }
                             isIntegrating = false;
@@ -399,21 +383,8 @@ namespace picongpu
 
                     algorithm::mpi::Gather<simDim> gather2(gpuGatheringZone2);
 
-                    if(debugoutput)
-                    {
-                        printf("line 349\n");
-                    }
-
-                    if(debugoutput)
-                    {
-                        printf("line 355\n");
-                    }
                     if(!gather.participate() && !gather2.participate())
                     {
-                        if(debugoutput)
-                        {
-                            printf("p1\n");
-                        }
                         return;
                     }
 
@@ -464,37 +435,12 @@ namespace picongpu
                     gather(globalBuffer1, hBuffer1, nAxis);
                     gather2(globalBuffer2, hBuffer2, nAxis);
 
-                    if(!gather2.root())
+                    if(!gather2.root() || !gather.root() )
                     {
-                        if(debugoutput)
-                        {
-                            printf("r2\n");
-                        }
                         return;
                     }
 
-                    if(debugoutput)
-                    {
-                        printf("line 381\n");
-                    }
-                    if(!gather2.root())
-                    {
-                        if(debugoutput)
-                        {
-                            printf("r3\n");
-                        }
-                        return;
-                    }
-                    if(!gather.root())
-                    {
-                        if(debugoutput)
-                        {
-                            printf("r4\n");
-                        }
-                        return;
-                    }
-
-                    helper->store_field<Field>(localStep, currentStep, &globalBuffer1, &globalBuffer2);
+                    helper->storeField<Field>(localStep, currentStep, &globalBuffer1, &globalBuffer2);
                 }
 
                 void writeFile(std::vector<std::vector<float_64>> values, std::string name)
