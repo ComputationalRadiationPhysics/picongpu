@@ -96,7 +96,7 @@ namespace picongpu
                 std::string notifyPeriod;
 
                 bool sliceIsOK;
-                int plane;
+                int plane = 2;
                 std::string fileName;
                 float_X slicePoint;
 

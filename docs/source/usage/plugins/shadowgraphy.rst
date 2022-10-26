@@ -16,15 +16,63 @@ The plugin is available as soon as the :ref:`FFWT3 <install-dependencies>` is co
 
 Usage
 ^^^^^
+========================================= ==============================================================================================================================
+Command line option                       Description
+========================================= ==============================================================================================================================
+``--shadowgraphy.period``                 This flag requires two equivalent integer values as in ``n:n``, ``100:100``, ``200:200``... 
+                                          It describes the start time of the shadowgraphy plugin integration loop.
+``--shadowgraphy.duration``               Duration of shadowgraphy calculation in simulation time steps.
+                                          The plugin will be called ``duration / params::tRes`` times.
+                                          The final plugin call (and the file output) happens at the time defined in ``.period`` plus the duration.
+``--shadowgraphy.plane``                  Defines the plane that the slice will be parallel to. The plane is defined by its orthogonal axis. 
+                                          By using 0 for the x-axis, 1 for the y-axis and 2 for the z-axis, all standard planes can be selected. 
+                                          E.g. choosing the x-y-plane is done by setting the orthogonal axis to the z-axis by giving the command line argument --E_slice.plane 2.
+                                          Currently only ``2`` is supported and is the default value!
+``--shadowgraphy.slicePoint``             Specifies at what ratio of the total depth of the z dimension, the slice for the field extraction should be set.
+                                          The value given should lie between ``0.0`` and ``1.0``.                            
+``--shadowgraphy.fileName``               Output file prefix. The file is stored under fileName + "_" + (start of integration) + ":" + (end of integration) + ".dat"
+``--shadowgraphy.fourieroutput``          If enabled, the fields will also be stored on disk in in ``(k_\perp, \omega)`` Fourier space.
+``--shadowgraphy.intermediateoutput``     If enabled, the fields will also be stored on disk before the first transverse DFT is called.
+========================================= ==============================================================================================================================
+
+.. note::
+   The current approach for the time-integration implementation with ``period`` and ``duration`` is set up this way to make it easier to implement the multi-plugin syntax later on.
+   Currently the shadowgraphy plugin is not supported as a multi-plugin yet!
+   It is also not possible to change the extraction plane of the fields yet, which is related to the custl-dependence of the plugin and should be implemented soon.
 
 
 Output
 ^^^^^^
+Plot the first shadowgram that is stored in the simulation output directory ``simOutput``.
+```py 
+import os
+import matplotlib.pyplot as plt
+import numpy as np
 
+def load_shadowgram(filepath):
+    prevpath = os.getcwd()
+    os.chdir(filepath)
+    files = listdir()
+    filestr = [v for v in files if v.startswith("shadowgraphy") and v.endswith(".dat")][0]
+    retvals = np.loadtxt(filestr)
+    os.chdir(prevpath)
+    return retvals
+
+path = "/PATH/TO/simOutput"
+
+ar = load_shadowgram(path)
+
+fig, ax = plt.subplots(figsize=(10,10))
+ax.pcolormesh(ar)
+ax.set_aspect("equal")
+```
 
 Known Issues
 ^^^^^^^^^^^^
-
+- Not a multiplugin
+- Dependence on custl
+   - Can't change extraction plane of the plugin yet
+   - Can't use multiple GPUs in the direction of the extraction plane
 
 References
 ^^^^^^^^^^
