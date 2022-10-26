@@ -48,7 +48,6 @@ namespace picongpu
             using CollisionScreeningSpecies = MakeSeq_t<>;
 #endif
             constexpr bool debugScreeningLength = true;
-            using CollisionScreeningSpecies = VectorAllSpecies;
 
             /** CollisionPipeline defines in which order species interact with each other
              *
