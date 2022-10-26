@@ -30,6 +30,12 @@
 
 #pragma once
 
+#pragma once
+
+#ifndef PARAM_PRECISION
+#    define PARAM_PRECISION precision64Bit
+#endif
+
 
 namespace picongpu
 {
@@ -39,7 +45,7 @@ namespace picongpu
      *  - precision64Bit : use 64Bit floating point numbers
      *                     [significant digits 15 to 16]
      */
-    namespace precisionPIConGPU = precision64Bit;
+    namespace precisionPIConGPU = PARAM_PRECISION;
 
     /*! Select a precision special operations (can be different from simulation precision)
      *  - precisionPIConGPU : use precision which is selected on top (precisionPIConGPU)
