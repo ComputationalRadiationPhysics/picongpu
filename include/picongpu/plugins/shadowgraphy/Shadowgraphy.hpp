@@ -435,7 +435,7 @@ namespace picongpu
                     gather(globalBuffer1, hBuffer1, nAxis);
                     gather2(globalBuffer2, hBuffer2, nAxis);
 
-                    if(!gather2.root() || !gather.root() )
+                    if(!gather2.root() || !gather.root())
                     {
                         return;
                     }

@@ -168,8 +168,8 @@ namespace picongpu
 
                     // The total domain indices of the integration slice are constant, because the screen is not
                     // co-propagating with the moving window
-                    yTotalMinIndex = yTotalOffset + yGlobalOffset
-                        + math::floor(slidingWindowCorrection / SI::CELL_HEIGHT_SI) - 1;
+                    yTotalMinIndex
+                        = yTotalOffset + yGlobalOffset + math::floor(slidingWindowCorrection / SI::CELL_HEIGHT_SI) - 1;
                     yTotalMaxIndex = yTotalMinIndex + pluginNumY;
 
                     // Initialization of storage arrays
@@ -230,7 +230,8 @@ namespace picongpu
                             // coordinates of the field-buffers
                             int const simJ = yTotalMinIndex - currentSlideCount * cellsPerGpu + j * params::yRes;
 
-                            float_64 const wf = masks::positionWf(i, j, pluginNumX, pluginNumY) * masks::timeWf(t, duration);
+                            float_64 const wf
+                                = masks::positionWf(i, j, pluginNumX, pluginNumY) * masks::timeWf(t, duration);
 
                             // fix yee offset
                             if(F::getName() == "E")
@@ -462,7 +463,9 @@ namespace picongpu
                                     complex_64 const Ey = EyOmegaPropagated[i][j][o] * exponential;
                                     complex_64 const Bx = BxOmegaPropagated[i][j][o] * exponential;
                                     complex_64 const By = ByOmegaPropagated[i][j][o] * exponential;
-                                    shadowgram[i][j] += (dt / (SI::MUE0_SI * pluginNumT * pluginNumT * pluginNumX * pluginNumX * pluginNumY * pluginNumY))
+                                    shadowgram[i][j] += (dt
+                                                         / (SI::MUE0_SI * pluginNumT * pluginNumT * pluginNumX
+                                                            * pluginNumX * pluginNumY * pluginNumY))
                                         * (Ex * By - Ey * Bx + ExTmpSum[i][j] * By + Ex * ByTmpSum[i][j]
                                            - EyTmpSum[i][j] * Bx - Ey * BxTmpSum[i][j])
                                               .real();
@@ -511,11 +514,13 @@ namespace picongpu
 
                     // Create fftw plan for transverse fft for real to complex
                     // Many ffts will be performed -> use FFTW_MEASURE as flag
-                    planForward = fftw_plan_dft_2d(pluginNumY, pluginNumX, fftwInF, fftwOutF, FFTW_FORWARD, FFTW_MEASURE);
+                    planForward
+                        = fftw_plan_dft_2d(pluginNumY, pluginNumX, fftwInF, fftwOutF, FFTW_FORWARD, FFTW_MEASURE);
 
                     // Create fftw plan for transverse ifft for complex to complex
                     // Even more iffts will be performed -> use FFTW_MEASURE as flag
-                    planBackward = fftw_plan_dft_2d(pluginNumY, pluginNumX, fftwInB, fftwOutB, FFTW_BACKWARD, FFTW_MEASURE);
+                    planBackward
+                        = fftw_plan_dft_2d(pluginNumY, pluginNumX, fftwInB, fftwOutB, FFTW_BACKWARD, FFTW_MEASURE);
                 }
 
                 /** Store fields in helper class with proper resolution and fixed Yee offset in (k_x, k_y,
@@ -664,7 +669,8 @@ namespace picongpu
                 int getOmegaMinIndex() const
                 {
                     float_64 const actualStep = params::tRes * SI::DELTA_T_SI;
-                    int const tmpIndex = math::floor(pluginNumT * ((actualStep * params::omegaWfMin) / (2.0 * PI) + 0.5));
+                    int const tmpIndex
+                        = math::floor(pluginNumT * ((actualStep * params::omegaWfMin) / (2.0 * PI) + 0.5));
                     int retIndex = tmpIndex > pluginNumT / 2 + 1 ? tmpIndex : pluginNumT / 2 + 1;
                     return retIndex;
                 }
@@ -673,7 +679,8 @@ namespace picongpu
                 int getOmegaMaxIndex() const
                 {
                     float_64 const actualStep = params::tRes * SI::DELTA_T_SI;
-                    int const tmpIndex = math::ceil(pluginNumT * ((actualStep * params::omegaWfMax) / (2.0 * PI) + 0.5));
+                    int const tmpIndex
+                        = math::ceil(pluginNumT * ((actualStep * params::omegaWfMax) / (2.0 * PI) + 0.5));
                     int retIndex = tmpIndex <= pluginNumT ? tmpIndex : pluginNumT;
                     return retIndex + 1;
                 }
@@ -695,7 +702,7 @@ namespace picongpu
                 {
                     if(i < numOmegas / 2)
                     {
-                        return duration / params::tRes - getOmegaMinIndex() - numOmegas / 2 + i + 1; 
+                        return duration / params::tRes - getOmegaMinIndex() - numOmegas / 2 + i + 1;
                     }
                     else
                     {

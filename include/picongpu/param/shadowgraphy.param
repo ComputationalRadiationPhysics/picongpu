@@ -36,8 +36,8 @@ namespace picongpu
                  * xRes : transverse resolution of shadowgram
                  * yRes : transverse resolution of shadowgram
                  * posWfSizeX : A Tukey-like, time-domain window function with sinusoidal slopes will be
-                 *  applied if posWfSizeX != 0. The slope length is posWfSizeX. 
-                 * posWfSizeY : A Tukey-like, time-domain window function with sinusoidal slopes will be 
+                 *  applied if posWfSizeX != 0. The slope length is posWfSizeX.
+                 * posWfSizeY : A Tukey-like, time-domain window function with sinusoidal slopes will be
                  *  applied if posWfSizeY
                  * != 0. The slope length is posWfSizeY. cells.
                  */
@@ -71,10 +71,8 @@ namespace picongpu
                 constexpr float omegaMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda);
                 constexpr float omegaMax = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda);
 
-                constexpr float omegaWfMin
-                    = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda + dLambdaWf);
-                constexpr float omegaWfMax
-                    = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda - dLambdaWf);
+                constexpr float omegaWfMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda + dLambdaWf);
+                constexpr float omegaWfMax = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda - dLambdaWf);
             } // namespace params
 
 
@@ -100,9 +98,8 @@ namespace picongpu
                     }
                     else if((i > (pluginNumX - params::posWfSizeX)))
                     {
-                        xFactor = math::cos(
-                                       PI * (i - (pluginNumX - params::posWfSizeX))
-                                       / float_64(params::posWfSizeX))
+                        xFactor
+                            = math::cos(PI * (i - (pluginNumX - params::posWfSizeX)) / float_64(params::posWfSizeX))
                                 / 2.0
                             + 0.5;
                     }
@@ -115,9 +112,8 @@ namespace picongpu
                     }
                     else if((j > (pluginNumY - params::posWfSizeY)))
                     {
-                        yFactor = math::cos(
-                                       PI * (j - (pluginNumY - params::posWfSizeY))
-                                       / float_64(params::posWfSizeY))
+                        yFactor
+                            = math::cos(PI * (j - (pluginNumY - params::posWfSizeY)) / float_64(params::posWfSizeY))
                                 / 2.0
                             + 0.5;
                     }
@@ -146,7 +142,8 @@ namespace picongpu
                     }
                     else if((t > (pluginNumT - pluginWfSize)))
                     {
-                        tFactor = math::cos(PI * (t - (pluginNumT - pluginWfSize)) / float_64(pluginWfSize)) / 2.0 + 0.5;
+                        tFactor
+                            = math::cos(PI * (t - (pluginNumT - pluginWfSize)) / float_64(pluginWfSize)) / 2.0 + 0.5;
                     }
 
                     return tFactor;
@@ -201,7 +198,8 @@ namespace picongpu
                     float_64 const kperp = math::sqrt(kx * kx + ky * ky);
                     float_64 const k = math::abs(omega / SI::SPEED_OF_LIGHT_SI);
 
-                    float_64 const offsetWf = params::centralOmega * params::numericalApertureWfSize / SI::SPEED_OF_LIGHT_SI;
+                    float_64 const offsetWf
+                        = params::centralOmega * params::numericalApertureWfSize / SI::SPEED_OF_LIGHT_SI;
 
                     float_64 const NAk = params::numericalAperture * k;
 
