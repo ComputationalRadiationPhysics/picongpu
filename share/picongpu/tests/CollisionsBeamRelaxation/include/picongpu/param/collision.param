@@ -57,7 +57,6 @@ namespace picongpu
             // not ideal, better would be to combine filters with an AND but it is ok
 
 
-
             struct Params
             {
                 static constexpr float_X coulombLog = 3.0_X;
