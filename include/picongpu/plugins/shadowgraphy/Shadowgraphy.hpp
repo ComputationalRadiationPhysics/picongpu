@@ -352,38 +352,31 @@ namespace picongpu
                     vec::Size_t<simDim> gpuDim = (vec::Size_t<simDim>) con.getGpuNodes();
                     vec::Size_t<simDim> globalGridSize = gpuDim * field.size();
 
-                    pmacc::GridController<simDim>& con1 = pmacc::Environment<simDim>::get().GridController();
-                    vec::Size_t<simDim> gpuDim1 = (vec::Size_t<simDim>) con1.getGpuNodes();
-                    vec::Size_t<simDim> globalGridSize1 = gpuDim1 * field.size();
-
                     // FIRST SLICE OF FIELD FOR YEE OFFSET
                     int globalPlane1 = globalGridSize[nAxis] * slicePoint;
                     int localPlane1 = globalPlane1 % field.size()[nAxis];
                     int gpuPlane1 = globalPlane1 / field.size()[nAxis];
 
                     // SECOND SLICE OF FIELD FOR YEE OFFSET
-                    int globalPlane2 = globalGridSize1[nAxis] * slicePoint + 1;
+                    int globalPlane2 = globalGridSize[nAxis] * slicePoint + 1;
                     int localPlane2 = globalPlane2 % field.size()[nAxis];
                     int gpuPlane2 = globalPlane2 / field.size()[nAxis];
 
-                    vec::Int<simDim> nVector1(vec::Int<simDim>::create(0));
-                    nVector1[nAxis] = 1;
+                    vec::Int<simDim> nVector(vec::Int<simDim>::create(0));
+                    nVector[nAxis] = 1;
 
-                    vec::Int<simDim> nVector2(vec::Int<simDim>::create(0));
-                    nVector2[nAxis] = 1;
-
-                    zone::SphericZone<simDim> gpuGatheringZone1(gpuDim, nVector1 * gpuPlane1);
+                    zone::SphericZone<simDim> gpuGatheringZone1(gpuDim, nVector * gpuPlane1);
                     gpuGatheringZone1.size[nAxis] = 1;
 
-                    zone::SphericZone<simDim> gpuGatheringZone2(gpuDim1, nVector2 * gpuPlane2);
+                    zone::SphericZone<simDim> gpuGatheringZone2(gpuDim, nVector * gpuPlane2);
                     gpuGatheringZone2.size[nAxis] = 1;
 
 
-                    algorithm::mpi::Gather<simDim> gather(gpuGatheringZone1);
+                    algorithm::mpi::Gather<simDim> gather1(gpuGatheringZone1);
 
                     algorithm::mpi::Gather<simDim> gather2(gpuGatheringZone2);
 
-                    if(!gather.participate() && !gather2.participate())
+                    if(!gather1.participate() && !gather2.participate())
                     {
                         return;
                     }
@@ -419,23 +412,17 @@ namespace picongpu
                     hBuffer2 = *dBuffer_SI2;
 
                     // collect data from all nodes/GPUs
-                    vec::Size_t<simDim> globalDomainSize1
+                    vec::Size_t<simDim> globalDomainSize
                         = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
-                    vec::Size_t<simDim - 1> globalSliceSize1
-                        = globalDomainSize1.shrink<simDim - 1>((nAxis + 1) % simDim);
-                    container::HostBuffer<float3_64, simDim - 1> globalBuffer1(globalSliceSize1);
+                    vec::Size_t<simDim - 1> globalSliceSize
+                        = globalDomainSize.shrink<simDim - 1>((nAxis + 1) % simDim);
+                    container::HostBuffer<float3_64, simDim - 1> globalBuffer1(globalSliceSize);
+                    container::HostBuffer<float3_64, simDim - 1> globalBuffer2(globalSliceSize);
 
-                    /// collect data from all nodes/GPUs
-                    vec::Size_t<simDim> globalDomainSize2
-                        = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
-                    vec::Size_t<simDim - 1> globalSliceSize2
-                        = globalDomainSize2.shrink<simDim - 1>((nAxis + 1) % simDim);
-                    container::HostBuffer<float3_64, simDim - 1> globalBuffer2(globalSliceSize2);
-
-                    gather(globalBuffer1, hBuffer1, nAxis);
+                    gather1(globalBuffer1, hBuffer1, nAxis);
                     gather2(globalBuffer2, hBuffer2, nAxis);
 
-                    if(!gather2.root() || !gather.root())
+                    if(!gather1.root() || !gather2.root())
                     {
                         return;
                     }

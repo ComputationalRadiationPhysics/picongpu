@@ -229,11 +229,6 @@ namespace picongpu
                     return frequencyFilter(omega) * numericalAperture(kx, ky, omega);
                 }
             } // namespace masks
-            // The amount of cells to remove from each (!) side of the simulation box
-            // This is necessary to remove the boundary artifacts from the PIConGPU simulation
-            // constexpr unsigned int x_gap = 16;
-            // constexpr unsigned int y_gap = 16;
-
         } // namespace shadowgraphy
     } // namespace plugins
 } // namespace picongpu

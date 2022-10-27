@@ -14,6 +14,7 @@ External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 The plugin is available as soon as the :ref:`FFWT3 <install-dependencies>` is compiled in.
 
+
 Usage
 ^^^^^
 ========================================= ==============================================================================================================================
@@ -44,39 +45,48 @@ Command line option                       Description
 Output
 ^^^^^^
 Plot the first shadowgram that is stored in the simulation output directory ``simOutput``.
-```py 
-import os
-import matplotlib.pyplot as plt
-import numpy as np
 
-def load_shadowgram(filepath):
-    prevpath = os.getcwd()
-    os.chdir(filepath)
-    files = listdir()
-    filestr = [v for v in files if v.startswith("shadowgraphy") and v.endswith(".dat")][0]
-    retvals = np.loadtxt(filestr)
-    os.chdir(prevpath)
-    return retvals
+.. code:: python
 
-path = "/PATH/TO/simOutput"
+   import os
+   import matplotlib.pyplot as plt
+   import numpy as np
 
-ar = load_shadowgram(path)
+   def load_shadowgram(filepath):
+      prevpath = os.getcwd()
+      os.chdir(filepath)
+      files = listdir()
+      filestr = [v for v in files if v.startswith("shadowgraphy") and v.endswith(".dat")][0]
+      retvals = np.loadtxt(filestr)
+      os.chdir(prevpath)
+      return retvals
 
-fig, ax = plt.subplots(figsize=(10,10))
-ax.pcolormesh(ar)
-ax.set_aspect("equal")
-```
+   path = "/PATH/TO/simOutput"
+
+   ar = load_shadowgram(path)
+
+   fig, ax = plt.subplots(figsize=(10,10))
+   ax.pcolormesh(ar)
+   ax.set_aspect("equal")
+
+
+The size of the cells is the size of the cells in the simulation divided by the resolution in the plugin ``CELL_WIDTH_SI / shadowgraphy::params::xRes`` and ``CELL_HEIGHT_SI / shadowgraphy::params::yRes``.
+When the moving window of the simulation is activated, the resulting shadowgram is smaller in moving window propagation direction ``y`` by time it takes the laser to enter the simulation box and fully propagate through the extraction slice times the speed of light ``c``.
+This prevents artifacts from the laser being cut off due to the moving window or the laser not fully being propagated through the plasma structures.
+
 
 Known Issues
 ^^^^^^^^^^^^
-- Not a multiplugin
-- Dependence on custl
-   - Can't change extraction plane of the plugin yet
-   - Can't use multiple GPUs in the direction of the extraction plane
+* Not a multiplugin
+* Dependency on custl
+   * Can't change extraction plane of the plugin yet
+   * Can't use multiple GPUs in the direction of the extraction plane
+* The moving window can't be activated/deactivated during the plugin integration loop
+   * However, the plugin works if the moving window is active or inactive from the beginning of the loop
+
 
 References
 ^^^^^^^^^^
-
 - *Modeling ultrafast shadowgraphy in laser-plasma interaction experiments*
    E Siminos et al 2016 Plasma Phys. Control. Fusion 58 065004
    https://doi.org/10.1088/0741-3335/58/6/065004
