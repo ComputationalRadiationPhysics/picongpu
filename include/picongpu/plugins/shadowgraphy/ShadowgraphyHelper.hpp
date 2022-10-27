@@ -162,9 +162,6 @@ namespace picongpu
                     pluginNumX -= (fields::absorber::NUM_CELLS[0][0] + fields::absorber::NUM_CELLS[0][1]) / (params::xRes);
                     pluginNumY -= (fields::absorber::NUM_CELLS[1][0] + fields::absorber::NUM_CELLS[1][1]) / (params::yRes);
 
-                    printf("things: %d - %d - %d - %d \n", fields::absorber::NUM_CELLS[0][0], fields::absorber::NUM_CELLS[0][1], 
-                                                            fields::absorber::NUM_CELLS[1][0], fields::absorber::NUM_CELLS[1][1]);
-
                     // Make sure spatial grid is even
                     pluginNumX = pluginNumX % 2 == 0 ? pluginNumX : pluginNumX - 1;
                     pluginNumY = pluginNumY % 2 == 0 ? pluginNumY : pluginNumY - 1;
