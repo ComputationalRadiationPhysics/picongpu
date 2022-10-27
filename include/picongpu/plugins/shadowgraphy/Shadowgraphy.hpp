@@ -412,8 +412,7 @@ namespace picongpu
                     hBuffer2 = *dBuffer_SI2;
 
                     // collect data from all nodes/GPUs
-                    vec::Size_t<simDim> globalDomainSize
-                        = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
+                    vec::Size_t<simDim> globalDomainSize = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
                     vec::Size_t<simDim - 1> globalSliceSize
                         = globalDomainSize.shrink<simDim - 1>((nAxis + 1) % simDim);
                     container::HostBuffer<float3_64, simDim - 1> globalBuffer1(globalSliceSize);

@@ -159,8 +159,10 @@ namespace picongpu
                         (yWindowSize - slidingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::yRes) -2);
 
                     // Don't use fields inside the field absorber
-                    pluginNumX -= (fields::absorber::NUM_CELLS[0][0] + fields::absorber::NUM_CELLS[0][1]) / (params::xRes);
-                    pluginNumY -= (fields::absorber::NUM_CELLS[1][0] + fields::absorber::NUM_CELLS[1][1]) / (params::yRes);
+                    pluginNumX
+                        -= (fields::absorber::NUM_CELLS[0][0] + fields::absorber::NUM_CELLS[0][1]) / (params::xRes);
+                    pluginNumY
+                        -= (fields::absorber::NUM_CELLS[1][0] + fields::absorber::NUM_CELLS[1][1]) / (params::yRes);
 
                     // Make sure spatial grid is even
                     pluginNumX = pluginNumX % 2 == 0 ? pluginNumX : pluginNumX - 1;
@@ -232,7 +234,8 @@ namespace picongpu
                         {
                             // Transform the total coordinates of the fixed shadowgraphy screen to the global
                             // coordinates of the field-buffers
-                            int const simJ = fields::absorber::NUM_CELLS[0][1] + yTotalMinIndex - currentSlideCount * cellsPerGpu + j * params::yRes;
+                            int const simJ = fields::absorber::NUM_CELLS[0][1] + yTotalMinIndex
+                                - currentSlideCount * cellsPerGpu + j * params::yRes;
 
                             float_64 const wf
                                 = masks::positionWf(i, j, pluginNumX, pluginNumY) * masks::timeWf(t, duration);
