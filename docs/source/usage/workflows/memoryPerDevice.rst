@@ -27,6 +27,6 @@ between devices.
 
 This will give the following output:
 
-.. program-output:: bash -c "PYTHONPATH=$(pwd)/../../lib/python:$PYTHONPATH ./usage/workflows/memoryPerDevice.py"
+.. program-output:: bash -c "PYTHONPATH=$(pwd)/../../lib/python:$PYTHONPATH /usr/bin/env python -m pip install -r ../../lib/python/picongpu/requirements.txt >> /dev/null; PYTHONPATH=$(pwd)/../../lib/python:$PYTHONPATH ./usage/workflows/memoryPerDevice.py"
 
 If you have a machine or cluster node with NVIDIA GPUs you can find out the available memory size by typing ``nvidia-smi`` on a shell.
