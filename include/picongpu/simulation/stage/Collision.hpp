@@ -119,7 +119,7 @@ namespace picongpu
                         using SqrtBox = DataBoxUnaryTransform<
                             typename GridBuffer<float1_X, simDim>::DataBoxType,
                             collision::Sqrt1DimVector>;
-                        DataBoxDim1Access<GridBuffer<float1_X, simDim>::DataBoxType> d1access(
+                        DataBoxDim1Access<SqrtBox> d1access(
                             SqrtBox(screeningLengthSquared->getDeviceDataBox().shift(
                                 screeningLengthSquared->getGridLayout().getGuard())),
                             screeningLengthSquared->getGridLayout().getDataSpaceWithoutGuarding());
