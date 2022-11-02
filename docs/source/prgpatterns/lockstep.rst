@@ -62,11 +62,9 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
 
 .. code-block:: cpp
 
-    // assume one dimensional indexing of threads within a block
-    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
-    constexpr uint32_t numWorkers = 42;
-    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vIdx = forEachParticleSlotInFrame(
         [](lockstep::Idx const idx) -> int32_t
         {
@@ -77,10 +75,8 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
     // is equal to
 
     // assume one dimensional indexing of threads within a block
-    uint32_t const workerIdx = cupla::threadIdx(acc).x;
     constexpr uint32_t frameSize = 256;
-    constexpr uint32_t numWorkers = 42;
-    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     // variable will be uninitialized
     auto vIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame);
     forEachParticleSlotInFrame(
@@ -94,11 +90,9 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
 
 .. code-block:: cpp
 
-    // assume one dimensional indexing of threads within a block
-    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
-    constexpr uint32_t numWorkers = 42;
-    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto var = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 23);
 
 
@@ -107,11 +101,9 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
 
 .. code-block:: cpp
 
-    // assume one dimensional indexing of threads within a block
-    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
-    constexpr uint32_t numWorkers = 42;
-    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vIdx = forEachParticleSlotInFrame(
         [](lockstep::Idx const idx) -> int32_t
         {
@@ -146,14 +138,13 @@ Collective Loop
 
 .. code-block:: bash
 
+    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     // `frame` is a list which must be traversed collectively
     while( frame.isValid() )
     {
         // assume one dimensional indexing of threads within a block
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
         constexpr uint32_t frameSize = 256;
-        constexpr uint32_t numWorkers = 42;
-        auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+        auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
         forEachParticleSlotInFrame(
            [&](lockstep::Idx const idx)
            {
@@ -175,11 +166,9 @@ Non-Collective Loop
 
 .. code-block:: cpp
 
-    // assume one dimensional indexing of threads within a block
-    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
-    constexpr uint32_t numWorkers = 42;
-    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vWorkerIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 0);
     forEachParticleSlotInFrame(
         [&](auto const idx)
@@ -205,9 +194,8 @@ Using a Master Worker
         bool
     );
 
-    // assume one dimensional indexing of threads within a block
-    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-    auto onlyMaster = lockstep::makeMaster(workerIdx);
+    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    auto onlyMaster = lockstep::makeMaster(worker);
 
     // manipulate shared memory
     onlyMaster(
@@ -220,4 +208,4 @@ Using a Master Worker
     /* important: synchronize now, in case upcoming operations (with
      * other workers) access that manipulated shared memory section
      */
-    cupla::__syncthreads(acc);
+    worker.sync();
