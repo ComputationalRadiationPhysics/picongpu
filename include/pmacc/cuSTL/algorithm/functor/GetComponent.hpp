@@ -41,8 +41,8 @@ namespace pmacc
                 {
                 }
 
-                template<typename Array, typename T_Acc>
-                HDINLINE Type& operator()(T_Acc const&, Array& array) const
+                template<typename Array, typename T_Worker>
+                HDINLINE Type& operator()(T_Worker const&, Array& array) const
                 {
                     return array[m_component];
                 }
