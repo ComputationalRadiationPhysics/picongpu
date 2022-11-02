@@ -89,9 +89,9 @@ namespace pmacc::particles::algorithm
          *                     valid options: detail::CallParticleFunctor or detail::CallFrameFunctor
          * @tparam T_Order Iteration order. valid options: Forward or Reverse
          * @tparam T_ParBox Type of the particle box to traverse.
-         * @tparam T_numWorkers Number of lockstep workers.
+         * @tparam T_Worker lockstep worker
          */
-        template<typename T_AccessTag, typename T_Order, typename T_ParBox, uint32_t T_numWorkers>
+        template<typename T_AccessTag, typename T_Order, typename T_ParBox, typename T_Worker>
         class ForEachParticle
         {
         private:
@@ -99,7 +99,7 @@ namespace pmacc::particles::algorithm
 
             using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
             static constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            static constexpr uint32_t numWorkers = T_numWorkers;
+            static constexpr uint32_t numWorkers = T_Worker::numWorkers;
 
             /** Number of frames to skip.
              *
@@ -107,8 +107,7 @@ namespace pmacc::particles::algorithm
              */
             static constexpr uint32_t frameDistance = (numWorkers + frameSize - 1u) / frameSize;
 
-            using ForEachParticleInFrame
-                = lockstep::ForEach<lockstep::Config<frameSize * frameDistance, T_numWorkers, 1>>;
+            using ForEachParticleInFrame = lockstep::traits::MakeForEach_t<T_Worker, frameSize * frameDistance, 1>;
 
             DataSpace<dim> const m_superCellIdx;
             ForEachParticleInFrame const forEachParticleInFrame;
@@ -138,11 +137,11 @@ namespace pmacc::particles::algorithm
              * @param superCellIdx index of the superCell where particles should be processed
              */
             DINLINE ForEachParticle(
-                uint32_t const workerIdx,
+                T_Worker const& worker,
                 T_ParBox const& particlesBox,
                 DataSpace<dim> const& superCellIdx)
                 : m_superCellIdx(superCellIdx)
-                , forEachParticleInFrame(workerIdx)
+                , forEachParticleInFrame(worker)
                 , m_particlesBox(particlesBox)
             {
             }
@@ -154,21 +153,20 @@ namespace pmacc::particles::algorithm
              *            the rule that all frames but the last are fully filled and in the last frame the low indices
              *            are contiguously filled.
              *
-             * @tparam T_Acc alpaka accelerator type
              * @tparam T_Functor unary particle functor or frame functor following the interface concept
              *                           detail::FrameFunctorInterface or detail::ParticleFunctorInterface
-             * @param acc alpaka accelerator
              * @param unaryFunctor Functor executed for each particle/frame.
              *                     The caller must ensure that calling the functor in parallel with
              *                     different workers is data race free.
-             *                     - particle functor: 'void operator()(T_Acc const &, ParticleType)'.
+             *                     - particle functor: 'void operator()(T_Worker const &, ParticleType)'.
              *                       It is not allowed to call a synchronization function within the functor.
-             *                     - frame functor: 'void operator()(T_Acc const &, FrameCtx)'.
+             *                     - frame functor: 'void operator()(T_Worker const &, FrameCtx)'.
              *                       Calling synchronization within the functor is allowed.
              */
-            template<typename T_Acc, typename T_Functor>
-            DINLINE void operator()(T_Acc const& acc, T_Functor&& unaryFunctor) const
+            template<typename T_Functor>
+            DINLINE void operator()(T_Functor&& unaryFunctor) const
             {
+                auto const worker = forEachParticleInFrame.getWorker();
                 if constexpr(numWorkers > frameSize)
                 {
                     PMACC_CASSERT_MSG(
@@ -249,19 +247,19 @@ namespace pmacc::particles::algorithm
 
                                 PMACC_CASSERT_MSG(
                                     __unaryParticleFunctor_must_return_void,
-                                    std::is_void_v<decltype(unaryFunctor(acc, particle))>);
+                                    std::is_void_v<decltype(unaryFunctor(worker, particle))>);
                                 if(particle.isHandleValid())
                                 {
                                     auto particleFunctor
                                         = detail::makeParticleFunctorInterface(std::forward<T_Functor>(unaryFunctor));
-                                    particleFunctor(acc, particle);
+                                    particleFunctor(worker, particle);
                                 }
                             });
                     }
                     else if constexpr(std::is_same_v<T_AccessTag, detail::CallFrameFunctor>)
                     {
                         auto frameFunctor = detail::makeFrameFunctorInterface(std::forward<T_Functor>(unaryFunctor));
-                        frameFunctor(acc, framePtrCtx);
+                        frameFunctor(worker, framePtrCtx);
                     }
 
                     hasMoreWork = false;
@@ -303,20 +301,19 @@ namespace pmacc::particles::algorithm
          * detail::ParticleFunctorInterface
          *
          * @{
-         * @tparam T_numWorkers number of lockstep workers
+         * @tparam T_Worker lockstep worker
          * @tparam T_ParBox Type of the particle box.
-         * @param workerIdx worker index
          * @param particlesBox particle box
          * @param superCellIdx supercell index
          */
-        template<uint32_t T_numWorkers, typename T_ParBox>
+        template<typename T_Worker, typename T_ParBox>
         DINLINE auto makeForEach(
-            uint32_t workerIdx,
+            T_Worker const& worker,
             T_ParBox const& particlesBox,
             DataSpace<T_ParBox::Dim> const& superCellIdx)
         {
-            return ForEachParticle<detail::CallParticleFunctor, Reverse, T_ParBox, T_numWorkers>(
-                workerIdx,
+            return ForEachParticle<detail::CallParticleFunctor, Reverse, T_ParBox, T_Worker>(
+                worker,
                 particlesBox,
                 superCellIdx);
         }
@@ -327,14 +324,14 @@ namespace pmacc::particles::algorithm
          * @return ForEach executor which can be invoked with a frame functor as argument. @see
          * detail::FrameFunctorInterface
          */
-        template<uint32_t T_numWorkers, typename T_Order, typename T_ParBox>
+        template<typename T_Order, typename T_ParBox, typename T_Worker>
         DINLINE auto makeForEachFrame(
-            uint32_t workerIdx,
+            T_Worker const& worker,
             T_ParBox const& particlesBox,
             DataSpace<T_ParBox::Dim> const& superCellIdx)
         {
-            return ForEachParticle<detail::CallFrameFunctor, T_Order, T_ParBox, T_numWorkers>(
-                workerIdx,
+            return ForEachParticle<detail::CallFrameFunctor, T_Order, T_ParBox, T_Worker>(
+                worker,
                 particlesBox,
                 superCellIdx);
         }
@@ -344,14 +341,14 @@ namespace pmacc::particles::algorithm
          * @return ForEach executor which can be invoked with a particle functor as argument. @see
          * detail::ParticleFunctorInterface
          */
-        template<uint32_t T_numWorkers, typename T_Order, typename T_ParBox>
+        template<typename T_Order, typename T_ParBox, typename T_Worker>
         DINLINE auto makeForEach(
-            uint32_t workerIdx,
+            T_Worker const& worker,
             T_ParBox const& particlesBox,
             DataSpace<T_ParBox::Dim> const& superCellIdx)
         {
-            return ForEachParticle<detail::CallParticleFunctor, T_Order, T_ParBox, T_numWorkers>(
-                workerIdx,
+            return ForEachParticle<detail::CallParticleFunctor, T_Order, T_ParBox, T_Worker>(
+                worker,
                 particlesBox,
                 superCellIdx);
         }
@@ -359,16 +356,12 @@ namespace pmacc::particles::algorithm
 
         namespace detail
         {
-            /** operate on particles of a species
-             *
-             * @tparam T_numWorkers number of workers
-             */
-            template<uint32_t T_numWorkers>
+            //! operate on particles of a species
             struct KernelForEachParticle
             {
                 /** operate on particles
                  *
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  * @tparam T_Functor type of the functor to operate on a particle
                  * @tparam T_Mapping mapping functor type
                  * @tparam T_ParBox pmacc::ParticlesBox, type of the species box
@@ -379,18 +372,17 @@ namespace pmacc::particles::algorithm
                  * @param mapper functor to map a block to a supercell
                  * @param pb particles species box
                  */
-                template<typename T_Acc, typename T_Functor, typename T_Mapping, typename T_ParBox>
-                DINLINE void operator()(T_Acc const& acc, T_Functor functor, T_Mapping const mapper, T_ParBox pb) const
+                template<typename T_Worker, typename T_Functor, typename T_Mapping, typename T_ParBox>
+                DINLINE void operator()(T_Worker const& worker, T_Functor functor, T_Mapping const mapper, T_ParBox pb)
+                    const
                 {
                     using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
                     constexpr uint32_t dim = SuperCellSize::dim;
-                    constexpr uint32_t numWorkers = T_numWorkers;
 
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                    DataSpace<dim> const superCellIdx(
+                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc()))));
 
-                    DataSpace<dim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))));
-
-                    auto forEachParticle = makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+                    auto forEachParticle = makeForEach(worker, pb, superCellIdx);
 
                     // end kernel if we have no particles
                     if(!forEachParticle.hasParticles())
@@ -400,9 +392,9 @@ namespace pmacc::particles::algorithm
                     // domain
                     DataSpace<dim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
 
-                    auto accFunctor = functor(acc, localSuperCellOffset, lockstep::Worker<numWorkers>{workerIdx});
+                    auto accFunctor = functor(worker, localSuperCellOffset);
 
-                    forEachParticle(acc, accFunctor);
+                    forEachParticle(accFunctor);
                 }
             };
 
@@ -442,12 +434,11 @@ namespace pmacc::particles::algorithm
     {
         using MappingDesc = decltype(species.getCellDescription());
         using SuperCellSize = typename MappingDesc::SuperCellSize;
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
+        auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
         auto const mapper = areaMapperFactory(species.getCellDescription());
-        PMACC_KERNEL(acc::detail::KernelForEachParticle<numWorkers>{})
-        (mapper.getGridDim(), numWorkers)(std::move(functor), mapper, species.getDeviceParticlesBox());
+        PMACC_LOCKSTEP_KERNEL(acc::detail::KernelForEachParticle{}, workerCfg)
+        (mapper.getGridDim())(std::move(functor), mapper, species.getDeviceParticlesBox());
     }
 
     /** Version for a fixed area

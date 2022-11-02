@@ -51,24 +51,26 @@ namespace picongpu
      */
     struct KernelIntensity
     {
-        template<typename FieldBox, typename BoxMax, typename BoxIntegral, typename T_Acc>
+        template<typename FieldBox, typename BoxMax, typename BoxIntegral, typename T_Acc, typename T_WorkerCfg>
         DINLINE void operator()(
             T_Acc const& acc,
             FieldBox field,
             DataSpace<simDim> cellsCount,
             BoxMax boxMax,
-            BoxIntegral integralBox) const
+            BoxIntegral integralBox,
+            T_WorkerCfg workerCfg) const
         {
+            auto const worker = workerCfg.getWorker(acc);
             typedef MappingDesc::SuperCellSize SuperCellSize;
-            PMACC_SMEM(acc, s_integrated, memory::Array<float_X, SuperCellSize::y::value>);
-            PMACC_SMEM(acc, s_max, memory::Array<float_X, SuperCellSize::y::value>);
+            PMACC_SMEM(worker, s_integrated, memory::Array<float_X, SuperCellSize::y::value>);
+            PMACC_SMEM(worker, s_max, memory::Array<float_X, SuperCellSize::y::value>);
 
 
             /*descripe size of a worker block for cached memory*/
             typedef SuperCellDescription<pmacc::math::CT::Int<SuperCellSize::x::value, SuperCellSize::y::value>>
                 SuperCell2D;
 
-            auto s_field = CachedBox::create<0, float_32>(acc, SuperCell2D());
+            auto s_field = CachedBox::create<0, float_32>(worker, SuperCell2D());
 
             int y = cupla::blockIdx(acc).y * SuperCellSize::y::value + cupla::threadIdx(acc).y;
             int yGlobal = y + GuardSize::y::value * SuperCellSize::y::value;
@@ -80,7 +82,7 @@ namespace picongpu
                 s_integrated[threadId.y()] = float_X(0.0);
                 s_max[threadId.y()] = float_X(0.0);
             }
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             // move cell-wise over z direction (without guarding cells)
             for(int z = GuardSize::z::value * SuperCellSize::z::value;
@@ -94,7 +96,7 @@ namespace picongpu
                 {
                     const float3_X field_at_point(field(DataSpace<DIM3>(x, yGlobal, z)));
                     s_field(threadId) = pmacc::math::abs2(field_at_point);
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                     if(threadId.x() == 0)
                     {
                         // master thread moves cell-wise over 2D supercell
@@ -107,7 +109,7 @@ namespace picongpu
                     }
                 }
             }
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             if(threadId.x() == 0)
             {
@@ -347,15 +349,18 @@ namespace picongpu
                 1,
                 cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells().y());
             /*use only 2D slice XY for supercell handling*/
-            typedef typename MappingDesc::SuperCellSize SuperCellSize;
-            auto block = pmacc::math::CT::Vector<SuperCellSize::x, SuperCellSize::y>::toRT();
+            using SuperCellSize = typename MappingDesc::SuperCellSize;
+            using Block2D = pmacc::math::CT::Vector<SuperCellSize::x, SuperCellSize::y>;
+            auto block = Block2D::toRT();
 
+            auto workerCfg = lockstep::makeWorkerCfg(Block2D{});
             PMACC_KERNEL(KernelIntensity{})
             (grid, block)(
                 fieldE->getDeviceDataBox(),
                 fieldE->getGridLayout().getDataSpace(),
                 localMaxIntensity->getDeviceBuffer().getDataBox(),
-                localIntegratedIntensity->getDeviceBuffer().getDataBox());
+                localIntegratedIntensity->getDeviceBuffer().getDataBox(),
+                workerCfg);
 
             localMaxIntensity->deviceToHost();
             localIntegratedIntensity->deviceToHost();

@@ -57,10 +57,7 @@ namespace picongpu
             /** calculate the radiation of a species
              *
              * If \p T_dependenciesFulfilled is false a dummy kernel without functionality is created
-             *
-             * @tparam T_numWorkers number of workers
              */
-            template<uint32_t T_numWorkers>
             struct KernelRadiationParticles
             {
                 /**
@@ -90,12 +87,12 @@ namespace picongpu
                  * @param freqFkt
                  * @param simBoxSize
                  */
-                template<typename ParBox, typename DBox, typename Mapping, typename T_Acc>
+                template<typename ParBox, typename DBox, typename Mapping, typename T_Worker>
                 DINLINE
                     /*__launch_bounds__(256, 4)*/
                     void
                     operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         ParBox pb,
                         DBox radiation,
                         DataSpace<simDim> globalOffset,
@@ -107,14 +104,11 @@ namespace picongpu
                     namespace po = boost::program_options;
                     using Amplitude = picongpu::plugins::radiation::Amplitude<>;
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    constexpr uint32_t numWorker = T_numWorkers;
 
                     using FrameType = typename ParBox::FrameType;
                     using FramePtr = typename ParBox::FramePtr;
 
                     using namespace parameters; // parameters of radiation
-
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                     /// calculate radiated Amplitude
                     /* parallelized in 1 dimensions:
@@ -128,24 +122,24 @@ namespace picongpu
                     constexpr int blockSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
                     // vectorial part of the integrand in the Jackson formula
-                    PMACC_SMEM(acc, real_amplitude_s, memory::Array<vector_64, blockSize>);
+                    PMACC_SMEM(worker, real_amplitude_s, memory::Array<vector_64, blockSize>);
 
                     // retarded time
-                    PMACC_SMEM(acc, t_ret_s, memory::Array<picongpu::float_X, blockSize>);
+                    PMACC_SMEM(worker, t_ret_s, memory::Array<picongpu::float_X, blockSize>);
 
                     // storage for macro particle weighting needed if
                     // the coherent and incoherent radiation of a single
                     // macro-particle needs to be considered
-                    PMACC_SMEM(acc, radWeighting_s, memory::Array<float_X, blockSize>);
+                    PMACC_SMEM(worker, radWeighting_s, memory::Array<float_X, blockSize>);
 
                     // particle counter used if not all particles are considered for
                     // radiation calculation
-                    PMACC_SMEM(acc, counter_s, int);
+                    PMACC_SMEM(worker, counter_s, int);
 
-                    PMACC_SMEM(acc, lowpass_s, memory::Array<NyquistLowPass, blockSize>);
+                    PMACC_SMEM(worker, lowpass_s, memory::Array<NyquistLowPass, blockSize>);
 
 
-                    int const theta_idx = cupla::blockIdx(acc).x; // cupla::blockIdx(acc).x is used to determine theta
+                    int const theta_idx = cupla::blockIdx(worker.getAcc()).x; // determine theta
 
                     // simulation time (needed for retarded time)
                     picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(DELTA_T));
@@ -164,8 +158,8 @@ namespace picongpu
                     // get absolute number of relevant super cells
                     int const numSuperCells = superCellsCount.productOfComponents();
 
-                    int const numJobs = cupla::gridDim(acc).y;
-                    int const jobIdx = cupla::blockIdx(acc).y;
+                    int const numJobs = cupla::gridDim(worker.getAcc()).y;
+                    int const jobIdx = cupla::blockIdx(worker.getAcc()).y;
 
                     /* go over all super cells on GPU with a stride depending on number of temporary results
                      * but ignore all guarding supercells
@@ -197,9 +191,9 @@ namespace picongpu
                              *  all threads must wait for the selection of a new frame
                              *  until all threads have evaluated "isValid"
                              */
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
-                            auto onlyMaster = lockstep::makeMaster(workerIdx);
+                            auto onlyMaster = lockstep::makeMaster(worker);
 
                             /* The Master process (thread 0) in every thread block is in
                              * charge of loading a frame from
@@ -208,10 +202,10 @@ namespace picongpu
                              */
                             onlyMaster([&]() { counter_s = 0; });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             // loop over all particles in the frame
-                            auto forEachParticle = lockstep::makeForEach<frameSize, numWorker>(workerIdx);
+                            auto forEachParticle = lockstep::makeForEach<frameSize>(worker);
 
                             forEachParticle(
                                 [&](uint32_t const linearIdx)
@@ -240,7 +234,7 @@ namespace picongpu
                                         {
                                             if(getRadiationMask(par))
                                                 saveParticleAt = kernel::atomicAllInc(
-                                                    acc,
+                                                    worker,
                                                     &counter_s,
                                                     ::alpaka::hierarchy::Threads{});
 
@@ -356,11 +350,12 @@ namespace picongpu
                                     } // END: only threads with particles are running
                                 });
 
-                            cupla::__syncthreads(acc); // wait till every thread has loaded its particle data
+                            worker.sync(); // wait till every thread has loaded its particle data
 
 
                             // run over all  valid omegas for this thread
-                            for(uint32_t o = workerIdx; o < radiation_frequencies::N_omega; o += T_numWorkers)
+                            for(uint32_t o = worker.getWorkerIdx(); o < radiation_frequencies::N_omega;
+                                o += T_Worker::getNumWorkers())
                             {
                                 /* storage for amplitude (complex 3D vector)
                                  * it  is initialized with zeros (  0 +  i 0 )
@@ -410,7 +405,7 @@ namespace picongpu
 
 
                             // wait till all radiation contributions for this super cell are done
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             /* First threads starts loading next frame of the super-cell:
                              *

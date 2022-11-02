@@ -35,16 +35,12 @@ namespace picongpu
     {
         namespace xrayScattering
         {
-            /** Kernel for xrayScattering calculation.
-             *
-             * @tparam T_numWorkers Number of virtual workers on block.
-             */
-            template<uint32_t T_numWorkers>
+            //! Kernel for xrayScattering calculation.
             struct KernelXrayScattering
             {
                 /** Kernel function.
                  *
-                 * @param acc alpaka accelerator
+                 * @param worker lockstep worker
                  * @param cellsGrid Dimensions of BORDER + CORE in cells, not super
                  *      cells.
                  * @param densityBoxGPU Data box of the density device storage, shifted
@@ -58,7 +54,7 @@ namespace picongpu
                  * @param currentStep Current simulation step.
                  */
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_DensityBoxGPU,
                     typename T_FieldPos,
                     typename T_DBox,
@@ -66,7 +62,7 @@ namespace picongpu
                     typename T_ScatteringVectors,
                     typename T_ProbingBeam>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     DataSpace<simDim> cellsGrid,
                     T_DensityBoxGPU densityBoxGPU,
                     DataSpace<simDim> globalOffset,
@@ -80,21 +76,18 @@ namespace picongpu
 
                 ) const
                 {
-                    constexpr uint32_t blockSize
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-                    constexpr uint32_t numWorkers = T_numWorkers;
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-                    uint32_t const blockIdxLin = cupla::blockIdx(acc).x;
+                    constexpr uint32_t blockSize = T_Worker::getNumWorkers();
+                    uint32_t const blockIdxLin = cupla::blockIdx(worker.getAcc()).x;
 
                     using complex_X = alpaka::Complex<float_X>;
                     // Storage for positions in the beam coordinate system.
-                    PMACC_SMEM(acc, positions, memory::Array<float2_X, blockSize>);
+                    PMACC_SMEM(worker, positions, memory::Array<float2_X, blockSize>);
                     // Storage for (form factor density * beam intensity factor).
-                    PMACC_SMEM(acc, densities, memory::Array<float_X, blockSize>);
+                    PMACC_SMEM(worker, densities, memory::Array<float_X, blockSize>);
 
                     uint32_t const linAccessBlockBegin = blockIdxLin * blockSize;
 
-                    lockstep::makeForEach<blockSize, numWorkers>(workerIdx)(
+                    lockstep::makeForEach<blockSize>(worker)(
                         [&](uint32_t const linearIdx)
                         {
                             // Each thread reads one field value and saves it together
@@ -118,12 +111,13 @@ namespace picongpu
                             positions[linearIdx] = position_b.shrink<DIM2>();
 
                             // Wait for all threads on the block to finish.
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             // Calculate the density fourier transform:
                             // Loop over q-vectors in frequency space:
                             // Each worker process every numWorkers vector.
-                            for(uint32_t qLoopIdx = workerIdx; qLoopIdx < totalNumVectors; qLoopIdx += numWorkers)
+                            for(uint32_t qLoopIdx = worker.getWorkerIdx(); qLoopIdx < totalNumVectors;
+                                qLoopIdx += blockSize)
                             {
                                 float2_X q = scatteringVectors[qLoopIdx];
                                 complex_X amplitude(0.0);
@@ -145,8 +139,16 @@ namespace picongpu
                                 // is guaranteed by alpaka::Complex<>.
                                 auto* resultReal = &reinterpret_cast<float_X(&)[2]>(amplitudeBox[qLoopIdx])[0];
                                 auto* resultImag = &reinterpret_cast<float_X(&)[2]>(amplitudeBox[qLoopIdx])[1];
-                                cupla::atomicAdd(acc, resultReal, amplitude.real(), ::alpaka::hierarchy::Blocks{});
-                                cupla::atomicAdd(acc, resultImag, amplitude.imag(), ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    worker.getAcc(),
+                                    resultReal,
+                                    amplitude.real(),
+                                    ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    worker.getAcc(),
+                                    resultImag,
+                                    amplitude.imag(),
+                                    ::alpaka::hierarchy::Blocks{});
                             } // end loop over scattering directions
                         } // end lambda function body
                     );

@@ -45,11 +45,11 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = double;
 
-                    template<typename T_Acc>
-                    DINLINE double operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE double operator()(T_Worker const& worker, StateType& state) const
                     {
                         double const value2pow64Inv = 5.421010862427522e-20;
-                        uint64_t const random = RNGMethod().get64Bits(acc, state);
+                        uint64_t const random = RNGMethod().get64Bits(worker, state);
                         return static_cast<double>(random) * value2pow64Inv + (value2pow64Inv / 2.0);
                     }
                 };
@@ -66,12 +66,12 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = double;
 
-                    template<typename T_Acc>
-                    DINLINE double operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE double operator()(T_Worker const& worker, StateType& state) const
                     {
                         double const randomValue
                             = pmacc::random::distributions::Uniform<uniform::ExcludeZero<double>, RNGMethod>()(
-                                acc,
+                                worker,
                                 state);
                         return randomValue == 1.0 ? 0.0 : randomValue;
                     }
@@ -91,11 +91,11 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = double;
 
-                    template<typename T_Acc>
-                    DINLINE double operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE double operator()(T_Worker const& worker, StateType& state) const
                     {
                         double const value2pow53Inv = 1.1102230246251565e-16;
-                        double const randomValue53Bit = RNGMethod().get64Bits(acc, state) >> 11;
+                        double const randomValue53Bit = RNGMethod().get64Bits(worker, state) >> 11;
                         return randomValue53Bit * value2pow53Inv;
                     }
                 };
@@ -113,14 +113,14 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = double;
 
-                    template<typename T_Acc>
-                    DINLINE result_type operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE result_type operator()(T_Worker const& worker, StateType& state) const
                     {
                         do
                         {
                             const double randomValue
                                 = pmacc::random::distributions::Uniform<uniform::ExcludeZero<double>, RNGMethod>()(
-                                    acc,
+                                    worker,
                                     state);
 
                             if(randomValue != 1.0)

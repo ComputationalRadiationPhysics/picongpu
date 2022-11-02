@@ -37,30 +37,30 @@ namespace picongpu
                  * This class allows to generate random numbers without passing the accelerator
                  * to each functor call.
                  *
-                 * @tparam T_Acc type of the alpaka accelerator
+                 * @tparam T_Worker type of the alpaka accelerator
                  * @tparam T_Rng type of the random number generator
                  */
-                template<typename T_Acc, typename T_Rng>
+                template<typename T_Worker, typename T_Rng>
                 struct RngWrapper
                 {
                     DINLINE RngWrapper(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         T_Rng const& rng
 
                         )
-                        : m_acc(&acc)
+                        : m_worker(&worker)
                         , m_rng(rng)
                     {
                     }
 
                     //! generate a random number
                     DINLINE
-                    typename T_Rng::result_type operator()()
+                    typename T_Rng::result_type operator()() const
                     {
-                        return m_rng(*m_acc);
+                        return m_rng(*m_worker);
                     }
 
-                    T_Acc const* m_acc;
+                    T_Worker const* m_worker;
                     mutable T_Rng m_rng;
                 };
 

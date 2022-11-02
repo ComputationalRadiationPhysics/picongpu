@@ -38,9 +38,9 @@ namespace picongpu
     {
         namespace atomicPhysics
         {
-            template<typename T_Acc, typename T_Electron, typename T_Histogram, typename T_AtomicDataBox>
+            template<typename T_Worker, typename T_Electron, typename T_Histogram, typename T_AtomicDataBox>
             DINLINE void processElectron(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_Electron electron,
                 T_Histogram const& histogram,
                 T_AtomicDataBox atomicDataBox)
@@ -52,7 +52,7 @@ namespace picongpu
 
                 // look up in the histogram, which bin corresponds to this energy
                 uint16_t binIndex = histogram.getBinIndex(
-                    acc,
+                    worker,
                     energyPhysicalElectron, // unit: ATOMIC_UNIT_ENERGY
                     atomicDataBox);
 
@@ -109,32 +109,28 @@ namespace picongpu
             // Fill the histogram return via the last parameter
             // should be called inside the AtomicPhysicsKernel
             template<
-                uint32_t T_numWorkers,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_Mapping,
                 typename T_ElectronBox,
                 typename T_Histogram,
                 typename T_AtomicDataBox>
             DINLINE void decelerateElectrons(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_Mapping mapper,
                 T_ElectronBox electronBox,
                 T_Histogram const& histogram,
                 T_AtomicDataBox atomicDataBox)
             {
                 pmacc::DataSpace<simDim> const superCellIdx(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
                 auto frame = electronBox.getLastFrame(superCellIdx);
                 auto particlesInSuperCell = electronBox.getSuperCell(superCellIdx).getSizeLastFrame();
 
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                 /// @todo : express framesize better, not via supercell size
                 constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                constexpr uint32_t numWorkers = T_numWorkers;
 
-                auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+                auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
 
                 // go over frames
                 while(frame.isValid())
@@ -146,11 +142,11 @@ namespace picongpu
                             if(linearIdx < particlesInSuperCell)
                             {
                                 auto particle = frame[linearIdx];
-                                processElectron(acc, particle, histogram, atomicDataBox);
+                                processElectron(worker, particle, histogram, atomicDataBox);
                             }
                         });
 
-                    cupla::__syncthreads(acc);
+                    worker.sync();
 
                     frame = electronBox.getPreviousFrame(frame);
                     particlesInSuperCell = frameSize;

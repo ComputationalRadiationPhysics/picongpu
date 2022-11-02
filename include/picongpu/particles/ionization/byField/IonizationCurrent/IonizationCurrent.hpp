@@ -37,12 +37,11 @@ namespace picongpu
             /**@{*/
             /** Implementation of actual ionization current
              *
-             * @tparam T_Acc alpaka accelerator type
              * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
              * @tparam T_Dim dimension of simulation
              */
-            template<typename T_Acc, typename T_DestSpecies, unsigned T_Dim>
-            struct IonizationCurrent<T_Acc, T_DestSpecies, T_Dim, current::EnergyConservation>
+            template<typename T_DestSpecies, unsigned T_Dim>
+            struct IonizationCurrent<T_DestSpecies, T_Dim, current::EnergyConservation>
             {
                 using ValueType_E = FieldE::ValueType;
 
@@ -50,13 +49,13 @@ namespace picongpu
                  *
                  * @tparam T_JBox type of current density data box
                  */
-                template<typename T_JBox>
+                template<typename T_Worker, typename T_JBox>
                 HDINLINE void operator()(
                     IonizerReturn retValue,
                     float_X const weighting,
                     T_JBox jBoxPar,
                     ValueType_E eField,
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     floatD_X const pos)
                 {
                     /* If there is no ionization, the ionization energy is zero. In that case, there is no need for an
@@ -68,27 +67,27 @@ namespace picongpu
                         /* calculate ionization current at particle position */
                         float3_X jIonizationPar = JIonizationCalc{}(ionizationEnergy, eField);
                         /* assign ionization current to grid points */
-                        JIonizationAssignment<T_Acc, T_DestSpecies, simDim>{}(acc, jIonizationPar, pos, jBoxPar);
+                        JIonizationAssignment<T_DestSpecies, simDim>{}(worker, jIonizationPar, pos, jBoxPar);
                     }
                 }
             };
 
             /** Ionization current deactivated
              */
-            template<typename T_Acc, typename T_DestSpecies, unsigned T_Dim>
-            struct IonizationCurrent<T_Acc, T_DestSpecies, T_Dim, current::None>
+            template<typename T_DestSpecies, unsigned T_Dim>
+            struct IonizationCurrent<T_DestSpecies, T_Dim, current::None>
             {
                 using ValueType_E = FieldE::ValueType;
 
                 /** no ionization current
                  */
-                template<typename T_JBox>
+                template<typename T_Worker, typename T_JBox>
                 HDINLINE void operator()(
                     IonizerReturn,
                     float_X const,
                     T_JBox,
                     ValueType_E,
-                    T_Acc const&,
+                    T_Worker const&,
                     floatD_X const)
                 {
                 }

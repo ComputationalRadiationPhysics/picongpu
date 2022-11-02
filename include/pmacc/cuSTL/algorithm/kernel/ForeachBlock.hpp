@@ -55,11 +55,16 @@ namespace pmacc
         typename Mapper,                                                                                              \
         BOOST_PP_ENUM_PARAMS(N, typename C),                                                                          \
         typename Functor,                                                                                             \
-        typename T_Acc> /* C0 c0, C1 c1, ... */                                                                       \
-    DINLINE void operator()(T_Acc const& acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor)   \
-        const                                                                                                         \
+        typename T_Acc,                                                                                               \
+        typename T_WorkerCfg> /* C0 c0, C1 c1, ... */                                                                 \
+    DINLINE void operator()(                                                                                          \
+        T_Acc acc,                                                                                                    \
+        T_WorkerCfg workerCfg,                                                                                        \
+        Mapper mapper,                                                                                                \
+        BOOST_PP_ENUM_BINARY_PARAMS(N, C, c),                                                                         \
+        Functor functor) const                                                                                        \
     {                                                                                                                 \
-        math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(cupla::blockIdx(acc))));                             \
+        math::Int<Mapper::dim> cellIndex(mapper(workerCfg.getWorker(acc), cupla::dim3(cupla::blockIdx(acc))));        \
         /* c0[cellIndex], c1[cellIndex], ... */                                                                       \
         functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                        \
     }
@@ -86,12 +91,12 @@ namespace pmacc
         /* ... */                                                                                                     \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                                                                      \
                                                                                                                       \
-        auto blockDim = ThreadBlock::toRT();                                                                          \
+        auto workerCfg = lockstep::makeWorkerCfg(ThreadBlock{});                                                      \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                            \
         using namespace pmacc;                                                                                        \
-        PMACC_KERNEL(detail::KernelForeachBlock{})                                                                    \
-        (mapper.cuplaGridDim(p_zone.size), blockDim) /* c0_shifted, c1_shifted, ... */                                \
-            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                                                   \
+        PMACC_LOCKSTEP_KERNEL(detail::KernelForeachBlock{}, workerCfg)                                                \
+        (mapper.cuplaGridDim(p_zone.size)) /* c0_shifted, c1_shifted, ... */                                          \
+            (workerCfg, mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                                        \
     }
 
             /** Special foreach algorithm that calls a cupla kernel

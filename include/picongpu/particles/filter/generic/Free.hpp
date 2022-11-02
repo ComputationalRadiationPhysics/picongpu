@@ -58,8 +58,8 @@ namespace picongpu
                          *
                          * @param particle particle to use for the filtering
                          */
-                        template<typename T_Acc, typename T_Particle>
-                        HDINLINE bool operator()(T_Acc const&, T_Particle const& particle)
+                        template<typename T_Worker, typename T_Particle>
+                        HDINLINE bool operator()(T_Worker const&, T_Particle const& particle)
                         {
                             bool const isValid = particle.isHandleValid();
 
@@ -89,17 +89,15 @@ namespace picongpu
 
                     /** create device filter
                      *
-                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
-                     * @param alpaka accelerator
+                     * @param worker lockstep worker
                      * @param offset (in supercells, without any guards) to the
                      *         origin of the local domain
                      * @param configuration of the worker
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
-                    HDINLINE acc::Free<Functor> operator()(T_Acc const&, DataSpace<simDim> const&, T_WorkerCfg const&)
-                        const
+                    template<typename T_Worker>
+                    HDINLINE acc::Free<Functor> operator()(T_Worker const&, DataSpace<simDim> const&) const
                     {
                         return acc::Free<Functor>(*static_cast<Functor const*>(this));
                     }

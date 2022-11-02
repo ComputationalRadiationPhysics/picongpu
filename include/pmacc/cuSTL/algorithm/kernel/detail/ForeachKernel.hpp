@@ -47,14 +47,19 @@ namespace pmacc
         typename Mapper,                                                                                              \
         BOOST_PP_ENUM_PARAMS(N, typename C),                                                                          \
         typename Functor,                                                                                             \
-        typename T_Acc> /*                                          C0 c0, ..., CN cN   */                            \
-    DINLINE void operator()(T_Acc const& acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor)   \
-        const                                                                                                         \
+        typename T_Worker> /*                                          C0 c0, ..., CN cN   */                         \
+    DINLINE void operator()(                                                                                          \
+        T_Worker const& worker,                                                                                       \
+        Mapper mapper,                                                                                                \
+        BOOST_PP_ENUM_BINARY_PARAMS(N, C, c),                                                                         \
+        Functor functor) const                                                                                        \
     {                                                                                                                 \
-        math::Int<Mapper::dim> cellIndex(                                                                             \
-            mapper(acc, cupla::dim3(cupla::blockIdx(acc)), cupla::dim3(cupla::threadIdx(acc))));                      \
+        math::Int<Mapper::dim> cellIndex(mapper(                                                                      \
+            worker,                                                                                                   \
+            cupla::dim3(cupla::blockIdx(worker.getAcc())),                                                            \
+            cupla::dim3(cupla::threadIdx(worker.getAcc()))));                                                         \
         /*          c0[cellIndex]), ..., cN[cellIndex]     */                                                         \
-        functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                        \
+        functor(worker, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                     \
     }
 
                 struct KernelForeach
@@ -71,18 +76,18 @@ namespace pmacc
                      * Each argument is shifted to the origin of the block before it is passed
                      * to the functor.
                      */
-                    template<typename T_Acc, typename T_Mapper, typename T_Functor, typename... T_Args>
+                    template<typename T_Worker, typename T_Mapper, typename T_Functor, typename... T_Args>
                     ALPAKA_FN_ACC void operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         T_Mapper const mapper,
                         T_Functor functor,
                         T_Args... args) const
                     {
                         // map to the origin of the block
                         math::Int<T_Mapper::dim> cellIndex(
-                            mapper(acc, cupla::dim3(cupla::blockIdx(acc)), cupla::dim3(0, 0, 0)));
+                            mapper(worker, cupla::dim3(cupla::blockIdx(worker.getAcc())), cupla::dim3(0, 0, 0)));
 
-                        functor(acc, args[cellIndex]...);
+                        functor(worker, args[cellIndex]...);
                     }
                 };
 
@@ -120,20 +125,26 @@ namespace pmacc
                             uint32_t const domainElementCount = blockSizeShrinked.productOfComponents();
                             DataSpace<T_Mapper::dim> const domainSize(blockSizeShrinked);
 
+                            /* @todo remove the workaround or CUSTL!
+                             * dummy worker required for PMacc methods the number of worker is not correct but for this
+                             * functor not important
+                             */
+                            auto const worker = lockstep::makeWorkerCfg<1>().getWorker(acc);
+
                             // map to the origin of the block
                             math::Int<T_Mapper::dim> blockCellOffset(mapper(
-                                acc,
+                                worker,
                                 domainSize.toDim3(),
                                 cupla::dim3(cupla::blockIdx(acc)),
                                 cupla::dim3(0, 0, 0)));
 
 
-                            for(uint32_t i = cupla::threadIdx(acc).x; i < domainElementCount;
+                            for(uint32_t i = cupla::threadIdx(worker.getAcc()).x; i < domainElementCount;
                                 i += cupla::blockDim(acc).x)
                             {
                                 auto const inBlockOffset = DataSpaceOperations<T_Mapper::dim>::map(domainSize, i);
                                 auto const cellOffset = blockCellOffset + inBlockOffset;
-                                functor(acc, args[cellOffset]...);
+                                functor(worker, args[cellOffset]...);
                             }
                         }
                     };

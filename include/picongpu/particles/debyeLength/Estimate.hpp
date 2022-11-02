@@ -25,12 +25,12 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/AllReduce.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 
 namespace picongpu
@@ -55,15 +55,14 @@ namespace picongpu
                 auto& electrons = *(dc.get<T_ElectronSpecies>(Frame::getName(), true));
 
                 auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(cellDescription);
-                constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                    pmacc::math::CT::volume<MappingDesc::SuperCellSize>::type::value>::value;
 
                 auto hostDeviceBuffer = pmacc::HostDeviceBuffer<Estimate, 1>{1u};
                 auto hostBox = hostDeviceBuffer.getHostBuffer().getDataBox();
                 hostDeviceBuffer.hostToDevice();
-                auto kernel = DebyeLengthEstimateKernel<numWorkers>{};
-                PMACC_KERNEL(kernel)
-                (mapper.getGridDim(), numWorkers)(
+                auto kernel = DebyeLengthEstimateKernel{};
+                auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                PMACC_LOCKSTEP_KERNEL(kernel, workerCfg)
+                (mapper.getGridDim())(
                     electrons.getDeviceParticlesBox(),
                     mapper,
                     minMacroparticlesPerSupercell,

@@ -29,7 +29,7 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 
 #include <memory>
 

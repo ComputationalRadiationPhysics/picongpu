@@ -45,13 +45,13 @@ namespace picongpu
                      *
                      * Result overwrites the dst value.
                      *
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      * @param acc alpaka accelerator
                      * @param dst total per cell value and result destination
                      * @param dens number density
                      */
-                    template<typename T_Acc>
-                    HDINLINE void operator()(T_Acc const& acc, float1_X& dst, const float1_X& dens) const;
+                    template<typename T_Worker>
+                    HDINLINE void operator()(T_Worker const& worker, float1_X& dst, const float1_X& dens) const;
                 };
 
                 //! Provides description for an averaged attribute

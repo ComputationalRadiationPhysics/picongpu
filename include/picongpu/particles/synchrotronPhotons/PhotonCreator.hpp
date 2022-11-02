@@ -133,35 +133,31 @@ namespace picongpu
                  *
                  * @warning this is a collective method and calls synchronize
                  *
-                 * @tparam T_Acc alpaka accelerator type
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
+                 * @tparam T_Worker lockstep::Worker, lockstep worker
                  *
-                 * @param acc alpaka accelerator
+                 * @param worker alpaka accelerator
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
                  * @param workerCfg configuration of the worker
                  */
-                template<typename T_Acc, typename T_WorkerCfg>
-                DINLINE void collectiveInit(
-                    const T_Acc& acc,
-                    const DataSpace<simDim>& blockCell,
-                    const T_WorkerCfg& workerCfg)
+                template<typename T_Worker>
+                DINLINE void collectiveInit(const T_Worker& worker, const DataSpace<simDim>& blockCell)
                 {
                     /* caching of E and B fields */
-                    cachedB = CachedBox::create<0, ValueType_B>(acc, BlockArea());
-                    cachedE = CachedBox::create<1, ValueType_E>(acc, BlockArea());
+                    cachedB = CachedBox::create<0, ValueType_B>(worker, BlockArea());
+                    cachedE = CachedBox::create<1, ValueType_E>(worker, BlockArea());
 
                     /* instance of nvidia assignment operator */
                     pmacc::math::operation::Assign assign;
                     /* copy fields from global to shared */
                     auto fieldBBlock = bBox.shift(blockCell);
-                    ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());
-                    collective(acc, assign, cachedB, fieldBBlock);
+                    auto collective = makeThreadCollective<BlockArea>();
+                    collective(worker, assign, cachedB, fieldBBlock);
                     /* copy fields from global to shared */
                     auto fieldEBlock = eBox.shift(blockCell);
-                    collective(acc, assign, cachedE, fieldEBlock);
+                    collective(worker, assign, cachedE, fieldEBlock);
 
                     /* wait for shared memory to be initialized */
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                 }
 
                 /** Initialization function on device
@@ -173,11 +169,10 @@ namespace picongpu
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
                  * necessary after initializing the E-/B-field shared boxes in shared memory.
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE void init(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const DataSpace<simDim>& blockCell,
-                    const int& linearThreadIdx,
                     const DataSpace<simDim>& localCellOffset)
                 {
                     /* initialize random number generator with the local cell index in the simulation */
@@ -243,8 +238,8 @@ namespace picongpu
                  * @param localIdx Index of the source particle within frame
                  * @return number of particle to be created from each source particle
                  */
-                template<typename T_Acc>
-                DINLINE unsigned int numNewParticles(const T_Acc& acc, FrameType& sourceFrame, int localIdx)
+                template<typename T_Worker>
+                DINLINE unsigned int numNewParticles(const T_Worker& worker, FrameType& sourceFrame, int localIdx)
                 {
                     using namespace pmacc::algorithms;
 
@@ -291,7 +286,7 @@ namespace picongpu
                     // quantum-nonlinearity parameter
                     const float_X chi = gamma * H_eff / E_S;
 
-                    const float_X deltaScaled = this->randomGen(acc);
+                    const float_X deltaScaled = this->randomGen(worker);
 
                     const float_X x = emission_prob_scaled(deltaScaled, chi, gamma);
 
@@ -311,7 +306,7 @@ namespace picongpu
                         }
                     }
 
-                    if(this->randomGen(acc) < x)
+                    if(this->randomGen(worker) < x)
                     {
                         const float_X delta = deltaScaled * deltaScaled * deltaScaled;
                         const float_X photonMom_abs = delta * mass * c * gamma;
@@ -332,8 +327,8 @@ namespace picongpu
                  * @tparam Electron type of electron which creates the photon
                  * @tparam Photon type of photon that is created
                  */
-                template<typename Electron, typename Photon, typename T_Acc>
-                DINLINE void operator()(const T_Acc& acc, Electron& electron, Photon& photon) const
+                template<typename Electron, typename Photon, typename T_Worker>
+                DINLINE void operator()(const T_Worker& worker, Electron& electron, Photon& photon) const
                 {
                     namespace parOp = pmacc::particles::operations;
                     auto destPhoton = parOp::deselect<boost::mpl::vector<multiMask, momentum>>(photon);

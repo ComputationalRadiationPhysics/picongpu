@@ -76,7 +76,6 @@ namespace picongpu
                 float_X momSpreadThreshold;
                 /** factory of gitting random value */
                 RngFactory rngFactory;
-                using RandomGen = RngFactory::RandomGen;
 
             public:
                 RandomizedParticleMergerKernel(
@@ -121,22 +120,16 @@ namespace picongpu
                  *
                  * @param cellIdx cell index, including guard cells
                  */
-                template<typename T_Acc>
-                DINLINE void initVoronoiCellIdAttribute(T_Acc const& acc, const pmacc::math::Int<simDim>& cellIdx)
+                template<typename T_Worker>
+                DINLINE void initVoronoiCellIdAttribute(
+                    T_Worker const& worker,
+                    const pmacc::math::Int<simDim>& cellIdx)
                 {
-                    //! \todo change this as soon as the kernel support lock step programming
-                    constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    const uint32_t workerIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
-
                     auto const superCellIdx = pmacc::DataSpace<simDim>{cellIdx / SuperCellSize::toRT()};
-                    auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
-                        workerIdx,
-                        particlesBox,
-                        superCellIdx);
+                    auto forEachParticle
+                        = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
 
                     forEachParticle(
-                        acc,
                         [this](auto const&, auto& particle)
                         {
                             const lcellId_t particleCellIdx = particle[localCellIdx_];
@@ -189,7 +182,8 @@ namespace picongpu
                  * @param randomGen ramdom generator functor
                  * @param voronoiCell voronoi cell
                  */
-                DINLINE bool isNeededSubdivision(RandomGen& randomGen, VoronoiCell const& voronoiCell) const
+                template<typename T_RandomGen>
+                DINLINE bool isNeededSubdivision(T_RandomGen& randomGen, VoronoiCell const& voronoiCell) const
                 {
                     // With large enough number of macroparticles we always subdivide
                     if(voronoiCell.numMacroParticles > maxParticlesToMerge)
@@ -255,10 +249,10 @@ namespace picongpu
                  * @param particle current particle
                  * @param voronoiCell current Voronoi cell
                  */
-                template<typename T_Particle, typename T_Acc>
-                DINLINE void mergeVoronoiCell(T_Acc const& acc, T_Particle& particle, VoronoiCell& voronoiCell)
+                template<typename T_Particle, typename T_Worker>
+                DINLINE void mergeVoronoiCell(T_Worker const& worker, T_Particle& particle, VoronoiCell& voronoiCell)
                 {
-                    if(voronoiCell.isFirstParticle(acc))
+                    if(voronoiCell.isFirstParticle(worker))
                     {
                         /* I am the first particle in the Voronoi cell
                          * => get dressed with Voronoi cell's attributes
@@ -292,32 +286,24 @@ namespace picongpu
                  * Depending on the state of the Voronoi cell where the particle belongs
                  * to the execution is forked into distinct sub-processes.
                  *
-                 * @tparam T_Acc accelerator type
+                 * @tparam T_Worker accelerator type
                  *
-                 * @param acc accelerator
+                 * @param worker lockstep worker
                  * @param cellIdx n-dimensional cell index, including guard cells
                  * @param listVoronoiCells fixed-sized array of Voronoi cells
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE void processParticles(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const pmacc::math::Int<simDim>& cellIdx,
                     ArrayVoronoiCells& listVoronoiCells)
                 {
-                    //! \todo change this as soon as the kernel support lock step programming
-                    constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    const uint32_t workerIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
-
                     auto const superCellIdx = pmacc::DataSpace<simDim>{cellIdx / SuperCellSize::toRT()};
-                    auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
-                        workerIdx,
-                        particlesBox,
-                        superCellIdx);
+                    auto forEachParticle
+                        = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
 
                     forEachParticle(
-                        acc,
-                        [&](auto const& accelerator, auto& particle)
+                        [&](auto const& lockstepWorker, auto& particle)
                         {
                             const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
 
@@ -338,7 +324,7 @@ namespace picongpu
                             switch(voronoiCell.status)
                             {
                             case VoronoiStatus::collecting:
-                                voronoiCell.addParticle(accelerator, position, singleParticleMomentum, weighting);
+                                voronoiCell.addParticle(lockstepWorker, position, singleParticleMomentum, weighting);
                                 break;
 
                             case VoronoiStatus::splitting:
@@ -347,7 +333,7 @@ namespace picongpu
                                         = voronoiCell.getSubVoronoiCell(position, singleParticleMomentum);
                                     particle[voronoiCellId_] = subVoronoiCellId;
                                     listVoronoiCells[subVoronoiCellId]
-                                        .addParticle(accelerator, position, singleParticleMomentum, weighting);
+                                        .addParticle(lockstepWorker, position, singleParticleMomentum, weighting);
 
                                     break;
                                 }
@@ -357,7 +343,7 @@ namespace picongpu
                                 break;
 
                             case VoronoiStatus::readyForMerging:
-                                mergeVoronoiCell(accelerator, particle, voronoiCell);
+                                mergeVoronoiCell(lockstepWorker, particle, voronoiCell);
                                 particle[voronoiCellId_] = -1;
                             }
                         });
@@ -372,10 +358,11 @@ namespace picongpu
                  * @param voronoiIndexPool holds indices of active Voronoi cells within `listVoronoiCells`
                  * @param randomGen random generator functor
                  */
+                template<typename T_RandomGen>
                 DINLINE void processVoronoiCells(
                     ArrayVoronoiCells& listVoronoiCells,
                     VoronoiIndexPool& voronoiIndexPool,
-                    RandomGen& randomGen) const
+                    T_RandomGen& randomGen) const
                 {
                     for(voronoiCellId::type voronoiCellId : voronoiIndexPool)
                     {
@@ -446,13 +433,13 @@ namespace picongpu
 
                 /** Entry point of the particle merging algorithm
                  *
-                 * @tparam T_Acc accelerator type
+                 * @tparam T_Worker lockstep worker type
                  *
-                 * @param acc accelerator
+                 * @param worker lockstep worker
                  * @param cellIndex n-dimensional cell index from the origin of the local domain
                  */
-                template<typename T_Acc>
-                DINLINE void operator()(T_Acc const& acc, const pmacc::math::Int<simDim>& cellIndex)
+                template<typename T_Worker>
+                DINLINE void operator()(T_Worker const& worker, const pmacc::math::Int<simDim>& cellIndex)
                 {
                     // multi-dim vector from origin of the super cell to a cell in units of cells
                     const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
@@ -461,8 +448,8 @@ namespace picongpu
                         threadIndex);
 
                     // Storage for Voronoi cells in shared memory
-                    PMACC_SMEM(acc, listVoronoiCells, ArrayVoronoiCells);
-                    PMACC_SMEM(acc, voronoiIndexPool, VoronoiIndexPool);
+                    PMACC_SMEM(worker, listVoronoiCells, ArrayVoronoiCells);
+                    PMACC_SMEM(worker, voronoiIndexPool, VoronoiIndexPool);
 
                     /* number of initial Voronoi cells
                      * `1u << simDim` is equivalent to `pow(2, simDim)` but can be
@@ -473,36 +460,34 @@ namespace picongpu
 
 
                     pmacc::math::Int<simDim> localOffset = cellIndex / SuperCellSize::toRT() - guardSuperCells;
-                    constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    lockstep::Worker<numWorkers> workerCfg(linearThreadIdx);
 
                     // Thread 0 of each block creates Voronoi cells
                     if(linearThreadIdx == 0)
                     {
                         voronoiIndexPool = VoronoiIndexPool(numInitialVoronoiCells);
                     }
-                    __syncthreads();
+                    worker.sync();
 
                     // Set initial Voronoi cells into `collecting` state
                     if(linearThreadIdx < numInitialVoronoiCells)
                         listVoronoiCells[linearThreadIdx] = VoronoiCell();
-                    __syncthreads();
+                    worker.sync();
 
                     // Distribute particle between original cells
-                    initVoronoiCellIdAttribute(acc, cellIndex);
-                    __syncthreads();
+                    initVoronoiCellIdAttribute(worker, cellIndex);
+                    worker.sync();
 
-                    auto generator = rngFactory(acc, localOffset, workerCfg);
+                    auto generator = rngFactory(worker, localOffset);
                     // Main loop of the algorithm: while there are active cells left
                     while(voronoiIndexPool.size() > 0)
                     {
-                        processParticles(acc, cellIndex, listVoronoiCells);
-                        __syncthreads();
+                        processParticles(worker, cellIndex, listVoronoiCells);
+                        worker.sync();
 
                         // This part is not yet parallelized between blocks of a thread
                         if(linearThreadIdx == 0)
                             processVoronoiCells(listVoronoiCells, voronoiIndexPool, generator);
-                        __syncthreads();
+                        worker.sync();
                     }
                 }
             };

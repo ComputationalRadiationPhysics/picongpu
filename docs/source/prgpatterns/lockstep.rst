@@ -220,4 +220,4 @@ Using a Master Worker
     /* important: synchronize now, in case upcoming operations (with
      * other workers) access that manipulated shared memory section
      */
-    cupla::__syncthreads(acc);
+    worker.sync();

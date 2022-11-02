@@ -108,8 +108,8 @@ namespace picongpu
                 // number of different atomic configurations in an atomic state
                 // @param idx ... index of atomic state, unitless
                 // return unit: unitless
-                template<typename T_Acc>
-                DINLINE static float_64 Multiplicity(T_Acc& acc, Idx configNumber)
+                template<typename T_Worker>
+                DINLINE static float_64 Multiplicity(T_Worker const& worker, Idx configNumber)
                 {
                     LevelVector const levelVector = ConfigNumber::getLevelVector(configNumber); // unitless
 
@@ -158,9 +158,9 @@ namespace picongpu
 
             public:
                 // return unit: ATOMIC_UNIT_ENERGY
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X energyDifference(
-                    T_Acc& acc,
+                    T_Worker const& worker,
                     Idx const oldConfigNumber, // unitless
                     Idx const newConfigNumber, // unitless
                     AtomicDataBox atomicDataBox)
@@ -177,9 +177,9 @@ namespace picongpu
                  * @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
                  * return unit: m^2
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X collisionalExcitationCrosssection(
-                    T_Acc& acc,
+                    T_Worker const& worker,
                     Idx const oldConfigNumber, // unitless
                     Idx const newConfigNumber, // unitless
                     uint32_t const transitionIndex, // unitless
@@ -188,7 +188,7 @@ namespace picongpu
                 {
                     // energy difference between atomic states
                     float_X m_energyDifference = energyDifference(
-                        acc,
+                        worker,
                         oldConfigNumber,
                         newConfigNumber,
                         atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
@@ -208,7 +208,7 @@ namespace picongpu
                         // ratio due to multiplicity
                         // unitless/unitless * (AU + AU) / AU = unitless
                         Ratio = static_cast<float_X>(
-                                    (Multiplicity(acc, newConfigNumber)) / (Multiplicity(acc, oldConfigNumber)))
+                                    (Multiplicity(worker, newConfigNumber)) / (Multiplicity(worker, oldConfigNumber)))
                             * (energyElectron + m_energyDifference) / energyElectron; // unitless
 
                         // security check for NaNs in Ratio and debug outputif present
@@ -265,9 +265,9 @@ namespace picongpu
                  * @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
                  * return unit: m^2, SI
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X totalElectronInteractionCrossSection(
-                    T_Acc& acc,
+                    T_Worker const& worker,
                     float_X const energyElectron, // unit: ATOMIC_UNIT_ENERGY
                     AtomicDataBox const atomicDataBox,
                     bool const debug = false)
@@ -294,7 +294,7 @@ namespace picongpu
 
                             // check excitation possible with electron energy
                             if(AtomicRate::energyDifference(
-                                   acc,
+                                   worker,
                                    lowerStateConfigNumber,
                                    upperStateConfigNumber,
                                    atomicDataBox)
@@ -302,7 +302,7 @@ namespace picongpu
                             {
                                 // excitation cross section
                                 crossSection += collisionalExcitationCrosssection(
-                                    acc,
+                                    worker,
                                     lowerStateConfigNumber, // unitless
                                     upperStateConfigNumber, // unitless
                                     transitionIndex, // unitless
@@ -318,7 +318,7 @@ namespace picongpu
                                     "crossSectionExcitation %f lowerStateConfigNumber %u, "
                                     "upperStateConfigNumber %u energyElectron %f \n",
                                     collisionalExcitationCrosssection(
-                                        acc,
+                                        worker,
                                         lowerStateConfigNumber, // unitless
                                         upperStateConfigNumber, // unitless
                                         transitionIndex, // uintless
@@ -331,7 +331,7 @@ namespace picongpu
 
                             // deexcitation crosssection, always possible
                             crossSection += collisionalExcitationCrosssection(
-                                acc,
+                                worker,
                                 upperStateConfigNumber,
                                 lowerStateConfigNumber,
                                 transitionIndex,
@@ -344,7 +344,7 @@ namespace picongpu
                                 printf(
                                     " crossSectionDeExcitation %f \n",
                                     collisionalExcitationCrosssection(
-                                        acc,
+                                        worker,
                                         upperStateConfigNumber, // unitless
                                         lowerStateConfigNumber, // unitless
                                         transitionIndex, // uintless
@@ -371,9 +371,9 @@ namespace picongpu
                  *
                  * return unit: 1/s ... SI
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X RateFreeElectronInteraction(
-                    T_Acc& acc,
+                    T_Worker const& acc,
                     Idx const oldState, // unit: unitless
                     Idx const newState, // unit: unitless
                     uint32_t const transitionIndex,
@@ -418,9 +418,9 @@ namespace picongpu
                  *
                  * return unit: 1/s ... SI
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X RateSpontaneousPhotonEmission(
-                    T_Acc& acc,
+                    T_Worker const& acc,
                     Idx const oldState, // unit: unitless
                     Idx const newState, // unit: unitless
                     uint32_t const transitionIndex,
@@ -466,9 +466,9 @@ namespace picongpu
                  *
                  * return unit: 1/s, SI
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X totalRate(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     Idx oldState, // unitless
                     float_X energyElectron, // unit: ATOMIC_UNIT_ENERGY
                     float_X energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
@@ -498,7 +498,7 @@ namespace picongpu
                             if(upperState == oldState)
                             {
                                 totalRate += RateFreeElectronInteraction(
-                                    acc,
+                                    worker,
                                     oldState, // unitless
                                     lowerState, // newstate, unitless
                                     indexTransition,
@@ -508,13 +508,13 @@ namespace picongpu
                                     atomicDataBox); // unit: 1/s, SI
 
                                 float_X deltaEnergyTransition = energyDifference(
-                                    acc,
+                                    worker,
                                     oldState,
                                     lowerState,
                                     atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
 
                                 totalRate += RateSpontaneousPhotonEmission(
-                                    acc,
+                                    worker,
                                     oldState,
                                     lowerState,
                                     indexTransition,
@@ -524,10 +524,10 @@ namespace picongpu
 
                             // transitions with oldState as lower State
                             if((lowerState == oldState)
-                               && (AtomicRate::energyDifference(acc, lowerState, upperState, atomicDataBox)
+                               && (AtomicRate::energyDifference(worker, lowerState, upperState, atomicDataBox)
                                    <= energyElectron))
                                 totalRate += RateFreeElectronInteraction(
-                                    acc,
+                                    worker,
                                     oldState, // unitless
                                     upperState, // newstate, unitless
                                     indexTransition,
@@ -548,9 +548,9 @@ namespace picongpu
                  *
                  * return unit: 1/s, SI
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE static float_X totalSpontaneousRate(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     Idx oldState, // unitless
                     AtomicDataBox atomicDataBox) // unit: 1/s, SI
                 {
@@ -577,13 +577,13 @@ namespace picongpu
                             if(upperState == oldState)
                             {
                                 float_X deltaEnergyTransition = energyDifference(
-                                    acc,
+                                    worker,
                                     oldState,
                                     lowerState,
                                     atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
 
                                 totalRate += RateSpontaneousPhotonEmission(
-                                    acc,
+                                    worker,
                                     oldState,
                                     lowerState,
                                     indexTransition,

@@ -274,7 +274,7 @@ namespace alpaka
             template<typename... TArgs>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 ::pmacc::exec::detail::KernelWithDynSharedMem<T_UserKernel> const& userKernel,
-                TArgs const&...) -> ::alpaka::Idx<T_Acc>
+                TArgs&&...) -> ::alpaka::Idx<T_Acc>
             {
                 return userKernel.m_dynSharedMemBytes;
             }

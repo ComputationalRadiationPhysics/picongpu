@@ -135,7 +135,7 @@ cupla_add_executable(gameOfLife
 
 target_link_libraries(gameOfLife PRIVATE pmacc::pmacc)
 if(PNGwriter_FOUND)
-    target_link_libraries(PNGwriter::PNGwriter)
+    target_link_libraries(gameOfLife PRIVATE PNGwriter::PNGwriter)
 endif()
 
 ################################################################################

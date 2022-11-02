@@ -39,10 +39,7 @@ namespace pmacc
     /* count particles
      *
      * it is allowed to call this kernel on frames with holes (without calling fillAllGAps before)
-     *
-     * @tparam T_numWorkers number of workers
      */
-    template<uint32_t T_numWorkers>
     struct KernelCountParticles
     {
         /** count particles
@@ -59,9 +56,9 @@ namespace pmacc
          * @param mapper functor to map a block to a supercell
          * @param parFilter particle filter method, the working domain for the filter is supercells
          */
-        template<typename T_PBox, typename T_Filter, typename T_Mapping, typename T_ParticleFilter, typename T_Acc>
+        template<typename T_PBox, typename T_Filter, typename T_Mapping, typename T_ParticleFilter, typename T_Worker>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_PBox pb,
             uint64_cu* gCounter,
             T_Filter filter,
@@ -69,49 +66,47 @@ namespace pmacc
             T_ParticleFilter parFilter) const
         {
             constexpr uint32_t dim = T_Mapping::Dim;
-            constexpr uint32_t numWorkers = T_numWorkers;
 
-            PMACC_SMEM(acc, counter, int);
+            PMACC_SMEM(worker, counter, int);
+            DataSpace<dim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc()))));
 
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-            DataSpace<dim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))));
+            auto onlyMaster = lockstep::makeMaster(worker);
 
-            auto onlyMaster = lockstep::makeMaster(workerIdx);
-
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
             onlyMaster([&]() { counter = 0; });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
             filter.setSuperCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
 
-            auto accParFilter = parFilter(
-                acc,
-                superCellIdx - mapper.getGuardingSuperCells(),
-                lockstep::Worker<numWorkers>{workerIdx});
+            auto accParFilter = parFilter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             forEachParticle(
-                acc,
-                [&counter, &filter, &accParFilter](auto const& accelerator, auto& particle)
+                [&counter, &filter, &accParFilter](auto const& lockstepWorker, auto& particle)
                 {
                     bool const useParticle = filter(particle);
                     if(useParticle)
                     {
-                        if(accParFilter(accelerator, particle))
-                            kernel::atomicAllInc(accelerator, &counter, ::alpaka::hierarchy::Threads{});
+                        if(accParFilter(lockstepWorker, particle))
+                            kernel::atomicAllInc(lockstepWorker, &counter, ::alpaka::hierarchy::Threads{});
                     }
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             onlyMaster(
-                [&]()
-                { cupla::atomicAdd(acc, gCounter, static_cast<uint64_cu>(counter), ::alpaka::hierarchy::Blocks{}); });
+                [&]() {
+                    cupla::atomicAdd(
+                        worker.getAcc(),
+                        gCounter,
+                        static_cast<uint64_cu>(counter),
+                        ::alpaka::hierarchy::Blocks{});
+                });
         }
     };
 
@@ -138,11 +133,10 @@ namespace pmacc
             GridBuffer<uint64_cu, DIM1> counter(DataSpace<DIM1>(1));
 
             auto const mapper = makeAreaMapper<AREA>(cellDescription);
-            constexpr uint32_t numWorkers
-                = traits::GetNumWorkers<math::CT::volume<typename CellDesc::SuperCellSize>::type::value>::value;
+            auto workerCfg = lockstep::makeWorkerCfg(typename CellDesc::SuperCellSize{});
 
-            PMACC_KERNEL(KernelCountParticles<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(
+            PMACC_LOCKSTEP_KERNEL(KernelCountParticles{}, workerCfg)
+            (mapper.getGridDim())(
                 buffer.getDeviceParticlesBox(),
                 counter.getDeviceBuffer().getBasePointer(),
                 filter,

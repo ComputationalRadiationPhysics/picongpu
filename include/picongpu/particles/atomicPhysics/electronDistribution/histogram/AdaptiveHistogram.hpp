@@ -314,14 +314,15 @@ namespace picongpu
                          *
                          * @return return Unit: Value
                          */
-                        template<typename T_Acc>
-                        DINLINE float_X getEnergyBin(T_Acc& acc, uint16_t index, T_AtomicDataBox atomicDataBox) const
+                        template<typename T_Worker>
+                        DINLINE float_X
+                        getEnergyBin(T_Worker const& worker, uint16_t index, T_AtomicDataBox atomicDataBox) const
                         {
                             // no need to check for < 0, since uint
                             if(index < this->numBins)
                             {
                                 float_X leftBoundary = this->binLeftBoundary[index];
-                                float_X binWidth = this->getBinWidth(acc, true, leftBoundary, atomicDataBox);
+                                float_X binWidth = this->getBinWidth(worker, true, leftBoundary, atomicDataBox);
 
                                 return leftBoundary + binWidth / 2._X;
                             }
@@ -391,9 +392,9 @@ namespace picongpu
                          * @return returns collection index of existing bin containing
                          * this energy or maxNumBins otherwise
                          */
-                        template<typename T_Acc>
+                        template<typename T_Worker>
                         DINLINE uint16_t getBinIndex(
-                            T_Acc& acc,
+                            T_Worker const& worker,
                             float_X energy, // Unit: Argument
                             T_AtomicDataBox atomicDataBox) const
                         {
@@ -403,7 +404,7 @@ namespace picongpu
                             for(uint16_t i = 0; i < this->numBins; i++)
                             {
                                 leftBoundary = this->binLeftBoundary[i];
-                                binWidth = this->getBinWidth(acc, true, leftBoundary, atomicDataBox);
+                                binWidth = this->getBinWidth(worker, true, leftBoundary, atomicDataBox);
                                 if(this->inBin(true, leftBoundary, binWidth, energy))
                                 {
                                     return i;
@@ -439,9 +440,9 @@ namespace picongpu
                          * @param currentBinWidth starting binWidth, the result may be both
                          *      larger and smaller than initial value, Unit: Argument
                          */
-                        template<typename T_Acc>
+                        template<typename T_Worker>
                         DINLINE float_X getBinWidth(
-                            T_Acc& acc,
+                            T_Worker const& worker,
                             const bool directionPositive, // unitless
                             const float_X boundary, // Unit: value
                             T_AtomicDataBox atomicDataBox) const
@@ -468,9 +469,11 @@ namespace picongpu
                          * @param acc accelerator config for on accelerator execution
                          * @param atomicDataBox atomic data for relative error estimation
                          */
-                        template<typename T_Acc>
-                        DINLINE float_X
-                        getBinLeftBoundary(T_Acc& acc, float_X const x, T_AtomicDataBox atomicDataBox) const
+                        template<typename T_Worker>
+                        DINLINE float_X getBinLeftBoundary(
+                            T_Worker const& worker,
+                            float_X const x,
+                            T_AtomicDataBox atomicDataBox) const
                         {
                             // whether x is in positive direction with regards to last known
                             // Boundary
@@ -488,7 +491,7 @@ namespace picongpu
                             bool inBin = false;
                             while(!inBin)
                             {
-                                currentBinWidth = getBinWidth(acc, directionPositive, boundary, atomicDataBox);
+                                currentBinWidth = getBinWidth(worker, directionPositive, boundary, atomicDataBox);
 
                                 inBin = AdaptiveHistogram::inBin(directionPositive, boundary, currentBinWidth, x);
 
@@ -538,10 +541,10 @@ namespace picongpu
                          * @param deltaWeight weight to add, can be negative
                          * @param acc accelerator config for on accelerator execution
                          */
-                        template<typename T_Acc>
-                        DINLINE void addDeltaWeight(T_Acc& acc, uint16_t index, float_X deltaWeight)
+                        template<typename T_Worker>
+                        DINLINE void addDeltaWeight(T_Worker const& worker, uint16_t index, float_X deltaWeight)
                         {
-                            cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), deltaWeight);
+                            cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), deltaWeight);
                         }
 
                         /** record energy taken/added from/to a given bin
@@ -554,12 +557,12 @@ namespace picongpu
                          *
                          * @param index collection index of the bin to which to add the weight
                          * @param deltaWeight weight to add, can be negative
-                         * @param acc accelerator config for on accelerator execution
+                         * @param worker lockstep worker
                          */
-                        template<typename T_Acc>
-                        DINLINE void addDeltaEnergy(T_Acc& acc, uint16_t index, float_X deltaEnergy)
+                        template<typename T_Worker>
+                        DINLINE void addDeltaEnergy(T_Worker const& worker, uint16_t index, float_X deltaEnergy)
                         {
-                            cupla::atomicAdd(acc, &(this->binDeltaEnergy[index]), deltaEnergy);
+                            cupla::atomicAdd(worker.getAcc(), &(this->binDeltaEnergy[index]), deltaEnergy);
                         }
 
                         /** tries to reduce the weight of the specified bin by deltaWeight,
@@ -567,28 +570,31 @@ namespace picongpu
                          *
                          * @param index collection index of the bin to which to add the weight
                          * @param deltaWeight weight to remove
-                         * @param acc accelerator config for on accelerator execution
+                         * @param worker lockstep worker
                          *
                          * @return returns true if successful, or false if not enough weight
                          *  in bin to add delta weight and keep bin weight >=0
                          */
-                        template<typename T_Acc>
-                        DINLINE bool tryRemoveWeightFromBin(T_Acc& acc, uint16_t index, float_X deltaWeight)
+                        template<typename T_Worker>
+                        DINLINE bool tryRemoveWeightFromBin(
+                            T_Worker const& worker,
+                            uint16_t index,
+                            float_X deltaWeight)
                         {
                             if(this->binWeight[index] + this->binDeltaWeight[index] - deltaWeight >= 0._X)
                             {
                                 // updates deltaWeight instead of binWeight
-                                cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), -deltaWeight);
+                                cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), -deltaWeight);
                                 return true;
                             }
                             return false;
                         }
 
                         //! same as addDeltaWeight() but different sign convention
-                        template<typename T_Acc>
-                        DINLINE void removeWeightFromBin(T_Acc& acc, uint16_t index, float_X deltaWeight)
+                        template<typename T_Worker>
+                        DINLINE void removeWeightFromBin(T_Worker const& worker, uint16_t index, float_X deltaWeight)
                         {
-                            cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), -deltaWeight);
+                            cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), -deltaWeight);
                         }
 
                         /** tries to add the delta energy to the specified bin, unless this
@@ -596,26 +602,26 @@ namespace picongpu
                          *
                          * @param index collection index of the bin to which to add the weight
                          * @param deltaEnergy energy to add
-                         * @param acc accelerator config for on accelerator execution
+                         * @param worker lockstep worker
                          *
                          * @return returns true if successful, or false if not enough energy
                          * in bin to add delta energy and keep bin energy >=0
                          */
-                        template<typename T_Acc>
+                        template<typename T_Worker>
                         DINLINE bool tryAddEnergyToBin(
-                            T_Acc& acc,
+                            T_Worker const& worker,
                             uint16_t index,
                             float_X deltaEnergy, // Unit: Argument
                             T_AtomicDataBox atomicDataBox)
                         {
                             if((this->binWeight[index] + this->binDeltaWeight[index])
-                                       * this->getEnergyBin(acc, index, atomicDataBox)
+                                       * this->getEnergyBin(worker, index, atomicDataBox)
                                        * static_cast<float_X>(
                                            picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
                                    + deltaEnergy
                                >= 0.0)
                             {
-                                cupla::atomicAdd(acc, &(this->binDeltaEnergy[index]), deltaEnergy);
+                                cupla::atomicAdd(worker.getAcc(), &(this->binDeltaEnergy[index]), deltaEnergy);
                                 return true;
                             }
                             return false;
@@ -628,18 +634,18 @@ namespace picongpu
                          *
                          * @param x where object is located that we want to bin
                          * @param weight weight of the object to bin
-                         * @param acc accelerator config for on accelerator execution
+                         * @param worker lockstep worker
                          * @param atomicDataBox atomic data for relative error estimation
                          */
-                        template<typename T_Acc>
+                        template<typename T_Worker>
                         DINLINE void binObject(
-                            T_Acc const& acc,
+                            T_Worker const& worker,
                             float_X const x,
                             float_X const weight,
                             T_AtomicDataBox atomicDataBox)
                         {
                             // compute global bin index
-                            float_X const binLeftBoundary = this->getBinLeftBoundary(acc, x, atomicDataBox);
+                            float_X const binLeftBoundary = this->getBinLeftBoundary(worker, x, atomicDataBox);
 
                             // search for bin in collection of existing bins
                             auto const index = findBin(binLeftBoundary);
@@ -648,7 +654,7 @@ namespace picongpu
                             // the value, as another thread may contribute to the same bin
                             if(index < maxNumBins) // bin already exists
                             {
-                                cupla::atomicAdd(acc, &(this->binWeight[index]), weight);
+                                cupla::atomicAdd(worker.getAcc(), &(this->binWeight[index]), weight);
                             }
                             else
                             {
@@ -656,8 +662,10 @@ namespace picongpu
 
                                 // get Index where to deposit it by atomic add to numNewBins
                                 // this assures that the same index is not used twice
-                                auto newBinIdx
-                                    = cupla::atomicAdd<alpaka::hierarchy::Threads>(acc, &numNewBins, uint32_t(1u));
+                                auto newBinIdx = cupla::atomicAdd<alpaka::hierarchy::Threads>(
+                                    worker.getAcc(),
+                                    &numNewBins,
+                                    uint32_t(1u));
                                 if(newBinIdx < maxNumNewBins)
                                 {
                                     newBinsWeights[newBinIdx] = weight;
@@ -684,18 +692,18 @@ namespace picongpu
                          *
                          * @param energy energy where the weight is shifted to, Unit: argument
                          * @param weight weight to shift
-                         * @param acc accelerator config for on accelerator execution
+                         * @param worker lockstep worker
                          * @param atomicDataBox atomic data for relative error estimation
                          */
-                        template<typename T_Acc>
+                        template<typename T_Worker>
                         DINLINE void shiftWeight(
-                            T_Acc const& acc,
+                            T_Worker const& worker,
                             float_X const energy,
                             float_X const weight,
                             T_AtomicDataBox atomicDataBox)
                         {
                             // compute bin left boundary for energy
-                            float_X const binLeftBoundary = this->getBinLeftBoundary(acc, energy, atomicDataBox);
+                            float_X const binLeftBoundary = this->getBinLeftBoundary(worker, energy, atomicDataBox);
 
                             // search for bin in collection of existing bins
                             auto const index = findBin(binLeftBoundary);
@@ -704,15 +712,17 @@ namespace picongpu
                             // the value, as another thread may contribute to the same bin
                             if(index < maxNumBins) // bin already exists
                             {
-                                cupla::atomicAdd(acc, &(this->binDeltaWeight[index]), weight);
+                                cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), weight);
                             }
                             else
                             {
                                 // Otherwise we add it to a collection of new bins
                                 // get Index where to deposit it by atomic add to numNewBins
                                 // this assures that the same index is not used twice
-                                auto newBinIdx
-                                    = cupla::atomicAdd<alpaka::hierarchy::Threads>(acc, &numNewBins, uint32_t(1u));
+                                auto newBinIdx = cupla::atomicAdd<alpaka::hierarchy::Threads>(
+                                    worker.getAcc(),
+                                    &numNewBins,
+                                    uint32_t(1u));
                                 if(newBinIdx < maxNumNewBins)
                                 {
                                     newBinsWeights[newBinIdx] = weight;

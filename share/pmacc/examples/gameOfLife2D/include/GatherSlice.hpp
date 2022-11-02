@@ -56,7 +56,7 @@ namespace gol
 
     struct GatherSlice
     {
-        GatherSlice() : mpiRank(-1), numRanks(0), filteredData(nullptr), fullData(nullptr), isMPICommInitialized(false)
+        GatherSlice() : filteredData(nullptr), fullData(nullptr), mpiRank(-1), numRanks(0), isMPICommInitialized(false)
         {
         }
 
@@ -138,7 +138,6 @@ namespace gol
 
             Box dstBox = Box(PitchedBox<ValueType, DIM2>(
                 (ValueType*) filteredData,
-                Space(),
                 header.simSize,
                 header.simSize.x() * sizeof(ValueType)));
             MessageHeader mHeader;
@@ -183,7 +182,6 @@ namespace gol
                 /*create box with valid memory*/
                 dstBox = Box(PitchedBox<ValueType, DIM2>(
                     (ValueType*) filteredData,
-                    Space(),
                     header.simSize,
                     header.simSize.x() * sizeof(ValueType)));
 
@@ -194,7 +192,6 @@ namespace gol
                     size_t offset = header.nodeSize.productOfComponents() * static_cast<size_t>(i);
                     Box srcBox = Box(PitchedBox<ValueType, DIM2>(
                         reinterpret_cast<ValueType*>(fullData) + offset,
-                        Space(),
                         head->nodeSize,
                         head->nodeSize.x() * sizeof(ValueType)));
 

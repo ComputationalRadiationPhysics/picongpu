@@ -398,15 +398,15 @@ namespace picongpu
                             float_COLL s12 = pmacc::math::min(s12n, s12Max);
 
                             // Get a random float value from 0,1
-                            auto const& acc = *ctx.m_acc;
+                            auto const& worker = *ctx.m_worker;
                             auto& rngHandle = *ctx.m_hRng;
                             using UniformFloat = pmacc::random::distributions::Uniform<
                                 pmacc::random::distributions::uniform::ExcludeZero<float_COLL>>;
                             auto rng = rngHandle.template applyDistribution<UniformFloat>();
-                            float_COLL rngValue = rng(acc);
+                            float_COLL rngValue = rng(worker);
 
                             float_COLL const cosXi = calcCosXi(s12, rngValue);
-                            float_COLL const phi = 2.0_COLL * PI * rng(acc);
+                            float_COLL const phi = 2.0_COLL * PI * rng(worker);
                             float3_COLL const finalComs0 = calcFinalComsMomentum(comsMomentum0, cosXi, phi);
 
                             float3_COLL finalLab0, finalLab1;
@@ -420,7 +420,7 @@ namespace picongpu
                                     factorA,
                                     comsVelocity);
                                 par1[momentum_] = precisionCast<float_X>(finalLab1 * normalizedWeight1);
-                                if((normalizedWeight1 / normalizedWeight0) - rng(acc) > 0)
+                                if((normalizedWeight1 / normalizedWeight0) - rng(worker) > 0)
                                 {
                                     finalLab0 = comsToLab(finalComs0, mass0, coeff0, gammaComs, factorA, comsVelocity);
                                     par0[momentum_] = precisionCast<float_X>(finalLab0 * normalizedWeight0);
@@ -430,7 +430,7 @@ namespace picongpu
                             {
                                 finalLab0 = comsToLab(finalComs0, mass0, coeff0, gammaComs, factorA, comsVelocity);
                                 par0[momentum_] = precisionCast<float_X>(finalLab0 * normalizedWeight0);
-                                if((normalizedWeight0 / normalizedWeight1) - rng(acc) >= 0.0_COLL)
+                                if((normalizedWeight0 / normalizedWeight1) - rng(worker) >= 0.0_COLL)
                                 {
                                     finalLab1 = comsToLab(
                                         -1.0_COLL * finalComs0,
@@ -459,20 +459,18 @@ namespace picongpu
 
                     /** create device manipulator functor
                      *
-                     * @param acc alpaka accelerator
+                     * @param worker lockstep worker
                      * @param offset (in supercells, without any guards) to the origin of the local domain
-                     * @param workerCfg configuration of the worker
                      * @param density0 cell density of the 1st species
                      * @param density1 cell density of the 2nd species
                      * @param potentialPartners number of potential collision partners for a macro particle in
                      *   the cell.
                      * @param coulombLog Coulomb logarithm
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE acc::RelativisticBinaryCollision operator()(
-                        T_Acc const& acc,
+                        T_Worker const& /*worker*/,
                         DataSpace<simDim> const& offset,
-                        T_WorkerCfg const& workerCfg,
                         float_X const& density0,
                         float_X const& density1,
                         uint32_t const& potentialPartners,

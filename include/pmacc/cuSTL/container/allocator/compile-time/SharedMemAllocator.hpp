@@ -46,11 +46,11 @@ namespace pmacc
                 static constexpr int dim = 1;
                 typedef cursor::CT::BufferCursor<type, math::CT::UInt32<>> Cursor;
 
-                template<typename T_Acc>
-                DINLINE static Cursor allocate(T_Acc const& acc)
+                template<typename T_Worker>
+                DINLINE static Cursor allocate(T_Worker const& worker)
                 {
                     auto& shMem = pmacc::memory::shared::
-                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
+                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(worker);
                     return Cursor(shMem.data());
                 }
             };
@@ -63,11 +63,11 @@ namespace pmacc
                 static constexpr int dim = 2;
                 typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-                template<typename T_Acc>
-                DINLINE static Cursor allocate(T_Acc const& acc)
+                template<typename T_Worker>
+                DINLINE static Cursor allocate(T_Worker const& worker)
                 {
                     auto& shMem = pmacc::memory::shared::
-                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
+                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(worker);
                     return Cursor(shMem.data());
                 }
             };
@@ -81,11 +81,11 @@ namespace pmacc
                 static constexpr int dim = 3;
                 typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-                template<typename T_Acc>
-                DINLINE static Cursor allocate(T_Acc const& acc)
+                template<typename T_Worker>
+                DINLINE static Cursor allocate(T_Worker const& worker)
                 {
                     auto& shMem = pmacc::memory::shared::
-                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
+                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(worker);
                     return Cursor(shMem.data());
                 }
             };

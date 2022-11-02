@@ -45,10 +45,10 @@ namespace picongpu
     {
         typedef void result_type;
 
-        template<typename T_Acc>
-        DINLINE void operator()(const T_Acc& acc, Type& dest, const Type src) const
+        template<typename T_Worker>
+        DINLINE void operator()(const T_Worker& worker, Type& dest, const Type src) const
         {
-            cupla::atomicAdd(acc, &dest, src, ::alpaka::hierarchy::Blocks{});
+            cupla::atomicAdd(worker.getAcc(), &dest, src, ::alpaka::hierarchy::Blocks{});
         }
     };
 
@@ -75,9 +75,9 @@ namespace picongpu
          * @param el_p coordinate of the momentum @see PhaseSpace::axis_element @see AxisDescription
          * @param axis_p_range range of the momentum coordinate @see PhaseSpace::axis_p_range
          */
-        template<typename T_Particle, typename float_PS, typename Pitch, typename T_Acc>
+        template<typename T_Particle, typename float_PS, typename Pitch, typename T_Worker>
         DINLINE void operator()(
-            const T_Acc& acc,
+            const T_Worker& worker,
             T_Particle particle,
             cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
             const uint32_t el_p,
@@ -107,7 +107,7 @@ namespace picongpu
 
             /** \todo take particle shape into account */
             cupla::atomicAdd(
-                acc,
+                worker.getAcc(),
                 &(*curDBufferOriginInBlock(p_bin, r_bin)),
                 particleChargeDensity,
                 ::alpaka::hierarchy::Threads{});
@@ -134,8 +134,7 @@ namespace picongpu
         typename float_PS,
         uint32_t num_pbins,
         uint32_t r_dir,
-        typename T_Filter,
-        uint32_t T_numWorkers>
+        typename T_Filter>
     struct FunctorBlock
     {
         typedef void result_type;
@@ -181,50 +180,42 @@ namespace picongpu
          *                         the current block starts, including guard cells
          *                         @see cuSTL/algorithm/kernel/Foreach.hpp
          */
-        template<typename T_Acc>
-        DINLINE void operator()(const T_Acc& acc, const pmacc::math::Int<simDim>& indexBlockOffset)
+        template<typename T_Worker>
+        DINLINE void operator()(const T_Worker& worker, const pmacc::math::Int<simDim>& indexBlockOffset)
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
-            const uint32_t workerIdx = cupla::threadIdx(acc).x;
-
             /* create shared mem */
             const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
             typedef typename pmacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
-            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock> dBufferInBlock(acc);
+            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock> dBufferInBlock(worker);
 
-            /* init shared mem */
-            pmacc::algorithm::cuplaBlock::Foreach<pmacc::math::CT::Int<numWorkers>> forEachThreadInBlock(workerIdx);
+            auto forEachThreadInBlock = pmacc::algorithm::cuplaBlock::Foreach{};
             forEachThreadInBlock(
-                acc,
+                worker,
                 dBufferInBlock.zone(),
                 dBufferInBlock.origin(),
                 pmacc::algorithm::functor::AssignValue<float_PS>(0.0));
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
 
             auto superCellIdx = indexBlockOffset / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT());
 
-            auto accFilter
-                = particleFilter(acc, superCellIdx - GuardSize::toRT(), lockstep::Worker<numWorkers>{workerIdx});
+            auto accFilter = particleFilter(worker, superCellIdx - GuardSize::toRT());
 
-            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
-                workerIdx,
-                particlesBox,
-                DataSpace<simDim>(superCellIdx));
+            auto forEachParticle
+                = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, DataSpace<simDim>(superCellIdx));
 
             forEachParticle(
-                acc,
-                [&](auto const& accelerator, auto& particle)
+                [&](auto const& lockstepWorker, auto& particle)
                 {
-                    if(accFilter(accelerator, particle))
-                        functorParticle(accelerator, particle, dBufferInBlock.origin(), p_element, axis_p_range);
+                    if(accFilter(lockstepWorker, particle))
+                        functorParticle(lockstepWorker, particle, dBufferInBlock.origin(), p_element, axis_p_range);
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
             /* add to global dBuffer */
             forEachThreadInBlock(
-                acc,
+                worker,
                 /* area to work on */
                 dBufferInBlock.zone(),
                 /* data below - cursors will be shifted and

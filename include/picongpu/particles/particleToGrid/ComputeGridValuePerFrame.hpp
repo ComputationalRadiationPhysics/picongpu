@@ -61,10 +61,10 @@ namespace picongpu
                 typename T_Particle,
                 typename TVecSuperCell,
                 typename BoxTmp,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_AccFilter>
             DINLINE void ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_Particle& particle,
                 const TVecSuperCell superCell,
                 T_AccFilter& accFilter,
@@ -74,7 +74,7 @@ namespace picongpu
                 T_DerivedAttribute particleAttribute;
 
                 // Only particles passing the filter contribute
-                if(accFilter(acc, particle))
+                if(accFilter(worker, particle))
                 {
                     /* particle attributes: in-cell position and generic, derived attribute */
                     const floatD_X pos = particle[position_];
@@ -122,7 +122,7 @@ namespace picongpu
                          * one "x" component
                          */
                         cupla::atomicAdd(
-                            acc,
+                            worker.getAcc(),
                             &(fieldTmpShiftToParticle(offsetParticleCellToCurrentCell).x()),
                             assign * particleAttr,
                             ::alpaka::hierarchy::Threads{});

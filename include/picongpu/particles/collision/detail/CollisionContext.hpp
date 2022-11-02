@@ -29,21 +29,23 @@ namespace picongpu
         {
             namespace detail
             {
-                template<typename T_Acc, typename T_RngHandle>
+                template<typename T_Worker, typename T_RngHandle>
                 struct CollisionContext
                 {
-                    T_Acc const* m_acc;
+                    T_Worker const* m_worker;
                     mutable T_RngHandle* m_hRng;
 
-                    DINLINE CollisionContext(T_Acc const& acc, T_RngHandle& hRng) : m_acc(&acc), m_hRng(&hRng)
+                    DINLINE CollisionContext(T_Worker const& worker, T_RngHandle& hRng)
+                        : m_worker(&worker)
+                        , m_hRng(&hRng)
                     {
                     }
                 };
 
-                template<typename T_Acc, typename T_RngHandle>
-                DINLINE CollisionContext<T_Acc, T_RngHandle> makeCollisionContext(T_Acc const& acc, T_RngHandle& hRng)
+                template<typename T_Worker, typename T_RngHandle>
+                DINLINE auto makeCollisionContext(T_Worker const& worker, T_RngHandle& hRng)
                 {
-                    return CollisionContext<T_Acc, T_RngHandle>(acc, hRng);
+                    return CollisionContext<T_Worker, T_RngHandle>(worker, hRng);
                 }
 
             } // namespace detail

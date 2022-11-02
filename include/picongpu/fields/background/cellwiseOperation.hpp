@@ -25,21 +25,17 @@
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 
 namespace picongpu
 {
     namespace cellwiseOperation
     {
-        /** call a functor for each cell
-         *
-         * @tparam T_numWorkers number of workers
-         */
-        template<uint32_t T_numWorkers>
+        //! call a functor for each cell
         struct KernelCellwiseOperation
         {
             /** Kernel that calls T_OpFunctor and T_ValFunctor on each cell of a field
@@ -53,9 +49,9 @@ namespace picongpu
              * @tparam T_ValFunctor like "f(x,t)", "0.0", "readFromOtherField", ...
              * @tparam T_FieldBox field type
              * @tparam T_Mapping mapper which defines the working region
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              *
-             * @param acc alpaka accelerator
+             * @param worker lockstep worker
              * @param[in,out] field field to manipulate
              * @param opFunctor binary operator used with the old and functor value
              *                  (collective functors are not supported)
@@ -69,9 +65,9 @@ namespace picongpu
                 typename T_ValFunctor,
                 typename T_FieldBox,
                 typename T_Mapping,
-                typename T_Acc>
+                typename T_Worker>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_FieldBox field,
                 T_OpFunctor opFunctor,
                 T_ValFunctor valFunctor,
@@ -80,15 +76,13 @@ namespace picongpu
                 T_Mapping mapper) const
             {
                 constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                constexpr uint32_t numWorker = T_numWorkers;
 
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-                DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                DataSpace<simDim> const block(
+                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
                 DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
                 DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
-                lockstep::makeForEach<cellsPerSupercell, numWorker>(workerIdx)(
+                lockstep::makeForEach<cellsPerSupercell>(worker)(
                     [&](uint32_t const linearIdx)
                     {
                         // cell index within the superCell
@@ -96,7 +90,7 @@ namespace picongpu
                             = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
 
                         opFunctor(
-                            acc,
+                            worker,
                             field(blockCell + cellIdx),
                             valFunctor(blockCell + cellIdx + totalDomainOffset - guardCells, currentStep));
                     });
@@ -138,14 +132,17 @@ namespace picongpu
                  */
                 totalDomainOffset.y() += numSlides * subGrid.getLocalDomain().size.y();
 
-                constexpr uint32_t numWorkers
-                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
                 auto const mapper = makeAreaMapper<T_Area>(m_cellDescription);
 
-                PMACC_KERNEL(KernelCellwiseOperation<numWorkers>{})
-                (mapper.getGridDim(),
-                 numWorkers)(field->getDeviceDataBox(), opFunctor, valFunctor, totalDomainOffset, currentStep, mapper);
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                PMACC_LOCKSTEP_KERNEL(KernelCellwiseOperation{}, workerCfg)
+                (mapper.getGridDim())(
+                    field->getDeviceDataBox(),
+                    opFunctor,
+                    valFunctor,
+                    totalDomainOffset,
+                    currentStep,
+                    mapper);
             }
         };
 

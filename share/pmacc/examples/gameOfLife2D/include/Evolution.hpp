@@ -24,6 +24,7 @@
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -33,7 +34,6 @@
 #include <pmacc/random/Random.hpp>
 #include <pmacc/random/distributions/distributions.hpp>
 #include <pmacc/random/methods/methods.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <memory>
 
@@ -46,10 +46,7 @@ namespace gol
         /** run game of life stencil
          *
          * evaluate each cell in the supercell
-         *
-         * @tparam T_numWorkers number of workers
          */
-        template<uint32_t T_numWorkers>
         struct Evolution
         {
             /** run stencil for a supercell
@@ -63,36 +60,34 @@ namespace gol
              * @param rule description of the rule as bitmap mask
              * @param mapper functor to map a block to a supercell
              */
-            template<typename T_BoxReadOnly, typename T_BoxWriteOnly, typename T_Mapping, typename T_Acc>
+            template<typename T_BoxReadOnly, typename T_BoxWriteOnly, typename T_Mapping, typename T_Worker>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_BoxReadOnly const& buffRead,
-                T_BoxWriteOnly& buffWrite,
+                T_BoxWriteOnly buffWrite,
                 uint32_t const rule,
                 T_Mapping const& mapper) const
             {
                 using Type = typename T_BoxReadOnly::ValueType;
                 using SuperCellSize = typename T_Mapping::SuperCellSize;
                 using BlockArea = SuperCellDescription<SuperCellSize, math::CT::Int<1, 1>, math::CT::Int<1, 1>>;
-                auto cache = CachedBox::create<0, Type>(acc, BlockArea());
+                auto cache = CachedBox::create<0, Type>(worker, BlockArea());
 
-                Space const block(mapper.getSuperCellIndex(Space(cupla::blockIdx(acc))));
+                Space const block(mapper.getSuperCellIndex(Space(cupla::blockIdx(worker.getAcc()))));
                 Space const blockCell = block * T_Mapping::SuperCellSize::toRT();
 
                 constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                constexpr uint32_t numWorkers = T_numWorkers;
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                 auto buffRead_shifted = buffRead.shift(blockCell);
 
-                ThreadCollective<BlockArea, numWorkers> collective(workerIdx);
+                auto collective = makeThreadCollective<BlockArea>();
 
                 math::operation::Assign assign;
-                collective(acc, assign, cache, buffRead_shifted);
+                collective(worker, assign, cache, buffRead_shifted);
 
-                cupla::__syncthreads(acc);
+                worker.sync();
 
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                lockstep::makeForEach<cellsPerSuperCell>(worker)(
                     [&](uint32_t const linearIdx)
                     {
                         // cell index within the superCell
@@ -118,10 +113,8 @@ namespace gol
         /** initialize each cell
          *
          * randomly activate each cell within a supercell
-         *
-         * @tparam T_numWorkers number of workers
          */
-        template<uint32_t T_numWorkers>
+
         struct RandomInit
         {
             /** initialize each cell
@@ -136,48 +129,44 @@ namespace gol
              *                  be activated
              * @param mapper functor to map a block to a supercell
              */
-            template<typename T_BoxWriteOnly, typename T_Mapping, typename T_Acc>
+            template<typename T_BoxWriteOnly, typename T_Mapping, typename T_Worker>
             DINLINE void operator()(
-                T_Acc const& acc,
-                T_BoxWriteOnly& buffWrite,
+                T_Worker const& worker,
+                T_BoxWriteOnly buffWrite,
                 uint32_t const seed,
                 float const threshold,
                 T_Mapping const& mapper) const
             {
                 using SuperCellSize = typename T_Mapping::SuperCellSize;
                 constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                constexpr uint32_t numWorkers = T_numWorkers;
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                 // get position in grid in units of SuperCells from blockID
-                Space const block(mapper.getSuperCellIndex(Space(cupla::blockIdx(acc))));
+                Space const block(mapper.getSuperCellIndex(Space(cupla::blockIdx(worker.getAcc()))));
                 // convert position in unit of cells
                 Space const blockCell = block * T_Mapping::SuperCellSize::toRT();
-                // convert CUDA dim3 to DataSpace<DIM3>
-                Space const threadIndex(cupla::threadIdx(acc));
 
                 uint32_t const globalUniqueId = DataSpaceOperations<DIM2>::map(
                     mapper.getGridSuperCells() * T_Mapping::SuperCellSize::toRT(),
-                    blockCell + DataSpaceOperations<DIM2>::template map<SuperCellSize>(workerIdx));
+                    blockCell + DataSpaceOperations<DIM2>::template map<SuperCellSize>(worker.getWorkerIdx()));
 
                 // create a random number state and generator
-                using RngMethod = random::methods::XorMin<T_Acc>;
+                using RngMethod = random::methods::XorMin<typename T_Worker::Acc>;
                 using State = typename RngMethod::StateType;
                 State state;
                 RngMethod method;
-                method.init(acc, state, seed, globalUniqueId);
+                method.init(worker, state, seed, globalUniqueId);
                 using Distribution = random::distributions::Uniform<float, RngMethod>;
                 using Random = random::Random<Distribution, RngMethod, State*>;
                 Random rng(&state);
 
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                lockstep::makeForEach<cellsPerSuperCell>(worker)(
                     [&](uint32_t const linearIdx)
                     {
                         // cell index within the superCell
                         DataSpace<DIM2> const cellIdx
                             = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
                         // write 1(white) if uniform random number 0<rng<1 is smaller than 'threshold'
-                        buffWrite(blockCell + cellIdx) = static_cast<bool>(rng(acc) <= threshold);
+                        buffWrite(blockCell + cellIdx) = static_cast<bool>(rng(worker) <= threshold);
                     });
             }
         };
@@ -202,25 +191,22 @@ namespace gol
         void initEvolution(DBox const& writeBox, float const fraction)
         {
             AreaMapping<CORE + BORDER, T_MappingDesc> mapper(*mapping);
-            constexpr uint32_t numWorkers
-                = traits::GetNumWorkers<math::CT::volume<typename T_MappingDesc::SuperCellSize>::type::value>::value;
 
             GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
             uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
-            PMACC_KERNEL(kernel::RandomInit<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(writeBox, seed, fraction, mapper);
+            auto workerCfg = lockstep::makeWorkerCfg(typename T_MappingDesc::SuperCellSize{});
+            PMACC_LOCKSTEP_KERNEL(kernel::RandomInit{}, workerCfg)
+            (mapper.getGridDim())(writeBox, seed, fraction, mapper);
         }
 
         template<uint32_t Area, typename DBox>
         void run(DBox const& readBox, DBox const& writeBox)
         {
             AreaMapping<Area, T_MappingDesc> mapper(*mapping);
-            constexpr uint32_t numWorkers
-                = traits::GetNumWorkers<math::CT::volume<typename T_MappingDesc::SuperCellSize>::type::value>::value;
-
-            PMACC_KERNEL(kernel::Evolution<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(readBox, writeBox, rule, mapper);
+            auto workerCfg = lockstep::makeWorkerCfg(typename T_MappingDesc::SuperCellSize{});
+            PMACC_LOCKSTEP_KERNEL(kernel::Evolution{}, workerCfg)
+            (mapper.getGridDim())(readBox, writeBox, rule, mapper);
         }
     };
 

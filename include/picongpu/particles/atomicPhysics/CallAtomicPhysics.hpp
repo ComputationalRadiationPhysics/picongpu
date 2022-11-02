@@ -28,8 +28,8 @@
 #include "picongpu/particles/atomicPhysics/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysics.kernel"
 
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
@@ -347,19 +347,17 @@ namespace picongpu
                         MappingDesc>
                         mapper(cellDescription);
 
-                    // number of Workers
-                    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                        pmacc::math::CT::volume<MappingDesc::SuperCellSize>::type::value>::value;
-
                     // renaming of Kernel, basic construct defined in
                     //   <picongpu/particles/atomicPhysics/AtomicPhysics.kernel>
-                    using Kernel = AtomicPhysicsKernel<numWorkers, picongpu::atomicPhysics::maxNumBins>;
+                    using Kernel = AtomicPhysicsKernel<picongpu::atomicPhysics::maxNumBins>;
                     auto kernel = Kernel{RngFactoryInt{step}, RngFactoryFloat{step}};
 
+                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+
                     // macro for call of kernel, once for every super cell
-                    PMACC_KERNEL(kernel)
-                    (mapper.getGridDim(), // how many blocks = how many supercells in local domain
-                     numWorkers // how many threads per block
+                    PMACC_LOCKSTEP_KERNEL(kernel, workerCfg)
+                    (mapper.getGridDim() // how many blocks = how many supercells in local domain
+
                      )(electrons.getDeviceParticlesBox(),
                        ions.getDeviceParticlesBox(),
                        mapper,

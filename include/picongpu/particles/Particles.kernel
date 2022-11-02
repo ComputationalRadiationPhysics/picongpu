@@ -52,10 +52,7 @@ namespace picongpu
      * This functor prepares a source and destination particle box to call
      * a user defined functor which allows to derive new particles out of
      * another species.
-     *
-     * @tparam T_numWorkers number of workers
      */
-    template<uint32_t T_numWorkers>
     struct KernelDeriveParticles
     {
         /** frame-wise derive new particles
@@ -79,9 +76,9 @@ namespace picongpu
             typename T_ManipulateFunctor,
             typename T_SrcFilterFunctor,
             typename T_Mapping,
-            typename T_Acc>
+            typename T_Worker>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_DestParBox destBox,
             T_SrcParBox srcBox,
             T_ManipulateFunctor manipulateFunctor,
@@ -94,19 +91,17 @@ namespace picongpu
             using SrcFramePtr = typename T_SrcParBox::FramePtr;
 
             constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            constexpr uint32_t numWorker = T_numWorkers;
 
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+            PMACC_SMEM(worker, srcFrame, SrcFramePtr);
+            PMACC_SMEM(worker, destFrame, DestFramePtr);
 
-            PMACC_SMEM(acc, srcFrame, SrcFramePtr);
-            PMACC_SMEM(acc, destFrame, DestFramePtr);
-
-            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+            DataSpace<simDim> const superCellIdx
+                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
 
             // offset of the superCell (in cells, without any guards) to the origin of the local domain
             DataSpace<simDim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
 
-            auto onlyMaster = lockstep::makeMaster(workerIdx);
+            auto onlyMaster = lockstep::makeMaster(worker);
 
             onlyMaster(
                 [&]()
@@ -115,20 +110,20 @@ namespace picongpu
                     if(srcFrame.isValid())
                     {
                         // we have something to clone
-                        destFrame = destBox.getEmptyFrame(acc);
+                        destFrame = destBox.getEmptyFrame(worker);
                     }
                 });
 
-            auto accManipulator = manipulateFunctor(acc, localSuperCellOffset, lockstep::Worker<numWorker>{workerIdx});
-            auto accSrcFilter = srcFilterFunctor(acc, localSuperCellOffset, lockstep::Worker<numWorker>{workerIdx});
+            auto accManipulator = manipulateFunctor(worker, localSuperCellOffset);
+            auto accSrcFilter = srcFilterFunctor(worker, localSuperCellOffset);
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             // move over all Frames
             while(srcFrame.isValid())
             {
                 // loop over all particles in the frame
-                lockstep::makeForEach<frameSize, numWorker>(workerIdx)(
+                lockstep::makeForEach<frameSize>(worker)(
                     [&](uint32_t const linearIdx)
                     {
                         auto parDest = destFrame[linearIdx];
@@ -136,28 +131,28 @@ namespace picongpu
                         if(parSrc[multiMask_] != 1)
                             parSrc.setHandleInvalid();
 
-                        if(accSrcFilter(acc, parSrc))
+                        if(accSrcFilter(worker, parSrc))
                         {
                             assign(parDest, deselect<particleId>(parSrc));
 
-                            accManipulator(acc, parDest, parSrc);
+                            accManipulator(worker, parDest, parSrc);
                         }
                     });
 
-                cupla::__syncthreads(acc);
+                worker.sync();
 
                 onlyMaster(
                     [&]()
                     {
-                        destBox.setAsLastFrame(acc, destFrame, superCellIdx);
+                        destBox.setAsLastFrame(worker, destFrame, superCellIdx);
 
                         srcFrame = srcBox.getNextFrame(srcFrame);
                         if(srcFrame.isValid())
                         {
-                            destFrame = destBox.getEmptyFrame(acc);
+                            destFrame = destBox.getEmptyFrame(worker);
                         }
                     });
-                cupla::__syncthreads(acc);
+                worker.sync();
             }
         }
     };
@@ -169,11 +164,10 @@ namespace picongpu
      * special flag `hasLeavingParticle` of the supercell to optimize the kernel shift particles
      * in pmacc.
      *
-     * @tparam T_numWorkers number of workers
      * @tparam T_DataDomain pmacc::SuperCellDescription, compile time data domain
      *                      description with a CORE and GUARD
      */
-    template<uint32_t T_numWorkers, typename T_DataDomain>
+    template<typename T_DataDomain>
     struct KernelMoveAndMarkParticles
     {
         /** update all particles
@@ -183,9 +177,9 @@ namespace picongpu
          * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_ParticleFunctor particle functor type
          * @tparam T_Mapping mapper functor type
-         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Worker lockstep worker type
          *
-         * @param alpaka accelerator
+         * @param worker lockstep worker
          * @param pb particle memory
          * @param fieldE electric field data
          * @param fieldB magnetic field data
@@ -198,9 +192,9 @@ namespace picongpu
             typename T_BBox,
             typename T_ParticleFunctor,
             typename T_Mapping,
-            typename T_Acc>
+            typename T_Worker>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_ParBox pb,
             T_EBox fieldE,
             T_BBox fieldB,
@@ -208,10 +202,8 @@ namespace picongpu
             T_ParticleFunctor particleFunctor,
             T_Mapping mapper) const
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
             // relative offset (in cells) to the supercell (including the guard)
             DataSpace<simDim> const superCellOffset = superCellIdx * SuperCellSize::toRT();
@@ -220,54 +212,53 @@ namespace picongpu
              * 1 if at least one particle is leaving the supercell else 0
              */
             int hasLeavingParticle = 0;
+
             /* shared memory status flag that a particle is leaving the supercell
              * 1 if at least one particle is leaving the supercell else 0
              */
-            PMACC_SMEM(acc, mustShiftSupercell, int);
+            PMACC_SMEM(worker, mustShiftSupercell, int);
 
-            auto onlyMaster = lockstep::makeMaster(workerIdx);
+            auto onlyMaster = lockstep::makeMaster(worker);
 
             onlyMaster([&]() { mustShiftSupercell = 0; });
 
-            auto cachedB = CachedBox::create<0, typename T_BBox::ValueType>(acc, T_DataDomain());
-            auto cachedE = CachedBox::create<1, typename T_EBox::ValueType>(acc, T_DataDomain());
+            auto cachedB = CachedBox::create<0, typename T_BBox::ValueType>(worker, T_DataDomain());
+            auto cachedE = CachedBox::create<1, typename T_EBox::ValueType>(worker, T_DataDomain());
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
 
             pmacc::math::operation::Assign assign;
-            ThreadCollective<T_DataDomain, numWorkers> collective{workerIdx};
+            auto collective = makeThreadCollective<T_DataDomain>();
 
             auto fieldBBlock = fieldB.shift(superCellOffset);
-            collective(acc, assign, cachedB, fieldBBlock);
+            collective(worker, assign, cachedB, fieldBBlock);
 
             auto fieldEBlock = fieldE.shift(superCellOffset);
-            collective(acc, assign, cachedE, fieldEBlock);
+            collective(worker, assign, cachedE, fieldEBlock);
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             forEachParticle(
-                acc,
                 [&cachedB, &cachedE, currentStep, &hasLeavingParticle, &particleFunctor](
-                    auto const& accelerator,
+                    auto const& lockstepWorker,
                     auto& particle)
-                { particleFunctor(accelerator, particle, cachedB, cachedE, currentStep, hasLeavingParticle); });
+                { particleFunctor(lockstepWorker, particle, cachedB, cachedE, currentStep, hasLeavingParticle); });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             // update shared memory marker that particles leaving the supercell
             if(hasLeavingParticle == 1 && mustShiftSupercell == 0)
             {
-                kernel::atomicAllExch(acc, &mustShiftSupercell, 1, ::alpaka::hierarchy::Threads{});
+                kernel::atomicAllExch(worker, &mustShiftSupercell, 1, ::alpaka::hierarchy::Threads{});
             }
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             onlyMaster(
                 [&]()
@@ -277,7 +268,7 @@ namespace picongpu
                      */
                     if(mustShiftSupercell == 1)
                     {
-                        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))))
+                        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))))
                             .setMustShift(true);
                     }
                 });
@@ -287,9 +278,9 @@ namespace picongpu
     template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation>
     struct PushParticlePerFrame
     {
-        template<typename T_Acc, typename T_Particle, class BoxB, class BoxE>
+        template<typename T_Worker, typename T_Particle, class BoxB, class BoxE>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_Particle& particle,
             BoxB& bBox,
             BoxE& eBox,

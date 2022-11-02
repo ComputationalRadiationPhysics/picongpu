@@ -28,8 +28,8 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <cstdint>
 
@@ -70,10 +70,9 @@ namespace picongpu::fields::maxwellSolver
             auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
             auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
             auto const mapper = makeAreaMapper<T_area>(cellDescription);
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-            PMACC_KERNEL(KernelAddCurrentDensity<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(
+            auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            PMACC_LOCKSTEP_KERNEL(KernelAddCurrentDensity{}, workerCfg)
+            (mapper.getGridDim())(
                 fieldE->getDeviceDataBox(),
                 fieldB->getDeviceDataBox(),
                 dataBoxJ,

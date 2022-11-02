@@ -67,18 +67,18 @@ namespace pmacc
          *
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template<typename T_Acc, typename T_Hierarchy>
+        template<typename T_Worker, typename T_Hierarchy>
         HDINLINE TileDataBox<VALUE> pushN(
-            T_Acc const& acc,
+            T_Worker const& worker,
             TYPE count,
             DataSpace<DIM> const& superCell,
             T_Hierarchy const& hierarchy)
         {
-            TYPE oldSize = cupla::atomicAdd(acc, currentSizePointer, count, hierarchy); // get count VALUEs
+            TYPE oldSize = cupla::atomicAdd(worker.getAcc(), currentSizePointer, count, hierarchy); // get count VALUEs
 
             if(oldSize + count > maxSize)
             {
-                cupla::atomicExch(acc, currentSizePointer, maxSize, hierarchy); // reset size to maxsize
+                cupla::atomicExch(worker.getAcc(), currentSizePointer, maxSize, hierarchy); // reset size to maxsize
                 if(oldSize >= maxSize)
                 {
                     return TileDataBox<VALUE>(nullptr, DataSpace<DIM1>(0), 0);
@@ -87,7 +87,7 @@ namespace pmacc
                     count = maxSize - oldSize;
             }
 
-            TileDataBox<PushType> tmp = virtualMemory.pushN(acc, 1, hierarchy);
+            TileDataBox<PushType> tmp = virtualMemory.pushN(worker, 1, hierarchy);
             tmp[0].setSuperCell(superCell);
             tmp[0].setCount(count);
             tmp[0].setStartIndex(oldSize);

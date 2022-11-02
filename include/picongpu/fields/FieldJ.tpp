@@ -36,7 +36,6 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
@@ -249,17 +248,14 @@ namespace picongpu
 
         using Strategy = currentSolver::traits::GetStrategy_t<FrameSolver>;
 
-        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-            pmacc::math::CT::volume<SuperCellSize>::type::value * Strategy::workerMultiplier>::value;
-
-        auto const depositionKernel = currentSolver::KernelComputeCurrent<numWorkers, BlockArea>{};
+        auto const depositionKernel = currentSolver::KernelComputeCurrent<BlockArea>{};
 
         typename T_Species::ParticlesBoxType pBox = species.getDeviceParticlesBox();
         FieldJ::DataBoxType jBox = buffer.getDeviceBuffer().getDataBox();
         FrameSolver solver(DELTA_T);
 
         auto const deposit = currentSolver::Deposit<Strategy>{};
-        deposit.template execute<T_area, numWorkers>(cellDescription, depositionKernel, solver, jBox, pBox);
+        deposit.template execute<T_area>(cellDescription, depositionKernel, solver, jBox, pBox);
     }
 
     void FieldJ::bashField(uint32_t exchangeType)

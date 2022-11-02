@@ -58,22 +58,22 @@ namespace pmacc
                         return math::Size_t<3>(size.x() / BlockSize::x::value, 1u, 1u);
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE math::Int<1> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const math::Int<1>& _blockIdx,
                         const math::Int<1>& _threadIdx) const
                     {
                         return _blockIdx.x() * BlockSize::x::value + _threadIdx.x();
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE math::Int<1> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const cupla::dim3& _blockIdx,
                         const cupla::dim3& _threadIdx = cupla::dim3(0, 0, 0)) const
                     {
-                        return operator()(acc, math::Int<1>((int) _blockIdx.x), math::Int<1>((int) _threadIdx.x));
+                        return operator()(worker, math::Int<1>((int) _blockIdx.x), math::Int<1>((int) _threadIdx.x));
                     }
                 };
 
@@ -87,9 +87,9 @@ namespace pmacc
                         return math::Size_t<3>(size.x() / BlockSize::x::value, size.y() / BlockSize::y::value, 1u);
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE math::Int<2> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const math::Int<2>& _blockIdx,
                         const math::Int<2>& _threadIdx) const
                     {
@@ -98,14 +98,14 @@ namespace pmacc
                             _blockIdx.y() * BlockSize::y::value + _threadIdx.y());
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE math::Int<2> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const cupla::dim3& _blockIdx,
                         const cupla::dim3& _threadIdx = cupla::dim3(0, 0, 0)) const
                     {
                         return operator()(
-                            acc,
+                            worker,
                             math::Int<2>(_blockIdx.x, _blockIdx.y),
                             math::Int<2>(_threadIdx.x, _threadIdx.y));
                     }
@@ -124,23 +124,23 @@ namespace pmacc
                             size.z() / BlockSize::z::value);
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE math::Int<3> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const math::Int<3>& _blockIdx,
                         const math::Int<3>& _threadIdx) const
                     {
                         return math::Int<3>(_blockIdx * (math::Int<3>) BlockSize().toRT() + _threadIdx);
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE math::Int<3> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const cupla::dim3& _blockIdx,
                         const cupla::dim3& _threadIdx = cupla::dim3(0, 0, 0)) const
                     {
                         return operator()(
-                            acc,
+                            worker,
                             math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
                             math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));
                     }
@@ -158,9 +158,9 @@ namespace pmacc
                         return math::Size_t<3>(size.x() / blockSize.x(), 1u, 1u);
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     DINLINE math::Int<1> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const math::Int<1>& _blockDim,
                         const math::Int<1>& _blockIdx,
                         const math::Int<1>& _threadIdx) const
@@ -168,15 +168,15 @@ namespace pmacc
                         return _blockIdx.x() * _blockDim.x() + _threadIdx.x();
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     DINLINE math::Int<1> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const cupla::dim3& _blockDim,
                         const cupla::dim3& _blockIdx,
                         const cupla::dim3& _threadIdx) const
                     {
                         return operator()(
-                            acc,
+                            worker,
                             math::Int<1>((int) _blockDim.x),
                             math::Int<1>((int) _blockIdx.x),
                             math::Int<1>((int) _threadIdx.x));
@@ -193,9 +193,9 @@ namespace pmacc
                         return math::Size_t<3>(size.x() / blockSize.x(), size.y() / blockSize.y(), 1);
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     DINLINE math::Int<2> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const math::Int<2>& _blockDim,
                         const math::Int<2>& _blockIdx,
                         const math::Int<2>& _threadIdx) const
@@ -205,15 +205,15 @@ namespace pmacc
                             _blockIdx.y() * _blockDim.y() + _threadIdx.y()};
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     DINLINE math::Int<2> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const cupla::dim3& _blockDim,
                         const cupla::dim3& _blockIdx,
                         const cupla::dim3& _threadIdx) const
                     {
                         return operator()(
-                            acc,
+                            worker,
                             math::Int<2>(_blockDim.x, _blockDim.y),
                             math::Int<2>(_blockIdx.x, _blockIdx.y),
                             math::Int<2>(_threadIdx.x, _threadIdx.y));
@@ -233,9 +233,9 @@ namespace pmacc
                             size.z() / blockSize.z());
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     DINLINE math::Int<3> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const math::Int<3>& _blockDim,
                         const math::Int<3>& _blockIdx,
                         const math::Int<3>& _threadIdx) const
@@ -246,15 +246,15 @@ namespace pmacc
                             _blockIdx.z() * _blockDim.z() + _threadIdx.z()};
                     }
 
-                    template<typename T_Acc>
+                    template<typename T_Worker>
                     DINLINE math::Int<3> operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         const cupla::dim3& _blockDim,
                         const cupla::dim3& _blockIdx,
                         const cupla::dim3& _threadIdx) const
                     {
                         return operator()(
-                            acc,
+                            worker,
                             math::Int<3>(_blockDim.x, _blockDim.y, _blockDim.z),
                             math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
                             math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));

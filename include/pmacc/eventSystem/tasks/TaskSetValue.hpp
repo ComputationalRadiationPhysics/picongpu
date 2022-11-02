@@ -26,10 +26,10 @@
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/lockstep.hpp"
+#include "pmacc/lockstep/lockstep.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
-#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <type_traits>
 
@@ -80,10 +80,9 @@ namespace pmacc
 
     /** set a value to all elements of a box
      *
-     * @tparam T_numWorkers number of workers
      * @tparam T_xChunkSize number of elements in x direction to prepare with one cupla block
      */
-    template<uint32_t T_numWorkers, uint32_t T_xChunkSize>
+    template<uint32_t T_xChunkSize>
     struct KernelSetValue
     {
         /** set value to all elements
@@ -92,17 +91,24 @@ namespace pmacc
          * @tparam T_ValueType type of the value
          * @tparam T_SizeVecType pmacc::math::Vector, index type
          * @tparam T_Acc alpaka accelerator type
+         * @tparam T_WorkerCfg lockstep worker configuration type
          *
          * @param memBox box of which all elements shall be set to value
          * @param value value to set to all elements of memBox
          * @param size extents of memBox
          */
-        template<typename T_DataBox, typename T_ValueType, typename T_SizeVecType, typename T_Acc>
+        template<
+            typename T_DataBox,
+            typename T_ValueType,
+            typename T_SizeVecType,
+            typename T_Acc,
+            typename T_WorkerCfg>
         DINLINE void operator()(
             T_Acc const& acc,
             T_DataBox memBox,
             T_ValueType const& value,
-            T_SizeVecType const& size) const
+            T_SizeVecType const& size,
+            T_WorkerCfg const& workerCfg) const
         {
             using SizeVecType = T_SizeVecType;
 
@@ -110,10 +116,7 @@ namespace pmacc
             SizeVecType blockSize(SizeVecType::create(1));
             blockSize.x() = T_xChunkSize;
 
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            lockstep::makeForEach<T_xChunkSize, numWorkers>(workerIdx)(
+            lockstep::makeForEach<T_xChunkSize>(workerCfg.getWorker(acc))(
                 [&](uint32_t const linearIdx)
                 {
                     auto virtualWorkerIdx(SizeVecType::create(0));
@@ -208,14 +211,17 @@ namespace pmacc
                  * for block parallel processing
                  */
                 constexpr uint32_t xChunkSize = 256;
-                constexpr uint32_t numWorkers = traits::GetNumWorkers<xChunkSize>::value;
 
                 // number of blocks in x direction
                 gridSize.x() = ceil(static_cast<double>(gridSize.x()) / static_cast<double>(xChunkSize));
 
+                auto workerCfg = lockstep::makeWorkerCfg<xChunkSize>();
                 auto destBox = this->destination->getDataBox();
-                CUPLA_KERNEL(KernelSetValue<numWorkers, xChunkSize>)
-                (gridSize.toDim3(), numWorkers, 0, this->getCudaStream())(destBox, this->value, area_size);
+                CUPLA_KERNEL(KernelSetValue<xChunkSize>)
+                (gridSize.toDim3(),
+                 workerCfg.getNumWorkers(),
+                 0,
+                 this->getCudaStream())(destBox, this->value, area_size, workerCfg);
             }
             this->activate();
         }
@@ -260,7 +266,6 @@ namespace pmacc
                  * for block parallel processing
                  */
                 constexpr int xChunkSize = 256;
-                constexpr uint32_t numWorkers = traits::GetNumWorkers<xChunkSize>::value;
 
                 // number of blocks in x direction
                 gridSize.x() = ceil(static_cast<double>(gridSize.x()) / static_cast<double>(xChunkSize));
@@ -277,9 +282,13 @@ namespace pmacc
                     cuplaMemcpyHostToDevice,
                     this->getCudaStream()));
 
+                auto workerCfg = lockstep::makeWorkerCfg<xChunkSize>();
                 auto destBox = this->destination->getDataBox();
-                CUPLA_KERNEL(KernelSetValue<numWorkers, xChunkSize>)
-                (gridSize.toDim3(), numWorkers, 0, this->getCudaStream())(destBox, devicePtr, area_size);
+                CUPLA_KERNEL(KernelSetValue<xChunkSize>)
+                (gridSize.toDim3(),
+                 workerCfg.getNumWorkers(),
+                 0,
+                 this->getCudaStream())(destBox, devicePtr, area_size, workerCfg);
             }
 
             this->activate();

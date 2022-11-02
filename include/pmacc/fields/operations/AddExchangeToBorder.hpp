@@ -38,11 +38,7 @@ namespace pmacc
     {
         namespace operations
         {
-            /** Add field values from a received temporary buffer (exchange) to the local box (border)
-             *
-             * @tparam T_numWorkers number of workers
-             */
-            template<uint32_t T_numWorkers>
+            //! Add field values from a received temporary buffer (exchange) to the local box (border)
             struct KernelAddExchangeToBorder
             {
                 /** add intermediate box to the border of the local box
@@ -66,9 +62,9 @@ namespace pmacc
                     typename T_ExchangeBox,
                     typename T_Extent,
                     typename T_Mapping,
-                    typename T_Acc>
+                    typename T_Worker>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_DestBox destBox,
                     T_ExchangeBox const& exchangeBox,
                     T_Extent const& exchangeSize,
@@ -79,20 +75,18 @@ namespace pmacc
 
                     // number of cells in a superCell
                     constexpr uint32_t numCells = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    constexpr uint32_t numWorkers = T_numWorkers;
                     PMACC_CONSTEXPR_CAPTURE int dim = T_Mapping::Dim;
 
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                     DataSpace<dim> const blockCell(
-                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))) * SuperCellSize::toRT());
+                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())))
+                        * SuperCellSize::toRT());
 
                     // origin in area from local GPU
                     DataSpace<dim> nullSourceCell(mapper.getSuperCellIndex(DataSpace<dim>()) * SuperCellSize::toRT());
 
                     auto const numGuardSuperCells = mapper.getGuardingSuperCells();
 
-                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)(
+                    lockstep::makeForEach<numCells>(worker)(
                         [&](uint32_t const linearIdx)
                         {
                             // cell index within the superCell
@@ -180,13 +174,12 @@ namespace pmacc
 
                     ExchangeMapping<GUARD, MappingDesc> mapper(mappingDesc, exchangeType);
 
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
                     const DataSpace<dim> direction = Mask::getRelativeDirections<dim>(mapper.getExchangeType());
 
-                    PMACC_KERNEL(KernelAddExchangeToBorder<numWorkers>{})
-                    (mapper.getGridDim(), numWorkers)(
+                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+
+                    PMACC_LOCKSTEP_KERNEL(KernelAddExchangeToBorder{}, workerCfg)
+                    (mapper.getGridDim())(
                         destBuffer.getDeviceBuffer().getDataBox(),
                         destBuffer.getReceiveExchange(exchangeType).getDeviceBuffer().getDataBox(),
                         destBuffer.getReceiveExchange(exchangeType).getDeviceBuffer().getDataSpace(),

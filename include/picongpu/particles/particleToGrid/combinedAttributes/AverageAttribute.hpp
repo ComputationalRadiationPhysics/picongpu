@@ -37,9 +37,11 @@ namespace picongpu
         {
             namespace combinedAttributes
             {
-                template<typename T_Acc>
-                HDINLINE void AverageDivideOperation::operator()(T_Acc const& acc, float1_X& dst, const float1_X& dens)
-                    const
+                template<typename T_Worker>
+                HDINLINE void AverageDivideOperation::operator()(
+                    T_Worker const& worker,
+                    float1_X& dst,
+                    const float1_X& dens) const
                 {
                     // avoid dividing by zero. Return zero if density is close to zero.
                     if(dens[0] * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME

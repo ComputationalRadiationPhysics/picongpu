@@ -48,16 +48,11 @@ namespace picongpu
              * - maps the frame dimensions and gathers the particle boxes
              * - contains / calls the Creator
              *
-             * @tparam T_numWorkers number of workers
              * @tparam T_ParBoxSource container of the source species
              * @tparam T_ParBoxTarget container of the target species
              * @tparam T_ParticleCreator type of the particle creation functor
              */
-            template<
-                uint32_t T_numWorkers,
-                typename T_ParBoxSource,
-                typename T_ParBoxTarget,
-                typename T_ParticleCreator>
+            template<typename T_ParBoxSource, typename T_ParBoxTarget, typename T_ParticleCreator>
             struct CreateParticlesKernel
             {
                 using ParBoxSource = T_ParBoxSource;
@@ -85,18 +80,14 @@ namespace picongpu
 
                 /** Goes over all frames and calls `ParticleCreator`
                  *
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  *
                  * @param blockCell n-dim. block offset (in cells) relative to the origin
                  *                  of the local domain plus guarding cells
                  */
-                template<typename T_Acc>
-                DINLINE void operator()(T_Acc const& acc, pmacc::math::Int<simDim> const& blockCell)
+                template<typename T_Worker>
+                DINLINE void operator()(T_Worker const& worker, pmacc::math::Int<simDim> const& blockCell)
                 {
-                    constexpr uint32_t numWorkers = T_numWorkers;
-
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                     /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
                     pmacc::math::Int<simDim> const block = blockCell / SuperCellSize::toRT();
 
@@ -120,7 +111,7 @@ namespace picongpu
                      */
                     using FrameArray = memory::Array<TargetFramePtr, 2>;
 
-                    PMACC_SMEM(acc, targetFrames, FrameArray);
+                    PMACC_SMEM(worker, targetFrames, FrameArray);
 
                     // find last frame in super cell
                     SourceFramePtr sourceFrame(sourceBox.getLastFrame(block));
@@ -129,10 +120,10 @@ namespace picongpu
                     if(!sourceFrame.isValid())
                         return;
 
-                    auto forEachParticle = lockstep::makeForEach<maxParticlesInFrame, numWorkers>(workerIdx);
+                    auto forEachParticle = lockstep::makeForEach<maxParticlesInFrame>(worker);
 
                     // initialize the collective part of the functor (e.g. field caching)
-                    particleCreator.collectiveInit(acc, blockCell, lockstep::Worker<numWorkers>{workerIdx});
+                    particleCreator.collectiveInit(worker, blockCell);
 
                     auto particleCreatorCtx = lockstep::makeVar<ParticleCreator>(forEachParticle);
 
@@ -150,16 +141,16 @@ namespace picongpu
                             particleCreatorCtx[idx] = particleCreator;
 
                             // init particle creator functor for each virtual worker
-                            particleCreatorCtx[idx].init(acc, blockCell, idx, localCellIndex);
+                            particleCreatorCtx[idx].init(worker, blockCell, localCellIndex);
                         });
 
                     /* Declare counter in shared memory that will later tell the current fill level or
                      * occupation of the newly created target frames.
                      */
-                    PMACC_SMEM(acc, newFrameFillLvl, int);
+                    PMACC_SMEM(worker, newFrameFillLvl, int);
 
                     // used to maintain the frame double buffer
-                    auto frameMasters = lockstep::makeForEach<2, numWorkers>(workerIdx);
+                    auto frameMasters = lockstep::makeForEach<2>(worker);
 
                     // Declare local variable oldFrameFillLvl for each thread
                     int oldFrameFillLvl;
@@ -178,7 +169,7 @@ namespace picongpu
                             targetFrames[linearIdx] = nullptr;
                         });
 
-                    cupla::__syncthreads(acc);
+                    worker.sync();
 
                     /* move over source species frames and call particleCreator
                      * frames are worked on in backwards order to avoid asking if there is another frame
@@ -196,10 +187,10 @@ namespace picongpu
                                 if(isParticle)
                                     /* ask the particle creator functor how many new particles to create. */
                                     numNewParticlesCtx[idx]
-                                        = particleCreatorCtx[idx].numNewParticles(acc, *sourceFrame, idx);
+                                        = particleCreatorCtx[idx].numNewParticles(worker, *sourceFrame, idx);
                             });
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
                         /* always true while-loop over all particles inside source frame until each thread breaks out
                          * individually
@@ -226,7 +217,7 @@ namespace picongpu
 
                             oldFrameFillLvl = newFrameFillLvl;
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             /* < CHECK & ADD >
                              * - if a thread wants to create target particles in each cycle it can do that only once
@@ -238,12 +229,12 @@ namespace picongpu
                                 {
                                     if(numNewParticlesCtx[idx] > 0u)
                                         targetParIdCtx[idx] = kernel::atomicAllInc(
-                                            acc,
+                                            worker,
                                             &newFrameFillLvl,
                                             ::alpaka::hierarchy::Threads{});
                                 });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             /* < EXIT? >
                              * - if the counter hasn't changed all threads break out of the loop
@@ -251,7 +242,7 @@ namespace picongpu
                             if(oldFrameFillLvl == newFrameFillLvl)
                                 break;
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             /* < NEW FRAME >
                              * - if there is no frame, yet, the master will create a new target particle frame
@@ -264,12 +255,12 @@ namespace picongpu
                                         = (newFrameFillLvl + maxParticlesInFrame - 1u) / maxParticlesInFrame;
                                     if(linearIdx < numFramesNeeded && !targetFrames[linearIdx].isValid())
                                     {
-                                        targetFrames[linearIdx] = targetBox.getEmptyFrame(acc);
-                                        targetBox.setAsLastFrame(acc, targetFrames[linearIdx], block);
+                                        targetFrames[linearIdx] = targetBox.getEmptyFrame(worker);
+                                        targetBox.setAsLastFrame(worker, targetFrames[linearIdx], block);
                                     }
                                 });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             /* < CREATE >
                              * - all target particles were created
@@ -292,13 +283,13 @@ namespace picongpu
                                         auto targetParticle = targetFrames[targetFrameIdx][targetParIdCtx[idx]];
 
                                         // create a target particle in the new target particle frame:
-                                        particleCreatorCtx[idx](acc, sourceParticle, targetParticle);
+                                        particleCreatorCtx[idx](worker, sourceParticle, targetParticle);
 
                                         numNewParticlesCtx[idx] -= 1;
                                     }
                                 });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             frameMasters(
                                 [&](uint32_t const linearIdx)
@@ -313,10 +304,10 @@ namespace picongpu
                                     }
                                 });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
                         }
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
                         sourceFrame = sourceBox.getPreviousFrame(sourceFrame);
                     }
@@ -325,27 +316,20 @@ namespace picongpu
 
             /** Convenient function to create a `CreateParticlesKernel` instance
              *
-             * @tparam T_numWorkers number of workers
-             *
              * @param parBoxSource particle box of the source species
              * @param parBoxTarget particle box of the target species
              * @param particleCreator particle creation functor
              * @param guardSuperCells number of guard cells per dimension
              * @return new `CreateParticlesKernel` instance
              */
-            template<
-                uint32_t T_numWorkers,
-                typename T_ParBoxSource,
-                typename T_ParBoxTarget,
-                typename T_ParticleCreator>
-            CreateParticlesKernel<T_numWorkers, T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>
-            make_CreateParticlesKernel(
+            template<typename T_ParBoxSource, typename T_ParBoxTarget, typename T_ParticleCreator>
+            CreateParticlesKernel<T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator> make_CreateParticlesKernel(
                 T_ParBoxSource const& parBoxSource,
                 T_ParBoxTarget const& parBoxTarget,
                 T_ParticleCreator const& particleCreator,
                 DataSpace<simDim> const& guardSuperCells)
             {
-                return CreateParticlesKernel<T_numWorkers, T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>(
+                return CreateParticlesKernel<T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>(
                     parBoxSource,
                     parBoxTarget,
                     particleCreator,

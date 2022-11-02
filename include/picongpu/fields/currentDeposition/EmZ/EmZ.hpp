@@ -66,9 +66,9 @@ namespace picongpu
              * @param charge charge of the particle
              * @param deltaTime time of one time step
              */
-            template<typename DataBoxJ, typename T_Acc>
+            template<typename DataBoxJ, typename T_Worker>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 DataBoxJ dataBoxJ,
                 floatD_X const posEnd,
                 float3_X const velocity,
@@ -107,7 +107,7 @@ namespace picongpu
                     line.m_pos1[d] = relayPoint[d] - shiftStart[d];
                 }
 
-                deposit(acc, dataBoxJ.shift(shiftStart).toCursor(), line, chargeDensity);
+                deposit(worker, dataBoxJ.shift(shiftStart).toCursor(), line, chargeDensity);
 
                 /* detect if there is a second virtual particle */
                 const bool twoParticlesNeeded = (shiftStart != shiftEnd);
@@ -120,7 +120,7 @@ namespace picongpu
                         line.m_pos1[d] = posEnd[d] - shiftEnd[d];
                         line.m_pos0[d] = relayPoint[d] - shiftEnd[d];
                     }
-                    deposit(acc, dataBoxJ.shift(shiftEnd).toCursor(), line, chargeDensity);
+                    deposit(worker, dataBoxJ.shift(shiftEnd).toCursor(), line, chargeDensity);
                 }
 
                 /* 2d case requires special handling of Jz as explained in #3889.
@@ -159,7 +159,7 @@ namespace picongpu
                             DIM2>
                             depositZ;
                         depositZ.computeCurrentZ(
-                            acc,
+                            worker,
                             dataBoxJ.shift(shiftEnd).toCursor(),
                             line,
                             velocity.z() * chargeDensity);

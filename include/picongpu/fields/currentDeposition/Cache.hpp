@@ -46,23 +46,23 @@ namespace picongpu
                  *
                  * @attention thread-collective operation, requires external thread synchronization
                  */
-                template<uint32_t T_numWorkers, typename T_BlockDescription, typename T_Acc, typename T_FieldBox>
-                DINLINE static auto create(T_Acc const& acc, T_FieldBox const& fieldBox, uint32_t const workerIdx)
+                template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox>
+                DINLINE static auto create(T_Worker const& worker, T_FieldBox const& fieldBox)
 #if(!BOOST_COMP_CLANG)
                     -> decltype(CachedBox::create<0u, typename T_FieldBox::ValueType>(
-                        acc,
+                        worker,
                         std::declval<T_BlockDescription>()))
 #endif
                 {
                     using ValueType = typename T_FieldBox::ValueType;
                     /* this memory is used by all virtual blocks */
-                    auto cache = CachedBox::create<0u, ValueType>(acc, T_BlockDescription{});
+                    auto cache = CachedBox::create<0u, ValueType>(worker, T_BlockDescription{});
 
                     Set<ValueType> set(ValueType::create(0.0_X));
-                    ThreadCollective<T_BlockDescription, T_numWorkers> collectiveFill(workerIdx);
+                    auto collectiveFill = makeThreadCollective<T_BlockDescription>();
 
                     /* initialize shared memory with zeros */
-                    collectiveFill(acc, set, cache);
+                    collectiveFill(worker, set, cache);
                     return cache;
                 }
 
@@ -70,23 +70,14 @@ namespace picongpu
                  *
                  * @attention thread-collective operation, requires external thread synchronization
                  */
-                template<
-                    uint32_t T_numWorkers,
-                    typename T_BlockDescription,
-                    typename T_Acc,
-                    typename T_FieldBox,
-                    typename T_FieldCache>
-                DINLINE static void flush(
-                    T_Acc const& acc,
-                    T_FieldBox fieldBox,
-                    T_FieldCache const& cachedBox,
-                    uint32_t const workerIdx)
+                template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox, typename T_FieldCache>
+                DINLINE static void flush(T_Worker const& worker, T_FieldBox fieldBox, T_FieldCache const& cachedBox)
                 {
                     typename T_Strategy::GridReductionOp const op;
-                    ThreadCollective<T_BlockDescription, T_numWorkers> collectiveAdd(workerIdx);
+                    auto collectiveAdd = makeThreadCollective<T_BlockDescription>();
 
                     /* write scatter results back to the global memory */
-                    collectiveAdd(acc, op, fieldBox, cachedBox);
+                    collectiveAdd(worker, op, fieldBox, cachedBox);
                 }
             };
 
@@ -97,11 +88,8 @@ namespace picongpu
                  *
                  * @attention thread-collective operation, requires external thread synchronization
                  */
-                template<uint32_t T_numWorkers, typename T_BlockDescription, typename T_Acc, typename T_FieldBox>
-                DINLINE static auto create(
-                    [[maybe_unused]] T_Acc const& acc,
-                    T_FieldBox const& fieldBox,
-                    [[maybe_unused]] uint32_t const workerIdx)
+                template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox>
+                DINLINE static auto create([[maybe_unused]] T_Worker const& worker, T_FieldBox const& fieldBox)
 #if(!BOOST_COMP_CLANG)
                     -> T_FieldBox
 #endif
@@ -113,17 +101,11 @@ namespace picongpu
                  *
                  * @attention thread-collective operation, requires external thread synchronization
                  */
-                template<
-                    uint32_t T_numWorkers,
-                    typename T_BlockDescription,
-                    typename T_Acc,
-                    typename T_FieldBox,
-                    typename T_FieldCache>
+                template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox, typename T_FieldCache>
                 DINLINE static void flush(
-                    T_Acc const& /*acc*/,
+                    T_Worker const& /*worker*/,
                     T_FieldBox /*fieldBox*/,
-                    T_FieldCache const& /*cachedBox*/,
-                    uint32_t const /*workerIdx*/)
+                    T_FieldCache const& /*cachedBox*/)
                 {
                 }
             };

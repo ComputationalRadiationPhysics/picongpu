@@ -31,6 +31,7 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
@@ -38,7 +39,6 @@
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -56,10 +56,7 @@ namespace picongpu
     /** accumulate the kinetic and total energy
      *
      * All energies are summed over all particles of a species.
-     *
-     * @tparam T_numWorkers number of workers
      */
-    template<uint32_t T_numWorkers>
     struct KernelEnergyParticles
     {
         /** accumulate particle energies
@@ -73,22 +70,20 @@ namespace picongpu
          *                (two elements 0 == kinetic; 1 == total energy)
          * @param mapper functor to map a block to a supercell
          */
-        template<typename T_ParBox, typename T_DBox, typename T_Mapping, typename T_Acc, typename T_Filter>
-        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, T_DBox gEnergy, T_Mapping mapper, T_Filter filter) const
+        template<typename T_ParBox, typename T_DBox, typename T_Mapping, typename T_Worker, typename T_Filter>
+        DINLINE void operator()(T_Worker const& worker, T_ParBox pb, T_DBox gEnergy, T_Mapping mapper, T_Filter filter)
+            const
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
             // shared kinetic energy
-            PMACC_SMEM(acc, shEnergyKin, float_X);
+            PMACC_SMEM(worker, shEnergyKin, float_X);
             // shared total energy
-            PMACC_SMEM(acc, shEnergy, float_X);
+            PMACC_SMEM(worker, shEnergy, float_X);
 
             // sum kinetic energy for all particles touched by the virtual thread
             float_X localEnergyKin(0.0);
             float_X localEnergy(0.0);
 
-            auto masterOnly = lockstep::makeMaster(workerIdx);
+            auto masterOnly = lockstep::makeMaster(worker);
 
             masterOnly(
                 [&]()
@@ -99,25 +94,23 @@ namespace picongpu
                     shEnergy = float_X(0.0);
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
 
-            auto accFilter
-                = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
+            auto accFilter = filter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             forEachParticle(
-                acc,
-                [&accFilter, &localEnergyKin, &localEnergy](auto const& accelerator, auto& particle)
+                [&accFilter, &localEnergyKin, &localEnergy](auto const& lockstepWorker, auto& particle)
                 {
-                    if(accFilter(accelerator, particle))
+                    if(accFilter(lockstepWorker, particle))
                     {
                         float3_X const mom = particle[momentum_];
                         // compute square of absolute momentum of the particle
@@ -138,25 +131,26 @@ namespace picongpu
                 });
 
             // each virtual thread adds the energies to the shared memory
-            cupla::atomicAdd(acc, &shEnergyKin, localEnergyKin, ::alpaka::hierarchy::Threads{});
-            cupla::atomicAdd(acc, &shEnergy, localEnergy, ::alpaka::hierarchy::Threads{});
+            cupla::atomicAdd(worker.getAcc(), &shEnergyKin, localEnergyKin, ::alpaka::hierarchy::Threads{});
+            cupla::atomicAdd(worker.getAcc(), &shEnergy, localEnergy, ::alpaka::hierarchy::Threads{});
 
             // wait that all virtual threads updated the shared memory energies
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             // add energies on global level using global memory
             masterOnly(
+
                 [&]()
                 {
                     // add kinetic energy
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &(gEnergy[0]),
                         static_cast<float_64>(shEnergyKin),
                         ::alpaka::hierarchy::Blocks{});
                     // add total energy
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &(gEnergy[1]),
                         static_cast<float_64>(shEnergy),
                         ::alpaka::hierarchy::Blocks{});
@@ -357,12 +351,10 @@ namespace picongpu
             // initialize global energies with zero
             gEnergy->getDeviceBuffer().setValue(0.0);
 
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
-            auto kernel = PMACC_KERNEL(KernelEnergyParticles<numWorkers>{})(mapper.getGridDim(), numWorkers);
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelEnergyParticles{}, workerCfg)(mapper.getGridDim());
             auto binaryKernel = std::bind(
                 kernel,
                 particles->getDeviceParticlesBox(),

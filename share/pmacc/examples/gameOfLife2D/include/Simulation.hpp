@@ -60,9 +60,9 @@ namespace gol
 
     public:
         Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic)
-            : evo(rule)
+            : gridSize(gridSize)
+            , evo(rule)
             , steps(steps)
-            , gridSize(gridSize)
             , isMaster(false)
         {
             /* -First this initializes the GridController with number of 'devices'*

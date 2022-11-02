@@ -38,8 +38,8 @@ namespace pmacc
                     dst += src;
                 }
 
-                template<typename Dst, typename Src, typename T_Acc>
-                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                template<typename Dst, typename Src, typename T_Worker>
+                HDINLINE void operator()(const T_Worker&, Dst& dst, const Src& src) const
                 {
                     dst += src;
                 }

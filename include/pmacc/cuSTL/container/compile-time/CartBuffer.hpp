@@ -53,8 +53,8 @@ namespace pmacc
                 Type* dataPointer;
 
             public:
-                template<typename T_Acc>
-                DINLINE CartBuffer(T_Acc const& acc);
+                template<typename T_Worker>
+                DINLINE CartBuffer(T_Worker const& worker);
                 DINLINE CartBuffer(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& other);
 
                 DINLINE CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& operator=(

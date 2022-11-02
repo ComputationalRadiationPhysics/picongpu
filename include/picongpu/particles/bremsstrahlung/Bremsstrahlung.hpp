@@ -118,29 +118,23 @@ namespace picongpu
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
                  * necessary after initializing the ion density field in shared memory.
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE void init(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const DataSpace<simDim>& blockCell,
-                    const int& linearThreadIdx,
                     const DataSpace<simDim>& localCellOffset);
 
                 /** cache fields used by this functor
                  *
                  * @warning this is a collective method and calls synchronize
                  *
-                 * @tparam T_Acc alpaka accelerator type
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
+                 * @tparam T_Worker lockstep worker type
                  *
-                 * @param acc alpaka accelerator
+                 * @param worker lockstep worker
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
-                 * @param workerCfg configuration of the worker
                  */
-                template<typename T_Acc, typename T_WorkerCfg>
-                DINLINE void collectiveInit(
-                    const T_Acc& acc,
-                    const DataSpace<simDim>& blockCell,
-                    const T_WorkerCfg& workerCfg);
+                template<typename T_Worker>
+                DINLINE void collectiveInit(const T_Worker& worker, const DataSpace<simDim>& blockCell);
 
                 /** Rotates a vector to a given polar angle and a random azimuthal angle.
                  *
@@ -148,8 +142,8 @@ namespace picongpu
                  * @param theta polar angle
                  * @return rotated vector
                  */
-                template<typename T_Acc>
-                DINLINE float3_X scatterByTheta(const T_Acc& acc, const float3_X vec, const float_X theta);
+                template<typename T_Worker>
+                DINLINE float3_X scatterByTheta(const T_Worker& worker, const float3_X vec, const float_X theta);
 
                 /** Return the number of target particles to be created from each source particle.
                  *
@@ -159,8 +153,8 @@ namespace picongpu
                  * @param localIdx Index of the source particle within frame
                  * @return number of particle to be created from each source particle
                  */
-                template<typename T_Acc>
-                DINLINE unsigned int numNewParticles(const T_Acc& acc, FrameType& sourceFrame, int localIdx);
+                template<typename T_Worker>
+                DINLINE unsigned int numNewParticles(const T_Worker& worker, FrameType& sourceFrame, int localIdx);
 
                 /** Functor implementation.
                  *
@@ -169,8 +163,8 @@ namespace picongpu
                  * @tparam Electron type of electron which creates the photon
                  * @tparam Photon type of photon that is created
                  */
-                template<typename Electron, typename Photon, typename T_Acc>
-                DINLINE void operator()(const T_Acc& acc, Electron& electron, Photon& photon);
+                template<typename Electron, typename Photon, typename T_Worker>
+                DINLINE void operator()(const T_Worker& worker, Electron& electron, Photon& photon);
             };
 
         } // namespace bremsstrahlung

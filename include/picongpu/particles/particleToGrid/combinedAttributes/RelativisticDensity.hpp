@@ -41,13 +41,14 @@ namespace picongpu
                      *
                      * Result overwrites the density value.
                      *
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      * @param acc alpaka accelerator
                      * @param density number density value and the result destination
                      * @param energyDensity  energy density value
                      */
-                    template<typename T_Acc>
-                    HDINLINE void operator()(T_Acc const& acc, float1_X& density, const float1_X& energyDensity) const
+                    template<typename T_Worker>
+                    HDINLINE void operator()(T_Worker const& worker, float1_X& density, const float1_X& energyDensity)
+                        const
                     {
                         const float_X densityPICUnits
                             = density[0] * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
