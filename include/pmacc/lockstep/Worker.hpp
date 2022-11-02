@@ -24,53 +24,82 @@
 #include "pmacc/types.hpp"
 
 
-namespace pmacc
+namespace pmacc::lockstep
 {
-    namespace lockstep
+    template<uint32_t T_numSuggestedWorkers>
+    struct WorkerCfg;
+
+    /** Entity of an worker.
+     *
+     * Context object used for lockstep programming. This object is providing access to the alpaka accelerator and
+     * indicies used for the lockstep programming model.
+     *
+     * @tparam T_numSuggestedWorkers Suggested number of lockstep workers. Do not assume that the suggested number of
+     *                               workers is used within the kernel. The real used number of worker can be queried
+     *                               with getNumWorkers() or via the member variable numWorkers.
+     */
+    template<typename T_Acc, uint32_t T_numSuggestedWorkers>
+    class Worker
     {
-        /** holds a worker configuration
+    private:
+        //! index of the worker: range [0;numWOrkers) */
+        PMACC_ALIGN(m_workerIdx, uint32_t const);
+        T_Acc const& m_acc;
+
+        friend struct WorkerCfg<T_numSuggestedWorkers>;
+
+        /** constructor
          *
-         * collection of the compile time number of workers and the runtime worker index
-         *
-         * @tparam T_numWorkers number of workers which are used to execute this functor
+         * @param workerIdx worker index
          */
-        template<uint32_t T_numWorkers>
-        class Worker
+        HDINLINE Worker(T_Acc const& acc, uint32_t const workerIdx) : m_workerIdx(std::move(workerIdx)), m_acc(acc)
         {
-        private:
-            //! index of the worker: range [0;T_numWorkers) */
-            PMACC_ALIGN(m_workerIdx, uint32_t const);
+        }
 
-        public:
-            //! number of workers
-            static constexpr uint32_t numWorkers = T_numWorkers;
+    public:
+        Worker(Worker const&) = default;
 
-            /** constructor
-             *
-             * @param workerIdx worker index
-             */
-            HDINLINE Worker(uint32_t const workerIdx) : m_workerIdx(std::move(workerIdx))
-            {
-            }
+        Worker& operator=(Worker const&) = delete;
 
-            /** get the worker index
-             *
-             * @return index of the worker
-             */
-            HDINLINE uint32_t getWorkerIdx() const
-            {
-                return m_workerIdx;
-            }
+        //! number of workers
+        static constexpr uint32_t numWorkers = WorkerCfg<T_numSuggestedWorkers>::numWorkers;
+        using Acc = T_Acc;
 
-            /** get the number of workers
-             *
-             * @return number of workers
-             */
-            HDINLINE static constexpr uint32_t getNumWorkers()
-            {
-                return T_numWorkers;
-            }
-        };
+        /** get the alpaka accelerator
+         *
+         * @return alpaka accelerator
+         */
+        HDINLINE auto& getAcc() const
+        {
+            return m_acc;
+        }
 
-    } // namespace lockstep
-} // namespace pmacc
+        /** get the worker index
+         *
+         * @return index of the worker
+         */
+        HDINLINE uint32_t getWorkerIdx() const
+        {
+            return m_workerIdx;
+        }
+
+        /** synchronize all workers
+         *
+         * @attention It is not allowed to call this method in side of a if branch or a loop if it is not guaranteed
+         * that all worker executing the same code branch.
+         */
+        HDINLINE void sync() const
+        {
+            cupla::__syncthreads(m_acc);
+        }
+
+        /** get the number of workers
+         *
+         * @return number of workers
+         */
+        HDINLINE static constexpr uint32_t getNumWorkers()
+        {
+            return numWorkers;
+        }
+    };
+} // namespace pmacc::lockstep

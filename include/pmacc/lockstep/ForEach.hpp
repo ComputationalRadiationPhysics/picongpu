@@ -43,13 +43,13 @@ namespace pmacc
          * @tparam T_Config Configuration for the domain and execution strategy.
          *                  T_Config must provide: domainSize, numCollIter, numWorkers, and simdSize at compile time.
          */
-        template<typename T_Config>
+        template<typename T_Worker, typename T_Config>
         class ForEach;
 
-        template<uint32_t T_domainSize, uint32_t T_numWorkers, uint32_t T_simdSize>
-        class ForEach<Config<T_domainSize, T_numWorkers, T_simdSize>>
-            : Config<T_domainSize, T_numWorkers, T_simdSize>
-            , Worker<T_numWorkers>
+        template<typename T_Worker, uint32_t T_domainSize, uint32_t T_simdSize>
+        class ForEach<T_Worker, Config<T_domainSize, T_Worker::numWorkers, T_simdSize>>
+            : Config<T_domainSize, T_Worker::numWorkers, T_simdSize>
+            , T_Worker
         {
             /** Get the result of a functor invocation.
              *
@@ -81,7 +81,7 @@ namespace pmacc
             using IsCallableWithoutArguments = std::void_t<decltype(alpaka::core::declval<T_Functor>()())>;
 
         public:
-            using BaseConfig = Config<T_domainSize, T_numWorkers, T_simdSize>;
+            using BaseConfig = Config<T_domainSize, T_Worker::numWorkers, T_simdSize>;
 
             using BaseConfig::domainSize;
             using BaseConfig::numWorkers;
@@ -92,13 +92,13 @@ namespace pmacc
              * @param workerIdx index of the worker: range [0;workerSize)
              */
             HDINLINE
-            ForEach(uint32_t const workerIdx) : Worker<numWorkers>(std::move(workerIdx))
+            ForEach(T_Worker const& worker) : T_Worker(worker)
             {
             }
 
-            HDINLINE Worker<numWorkers> getWorkerCfg() const
+            HDINLINE auto getWorker() const
             {
-                return static_cast<Worker<numWorkers>>(*this);
+                return static_cast<T_Worker>(*this);
             }
 
             /** execute a functor
@@ -252,8 +252,17 @@ namespace pmacc
             /** @} */
         };
 
-        /** Execute a functor for a domain of one index. */
-        using Master = ForEach<Config<1, 1, 1>>;
+        inline namespace traits
+        {
+            template<typename T_Worker, uint32_t T_domainSize, uint32_t T_simdSize = 1u>
+            struct MakeForEach
+            {
+                using type = ForEach<T_Worker, Config<T_domainSize, T_Worker::numWorkers, T_simdSize>>;
+            };
+
+            template<typename T_Worker, uint32_t T_domainSize, uint32_t T_simdSize = 1u>
+            using MakeForEach_t = typename MakeForEach<T_Worker, T_domainSize, T_simdSize>::type;
+        } // namespace traits
 
         /** Creates an executor to iterate over the given index domain.
          *
@@ -261,17 +270,29 @@ namespace pmacc
          * @see ForEach to got more information about synchronization behaviors.
          *
          * @tparam T_domainSize number of indices in the domain
-         * @tparam T_numWorkers number of worker working on @p T_domainSize
-         * @tparam T_simdSize SIMD width
          *
-         * @param workerIdx worker index
+         * @param worker lockstep worker
          * @return ForEach executor which can be invoked with a functor as argument.
+         *
+         * @{
          */
-        template<uint32_t T_domainSize, uint32_t T_numWorkers, uint32_t T_simdSize = 1u>
-        HDINLINE auto makeForEach(uint32_t const workerIdx)
+        template<uint32_t T_domainSize, typename T_Worker>
+        HDINLINE auto makeForEach(T_Worker const& worker)
         {
-            return ForEach<Config<T_domainSize, T_numWorkers, T_simdSize>>(workerIdx);
+            return traits::MakeForEach_t<T_Worker, T_domainSize>(worker);
         }
+
+        /**
+         *
+         * @tparam T_simdSize SIMD width
+         */
+        template<uint32_t T_domainSize, uint32_t T_simdSize, typename T_Worker>
+        HDINLINE auto makeForEach(T_Worker const& worker)
+        {
+            return traits::MakeForEach_t<T_Worker, T_domainSize, T_simdSize>(worker);
+        }
+
+        /**@}*/
 
         /** Creates an executor with a domain of one index.
          *
@@ -280,12 +301,13 @@ namespace pmacc
          * If the executor is invoked with a functor multiple times it is guaranteed that the same worker is performing
          * the execution.
          *
-         * @param workerIdx worker index
+         * @param worker lockstep worker
          * @return ForEach executor which can be invoked with a functor as argument.
          */
-        HDINLINE auto makeMaster(uint32_t const workerIdx)
+        template<typename T_Worker>
+        HDINLINE auto makeMaster(T_Worker const& worker)
         {
-            return Master(workerIdx);
+            return makeForEach<1, 1>(worker);
         }
 
     } // namespace lockstep

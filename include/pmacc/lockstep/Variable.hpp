@@ -33,7 +33,7 @@ namespace pmacc
 {
     namespace lockstep
     {
-        template<typename T_Config>
+        template<typename T_Worker, typename T_Config>
         class ForEach;
 
         /** Variable used by virtual worker
@@ -115,10 +115,10 @@ namespace pmacc
          * @return Variable usable within a lockstep step. Variable data can not be accessed outside of a lockstep
          * step.
          */
-        template<typename T_Type, typename T_Config>
-        HDINLINE auto makeVar(ForEach<T_Config> const& forEach)
+        template<typename T_Type, typename T_Worker, typename T_Config>
+        HDINLINE auto makeVar(ForEach<T_Worker, T_Config> const& forEach)
         {
-            return Variable<T_Type, typename ForEach<T_Config>::BaseConfig>();
+            return Variable<T_Type, typename ForEach<T_Worker, T_Config>::BaseConfig>();
         }
 
         /** Creates a variable usable within a subsequent locksteps.
@@ -136,10 +136,10 @@ namespace pmacc
          * @return Variable usable within a lockstep step. Variable data can not be accessed outside of a lockstep
          * step.
          */
-        template<typename T_Type, typename T_Config, typename... T_Args>
-        HDINLINE auto makeVar(ForEach<T_Config> const& forEach, T_Args&&... args)
+        template<typename T_Type, typename T_Worker, typename T_Config, typename... T_Args>
+        HDINLINE auto makeVar(ForEach<T_Worker, T_Config> const& forEach, T_Args&&... args)
         {
-            return Variable<T_Type, typename ForEach<T_Config>::BaseConfig>(std::forward<T_Args>(args)...);
+            return Variable<T_Type, typename ForEach<T_Worker, T_Config>::BaseConfig>(std::forward<T_Args>(args)...);
         }
 
     } // namespace lockstep
