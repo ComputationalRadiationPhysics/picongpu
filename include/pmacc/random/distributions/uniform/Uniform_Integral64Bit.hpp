@@ -50,10 +50,10 @@ namespace pmacc
                 public:
                     using result_type = T_Type;
 
-                    template<typename T_Acc>
-                    DINLINE result_type operator()(T_Acc const& acc, StateType& state)
+                    template<typename T_Worker>
+                    DINLINE result_type operator()(T_Worker const& worker, StateType& state)
                     {
-                        return static_cast<result_type>(RNGMethod().get64Bits(acc, state));
+                        return static_cast<result_type>(RNGMethod().get64Bits(worker, state));
                     }
                 };
 

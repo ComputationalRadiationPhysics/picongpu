@@ -36,9 +36,8 @@ namespace pmacc
      *
      * @tparam T_DataDomain pmacc::SuperCellDescription, compile time data domain
      *                      description with a CORE and GUARD
-     * @tparam T_numWorkers number of workers
      */
-    template<typename T_DataDomain, uint32_t T_numWorkers>
+    template<typename T_DataDomain>
     class ThreadCollective
     {
     private:
@@ -49,27 +48,18 @@ namespace pmacc
         // offset (in elements per dimension) from the GUARD origin to the CORE
         using OffsetOrigin = typename T_DataDomain::OffsetOrigin;
 
-        static constexpr uint32_t numWorkers = T_numWorkers;
         static constexpr uint32_t dim = T_DataDomain::Dim;
 
-        PMACC_ALIGN(m_workerIdx, const uint32_t);
-
     public:
-        /** constructor
-         *
-         * @param workerIdx index of the worker
-         */
-        DINLINE ThreadCollective(uint32_t const workerIdx) : m_workerIdx(workerIdx)
-        {
-        }
-
         /** execute the user functor for each element in the full domain
          *
+         * @tparam T_Worker lockstep worker type
          * @tparam T_Functor type of the user functor, must have a `void operator()`
          *                   with as many arguments as args contains
          * @tparam T_Args type of the arguments, each type must implement an operator
          *                 `template<typename T, typename R> R operator(T)`
          *
+         * @param worker lockstep worker
          * @param functor user defined functor
          * @param args arguments passed to the functor
          *             The method `template<typename T, typename R> R operator(T)`
@@ -78,10 +68,10 @@ namespace pmacc
          *             `T` is a N-dimensional vector of an index relative to the origin
          *             of data domain GUARD
          */
-        template<typename T_Functor, typename... T_Args, typename T_Acc>
-        DINLINE void operator()(T_Acc const& acc, T_Functor& functor, T_Args&&... args)
+        template<typename T_Worker, typename T_Functor, typename... T_Args>
+        DINLINE void operator()(T_Worker const& worker, T_Functor& functor, T_Args&&... args)
         {
-            lockstep::makeForEach<math::CT::volume<DomainSize>::type::value, numWorkers>(m_workerIdx)(
+            lockstep::makeForEach<math::CT::volume<DomainSize>::type::value>(worker)(
                 [&](uint32_t const linearIdx)
                 {
                     /* offset (in elements) of the current processed element relative
@@ -89,9 +79,21 @@ namespace pmacc
                      */
                     DataSpace<dim> const offset(
                         DataSpaceOperations<dim>::template map<DomainSize>(linearIdx) - OffsetOrigin::toRT());
-                    functor(acc, args(offset)...);
+                    functor(worker, args(offset)...);
                 });
         }
     };
+
+    template<typename T_DataDomain>
+    HDINLINE auto makeThreadCollective()
+    {
+        return ThreadCollective<T_DataDomain>{};
+    }
+
+    template<typename T_DataDomain>
+    HDINLINE auto makeThreadCollective(T_DataDomain const& /*dataDomainSize*/)
+    {
+        return ThreadCollective<T_DataDomain>{};
+    }
 
 } // namespace pmacc

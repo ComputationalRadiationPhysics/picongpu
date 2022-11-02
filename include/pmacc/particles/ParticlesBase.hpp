@@ -143,11 +143,10 @@ namespace pmacc
         {
             auto const mapper = mapperFactory(this->cellDescription);
 
-            constexpr uint32_t numWorkers
-                = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
+            auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
 
-            PMACC_KERNEL(KernelFillGaps<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(particlesBuffer->getDeviceParticleBox(), mapper);
+            PMACC_LOCKSTEP_KERNEL(KernelFillGaps{}, workerCfg)
+            (mapper.getGridDim())(particlesBuffer->getDeviceParticleBox(), mapper);
         }
 
         /* fill gaps in a the complete simulation area (include GUARD)
@@ -232,14 +231,12 @@ namespace pmacc
             ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
             auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 
-            constexpr uint32_t numWorkers
-                = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
+            auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
             __startTransaction(__getTransactionEvent());
             do
             {
-                PMACC_KERNEL(KernelShiftParticles<numWorkers>{})
-                (mapper.getGridDim(),
-                 numWorkers)(pBox, mapper, numSupercellsWithGuards, onlyProcessMustShiftSupercells);
+                PMACC_LOCKSTEP_KERNEL(KernelShiftParticles{}, workerCfg)
+                (mapper.getGridDim())(pBox, mapper, numSupercellsWithGuards, onlyProcessMustShiftSupercells);
             } while(mapper.next());
 
             __setTransactionEvent(__endTransaction());

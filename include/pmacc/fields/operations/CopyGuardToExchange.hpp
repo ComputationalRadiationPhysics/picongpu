@@ -38,11 +38,7 @@ namespace pmacc
     {
         namespace operations
         {
-            /** copy guarding cells to an intermediate buffer
-             *
-             * @tparam T_numWorkers number of workers
-             */
-            template<uint32_t T_numWorkers>
+            //! copy guarding cells to an intermediate buffer
             struct KernelCopyGuardToExchange
             {
                 /** copy guarding cells to an intermediate box
@@ -63,9 +59,9 @@ namespace pmacc
                     typename T_SrcBox,
                     typename T_Extent,
                     typename T_Mapping,
-                    typename T_Acc>
+                    typename T_Worker>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ExchangeBox exchangeBox,
                     T_SrcBox const& srcBox,
                     T_Extent const& exchangeSize,
@@ -76,20 +72,18 @@ namespace pmacc
 
                     // number of cells in a superCell
                     constexpr uint32_t numCells = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    constexpr uint32_t numWorkers = T_numWorkers;
                     PMACC_CONSTEXPR_CAPTURE int dim = T_Mapping::Dim;
 
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                     DataSpace<dim> const blockCell(
-                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))) * SuperCellSize::toRT());
+                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())))
+                        * SuperCellSize::toRT());
 
                     // origin in area from local GPU
                     DataSpace<dim> nullSourceCell(mapper.getSuperCellIndex(DataSpace<dim>()) * SuperCellSize::toRT());
 
                     auto const numGuardSuperCells = mapper.getGuardingSuperCells();
 
-                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)(
+                    lockstep::makeForEach<numCells>(worker)(
                         [&](uint32_t const linearIdx)
                         {
                             // cell index within the superCell
@@ -172,11 +166,10 @@ namespace pmacc
 
                     DataSpace<dim> const direction = Mask::getRelativeDirections<dim>(mapper.getExchangeType());
 
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
-                    PMACC_KERNEL(KernelCopyGuardToExchange<numWorkers>{})
-                    (mapper.getGridDim(), numWorkers)(
+                    PMACC_LOCKSTEP_KERNEL(KernelCopyGuardToExchange{}, workerCfg)
+                    (mapper.getGridDim())(
                         srcBuffer.getSendExchange(exchangeType).getDeviceBuffer().getDataBox(),
                         srcBuffer.getDeviceBuffer().getDataBox(),
                         srcBuffer.getSendExchange(exchangeType).getDeviceBuffer().getDataSpace(),

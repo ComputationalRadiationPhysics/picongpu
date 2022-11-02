@@ -110,9 +110,7 @@ namespace pmacc
                         filter.setSuperCellPosition(superCellPosition);
                         auto accParFilter = parFilter(
                             1, /* @todo this is a hack, please add a alpaka accelerator here*/
-                            superCellIdx - mapper.getGuardingSuperCells(),
-                            lockstep::Worker<1>{0} /* @todo this is a workaround because we use no alpaka*/
-                        );
+                            superCellIdx - mapper.getGuardingSuperCells());
 
                         SrcFramePtr srcFramePtr = srcBox.getFirstFrame(superCellIdx);
 

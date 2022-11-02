@@ -43,11 +43,11 @@ namespace pmacc
              * For some backends PMacc is using optimized intrinsics to perform this operation.
              *
              * @tparam T_Op atomic alpaka operation type
-             * @tparam T_Acc alpaka accelerator context type
+             * @tparam T_Worker lockstep worker type
              * @tparam T_Type value type
              * @tparam T_Hierarchy alpaka hierarchy type of the atomic operation
              */
-            template<typename T_Op, typename T_Acc, typename T_Type, typename T_Hierarchy>
+            template<typename T_Op, typename T_Worker, typename T_Type, typename T_Hierarchy>
             struct AtomicOpNoRet
             {
                 /** perform the atomic operation
@@ -58,12 +58,12 @@ namespace pmacc
                  * @param hierarchy alpaka hierarchy scope for atomics
                  */
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_Type* ptr,
                     T_Type const value,
                     T_Hierarchy const& hierarchy)
                 {
-                    ::alpaka::atomicOp<T_Op>(acc, ptr, value, hierarchy);
+                    ::alpaka::atomicOp<T_Op>(worker.getAcc(), ptr, value, hierarchy);
                 }
             };
 
@@ -72,15 +72,16 @@ namespace pmacc
              *
              * Uses the intrinsic atomicAddNoRet available for AMD gpus only.
              */
-            template<typename T_Hierarchy, typename... T_AccArgs>
+            template<typename T_Hierarchy, uint32_t T_numSuggestedWorkers, typename... T_AccArgs>
             struct AtomicOpNoRet<
                 ::alpaka::AtomicAdd,
-                alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...>,
+                lockstep::
+                    Worker<alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...>, T_numSuggestedWorkers>,
                 float,
                 T_Hierarchy>
             {
                 DINLINE void operator()(
-                    alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...> const& acc,
+                    alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_AccArgs...> const& worker,
                     float* ptr,
                     float const value,
                     T_Hierarchy const& hierarchy)
@@ -197,10 +198,13 @@ namespace pmacc
          * @param ptr pointer to memory (must be the same address for all threads in a block)
          *
          */
-        template<typename T, typename T_Acc, typename T_Hierarchy>
-        HDINLINE T atomicAllInc(const T_Acc& acc, T* ptr, const T_Hierarchy& hierarchy)
+        template<typename T, typename T_Worker, typename T_Hierarchy>
+        HDINLINE T atomicAllInc(const T_Worker& worker, T* ptr, const T_Hierarchy& hierarchy)
         {
-            return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300 || BOOST_COMP_HIP)>()(acc, ptr, hierarchy);
+            return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300 || BOOST_COMP_HIP)>()(
+                worker.getAcc(),
+                ptr,
+                hierarchy);
         }
 
         template<typename T>
@@ -213,7 +217,10 @@ namespace pmacc
              * @todo remove the unsafe faked accelerator
              */
             pmacc::memory::Array<cupla::AccThreadSeq, 1> fakeAcc;
-            return atomicAllInc(fakeAcc[0], ptr, ::alpaka::hierarchy::Grids());
+            return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300 || BOOST_COMP_HIP)>()(
+                fakeAcc[0],
+                ptr,
+                ::alpaka::hierarchy::Grids());
         }
 
         /** optimized atomic value exchange
@@ -230,15 +237,20 @@ namespace pmacc
          * @param ptr pointer to memory (must be the same address for all threads in a block)
          * @param value new value (must be the same for all threads in a block)
          */
-        template<typename T_Type, typename T_Acc, typename T_Hierarchy>
-        DINLINE void atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarchy& hierarchy)
+        template<typename T_Type, typename T_Worker, typename T_Hierarchy>
+        DINLINE void atomicAllExch(
+            const T_Worker& worker,
+            T_Type* ptr,
+            const T_Type value,
+            const T_Hierarchy& hierarchy)
         {
 #if CUPLA_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            const auto mask = alpaka::warp::activemask(acc);
-            const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
+            const auto mask = alpaka::warp::activemask(worker.getAcc());
+            const auto leader
+                = alpaka::ffs(worker.getAcc(), static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
             if(getLaneId() == leader)
 #endif
-                ::alpaka::atomicOp<::alpaka::AtomicExch>(acc, ptr, value, hierarchy);
+                ::alpaka::atomicOp<::alpaka::AtomicExch>(worker.getAcc(), ptr, value, hierarchy);
         }
 
         /** optimized atomic operation without return value
@@ -247,18 +259,22 @@ namespace pmacc
          * For some backends PMacc is using optimized intrinsics to perform this operation.
          *
          * @tparam T_Op atomic alpaka operation type
-         * @tparam T_Acc alpaka accelerator context type
+         * @tparam T_Worker lockstep worker type
          * @tparam T_Type value type
          * @tparam T_Hierarchy alpaka hierarchy type of the atomic operation
-         * @param acc alpaka accelerator context
+         * @param worker lockstep worker
          * @param ptr pointer to memory
          * @param value input value
          * @param hierarchy alpaka hierarchy scope for atomics
          */
-        template<typename T_Op, typename T_Acc, typename T_Type, typename T_Hierarchy>
-        DINLINE void atomicOpNoRet(T_Acc const& acc, T_Type* ptr, T_Type const value, T_Hierarchy const& hierarchy)
+        template<typename T_Op, typename T_Worker, typename T_Type, typename T_Hierarchy>
+        DINLINE void atomicOpNoRet(
+            T_Worker const& worker,
+            T_Type* ptr,
+            T_Type const value,
+            T_Hierarchy const& hierarchy)
         {
-            return detail::AtomicOpNoRet<T_Op, T_Acc, T_Type, T_Hierarchy>{}(acc, ptr, value, hierarchy);
+            return detail::AtomicOpNoRet<T_Op, T_Worker, T_Type, T_Hierarchy>{}(worker, ptr, value, hierarchy);
         }
     } // namespace kernel
 } // namespace pmacc

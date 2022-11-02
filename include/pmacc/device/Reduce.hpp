@@ -193,63 +193,63 @@ namespace pmacc
             {
                 if(threads >= 512u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<512u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 512u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<512u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 512u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 256u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<256u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 256u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<256u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 256u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 128u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<128u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 128u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<128u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 128u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 64u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<64u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 64u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<64u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 64u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 32u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<32u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 32u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<32u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 32u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 16u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<16u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 16u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<16u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 16u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 8u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<8u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 8u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<8u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 8u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 4u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<4u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 4u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<4u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 4u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 2u)
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<2u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 2u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<2u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 2u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
                 else
                 {
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<1u>::value;
-                    PMACC_KERNEL(reduce::Kernel<Type, 1u, numWorkers>{})
-                    (blocks, numWorkers, sharedMemSize)(args...);
+                    auto workerCfg = lockstep::makeWorkerCfg<1u>();
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 1u>{}, workerCfg)
+                    (blocks, sharedMemSize)(args...);
                 }
             }
 

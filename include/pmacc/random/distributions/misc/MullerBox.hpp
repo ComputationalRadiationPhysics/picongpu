@@ -58,13 +58,13 @@ namespace pmacc
                  * @param acc alpaka accelerator
                  * @param state the state of an pmacc random number generator
                  */
-                template<typename T_Acc>
-                DINLINE T_Type getNormal(T_Acc const& acc, StateType& state)
+                template<typename T_Worker>
+                DINLINE T_Type getNormal(T_Worker const& worker, StateType& state)
                 {
                     constexpr T_Type valueTwoPI = 6.2831853071795860;
 
-                    T_Type u1 = UniformRng::operator()(acc, state);
-                    T_Type u2 = UniformRng::operator()(acc, state) * valueTwoPI;
+                    T_Type u1 = UniformRng::operator()(worker, state);
+                    T_Type u2 = UniformRng::operator()(worker, state) * valueTwoPI;
 
                     T_Type s = cupla::math::sqrt(T_Type(-2.0) * cupla::math::log(u1));
 
@@ -89,8 +89,8 @@ namespace pmacc
                  * @param acc alpaka accelerator
                  * @param state the state of an pmacc random number generator
                  */
-                template<typename T_Acc>
-                DINLINE result_type operator()(T_Acc const& acc, StateType& state)
+                template<typename T_Worker>
+                DINLINE result_type operator()(T_Worker const& worker, StateType& state)
                 {
                     T_Type result;
                     if(hasSecondRngNumber)
@@ -100,7 +100,7 @@ namespace pmacc
                     }
                     else
                     {
-                        result = getNormal(acc, state);
+                        result = getNormal(worker, state);
                     }
                     return result;
                 }

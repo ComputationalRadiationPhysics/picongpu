@@ -67,10 +67,10 @@ namespace pmacc
             }
 
             /** Returns a new random number advancing the state */
-            template<typename T_Acc>
-            DINLINE result_type operator()(T_Acc const& acc)
+            template<typename T_Worker>
+            DINLINE result_type operator()(T_Worker const& worker)
             {
-                return Distribution::operator()(acc, RNGHandle::getState());
+                return Distribution::operator()(worker, RNGHandle::getState());
             }
         };
 
@@ -94,10 +94,10 @@ namespace pmacc
             }
 
             /** Returns a new random number advancing the state */
-            template<typename T_Acc>
-            DINLINE result_type operator()(T_Acc const& acc)
+            template<typename T_Worker>
+            DINLINE result_type operator()(T_Worker const& worker)
             {
-                return Distribution::operator()(acc, *m_rngState);
+                return Distribution::operator()(worker, *m_rngState);
             }
 
         protected:

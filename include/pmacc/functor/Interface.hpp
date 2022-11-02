@@ -72,8 +72,8 @@ namespace pmacc
                  * @param args arguments passed to the user functor
                  * @return T_ReturnType
                  */
-                template<typename T_Acc, typename... T_Args>
-                HDINLINE auto operator()(T_Acc const& acc, T_Args&&... args) -> T_ReturnType
+                template<typename T_Worker, typename... T_Args>
+                HDINLINE auto operator()(T_Worker const& worker, T_Args&&... args) -> T_ReturnType
                 {
                     /* check if the current used number of arguments to execute the
                      * functor is equal to the interface requirements
@@ -84,13 +84,13 @@ namespace pmacc
                         T_numArguments == sizeof...(args));
 
                     // get the return type of the user functor
-                    using UserFunctorReturnType = decltype(alpaka::core::declval<UserFunctor>()(acc, args...));
+                    using UserFunctorReturnType = decltype(alpaka::core::declval<UserFunctor>()(worker, args...));
 
                     // compare user functor return type with the interface requirements
                     PMACC_CASSERT_MSG(
                         __wrong_user_functor_return_type,
                         std::is_same_v<UserFunctorReturnType, T_ReturnType>);
-                    return (*static_cast<UserFunctor*>(this))(acc, args...);
+                    return (*static_cast<UserFunctor*>(this))(worker, args...);
                 }
             };
 
@@ -147,31 +147,25 @@ namespace pmacc
             /** create a functor which can be used on the accelerator
              *
              * @tparam T_OffsetType type to describe the size of a domain
-             * @tparam T_numWorkers number of workers
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              * @tparam T_Args type of the arguments passed to the  functor
              *
-             * @param alpaka accelerator
+             * @param worker lockstep worker
              * @param domainOffset offset to the origin of the local domain
              *                     This can be e.g a supercell or cell offset and depends
              *                     of the context where the interface is specialized.
-             * @param workerCfg configuration of the worker
              * @param args arguments passed to the functor
              * @return an instance of the user functor wrapped by the accelerator
              *         functor interface
              */
-            template<typename T_OffsetType, uint32_t T_numWorkers, typename T_Acc, typename... T_Args>
-            HDINLINE auto operator()(
-                T_Acc const& acc,
-                T_OffsetType const& domainOffset,
-                lockstep::Worker<T_numWorkers> const& workerCfg,
-                T_Args... args) const
+            template<typename T_OffsetType, typename T_Worker, typename... T_Args>
+            HDINLINE auto operator()(T_Worker const& worker, T_OffsetType const& domainOffset, T_Args... args) const
                 -> acc::Interface<
-                    decltype(alpaka::core::declval<UserFunctor>()(acc, domainOffset, workerCfg, args...)),
+                    decltype(alpaka::core::declval<UserFunctor>()(worker, domainOffset, args...)),
                     T_numArguments,
                     T_ReturnType>
             {
-                return (*static_cast<UserFunctor const*>(this))(acc, domainOffset, workerCfg, args...);
+                return (*static_cast<UserFunctor const*>(this))(worker, domainOffset, args...);
             }
 
             /** get name of the user functor

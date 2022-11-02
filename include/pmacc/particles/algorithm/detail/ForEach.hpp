@@ -54,7 +54,7 @@ namespace pmacc::particles::algorithm::acc
 
             /** Invokes the user functor with the given parameters.
              *
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              * @tparam T_FrameType @see FramePointer
              * @tparam T_Config @see lockstep::Variable
              * @param acc alpaka accelerator
@@ -63,20 +63,20 @@ namespace pmacc::particles::algorithm::acc
              *
              * @{
              */
-            template<typename T_Acc, typename T_FrameType, typename T_Config>
+            template<typename T_Worker, typename T_FrameType, typename T_Config>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 lockstep::Variable<FramePointer<T_FrameType>, T_Config>& frameIterCtx)
             {
-                m_functor(acc, frameIterCtx);
+                m_functor(worker, frameIterCtx);
             }
 
-            template<typename T_Acc, typename T_FrameType, typename T_Config>
+            template<typename T_Worker, typename T_FrameType, typename T_Config>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 lockstep::Variable<FramePointer<T_FrameType>, T_Config>& frameIterCtx) const
             {
-                m_functor(acc, frameIterCtx);
+                m_functor(worker, frameIterCtx);
             }
             /**@}*/
         };
@@ -110,24 +110,24 @@ namespace pmacc::particles::algorithm::acc
 
             /** Invoke the user functor with the given arguments.
              *
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              * @tparam T_FrameType @see Particle
              * @tparam T_ValueTypeSeq @see Particle
-             * @param acc alpaka accelerator
+             * @param worker lockstep worker
              * @param particle particle to process
              *
              * @{
              */
-            template<typename T_Acc, typename T_FrameType, typename T_ValueTypeSeq>
-            DINLINE void operator()(T_Acc const& acc, Particle<T_FrameType, T_ValueTypeSeq>& particle)
+            template<typename T_Worker, typename T_FrameType, typename T_ValueTypeSeq>
+            DINLINE void operator()(T_Worker const& worker, Particle<T_FrameType, T_ValueTypeSeq>& particle)
             {
-                m_functor(acc, particle);
+                m_functor(worker, particle);
             }
 
-            template<typename T_Acc, typename T_FrameType, typename T_ValueTypeSeq>
-            DINLINE void operator()(T_Acc const& acc, Particle<T_FrameType, T_ValueTypeSeq>& particle) const
+            template<typename T_Worker, typename T_FrameType, typename T_ValueTypeSeq>
+            DINLINE void operator()(T_Worker const& worker, Particle<T_FrameType, T_ValueTypeSeq>& particle) const
             {
-                m_functor(acc, particle);
+                m_functor(worker, particle);
             }
 
             /**@}*/
