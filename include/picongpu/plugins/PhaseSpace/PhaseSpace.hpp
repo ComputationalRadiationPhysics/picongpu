@@ -33,9 +33,9 @@
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/cuSTL/zone/SphericZone.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/pluginSystem/INotify.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -253,11 +253,9 @@ namespace picongpu
             template<typename T_Filter, typename T_Zone, typename... T_Args>
             void operator()(T_Filter const& filter, T_Zone const& zone, T_Args&&... args) const
             {
-                constexpr uint32_t numWorkers
-                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-                algorithm::kernel::ForeachLockstep<numWorkers, SuperCellSize> forEachSuperCell;
+                algorithm::kernel::ForeachLockstep<SuperCellSize> forEachSuperCell;
 
-                FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir, T_Filter, numWorkers>
+                FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir, T_Filter>
                     functorBlock(particlesBox, curOriginPhaseSpace, p_element, axis_p_range, filter);
 
                 forEachSuperCell(zone, functorBlock, args...);

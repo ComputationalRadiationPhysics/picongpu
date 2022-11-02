@@ -37,6 +37,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>
@@ -44,7 +45,6 @@
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -62,9 +62,7 @@
 
 namespace picongpu
 {
-    /** calculates the emittance in x direction along the y axis
-     */
-    template<uint32_t T_numWorkers>
+    //! calculates the emittance in x direction along the y axis
     struct KernelCalcEmittance
     {
         /** calculates the sum of x^2, ux^2 and x*ux and counts electrons
@@ -72,7 +70,7 @@ namespace picongpu
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_DBox pmacc::DataBox, type of the memory box for the reduced values
          * @tparam T_Mapping mapper functor type
-         * @tparam T_Acc accelerator functor type
+         * @tparam T_Worker lockstep worker type
          * @tparam T_Filter particle filter functor type
          *
          * @param pb particle memory
@@ -82,9 +80,9 @@ namespace picongpu
          * @param gCount_e global real particle counter
          * @param mapper functor to map a block to a supercell
          */
-        template<typename T_ParBox, typename T_DBox, typename T_Mapping, typename T_Acc, typename T_Filter>
+        template<typename T_ParBox, typename T_DBox, typename T_Mapping, typename T_Worker, typename T_Filter>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_ParBox pb,
             T_DBox gSumMom2,
             T_DBox gSumPos2,
@@ -95,25 +93,22 @@ namespace picongpu
             T_Mapping mapper,
             T_Filter filter) const
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
             // shared sums of x^2, ux^2, x*ux, particle counter
-            PMACC_SMEM(acc, shSumMom2, memory::Array<float_X, SuperCellSize::y::value>);
-            PMACC_SMEM(acc, shSumPos2, memory::Array<float_X, SuperCellSize::y::value>);
-            PMACC_SMEM(acc, shSumMomPos, memory::Array<float_X, SuperCellSize::y::value>);
-            PMACC_SMEM(acc, shCount_e, memory::Array<float_X, SuperCellSize::y::value>);
+            PMACC_SMEM(worker, shSumMom2, memory::Array<float_X, SuperCellSize::y::value>);
+            PMACC_SMEM(worker, shSumPos2, memory::Array<float_X, SuperCellSize::y::value>);
+            PMACC_SMEM(worker, shSumMomPos, memory::Array<float_X, SuperCellSize::y::value>);
+            PMACC_SMEM(worker, shCount_e, memory::Array<float_X, SuperCellSize::y::value>);
 
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
 
-            auto forEachSuperCellInY = lockstep::makeForEach<SuperCellSize::y::value, numWorkers>(workerIdx);
+            auto forEachSuperCellInY = lockstep::makeForEach<SuperCellSize::y::value>(worker);
 
             forEachSuperCellInY(
                 [&](uint32_t const linearIdx)
@@ -125,18 +120,16 @@ namespace picongpu
                     shCount_e[linearIdx] = 0.0_X;
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            auto accFilter
-                = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
+            auto accFilter = filter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             forEachParticle(
-                acc,
                 [&accFilter, &mapper, &globalOffset, &superCellIdx, &shCount_e, &shSumMom2, &shSumPos2, &shSumMomPos](
-                    auto const& accelerator,
+                    auto const& lockstepWorker,
                     auto& particle)
                 {
-                    if(accFilter(accelerator, particle))
+                    if(accFilter(lockstepWorker, particle))
                     {
                         float_X const weighting = particle[weighting_];
                         float_X const normedWeighting
@@ -153,23 +146,23 @@ namespace picongpu
                         float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
 
                         cupla::atomicAdd(
-                            accelerator,
+                            lockstepWorker.getAcc(),
                             &(shCount_e[index_y]),
                             normedWeighting,
                             ::alpaka::hierarchy::Threads{});
                         // weighted sum of single Electron values (Momentum = particle_momentum/weighting)
                         cupla::atomicAdd(
-                            accelerator,
+                            lockstepWorker.getAcc(),
                             &(shSumMom2[index_y]),
                             mom.x() * mom.x() * normedWeighting,
                             ::alpaka::hierarchy::Threads{});
                         cupla::atomicAdd(
-                            accelerator,
+                            lockstepWorker.getAcc(),
                             &(shSumPos2[index_y]),
                             posX * posX * normedWeighting,
                             ::alpaka::hierarchy::Threads{});
                         cupla::atomicAdd(
-                            accelerator,
+                            lockstepWorker.getAcc(),
                             &(shSumMomPos[index_y]),
                             mom.x() * posX * normedWeighting,
                             ::alpaka::hierarchy::Threads{});
@@ -177,7 +170,7 @@ namespace picongpu
                 });
 
             // wait that all virtual threads updated the shared memory
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             const int gOffset
                 = ((superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT()).y();
@@ -186,22 +179,23 @@ namespace picongpu
                 [&](uint32_t const linearIdx)
                 {
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &(gSumMom2[gOffset + linearIdx]),
                         static_cast<float_64>(shSumMom2[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &(gSumPos2[gOffset + linearIdx]),
                         static_cast<float_64>(shSumPos2[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(
-                        acc,
+
+                        worker.getAcc(),
                         &(gSumMomPos[gOffset + linearIdx]),
                         static_cast<float_64>(shSumMomPos[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &(gCount_e[gOffset + linearIdx]),
                         static_cast<float_64>(shCount_e[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
@@ -489,12 +483,10 @@ namespace picongpu
             gSumMomPos->getDeviceBuffer().setValue(0.0);
             gCount_e->getDeviceBuffer().setValue(0.0);
 
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
-            auto kernel = PMACC_KERNEL(KernelCalcEmittance<numWorkers>{})(mapper.getGridDim(), numWorkers);
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelCalcEmittance{}, workerCfg)(mapper.getGridDim());
 
             // Some variables required so that it is possible for the kernel
             // to calculate the absolute position of the particles

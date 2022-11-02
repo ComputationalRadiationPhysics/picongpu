@@ -35,10 +35,10 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>
 
 #include <boost/filesystem.hpp>
@@ -1016,13 +1016,11 @@ namespace picongpu
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
                     globalOffset.y() += (localSize.y() * numSlides);
 
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
+                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
                     // PIC-like kernel call of the radiation kernel
-                    PMACC_KERNEL(KernelRadiationParticles<numWorkers>{})
-                    (DataSpace<2>(gridDim_rad, numJobs), DataSpace<2>(numWorkers, 1))(
+                    PMACC_LOCKSTEP_KERNEL(KernelRadiationParticles{}, workerCfg)
+                    (DataSpace<2>(gridDim_rad, numJobs))(
                         /*Pointer to particles memory on the device*/
                         particles->getDeviceParticlesBox(),
 

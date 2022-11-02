@@ -38,6 +38,7 @@
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
@@ -51,7 +52,6 @@
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <cfloat>
 #include <memory>
@@ -284,11 +284,7 @@ namespace picongpu
         }
     };
 
-    /** derives two dimensional field from a slice of field
-     *
-     * @tparam T_numWorkers number of workers
-     */
-    template<uint32_t T_numWorkers>
+    //! derives two dimensional field from a slice of field
     struct KernelPaintFields
     {
         /** derive field values
@@ -297,9 +293,9 @@ namespace picongpu
          * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_JBox particle current box type
          * @tparam T_Mapping mapper functor type
-         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Worker lockstep worker type
          *
-         * @param acc alpaka accelerator
+         * @param worker lockstep worker
          * @param fieldE electric field
          * @param fieldB magnetic field
          * @param fieldJ field with particle current
@@ -312,9 +308,9 @@ namespace picongpu
          * @param sliceDim dimension to slice range [0,simDim)
          * @param mapper functor to map a block to a supercell
          */
-        template<typename T_EBox, typename T_BBox, typename T_JBox, typename T_Mapping, typename T_Acc>
+        template<typename T_EBox, typename T_BBox, typename T_JBox, typename T_Mapping, typename T_Worker>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_EBox const fieldE,
             T_BBox const fieldB,
             T_JBox const fieldJ,
@@ -328,17 +324,15 @@ namespace picongpu
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            constexpr uint32_t numWorkers = T_numWorkers;
 
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+            DataSpace<simDim> const suplercellIdx
+                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
 
             // each cell in a supercell is handled as a virtual worker
-            auto forEachCell = lockstep::makeForEach<cellsPerSupercell, numWorkers>(workerIdx);
+            auto forEachCell = lockstep::makeForEach<cellsPerSupercell>(worker);
 
             forEachCell(
                 [&](uint32_t const linearIdx)
@@ -396,20 +390,14 @@ namespace picongpu
         }
     };
 
-    /** derives two dimensional field from a particle slice
-     *
-     * The shape of a particle is not taken in account.
-     *
-     * @tparam T_numWorkers number of workers
-     */
-    template<uint32_t T_numWorkers>
+    //! derives two dimensional field from a particle slice
     struct KernelPaintParticles3D
     {
         /** derive particle values
          *
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_Mapping mapper functor type
-         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Worker lockstep worker type
          *
          * @param acc alpaka accelerator
          * @param pb particle memory
@@ -422,9 +410,9 @@ namespace picongpu
          * @param sliceDim dimension to slice range [0,simDim)
          * @param mapper functor to map a block to a supercell
          */
-        template<typename T_ParBox, typename T_Mapping, typename T_Acc>
+        template<typename T_ParBox, typename T_Mapping, typename T_Worker>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_ParBox pb,
             DataBox<PitchedBox<float3_X, DIM2>> image,
             DataSpace<DIM2> const transpose,
@@ -436,33 +424,31 @@ namespace picongpu
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
             constexpr uint32_t numCellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            constexpr uint32_t numWorkers = T_numWorkers;
 
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            auto onlyMaster = lockstep::makeMaster(workerIdx);
+            auto onlyMaster = lockstep::makeMaster(worker);
 
             // each virtual worker works on a cell in the supercell
-            auto forEachCell = lockstep::makeForEach<numCellsPerSupercell, numWorkers>(workerIdx);
+            auto forEachCell = lockstep::makeForEach<numCellsPerSupercell>(worker);
 
             /* is 1 if a offset of a cell in the supercell is equal the slice (offset)
              * else 0
              */
-            PMACC_SMEM(acc, superCellParticipate, int);
+            PMACC_SMEM(worker, superCellParticipate, int);
 
             /* true if the virtual worker is processing a pixel within the resulting image,
              * else false
              */
             auto isImageThreadCtx = lockstep::makeVar<bool>(forEachCell, false);
 
-            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+            DataSpace<simDim> const suplercellIdx
+                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
 
             onlyMaster([&]() { superCellParticipate = 0; });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             forEachCell(
                 [&](lockstep::Idx const idx)
@@ -478,12 +464,12 @@ namespace picongpu
                     if(isCellOnSlice)
                     {
                         // atomic avoids: WAW Error in cuda-memcheck racecheck
-                        kernel::atomicAllExch(acc, &superCellParticipate, 1, ::alpaka::hierarchy::Threads{});
+                        kernel::atomicAllExch(worker, &superCellParticipate, 1, ::alpaka::hierarchy::Threads{});
                         isImageThreadCtx[idx] = true;
                     }
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             if(superCellParticipate == 0)
                 return;
@@ -491,7 +477,7 @@ namespace picongpu
             // slice is always two dimensional
             using SharedMem = DataBox<PitchedBox<float_X, DIM2>>;
 
-            sharedMemExtern(shBlock, float_X);
+            float_X* shBlock = ::alpaka::getDynSharedMem<float_X>(worker.getAcc());
 
             // shared memory box for particle counter
             SharedMem counter(PitchedBox<float_X, DIM2>(
@@ -515,15 +501,13 @@ namespace picongpu
                 });
 
             // wait that shared memory  is set to zero
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, suplercellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, suplercellIdx);
 
             forEachParticle(
-                acc,
                 [&supercellCellOffset, &counter, &transpose, sliceDim, slice, localDomainOffset](
-                    auto const& accelerator,
+                    auto const& lockstepWorker,
                     auto& particle)
                 {
                     int const linearCellIdx = particle[localCellIdx_];
@@ -541,7 +525,7 @@ namespace picongpu
                             particleCellOffset[transpose.x()],
                             particleCellOffset[transpose.y()]);
                         cupla::atomicAdd(
-                            accelerator,
+                            lockstepWorker.getAcc(),
                             &(counter(reducedCell)),
                             // normalize the value to avoid bad precision for large macro particle weightings
                             particle[weighting_]
@@ -551,7 +535,7 @@ namespace picongpu
                 });
 
             // wait that all worker finsihed the reduce operation
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             forEachCell(
                 [&](lockstep::Idx const idx)
@@ -600,38 +584,33 @@ namespace picongpu
     {
         /** divide each cell by a value
          *
-         * @tparam T_numWorkers number of workers
          * @tparam T_blockSize number of elements which will be handled
          *                     within a kernel block
          */
-        template<uint32_t T_numWorkers, uint32_t T_blockSize>
+        template<uint32_t T_blockSize>
         struct DivideAnyCell
         {
             /** derive particle values
              *
              * @tparam T_Mem pmacc::DataBox, type of the on dimensional memory
              * @tparam T_Type divisor type
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              *
              * @param acc alpaka accelerator
              * @param mem memory[in,out] to manipulate, must provide the `operator[](int)`
              * @param n number of elements in mem
              * @param divisor divisor for the division
              */
-            template<typename T_Mem, typename T_Type, typename T_Acc>
-            DINLINE void operator()(T_Acc const& acc, T_Mem mem, uint32_t n, T_Type divisor) const
+            template<typename T_Mem, typename T_Type, typename T_Worker>
+            DINLINE void operator()(T_Worker const& worker, T_Mem mem, uint32_t n, T_Type divisor) const
             {
-                constexpr uint32_t numWorkers = T_numWorkers;
-
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                 // each virtual worker works on a cell
-                auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
+                auto forEachCell = lockstep::makeForEach<T_blockSize>(worker);
 
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        uint32_t tid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
+                        uint32_t tid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
                         if(tid >= n)
                             return;
 
@@ -644,36 +623,31 @@ namespace picongpu
 
         /** convert channel value to an RGB color
          *
-         * @tparam T_numWorkers number of workers
          * @tparam T_blockSize number of elements which will be handled
          *                     within a kernel block
          */
-        template<uint32_t T_numWorkers, uint32_t T_blockSize>
+        template<uint32_t T_blockSize>
         struct ChannelsToRGB
         {
             /** convert each element to an RGB color
              *
              * @tparam T_Mem pmacc::DataBox, type of the on dimensional memory
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              *
              * @param acc alpaka accelerator
              * @param mem memory[in,out] to manipulate, must provide the `operator[](int)`
              * @param n number of elements in mem
              */
-            template<typename T_Mem, typename T_Acc>
-            DINLINE void operator()(T_Acc const& acc, T_Mem mem, uint32_t n) const
+            template<typename T_Mem, typename T_Worker>
+            DINLINE void operator()(T_Worker const& worker, T_Mem mem, uint32_t n) const
             {
-                constexpr uint32_t numWorkers = T_numWorkers;
-
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                 // each virtual worker works on a cell
-                auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
+                auto forEachCell = lockstep::makeForEach<T_blockSize>(worker);
 
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        uint32_t const tid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
+                        uint32_t const tid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
                         if(tid >= n)
                             return;
 
@@ -789,16 +763,15 @@ namespace picongpu
             if constexpr(simDim == DIM3)
                 localDomainOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset[sliceDim];
 
-            constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<cellsPerSupercell>::value;
-
             PMACC_ASSERT(cellDescription != nullptr);
 
             auto const mapper = makeAreaMapper<CORE + BORDER>(*cellDescription);
 
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+
             // create image fields
-            PMACC_KERNEL(KernelPaintFields<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(
+            PMACC_LOCKSTEP_KERNEL(KernelPaintFields{}, workerCfg)
+            (mapper.getGridDim())(
                 fieldE->getDeviceDataBox(),
                 fieldB->getDeviceDataBox(),
                 fieldJ->getDeviceDataBox(),
@@ -815,6 +788,8 @@ namespace picongpu
             // Add one dimension access to 2d DataBox
             using D1Box = DataBoxDim1Access<typename GridBuffer<float3_X, 2U>::DataBoxType>;
             D1Box d1access(img->getDeviceBuffer().getDataBox(), img->getGridLayout().getDataSpace());
+
+            constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
 #if(EM_FIELD_SCALE_CHANNEL1 == -1 || EM_FIELD_SCALE_CHANNEL2 == -1 || EM_FIELD_SCALE_CHANNEL3 == -1)
             // reduce with functor max
@@ -837,21 +812,21 @@ namespace picongpu
              * (because of the runtime dimension selection in any plugin),
              * thus we must use a one dimension kernel and no mapper
              */
-            PMACC_KERNEL(vis_kernels::DivideAnyCell<numWorkers, cellsPerSupercell>{})
-            ((elements + cellsPerSupercell - 1u) / cellsPerSupercell, numWorkers)(d1access, elements, max);
+            PMACC_LOCKSTEP_KERNEL(vis_kernels::DivideAnyCell<cellsPerSupercell>{}, workerCfg)
+            ((elements + cellsPerSupercell - 1u) / cellsPerSupercell)(d1access, elements, max);
 #endif
 
             // convert channels to RGB
-            PMACC_KERNEL(vis_kernels::ChannelsToRGB<numWorkers, cellsPerSupercell>{})
-            ((elements + cellsPerSupercell - 1u) / cellsPerSupercell, numWorkers)(d1access, elements);
+            PMACC_LOCKSTEP_KERNEL(vis_kernels::ChannelsToRGB<cellsPerSupercell>{}, workerCfg)
+            ((elements + cellsPerSupercell - 1u) / cellsPerSupercell)(d1access, elements);
 
             // add density color channel
             DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
             DataSpace<DIM2> blockSize2D(blockSize[m_transpose.x()], blockSize[m_transpose.y()]);
 
             // create image particles
-            PMACC_KERNEL(KernelPaintParticles3D<numWorkers>{})
-            (mapper.getGridDim(), numWorkers, blockSize2D.productOfComponents() * sizeof(float_X))(
+            PMACC_LOCKSTEP_KERNEL(KernelPaintParticles3D{}, workerCfg)
+            (mapper.getGridDim(), blockSize2D.productOfComponents() * sizeof(float_X))(
                 particles->getDeviceParticlesBox(),
                 img->getDeviceBuffer().getDataBox(),
                 m_transpose,

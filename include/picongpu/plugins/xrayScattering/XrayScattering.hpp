@@ -39,11 +39,11 @@
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/pluginSystem/containsStep.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 
 #include <boost/filesystem.hpp>
@@ -525,10 +525,6 @@ namespace picongpu
                     uint32_t const& numBlocks,
                     T_FieldPos const& fieldPos)
                 {
-                    // The available number of virtual workers.
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
                     // Loop over kernel runs.
                     for(uint32_t step = 0; step < countRanks; step++)
                     {
@@ -548,9 +544,11 @@ namespace picongpu
                         }
                         else
                             countVectors = amplitude->getHostBuffer().getCurrentSize();
+
+                        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
                         // Start the kernel.
-                        PMACC_KERNEL(KernelXrayScattering<numWorkers>{})
-                        (numBlocks, numWorkers)(
+                        PMACC_LOCKSTEP_KERNEL(KernelXrayScattering{}, workerCfg)
+                        (numBlocks)(
                             cellsGrid,
                             fieldTmpNoGuard,
                             globalOffset,
@@ -583,14 +581,12 @@ namespace picongpu
                     uint32_t const& numBlocks,
                     T_FieldPos const& fieldPos)
                 {
-                    // Get the available number of virtual workers.
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
                     // Define scattering vectors for the output part.
                     GetScatteringVector scatteringVectors{q_min, q_max, q_step, numVectors, 0};
+                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
                     // Run the kernel.
-                    PMACC_KERNEL(KernelXrayScattering<numWorkers>{})
-                    (numBlocks, numWorkers)(
+                    PMACC_LOCKSTEP_KERNEL(KernelXrayScattering{}, workerCfg)
+                    (numBlocks)(
                         cellsGrid,
                         fieldTmpNoGuard,
                         globalOffset,

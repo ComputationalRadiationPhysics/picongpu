@@ -106,21 +106,17 @@ namespace picongpu
     /** write the position of a single particle to a file
      * \warning this plugin MUST NOT be used with more than one (global!)
      * particle and is created for one-particle-test-purposes only
-     *
-     * @tparam T_numWorkers number of workers
      */
-    template<uint32_t T_numWorkers>
     struct KernelPositionsParticles
     {
-        template<typename ParBox, typename FloatPos, typename Mapping, typename T_Acc>
-        DINLINE void operator()(T_Acc const& acc, ParBox pb, SglParticle<FloatPos>* gParticle, Mapping mapper) const
+        template<typename ParBox, typename FloatPos, typename Mapping, typename T_Worker>
+        DINLINE void operator()(T_Worker const& worker, ParBox pb, SglParticle<FloatPos>* gParticle, Mapping mapper)
+            const
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            const DataSpace<simDim> superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
@@ -133,8 +129,7 @@ namespace picongpu
                 "particle.");
 
             forEachParticle(
-                acc,
-                [&mapper, &superCellIdx, &gParticle](auto const& accelerator, auto& particle)
+                [&mapper, &superCellIdx, &gParticle](auto const& lockstepWorker, auto& particle)
                 {
                     gParticle->position = particle[position_];
                     gParticle->momentum = particle[momentum_];
@@ -237,13 +232,15 @@ namespace picongpu
             auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
 
             gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
             auto const mapper = makeAreaMapper<AREA>(*cellDescription);
-            PMACC_KERNEL(KernelPositionsParticles<numWorkers>{})
-            (mapper.getGridDim(),
-             numWorkers)(particles->getDeviceParticlesBox(), gParticle->getDeviceBuffer().getBasePointer(), mapper);
+
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            PMACC_LOCKSTEP_KERNEL(KernelPositionsParticles{}, workerCfg)
+            (mapper.getGridDim())(
+                particles->getDeviceParticlesBox(),
+                gParticle->getDeviceBuffer().getBasePointer(),
+                mapper);
 
             gParticle->deviceToHost();
 

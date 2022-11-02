@@ -28,11 +28,7 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    /** This kernel is only called for guard particles.
-     *
-     * @tparam T_numWorkers number of workers
-     */
-    template<uint32_t T_numWorkers>
+    //! This kernel is only called for guard particles.
     struct KernelParticleCalorimeter
     {
         /** call functor calorimeterFunctor for each particle
@@ -40,9 +36,9 @@ namespace picongpu
          * @tparam T_ParticlesBox pmacc::ParticlesBox, particle box type
          * @tparam T_CalorimeterFunctor type of the functor
          * @tparam T_Mapping supercell mapper functor type
-         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Worker lockstep worker type
          *
-         * @param alpaka accelerator
+         * @param worker lockstep worker
          * @param particlesBox particle memory
          * @param mapper functor to map a block to a supercell
          * @param beginCellIdxLocal only process particles with local domain cell index >=
@@ -53,10 +49,10 @@ namespace picongpu
             typename T_ParticlesBox,
             typename T_CalorimeterFunctor,
             typename T_Mapper,
-            typename T_Acc,
+            typename T_Worker,
             typename T_Filter>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_ParticlesBox particlesBox,
             T_CalorimeterFunctor calorimeterFunctor,
             T_Mapper mapper,
@@ -64,31 +60,26 @@ namespace picongpu
             pmacc::DataSpace<simDim> endCellIdxLocal,
             T_Filter filter) const
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
             /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, particlesBox, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
 
-            auto accFilter
-                = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
+            auto accFilter = filter(worker, superCellIdx - mapper.getGuardingSuperCells());
             auto const superCellCellOffsetNoGuard
                 = (superCellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
 
             forEachParticle(
-                acc,
                 [&accFilter, &superCellCellOffsetNoGuard, &beginCellIdxLocal, &endCellIdxLocal, &calorimeterFunctor](
-                    auto const& accelerator,
+                    auto const& lockstepWorker,
                     auto& particle)
                 {
-                    if(accFilter(accelerator, particle))
+                    if(accFilter(lockstepWorker, particle))
                     {
                         // Check if it fits the internal cells range
                         auto const cellInSuperCell
@@ -97,7 +88,7 @@ namespace picongpu
                         for(uint32_t d = 0; d < simDim; d++)
                             if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))
                                 return;
-                        calorimeterFunctor(accelerator, particle);
+                        calorimeterFunctor(lockstepWorker, particle);
                     }
                 });
         }

@@ -117,27 +117,31 @@ namespace picongpu
                 }
 
                 /** check if the current thread is associated to the first particle */
-                template<typename T_Acc>
-                DINLINE bool isFirstParticle(T_Acc const& acc)
+                template<typename T_Worker>
+                DINLINE bool isFirstParticle(T_Worker const& worker)
                 {
-                    return cupla::atomicExch(acc, &this->firstParticleFlag, 1) == 0;
+                    return cupla::atomicExch(worker.getAcc(), &this->firstParticleFlag, 1) == 0;
                 }
 
 
                 /** add a particle to this Voronoi cell */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE void addParticle(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const floatD_X position,
                     const float3_X momentum,
                     const float_X weighting)
                 {
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &this->numMacroParticles,
                         static_cast<uint32_t>(1),
                         ::alpaka::hierarchy::Threads{});
-                    cupla::atomicAdd(acc, &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{});
+                    cupla::atomicAdd(
+                        worker.getAcc(),
+                        &this->numRealParticles,
+                        weighting,
+                        ::alpaka::hierarchy::Threads{});
 
                     if(this->splittingStage == VoronoiSplittingStage::position)
                     {
@@ -146,12 +150,12 @@ namespace picongpu
                         for(int i = 0; i < simDim; i++)
                         {
                             cupla::atomicAdd(
-                                acc,
+                                worker.getAcc(),
                                 &this->meanValue[i],
                                 weighting * position[i],
                                 ::alpaka::hierarchy::Threads{});
                             cupla::atomicAdd(
-                                acc,
+                                worker.getAcc(),
                                 &this->meanSquaredValue[i],
                                 weighting * position2[i],
                                 ::alpaka::hierarchy::Threads{});
@@ -164,12 +168,12 @@ namespace picongpu
                         for(int i = 0; i < DIM3; i++)
                         {
                             cupla::atomicAdd(
-                                acc,
+                                worker.getAcc(),
                                 &this->meanValue[i],
                                 weighting * momentum[i],
                                 ::alpaka::hierarchy::Threads{});
                             cupla::atomicAdd(
-                                acc,
+                                worker.getAcc(),
                                 &this->meanSquaredValue[i],
                                 weighting * momentum2[i],
                                 ::alpaka::hierarchy::Threads{});

@@ -38,10 +38,10 @@
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/policies/ExchangeParticles.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -87,8 +87,8 @@ namespace picongpu
             {
             }
 
-            template<typename T_Acc>
-            HDINLINE void operator()(T_Acc const&, T_Type& val) const
+            template<typename T_Worker>
+            HDINLINE void operator()(T_Worker const&, T_Type& val) const
             {
                 val = val / this->divisor;
             }
@@ -585,10 +585,9 @@ namespace picongpu
             auto beginInternalCellsLocal = pmacc::DataSpace<simDim>::create(0);
             auto endInternalCellsLocal = beginInternalCellsLocal + subGrid.getLocalDomain().size;
 
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
-            auto kernel = PMACC_KERNEL(KernelParticleCalorimeter<numWorkers>{})(grid, numWorkers);
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelParticleCalorimeter{}, workerCfg)(grid);
             auto unaryKernel = std::bind(
                 kernel,
                 particles->getDeviceParticlesBox(),
@@ -649,10 +648,9 @@ namespace picongpu
             auto const beginExternalCellsLocal = beginExternalCellsTotal - shiftTotaltoLocal;
             auto const endExternalCellsLocal = endExternalCellsTotal - shiftTotaltoLocal;
 
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
-            auto kernel = PMACC_KERNEL(KernelParticleCalorimeter<numWorkers>{})(grid, numWorkers);
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelParticleCalorimeter{}, workerCfg)(grid);
             auto unaryKernel = std::bind(
                 kernel,
                 particles->getDeviceParticlesBox(),

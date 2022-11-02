@@ -34,6 +34,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>
@@ -41,7 +42,6 @@
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -64,10 +64,7 @@ namespace picongpu
     /** calculate a energy histogram of a species
      *
      * if a particle filter is given, only the filtered particles are counted
-     *
-     * @tparam T_numWorkers number of workers
      */
-    template<uint32_t T_numWorkers>
     struct KernelBinEnergyParticles
     {
         /* sum up the energy of all particles
@@ -77,7 +74,7 @@ namespace picongpu
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_BinBox pmacc::DataBox, box type for the histogram in global memory
          * @tparam T_Mapping type of the mapper to map a cupla block to a supercell index
-         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Worker lockstep worker type
          *
          * @param acc alpaka accelerator
          * @param pb box with access to the particles of the current used species
@@ -87,9 +84,9 @@ namespace picongpu
          * @param maxEnergy particle energy for the last bin
          * @param mapper functor to map a cupla block to a supercells index
          */
-        template<typename T_ParBox, typename T_BinBox, typename T_Mapping, typename T_Filter, typename T_Acc>
+        template<typename T_ParBox, typename T_BinBox, typename T_Mapping, typename T_Filter, typename T_Worker>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_ParBox pb,
             T_BinBox gBins,
             int const numBins,
@@ -98,27 +95,27 @@ namespace picongpu
             T_Mapping const mapper,
             T_Filter filter) const
         {
-            constexpr uint32_t numWorkers = T_numWorkers;
+            constexpr uint32_t numWorkers = T_Worker::getNumWorkers();
 
             /* shBins index can go from 0 to (numBins+2)-1
              * 0 is for <minEnergy
              * (numBins+2)-1 is for >maxEnergy
              */
-            sharedMemExtern(shBin, float_X); /* size must be numBins+2 because we have <min and >max */
+            /* size must be numBins+2 because we have <min and >max */
+            float_X* shBin = ::alpaka::getDynSharedMem<float_X>(worker.getAcc());
 
             int const realNumBins = numBins + 2;
 
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
 
-            lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+            lockstep::makeForEach<numWorkers>(worker)(
                 [&](uint32_t const linearIdx)
                 {
                     /* set all bins to 0 */
@@ -126,16 +123,14 @@ namespace picongpu
                         shBin[i] = float_X(0.);
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            auto accFilter
-                = filter(acc, superCellIdx - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
+            auto accFilter = filter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             forEachParticle(
-                acc,
-                [&accFilter, &shBin, minEnergy, maxEnergy, numBins](auto const& accelerator, auto& particle)
+                [&accFilter, &shBin, minEnergy, maxEnergy, numBins](auto const& lockstepWorker, auto& particle)
                 {
-                    if(accFilter(accelerator, particle))
+                    if(accFilter(lockstepWorker, particle))
                     {
                         /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
                          *                                   = c^2 * [p^2 + m^2*c^2]
@@ -175,20 +170,24 @@ namespace picongpu
                         float_X const normedWeighting
                             = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
                         cupla::atomicAdd(
-                            accelerator,
+                            lockstepWorker.getAcc(),
                             &(shBin[binNumber]),
                             normedWeighting,
                             ::alpaka::hierarchy::Threads{});
                     }
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+            lockstep::makeForEach<numWorkers>(worker)(
                 [&](uint32_t const linearIdx)
                 {
                     for(int i = linearIdx; i < realNumBins; i += numWorkers)
-                        cupla::atomicAdd(acc, &(gBins[i]), float_64(shBin[i]), ::alpaka::hierarchy::Blocks{});
+                        cupla::atomicAdd(
+                            worker.getAcc(),
+                            &(gBins[i]),
+                            float_64(shBin[i]),
+                            ::alpaka::hierarchy::Blocks{});
                 });
         }
     };
@@ -433,14 +432,12 @@ namespace picongpu
             float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
             float_X const maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
-            auto kernel = PMACC_KERNEL(KernelBinEnergyParticles<numWorkers>{})(
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelBinEnergyParticles{}, workerCfg)(
                 mapper.getGridDim(),
-                numWorkers,
                 realNumBins * sizeof(float_X));
 
             auto bindKernel = std::bind(
