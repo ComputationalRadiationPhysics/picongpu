@@ -55,7 +55,7 @@ namespace pmacc
             template<unsigned T_Dim>
             struct TypeCast<int, pmacc::DataSpace<T_Dim>>
             {
-                using result = const pmacc::DataSpace<T_Dim>&;
+                using result = const pmacc::DataSpace<T_Dim>;
 
                 HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
                 {

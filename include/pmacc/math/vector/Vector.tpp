@@ -256,9 +256,10 @@ namespace pmacc
             template<typename CastToType, int dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
             struct TypeCast<CastToType, ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>>
             {
-                using result = const ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>&;
+                using result = ::pmacc::math::Vector<CastToType, dim>;
+                using ParamType = ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>;
 
-                HDINLINE result operator()(result vector) const
+                HDINLINE result operator()(ParamType const& vector) const
                 {
                     return vector;
                 }
