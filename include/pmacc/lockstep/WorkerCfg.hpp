@@ -87,6 +87,10 @@ namespace pmacc::lockstep
         {
             auto const localThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
             auto const blockExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
+
+            // validate that the kernel is started with the correct number of threads
+            ALPAKA_ASSERT_OFFLOAD(blockExtent.prod() == numWorkers);
+
             auto const linearThreadIdx = alpaka::mapIdx<1u>(localThreadIdx, blockExtent)[0];
             return Worker<T_Acc, T_numSuggestedWorkers>(acc, linearThreadIdx);
         }
@@ -110,6 +114,10 @@ namespace pmacc::lockstep
         template<typename T_Acc>
         HDINLINE static auto getWorkerAssume1DThreads(T_Acc const& acc)
         {
+            [[maybe_unused]] auto const blockDim = cupla::blockDim(acc).x;
+            // validate that the kernel is started with the correct number of threads
+            ALPAKA_ASSERT_OFFLOAD(blockDim == numWorkers);
+
             return Worker<T_Acc, T_numSuggestedWorkers>(acc, cupla::threadIdx(acc).x);
         }
     };
