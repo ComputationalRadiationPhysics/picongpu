@@ -62,7 +62,7 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
 
 .. code-block:: cpp
 
-    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    // variable 'worker' is provided by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
     auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vIdx = forEachParticleSlotInFrame(
@@ -90,7 +90,7 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
 
 .. code-block:: cpp
 
-    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    // variable 'worker' is provided by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
     auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto var = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 23);
@@ -101,7 +101,7 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
 
 .. code-block:: cpp
 
-    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    // variable 'worker' is provided by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
     auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vIdx = forEachParticleSlotInFrame(
@@ -138,7 +138,7 @@ Collective Loop
 
 .. code-block:: bash
 
-    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    // variable 'worker' is provided by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     // `frame` is a list which must be traversed collectively
     while( frame.isValid() )
     {
@@ -166,7 +166,7 @@ Non-Collective Loop
 
 .. code-block:: cpp
 
-    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    // variable 'worker' is provided by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     constexpr uint32_t frameSize = 256;
     auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vWorkerIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 0);
@@ -194,7 +194,7 @@ Using a Master Worker
         bool
     );
 
-    // variable 'worker' is provides by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
+    // variable 'worker' is provided by pmacc if the kernel launch macro `PMACC_LOCKSTEP_KERNEL()` is used.
     auto onlyMaster = lockstep::makeMaster(worker);
 
     // manipulate shared memory

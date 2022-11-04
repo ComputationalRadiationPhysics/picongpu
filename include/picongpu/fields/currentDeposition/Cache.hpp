@@ -74,10 +74,10 @@ namespace picongpu
                 DINLINE static void flush(T_Worker const& worker, T_FieldBox fieldBox, T_FieldCache const& cachedBox)
                 {
                     typename T_Strategy::GridReductionOp const op;
-                    auto collectiveAdd = makeThreadCollective<T_BlockDescription>();
+                    auto collectiveFlush = makeThreadCollective<T_BlockDescription>();
 
                     /* write scatter results back to the global memory */
-                    collectiveAdd(worker, op, fieldBox, cachedBox);
+                    collectiveFlush(worker, op, fieldBox, cachedBox);
                 }
             };
 

@@ -29,7 +29,6 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
-#include <pmacc/lockstep/lockstep.hpp>
 
 #include <memory>
 

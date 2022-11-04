@@ -85,8 +85,8 @@ namespace pmacc::lockstep
 
         /** synchronize all workers
          *
-         * @attention It is not allowed to call this method in side of a if branch or a loop if it is not guaranteed
-         * that all worker executing the same code branch.
+         * @attention It is not allowed to call this method inside of an if branch or a loop if it is not guaranteed
+         * that all workers are executing the same code branch.
          */
         HDINLINE void sync() const
         {

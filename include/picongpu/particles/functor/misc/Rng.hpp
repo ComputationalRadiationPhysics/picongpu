@@ -52,7 +52,6 @@ namespace picongpu
                     using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
                     using RngHandle = typename RNGFactory::Handle;
 
-
                     /** constructor
                      *
                      * @param currentStep current simulation time step
