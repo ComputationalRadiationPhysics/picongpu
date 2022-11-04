@@ -67,7 +67,7 @@ namespace gol
             DINLINE void operator()(
                 T_Acc const& acc,
                 T_BoxReadOnly const& buffRead,
-                T_BoxWriteOnly& buffWrite,
+                T_BoxWriteOnly buffWrite,
                 uint32_t const rule,
                 T_Mapping const& mapper) const
             {
@@ -139,7 +139,7 @@ namespace gol
             template<typename T_BoxWriteOnly, typename T_Mapping, typename T_Acc>
             DINLINE void operator()(
                 T_Acc const& acc,
-                T_BoxWriteOnly& buffWrite,
+                T_BoxWriteOnly buffWrite,
                 uint32_t const seed,
                 float const threshold,
                 T_Mapping const& mapper) const
