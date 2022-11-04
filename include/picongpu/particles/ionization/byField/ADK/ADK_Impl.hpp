@@ -32,7 +32,7 @@
 #include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/lockstep/Worker.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
@@ -124,38 +124,34 @@ namespace picongpu
                  *
                  * @warning this is a collective method and calls synchronize
                  *
-                 * @tparam T_Acc alpaka accelerator type
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
+                 * @tparam T_Worker lockstep::Worker, lockstep worker
                  *
-                 * @param acc alpaka accelerator
+                 * @param worker lockstep worker
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
                  * @param workerCfg configuration of the worker
                  */
-                template<typename T_Acc, typename T_WorkerCfg>
-                DINLINE void collectiveInit(
-                    const T_Acc& acc,
-                    const DataSpace<simDim>& blockCell,
-                    const T_WorkerCfg& workerCfg)
+                template<typename T_Worker>
+                DINLINE void collectiveInit(const T_Worker& worker, const DataSpace<simDim>& blockCell)
                 {
                     /* shift origin of jbox to supercell of particle */
                     jBox = jBox.shift(blockCell);
 
                     /* caching of E and B fields */
-                    cachedB = CachedBox::create<0, ValueType_B>(acc, BlockArea());
-                    cachedE = CachedBox::create<1, ValueType_E>(acc, BlockArea());
+                    cachedB = CachedBox::create<0, ValueType_B>(worker, BlockArea());
+                    cachedE = CachedBox::create<1, ValueType_E>(worker, BlockArea());
 
                     /* instance of nvidia assignment operator */
                     pmacc::math::operation::Assign assign;
                     /* copy fields from global to shared */
                     auto fieldBBlock = bBox.shift(blockCell);
-                    ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());
-                    collective(acc, assign, cachedB, fieldBBlock);
+                    auto collective = makeThreadCollective<BlockArea>();
+                    collective(worker, assign, cachedB, fieldBBlock);
                     /* copy fields from global to shared */
                     auto fieldEBlock = eBox.shift(blockCell);
-                    collective(acc, assign, cachedE, fieldEBlock);
+                    collective(worker, assign, cachedE, fieldEBlock);
 
                     /* wait for shared memory to be initialized */
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                 }
 
                 /** Initialization function on device
@@ -167,11 +163,10 @@ namespace picongpu
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
                  * necessary after initializing the E-/B-field shared boxes in shared memory.
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE void init(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const DataSpace<simDim>& blockCell,
-                    const int& linearThreadIdx,
                     const DataSpace<simDim>& localCellOffset)
                 {
                     /* initialize random number generator with the local cell index in the simulation */
@@ -183,8 +178,8 @@ namespace picongpu
                  * @param ionFrame reference to frame of the to-be-ionized particles
                  * @param localIdx local (linear) index in super cell / frame
                  */
-                template<typename T_Acc>
-                DINLINE uint32_t numNewParticles(const T_Acc& acc, FrameType& ionFrame, int localIdx)
+                template<typename T_Worker>
+                DINLINE uint32_t numNewParticles(const T_Worker& worker, FrameType& ionFrame, int localIdx)
                 {
                     /* alias for the single macro-particle */
                     auto particle = ionFrame[localIdx];
@@ -205,13 +200,13 @@ namespace picongpu
 
                     IonizationAlgorithm ionizeAlgo;
                     /* determine number of new macro electrons to be created and energy used for ionization */
-                    auto retValue = ionizeAlgo(bField, eField, particle, this->randomGen(acc));
-                    IonizationCurrent<T_Acc, T_DestSpecies, simDim, T_IonizationCurrent>{}(
+                    auto retValue = ionizeAlgo(bField, eField, particle, this->randomGen(worker));
+                    IonizationCurrent<T_DestSpecies, simDim, T_IonizationCurrent>{}(
                         retValue,
                         particle[weighting_],
                         jBox.shift(localCell),
                         eField,
-                        acc,
+                        worker,
                         pos);
 
                     return retValue.newMacroElectrons;
@@ -226,8 +221,8 @@ namespace picongpu
                  * @param parentIon ion instance that is ionized
                  * @param childElectron electron instance that is created
                  */
-                template<typename T_parentIon, typename T_childElectron, typename T_Acc>
-                DINLINE void operator()(const T_Acc& acc, T_parentIon& parentIon, T_childElectron& childElectron)
+                template<typename T_parentIon, typename T_childElectron, typename T_Worker>
+                DINLINE void operator()(const T_Worker& worker, T_parentIon& parentIon, T_childElectron& childElectron)
                 {
                     /* for not mixing operations::assign up with the nvidia functor assign */
                     namespace partOp = pmacc::particles::operations;

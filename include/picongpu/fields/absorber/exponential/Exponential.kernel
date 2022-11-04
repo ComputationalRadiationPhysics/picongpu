@@ -41,11 +41,10 @@ namespace picongpu
                 {
                     /** damp each field component at exchange the border
                      *
-                     * @tparam T_NumWorkers, boost::mpl::integral_c number of workers
                      * @tparam T_Axis, boost::mpl::integral_c axis of the coordinate system
                      *                 (0 = x, 1 = y, 2 = z)
                      */
-                    template<typename T_NumWorkers, typename T_Axis>
+                    template<typename T_Axis>
                     struct AbsorbInOneDirection
                     {
                         /** absorb one direction
@@ -62,9 +61,9 @@ namespace picongpu
                          * @param relExchangeDir relative direction for each dimension
                          *        (-1 = negative; +1 = positive direction; 0 = direction not selected)
                          */
-                        template<typename T_BoxedMemory, typename T_Mapping, typename T_Acc>
+                        template<typename T_BoxedMemory, typename T_Mapping, typename T_Worker>
                         DINLINE void operator()(
-                            T_Acc const& acc,
+                            T_Worker const& worker,
                             T_BoxedMemory& field,
                             uint32_t const thickness,
                             float_X const absorberStrength,
@@ -79,12 +78,9 @@ namespace picongpu
 
                             using SuperCellSize = typename T_Mapping::SuperCellSize;
                             DataSpace<simDim> const superCellIdx(
-                                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-                            constexpr uint32_t numWorkers = T_NumWorkers::value;
                             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-
-                            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                             auto const numGuardSuperCells = mapper.getGuardingSuperCells();
                             DataSpace<simDim> guardCells(numGuardSuperCells * SuperCellSize::toRT());
@@ -93,8 +89,7 @@ namespace picongpu
                             DataSpace<simDim> const localDomainCells
                                 = mapper.getGridSuperCells() * SuperCellSize::toRT();
 
-                            auto forEachParticleInFrame
-                                = lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx);
+                            auto forEachParticleInFrame = lockstep::makeForEach<cellsPerSuperCell>(worker);
 
                             forEachParticleInFrame(
                                 [&](uint32_t const linearIdx)
@@ -140,10 +135,7 @@ namespace picongpu
                 /** damp each field's components at the outer cells of the global domain
                  *
                  * Done for one direction per call.
-                 *
-                 * @tparam T_numWorkers number of workers
                  */
-                template<uint32_t T_numWorkers>
                 struct KernelAbsorbBorder
                 {
                     /** damp a field at the border
@@ -157,9 +149,9 @@ namespace picongpu
                      * @param mapper functor to map a block to a supercell,
                      *               selects the direction of damping by the exchange type
                      */
-                    template<typename T_BoxedMemory, typename T_Mapping, typename T_Acc>
+                    template<typename T_BoxedMemory, typename T_Mapping, typename T_Worker>
                     DINLINE void operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         T_BoxedMemory field,
                         uint32_t const thickness,
                         float_X const absorberStrength,
@@ -174,13 +166,10 @@ namespace picongpu
                          */
                         using SimulationDimensions = MakeSeq_t<boost::mpl::range_c<int, 0, int(simDim)>>;
 
-                        meta::ForEach<
-                            SimulationDimensions,
-                            detail::
-                                AbsorbInOneDirection<boost::mpl::integral_c<uint32_t, T_numWorkers>, boost::mpl::_1>>
+                        meta::ForEach<SimulationDimensions, detail::AbsorbInOneDirection<boost::mpl::_1>>
                             absorbInAllDirections;
 
-                        absorbInAllDirections(acc, field, thickness, absorberStrength, mapper, relExchangeDir);
+                        absorbInAllDirections(worker, field, thickness, absorberStrength, mapper, relExchangeDir);
                     }
                 };
 

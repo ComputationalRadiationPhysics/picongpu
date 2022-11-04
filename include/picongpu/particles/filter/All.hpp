@@ -38,12 +38,12 @@ namespace picongpu
                      * @tparam T_Particle pmacc::Particles, type of the particle
                      * @tparam alpaka accelerator type
                      *
-                     * @param alpaka accelerator
+                     * @param worker lockstep worker
                      * @param particle  particle which is checked
                      * @return true if particle handle is valid, else false
                      */
-                    template<typename T_Particle, typename T_Acc>
-                    HDINLINE bool operator()(T_Acc const&, T_Particle const& particle)
+                    template<typename T_Particle, typename T_Worker>
+                    HDINLINE bool operator()(T_Worker const&, T_Particle const& particle)
                     {
                         return particle.isHandleValid();
                     }
@@ -61,13 +61,13 @@ namespace picongpu
 
                 /** create filter for the accelerator
                  *
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
+                 * @tparam T_Worker lockstep::Worker, configuration of the worker
                  * @param offset (in superCells, without any guards) relative
                  *                        to the origin of the local domain
                  * @param configuration of the worker
                  */
-                template<typename T_WorkerCfg, typename T_Acc>
-                HDINLINE acc::All operator()(T_Acc const& acc, DataSpace<simDim> const&, T_WorkerCfg const&) const
+                template<typename T_Worker>
+                HDINLINE acc::All operator()(T_Worker const& worker, DataSpace<simDim> const&) const
                 {
                     return acc::All{};
                 }

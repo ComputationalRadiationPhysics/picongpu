@@ -55,14 +55,14 @@ namespace picongpu
                          *
                          * @tparam T_Particle type of the particle to manipulate
                          * @tparam T_Args type of the arguments passed to the user functor
-                         * @tparam T_Acc alpaka accelerator type
+                         * @tparam T_Worker lockstep worker type
                          *
-                         * @param alpaka accelerator
+                         * @param worker lockstep worker
                          * @param particle particle which is given to the user functor
                          * @return void is used to enable the operator if the user functor except two arguments
                          */
-                        template<typename T_Particle, typename... T_Args, typename T_Acc>
-                        HDINLINE void operator()(T_Acc const&, T_Particle& particle, T_Args&&... args)
+                        template<typename T_Particle, typename... T_Args, typename T_Worker>
+                        HDINLINE void operator()(T_Worker const&, T_Particle& particle, T_Args&&... args)
                         {
                             Functor::operator()(m_rng, particle, args...);
                         }
@@ -90,8 +90,6 @@ namespace picongpu
                     };
 
                     using RngGenerator = picongpu::particles::functor::misc::Rng<T_Distribution>;
-
-                    using RngType = typename RngGenerator::RandomGen;
 
                     using Functor = T_Functor;
                     using Distribution = T_Distribution;
@@ -133,24 +131,21 @@ namespace picongpu
 
                     /** create functor for the accelerator
                      *
-                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
-                     * @param alpaka accelerator
+                     * @param worker lockstep worker
                      * @param localSupercellOffset offset (in superCells, without any guards) relative
                      *                        to the origin of the local domain
-                     * @param workerCfg configuration of the worker
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
-                    HDINLINE auto operator()(
-                        T_Acc const& acc,
-                        DataSpace<simDim> const& localSupercellOffset,
-                        T_WorkerCfg const& workerCfg) const -> acc::FreeRng<Functor, RngType>
+                    template<typename T_Worker>
+                    HDINLINE auto operator()(T_Worker const& worker, DataSpace<simDim> const& localSupercellOffset)
+                        const
                     {
-                        RngType const rng
-                            = (*static_cast<RngGenerator const*>(this))(acc, localSupercellOffset, workerCfg);
+                        auto const rng = (*static_cast<RngGenerator const*>(this))(worker, localSupercellOffset);
 
-                        return acc::FreeRng<Functor, RngType>(*static_cast<Functor const*>(this), rng);
+                        return acc::FreeRng<Functor, ALPAKA_DECAY_T(decltype(rng))>(
+                            *static_cast<Functor const*>(this),
+                            rng);
                     }
 
                     static HINLINE std::string getName()

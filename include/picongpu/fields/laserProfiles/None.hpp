@@ -60,10 +60,10 @@ namespace picongpu
 
                     /** device side manipulation for init plane (transversal)
                      *
-                     * @tparam T_Args type of the arguments passed to the user manipulator functor
+                     * @tparam T_Worker lockstep worker type
                      */
-                    template<typename T_Acc>
-                    HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const&)
+                    template<typename T_Worker>
+                    HDINLINE void operator()(T_Worker const&, DataSpace<simDim> const&)
                     {
                     }
                 };
@@ -82,12 +82,10 @@ namespace picongpu
 
                 /** create device manipulator functor
                  *
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  */
-                template<typename T_WorkerCfg, typename T_Acc>
-                HDINLINE acc::None<Unitless> operator()(T_Acc const&, DataSpace<simDim> const&, T_WorkerCfg const&)
-                    const
+                template<typename T_Worker>
+                HDINLINE acc::None<Unitless> operator()(T_Worker const&, DataSpace<simDim> const&) const
                 {
                     return acc::None<Unitless>();
                 }

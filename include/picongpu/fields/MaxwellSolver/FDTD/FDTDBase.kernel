@@ -123,11 +123,7 @@ namespace picongpu
                     T_CurlE const curl = T_CurlE{};
                 };
 
-                /** Kernel to update each cell
-                 *
-                 * @tparam T_numWorkers number of workers
-                 */
-                template<uint32_t T_numWorkers>
+                //! Kernel to update each cell
                 struct KernelUpdateField
                 {
                     HDINLINE KernelUpdateField() = default;
@@ -138,27 +134,27 @@ namespace picongpu
 
                     /** Update the yee field using the given functor
                      *
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      * @tparam T_Mapping mapper functor type
                      * @tparam T_StencilFunctor stencil functor type to update a cell,
                      *         adheres the StencilFunctor concept
                      * @tparam T_SrcBox pmacc::DataBox, source field box type
                      * @tparam T_DestBox pmacc::DataBox, destination field box type
                      *
-                     * @param acc alpaka accelerator
+                     * @param worker lockstep worker
                      * @param mapper functor to map a block to a supercell
                      * @param stencilFunctor stencil functor
                      * @param srcField source field iterator (is not allowed to be an alias of destField data)
                      * @param destField destination field iterator
                      */
                     template<
-                        typename T_Acc,
+                        typename T_Worker,
                         typename T_Mapping,
                         typename T_StencilFunctor,
                         typename T_SrcBox,
                         typename T_DestBox>
                     DINLINE void operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         T_Mapping const mapper,
                         T_StencilFunctor stencilFunctor,
                         T_SrcBox const srcField,
@@ -167,11 +163,9 @@ namespace picongpu
                         /* Each block processes all cells of a supercell,
                          * the index includes guards, same as all indices in this kernel
                          */
-                        auto const beginCellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)))
+                        auto const beginCellIdx
+                            = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                             * MappingDesc::SuperCellSize::toRT();
-
-                        constexpr auto numWorkers = T_numWorkers;
-                        auto const workerIdx = cupla::threadIdx(acc).x;
 
                         // Description of the area and guards where the stencil is performed.
                         using StencilCfg = pmacc::SuperCellDescription<
@@ -183,15 +177,16 @@ namespace picongpu
                          */
                         pmacc::math::operation::Assign assign;
                         auto srcFieldBlock = srcField.shift(beginCellIdx);
-                        ThreadCollective<StencilCfg, numWorkers> cacheStencilArea(workerIdx);
-                        auto cachedSrcField = CachedBox::create<0u, typename T_SrcBox::ValueType>(acc, StencilCfg{});
-                        cacheStencilArea(acc, assign, cachedSrcField, srcFieldBlock);
+                        auto cacheStencilArea = makeThreadCollective<StencilCfg>();
+                        auto cachedSrcField
+                            = CachedBox::create<0u, typename T_SrcBox::ValueType>(worker, StencilCfg{});
+                        cacheStencilArea(worker, assign, cachedSrcField, srcFieldBlock);
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
                         constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                         // Execute the stencil functor for each cell in the supercell.
-                        lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                        lockstep::makeForEach<cellsPerSuperCell>(worker)(
                             [&](uint32_t const linearIdx)
                             {
                                 auto const idxInSuperCell

@@ -240,8 +240,8 @@ namespace picongpu
                     template<uint32_t T_Area>
                     void updateBHalf(float_X const currentStep, bool const updatePsiB)
                     {
-                        constexpr auto numWorkers = getNumWorkers();
-                        using Kernel = fdtd::KernelUpdateField<numWorkers>;
+                        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                        using Kernel = fdtd::KernelUpdateField;
                         auto const mapper = pmacc::makeAreaMapper<T_Area>(cellDescription);
 
                         // The ugly transition from run-time to compile-time polymorphism is contained here
@@ -251,8 +251,8 @@ namespace picongpu
                             auto& pmlImpl = absorberImpl.asPmlImpl();
                             auto const updateFunctor
                                 = pmlImpl.template getUpdateBHalfFunctor<CurlE>(currentStep, updatePsiB);
-                            PMACC_KERNEL(Kernel{})
-                            (mapper.getGridDim(), numWorkers)(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
+                            (mapper.getGridDim())(
                                 mapper,
                                 updateFunctor,
                                 fieldE->getDeviceDataBox(),
@@ -260,8 +260,8 @@ namespace picongpu
                         }
                         else
                         {
-                            PMACC_KERNEL(Kernel{})
-                            (mapper.getGridDim(), numWorkers)(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
+                            (mapper.getGridDim())(
                                 mapper,
                                 fdtd::UpdateBHalfFunctor<CurlE>{},
                                 fieldE->getDeviceDataBox(),
@@ -279,8 +279,8 @@ namespace picongpu
                     template<uint32_t T_Area>
                     void updateE(float_X currentStep)
                     {
-                        constexpr auto numWorkers = getNumWorkers();
-                        using Kernel = fdtd::KernelUpdateField<numWorkers>;
+                        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                        using Kernel = fdtd::KernelUpdateField;
                         auto const mapper = pmacc::makeAreaMapper<T_Area>(cellDescription);
 
                         // The ugly transition from run-time to compile-time polymorphism is contained here
@@ -289,8 +289,8 @@ namespace picongpu
                         {
                             auto& pmlImpl = absorberImpl.asPmlImpl();
                             auto const updateFunctor = pmlImpl.template getUpdateEFunctor<CurlB>(currentStep);
-                            PMACC_KERNEL(Kernel{})
-                            (mapper.getGridDim(), numWorkers)(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
+                            (mapper.getGridDim())(
                                 mapper,
                                 updateFunctor,
                                 fieldB->getDeviceDataBox(),
@@ -298,20 +298,13 @@ namespace picongpu
                         }
                         else
                         {
-                            PMACC_KERNEL(Kernel{})
-                            (mapper.getGridDim(), numWorkers)(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
+                            (mapper.getGridDim())(
                                 mapper,
                                 fdtd::UpdateEFunctor<CurlB>{},
                                 fieldB->getDeviceDataBox(),
                                 fieldE->getDeviceDataBox());
                         }
-                    }
-
-                    //! Get number of workers for kernels
-                    static constexpr uint32_t getNumWorkers()
-                    {
-                        return pmacc::traits::GetNumWorkers<
-                            pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
                     }
 
                     MappingDesc const cellDescription;

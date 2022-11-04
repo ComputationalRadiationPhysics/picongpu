@@ -33,11 +33,11 @@
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 
 #include <boost/mpl/accumulate.hpp>
@@ -176,26 +176,25 @@ namespace picongpu
         using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
         const uint32_t currentStep = Environment<>::get().SimulationDescription().getCurrentStep();
         auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep};
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+
+        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
         do
         {
-            PMACC_KERNEL(KernelComputeSupercells<numWorkers, BlockArea>{})
-            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, iFilter, mapper);
+            PMACC_LOCKSTEP_KERNEL(KernelComputeSupercells<BlockArea>{}, workerCfg)
+            (mapper.getGridDim())(tmpBox, pBox, solver, iFilter, mapper);
         } while(mapper.next());
     }
 
     template<uint32_t AREA, typename T_ModifyingOperation, typename T_ModifyingField>
     void FieldTmp::modifyByField(T_ModifyingField& modifyingField)
     {
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
         auto mapper = makeAreaMapper<AREA>(cellDescription);
         FieldTmp::DataBoxType thisBox = this->fieldTmp->getDeviceBuffer().getDataBox();
         const auto modifyingBox = modifyingField.getGridBuffer().getDeviceBuffer().getDataBox();
 
-        using Kernel = ModifyByFieldKernel<numWorkers, T_ModifyingOperation, MappingDesc::SuperCellSize>;
-        PMACC_KERNEL(Kernel{})(mapper.getGridDim(), numWorkers)(mapper, thisBox, modifyingBox);
+        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+        using Kernel = ModifyByFieldKernel<T_ModifyingOperation, MappingDesc::SuperCellSize>;
+        PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)(mapper.getGridDim())(mapper, thisBox, modifyingBox);
     }
 
     SimulationDataId FieldTmp::getUniqueId(uint32_t slotId)

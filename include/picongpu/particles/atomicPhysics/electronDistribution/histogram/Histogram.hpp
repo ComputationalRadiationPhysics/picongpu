@@ -136,8 +136,8 @@ namespace picongpu
                         }
 
                         // add for Argument x, weight to the bin
-                        template<typename T_Acc>
-                        DINLINE void binObject(T_Acc const& acc, float_X const x, float_X const weight)
+                        template<typename T_Worker>
+                        DINLINE void binObject(T_Worker const& worker, float_X const x, float_X const weight)
                         {
                             // compute global bin index
                             uint32_t const binIndex = this->getBinIndex(x);

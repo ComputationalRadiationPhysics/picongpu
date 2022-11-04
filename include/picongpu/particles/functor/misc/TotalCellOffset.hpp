@@ -49,19 +49,16 @@ namespace picongpu
 
                     /** get cell offset of the supercell
                      *
-                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
-                     * @param alpaka accelerator
-                     * @param offset (in supercells, without any guards) to the
+                     * @param worker lockstep worker
+                     * @param localSupercellOffset (in supercells, without any guards) to the
                      *         origin of the local domain
-                     * @param configuration of the worker
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE DataSpace<simDim> operator()(
-                        T_Acc const& acc,
-                        DataSpace<simDim> const& localSupercellOffset,
-                        T_WorkerCfg const&) const
+                        T_Worker const& worker,
+                        DataSpace<simDim> const& localSupercellOffset) const
                     {
                         DataSpace<simDim> const superCellToLocalOriginCellOffset(
                             localSupercellOffset * SuperCellSize::toRT());

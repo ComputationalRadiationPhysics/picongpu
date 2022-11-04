@@ -26,8 +26,8 @@
 
 #include "picongpu/particles/atomicPhysics/GetRealKineticEnergy.hpp"
 
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
@@ -41,33 +41,29 @@ namespace picongpu
             // Fill the histogram return via the last parameter
             // should be called inside the AtomicPhysicsKernel
             template<
-                uint32_t T_numWorkers,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_ElectronBox,
                 typename T_Mapping,
                 typename T_Histogram,
                 typename T_AtomicDataBox>
             DINLINE void fillHistogram(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_ElectronBox const electronBox,
                 T_Mapping mapper,
                 T_Histogram* histogram,
                 T_AtomicDataBox atomicDataBox)
             {
                 pmacc::DataSpace<simDim> const superCellIdx(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
                 auto frame = electronBox.getLastFrame(superCellIdx);
                 auto particlesInSuperCell = electronBox.getSuperCell(superCellIdx).getSizeLastFrame();
 
                 /// @todo : express framesize better, not via supercell size
                 constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                constexpr uint32_t numWorkers = T_numWorkers;
 
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-                auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
-                auto onlyMaster = lockstep::makeMaster(workerIdx);
+                auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
+                auto onlyMaster = lockstep::makeMaster(worker);
 
                 // go over frames using common histogram
                 while(frame.isValid())
@@ -85,7 +81,7 @@ namespace picongpu
                                 // unit: J, SI
 
                                 histogram->binObject(
-                                    acc,
+                                    worker,
                                     static_cast<float_X>(
                                         energy_SI / picongpu::SI::ATOMIC_UNIT_ENERGY), // unit: ATOMIC_UNIT_ENERGY
                                     particle[weighting_],
@@ -94,9 +90,9 @@ namespace picongpu
                         });
 
                     // A single thread does bookkeeping
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                     onlyMaster([&]() { histogram->updateWithNewBins(); });
-                    cupla::__syncthreads(acc);
+                    worker.sync();
 
                     frame = electronBox.getPreviousFrame(frame);
                     particlesInSuperCell = frameSize;

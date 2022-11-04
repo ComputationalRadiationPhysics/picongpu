@@ -38,9 +38,9 @@ namespace picongpu
         template<typename T_ParticleShape, typename T_Strategy>
         struct VillaBune
         {
-            template<class BoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Acc>
+            template<class BoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Worker>
             DINLINE void operator()(
-                const T_Acc& acc,
+                const T_Worker& worker,
                 BoxJ& boxJ_par, /*box which is shifted to particles cell*/
                 const PosType pos,
                 const VelType velocity,
@@ -63,7 +63,7 @@ namespace picongpu
 
                 const auto oldPos = (PosType) (precisionCast<float_X>(pos) - deltaPos);
 
-                addCurrentSplitX(acc, oldPos, pos, charge, boxJ_par, deltaTime);
+                addCurrentSplitX(worker, oldPos, pos, charge, boxJ_par, deltaTime);
             }
 
             static pmacc::traits::StringProperty getStringProperties()
@@ -76,9 +76,9 @@ namespace picongpu
             // Splits the [oldPos,newPos] beam into two beams at the x-boundary of the cell
             // if necessary
 
-            template<typename Buffer, typename T_Acc>
+            template<typename Buffer, typename T_Worker>
             DINLINE void addCurrentSplitX(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 const float3_X& oldPos,
                 const float3_X& newPos,
                 const float_X charge,
@@ -91,16 +91,16 @@ namespace picongpu
                         oldPos,
                         newPos,
                         math::max(pmacc::math::float2int_rd(oldPos.x()), pmacc::math::float2int_rd(newPos.x())));
-                    addCurrentSplitY(acc, oldPos, interPos, charge, mem, deltaTime);
-                    addCurrentSplitY(acc, interPos, newPos, charge, mem, deltaTime);
+                    addCurrentSplitY(worker, oldPos, interPos, charge, mem, deltaTime);
+                    addCurrentSplitY(worker, interPos, newPos, charge, mem, deltaTime);
                     return;
                 }
-                addCurrentSplitY(acc, oldPos, newPos, charge, mem, deltaTime);
+                addCurrentSplitY(worker, oldPos, newPos, charge, mem, deltaTime);
             }
 
-            template<typename Buffer, typename T_Acc>
+            template<typename Buffer, typename T_Worker>
             DINLINE void addCurrentToSingleCell(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 float3_X meanPos,
                 const float3_X& deltaPos,
                 const float_X charge,
@@ -155,27 +155,45 @@ namespace picongpu
 
                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
 
-                atomicOp(acc, mem[1][1][0].x(), rho_dtX * (deltaPos.x() * meanPos.y() * meanPos.z() + tmp));
-                atomicOp(acc, mem[1][0][0].x(), rho_dtX * (deltaPos.x() * (1.0_X - meanPos.y()) * meanPos.z() - tmp));
-                atomicOp(acc, mem[0][1][0].x(), rho_dtX * (deltaPos.x() * meanPos.y() * (1.0_X - meanPos.z()) - tmp));
+                atomicOp(worker, mem[1][1][0].x(), rho_dtX * (deltaPos.x() * meanPos.y() * meanPos.z() + tmp));
                 atomicOp(
-                    acc,
+                    worker,
+                    mem[1][0][0].x(),
+                    rho_dtX * (deltaPos.x() * (1.0_X - meanPos.y()) * meanPos.z() - tmp));
+                atomicOp(
+                    worker,
+                    mem[0][1][0].x(),
+                    rho_dtX * (deltaPos.x() * meanPos.y() * (1.0_X - meanPos.z()) - tmp));
+                atomicOp(
+                    worker,
                     mem[0][0][0].x(),
                     rho_dtX * (deltaPos.x() * (1.0_X - meanPos.y()) * (1.0_X - meanPos.z()) + tmp));
 
-                atomicOp(acc, mem[1][0][1].y(), rho_dtY * (deltaPos.y() * meanPos.z() * meanPos.x() + tmp));
-                atomicOp(acc, mem[0][0][1].y(), rho_dtY * (deltaPos.y() * (1.0_X - meanPos.z()) * meanPos.x() - tmp));
-                atomicOp(acc, mem[1][0][0].y(), rho_dtY * (deltaPos.y() * meanPos.z() * (1.0_X - meanPos.x()) - tmp));
+                atomicOp(worker, mem[1][0][1].y(), rho_dtY * (deltaPos.y() * meanPos.z() * meanPos.x() + tmp));
                 atomicOp(
-                    acc,
+                    worker,
+                    mem[0][0][1].y(),
+                    rho_dtY * (deltaPos.y() * (1.0_X - meanPos.z()) * meanPos.x() - tmp));
+                atomicOp(
+                    worker,
+                    mem[1][0][0].y(),
+                    rho_dtY * (deltaPos.y() * meanPos.z() * (1.0_X - meanPos.x()) - tmp));
+                atomicOp(
+                    worker,
                     mem[0][0][0].y(),
                     rho_dtY * (deltaPos.y() * (1.0_X - meanPos.z()) * (1.0_X - meanPos.x()) + tmp));
 
-                atomicOp(acc, mem[0][1][1].z(), rho_dtZ * (deltaPos.z() * meanPos.x() * meanPos.y() + tmp));
-                atomicOp(acc, mem[0][1][0].z(), rho_dtZ * (deltaPos.z() * (1.0_X - meanPos.x()) * meanPos.y() - tmp));
-                atomicOp(acc, mem[0][0][1].z(), rho_dtZ * (deltaPos.z() * meanPos.x() * (1.0_X - meanPos.y()) - tmp));
+                atomicOp(worker, mem[0][1][1].z(), rho_dtZ * (deltaPos.z() * meanPos.x() * meanPos.y() + tmp));
                 atomicOp(
-                    acc,
+                    worker,
+                    mem[0][1][0].z(),
+                    rho_dtZ * (deltaPos.z() * (1.0_X - meanPos.x()) * meanPos.y() - tmp));
+                atomicOp(
+                    worker,
+                    mem[0][0][1].z(),
+                    rho_dtZ * (deltaPos.z() * meanPos.x() * (1.0_X - meanPos.y()) - tmp));
+                atomicOp(
+                    worker,
                     mem[0][0][0].z(),
                     rho_dtZ * (deltaPos.z() * (1.0_X - meanPos.x()) * (1.0_X - meanPos.y()) + tmp));
             }
@@ -206,9 +224,9 @@ namespace picongpu
             // Splits the [oldPos,newPos] beam into two beams at the z-boundary of the cell
             // if necessary
 
-            template<typename Buffer, typename T_Acc>
+            template<typename Buffer, typename T_Worker>
             DINLINE void addCurrentSplitZ(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 const float3_X& oldPos,
                 const float3_X& newPos,
                 const float_X charge,
@@ -223,24 +241,24 @@ namespace picongpu
                         math::max(pmacc::math::float2int_rd(oldPos.z()), pmacc::math::float2int_rd(newPos.z())));
                     float3_X deltaPos = interPos - oldPos;
                     float3_X meanPos = oldPos + 0.5_X * deltaPos;
-                    addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
+                    addCurrentToSingleCell(worker, meanPos, deltaPos, charge, mem, deltaTime);
 
                     deltaPos = newPos - interPos;
                     meanPos = interPos + 0.5_X * deltaPos;
-                    addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
+                    addCurrentToSingleCell(worker, meanPos, deltaPos, charge, mem, deltaTime);
                     return;
                 }
                 const float3_X deltaPos = newPos - oldPos;
                 const float3_X meanPos = oldPos + 0.5_X * deltaPos;
-                addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
+                addCurrentToSingleCell(worker, meanPos, deltaPos, charge, mem, deltaTime);
             }
 
             // Splits the [oldPos,newPos] beam into two beams at the y-boundary of the cell
             // if necessary
 
-            template<typename Buffer, typename T_Acc>
+            template<typename Buffer, typename T_Worker>
             DINLINE void addCurrentSplitY(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 const float3_X& oldPos,
                 const float3_X& newPos,
                 const float_X charge,
@@ -253,11 +271,11 @@ namespace picongpu
                         oldPos,
                         newPos,
                         math::max(pmacc::math::float2int_rd(oldPos.y()), pmacc::math::float2int_rd(newPos.y())));
-                    addCurrentSplitZ(acc, oldPos, interPos, charge, mem, deltaTime);
-                    addCurrentSplitZ(acc, interPos, newPos, charge, mem, deltaTime);
+                    addCurrentSplitZ(worker, oldPos, interPos, charge, mem, deltaTime);
+                    addCurrentSplitZ(worker, interPos, newPos, charge, mem, deltaTime);
                     return;
                 }
-                addCurrentSplitZ(acc, oldPos, newPos, charge, mem, deltaTime);
+                addCurrentSplitZ(worker, oldPos, newPos, charge, mem, deltaTime);
             }
         };
 

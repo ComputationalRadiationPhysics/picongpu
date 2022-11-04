@@ -27,6 +27,7 @@
 
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 
 #include <cmath>
@@ -38,15 +39,14 @@ namespace picongpu
     {
         /** compute the electric field of the laser
          *
-         * @tparam T_numWorkers number of workers
          * @tparam T_LaserPlaneSizeInSuperCell number of cells per dimension which
          *  initialize the laser (size must be less or equal than the supercell size)
          */
-        template<uint32_t T_numWorkers, typename T_LaserPlaneSizeInSuperCell>
+        template<typename T_LaserPlaneSizeInSuperCell>
         struct KernelLaser
         {
-            template<typename T_Acc, typename T_LaserFunctor>
-            DINLINE void operator()(T_Acc const& acc, T_LaserFunctor laserFunctor) const
+            template<typename T_Worker, typename T_LaserFunctor>
+            DINLINE void operator()(T_Worker const& worker, T_LaserFunctor laserFunctor) const
             {
                 using LaserPlaneSizeInSuperCell = T_LaserPlaneSizeInSuperCell;
                 using LaserFunctor = T_LaserFunctor;
@@ -56,13 +56,11 @@ namespace picongpu
                     LaserPlaneSizeInSuperCell::y::value <= SuperCellSize::y::value);
 
                 constexpr uint32_t planeSize = pmacc::math::CT::volume<LaserPlaneSizeInSuperCell>::type::value;
-                PMACC_CONSTEXPR_CAPTURE uint32_t numWorkers = T_numWorkers;
 
-                const uint32_t workerIdx = cupla::threadIdx(acc).x;
 
                 // offset of the superCell (in cells, without any guards) to the origin of the local domain
 
-                DataSpace<simDim> localSuperCellOffset = DataSpace<simDim>(cupla::blockIdx(acc));
+                DataSpace<simDim> localSuperCellOffset = DataSpace<simDim>(cupla::blockIdx(worker.getAcc()));
 
                 // add not handled supercells from LaserFunctor::Unitless::initPlaneY
                 localSuperCellOffset.y() += LaserFunctor::Unitless::initPlaneY / SuperCellSize::y::value;
@@ -70,18 +68,18 @@ namespace picongpu
                 uint32_t cellOffsetInSuperCellFromInitPlaneY
                     = LaserFunctor::Unitless::initPlaneY % SuperCellSize::y::value;
 
-                auto forEachCell = lockstep::makeForEach<planeSize, numWorkers>(workerIdx);
+                auto forEachCell = lockstep::makeForEach<planeSize>(worker);
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        auto accLaserFunctor = laserFunctor(acc, localSuperCellOffset, forEachCell.getWorkerCfg());
+                        auto accLaserFunctor = laserFunctor(forEachCell.getWorker(), localSuperCellOffset);
 
                         /* cell index within the superCell */
                         DataSpace<simDim> cellIdxInSuperCell
                             = DataSpaceOperations<simDim>::template map<LaserPlaneSizeInSuperCell>(linearIdx);
                         cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;
 
-                        accLaserFunctor(acc, cellIdxInSuperCell);
+                        accLaserFunctor(forEachCell.getWorker(), cellIdxInSuperCell);
                     });
             }
         };
@@ -180,11 +178,10 @@ namespace picongpu
                     // use the one supercell in y to initialize the laser plane
                     gridBlocks.y() = 1;
 
-                    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                        pmacc::math::CT::volume<LaserPlaneSizeInSuperCells>::type::value>::value;
+                    auto const workerCfg = lockstep::makeWorkerCfg(LaserPlaneSizeInSuperCells{});
 
-                    PMACC_KERNEL(KernelLaser<numWorkers, LaserPlaneSizeInSuperCells>{})
-                    (gridBlocks, numWorkers)(laserProfiles::Selected(currentStep));
+                    PMACC_LOCKSTEP_KERNEL(KernelLaser<LaserPlaneSizeInSuperCells>{}, workerCfg)
+                    (gridBlocks)(laserProfiles::Selected(currentStep));
                 }
             }
         };

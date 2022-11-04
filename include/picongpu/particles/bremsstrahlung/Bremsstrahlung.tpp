@@ -31,7 +31,7 @@
 #include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/lockstep/Worker.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/particles/operations/Assign.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>
@@ -75,33 +75,31 @@ namespace picongpu
             }
 
             template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
-            template<typename T_Acc, typename T_WorkerCfg>
+            template<typename T_Worker>
             DINLINE void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::collectiveInit(
-                const T_Acc& acc,
-                const DataSpace<simDim>& blockCell,
-                const T_WorkerCfg& workerCfg)
+                const T_Worker& worker,
+                const DataSpace<simDim>& blockCell)
             {
                 /* caching of ion density field */
-                cachedIonDensity = CachedBox::create<0, ValueTypeIonDensity>(acc, BlockArea());
+                cachedIonDensity = CachedBox::create<0, ValueTypeIonDensity>(worker, BlockArea());
 
                 /* instance of nvidia assignment operator */
                 pmacc::math::operation::Assign assign;
                 /* copy fields from global to shared */
                 const auto fieldIonDensityBlock = ionDensityBox.shift(blockCell);
 
-                ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());
-                collective(acc, assign, cachedIonDensity, fieldIonDensityBlock);
+                auto collective = makeThreadCollective<BlockArea>();
+                collective(worker, assign, cachedIonDensity, fieldIonDensityBlock);
 
                 /* wait for shared memory to be initialized */
-                cupla::__syncthreads(acc);
+                worker.sync();
             }
 
             template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
-            template<typename T_Acc>
+            template<typename T_Worker>
             DINLINE void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 const DataSpace<simDim>& blockCell,
-                const int& linearThreadIdx,
                 const DataSpace<simDim>& localCellOffset)
             {
                 /* initialize random number generator with the local cell index in the simulation */
@@ -110,9 +108,9 @@ namespace picongpu
 
 
             template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
-            template<typename T_Acc>
+            template<typename T_Worker>
             DINLINE float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatterByTheta(
-                const T_Acc& acc,
+                const T_Worker& worker,
                 const float3_X vec,
                 const float_X theta)
             {
@@ -121,8 +119,8 @@ namespace picongpu
                 float_X sinTheta, cosTheta;
                 pmacc::math::sincos(theta, sinTheta, cosTheta);
 
-                const float_X phi
-                    = -pmacc::math::Pi<float_X>::value + pmacc::math::Pi<float_X>::doubleValue * this->randomGen(acc);
+                const float_X phi = -pmacc::math::Pi<float_X>::value
+                    + pmacc::math::Pi<float_X>::doubleValue * this->randomGen(worker);
                 float_X sinPhi, cosPhi;
                 pmacc::math::sincos(phi, sinPhi, cosPhi);
 
@@ -142,9 +140,9 @@ namespace picongpu
             }
 
             template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
-            template<typename T_Acc>
+            template<typename T_Worker>
             DINLINE unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::numNewParticles(
-                const T_Acc& acc,
+                const T_Worker& worker,
                 FrameType& sourceFrame,
                 int localIdx)
             {
@@ -185,7 +183,7 @@ namespace picongpu
                 const float_X zMin
                     = float_X(1.0) / (pmacc::math::Pi<float_X>::value * pmacc::math::Pi<float_X>::value);
                 const float_X zMax = float_X(1.0) / (electron::MIN_THETA * electron::MIN_THETA);
-                const float_X z = zMin + this->randomGen(acc) * (zMax - zMin);
+                const float_X z = zMin + this->randomGen(worker) * (zMax - zMin);
                 const float_X theta = math::rsqrt(z);
                 const float_X targetZ = GetAtomicNumbers<T_IonSpecies>::type::numberOfProtons;
                 const float_X rutherfordCoeff = float_X(2.0) * ELECTRON_CHARGE * ELECTRON_CHARGE
@@ -194,9 +192,9 @@ namespace picongpu
                     = pmacc::math::Pi<float_X>::value * (zMax - zMin) * rutherfordCoeff * rutherfordCoeff;
                 const float_X deflectionProb = ionDensity * c * DELTA_T * scaledDeflectionDCS;
 
-                if(this->randomGen(acc) < deflectionProb)
+                if(this->randomGen(worker) < deflectionProb)
                 {
-                    mom = this->scatterByTheta(acc, mom, theta);
+                    mom = this->scatterByTheta(worker, mom, theta);
                     mom_norm = mom / momAbs;
                 }
 
@@ -212,7 +210,7 @@ namespace picongpu
                 particle[momentum_] = (mom + deltaMom * mom_norm) * weighting;
 
                 /* photon emission */
-                const float_X delta = this->randomGen(acc);
+                const float_X delta = this->randomGen(worker);
                 const float_X kappa = math::pow(kappaCutoff, delta);
                 const float_X scalingFactor = -math::log(kappaCutoff);
                 const float_X emissionProb = photon::WEIGHTING_RATIO * scalingFactor * ionDensity * c * DELTA_T
@@ -234,7 +232,7 @@ namespace picongpu
                     }
                 }
 
-                if(this->randomGen(acc) < emissionProb)
+                if(this->randomGen(worker) < emissionProb)
                 {
                     const float_X photonEnergy = kappa * Ekin;
                     this->photonMom = mom_norm * weighting / photon::WEIGHTING_RATIO * photonEnergy / c;
@@ -246,9 +244,9 @@ namespace picongpu
 
 
             template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
-            template<typename Electron, typename Photon, typename T_Acc>
+            template<typename Electron, typename Photon, typename T_Worker>
             DINLINE void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::operator()(
-                const T_Acc& acc,
+                const T_Worker& worker,
                 Electron& electron,
                 Photon& photon)
             {
@@ -267,9 +265,9 @@ namespace picongpu
                 const float_X mass = frame::getMass<FrameType>();
                 const float_X gamma = Gamma<>()(elMom / weighting, mass);
 
-                const float_X theta = this->getPhotonAngleFunctor(this->randomGen(acc), gamma);
+                const float_X theta = this->getPhotonAngleFunctor(this->randomGen(worker), gamma);
 
-                const float3_X scatteredPhotonMom = this->scatterByTheta(acc, this->photonMom, theta);
+                const float3_X scatteredPhotonMom = this->scatterByTheta(worker, this->photonMom, theta);
 
                 photon[multiMask_] = 1;
                 photon[momentum_] = scatteredPhotonMom;

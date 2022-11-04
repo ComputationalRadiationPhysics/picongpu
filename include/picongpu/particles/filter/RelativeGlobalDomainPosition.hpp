@@ -48,8 +48,8 @@ namespace picongpu
                     {
                     }
 
-                    template<typename T_Acc, typename T_Particle>
-                    HDINLINE bool operator()(T_Acc const&, T_Particle const& particle)
+                    template<typename T_Worker, typename T_Particle>
+                    HDINLINE bool operator()(T_Worker const&, T_Particle const& particle)
                     {
                         if(particle.isHandleValid())
                         {
@@ -116,16 +116,15 @@ namespace picongpu
 
                 /** create filter for the accelerator
                  *
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
+                 * @tparam T_Worker lockstep::Worker, lockstep worker
                  * @param localSupercellOffset offset (in superCells, without any guards) relative
                  *                        to the origin of the local domain
                  * @param configuration of the worker
                  */
-                template<typename T_WorkerCfg, typename T_Acc>
+                template<typename T_Worker>
                 HDINLINE acc::RelativeGlobalDomainPosition<Params> operator()(
-                    T_Acc const& acc,
-                    DataSpace<simDim> const& localSuperCellOffset,
-                    T_WorkerCfg const&) const
+                    T_Worker const& worker,
+                    DataSpace<simDim> const& localSuperCellOffset) const
                 {
                     return acc::RelativeGlobalDomainPosition<Params>(
                         localDomainOffset,

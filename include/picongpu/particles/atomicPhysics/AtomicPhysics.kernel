@@ -47,7 +47,6 @@
  *
  * This kernel is called once for every super cell, for every PIC time step.
  *
- * @tparam T_numWorkers ... number of workers used for histogram filling
  * @tparam T_maxNumBins ... maximum number of Bins of the histogram
  */
 
@@ -57,7 +56,7 @@ namespace picongpu
     {
         namespace atomicPhysics
         {
-            template<uint32_t T_numWorkers, uint16_t T_maxNumBins>
+            template<uint16_t T_maxNumBins>
             struct AtomicPhysicsKernel
             {
                 // note: maybe rename variables later
@@ -74,13 +73,13 @@ namespace picongpu
 
                 // template parameters are automatically deduced from input
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_ElectronBox,
                     typename T_IonBox,
                     typename T_Mapping,
                     typename T_AtomicDataBox>
                 HDINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ElectronBox electronBox,
                     T_IonBox ionBox,
                     T_Mapping mapper,
@@ -89,10 +88,6 @@ namespace picongpu
                     float_X const relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
                     uint32_t const step) const
                 {
-                    // we assume 1d thread indices
-                    // thread index inside a block
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                     // Create and initialize a histogram on shared memory
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
@@ -116,25 +111,26 @@ namespace picongpu
                     // get new histogram
                     // Histogram histogram;
                     PMACC_SMEM(
-                        acc, // mandatory first parameter
+                        worker, // mandatory first parameter
                         histogram, // variable name
                         Histogram // variable type
                     );
 
                     // init histogram and relative error
-                    if(workerIdx == 0)
-                    {
-                        // pass through parameters of histogram
-                        histogram.init(relativeErrorTarget, initialGridWidth);
-                    }
-                    cupla::__syncthreads(acc);
+                    lockstep::makeMaster(worker)(
+                        [&]()
+                        {
+                            // pass through parameters of histogram
+                            histogram.init(relativeErrorTarget, initialGridWidth);
+                        });
+                    worker.sync();
                     // necessary since all access relativeError and histogram, but both are only valid after init
 
-                    fillHistogram<T_numWorkers>(acc, electronBox, mapper, &histogram, atomicDataBox);
-                    cupla::__syncthreads(acc);
+                    fillHistogram(worker, electronBox, mapper, &histogram, atomicDataBox);
+                    worker.sync();
 
-                    solveRateEquation<T_numWorkers, AtomicRate>(
-                        acc,
+                    solveRateEquation<AtomicRate>(
+                        worker,
                         mapper,
                         rngFactoryInt,
                         rngFactoryFloat,
@@ -142,11 +138,11 @@ namespace picongpu
                         atomicDataBox,
                         &histogram);
 
-                    cupla::__syncthreads(acc);
+                    worker.sync();
 
-                    decelerateElectrons<T_numWorkers>(acc, mapper, electronBox, histogram, atomicDataBox);
+                    decelerateElectrons(worker, mapper, electronBox, histogram, atomicDataBox);
 
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                 }
             };
 

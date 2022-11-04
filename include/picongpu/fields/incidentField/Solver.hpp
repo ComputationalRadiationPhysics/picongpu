@@ -260,8 +260,6 @@ namespace picongpu
                     auto const superCellSize = SuperCellSize::toRT();
                     auto const gridBlocks
                         = (endLocalUserIdx - beginLocalUserIdx + superCellSize - Index::create(1)) / superCellSize;
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<BlockSize>::type::value>::value;
 
                     // Shift by guard size to go to the in-kernel coordinate system
                     auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(parameters.cellDescription);
@@ -307,8 +305,9 @@ namespace picongpu
                     // Check that incidentField can be applied
                     checkRequirements(functor, beginLocalUserIdx);
 
-                    PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, BlockSize>{})
-                    (gridBlocks, numWorkers)(functor, beginGridIdx, endGridIdx);
+                    auto workerCfg = lockstep::makeWorkerCfg(BlockSize{});
+                    PMACC_LOCKSTEP_KERNEL(ApplyIncidentFieldKernel<BlockSize>{}, workerCfg)
+                    (gridBlocks)(functor, beginGridIdx, endGridIdx);
                 }
 
                 /** Functor to update a field with the given incidentField normally to the given axis

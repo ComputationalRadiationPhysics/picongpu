@@ -42,12 +42,8 @@ namespace picongpu
                 /** Generate and add a local energy histogram
                  *
                  * Generate a (per-supercell) energy histogram and add it to global memory.
-                 *
-                 * @tparam T_numWorkers number of workers for lockstep execution per block,
-                 *                      usually equal to the number of particles per frame
-                 *                      (which is equal to the supercell size)
                  */
-                template<uint32_t T_numWorkers>
+
                 struct KernelAddLocalEnergyHistogram
                 {
                     /** Functor
@@ -63,17 +59,21 @@ namespace picongpu
                      * @tparam T_ParBox pmacc::ParticlesBox, particle box type
                      * @tparam T_LocalEnergyHistogramBox pmacc::DataBox, local energy histograms,
                      *                                   e.g. for each supercell
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
-                     * @param acc alpaka accelerator
+                     * @param worker lockstep worker
                      * @param pb particles of a species
                      * @param energyHistogramBox box with global memory for each supercell's histogram
                      * @param minEnergy minimum energy to account for (eV)
                      * @param maxEnergy maximum energy to account for (eV)
                      */
-                    template<typename T_ParBox, typename T_LocalEnergyHistogramBox, typename T_Mapping, typename T_Acc>
+                    template<
+                        typename T_ParBox,
+                        typename T_LocalEnergyHistogramBox,
+                        typename T_Mapping,
+                        typename T_Worker>
                     DINLINE void operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         T_ParBox pb,
                         T_LocalEnergyHistogramBox energyHistogramBox,
                         float_X const minEnergy,
@@ -82,16 +82,12 @@ namespace picongpu
                     {
                         using picongpu::flylite::spatialAverageBox;
                         constexpr uint16_t numBins = picongpu::flylite::energies;
-                        constexpr uint32_t numWorkers = T_numWorkers;
 
                         using SuperCellSize = typename MappingDesc::SuperCellSize;
 
-                        // our workers per block are started 1D
-                        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                         // supercell index of current (frame-wise) supercell including GUARD
                         DataSpace<simDim> const superCellIdx(
-                            mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                            mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
                         /* index inside local energy histogram in averaged space (has no GUARD)
                          * integer division: we average over multiples of supercells;
@@ -107,11 +103,12 @@ namespace picongpu
                         auto& localEnergyHistogram = *energyHistogramBox.shift(localEnergyBlock);
 
                         // shared memory for local energy histogram
-                        PMACC_SMEM(acc, shLocalEnergyHistogram, memory::Array<float_X, numBins>);
+                        PMACC_SMEM(worker, shLocalEnergyHistogram, memory::Array<float_X, numBins>);
 
 
+                        constexpr uint32_t numWorkers = T_Worker::getNumWorkers();
                         // empty the histogram to contain only zeroes
-                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+                        lockstep::makeForEach<numWorkers>(worker)(
                             [&](uint32_t const linearIdx)
                             {
                                 /* set all bins to 0 */
@@ -119,19 +116,17 @@ namespace picongpu
                                     shLocalEnergyHistogram[i] = float_X(0.);
                             });
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
-                        auto forEachParticle
-                            = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, pb, superCellIdx);
+                        auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
                         // end kernel if we have no particles
                         if(!forEachParticle.hasParticles())
                             return;
 
                         forEachParticle(
-                            acc,
                             [minEnergy, maxEnergy, numBins, &shLocalEnergyHistogram](
-                                auto const& accelerator,
+                                auto const& lockstepWorker,
                                 auto& particle)
                             {
                                 /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
@@ -161,21 +156,22 @@ namespace picongpu
                                         = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
                                     cupla::atomicAdd(
-                                        accelerator,
+                                        lockstepWorker.getAcc(),
                                         &(shLocalEnergyHistogram[binNumber]),
                                         normedWeighting,
                                         ::alpaka::hierarchy::Threads{});
                                 }
                             });
-                        cupla::__syncthreads(acc);
+
+                        worker.sync();
 
                         // write histogram back to global memory (add)
-                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+                        lockstep::makeForEach<T_Worker::getNumWorkers()>(worker)(
                             [&](uint32_t const linearIdx)
                             {
                                 for(int i = linearIdx; i < numBins; i += numWorkers)
                                     cupla::atomicAdd(
-                                        acc,
+                                        worker.getAcc(),
                                         &(localEnergyHistogram[i]),
                                         shLocalEnergyHistogram[i],
                                         ::alpaka::hierarchy::Blocks{});

@@ -35,7 +35,7 @@
 #include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/lockstep/Worker.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
@@ -112,35 +112,31 @@ namespace picongpu
                  *
                  * @warning this is a collective method and calls synchronize
                  *
-                 * @tparam T_Acc alpaka accelerator type
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
+                 * @tparam T_Worker lockstep worker type
                  *
-                 * @param acc alpaka accelerator
+                 * @param worker lockstep worker
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
-                 * @param workerCfg configuration of the worker
+                 * @param worker lockstep worker
                  */
-                template<typename T_Acc, typename T_WorkerCfg>
-                DINLINE void collectiveInit(
-                    const T_Acc& acc,
-                    const DataSpace<simDim>& blockCell,
-                    const T_WorkerCfg& workerCfg)
+                template<typename T_Worker>
+                DINLINE void collectiveInit(const T_Worker& worker, const DataSpace<simDim>& blockCell)
                 {
                     /* shift origin of jbox to supercell of particle */
                     jBox = jBox.shift(blockCell);
 
                     /* caching of E field */
-                    cachedE = CachedBox::create<1, ValueType_E>(acc, BlockArea());
+                    cachedE = CachedBox::create<1, ValueType_E>(worker, BlockArea());
 
                     /* instance of nvidia assignment operator */
                     pmacc::math::operation::Assign assign;
 
-                    ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());
+                    auto collective = makeThreadCollective<BlockArea>();
                     /* copy fields from global to shared */
                     auto fieldEBlock = eBox.shift(blockCell);
-                    collective(acc, assign, cachedE, fieldEBlock);
+                    collective(worker, assign, cachedE, fieldEBlock);
 
                     /* wait for shared memory to be initialized */
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                 }
 
                 /** Initialization function on device
@@ -159,11 +155,10 @@ namespace picongpu
                  *                        domain, i.e. from the @see BORDER
                  *                        <b>without guarding supercells</b>
                  */
-                template<typename T_Acc>
+                template<typename T_Worker>
                 DINLINE void init(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const DataSpace<simDim>& blockCell,
-                    const int& linearThreadIdx,
                     const DataSpace<simDim>& localCellOffset)
                 {
                 }
@@ -173,8 +168,8 @@ namespace picongpu
                  * @param ionFrame reference to frame of the to-be-ionized particles
                  * @param localIdx local (linear) index in super cell / frame
                  */
-                template<typename T_Acc>
-                DINLINE uint32_t numNewParticles(T_Acc const& acc, FrameType& ionFrame, int localIdx)
+                template<typename T_Worker>
+                DINLINE uint32_t numNewParticles(T_Worker const& worker, FrameType& ionFrame, int localIdx)
                 {
                     /* alias for the single macro-particle */
                     auto particle = ionFrame[localIdx];
@@ -193,12 +188,12 @@ namespace picongpu
                     IonizationAlgorithm ionizeAlgo{};
                     auto retValue = ionizeAlgo(eField, particle);
                     /* determine number of new macro electrons to be created and calculate ionization current */
-                    IonizationCurrent<T_Acc, T_DestSpecies, simDim, T_IonizationCurrent>{}(
+                    IonizationCurrent<T_DestSpecies, simDim, T_IonizationCurrent>{}(
                         retValue,
                         particle[weighting_],
                         jBox.shift(localCell),
                         eField,
-                        acc,
+                        worker,
                         pos);
 
                     return retValue.newMacroElectrons;
@@ -213,8 +208,8 @@ namespace picongpu
                  * @param parentIon ion instance that is ionized
                  * @param childElectron electron instance that is created
                  */
-                template<typename T_parentIon, typename T_childElectron, typename T_Acc>
-                DINLINE void operator()(T_Acc const& acc, T_parentIon& parentIon, T_childElectron& childElectron)
+                template<typename T_parentIon, typename T_childElectron, typename T_Worker>
+                DINLINE void operator()(T_Worker const& worker, T_parentIon& parentIon, T_childElectron& childElectron)
                 {
                     /* for not mixing operations::assign up with the nvidia functor assign */
                     namespace partOp = pmacc::particles::operations;

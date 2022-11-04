@@ -54,12 +54,12 @@ namespace picongpu
 
                         /** execute the user manipulator functor
                          *
-                         * @tparam T_Args type of the arguments passed to the user manipulator functor
+                         * @tparam T_Worker lockstep worker type
                          *
                          * @param args arguments passed to the user functor
                          */
-                        template<typename T_Acc, typename... T_Args>
-                        HDINLINE void operator()(T_Acc const&, T_Args&&... args)
+                        template<typename T_Worker, typename... T_Args>
+                        HDINLINE void operator()(T_Worker const&, T_Args&&... args)
                         {
                             Functor::operator()(args...);
                         }
@@ -87,17 +87,15 @@ namespace picongpu
 
                     /** create device manipulator functor
                      *
-                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
-                     * @param alpaka accelerator
+                     * @param worker lockstep worker
                      * @param offset (in supercells, without any guards) to the
                      *         origin of the local domain
                      * @param configuration of the worker
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
-                    HDINLINE acc::Free<Functor> operator()(T_Acc const&, DataSpace<simDim> const&, T_WorkerCfg const&)
-                        const
+                    template<typename T_Worker>
+                    HDINLINE acc::Free<Functor> operator()(T_Worker const&, DataSpace<simDim> const&) const
                     {
                         return acc::Free<Functor>(*static_cast<Functor const*>(this));
                     }

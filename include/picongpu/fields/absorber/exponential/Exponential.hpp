@@ -26,9 +26,9 @@
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <cstdint>
 #include <string>
@@ -118,11 +118,10 @@ namespace picongpu
                                     continue;
 
                                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
-                                constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                                    pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-                                PMACC_KERNEL(KernelAbsorbBorder<numWorkers>{})
-                                (mapper.getGridDim(), numWorkers)(deviceBox, thickness, absorber_strength, mapper);
+                                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                                PMACC_LOCKSTEP_KERNEL(KernelAbsorbBorder{}, workerCfg)
+                                (mapper.getGridDim())(deviceBox, thickness, absorber_strength, mapper);
                             }
                         }
                     }
