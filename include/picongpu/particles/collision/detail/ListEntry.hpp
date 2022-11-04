@@ -49,8 +49,8 @@ namespace picongpu
                      * @param deviceHeapHandle Heap handle used for allocating storage on device.
                      * @param numPar maximal number of IDs to be stored in the list.
                      */
-                    template<typename T_acc, typename T_DeviceHeapHandle>
-                    DINLINE void init(T_acc const& acc, T_DeviceHeapHandle& deviceHeapHandle, uint32_t numPar)
+                    template<typename T_Worker, typename T_DeviceHeapHandle>
+                    DINLINE void init(T_Worker const& worker, T_DeviceHeapHandle& deviceHeapHandle, uint32_t numPar)
                     {
                         ptrToIndicies = nullptr;
                         if(numPar != 0u)
@@ -59,7 +59,8 @@ namespace picongpu
                             for(int numTries = 0; numTries < maxTries; ++numTries)
                             {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP) // Allocate memory on a GPU device
-                                ptrToIndicies = (uint32_t*) deviceHeapHandle.malloc(acc, sizeof(uint32_t) * numPar);
+                                ptrToIndicies
+                                    = (uint32_t*) deviceHeapHandle.malloc(worker.getAcc(), sizeof(uint32_t) * numPar);
 #else // No cuda or hip means the device heap is the host heap.
                                 ptrToIndicies = new uint32_t[numPar];
 #endif
@@ -100,13 +101,13 @@ namespace picongpu
                      * @param acc alpaka accelerator
                      * @param deviceHeapHandle Heap handle used for allocating storage on device.
                      */
-                    template<typename T_acc, typename T_DeviceHeapHandle>
-                    DINLINE void finalize(T_acc const& acc, T_DeviceHeapHandle& deviceHeapHandle)
+                    template<typename T_Worker, typename T_DeviceHeapHandle>
+                    DINLINE void finalize(T_Worker const& worker, T_DeviceHeapHandle& deviceHeapHandle)
                     {
                         if(ptrToIndicies != nullptr)
                         {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-                            deviceHeapHandle.free(acc, (void*) ptrToIndicies);
+                            deviceHeapHandle.free(worker.getAcc(), (void*) ptrToIndicies);
                             ptrToIndicies = nullptr;
 #else
                             delete(ptrToIndicies);
@@ -117,11 +118,11 @@ namespace picongpu
 
                     /* Shuffle list entries.
                      *
-                     * @param acc alpaka accelerator
+                     * @param worker lockstep worker
                      * @param rngHandle random number generator handle
                      */
-                    template<typename T_Acc, typename T_RngHandle>
-                    DINLINE void shuffle(T_Acc const& acc, T_RngHandle& rngHandle)
+                    template<typename T_Worker, typename T_RngHandle>
+                    DINLINE void shuffle(T_Worker const& worker, T_RngHandle& rngHandle)
                     {
                         using UniformUint32_t = pmacc::random::distributions::Uniform<uint32_t>;
                         auto rng = rngHandle.template applyDistribution<UniformUint32_t>();
@@ -131,7 +132,7 @@ namespace picongpu
                             /* modulo is not perfect but okish,
                              * because of the loop head mod zero is not possible
                              */
-                            uint32_t p = rng(acc) % i;
+                            uint32_t p = rng(worker) % i;
                             if(i - 1 != p)
                                 swap(ptrToIndicies[i - 1], ptrToIndicies[p]);
                         }
@@ -156,14 +157,14 @@ namespace picongpu
                 // const, & etc.
                 //! Counting particles per grid frame
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_ForEach,
                     typename T_ParBox,
                     typename T_FramePtr,
                     typename T_Array,
                     typename T_Filter>
                 DINLINE void particlesCntHistogram(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ForEach forEach,
                     T_ParBox& parBox,
                     T_FramePtr frame,
@@ -182,10 +183,10 @@ namespace picongpu
                                 if(i + linearIdx < numParticlesInSupercell)
                                 {
                                     auto particle = frame[linearIdx];
-                                    if(filter(acc, particle))
+                                    if(filter(worker, particle))
                                     {
                                         auto parLocalIndex = particle[localCellIdx_];
-                                        cupla::atomicAdd(acc, &nppc[parLocalIndex], 1u);
+                                        cupla::atomicAdd(worker.getAcc(), &nppc[parLocalIndex], 1u);
                                     }
                                 }
                             });
@@ -198,14 +199,14 @@ namespace picongpu
                  * index in the supercell for each particle.
                  */
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_ForEach,
                     typename T_ParBox,
                     typename T_FramePtr,
                     typename T_EntryListArray,
                     typename T_Filter>
                 DINLINE void updateLinkedList(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ForEach forEach,
                     T_ParBox& parBox,
                     T_FramePtr frame,
@@ -224,11 +225,11 @@ namespace picongpu
                                 if(parInSuperCellIdx < numParticlesInSupercell)
                                 {
                                     auto particle = frame[linearIdx];
-                                    if(filter(acc, particle))
+                                    if(filter(worker, particle))
                                     {
                                         auto parLocalIndex = particle[localCellIdx_];
                                         uint32_t parOffset
-                                            = cupla::atomicAdd(acc, &parCellList[parLocalIndex].size, 1u);
+                                            = cupla::atomicAdd(worker.getAcc(), &parCellList[parLocalIndex].size, 1u);
                                         parCellList[parLocalIndex].ptrToIndicies[parOffset] = parInSuperCellIdx;
                                     }
                                 }
@@ -250,7 +251,7 @@ namespace picongpu
                 }
 
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_ForEach,
                     typename T_DeviceHeapHandle,
                     typename T_ParBox,
@@ -259,7 +260,7 @@ namespace picongpu
                     typename T_Array,
                     typename T_Filter>
                 DINLINE void prepareList(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ForEach forEach,
                     T_DeviceHeapHandle deviceHeapHandle,
                     T_ParBox& parBox,
@@ -271,25 +272,25 @@ namespace picongpu
                 {
                     // Initialize nppc with zeros.
                     forEach([&](uint32_t const linearIdx) { nppc[linearIdx] = 0u; });
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                     // Count eligible
-                    particlesCntHistogram(acc, forEach, parBox, firstFrame, numParticlesInSupercell, nppc, filter);
-                    cupla::__syncthreads(acc);
+                    particlesCntHistogram(worker, forEach, parBox, firstFrame, numParticlesInSupercell, nppc, filter);
+                    worker.sync();
 
                     // memory for particle indices
                     forEach([&](uint32_t const linearIdx)
-                            { parCellList[linearIdx].init(acc, deviceHeapHandle, nppc[linearIdx]); });
-                    cupla::__syncthreads(acc);
+                            { parCellList[linearIdx].init(worker, deviceHeapHandle, nppc[linearIdx]); });
+                    worker.sync();
 
                     detail::updateLinkedList(
-                        acc,
+                        worker,
                         forEach,
                         parBox,
                         firstFrame,
                         numParticlesInSupercell,
                         parCellList,
                         filter);
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                 }
             } // namespace detail
         } // namespace collision

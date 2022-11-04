@@ -85,10 +85,8 @@ namespace picongpu
                     };
 
                     // set the kernel to provide the Debye length to the acc functor
-                    template<uint32_t T_numWorkers>
-                    using CallingInterKernel = InterCollision<T_numWorkers, true>;
-                    template<uint32_t T_numWorkers>
-                    using CallingIntraKernel = IntraCollision<T_numWorkers, true>;
+                    using CallingInterKernel = InterCollision<true>;
+                    using CallingIntraKernel = IntraCollision<true>;
 
                     static constexpr bool ifDebug_m = ifDebug;
                     HINLINE RelativisticCollisionDynamicLogImpl(uint32_t currentStep){};
@@ -98,20 +96,18 @@ namespace picongpu
 
                     /** create device manipulator functor
                      *
-                     * @param acc alpaka accelerator
+                     * @param worker lockstep worker
                      * @param offset (in supercells, without any guards) to the origin of the local domain
-                     * @param workerCfg configuration of the worker
                      * @param density0 cell density of the 1st species
                      * @param density1 cell density of the 2nd species
                      * @param potentialPartners number of potential collision partners for a macro particle in
                      *   the cell.
                      * @param coulombLog Coulomb logarithm
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
+                    template<typename T_Worker>
                     HDINLINE auto operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         DataSpace<simDim> const& offset,
-                        T_WorkerCfg const& workerCfg,
                         float_X const& density0,
                         float_X const& density1,
                         uint32_t const& potentialPartners) const
