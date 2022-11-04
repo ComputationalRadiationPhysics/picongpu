@@ -121,24 +121,29 @@ namespace picongpu
 
         namespace startPosition
         {
-            struct QuietParam1000ppc
+            /* at the cell origin, required for derived quantities to be computed only from particles
+             * in a given cell */
+            CONST_VECTOR(
+                float_X,
+                3,
+                InCellOffset,
+                /* each x, y, z in-cell position component in range [0.0, 1.0) */
+                0.0,
+                0.0,
+                0.0);
+            template<uint32_t numParticles>
+            struct OnePositionParam
             {
-                /** Count of particles per cell per direction at initial state
-                 *  unit: none
-                 */
-                using numParticlesPerDimension = typename mCT::shrinkTo<mCT::Int<1000, 1, 1>, simDim>::type;
-            };
-            struct QuietParam100ppc
-            {
-                /** Count of particles per cell per direction at initial state
-                 *  unit: none
-                 */
-                using numParticlesPerDimension = typename mCT::shrinkTo<mCT::Int<100, 1, 1>, simDim>::type;
-            };
+                /** Count of particles per cell at initial state
+                 *
+                 *  unit: none */
+                static constexpr uint32_t numParticlesPerCell = numParticles;
 
+                const InCellOffset_t inCellOffset;
+            };
             // definition of quiet particle start
-            using Quiet1000ppc = QuietImpl<QuietParam1000ppc>;
-            using Quiet100ppc = QuietImpl<QuietParam100ppc>;
+            using Center1000ppc = OnePositionImpl<OnePositionParam<1000u>>;
+            using Center100ppc = OnePositionImpl<OnePositionParam<100u>>;
 
         } // namespace startPosition
     } // namespace particles

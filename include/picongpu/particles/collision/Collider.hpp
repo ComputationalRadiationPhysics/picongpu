@@ -37,21 +37,42 @@ namespace picongpu
     {
         namespace collision
         {
-            template<typename T_Collider>
+            namespace detail
+            {
+                //! For each implementation for calling a collider for each species pair with a loop index
+                template<typename T_SpeciesPairList, typename T_Collider, uint32_t colliderId>
+                struct CallColliderForAPair
+                {
+                    template<size_t... I>
+                    HINLINE void operator()(
+                        std::index_sequence<I...>,
+                        std::shared_ptr<DeviceHeap> const& deviceHeap,
+                        uint32_t currentStep)
+                    {
+                        (collision::WithPeer<
+                             typename T_Collider::Functor,
+                             typename bmpl::at_c<T_SpeciesPairList, I>::type::first,
+                             typename bmpl::at_c<T_SpeciesPairList, I>::type::second,
+                             typename T_Collider::FilterPair,
+                             colliderId,
+                             I>{}(deviceHeap, currentStep),
+                         ...);
+                    }
+                };
+            } // namespace detail
+
+            template<typename T_Collider, uint32_t colliderId>
             struct CallCollider
             {
                 void operator()(std::shared_ptr<DeviceHeap> const& deviceHeap, uint32_t currentStep)
                 {
                     using SpeciesPairList = typename pmacc::ToSeq<typename T_Collider::SpeciesPairs>::type;
-
-                    pmacc::meta::ForEach<
-                        SpeciesPairList,
-                        WithPeer<
-                            ApplyGuard<typename T_Collider::Functor>,
-                            pmacc::meta::accessors::First<bmpl::_1>,
-                            pmacc::meta::accessors::Second<bmpl::_1>,
-                            typename T_Collider::Params,
-                            typename T_Collider::FilterPair>>{}(deviceHeap, currentStep);
+                    constexpr size_t numPairs = bmpl::size<SpeciesPairList>::type::value;
+                    std::make_index_sequence<numPairs> index{};
+                    detail::CallColliderForAPair<SpeciesPairList, T_Collider, colliderId>{}(
+                        index,
+                        deviceHeap,
+                        currentStep);
                 }
             };
         } // namespace collision

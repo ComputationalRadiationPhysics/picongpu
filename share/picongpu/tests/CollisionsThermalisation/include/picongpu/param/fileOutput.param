@@ -24,6 +24,8 @@
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/particleToGrid/CombinedDerive.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 #include <boost/mpl/vector.hpp>
@@ -49,6 +51,8 @@ namespace picongpu
      *                    particle density
      *       note: this is the same as the sum of kinetic particle energy
      *             divided by a constant for the cell volume
+     *   - MomentumComponent: ratio between a selected momentum component and
+     *                        the absolute momentum with respect to shape
      *   - LarmorPower: radiated Larmor power
      *                  (species must contain the attribute `momentumPrev1`)
      *
@@ -61,13 +65,14 @@ namespace picongpu
     namespace deriveField = particles::particleToGrid;
 
     /* Density section */
-    using Density_Seq = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::Density>;
-
+    using AverageEnergy_Seq = deriveField::CreateEligible_t<
+        VectorAllSpecies,
+        deriveField::combinedAttributes::AverageAttribute<deriveField::derivedAttributes::Energy>>;
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<Density_Seq>;
+    using FieldTmpSolvers = MakeSeq_t<AverageEnergy_Seq>;
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
@@ -83,6 +88,6 @@ namespace picongpu
      * hint: to disable particle output set to
      *   using FileOutputParticles = MakeSeq_t< >;
      */
-    using FileOutputParticles = VectorAllSpecies;
+    using FileOutputParticles = MakeSeq_t<>;
 
 } // namespace picongpu

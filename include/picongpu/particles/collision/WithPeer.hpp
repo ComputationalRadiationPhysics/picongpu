@@ -41,26 +41,36 @@ namespace picongpu
             {
                 template<
                     typename T_CollisionFunctor,
-                    typename T_Params,
                     typename T_FilterPair,
                     typename T_BaseSpecies,
-                    typename T_PeerSpecies>
+                    typename T_PeerSpecies,
+                    uint32_t colliderId,
+                    uint32_t pairId>
                 struct WithPeer
                 {
                     void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep)
                     {
-                        DoInterCollision<T_CollisionFunctor, T_Params, T_FilterPair, T_BaseSpecies, T_PeerSpecies>{}(
-                            deviceHeap,
-                            currentStep);
+                        DoInterCollision<
+                            T_CollisionFunctor,
+                            T_FilterPair,
+                            T_BaseSpecies,
+                            T_PeerSpecies,
+                            colliderId,
+                            pairId>{}(deviceHeap, currentStep);
                     }
                 };
 
-                template<typename T_CollisionFunctor, typename T_Params, typename T_FilterPair, typename T_Species>
-                struct WithPeer<T_CollisionFunctor, T_Params, T_FilterPair, T_Species, T_Species>
+                template<
+                    typename T_CollisionFunctor,
+                    typename T_FilterPair,
+                    typename T_Species,
+                    uint32_t colliderId,
+                    uint32_t pairId>
+                struct WithPeer<T_CollisionFunctor, T_FilterPair, T_Species, T_Species, colliderId, pairId>
                 {
                     void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep)
                     {
-                        DoIntraCollision<T_CollisionFunctor, T_Params, T_FilterPair, T_Species>{}(
+                        DoIntraCollision<T_CollisionFunctor, T_FilterPair, T_Species, colliderId, pairId>{}(
                             deviceHeap,
                             currentStep);
                     }
@@ -85,8 +95,9 @@ namespace picongpu
                 typename T_CollisionFunctor,
                 typename T_BaseSpecies,
                 typename T_PeerSpecies,
-                typename T_Params,
-                typename T_FilterPair>
+                typename T_FilterPair,
+                uint32_t colliderId,
+                uint32_t pairId>
             struct WithPeer
             {
                 void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep)
@@ -97,7 +108,7 @@ namespace picongpu
 
                     using CollisionFunctor = typename bmpl::apply2<T_CollisionFunctor, BaseSpecies, PeerSpecies>::type;
 
-                    detail::WithPeer<CollisionFunctor, T_Params, T_FilterPair, BaseSpecies, PeerSpecies>{}(
+                    detail::WithPeer<CollisionFunctor, T_FilterPair, BaseSpecies, PeerSpecies, colliderId, pairId>{}(
                         deviceHeap,
                         currentStep);
                 }

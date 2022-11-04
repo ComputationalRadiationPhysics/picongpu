@@ -20,4 +20,5 @@
 #pragma once
 
 #include "picongpu/particles/collision/Collider.hpp"
-#include "picongpu/particles/collision/binary/RelativisticBinaryCollision.hpp"
+#include "picongpu/particles/collision/relativistic/RelativisticCollisionConstLog.hpp"
+#include "picongpu/particles/collision/relativistic/RelativisticCollisionDynamicLog.hpp"

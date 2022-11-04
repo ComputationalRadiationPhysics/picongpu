@@ -5,11 +5,6 @@ Binary collisions
 
 .. sectionauthor:: Pawel Ordyna
 
-.. warning::
-    This is an experimental feature.
-    Feel free to use it but be aware that there is an unsolved bug causing some simulations to hang up.
-    Follow the issue on github for more up to date information https://github.com/ComputationalRadiationPhysics/picongpu/issues/3461.
-
 
 1 Introduction
 --------------
@@ -33,10 +28,11 @@ We show in section :ref:`4 <model-binaryCollisions::section::tests>` the test si
 
 To enable collisions in your simulation you have to edit ``collision.param``.
 There you can define the collision initialization pipeline.
-The collisions are set up with the ``Collider`` class.
+The collisions are set up with a ``Collider`` class.
 Each collider defines a list of species pairs that should collide with each other.
 A pair can consist of two different species, for collisions between two different particle groups, or two identical species, for collision within one group.
-Each collider sets a fix Coulomb logarithm (automatic online estimation of the Coulomb logarithm is not yet supported).
+The underlying collision algorithm is defined by a collision functor.
+At the moment, there are two collision functor classes available: ``RelativisticCollisionConstLog`` for running with a fixed coulomb logarithm, and ``RelativisticCollisionDynamicLog`` that calculates the coulomb log automatically.
 You can put in your initialization pipeline as many ``Collider`` objects as you need.
 Leaving the ``CollisionPipeline`` empty disables collisions.
 
@@ -44,7 +40,7 @@ Leaving the ``CollisionPipeline`` empty disables collisions.
 ^^^^^^^^^^
 
 Imagine you have two species in your simulation: ``Ions`` and ``Electrons``.
-To enable collisions between the Ions and Electrons you would edit your param file in a following way:
+To enable collisions between the Ions and Electrons with a constant coulomb logarithm you would edit your param file in a following way:
 
 .. code:: c++
 
@@ -58,23 +54,27 @@ To enable collisions between the Ions and Electrons you would edit your param fi
                {
                    using float_COLL = float_64;
                } // namespace precision
-               /** CollisionPipeline defines in which order species interact with each other
-                *
-                * the functors are called in order (from first to last functor)
-                */
+
+               constexpr bool debugScreeningLength = false;
+               using CollisionScreeningSpecies = MakeSeq_t<>;
 
                struct Params
                {
                    static constexpr float_X coulombLog = 5.0_X;
                };
                using Pairs = MakeSeq_t<Pair<Electrons, Ions>>;
+
+               /** CollisionPipeline defines in which order species interact with each other
+                *
+                * the functors are called in order (from first to last functor)
+                */
                using CollisionPipeline = bmpl::
-                   vector<Collider<binary::RelativisticBinaryCollision, Pairs, Params>>;
+                   vector<Collider<relativistic::RelativisticCollisionConstLog<Params>, Pairs>;
            } // namespace collision
        } // namespace particles
    } // namespace picongpu
 
-Notice how the Coulomb logarithm is send to the collider in a struct.
+Notice how the Coulomb logarithm is send to the functor class in a struct.
 
 If you now would like to add internal collisions (electrons – electrons and ions – ions) you just need to extend the line 20 so that it looks like that:
 
@@ -101,9 +101,28 @@ Here is an example with :math:`\Lambda = 5` for electron-ion collisions and :mat
     using Pairs2 = MakeSeq_t<Pair<Electrons, Electrons>, Pair<Ions, Ions>>;
     using CollisionPipeline =
         bmpl::vector<
-            Collider<binary::RelativisticBinaryCollision, Pairs1, Params1>,
-            Collider<binary::RelativisticBinaryCollision, Pairs2, Params2>
+            Collider<relativistic::RelativisticCollisionConstLog<Params1>, Pairs1>,
+            Collider<relativistic::RelativisticCollisionConstLog<Params2>, Pairs2>
         >;
+
+Automatic coulomb log calculation  can be enabled for a collider by changing the collision functor.
+For example the previous setup with automatic calculation for the inter-species collisions would have the following
+``CollisionPieline`` (and Params1 is not longer needed)
+
+.. code:: c++
+
+    using CollisionPipeline =
+        bmpl::vector<
+            Collider<relativistic::RelativisticCollisionDynamicLog<>, Pairs1>,
+            Collider<relativistic::RelativisticCollisionConstLog<Params2>, Pairs2>
+        >;
+The dynamic logarithm implementation uses a Debye length that is pre-calculated once for all colliders on each time step.
+So, whenever there is at least one collider with the ``RelativisticCollisionDynamicLog`` present in the ``CollisionPipeline`` this precalculation needs to be enabled by adding Species to the ``CollisionScreeningSpecies`` sequence.
+To include all species just set ``using CollisionScreeningSpecies = VectorAllSpecies;``.
+But, this can be an arbitrary list of (filtered) species, see the ``CollisionsBeamRelaxation`` test for reference.
+
+.. note::
+    The Debye length calculation requires at least 2 ``FieldTmp`` slots enabled in ``memory.param`` when ``CollisionScreeningSpecies`` has only one element and at least 3 otherwise.
 
 2.2 Particle filters
 ^^^^^^^^^^^^^^^^^^^^
@@ -120,14 +139,12 @@ You need to define your filters in ``particleFilters.param`` and than you can us
     using CollisionPipeline =
         bmpl::vector<
             Collider<
-                binary::RelativisticBinaryCollision,
+                relativistic::RelativisticCollisionConstLog<Params1>,
                 Pairs1,
-                Params1,
                 FilterPair<filter::FilterA, filter::FilterB>>,
             Collider<
-                binary::RelativisticBinaryCollision,
+                relativistic::RelativisticCollisionConstLog<Params2>,
                 Pairs2,
-                Params2,
                 OneFilter<filter::FilterA>
             >;
 
@@ -155,7 +172,7 @@ line. You can set it to
 
    using float_COLL = float_X;
 
-to match the simulation precision or to
+to match the simulation precision or
 
 .. code:: c++
 
@@ -163,6 +180,24 @@ to match the simulation precision or to
 
 for explicit single precision usage.
 If you use PIConGPU with the 32 bit precision, lowering the collision precision will speed up your simulation and is recommended for non–relativistic setups.
+
+2.4 Debug output
+^^^^^^^^^^^^^^^^
+
+It is possible to write the average coulomb logarithm and s parameter (see :ref:`model-binaryCollisions::details:sparam`) values (averaged over all collisions in a time-step) for each collider.
+This debug output can be enabled per collider by setting the optional template parameter of the collision functor to true:
+
+.. code:: c++
+
+    using CollisionPipeline =
+        bmpl::vector<
+            Collider<relativistic::RelativisticCollisionDynamicLog<true>, Pairs1>,
+            Collider<relativistic::RelativisticCollisionConstLog<Params2, true>, Pairs2>
+        >;
+The debug info is written to a text file ``debug_values_collider_<collider index in the pipeline>_species_pair_<pair index in the list of pairs used with the collider>.dat``
+The output file has three columns: iteration, coulomb log, s param.
+It it also possible to write out the precalculated Debye length averaged over all simulation cells by setting ``constexpr bool debugScreeningLength = true;``
+The output is written to a file with two columns: iteration, Debye length [m]. The file name is ``average_debye_length_for_collisions.dat``.
 
 .. _model-binaryCollisions::section::algorithm:
 
@@ -288,6 +323,8 @@ where
 .. math:: \gamma^* = \gamma_C \gamma( 1 - \frac{\mathbf{v}_C \cdot \mathbf{v}_{\text{lab}}}{c^2}) \ .
     :label: eq:gamma_star
 
+.. _model-binaryCollisions::details:sparam:
+
 3.4 Details on the :math:`s` parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -309,7 +346,7 @@ To calculate this parameter we use the relativistic formula from :ref:`[1] <mode
      \end{split}
     :label: eq:s12
 
-Here: :math:`\Delta T` – time step duration, :math:`\log \Lambda` – Coulomb logarithm, :math:`q_0,q_1` – particle charges, :math:`\gamma_0, \gamma_1` particles gamma factors(lab frame), :math:`N_{\text{partners}}` is the number of collision partners (macro particles), :math:`V_{\text{cell}}` – cell volume, :math:`w_0, w_1` particle weightings, :math:`d` was defined in :ref:`3.2 <model-binaryCollisions::details::duplication>`.
+Here: :math:`\Delta T` – time step duration, :math:`\log \Lambda` – Coulomb logarithm, :math:`q_0,q_1` – particle charges, :math:`\gamma_0, \gamma_1` particles gamma factors(lab frame), :math:`N_{\text{partners}}` is the number of collision partners (macro particles), :math:`V_{\text{cell}}` – cell volume, :math:`w_0, w_1` particle weightings, :math:`d` was defined in :ref:`3.2 <model-binaryCollisions::details:duplication>`.
 
 For inter-species collisions :math:`N_{\text{partners}}` is equal to the size of the long particle list.
 For intra-species collisions :math:`N_{\text{partners}}` = :math:`n - 1 + (n \mod 2)`,where :math:`n` is the number of macro particles to collide.
@@ -366,23 +403,22 @@ The parameter :math:`A` is obtained by solving
 .. math:: \coth A - A^{-1} = e^{-s} \ \ .
     :label: eq:A_impl
 
-The algorithm approximates :math:`A` in a following way :ref:`[1] <model-binaryCollisions-ref-Perez2012>`
+Previously the algorithm was approximating :math:`A` with a polynomial fit from :ref:`[1] <model-binaryCollisions-ref-Perez2012>`.
+Now the :math:`\cos \chi` is obtained from a new fit that was introduced in smilei:
 
-If :math:`\mathbf{0.1 \leq s < 3}` then:
-   .. math::
-      :label: eq:A_inv
+If :math:`\mathbf{ s < 4}` then:
 
-      \begin{split}
-                      A^{-1} &= 0.0056958 + 0.9560202 s \\
-                             &- 0.508139 s^2 + 0.47913906 s^3 \\
-                             &- 0.12788975 s^4 + 0.02389567 s^5 \ \ .
-      \end{split}
+.. math:: \alpha = 0.37s - 0.005 s^2 - 0.0064 s^3  \ .
+    :label: eq:new_fit_smilei_alpha
 
-If :math:`\mathbf{3\leq s < 6}` then:
-    :math:`A=3e^{-s}`
+.. math:: \sin^2(x/2) = \frac{\alpha U}{\sqrt{(1-U) + \alpha^2 U}}
+    :label: eq:new_fit_smilei_sin
 
-For :math:`s < 0.1` :math:`\cos \chi = 1 + s\ln U` to avoid an overflow in the exponential.
-In the :math:`s\rightarrow \infty` limit scattering becomes isotropic :ref:`[4] <model-binaryCollisions-ref-Nanbu1997>` so that we can take :math:`\cos \chi = 2U -1` for :math:`s > 6`.
+.. math:: \cos(x) = 1 - 2 \sin^2(x/2)
+    :label: eq:new_fit_smilei_cos
+
+
+In the :math:`s\rightarrow \infty` limit scattering becomes isotropic :ref:`[4] <model-binaryCollisions-ref-Nanbu1997>` so that we can take :math:`\cos \chi = 2U -1` for :math:`s > 4`.
 
 3.6 Details on final momentum calculation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -406,7 +442,39 @@ The final particle momenta in the COMS frame are calculated with the following f
    \end{pmatrix}
    \ .
 
+
+3.7 Dynamic Coulomb logarithm calculation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With the ``RelativisticCollisionDynamicLog`` functor the Coulomb logarithm is calculated individually for each collision following a formula from :ref:`[1] <model-binaryCollisions-ref-Perez2012>`:
+
+.. math:: \ln \Lambda = \max \left[2, \frac{1}{2}\ln\left(1 + \frac{\lambda_D^2}{b_\text{min}^2} \right) \right] \ ,
+
+where :math:`b_\text{min}` is a minimal impact parameter that depends on particle momenta, charges, and masses; and :math:`\lambda_D` is the Debye length.
+
+Please note, according to the ``smilei`` documentation, in the equation (22) in :ref:`[1] <model-binaryCollisions-ref-Perez2012>` for :math:`b_\text{min}` the last factor should not be squared; we drop the square also in PIConGPU.
+
+The Debye length is calculated once per time-step for each simulation cell using the formula:
+
+.. math:: \lambda_D^{-2} =  \frac{1}{\epsilon_0} \sum_{\alpha} n_\alpha \left<q_\alpha\right>^2 / T_\alpha \ ,
+
+where  the sum goes over all charged particle species, :math:`n` is the number density, :math:`\left<q\right>` is the average charge, and :math:`T` is the temperature.
+The temperature is assumed to be equal to :math:`\frac{2}{3}\left<E_\text{kin}\right>`.
+
+In PIConGPU the contributions from each species are calculated as
+
+.. math::  \frac{2}{3 \epsilon_0}  \rho^2 \varepsilon^{-1} \ ,
+
+where :math:`\rho` is the charge density and :math:`\varepsilon` is the energy density.
+It can be shown that this is equal to :math:`\frac{1}{\epsilon_0} n <q>^2 / T`.
+
+Additionally :math:`\lambda_D` is cut-off at the mean interatomic distance of the species with the highest density:
+
+.. math:: \lambda_D \geq (4\pi n_\text{max}/3)^{-1/3}
+
+
 .. _model-binaryCollisions::section::tests:
+
 
 4 Tests
 -------
@@ -414,6 +482,10 @@ The final particle momenta in the COMS frame are calculated with the following f
 For testing we plan to reproduce all the test cases from ``smilei``’s documentation( https://smileipic.github.io/Smilei/collisions.html).
 For now we have done the thermalization and the beam relaxation tests.
 The simulations that we used are available under ``share/picongpu/tests``.
+
+.. :note::
+    The tests described in this section show that the PIConGPU implementation produces very similar results as smilei.
+    However, the automatic coulomb log calculation leads to slightly different results, and we couldn't yet identify the origin of this difference.
 
 .. _model-binaryCollisions::section::tests::thermalization:
 
@@ -426,8 +498,12 @@ The usual PIC steps are disabled (there is no field solver and no pusher).
 The thermalization happens solely due to the binary collisions.
 We enable inter-collisions for ions and electrons as well as collisions between the two species.
 Simulation parameters are listed in table :numref:`tab::therm`.
-The species temperatures are calculated in post processing from an ``openPMD`` output.
-The results are shown in fig. :numref:`model-binaryCollisions::fig::thermalization::1to5`, :numref:`model-binaryCollisions::fig::thermalization::1to1`, and  :numref:`model-binaryCollisions::fig::thermalization::5to1` for three different macro particle weight ratios.
+The species temperatures are calculated in post processing from an ``openPMD`` output, a python script used for the analysis can be found in the tests directory.
+We extended the tests by running the simulation for longer and also by including runs using the automatic coulomb log calculation instead of a constant value.
+
+The results from the original setup with constant logarithm are shown in fig. :numref:`model-binaryCollisions::fig::thermalization::1to5_fixed`, :numref:`model-binaryCollisions::fig::thermalization::1to1_fixed`, :numref:`model-binaryCollisions::fig::thermalization::5to1_fixed` for three different macro particle weight ratios.
+The figures :numref:`model-binaryCollisions::fig::thermalization::1to5_ei_dynamic`, :numref:`model-binaryCollisions::fig::thermalization::1to1_ei_dynamic`, :numref:`model-binaryCollisions::fig::thermalization::5to1_ei_dynamic` show the results from a set-up with dynamic coulomb logarithm calculation for the electron-ion collisions,
+and fig. :numref:`model-binaryCollisions::fig::thermalization::1to5_all_dynamic`, :numref:`model-binaryCollisions::fig::thermalization::1to1_all_dynamic`, and :numref:`model-binaryCollisions::fig::thermalization::5to1_all_dynamic` come from a set-up with automatic logarithm for all three collision pairs.
 The theoretical curves are obtained from the same formula that was used by ``smilei``\ ’s developers and originates from the NRL plasma formulary :ref:`[5] <model-binaryCollisions-ref-NRL>`.
 
 .. math:: \frac{\mathrm{d}T_\alpha}{\mathrm{d}t} = \nu_\epsilon(T_\beta -T_\alpha)
@@ -436,30 +512,152 @@ The theoretical curves are obtained from the same formula that was used by ``smi
 
    \nu_\epsilon = \frac{2}{3}\sqrt\frac{2}{\pi} \frac{e^4\,Z^{\star 2} \sqrt{m_em_i}\,n_i\,\ln\Lambda }{ 4 \pi\varepsilon_0^2 \,\left(m_eT_e+m_iT_i\right)^{3/2} }
 
-.. figure::  media/thermalisation_1to5_fixed.png
-   :name: model-binaryCollisions::fig::thermalization::1to5
-   :width: 80.0%
+Since the collisions in different cells are independent of each other, one can treat each cells as an individual randomized run.
+The simulation values are obtained by averaging over the individual simulation cells.
+The upper right panel shows the average values together with :math:`\pm 2` standard deviation of the distribution, while the left panel is showing the same values with :math:`\pm 2` standard deviation of the mean.
+The bottom panel is just a zoom in on the upper left panel.
+The inputs for the ``smilei`` runs can be found in :download:`smilei_thermalization_inputs.zip`.
 
-   Electron (blue) and ion (red) temperature over time in the thermalization test.
+Additionally, figures :numref:`model-binaryCollisions::fig::thermalization::1to5_fixed`, :numref:`model-binaryCollisions::fig::thermalization::1to1_fixed`, :numref:`model-binaryCollisions::fig::thermalization::5to1_fixed` show the average values of the coulomb logarithm, the s paramter, and the debye length.
+The coulomb logarithm theoretical value (blue curve)  is calculated with the following formula from :ref:`[5] <model-binaryCollisions-ref-NRL>`:
+
+.. math:: \lambda_{ei} = 24 - \ln(n_e^{1/2}T_e^{-1})
+
+
+.. figure::  media/TH_main_2.png
+   :name: model-binaryCollisions::fig::thermalization::1to5_fixed
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with both :math:`\ln\Lambda` constant.
    The electron to ion weight ratio in the simulation is 1:5.
    Black lines are the the theoretical curves.
 
-.. figure::  media/thermalisation_1to1_fixed.png
-   :name: model-binaryCollisions::fig::thermalization::1to1
-   :width: 80.0%
+.. figure::  media/TH_main_0.png
+   :name: model-binaryCollisions::fig::thermalization::1to1_fixed
+   :width: 100.0%
 
-   Electron (blue) and ion (red) temperature over time in the thermalization test.
+   Electron (blue) and ion (red) temperature over time in the thermalization test with both :math:`\ln\Lambda` constant.
    The electron to ion weight ratio in the simulation is 1:1.
    Black lines are the the theoretical curves.
 
-.. figure::  media/thermalisation_5to1_fixed.png
-   :name: model-binaryCollisions::fig::thermalization::5to1
-   :width: 80.0%
+.. figure::  media/TH_main_1.png
+   :name: model-binaryCollisions::fig::thermalization::5to1_fixed
+   :width: 100.0%
 
-   Electron (blue) and ion (red) temperature over time in the thermalization test.
+   Electron (blue) and ion (red) temperature over time in the thermalization test with both :math:`\ln\Lambda` constant.
    The electron to ion weight ratio in the simulation is 5:1.
    Black lines are the the theoretical curves.
 
+.. figure::  media/TH_main_8.png
+   :name: model-binaryCollisions::fig::thermalization::1to5_ei_dynamic
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with a dynamic :math:`\ln\Lambda` for the electron-ion collisions
+   The electron to ion weight ratio in the simulation is 1:5.
+   Black lines are the the theoretical curves.
+
+.. figure::  media/TH_main_6.png
+   :name: model-binaryCollisions::fig::thermalization::1to1_ei_dynamic
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with a dynamic :math:`\ln\Lambda` for the electron-ion collisions.
+   The electron to ion weight ratio in the simulation is 1:1.
+   Black lines are the the theoretical curves.
+
+.. figure::  media/TH_main_7.png
+   :name: model-binaryCollisions::fig::thermalization::5to1_ei_dynamic
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with a dynamic :math:`\ln\Lambda` for the electron-ion collisions.
+   The electron to ion weight ratio in the simulation is 5:1.
+   Black lines are the the theoretical curves.
+
+.. figure::  media/TH_main_5.png
+   :name: model-binaryCollisions::fig::thermalization::1to5_all_dynamic
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with a dynamic :math:`\ln\Lambda` for all collisions.
+   The electron to ion weight ratio in the simulation is 1:5.
+   Black lines are the the theoretical curves.
+
+.. figure::  media/TH_main_3.png
+   :name: model-binaryCollisions::fig::thermalization::1to1_all_dynamic
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with a dynamic :math:`\ln\Lambda` for all collisions.
+   The electron to ion weight ratio in the simulation is 1:1.
+   Black lines are the the theoretical curves.
+
+.. figure::  media/TH_main_4.png
+   :name: model-binaryCollisions::fig::thermalization::5to1_all_dynamic
+   :width: 100.0%
+
+   Electron (blue) and ion (red) temperature over time in the thermalization test with a dynamic :math:`\ln\Lambda` for all collisions.
+   The electron to ion weight ratio in the simulation is 5:1.
+   Black lines are the the theoretical curves.
+
+.. figure::  media/TH_debug_2.png
+   :name: model-binaryCollisions::fig::thermalization::1to5_fixed_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with both :math:`\ln\Lambda` constant.
+   The electron to ion weight ratio in the simulation is 1:5.
+
+.. figure::  media/TH_debug_0.png
+   :name: model-binaryCollisions::fig::thermalization::1to1_fixed_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with both :math:`\ln\Lambda` constant.
+   The electron to ion weight ratio in the simulation is 1:1.
+
+.. figure::  media/TH_debug_1.png
+   :name: model-binaryCollisions::fig::thermalization::5to1_fixed_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with both :math:`\ln\Lambda` constant.
+   The electron to ion weight ratio in the simulation is 5:1.
+
+.. figure::  media/TH_debug_8.png
+   :name: model-binaryCollisions::fig::thermalization::1to5_ei_dynamic_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with a dynamic :math:`\ln\Lambda` for the electron-ion collisions
+   The electron to ion weight ratio in the simulation is 1:5.
+
+.. figure::  media/TH_debug_6.png
+   :name: model-binaryCollisions::fig::thermalization::1to1_ei_dynamic_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with a dynamic :math:`\ln\Lambda` for the electron-ion collisions.
+   The electron to ion weight ratio in the simulation is 1:1.
+
+.. figure::  media/TH_debug_7.png
+   :name: model-binaryCollisions::fig::thermalization::5to1_ei_dynamic_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with a dynamic :math:`\ln\Lambda` for the electron-ion collisions.
+   The electron to ion weight ratio in the simulation is 5:1.
+
+.. figure::  media/TH_debug_5.png
+   :name: model-binaryCollisions::fig::thermalization::1to5_all_dynamic_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with a dynamic :math:`\ln\Lambda` for all collisions.
+   The electron to ion weight ratio in the simulation is 1:5.
+
+.. figure::  media/TH_debug_3.png
+   :name: model-binaryCollisions::fig::thermalization::1to1_all_dynamic_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with a dynamic :math:`\ln\Lambda` for all collisions.
+   The electron to ion weight ratio in the simulation is 1:1.
+
+.. figure::  media/TH_debug_4.png
+   :name: model-binaryCollisions::fig::thermalization::5to1_all_dynamic_debug
+   :width: 100.0%
+
+   Collision debug values  from the thermalization test with a dynamic :math:`\ln\Lambda` for all collisions.
+   The electron to ion weight ratio in the simulation is 5:1.
 
 .. table:: Simulation parameters in the thermalization test
       :name: tab::therm
@@ -485,10 +683,10 @@ The theoretical curves are obtained from the same formula that was used by ``smi
       +----------------------------------+------------------------------------------------------+
       | initial electron temperature     | 2.0 × 10\ :sup:`−4` :math:`m_e c^2`                  |
       +----------------------------------+------------------------------------------------------+
-      | Coulomb logarithm                | 5                                                    |
+      | Coulomb logarithm                | 5 (if not dynamic)                                   |
       | (inter–collisions)               |                                                      |
       +----------------------------------+------------------------------------------------------+
-      | Coulomb lgarithm                 | 1000                                                 |
+      | Coulomb logarithm                | 1000 (if not dynamic)                                |
       | (intra–collisions)               |                                                      |
       +----------------------------------+------------------------------------------------------+
       | geometry                         | 2D                                                   |
@@ -505,6 +703,8 @@ The theoretical curves are obtained from the same formula that was used by ``smi
       | setups 1, 2, 3                   |                                                      |
       +----------------------------------+------------------------------------------------------+
 
+
+
 .. _model-binaryCollisions::section::tests::beamRelaxation:
 
 4.2 Beam relaxation
@@ -518,43 +718,73 @@ There are three slightly different setups with varying electron drift velocity, 
 Additionally each setup performs the collisions with three different electron to ion weight ratios: 1:1, 5:1, 1:5.
 This is achieved by dividing the simulation box into three parts and enabling collisions only for one ratio in each part.
 All important simulation parameters can be found in tables :numref:`tab::beam_1` and :numref:`tab::beam_2`.
+This test was also extended with runs utilizing the automatic Coulomb logarithm calculation.
 
-The figure shows the electron and ion drift velocities :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, as well as the ion drift velocity, developing over time.
-The theoretical curves where calculated using the following formulas from the NRL formulary :ref:`[5] <model-binaryCollisions-ref-NRL>` :
+The following figures show the electron and ion drift velocities :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, as well as the ion drift velocity, developing over time.
+All figures include a comparison values from ``smilei`` simulations, the ``smilei`` inputs can be found in :download:`smilei_beam_relaxation_inputs.zip`.
 
-.. math:: \frac{\mathrm{d}v_x}{\mathrm{d}t} = \nu_s v_x
+.. figure::  media/BR_main_0.png
+   :width: 100.0%
 
-.. math:: \frac{\mathrm{d}}{\mathrm{d}x}(v_{e,\perp} - \bar{v}_{e,\perp} )^2 = \nu_\perp v_x^2
+   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 1 (with a constant Coulomb logarithm).
 
-with
+.. figure::  media/BR_main_1.png
+   :width: 100.0%
 
-.. math:: \nu_s = (1  + \frac{m_e}{m_i})\Psi(x)\nu_0
+   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 2 (with a constant Coulomb logarithm).
 
-.. math:: \nu_\perp = 2((1- 0.5 x) \Psi(x) + \Psi'(x))\nu_0
+.. figure::  media/BR_main_2.png
+   :width: 100.0%
 
-.. math:: x = \frac{m_i v_e^2}{2 k_B T_i}
+   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 3 (with a constant Coulomb logarithm).
 
-.. math:: v_0 = \frac{e^2 q_i^2 n_i  \ln\Lambda}{4 \pi \varepsilon_0 m_e^2 v_e^3}
+.. figure::  media/BR_main_3.png
+   :width: 100.0%
 
-.. math:: \Psi(x) = \Gamma(\sqrt{x}) - \frac{2}{\sqrt{\pi}} e^{-x}\sqrt{x}
+   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 1 (with dynamic Coulomb logarithm).
 
-.. math:: \Psi'(x) = \frac{2}{\sqrt{\pi}} e^{-x} \sqrt{x} \ .
+.. figure::  media/BR_main_4.png
+   :width: 100.0%
 
-Where :math:`v_x` is the electron drift velocity and :math:`v_e` is the electron drift relative to the ion background.
-The ion drift and ion temperature :math:`T_i` are obtained from the simulation.
-The theory is valid only in the beginning where the velocity distribution is still more or less Maxwellian.
+   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 2 (with dynamic Coulomb logarithm).
 
-.. figure::  media/beam_relaxation_SetupNr0.png
+.. figure::  media/BR_main_5.png
+   :width: 100.0%
 
-   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 1.
+   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 3 (with dynamic Coulomb logarithm).
 
-.. figure::  media/beam_relaxation_SetupNr1.png
+The debug average quantities for :math:`\ln\Lambda, s, \lambda_D` are shown in figures ... .
 
-   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 2.
+.. figure::  media/BR_debug_0.png
+   :width: 100.0%
 
-.. figure::  media/beam_relaxation_SetupNr2.png
+   Average Coulomb logarithm :math:`\ln\Lambda`, :math:`s` (proportional to collision frequency), Debye length :math:`\lambda_D` from the beam equilibration example setup 1 (with a constant Coulomb logarithm).
 
-   Electron drift velocity :math:`\left<v_x\right>`, electron transversal velocity :math:`\sqrt{\left< v_\perp^2\right>}`, and ion drift velocities from the beam equilibration example setup 3.
+.. figure::  media/BR_debug_1.png
+   :width: 100.0%
+
+   Average Coulomb logarithm :math:`\ln\Lambda`, :math:`s` (proportional to collision frequency), Debye length :math:`\lambda_D` from the beam equilibration example setup 2 (with a constant Coulomb logarithm).
+
+.. figure::  media/BR_debug_2.png
+   :width: 100.0%
+
+   Average Coulomb logarithm :math:`\ln\Lambda`, :math:`s` (proportional to collision frequency), Debye length :math:`\lambda_D` from the beam equilibration example setup 3 (with a constant Coulomb logarithm).
+
+.. figure::  media/BR_debug_3.png
+   :width: 100.0%
+
+   Average Coulomb logarithm :math:`\ln\Lambda`, :math:`s` (proportional to collision frequency), Debye length :math:`\lambda_D` from the beam equilibration example setup 1 (with dynamic Coulomb logarithm).
+
+.. figure::  media/BR_debug_4.png
+   :width: 100.0%
+
+   Average Coulomb logarithm :math:`\ln\Lambda`, :math:`s` (proportional to collision frequency), Debye length :math:`\lambda_D` from the beam equilibration example setup 2 (with dynamic Coulomb logarithm).
+
+.. figure::  media/BR_debug_5.png
+   :width: 100.0%
+
+   Average Coulomb logarithm :math:`\ln\Lambda`, :math:`s` (proportional to collision frequency), Debye length :math:`\lambda_D` from the beam equilibration example setup 3 (with dynamic Coulomb logarithm).
+
 
 .. table:: Collisions in the 3 parts of the simulation box in the beam relaxation example
     :name: tab::beam_1

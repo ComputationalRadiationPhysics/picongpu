@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Axel Huebl, Richard Pausch
+/* Copyright 2015-2022 Axel Huebl, Richard Pausch, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -31,3 +31,4 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Momentum.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MomentumDensity.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/WeightedVelocity.hpp"

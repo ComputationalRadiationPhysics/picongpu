@@ -23,6 +23,7 @@
 
 #include "picongpu/particles/particleToGrid/CombinedDerivedAttribute.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Density.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/WeightedVelocity.def"
 
 namespace picongpu
 {
@@ -69,6 +70,11 @@ namespace picongpu
                     particleToGrid::derivedAttributes::Density,
                     AverageDivideOperation,
                     AverageAttributeDescription<T_DerivedAttribute>>;
+
+                //! Average velocity component (don't expose the WeightedVelocity attribute directly to users)
+                template<size_t T_direction>
+                using AverageVelocity
+                    = AverageAttribute<particleToGrid::derivedAttributes::WeightedVelocity<T_direction>>;
             } // namespace combinedAttributes
         } // namespace particleToGrid
     } // namespace particles

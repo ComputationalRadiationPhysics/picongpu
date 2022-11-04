@@ -32,6 +32,15 @@ namespace picongpu
             {
                 using float_COLL = float_64;
             } // namespace precision
+
+            // write average (over all cells) Debye length for all timesteps to a file
+            constexpr bool debugScreeningLength = false;
+
+            /** List of (filtered) species contributing to the screening (Debye) length calculation
+             *
+             * Elements must be either a species types or a misc::SpeciesFilter specialization.
+             */
+            using CollisionScreeningSpecies = MakeSeq_t<>;
             /** CollisionPipeline defines in which order species interact with each other
              *
              * the functors are called in order (from first to last functor)

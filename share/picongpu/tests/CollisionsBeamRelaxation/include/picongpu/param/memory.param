@@ -48,7 +48,7 @@ namespace picongpu
      *
      * volume of a superCell must be <= 1024
      */
-    using SuperCellSize = typename mCT::shrinkTo<mCT::Int<4, 4, 1>, simDim>::type;
+    using SuperCellSize = typename mCT::shrinkTo<mCT::Int<16, 16, 1>, simDim>::type;
 
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription<simDim, SuperCellSize>;
@@ -102,7 +102,7 @@ namespace picongpu
     };
 
     /** number of scalar fields that are reserved as temporary fields */
-    constexpr uint32_t fieldTmpNumSlots = 1;
+    constexpr uint32_t fieldTmpNumSlots = 3;
 
     /** can `FieldTmp` gather neighbor information
      *
