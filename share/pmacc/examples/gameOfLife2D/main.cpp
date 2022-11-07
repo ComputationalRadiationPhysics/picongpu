@@ -79,7 +79,7 @@ int main(int argc, char** argv)
     if(vm.count("help"))
     {
         std::cerr << desc << "\n";
-        return false;
+        return 1;
     }
 
 
