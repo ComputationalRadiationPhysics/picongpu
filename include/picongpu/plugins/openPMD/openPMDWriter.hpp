@@ -1484,19 +1484,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                 const pmacc::Selection<simDim> localDomain = subGrid.getLocalDomain();
+                const pmacc::Selection<simDim> globalDomain = subGrid.getGlobalDomain();
                 /* Offset to transform local particle offsets into total offsets for all particles within the
-                 * current window.
+                 * current local domain.
                  * @attention A window can be the full simulation domain or the moving window.
                  */
-                DataSpace<simDim> windowCellOffsetToTotalDomain(localDomain.offset);
-                // offset can now be negative for the first device
-                windowCellOffsetToTotalDomain -= threadParams->window.globalDimensions.offset;
-
-                for(uint32_t d = 0; d < simDim; ++d)
-                {
-                    windowCellOffsetToTotalDomain[d] = std::max(0, windowCellOffsetToTotalDomain[d]);
-                    windowCellOffsetToTotalDomain[d] += subGrid.getGlobalDomain().offset[d];
-                }
+                DataSpace<simDim> particleToTotalDomainOffset(localDomain.offset + globalDomain.offset);
 
                 std::vector<std::string> vectorOfDataSourceNames;
                 if(m_help->selfRegister)
@@ -1552,7 +1545,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             plugins::misc::SpeciesFilter<bmpl::_1>,
                             plugins::misc::UnfilteredSpecies<bmpl::_1>>>
                         writeSpecies;
-                    writeSpecies(threadParams, windowCellOffsetToTotalDomain);
+                    writeSpecies(threadParams, particleToTotalDomainOffset);
                 }
                 else
                 {
@@ -1562,14 +1555,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         // move over all species defined in FileOutputParticles
                         meta::ForEach<FileOutputParticles, WriteSpecies<plugins::misc::UnfilteredSpecies<bmpl::_1>>>
                             writeSpecies;
-                        writeSpecies(threadParams, windowCellOffsetToTotalDomain);
+                        writeSpecies(threadParams, particleToTotalDomainOffset);
                     }
 
                     // move over all species data sources
                     meta::ForEach<typename Help::AllEligibleSpeciesSources, CallWriteSpecies<bmpl::_1>>{}(
                         vectorOfDataSourceNames,
                         threadParams,
-                        windowCellOffsetToTotalDomain);
+                        particleToTotalDomainOffset);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle species.");
 

@@ -36,17 +36,17 @@ namespace picongpu
          * A change in the major version points to a new feature/fix that cannot be handled by an older PIConGPU IO
          * implementations. Newer PIConGPU IO implementations can optionally support old major versions.
          *
-         * @attention If the version is changed please update openPMDWriter::checkIOFileVersionCompatibility().
+         * @attention If the version is changed please update openPMDWriter::checkIOFileVersionRestartCompatibility().
          */
-        static constexpr int picongpuIOVersionMajor = 1;
+        static constexpr int picongpuIOVersionMajor = 2;
 
         /** PIConGPU's IO minor file version.
          *
          * A change in the minor version means that the new introduced feature/fix can be loaded by all PIConGPU IO
          * implementations with the same major IO file version.
          *
-         * @attention If the version is changed please update openPMDWriter::checkIOFileVersionCompatibility() if
-         * needed.
+         * @attention If the version is changed please update openPMDWriter::checkIOFileVersionRestartCompatibility()
+         * if needed.
          */
         static constexpr int picongpuIOVersionMinor = 0;
         /*
