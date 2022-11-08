@@ -21,10 +21,13 @@
 
 #    include "picongpu/plugins/openPMD/Json.hpp"
 
+#    include "picongpu/plugins/common/openPMDVersion.def"
 #    include "picongpu/plugins/openPMD/Json_private.hpp"
 
 #    include <algorithm> // std::copy_n, std::find
 #    include <cctype> // std::isspace
+
+#    include <openPMD/openPMD.hpp>
 
 /*
  * Note:
@@ -328,6 +331,23 @@ The key 'select' must point to either a single string or an array of strings.)EN
                  * defaults don't matter.
                  */
                 adios2EngineParams["BufferChunkSize"] = "2147381248";
+            }
+        }
+        if constexpr(picongpu::openPMD::detail::FlushSeries<openPMD::Series>::supportsFlushParameters)
+        {
+            auto& adios2Engine = config["adios2"]["engine"];
+            if(!adios2Engine.contains("preferred_flush_target"))
+            {
+                /*
+                 * Only relevant for ADIOS2 engines that support this feature,
+                 * ignored otherwise. Currently supported in BP5.
+                 * Small datasets should be written to the internal ADIOS2
+                 * buffer.
+                 * Big datasets should explicitly specify their flush target
+                 * in Series::flush(). Options are "buffer" and "disk".
+                 * Ideally, all flush() calls should specify this explicitly.
+                 */
+                adios2Engine["preferred_flush_target"] = "buffer";
             }
         }
     }
