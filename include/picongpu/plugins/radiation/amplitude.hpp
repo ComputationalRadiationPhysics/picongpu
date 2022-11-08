@@ -227,9 +227,9 @@ namespace pmacc
             template<typename CastToType>
             struct TypeCast<CastToType, picongpu::plugins::radiation::Amplitude<CastToType>>
             {
-                using result = const picongpu::plugins::radiation::Amplitude<CastToType>&;
+                using result = const picongpu::plugins::radiation::Amplitude<CastToType>;
 
-                HDINLINE result operator()(result amplitude) const
+                HDINLINE result operator()(result const& amplitude) const
                 {
                     return amplitude;
                 }

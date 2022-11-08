@@ -101,7 +101,7 @@ namespace pmacc
             template<typename T_CastToType>
             struct TypeCast<T_CastToType, alpaka::Complex<T_CastToType>>
             {
-                using result = const alpaka::Complex<T_CastToType>&;
+                using result = const alpaka::Complex<T_CastToType>;
 
                 HDINLINE result operator()(const alpaka::Complex<T_CastToType>& complexNumber) const
                 {
