@@ -209,12 +209,19 @@ namespace picongpu
                 }
 
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-                auto globalDOmainOffset = subGrid.getGlobalDomain().offset;
-                /* window.localDimensions.offset is in PIConGPU for a restart zero but to stay generic we take
+                const pmacc::Selection<simDim> localDomain = subGrid.getLocalDomain();
+                const pmacc::Selection<simDim> globalDomain = subGrid.getGlobalDomain();
+                /* Offset to transform local particle offsets into total offsets for all particles within the
+                 * current local domain.
+                 * @attention A window can be the full simulation domain or the moving window.
+                 */
+                DataSpace<simDim> localToTotalDomainOffset(localDomain.offset + globalDomain.offset);
+
+                /* params->localWindowToDomainOffset is in PIConGPU for a restart zero but to stay generic we take
                  * the variable into account.
                  */
-                DataSpace<simDim> const patchTotalOffset = globalDOmainOffset + params->window.globalDimensions.offset
-                    + params->window.localDimensions.offset;
+                DataSpace<simDim> const patchTotalOffset
+                    = localToTotalDomainOffset + params->localWindowToDomainOffset;
                 DataSpace<simDim> const patchExtent = params->window.localDimensions.size;
 
                 // search the patch index based on the offset and extents of local domain size
