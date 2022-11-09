@@ -1,0 +1,55 @@
+/* Copyright 2021-2023 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace externalBeam
+        {
+            namespace startPosition
+            {
+                /** Evenly spaced position for beam particles
+                 *
+                 * Set the in cell position and the weighting of the macro particle.
+                 * This is a host side factory for a device side implementation.
+
+                 *
+                 * @tparam T_ParamClass should define ProbingCoordinates type, numParticlesPerDimension vector,
+                 *      and minWeighting (particles won't be created in cells where weighting would be smaller
+                 *      than this).
+                 *
+                 *      Example param class:
+                 *      @code{.cpp}
+                 *      struct QuietProbingBeamParam
+                 *      {
+                 *           using Side = ProbingSide;
+                 *           using numParticlesPerDimension = mCT::Int<4, 4, 1>;
+                 *           static constexpr float_X minWeighting = 0.001;
+                 *      };
+                 *      @endcode
+                 */
+                template<typename T_ParamClass>
+                struct QuietProbingBeam;
+            } // namespace startPosition
+        } // namespace externalBeam
+    } // namespace particles
+} // namespace picongpu

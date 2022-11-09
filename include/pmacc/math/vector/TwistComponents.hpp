@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/math/vector/navigator/PermutedNavigator.hpp"
 #include "pmacc/math/vector/navigator/StackedNavigator.hpp"
@@ -32,10 +33,7 @@ namespace pmacc
         namespace detail
         {
             template<typename T_Axes, typename T_Vector>
-            struct TwistComponents
-            {
-                using type = typename TwistComponents<T_Axes, typename T_Vector::This>::type;
-            };
+            struct TwistComponents;
 
             template<
                 typename T_Axes,
@@ -52,6 +50,35 @@ namespace pmacc
                     T_Accessor,
                     math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes>>,
                     T_Storage>&;
+            };
+
+            template<typename T_Axes, unsigned dim>
+            struct TwistComponents<T_Axes, DataSpace<dim>>
+            {
+                using type = typename TwistComponents<T_Axes, typename DataSpace<dim>::BaseType>::type;
+            };
+
+            template<
+                typename T_Axes,
+                typename T_Type,
+                uint32_t T_dim,
+                typename T_Accessor,
+                typename T_Navigator,
+                typename T_Storage>
+            struct TwistComponents<T_Axes, const math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>>
+            {
+                using type = math::Vector<
+                    T_Type,
+                    T_dim,
+                    T_Accessor,
+                    math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes>>,
+                    T_Storage> const&;
+            };
+
+            template<typename T_Axes, unsigned dim>
+            struct TwistComponents<T_Axes, const DataSpace<dim>>
+            {
+                using type = typename TwistComponents<T_Axes, const typename DataSpace<dim>::BaseType>::type;
             };
 
         } // namespace detail
@@ -75,6 +102,14 @@ namespace pmacc
              * input type except its navigator policy which does not occupy any memory though.
              */
             return reinterpret_cast<typename detail::TwistComponents<T_Axes, T_Vector>::type>(vector);
+        }
+        template<typename T_Axes, typename T_Vector>
+        HDINLINE auto twistComponents(T_Vector const& vector)
+        {
+            /* The reinterpret_cast is valid because the target type is the same as the
+             * input type except its navigator policy which does not occupy any memory though.
+             */
+            return reinterpret_cast<typename detail::TwistComponents<T_Axes, T_Vector const>::type>(vector);
         }
 
     } // namespace math

@@ -1,0 +1,163 @@
+/* Copyright 2019-2023 Sergei Bastrakov, Klaus Steiniger, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configure the field absorber parameters.
+ * Field absorber type is set by command-line option --fieldAbsorber.
+ */
+
+#pragma once
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace absorber
+        {
+            // This variable is not required, defined for convenience
+            constexpr uint32_t THICKNESS = 0u;
+
+            /** Thickness of the absorbing layer, in number of cells
+             *
+             * This setting applies to applies for all absorber kinds.
+             * The absorber layer is located inside the global simulation area, near the outer borders.
+             * Setting size to 0 results in disabling absorption at the corresponding boundary.
+             * Note that for non-absorbing boundaries the actual thickness will be 0 anyways.
+             * There are no requirements on thickness being a multiple of the supercell size.
+             *
+             * For PML the recommended thickness is between 6 and 16 cells.
+             * For the exponential damping it is 32.
+             *
+             * Unit: number of cells.
+             */
+            constexpr uint32_t NUM_CELLS[3][2] = {
+                {THICKNESS, THICKNESS}, // x direction [negative, positive]
+                {THICKNESS, THICKNESS}, // y direction [negative, positive]
+                {THICKNESS, THICKNESS} // z direction [negative, positive]
+            };
+
+            //! Settings for the Exponential absorber
+            namespace exponential
+            {
+                /** Define the strength of the absorber for all directions
+                 *
+                 * Elements corredponding to non-absorber borders will have no effect.
+                 *
+                 * Unit: none
+                 */
+                constexpr float_X STRENGTH[3][2] = {
+                    {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
+                    {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
+                    {1.0e-3, 1.0e-3} /*z direction [negative,positive]*/
+                };
+            } // namespace exponential
+
+            /** Settings for the Pml absorber
+             *
+             * These parameters can generally be left with default values.
+             * For more details on the meaning of the parameters, refer to the following references.
+             * J.A. Roden, S.D. Gedney. Convolution PML (CPML): An efficient FDTD implementation of the CFS - PML
+             * for arbitrary media. Microwave and optical technology letters. 27 (5), 334-339 (2000).
+             * A. Taflove, S.C. Hagness. Computational Electrodynamics. The Finite-Difference Time-Domain Method.
+             * Third Edition. Artech house, Boston (2005), referred to as [Taflove, Hagness].
+             */
+            namespace pml
+            {
+                /** Order of polynomial grading for artificial electric conductivity and
+                 *  stretching coefficient
+                 *
+                 * The conductivity (sigma) is polynomially scaling from 0 at the internal
+                 * border of PML to the maximum value (defined below) at the external
+                 * border. The stretching coefficient (kappa) scales from 1 to the
+                 * corresponding maximum value (defined below) with the same polynomial.
+                 * The grading is given in [Taflove, Hagness], eq. (7.60a, b), with
+                 * the order denoted 'm'.
+                 * Must be >= 0. Normally between 3 and 4, not required to be integer.
+                 * Unitless.
+                 */
+                constexpr float_64 SIGMA_KAPPA_GRADING_ORDER = 4.0;
+
+                // [Taflove, Hagness], eq. (7.66). Not required, defined for convenience
+                constexpr float_64 SIGMA_OPT_SI[3]
+                    = {0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * SI::CELL_WIDTH_SI),
+                       0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * SI::CELL_HEIGHT_SI),
+                       0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * SI::CELL_DEPTH_SI)};
+
+                // Muptiplier to express SIGMA_MAX_SI with SIGMA_OPT_SI. Not required, defined for convenience
+                constexpr float_64 SIGMA_OPT_MULTIPLIER = 1.0;
+
+                /** Max value of artificial electric conductivity in PML
+                 *
+                 * Components correspond to directions: element 0 corresponds to absorption
+                 * along x direction, 1 = y, 2 = z. Grading is described in comments for
+                 * SIGMA_KAPPA_GRADING_ORDER.
+                 * Too small values lead to significant reflections from the external
+                 * border, too large - to reflections due to discretization errors.
+                 * Artificial magnetic permeability will be chosen to perfectly match this.
+                 * Must be >= 0. Normally between 0.7 * SIGMA_OPT_SI and 1.1 * SIGMA_OPT_SI.
+                 * Unit: siemens / m.
+                 */
+                constexpr float_64 SIGMA_MAX_SI[3]
+                    = {SIGMA_OPT_SI[0] * SIGMA_OPT_MULTIPLIER,
+                       SIGMA_OPT_SI[1] * SIGMA_OPT_MULTIPLIER,
+                       SIGMA_OPT_SI[2] * SIGMA_OPT_MULTIPLIER};
+
+                /** Max value of coordinate stretching coefficient in PML
+                 *
+                 * Components correspond to directions: element 0 corresponds to absorption
+                 * along x direction, 1 = y, 2 = z. Grading is described in comments for
+                 * SIGMA_KAPPA_GRADING_ORDER.
+                 * Must be >= 1. For relatively homogeneous domains 1.0 is a reasonable value.
+                 * Highly elongated domains can have better absorption with values between
+                 * 7.0 and 20.0, for example, see section 7.11.2 in [Taflove, Hagness].
+                 * Unitless.
+                 */
+                constexpr float_64 KAPPA_MAX[3] = {1.0, 1.0, 1.0};
+
+                /** Order of polynomial grading for complex frequency shift
+                 *
+                 * The complex frequency shift (alpha) is polynomially downscaling from the
+                 * maximum value (defined below) at the internal border of PML to 0 at the
+                 * external border. The grading is given in [Taflove, Hagness], eq. (7.79),
+                 * with the order denoted 'm_a'.
+                 * Must be >= 0. Normally values are around 1.0.
+                 * Unitless.
+                 */
+                constexpr float_64 ALPHA_GRADING_ORDER = 1.0;
+
+                /** Complex frequency shift in PML
+                 *
+                 * Components correspond to directions: element 0 corresponds to absorption
+                 * along x direction, 1 = y, 2 = z. Setting it to 0 will make PML behave
+                 * as uniaxial PML. Setting it to a positive value helps to attenuate
+                 * evanescent modes, but can degrade absorption of propagating modes, as
+                 * described in section 7.7 and 7.11.3 in [Taflove, Hagness].
+                 * Must be >= 0. Normally values are 0 or between 0.15 and 0.3.
+                 * Unit: siemens / m.
+                 */
+                constexpr float_64 ALPHA_MAX_SI[3] = {0.2, 0.2, 0.2};
+
+            } // namespace pml
+        } // namespace absorber
+    } // namespace fields
+} // namespace picongpu

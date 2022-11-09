@@ -1,0 +1,63 @@
+/* Copyright 2021-2023 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace externalBeam
+        {
+            /** Set beam particle attributes
+             *
+             * This is a meta functon wrapper for the apply that returns the host side factory.
+             *
+             * Set the in cell position, the weighting, momentum and additional attributes of a macro particle
+             * created as a part of an external particle beam, that is entering the simulation box.
+             *
+             * The method numberOfMacroParticles provides the number of new particles that need to be created in
+             * a cell.
+             *
+             *  It is impossible to differentiate between newly created and already previously present particles
+             *  after the KernelFillGridWithParticles has run. Hence, when particles are initialized during the
+             *  simulation and not only before the 0th step (when no previous particles exist), all initial
+             *  attributes need to be already set in KernelFillGridWithParticles. That's why this functor wraps
+             *  around a start position functor (setting weighting, position and also providing the
+             *  numberOfMacroParticles method) and combines it with other sub-functors. Each sub-functor is
+             *  responsible for one additional attribute.
+             *
+             *  All sub-functors should be a host side factories that create device side implementations. These host
+             *  side sub-functors need to have a host side   constructor taking the current simulation step as the only
+             *  positional argument `uint32_t const& currentStep`. The position functor device implementation needs
+             *  to provide its own numberOfMacroParticles method.
+             *
+             *  The device side implementation should take an instance of the `StartAttributesContext` class as the
+             *  first attribute instead of the usual worker.
+             *
+             * @tparam T_StartPositionFunctor functor used to set particle position and weighting.
+             * @tparam T_MomentumFunctor functor used to set particle initial momentum.
+             * @tparam T_Functor Additional functors used for setting extra attributes. These are called in order
+             *      after the position and momentum functors.
+             */
+            template<typename T_StartPositionFunctor, typename T_MomentumFunctor, typename... T_Functor>
+            struct StartAttributes;
+        } // namespace externalBeam
+    } // namespace particles
+} // namespace picongpu

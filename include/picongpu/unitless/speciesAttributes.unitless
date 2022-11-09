@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Rene Widera, Felix Schmitt, Axel Huebl,
- *                     Alexander Grund, Finn-Ole Carstens
+ *                     Alexander Grund, Finn-Ole Carstens, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -589,6 +589,84 @@ namespace picongpu
             static float_64 get()
             {
                 return 1.0;
+            }
+        };
+
+        template<>
+        struct Unit<startPhase>
+        {
+            // unitless and not scaled by a factor: 1.0
+            static std::vector<double> get()
+            {
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<startPhase>
+        {
+            static std::vector<float_64> get()
+            {
+                // startPhase is unitless
+                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
+
+                return unitDimension;
+            }
+        };
+        template<>
+        struct MacroWeighted<startPhase>
+        {
+            // phase is identical for all real photons
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<startPhase>
+        {
+            // phase doesn't scale with the number of real photons
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<polarizationAngle>
+        {
+            // unitless and not scaled by a factor: 1.0
+            static std::vector<double> get()
+            {
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<polarizationAngle>
+        {
+            static std::vector<float_64> get()
+            {
+                // startPhase is unitless
+                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
+
+                return unitDimension;
+            }
+        };
+        template<>
+        struct MacroWeighted<polarizationAngle>
+        {
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<polarizationAngle>
+        {
+            static float_64 get()
+            {
+                return 0.0;
             }
         };
 

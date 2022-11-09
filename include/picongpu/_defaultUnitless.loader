@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Marco Garten, Finn-Ole Carstens
+ *                     Marco Garten, Finn-Ole Carstens, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -34,6 +34,7 @@
 #include "picongpu/unitless/density.unitless"
 #include "picongpu/unitless/particle.unitless"
 #include "picongpu/unitless/fieldAbsorber.unitless"
+#include "picongpu/unitless/externalBeam.unitless"
 #include "picongpu/unitless/pusher.unitless"
 #include "picongpu/unitless/ionizer.unitless"
 #include "picongpu/unitless/speciesAttributes.unitless"

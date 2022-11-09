@@ -1,0 +1,161 @@
+/* Copyright 2021-2023 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/grid.param"
+#include "picongpu/particles/externalBeam/beam/ProbingBeam.def"
+#include "picongpu/particles/externalBeam/beam/Side.hpp"
+#include "picongpu/particles/externalBeam/beam/beamProfiles/profiles.def"
+#include "picongpu/particles/externalBeam/beam/beamShapes/shapes.def"
+#include "picongpu/particles/externalBeam/functors.def"
+
+#include <pmacc/preprocessor/struct.hpp>
+
+#ifndef PARAM_BEAM_OFFSET_X
+#    define PARAM_BEAM_OFFSET_X 0.0_X
+#endif
+#ifndef PARAM_BEAM_OFFSET_Y
+#    define PARAM_BEAM_OFFSET_Y 0.0_X
+#endif
+#ifndef PARAM_SIGMA_X_SI
+#    define PARAM_SIGMA_X_SI 30.0e-6_X
+#endif
+#ifndef PARAM_SIGMA_Y_SI
+#    define PARAM_SIGMA_Y_SI 30.0e-6_X
+#endif
+#ifndef PARAM_BEAM_DELAY_SI
+#    define PARAM_BEAM_DELAY_SI 0.0_X
+#endif
+#ifndef PARAM_BEAM_PROFILE
+#    define PARAM_BEAM_PROFILE GaussianProfile
+#endif
+#ifndef PARAM_BEAM_SHAPE
+#    define PARAM_BEAM_SHAPE ConstShape
+#endif
+#ifndef PARAM_BEAM_SIDE
+#    define PARAM_BEAM_SIDE ZSide
+#endif
+// start and end time are in timesteps
+#ifndef PARAM_BEAM_START_T
+#    define PARAM_BEAM_START_T 0.0
+#endif
+#ifndef PARAM_BEAM_END_T
+#    define PARAM_BEAM_END_T 20.0
+#endif
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace externalBeam
+        {
+            /* Choose from:
+             *  - ZSide
+             *  - YSide
+             *  - XSide
+             * - ZRSide
+             * - YRSide
+             * - XRSide
+             */
+            using ProbingSide = beam::PARAM_BEAM_SIDE;
+
+            PMACC_STRUCT(
+                GaussParam,
+                (PMACC_C_VALUE(float_X, sigmaX_SI, PARAM_SIGMA_X_SI))(
+                    PMACC_C_VALUE(float_X, sigmaY_SI, PARAM_SIGMA_Y_SI)));
+            PMACC_STRUCT(
+                OffsetParam,
+                (PMACC_C_VECTOR_DIM(float_X, DIM2, beamOffset_SI, PARAM_BEAM_OFFSET_X, PARAM_BEAM_OFFSET_Y))(
+                    PMACC_C_VALUE(float_X, beamDelay_SI, PARAM_BEAM_DELAY_SI)));
+
+            struct ConstShapeParam
+            {
+                static constexpr bool limitStart = true;
+                static constexpr bool limitEnd = true;
+                // does nothing since the limit is disabled
+                static constexpr float_64 startTime_SI = PARAM_BEAM_START_T * SI::DELTA_T_SI;
+                static constexpr float_64 endTime_SI = PARAM_BEAM_END_T * SI::DELTA_T_SI;
+            };
+
+            using GaussianProfile = beam::beamProfiles::GaussianProfile<GaussParam>;
+            using ConstProfile = beam::beamProfiles::ConstProfile;
+            using ConstShape = beam::beamShapes::ConstShape<ConstShapeParam>;
+
+            using BeamProfile = PARAM_BEAM_PROFILE;
+            using BeamShape = PARAM_BEAM_SHAPE;
+
+            using Beam = beam::ProbingBeam<BeamProfile, BeamShape, ProbingSide, OffsetParam>;
+
+            namespace density
+            {
+                struct ProbingBeamDensityParam
+                {
+                private:
+                    static constexpr float_64 cellVolumeSI
+                        = SI::CELL_HEIGHT_SI * SI::CELL_WIDTH_SI * SI::CELL_DEPTH_SI;
+
+                public:
+                    using ProbingBeam = Beam;
+                    // Just a test value -> one 100000 photons per full cell
+                    static constexpr float_64 photonFluxAtMaxBeamIntensity_SI{
+                        100000.0 / cellVolumeSI * SI::SPEED_OF_LIGHT_SI};
+                };
+                using ProbingBeamDensity = ProbingBeamImpl<ProbingBeamDensityParam>;
+            } // namespace density
+            namespace startPosition
+            {
+                struct QuietProbingBeamParam
+                {
+                    using Side = ProbingSide;
+                    /** Number of particles in each dimension initialized in a cell (in the beam coordinate
+                     * system).
+                     *
+                     * Keep in mind that the particles are not spaced across the complete cell but rather a reduced
+                     * cell. The cell dimensions along the beam x and y coordinates stay the same but along the
+                     * beam z direction the cell depth is reduced to DELTA_T * SPED_OF_LIGHT.
+                     *
+                     * All 3 components need to be specified.  In the case of a 2 dimensional simulation, the
+                     * component corresponding to the picongpu z direction will be discarded later.
+                     */
+                    static constexpr float_X minWeighting = 0.001;
+                    using numParticlesPerDimension = mCT::Int<2, 2, 2>;
+                };
+                using QuietBeam = QuietProbingBeam<QuietProbingBeamParam>;
+                struct RandomProbingBeamParam
+                {
+                    using Side = ProbingSide;
+                    static constexpr uint32_t numParticlesPerCell = 64u;
+                    static constexpr float_X minWeighting = 0.001;
+                };
+                using RandomBeam = RandomProbingBeam<RandomProbingBeamParam>;
+            } // namespace startPosition
+            namespace momentum
+            {
+                struct BeamMomentumParam
+                {
+                    using Side = ProbingSide;
+                    static constexpr float_64 photonEnergySI = 6.0 * UNITCONV_keV_to_Joule;
+                };
+                using BeamMomentum = PhotonMomentum<BeamMomentumParam>;
+            } // namespace momentum
+
+            using BeamStartAttributes = StartAttributes<startPosition::QuietBeam, momentum::BeamMomentum>;
+        } // namespace externalBeam
+    } // namespace particles
+} // namespace picongpu

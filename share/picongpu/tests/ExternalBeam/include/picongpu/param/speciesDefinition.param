@@ -1,0 +1,80 @@
+/* Copyright 2013-2023 Rene Widera, Benjamin Worpitz, Heiko Burau, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Define particle species.
+ *
+ * This file collects all previous declarations of base (reference) quantities
+ * and configured solvers for species and defines particle species. This
+ * includes "attributes" (lvalues to store with each species) and "flags"
+ * (rvalues & aliases for solvers to perform with the species for each timestep
+ * and ratios to base quantities). With those information, a `Particles` class
+ * is defined for each species and then collected in the list
+ * `VectorAllSpecies`.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/meta/String.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+
+namespace picongpu
+{
+    /*########################### define particle attributes #####################*/
+
+    /** describe attributes of a particle*/
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
+
+    /*########################### end particle attributes ########################*/
+
+    /*########################### define species #################################*/
+
+    /*--------------------------- photons -------------------------------------------*/
+
+    value_identifier(float_X, MassRatioPhotons, 0.0);
+    value_identifier(float_X, ChargeRatioPhotons, 0.0);
+
+    using ParticleFlagsPhotons = MakeSeq_t<
+        particlePusher<particles::pusher::Photon>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioPhotons>,
+        chargeRatio<ChargeRatioPhotons>>;
+
+    /* define species photons */
+    using Photons = Particles<PMACC_CSTRING("ph"), ParticleFlagsPhotons, DefaultParticleAttributes>;
+
+    /*########################### end species ####################################*/
+
+    /** All known particle species of the simulation
+     *
+     * List all defined particle species from above in this list
+     * to make them available to the PIC algorithm.
+     */
+    using VectorAllSpecies = MakeSeq_t<Photons>;
+
+} // namespace picongpu

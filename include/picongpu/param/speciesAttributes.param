@@ -1,5 +1,5 @@
 /* Copyright 2014-2023 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
- *                     Heiko Burau, Brian Marre
+ *                     Heiko Burau, Brian Marre, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -81,6 +81,15 @@ namespace picongpu
      * Thus, for efficiency reasons it is recommended to not enable this attribute by default.
      */
     value_identifier(float_X, weightingDampingFactor, 1._X);
+
+    //! Photon wavelength
+    alias(wavelength);
+
+    //! Photon start phase
+    value_identifier(float_X, startPhase, 0._X);
+
+    //! Photon polarization angle
+    value_identifier(float_X, polarizationAngle, 0._X);
 
     /** interpolated electric field with respect to particle shape
      *

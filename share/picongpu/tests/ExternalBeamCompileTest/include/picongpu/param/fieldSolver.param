@@ -1,0 +1,62 @@
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov, Klaus Steiniger, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configure the field solver.
+ *
+ * Select the numerical Maxwell solver (e.g. Yee's method).
+ *
+ * \attention
+ * Currently, the laser initialization in PIConGPU is implemented to work with the standard Yee solver.
+ * Using a solver of higher order will result in a slightly increased laser amplitude and energy than expected.
+ *
+ */
+
+#pragma once
+
+#include "picongpu/fields/MaxwellSolver/Solvers.def"
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        /** FieldSolver
+         *
+         * Field Solver Selection (note <> for some solvers):
+         *  - Yee<> : Standard Yee solver approximating derivatives with respect to time and
+         * space by second order finite differences.
+         *  - YeePML<>: Standard Yee solver using Perfectly Matched Layer Absorbing Boundary
+         * Conditions (PML)
+         *  - Lehe<>: Num. Cherenkov free field solver in a chosen direction
+         *  - LehePML<>: Num. Cherenkov free field solver in a chosen direction
+         *               using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
+         *  - ArbitraryOrderFDTD<4>: Solver using 4 neighbors to each direction to approximate
+         * *spatial* derivatives by finite differences. The number of neighbors can be changed from 4 to any positive,
+         * integer number. The order of the solver will be twice the number of neighbors in each direction. Yee's
+         * method is a special case of this using one neighbor to each direction.
+         *  - ArbitraryOrderFDTDPML<4>: ArbitraryOrderFDTD solver using Perfectly Matched Layer
+         *                              Absorbing Boundary Conditions (PML)
+         *  - None: disable the vacuum update of E and B
+         */
+        using Solver = maxwellSolver::None;
+
+    } // namespace fields
+} // namespace picongpu

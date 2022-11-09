@@ -1,0 +1,148 @@
+/* Copyright 2020-2023 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/grid.param"
+#include "picongpu/particles/externalBeam/beam/ProbingBeam.def"
+#include "picongpu/particles/externalBeam/beam/Side.hpp"
+#include "picongpu/particles/externalBeam/beam/SqrtWrapper.def"
+#include "picongpu/particles/externalBeam/beam/beamProfiles/profiles.def"
+#include "picongpu/particles/externalBeam/beam/beamShapes/shapes.def"
+#include "picongpu/particles/externalBeam/functors.def"
+
+#include <pmacc/preprocessor/struct.hpp>
+
+#ifndef PARAM_PHASE_IMPL
+#    define PARAM_PHASE_IMPL FromSpeciesWavelength
+#endif
+#ifndef PARAM_BEAM_SHAPE
+#    define PARAM_BEAM_SHAPE GaussianPulse
+#endif
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace externalBeam
+        {
+            /* Choose from:
+             *  - ZSide
+             *  - YSide
+             *  - XSide
+             * - ZRSide
+             * - YRSide
+             * - XRSide
+             */
+            using ProbingSide = beam::ZSide;
+
+            PMACC_STRUCT(
+                OffsetParam,
+                (PMACC_C_VECTOR_DIM(float_X, DIM2, beamOffset_SI, 0.0_X, 0.0_X))(
+                    PMACC_C_VALUE(float_X, beamDelay_SI, 0.0_X)));
+
+            struct GaussianPulseParam
+            {
+                // cut the pulse cutTimeFront_SI before the pulse maximum if true
+                static constexpr bool limitStart = false;
+                // cut the pulse at cutTimeBack_SI after the pulse maximum if true
+                static constexpr bool limitEnd = false;
+                static constexpr float_64 FWHM_SI = 30e-15; // 30fs
+
+                static constexpr float_64 cutTimeFront_SI = 3.0 * FWHM_SI;
+                static constexpr float_64 cutTimeBack_SI = 3.0 * FWHM_SI;
+                // when 0 the pulse max is at the beam origin at t_sim = 0
+                static constexpr float_64 timeOffset_SI = 0.0;
+            };
+
+
+            using ConstProfile = beam::beamProfiles::ConstProfile;
+            using GaussianPulse = beam::beamShapes::GaussianPulse<GaussianPulseParam>;
+            using LorentzPulse = beam::beamShapes::GaussianPulse<GaussianPulseParam>;
+            using SqrtGauss = beam::SqrtWrapper<GaussianPulse>;
+
+            using BeamProfile = ConstProfile;
+            using BeamShape = PARAM_BEAM_SHAPE;
+
+            using Beam = beam::ProbingBeam<BeamProfile, BeamShape, ProbingSide, OffsetParam>;
+
+            namespace density
+            {
+                struct ProbingBeamDensityParam
+                {
+                private:
+                    static constexpr float_64 cellVolumeSI
+                        = SI::CELL_HEIGHT_SI * SI::CELL_WIDTH_SI * SI::CELL_DEPTH_SI;
+
+                public:
+                    using ProbingBeam = Beam;
+                    // Just a test value -> one 100000 photons per full cell
+                    static constexpr float_64 photonFluxAtMaxBeamIntensity_SI{
+                        100000.0 / cellVolumeSI * SI::SPEED_OF_LIGHT_SI};
+                };
+                using ProbingBeamDensity = ProbingBeamImpl<ProbingBeamDensityParam>;
+            } // namespace density
+            namespace startPosition
+            {
+                struct RandomProbingBeamParam
+                {
+                    using Side = ProbingSide;
+                    // PhotonBeam needs to be defined by a user as well.
+                    static constexpr uint32_t numParticlesPerCell = 64u;
+                    static constexpr float_X minWeighting = 0.001;
+                };
+                using RandomBeam = RandomProbingBeam<RandomProbingBeamParam>;
+            } // namespace startPosition
+            namespace momentum
+            {
+                struct BeamMomentumParam
+                {
+                    using Side = ProbingSide;
+                    static constexpr float_64 photonEnergySI = 6.0 * UNITCONV_keV_to_Joule;
+                };
+                using BeamMomentum = PhotonMomentum<BeamMomentumParam>;
+            } // namespace momentum
+
+            namespace phase
+            {
+                struct Param
+                {
+                    using Side = ProbingSide;
+                    static constexpr float_64 phi0 = 0.0;
+                };
+                using BeamPhase = PARAM_PHASE_IMPL<Param>;
+            } // namespace phase
+            namespace polarization
+            {
+                struct Param
+                {
+                    static constexpr float_X polarization{0.0};
+                };
+                using BeamPolarization = OnePolarization<Param>;
+
+            } // namespace polarization
+
+            using BeamStartAttributes = StartAttributes<
+                startPosition::RandomBeam,
+                momentum::BeamMomentum,
+                phase::BeamPhase,
+                polarization::BeamPolarization>;
+        } // namespace externalBeam
+    } // namespace particles
+} // namespace picongpu
