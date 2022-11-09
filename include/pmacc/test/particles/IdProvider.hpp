@@ -23,9 +23,9 @@
 
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/particles/IdProvider.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/types.hpp>
 
 #include <algorithm>
@@ -41,31 +41,31 @@ namespace pmacc
     {
         namespace particles
         {
-            template<uint32_t T_numWorkers, uint32_t T_numIdsPerBlock, typename T_IdProvider>
+            template<uint32_t T_numIdsPerBlock, typename T_IdProvider>
             struct GenerateIds
             {
-                template<class T_Box, typename T_Acc>
+                template<class T_Box, typename T_Worker>
                 HDINLINE void operator()(
-                    const T_Acc& acc,
+                    const T_Worker& worker,
                     T_Box outputbox,
                     uint32_t numThreads,
                     uint32_t numIdsPerThread) const
                 {
                     using namespace ::pmacc;
 
-                    constexpr uint32_t numWorkers = T_numWorkers;
+                    uint32_t const blockId = cupla::blockIdx(worker.getAcc()).x * T_numIdsPerBlock;
 
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-                    uint32_t const blockId = cupla::blockIdx(acc).x * T_numIdsPerBlock;
-                    lockstep::makeForEach<T_numIdsPerBlock, numWorkers>(workerIdx)(
+                    lockstep::makeForEach<T_numIdsPerBlock>(worker)(
                         [&](uint32_t const linearId)
                         {
                             uint32_t const localId = blockId + linearId;
                             if(localId < numThreads)
                             {
                                 for(uint32_t i = 0u; i < numIdsPerThread; i++)
-                                    outputbox(i * numThreads + localId) = T_IdProvider::getNewId();
+                                {
+                                    uint32_t x = T_IdProvider::getNewId();
+                                    outputbox(i * numThreads + localId) = x;
+                                }
                             }
                         });
                 }
@@ -136,8 +136,9 @@ namespace pmacc
                     // Generate the same IDs on the device
                     HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
                     constexpr uint32_t numWorkers = traits::GetNumWorkers<numIdsPerBlock>::value;
-                    PMACC_KERNEL(GenerateIds<numWorkers, numIdsPerBlock, IdProvider>{})
-                    (numBlocks, numWorkers)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
+                    auto workerCfg = lockstep::makeWorkerCfg<numIdsPerBlock>();
+                    PMACC_LOCKSTEP_KERNEL(GenerateIds<numIdsPerBlock, IdProvider>{}, workerCfg)
+                    (numBlocks)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
                     idBuf.deviceToHost();
                     REQUIRE(numIds == ids.size());
                     auto hostBox = idBuf.getHostBuffer().getDataBox();

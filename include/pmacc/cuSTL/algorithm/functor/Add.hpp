@@ -38,8 +38,8 @@ namespace pmacc
                     return first + second;
                 }
 
-                template<typename T_Type, typename T_Acc>
-                HDINLINE T_Type operator()(T_Acc const&, T_Type const& first, T_Type const& second) const
+                template<typename T_Type, typename T_Worker>
+                HDINLINE T_Type operator()(T_Worker const&, T_Type const& first, T_Type const& second) const
                 {
                     return first + second;
                 }

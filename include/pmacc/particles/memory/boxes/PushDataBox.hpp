@@ -69,10 +69,10 @@ namespace pmacc
          *
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template<typename T_Acc, typename T_Hierarchy>
-        HDINLINE TileDataBox<VALUE> pushN(T_Acc const& acc, TYPE count, T_Hierarchy const& hierarchy)
+        template<typename T_Worker, typename T_Hierarchy>
+        HDINLINE TileDataBox<VALUE> pushN(T_Worker const& worker, TYPE count, T_Hierarchy const& hierarchy)
         {
-            TYPE old_addr = cupla::atomicAdd(acc, currentSize, count, hierarchy);
+            TYPE old_addr = cupla::atomicAdd(worker.getAcc(), currentSize, count, hierarchy);
             return TileDataBox<VALUE>(this->fixedPointer, DataSpace<DIM1>(old_addr));
         }
 
@@ -90,10 +90,10 @@ namespace pmacc
          *
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template<typename T_Acc, typename T_Hierarchy>
-        HDINLINE void push(T_Acc const& acc, VALUE val, T_Hierarchy const& hierarchy)
+        template<typename T_Worker, typename T_Hierarchy>
+        HDINLINE void push(T_Worker const& worker, VALUE val, T_Hierarchy const& hierarchy)
         {
-            TYPE old_addr = cupla::atomicAdd(acc, currentSize, 1, hierarchy);
+            TYPE old_addr = cupla::atomicAdd(worker.getAcc(), currentSize, 1, hierarchy);
             (*this)[old_addr] = val;
         }
 

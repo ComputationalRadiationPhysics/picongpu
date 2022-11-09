@@ -54,16 +54,12 @@ namespace picongpu
                 float_64 sumDebyeLength = 0.0;
             };
 
-            /** Kernel to estimate Debye length for electrons
-             *
-             * @tparam T_numWorkers number of threads per block
-             */
-            template<uint32_t T_numWorkers>
+            //! Kernel to estimate Debye length for electrons
             struct DebyeLengthEstimateKernel
             {
                 /** Kernel to estimate Debye length for electrons
                  *
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  * @tparam T_ElectronBox electron storage type
                  * @tparam T_Mapping mapping type
                  * @tparam T_EstimateBox result storage type, device box for Estimate
@@ -74,18 +70,19 @@ namespace picongpu
                  * @param minMacroparticlesPerSupercell only use supercells with at least this many macroparticles
                  * @param estimateBox device box with a single element to write kernel result to
                  */
-                template<typename T_Acc, typename T_ElectronBox, typename T_Mapping, typename T_EstimateBox>
+                template<typename T_Worker, typename T_ElectronBox, typename T_Mapping, typename T_EstimateBox>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ElectronBox const electronBox,
                     T_Mapping mapper,
                     uint32_t const minMacroparticlesPerSupercell,
                     T_EstimateBox estimateBox) const
                 {
-                    auto const supercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+                    auto const supercellIdx
+                        = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
                     auto& supercell = electronBox.getSuperCell(supercellIdx);
                     if(supercell.getNumParticles() >= minMacroparticlesPerSupercell)
-                        process(acc, electronBox, supercellIdx, estimateBox);
+                        process(worker, electronBox, supercellIdx, estimateBox);
                 }
 
             private:
@@ -93,23 +90,22 @@ namespace picongpu
                  *
                  * The supercell is required to have macroparticles
                  *
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  * @tparam T_ElectronBox electron storage type
                  * @tparam T_EstimateBox result storage type, device box for Estimate
                  *
-                 * @param acc alpaka accelerator
+                 * @param worker lockstep worker
                  * @param electronBox electron storage
                  * @param supercellIdx supercell index, including guards
                  * @param estimate device box with a single element to write kernel result to
                  */
-                template<typename T_Acc, typename T_ElectronBox, typename T_EstimateBox>
+                template<typename T_Worker, typename T_ElectronBox, typename T_EstimateBox>
                 DINLINE void process(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ElectronBox const electronBox,
                     pmacc::DataSpace<simDim> const supercellIdx,
                     T_EstimateBox estimateBox) const
                 {
-                    constexpr uint32_t numWorkers = T_numWorkers;
                     /* Estimate variance in momentum of macroparticles in the supercell.
                      * Each thread processes its particles, then the master thread performs reduction.
                      * Sums are weighted and operate with single- (not macro-) particle momenta.
@@ -119,14 +115,10 @@ namespace picongpu
                     auto sumMomentum = float3_64::create(0.0);
                     auto sumMomentumSquared = float3_64::create(0.0);
 
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-                    auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(
-                        workerIdx,
-                        electronBox,
-                        supercellIdx);
+                    auto forEachParticle
+                        = pmacc::particles::algorithm::acc::makeForEach(worker, electronBox, supercellIdx);
 
                     forEachParticle(
-                        acc,
                         [&sumWeighting, &sumMomentum, &sumMomentumSquared](auto const& /*accelerator*/, auto& particle)
                         {
                             auto const weighting = float_64{particle[weighting_]};
@@ -138,10 +130,10 @@ namespace picongpu
                         });
 
                     // Reduce for supercell in shared memory
-                    PMACC_SMEM(acc, supercellSumWeighting, float_64);
-                    PMACC_SMEM(acc, supercellSumMomentum, float3_64);
-                    PMACC_SMEM(acc, supercellSumMomentumSquared, float3_64);
-                    auto onlyMaster = lockstep::makeMaster(workerIdx);
+                    PMACC_SMEM(worker, supercellSumWeighting, float_64);
+                    PMACC_SMEM(worker, supercellSumMomentum, float3_64);
+                    PMACC_SMEM(worker, supercellSumMomentumSquared, float3_64);
+                    auto onlyMaster = lockstep::makeMaster(worker);
                     onlyMaster(
                         [&]()
                         {
@@ -149,22 +141,26 @@ namespace picongpu
                             supercellSumMomentum = float3_64::create(0.0);
                             supercellSumMomentumSquared = float3_64::create(0.0);
                         });
-                    cupla::__syncthreads(acc);
-                    cupla::atomicAdd(acc, &supercellSumWeighting, sumWeighting, ::alpaka::hierarchy::Threads{});
+                    worker.sync();
+                    cupla::atomicAdd(
+                        worker.getAcc(),
+                        &supercellSumWeighting,
+                        sumWeighting,
+                        ::alpaka::hierarchy::Threads{});
                     for(uint32_t d = 0; d < 3; d++)
                     {
                         cupla::atomicAdd(
-                            acc,
+                            worker.getAcc(),
                             &(supercellSumMomentum[d]),
                             sumMomentum[d],
                             ::alpaka::hierarchy::Threads{});
                         cupla::atomicAdd(
-                            acc,
+                            worker.getAcc(),
                             &(supercellSumMomentumSquared[d]),
                             sumMomentumSquared[d],
                             ::alpaka::hierarchy::Threads{});
                     }
-                    cupla::__syncthreads(acc);
+                    worker.sync();
                     onlyMaster(
                         [&]()
                         {
@@ -173,7 +169,7 @@ namespace picongpu
                             auto const variance = pmacc::math::max(
                                 float3_64::create(0.0),
                                 supercellSumMomentumSquared / supercellSumWeighting - mean * mean);
-                            check(acc, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
+                            check(worker, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
                         });
                 }
 
@@ -186,7 +182,7 @@ namespace picongpu
                  * This is according to page 32 of R.W. Hockney, J.W. Eastwood. Computer Simulation Using Particles,
                  * CRC Press (1988).
                  *
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  * @tparam T_ElectronBox electron storage type
                  * @tparam T_ResultBox result storage type, device box for Result
                  *
@@ -197,9 +193,9 @@ namespace picongpu
                  * @param result device box of type Result with a single element
                  *        to write kernel result to
                  */
-                template<typename T_Acc, typename T_ElectronBox, typename T_EstimateBox>
+                template<typename T_Worker, typename T_ElectronBox, typename T_EstimateBox>
                 DINLINE void check(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ElectronBox const electronBox,
                     pmacc::DataSpace<simDim> const supercellIdx,
                     float_64 const sumWeighting,
@@ -227,21 +223,29 @@ namespace picongpu
                         maxCellSize = math::max(maxCellSize, cellSize[d]);
                     bool const isDebyeLengthUnderOneCell = (debyeLength < maxCellSize);
 
-                    cupla::atomicAdd(acc, &(estimateBox(0).numUsedSupercells), 1u, ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        worker.getAcc(),
+                        &(estimateBox(0).numUsedSupercells),
+                        1u,
+                        ::alpaka::hierarchy::Blocks{});
                     if(isDebyeLengthUnderOneCell)
                         cupla::atomicAdd(
-                            acc,
+                            worker.getAcc(),
                             &(estimateBox(0).numFailingSupercells),
                             1u,
                             ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(acc, &(estimateBox(0).sumWeighting), sumWeighting, ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
+                        &(estimateBox(0).sumWeighting),
+                        sumWeighting,
+                        ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        worker.getAcc(),
                         &(estimateBox(0).sumTemperatureKeV),
                         sumWeighting * temperatureKeV,
                         ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(
-                        acc,
+                        worker.getAcc(),
                         &(estimateBox(0).sumDebyeLength),
                         sumWeighting * debyeLength,
                         ::alpaka::hierarchy::Blocks{});

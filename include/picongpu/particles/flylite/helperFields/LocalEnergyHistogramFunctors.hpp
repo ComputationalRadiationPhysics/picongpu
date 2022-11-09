@@ -79,14 +79,12 @@ namespace picongpu
                                 GuardSize::toRT());
                             auto const mapper = makeAreaMapper<CORE + BORDER>(cellDescription);
 
+                            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
                             // add energy histogram on top of existing data
-                            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                                pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-                            PMACC_KERNEL(helperFields::KernelAddLocalEnergyHistogram<numWorkers>{})
+                            PMACC_LOCKSTEP_KERNEL(helperFields::KernelAddLocalEnergyHistogram{}, workerCfg)
                             (
                                 // one block per local energy histogram
-                                mapper.getGridDim(),
-                                numWorkers)(
+                                mapper.getGridDim())(
                                 // start in border (jump over GUARD area)
                                 speciesTmp->getDeviceParticlesBox(),
                                 // start in border (has no GUARD area)

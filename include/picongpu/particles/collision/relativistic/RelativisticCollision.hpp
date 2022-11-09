@@ -397,15 +397,15 @@ namespace picongpu
                             float_COLL const& s12) const
                         {
                             // Get a random float value from 0,1
-                            auto const& acc = *ctx.m_acc;
+                            auto const& worker = *ctx.m_worker;
                             auto& rngHandle = *ctx.m_hRng;
                             using UniformFloat = pmacc::random::distributions::Uniform<
                                 pmacc::random::distributions::uniform::ExcludeZero<float_COLL>>;
                             auto rng = rngHandle.template applyDistribution<UniformFloat>();
-                            float_COLL rngValue = rng(acc);
+                            float_COLL rngValue = rng(worker);
 
                             float_COLL const cosXi = calcCosXi(s12, rngValue);
-                            float_COLL const phi = 2.0_COLL * PI * rng(acc);
+                            float_COLL const phi = 2.0_COLL * PI * rng(worker);
                             float3_COLL const finalComs0 = calcFinalComsMomentum(v.comsMomentum0, cosXi, phi);
 
                             float3_COLL finalLab0, finalLab1;
@@ -421,7 +421,7 @@ namespace picongpu
 
 
                                 par1[momentum_] = precisionCast<float_X>(finalLab1 * v.normalizedWeight1);
-                                if((v.normalizedWeight1 / v.normalizedWeight0) - rng(acc) > 0)
+                                if((v.normalizedWeight1 / v.normalizedWeight0) - rng(worker) > 0)
                                 {
                                     finalLab0 = comsToLab(
                                         finalComs0,
@@ -438,7 +438,7 @@ namespace picongpu
                                 finalLab0
                                     = comsToLab(finalComs0, v.mass0, v.coeff0, v.gammaComs, v.factorA, v.comsVelocity);
                                 par0[momentum_] = precisionCast<float_X>(finalLab0 * v.normalizedWeight0);
-                                if((v.normalizedWeight0 / v.normalizedWeight1) - rng(acc) >= 0.0_COLL)
+                                if((v.normalizedWeight0 / v.normalizedWeight1) - rng(worker) >= 0.0_COLL)
                                 {
                                     finalLab1 = comsToLab(
                                         -1.0_COLL * finalComs0,

@@ -92,10 +92,10 @@ namespace picongpu
                     typename T_Particle,
                     typename TVecSuperCell,
                     typename BoxTmp,
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_AccFilter>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_Particle& particle,
                     const TVecSuperCell superCell,
                     T_AccFilter& accFilter,

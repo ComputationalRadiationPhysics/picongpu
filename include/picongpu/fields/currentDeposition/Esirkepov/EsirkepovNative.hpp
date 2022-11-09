@@ -71,9 +71,9 @@ namespace picongpu
              *
              * \todo: please fix me that we can use CenteredCell
              */
-            template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Acc>
+            template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Worker>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 DataBoxJ dataBoxJ,
                 const PosType pos,
                 const VelType velocity,
@@ -95,16 +95,16 @@ namespace picongpu
 
                 using namespace cursor::tools;
                 cptCurrent1D(
-                    acc,
+                    worker,
                     twistVectorFieldAxes<pmacc::math::CT::Int<1, 2, 0>>(cursorJ),
                     rotateOrigin<1, 2, 0>(line),
                     cellSize.x());
                 cptCurrent1D(
-                    acc,
+                    worker,
                     twistVectorFieldAxes<pmacc::math::CT::Int<2, 0, 1>>(cursorJ),
                     rotateOrigin<2, 0, 1>(line),
                     cellSize.y());
-                cptCurrent1D(acc, cursorJ, line, cellSize.z());
+                cptCurrent1D(worker, cursorJ, line, cellSize.z());
             }
 
             /**
@@ -113,9 +113,9 @@ namespace picongpu
              * @param line trajectory of the particle from to last to the current time step
              * @param cellEdgeLength length of edge of the cell in z-direction
              */
-            template<typename CursorJ, typename T_Acc>
+            template<typename CursorJ, typename T_Worker>
             DINLINE void cptCurrent1D(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 CursorJ cursorJ,
                 const Line<float3_X>& line,
                 const float_X cellEdgeLength)
@@ -141,7 +141,7 @@ namespace picongpu
                             accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W
                                 * cellEdgeLength;
                             auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                            atomicOp(acc, (*cursorJ(i, j, k)).z(), accumulated_J);
+                            atomicOp(worker, (*cursorJ(i, j, k)).z(), accumulated_J);
                         }
                     }
                 }

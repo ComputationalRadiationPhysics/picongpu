@@ -40,8 +40,8 @@ namespace pmacc
                     dst = math::min(dst, src);
                 }
 
-                template<typename Dst, typename Src, typename T_Acc>
-                DINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                template<typename Dst, typename Src, typename T_Worker>
+                DINLINE void operator()(const T_Worker&, Dst& dst, const Src& src) const
                 {
                     dst = math::min(dst, src);
                 }

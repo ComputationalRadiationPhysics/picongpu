@@ -144,12 +144,12 @@ namespace picongpu
 
                     /** device side manipulation for init plane (transversal)
                      *
-                     * @tparam T_Args type of the arguments passed to the user manipulator functor
+                     * @tparam T_Worker lockstep worker type
                      *
                      * @param cellIndexInSuperCell ND cell index in current supercell
                      */
-                    template<typename T_Acc>
-                    HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const& cellIndexInSuperCell)
+                    template<typename T_Worker>
+                    HDINLINE void operator()(T_Worker const&, DataSpace<simDim> const& cellIndexInSuperCell)
                     {
                         // coordinate system to global simulation as origin
                         DataSpace<simDim> const localCell(
@@ -321,19 +321,16 @@ namespace picongpu
 
                 /** create device manipulator functor
                  *
-                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_Worker lockstep worker type
                  *
-                 * @param alpaka accelerator
                  * @param localSupercellOffset (in supercells, without guards) to the
                  *        origin of the local domain
                  * @param configuration of the worker
                  */
-                template<typename T_WorkerCfg, typename T_Acc>
+                template<typename T_Worker>
                 HDINLINE acc::ExpRampWithPrepulse<Unitless> operator()(
-                    T_Acc const&,
-                    DataSpace<simDim> const& localSupercellOffset,
-                    T_WorkerCfg const&) const
+                    T_Worker const& /*worker*/,
+                    DataSpace<simDim> const& localSupercellOffset) const
                 {
                     auto const superCellToLocalOriginCellOffset = localSupercellOffset * SuperCellSize::toRT();
                     return acc::ExpRampWithPrepulse<Unitless>(

@@ -45,54 +45,47 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    /** Count macro particles per superCell
-     *
-     * @tparam T_numWorkers number of workers
-     */
-    template<uint32_t T_numWorkers>
+    //! Count macro particles per superCell
     struct CountMakroParticle
     {
-        template<typename ParBox, typename CounterBox, typename Mapping, typename T_Acc>
-        DINLINE void operator()(T_Acc const& acc, ParBox parBox, CounterBox counterBox, Mapping mapper) const
+        template<typename ParBox, typename CounterBox, typename Mapping, typename T_Worker>
+        DINLINE void operator()(T_Worker const& worker, ParBox parBox, CounterBox counterBox, Mapping mapper) const
         {
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            const DataSpace<simDim> superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
             /* counterBox has no guarding supercells*/
             const DataSpace<simDim> superCellIdxNoGuard = superCellIdx - mapper.getGuardingSuperCells();
 
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+            PMACC_SMEM(worker, counterValue, uint64_cu);
 
-            PMACC_SMEM(acc, counterValue, uint64_cu);
+            auto masterOnly = lockstep::makeMaster(worker);
 
-            if(workerIdx == 0)
-            {
-                counterValue = 0;
-            }
-            cupla::__syncthreads(acc);
+            masterOnly([&]() { counterValue = 0; });
+            worker.sync();
 
-            auto forEachParticle
-                = pmacc::particles::algorithm::acc::makeForEach<numWorkers>(workerIdx, parBox, superCellIdx);
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, parBox, superCellIdx);
 
             forEachParticle(
-                acc,
-                [&counterValue](auto const& accelerator, auto& /*particle*/) {
+                [&counterValue](auto const& lockstepWorker, auto& /*particle*/)
+                {
                     cupla::atomicAdd(
-                        accelerator,
+                        lockstepWorker.getAcc(),
                         &counterValue,
                         static_cast<uint64_cu>(1LU),
                         ::alpaka::hierarchy::Threads{});
                 });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            if(workerIdx == 0)
-            {
-                PMACC_DEVICE_ASSERT_MSG(
-                    counterValue == forEachParticle.numParticles(),
-                    "[makroParticlesCounter] Number of particles counted and given by the iteration algorithm "
-                    "differ.");
-                counterBox(superCellIdxNoGuard) = counterValue;
-            }
+            masterOnly(
+                [&]()
+                {
+                    PMACC_DEVICE_ASSERT_MSG(
+                        counterValue == forEachParticle.numParticles(),
+                        "[makroParticlesCounter] Number of particles counted and given by the iteration algorithm "
+                        "differ.");
+                    counterBox(superCellIdxNoGuard) = counterValue;
+                });
         }
     };
     /** Count makro particle of a species and write down the result to a global HDF5 file.
@@ -211,12 +204,13 @@ namespace picongpu
             /*############ count particles #######################################*/
             using SuperCellSize = MappingDesc::SuperCellSize;
             auto const mapper = makeAreaMapper<AREA>(*cellDescription);
-            constexpr uint32_t numWorkers
-                = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-            PMACC_KERNEL(CountMakroParticle<numWorkers>{})
-            (mapper.getGridDim(),
-             numWorkers)(particles->getDeviceParticlesBox(), localResult->getDeviceBuffer().getDataBox(), mapper);
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            PMACC_LOCKSTEP_KERNEL(CountMakroParticle{}, workerCfg)
+            (mapper.getGridDim())(
+                particles->getDeviceParticlesBox(),
+                localResult->getDeviceBuffer().getDataBox(),
+                mapper);
 
             localResult->deviceToHost();
 

@@ -24,9 +24,9 @@ namespace picongpu
     {
         namespace collision
         {
-            template<uint32_t T_numWorkers, bool screeningLength>
+            template<bool screeningLength>
             struct InterCollision;
-            template<uint32_t T_numWorkers, bool screeningLength>
+            template<bool screeningLength>
             struct IntraCollision;
         } // namespace collision
     } // namespace particles

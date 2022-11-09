@@ -39,15 +39,15 @@ namespace pmacc
             struct Atomic
             {
                 /** Execute generic atomic operation */
-                template<typename T_Acc, typename T_Dst, typename T_Src>
-                HDINLINE void operator()(T_Acc const& acc, T_Dst& dst, T_Src const& src) const
+                template<typename T_Worker, typename T_Dst, typename T_Src>
+                HDINLINE void operator()(T_Worker const& worker, T_Dst& dst, T_Src const& src) const
                 {
-                    atomicOpNoRet<T_AlpakaOperation>(acc, &dst, src, T_AlpakaHierarchy{});
+                    atomicOpNoRet<T_AlpakaOperation>(worker, &dst, src, T_AlpakaHierarchy{});
                 }
 
                 /** Execute atomic operation for pmacc::math::Vector */
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_Type,
                     int T_dim,
                     typename T_DstAccessor,
@@ -57,12 +57,12 @@ namespace pmacc
                     typename T_SrcNavigator,
                     typename T_SrcStorage>
                 HDINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     pmacc::math::Vector<T_Type, T_dim, T_DstAccessor, T_DstNavigator, T_DstStorage>& dst,
                     pmacc::math::Vector<T_Type, T_dim, T_SrcAccessor, T_SrcNavigator, T_SrcStorage> const& src) const
                 {
                     for(int i = 0; i < T_dim; ++i)
-                        atomicOpNoRet<T_AlpakaOperation>(acc, &dst[i], src[i], T_AlpakaHierarchy{});
+                        atomicOpNoRet<T_AlpakaOperation>(worker, &dst[i], src[i], T_AlpakaHierarchy{});
                 }
             };
 

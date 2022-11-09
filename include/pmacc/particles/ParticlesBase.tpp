@@ -38,11 +38,10 @@ namespace pmacc
     {
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-        constexpr uint32_t numWorkers
-            = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
+        auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
 
-        PMACC_KERNEL(KernelDeleteParticles<numWorkers>{})
-        (mapper.getGridDim(), numWorkers)(particlesBuffer->getDeviceParticleBox(), mapper);
+        PMACC_LOCKSTEP_KERNEL(KernelDeleteParticles{}, workerCfg)
+        (mapper.getGridDim())(particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
@@ -51,11 +50,10 @@ namespace pmacc
     {
         auto const mapper = makeAreaMapper<T_area>(this->cellDescription);
 
-        constexpr uint32_t numWorkers
-            = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
+        auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
 
-        PMACC_KERNEL(KernelDeleteParticles<numWorkers>{})
-        (mapper.getGridDim(), numWorkers)(particlesBuffer->getDeviceParticleBox(), mapper);
+        PMACC_LOCKSTEP_KERNEL(KernelDeleteParticles{}, workerCfg)
+        (mapper.getGridDim())(particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
@@ -74,11 +72,10 @@ namespace pmacc
 
             particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
 
-            constexpr uint32_t numWorkers
-                = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
+            auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
 
-            PMACC_KERNEL(KernelCopyGuardToExchange<numWorkers>{})
-            (mapper.getGridDim(), numWorkers)(
+            PMACC_LOCKSTEP_KERNEL(KernelCopyGuardToExchange{}, workerCfg)
+            (mapper.getGridDim())(
                 particlesBuffer->getDeviceParticleBox(),
                 particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(),
                 mapper);
@@ -100,11 +97,10 @@ namespace pmacc
             {
                 ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-                constexpr uint32_t numWorkers
-                    = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
+                auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
 
-                PMACC_KERNEL(KernelInsertParticles<numWorkers>{})
-                (numParticles, numWorkers)(
+                PMACC_LOCKSTEP_KERNEL(KernelInsertParticles{}, workerCfg)
+                (numParticles)(
                     particlesBuffer->getDeviceParticleBox(),
                     particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceExchangePopDataBox(),
                     mapper);

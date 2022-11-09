@@ -86,15 +86,15 @@ namespace pmacc
          *
          * @return an empty frame
          */
-        template<typename T_Acc>
-        DINLINE FramePtr getEmptyFrame(const T_Acc& acc)
+        template<typename T_Worker>
+        DINLINE FramePtr getEmptyFrame(const T_Worker& worker)
         {
             FrameType* tmp = nullptr;
             const int maxTries = 13; // magic number is not performance critical
             for(int numTries = 0; numTries < maxTries; ++numTries)
             {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-                tmp = (FrameType*) m_deviceHeapHandle.malloc(acc, sizeof(FrameType));
+                tmp = (FrameType*) m_deviceHeapHandle.malloc(worker.getAcc(), sizeof(FrameType));
 #else
                 tmp = new FrameType;
 #endif
@@ -129,11 +129,11 @@ namespace pmacc
          *
          * @param frame frame to remove
          */
-        template<typename T_Acc>
-        DINLINE void removeFrame(const T_Acc& acc, FramePtr& frame)
+        template<typename T_Worker>
+        DINLINE void removeFrame(const T_Worker& worker, FramePtr& frame)
         {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            m_deviceHeapHandle.free(acc, (void*) frame.ptr);
+            m_deviceHeapHandle.free(worker.getAcc(), (void*) frame.ptr);
 #else
             delete(frame.ptr);
 #endif
@@ -201,8 +201,8 @@ namespace pmacc
          * @param frame frame to set as first frame
          * @param idx position of supercell
          */
-        template<typename T_Acc>
-        DINLINE void setAsFirstFrame(T_Acc const& acc, FramePtr& frame, DataSpace<DIM> const& idx)
+        template<typename T_Worker>
+        DINLINE void setAsFirstFrame(T_Worker const& worker, FramePtr& frame, DataSpace<DIM> const& idx)
         {
             FrameType** firstFrameNativPtr = &(getSuperCell(idx).firstFramePtr);
 
@@ -216,7 +216,7 @@ namespace pmacc
             __threadfence();
 #endif
             FramePtr oldFirstFramePtr((FrameType*) cupla::atomicExch(
-                acc,
+                worker.getAcc(),
                 (unsigned long long int*) firstFrameNativPtr,
                 (unsigned long long int) frame.ptr,
                 ::alpaka::hierarchy::Grids{}));
@@ -239,8 +239,8 @@ namespace pmacc
          * @param frame frame to set as last frame
          * @param idx position of supercell
          */
-        template<typename T_Acc>
-        DINLINE void setAsLastFrame(T_Acc const& acc, FramePointer<FrameType>& frame, DataSpace<DIM> const& idx)
+        template<typename T_Worker>
+        DINLINE void setAsLastFrame(T_Worker const& worker, FramePointer<FrameType>& frame, DataSpace<DIM> const& idx)
         {
             FrameType** lastFrameNativPtr = &(getSuperCell(idx).lastFramePtr);
 
@@ -254,7 +254,7 @@ namespace pmacc
             __threadfence();
 #endif
             FramePtr oldLastFramePtr((FrameType*) cupla::atomicExch(
-                acc,
+                worker.getAcc(),
                 (unsigned long long int*) lastFrameNativPtr,
                 (unsigned long long int) frame.ptr,
                 ::alpaka::hierarchy::Grids{}));
@@ -277,8 +277,8 @@ namespace pmacc
          * @param idx position of supercell
          * @return true if more frames in list, else false
          */
-        template<typename T_Acc>
-        DINLINE bool removeLastFrame(const T_Acc& acc, const DataSpace<DIM>& idx)
+        template<typename T_Worker>
+        DINLINE bool removeLastFrame(const T_Worker& worker, const DataSpace<DIM>& idx)
         {
             //!\todo this is not thread save
             FrameType** lastFrameNativPtr = &(getSuperCell(idx).lastFramePtr);
@@ -292,14 +292,14 @@ namespace pmacc
                 {
                     prev->nextFrame = FramePtr(); // set to invalid frame
                     *lastFrameNativPtr = prev.ptr; // set new last frame
-                    removeFrame(acc, last);
+                    removeFrame(worker, last);
                     return true;
                 }
                 // remove last frame of supercell
                 getSuperCell(idx).firstFramePtr = nullptr;
                 getSuperCell(idx).lastFramePtr = nullptr;
 
-                removeFrame(acc, last);
+                removeFrame(worker, last);
             }
             return false;
         }

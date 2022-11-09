@@ -26,7 +26,7 @@
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/cuSTL/zone/SphericZone.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 
 namespace picongpu
 {
@@ -60,11 +60,8 @@ namespace picongpu
                 const pmacc::math::Int<simDim> guardSuperCells = cellDesc.getGuardingSuperCells();
                 const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2 * guardSuperCells;
 
-                constexpr uint32_t numWorkers
-                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
                 /* Functor holding the actual generic particle creation kernel */
-                auto createParticlesKernel = make_CreateParticlesKernel<numWorkers>(
+                auto createParticlesKernel = make_CreateParticlesKernel(
                     sourceSpecies.getDeviceParticlesBox(),
                     targetSpecies.getDeviceParticlesBox(),
                     particleCreator,
@@ -75,7 +72,7 @@ namespace picongpu
                     static_cast<pmacc::math::Size_t<simDim>>(coreBorderSuperCells * SuperCellSize::toRT()),
                     guardSuperCells * SuperCellSize::toRT());
 
-                algorithm::kernel::ForeachLockstep<numWorkers, SuperCellSize> foreach;
+                algorithm::kernel::ForeachLockstep<SuperCellSize> foreach;
                 foreach(zone, createParticlesKernel, cursor::make_MultiIndexCursor<simDim>())
                     ;
 

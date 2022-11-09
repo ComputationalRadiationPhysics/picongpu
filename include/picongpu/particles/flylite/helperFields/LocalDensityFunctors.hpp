@@ -121,13 +121,12 @@ namespace picongpu
                          * write in new field
                          */
                         auto nlocal = dc.get<LocalDensity>(helperFields::LocalDensity::getName(speciesGroup), true);
-                        constexpr uint32_t numWorkers
-                            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-                        PMACC_KERNEL(helperFields::KernelAverageDensity<numWorkers>{})
+
+                        auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                        PMACC_LOCKSTEP_KERNEL(helperFields::KernelAverageDensity{}, workerCfg)
                         (
                             // one block per averaged density value
-                            nlocal->getGridBuffer().getGridLayout().getDataSpaceWithoutGuarding(),
-                            numWorkers)(
+                            nlocal->getGridBuffer().getGridLayout().getDataSpaceWithoutGuarding())(
                             // start in border (jump over GUARD area)
                             fieldTmp->getDeviceDataBox().shift(SuperCellSize::toRT() * GuardSize::toRT()),
                             // start in border (has no GUARD area)

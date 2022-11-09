@@ -208,13 +208,12 @@ namespace picongpu
                 GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
                 auto const mapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
 
-                constexpr uint32_t numWorkers
-                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+                auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
                 /* this sanity check costs a little bit of time but hdf5 writing is
                  * slower */
-                PMACC_KERNEL(CopySpecies<numWorkers>{})
-                (mapper.getGridDim(), numWorkers)(
+                PMACC_LOCKSTEP_KERNEL(CopySpecies{}, workerCfg)
+                (mapper.getGridDim())(
                     counterBuffer.getDeviceBuffer().getPointer(),
                     deviceFrame,
                     rp.speciesTmp->getDeviceParticlesBox(),

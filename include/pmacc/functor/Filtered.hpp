@@ -61,14 +61,14 @@ namespace pmacc
                  * @param args arguments passed to the functor if the filter results of
                  *             each argument evaluate to true when combined
                  */
-                template<typename T_Acc, typename... T_Args>
-                HDINLINE auto operator()(T_Acc const& acc, T_Args&&... args) -> void
+                template<typename T_Worker, typename... T_Args>
+                HDINLINE auto operator()(T_Worker const& worker, T_Args&&... args) -> void
                 {
                     // call the filter on each argument and combine the results
-                    bool const combinedResult = T_FilterOperator{}((*static_cast<Filter*>(this))(acc, args)...);
+                    bool const combinedResult = T_FilterOperator{}((*static_cast<Filter*>(this))(worker, args)...);
 
                     if(combinedResult)
-                        (*static_cast<Functor*>(this))(acc, args...);
+                        (*static_cast<Functor*>(this))(worker, args...);
                 }
             };
 
@@ -131,32 +131,26 @@ namespace pmacc
             /** create a filtered functor which can be used on the accelerator
              *
              * @tparam T_OffsetType type to describe the size of a domain
-             * @tparam T_numWorkers number of workers
-             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Worker lockstep worker type
              *
-             * @param alpaka accelerator
+             * @param worker lockstep worker
              * @param domainOffset offset to the origin of the local domain
              *                     This can be e.g a supercell or cell offset and depends
              *                     of the context where the interface is specialized.
-             * @param workerCfg configuration of the worker
              * @return accelerator instance of the filtered functor
              */
-            template<typename T_OffsetType, uint32_t T_numWorkers, typename T_Acc>
-            HDINLINE auto operator()(
-                T_Acc const& acc,
-                T_OffsetType const& domainOffset,
-                lockstep::Worker<T_numWorkers> const& workerCfg) const
-                -> acc::Filtered<
-                    T_FilterOperator,
-                    decltype(alpaka::core::declval<Filter>()(acc, domainOffset, workerCfg)),
-                    decltype(alpaka::core::declval<Functor>()(acc, domainOffset, workerCfg))>
+            template<typename T_OffsetType, typename T_Worker>
+            HDINLINE auto operator()(T_Worker const& worker, T_OffsetType const& domainOffset) const -> acc::Filtered<
+                T_FilterOperator,
+                decltype(alpaka::core::declval<Filter>()(worker, domainOffset)),
+                decltype(alpaka::core::declval<Functor>()(worker, domainOffset))>
             {
                 return acc::Filtered<
                     T_FilterOperator,
-                    decltype(alpaka::core::declval<Filter>()(acc, domainOffset, workerCfg)),
-                    decltype(alpaka::core::declval<Functor>()(acc, domainOffset, workerCfg))>(
-                    (*static_cast<Filter const*>(this))(acc, domainOffset, workerCfg),
-                    (*static_cast<Functor const*>(this))(acc, domainOffset, workerCfg));
+                    decltype(alpaka::core::declval<Filter>()(worker, domainOffset)),
+                    decltype(alpaka::core::declval<Functor>()(worker, domainOffset))>(
+                    (*static_cast<Filter const*>(this))(worker, domainOffset),
+                    (*static_cast<Functor const*>(this))(worker, domainOffset));
             }
 
             /** get name the of the filtered functor

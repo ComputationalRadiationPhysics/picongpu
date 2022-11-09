@@ -45,10 +45,9 @@ namespace picongpu
      * the species' shape to the field grid and reduced of all contributing
      * particles.
      *
-     * @tparam T_numWorkers number of workers
      * @tparam T_BlockDescription stance area description of the user functor
      */
-    template<uint32_t T_numWorkers, typename T_BlockDescription>
+    template<typename T_BlockDescription>
     struct KernelComputeSupercells
     {
         /** derive species property
@@ -70,10 +69,10 @@ namespace picongpu
             typename T_ParBox,
             typename T_FrameSolver,
             typename T_Mapping,
-            typename T_Acc,
+            typename T_Worker,
             typename T_ParticleFilter>
         DINLINE void operator()(
-            T_Acc const& acc,
+            T_Worker const& worker,
             T_TmpBox fieldTmp,
             T_ParBox boxPar,
             T_FrameSolver frameSolver,
@@ -83,84 +82,72 @@ namespace picongpu
             using FramePtr = typename T_ParBox::FramePtr;
             using SuperCellSize = typename T_BlockDescription::SuperCellSize;
 
-            constexpr uint32_t numWorkers = T_numWorkers;
-
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
-            auto accFilter = particleFilter(
-                acc,
-                superCellIdx - mapper.getGuardingSuperCells(),
-                lockstep::Worker<numWorkers>{workerIdx});
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            auto accFilter = particleFilter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             namespace particleAccAlgos = pmacc::particles::algorithm::acc;
-            auto forEachParticle = particleAccAlgos::makeForEach<numWorkers, particleAccAlgos::Forward>(
-                workerIdx,
-                boxPar,
-                superCellIdx);
+            auto forEachParticle
+                = particleAccAlgos::makeForEach<particleAccAlgos::Forward>(worker, boxPar, superCellIdx);
 
             // end kernel if we have no particles
             if(!forEachParticle.hasParticles())
                 return;
 
-            auto cachedVal = CachedBox::create<0, typename T_TmpBox::ValueType>(acc, T_BlockDescription{});
+            auto cachedVal = CachedBox::create<0, typename T_TmpBox::ValueType>(worker, T_BlockDescription{});
             Set<typename T_TmpBox::ValueType> set(float_X(0.0));
 
-            ThreadCollective<T_BlockDescription, numWorkers> collective(workerIdx);
-            collective(acc, set, cachedVal);
+            auto collective = makeThreadCollective<T_BlockDescription>();
+            collective(worker, set, cachedVal);
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
-            forEachParticle(
-                acc,
-                [&accFilter, &cachedVal, &frameSolver](auto const& accelerator, auto& particle)
-                { frameSolver(accelerator, particle, SuperCellSize::toRT(), accFilter, cachedVal); });
+            forEachParticle([&accFilter, &cachedVal, &frameSolver](auto const& lockstepWorker, auto& particle)
+                            { frameSolver(lockstepWorker, particle, SuperCellSize::toRT(), accFilter, cachedVal); });
 
-            cupla::__syncthreads(acc);
+            worker.sync();
 
             pmacc::math::operation::Add add;
             DataSpace<simDim> const superCellCellOffset = superCellIdx * SuperCellSize::toRT();
             auto fieldTmpBlock = fieldTmp.shift(superCellCellOffset);
-            collective(acc, add, fieldTmpBlock, cachedVal);
+            collective(worker, add, fieldTmpBlock, cachedVal);
         }
     };
 
     /** Kernel used in the modifyField method
      *
-     * @tparam T_numWorkers number of workers
      * @tparam T_ModifyingOperation a binary operation used to modify one field by another one
      * @tparam T_SuperCellSize compile-time  supercell size vector
      */
-    template<uint32_t T_numWorkers, typename T_ModifyingOperation, typename T_SuperCellSize>
+    template<typename T_ModifyingOperation, typename T_SuperCellSize>
     struct ModifyByFieldKernel
     {
         /** Kernel implementation
          *
-         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Worker lockstep worker type
          * @tparam T_Mapper mapper type
          * @tparam T_Box1 1st data box type
          * @tparam T_Box2 2nd data box type
-         * @param acc alpaka accelerator
+         * @param worker lockstep worker
          * @param mapper functor to map a block to a supercell
          * @param box1 data box of the first field
          * @param box2 data box of the second field
          */
-        template<typename T_Acc, typename T_Mapper, typename T_Box1, typename T_Box2>
-        DINLINE void operator()(T_Acc const& acc, T_Mapper const mapper, T_Box1 box1, T_Box2 const& box2) const
+        template<typename T_Worker, typename T_Mapper, typename T_Box1, typename T_Box2>
+        DINLINE void operator()(T_Worker const& worker, T_Mapper const mapper, T_Box1 box1, T_Box2 const& box2) const
         {
             // Shift the fields to the supercell processed by current block.
-            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const block(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
             DataSpace<simDim> const blockCell = block * T_SuperCellSize::toRT();
             auto box1Block = box1.shift(blockCell);
             auto box2Block = box2.shift(blockCell);
 
             // Call the binary operation for a pair of field values for each cell in the supercell.
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
             using BlockAreaConfiguration = pmacc::SuperCellDescription<T_SuperCellSize>;
-            ThreadCollective<BlockAreaConfiguration, numWorkers> applyOperationToCells(workerIdx);
+            auto applyOperationToCells = makeThreadCollective<BlockAreaConfiguration>();
             T_ModifyingOperation binaryOperation;
-            applyOperationToCells(acc, binaryOperation, box1Block, box2Block);
+            applyOperationToCells(worker, binaryOperation, box1Block, box2Block);
         }
     };
 

@@ -30,18 +30,18 @@ namespace pmacc
 {
     namespace CachedBox
     {
-        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Acc>
-        DINLINE auto create(T_Acc const& acc, const BlockDescription_ block)
+        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Worker>
+        DINLINE auto create(T_Worker const& worker, const BlockDescription_ block)
         {
             using OffsetOrigin = typename BlockDescription_::OffsetOrigin;
             using Type = DataBox<SharedBox<ValueType_, typename BlockDescription_::FullSuperCellSize, Id_>>;
-            return Type{Type::init(acc)}.shift(DataSpace<OffsetOrigin::dim>{OffsetOrigin::toRT()});
+            return Type{Type::init(worker)}.shift(DataSpace<OffsetOrigin::dim>{OffsetOrigin::toRT()});
         }
 
-        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Acc>
-        DINLINE auto create(T_Acc const& acc, const ValueType_& value, const BlockDescription_ block)
+        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Worker>
+        DINLINE auto create(T_Worker const& worker, const ValueType_& value, const BlockDescription_ block)
         {
-            return create<Id_, ValueType_, BlockDescription_>(acc);
+            return create<Id_, ValueType_, BlockDescription_>(worker);
         }
     } // namespace CachedBox
 } // namespace pmacc

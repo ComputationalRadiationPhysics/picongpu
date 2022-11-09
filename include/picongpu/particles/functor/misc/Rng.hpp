@@ -51,7 +51,6 @@ namespace picongpu
                     using Distribution = T_Distribution;
                     using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
                     using RngHandle = typename RNGFactory::Handle;
-                    using RandomGen = RngWrapper<cupla::Acc, typename RngHandle::GetRandomType<Distribution>::type>;
 
                     /** constructor
                      *
@@ -64,25 +63,22 @@ namespace picongpu
 
                     /** create functor a random number generator
                      *
-                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep::Worker, lockstep worker type
                      *
-                     * @param alpaka accelerator
+                     * @param worker lockstep worker
                      * @param localSupercellOffset offset (in superCells, without any guards) relative
-                     *                        to the origin of the local domain
-                     * @param workerCfg configuration of the worker
+                     *                        to the origin of the local domainrker
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
-                    HDINLINE RandomGen operator()(
-                        T_Acc const& acc,
-                        DataSpace<simDim> const& localSupercellOffset,
-                        T_WorkerCfg const& workerCfg) const
+                    template<typename T_Worker>
+                    HDINLINE auto operator()(T_Worker const& worker, DataSpace<simDim> const& localSupercellOffset)
+                        const
                     {
                         RngHandle tmp(rngHandle);
                         tmp.init(
                             localSupercellOffset * SuperCellSize::toRT()
-                            + DataSpaceOperations<simDim>::template map<SuperCellSize>(workerCfg.getWorkerIdx()));
-                        return RandomGen(acc, tmp.applyDistribution<Distribution>());
+                            + DataSpaceOperations<simDim>::template map<SuperCellSize>(worker.getWorkerIdx()));
+                        using RandomGen = RngWrapper<T_Worker, typename RngHandle::GetRandomType<Distribution>::type>;
+                        return RandomGen(worker, tmp.applyDistribution<Distribution>());
                     }
 
                 private:

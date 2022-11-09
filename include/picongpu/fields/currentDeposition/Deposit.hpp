@@ -50,7 +50,6 @@ namespace picongpu
              */
             template<
                 uint32_t T_area,
-                uint32_t T_numWorkers,
                 typename T_CellDescription,
                 typename T_DepositionKernel,
                 typename T_FrameSolver,
@@ -82,10 +81,12 @@ namespace picongpu
                 // stride 1u means each supercell is used
                 auto mapper = makeStrideAreaMapper<T_area, skipSuperCells + 1u>(cellDescription);
 
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg<
+                    pmacc::math::CT::volume<SuperCellSize>::type::value * T_Strategy::workerMultiplier>();
                 do
                 {
-                    PMACC_KERNEL(depositionKernel)
-                    (mapper.getGridDim(), T_numWorkers)(jBox, parBox, frameSolver, mapper);
+                    PMACC_LOCKSTEP_KERNEL(depositionKernel, workerCfg)
+                    (mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
                 } while(mapper.next());
             }
         };
@@ -99,7 +100,6 @@ namespace picongpu
              */
             template<
                 uint32_t T_area,
-                uint32_t T_numWorkers,
                 typename T_CellDescription,
                 typename T_DepositionKernel,
                 typename T_FrameSolver,
@@ -114,7 +114,10 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<T_area>(cellDescription);
 
-                PMACC_KERNEL(depositionKernel)(mapper.getGridDim(), T_numWorkers)(jBox, parBox, frameSolver, mapper);
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg<
+                    pmacc::math::CT::volume<SuperCellSize>::type::value * T_Strategy::workerMultiplier>();
+                PMACC_LOCKSTEP_KERNEL(depositionKernel, workerCfg)
+                (mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
             }
         };
 

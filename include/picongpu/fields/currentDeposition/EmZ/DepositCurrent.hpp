@@ -36,9 +36,9 @@ namespace picongpu
             template<typename T_Strategy, typename T_ParticleAssign, int T_begin, int T_end>
             struct DepositCurrent<T_Strategy, T_ParticleAssign, T_begin, T_end, DIM3>
             {
-                template<typename T_Cursor, typename T_Acc>
+                template<typename T_Cursor, typename T_Worker>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const T_Cursor& cursorJ,
                     const Line<float3_X>& line,
                     const float_X chargeDensity) const
@@ -51,16 +51,16 @@ namespace picongpu
                      */
                     using namespace cursor::tools;
                     cptCurrent1D(
-                        acc,
+                        worker,
                         twistVectorFieldAxes<pmacc::math::CT::Int<1, 2, 0>>(cursorJ),
                         rotateOrigin<1, 2, 0>(line),
                         cellSize.x() * chargeDensity / DELTA_T);
                     cptCurrent1D(
-                        acc,
+                        worker,
                         twistVectorFieldAxes<pmacc::math::CT::Int<2, 0, 1>>(cursorJ),
                         rotateOrigin<2, 0, 1>(line),
                         cellSize.y() * chargeDensity / DELTA_T);
-                    cptCurrent1D(acc, cursorJ, line, cellSize.z() * chargeDensity / DELTA_T);
+                    cptCurrent1D(worker, cursorJ, line, cellSize.z() * chargeDensity / DELTA_T);
                 }
 
                 /** deposites current in z-direction
@@ -69,9 +69,9 @@ namespace picongpu
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensity surface density
                  */
-                template<typename CursorJ, typename T_Line, typename T_Acc>
+                template<typename CursorJ, typename T_Line, typename T_Worker>
                 DINLINE void cptCurrent1D(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     CursorJ cursorJ,
                     const T_Line& line,
                     const float_X currentSurfaceDensity) const
@@ -117,7 +117,7 @@ namespace picongpu
                                 const float_X W = shapeK.DS(k) * tmp;
                                 accumulated_J += W;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                atomicOp(acc, (*cursorJ(i, j, k)).z(), accumulated_J);
+                                atomicOp(worker, (*cursorJ(i, j, k)).z(), accumulated_J);
                             }
                         }
                     }
@@ -133,17 +133,17 @@ namespace picongpu
                  * It is done in computeCurrentZ() which has to be explicitly called by a user.
                  * This it different from 3d, where only calling operator() is needed.
                  */
-                template<typename T_Cursor, typename T_Acc>
+                template<typename T_Cursor, typename T_Worker>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     const T_Cursor& cursorJ,
                     const Line<float2_X>& line,
                     const float_X chargeDensity) const
                 {
                     using namespace cursor::tools;
-                    cptCurrent1D(acc, cursorJ, line, cellSize.x() * chargeDensity / DELTA_T);
+                    cptCurrent1D(worker, cursorJ, line, cellSize.x() * chargeDensity / DELTA_T);
                     cptCurrent1D(
-                        acc,
+                        worker,
                         twistVectorFieldAxes<pmacc::math::CT::Int<1, 0>>(cursorJ),
                         rotateOrigin<1, 0>(line),
                         cellSize.y() * chargeDensity / DELTA_T);
@@ -155,9 +155,9 @@ namespace picongpu
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensity surface density
                  */
-                template<typename CursorJ, typename T_Line, typename T_Acc>
+                template<typename CursorJ, typename T_Line, typename T_Worker>
                 DINLINE void cptCurrent1D(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     CursorJ cursorJ,
                     const T_Line& line,
                     const float_X currentSurfaceDensity) const
@@ -190,7 +190,7 @@ namespace picongpu
                             const float_X W = shapeI.DS(i) * tmp;
                             accumulated_J += W;
                             auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                            atomicOp(acc, (*cursorJ(i, j)).x(), accumulated_J);
+                            atomicOp(worker, (*cursorJ(i, j)).x(), accumulated_J);
                         }
                     }
                 }
@@ -208,9 +208,9 @@ namespace picongpu
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensityZ surface density in z direction
                  */
-                template<typename CursorJ, typename T_Line, typename T_Acc>
+                template<typename CursorJ, typename T_Line, typename T_Worker>
                 DINLINE void computeCurrentZ(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     CursorJ cursorJ,
                     const T_Line& line,
                     const float_X currentSurfaceDensityZ) const
@@ -238,7 +238,7 @@ namespace picongpu
 
                             const float_X j_z = W * currentSurfaceDensityZ;
                             auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                            atomicOp(acc, (*cursorJ(i, j)).z(), j_z);
+                            atomicOp(worker, (*cursorJ(i, j)).z(), j_z);
                         }
                     }
                 }

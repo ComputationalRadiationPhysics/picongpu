@@ -49,8 +49,7 @@ namespace picongpu
             using RngFactoryInt = particles::functor::misc::Rng<DistributionInt>;
             using DistributionFloat = pmacc::random::distributions::Uniform<float_X>;
             using RngFactoryFloat = particles::functor::misc::Rng<DistributionFloat>;
-            using RandomGenInt = RngFactoryInt::RandomGen;
-            using RandomGenFloat = RngFactoryFloat::RandomGen;
+
             //}
 
             /** 5.) step of rate equation solver for interaction with external spectrum
@@ -72,14 +71,15 @@ namespace picongpu
              * @return changes timeRemaining_SI
              */
             template<
-                typename T_Acc,
+                typename T_Worker,
                 typename T_Ion,
                 typename T_Histogram,
                 typename T_ConfigNumberDataType,
-                typename T_AtomicDataBox>
+                typename T_AtomicDataBox,
+                typename T_RandomGenFloat>
             DINLINE void rateEquationSolverForExternalSpectrum(
-                T_Acc const& acc,
-                RandomGenFloat& randomGenFloat,
+                T_Worker const& worker,
+                T_RandomGenFloat& randomGenFloat,
                 T_Ion ion,
                 float_X& timeRemaining_SI,
                 T_Histogram* histogram,
@@ -105,7 +105,7 @@ namespace picongpu
                     // try to remove electrons from bin, returns false if not enough
                     // electrons in bin to interact with entire macro ion
                     bool sufficentWeightInBin
-                        = histogram->tryRemoveWeightFromBin(acc, histogramBinIndex, affectedWeighting);
+                        = histogram->tryRemoveWeightFromBin(worker, histogramBinIndex, affectedWeighting);
 
                     // do state change randomly even if not enough weight, Note: might be problematic for very large
                     // number of workers?
@@ -116,7 +116,7 @@ namespace picongpu
 
                         if(randomGenFloat() <= affectedWeighting / ion[weighting_])
                         {
-                            histogram->removeWeightFromBin(acc, histogramBinIndex, affectedWeighting);
+                            histogram->removeWeightFromBin(worker, histogramBinIndex, affectedWeighting);
                             sufficentWeightInBin = true;
 
                             deltaEnergy = deltaEnergy * affectedWeighting / ion[weighting_];
@@ -130,11 +130,11 @@ namespace picongpu
                         ion[atomicConfigNumber_] = newState;
 
                         // record change of energy in bin in original bin
-                        histogram->addDeltaEnergy(acc, histogramBinIndex, deltaEnergy);
+                        histogram->addDeltaEnergy(worker, histogramBinIndex, deltaEnergy);
                         // shift weight of interaction electron to new bin
                         // for further interactions
                         histogram->shiftWeight(
-                            acc,
+                            worker,
                             energyElectron - deltaEnergyTransition, // new electron energy, unit: ATOMIC_UNIT_ENERGY
                             affectedWeighting,
                             atomicDataBox);
@@ -171,7 +171,7 @@ namespace picongpu
 
                         // try to remove weight from eectron bin, to cover entire macro ion
                         bool sufficentWeightInBin
-                            = histogram->tryRemoveWeightFromBin(acc, histogramBinIndex, affectedWeighting);
+                            = histogram->tryRemoveWeightFromBin(worker, histogramBinIndex, affectedWeighting);
 
                         if(!sufficentWeightInBin)
                         {
@@ -179,7 +179,7 @@ namespace picongpu
                                 + histogram->getDeltaWeightBin(histogramBinIndex);
                             if(randomGenFloat() <= affectedWeighting / ion[weighting_])
                             {
-                                histogram->removeWeightFromBin(acc, histogramBinIndex, affectedWeighting);
+                                histogram->removeWeightFromBin(worker, histogramBinIndex, affectedWeighting);
                                 sufficentWeightInBin = true;
                                 deltaEnergy = deltaEnergy * affectedWeighting / ion[weighting_];
                             }
@@ -193,11 +193,11 @@ namespace picongpu
                             ion[atomicConfigNumber_] = newState;
 
                             // record change of energy in bin in original bin
-                            histogram->addDeltaEnergy(acc, histogramBinIndex, deltaEnergy);
+                            histogram->addDeltaEnergy(worker, histogramBinIndex, deltaEnergy);
                             // shift weight of interaction electron to new bin
                             // for further interactions
                             histogram->shiftWeight(
-                                acc,
+                                worker,
                                 energyElectron
                                     - deltaEnergyTransition, // new electron energy, unit: ATOMIC_UNIT_ENERGY
                                 affectedWeighting,
@@ -223,10 +223,10 @@ namespace picongpu
              *
              * @return changes timeRemaining_SI
              */
-            template<typename T_Acc, typename T_Ion, typename T_ConfigNumberDataType>
+            template<typename T_Worker, typename T_Ion, typename T_ConfigNumberDataType, typename T_RandomGenFloat>
             DINLINE void rateEquationSolverSpontaneousTransition(
-                T_Acc const& acc,
-                RandomGenFloat& randomGenFloat,
+                T_Worker const& worker,
+                T_RandomGenFloat& randomGenFloat,
                 T_Ion ion,
                 float_X& timeRemaining_SI,
                 float_X quasiProbability,
@@ -289,8 +289,9 @@ namespace picongpu
             }
 
             /** 5.) step of rate equation solver for no change of state */
+            template<typename T_RandomGenFloat>
             DINLINE void rateEquationSolverNoChange(
-                RandomGenFloat& randomGenFloat,
+                T_RandomGenFloat& randomGenFloat,
                 float_X quasiProbability,
                 float_X& timeRemaining_SI)
             {
@@ -342,14 +343,15 @@ namespace picongpu
             /** 4.) rate calculation for interaction with free electron */
             template<
                 typename T_AtomicRate,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_Ion,
                 typename T_ConfigNumberDataType,
                 typename T_AtomicDataBox,
-                typename T_Histogram>
+                typename T_Histogram,
+                typename T_RandomGenFloat>
             DINLINE void freeElectronInteraction(
-                T_Acc const& acc,
-                RandomGenFloat& randomGenFloat,
+                T_Worker const& worker,
+                T_RandomGenFloat& randomGenFloat,
                 T_Ion ion,
                 float_X& timeRemaining_SI, // unit: s, SI
                 T_AtomicDataBox const atomicDataBox,
@@ -372,7 +374,7 @@ namespace picongpu
 
                 // get width of histogram bin with this collection index
                 float_X energyElectronBinWidth = histogram->getBinWidth(
-                    acc,
+                    worker,
                     true, // answer to question: directionPositive?
                     histogram->getLeftBoundaryBin(histogramBinIndex), // unit: ATOMIC_UNIT_ENERGY
                     atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
@@ -389,7 +391,7 @@ namespace picongpu
                 checkDensityForNaNandInf(densityElectrons);
 
                 float_X rate_SI = AtomicRate::RateFreeElectronInteraction(
-                    acc,
+                    worker,
                     oldState, // unitless
                     newState, // unitless
                     transitionIndex, // unitless
@@ -407,7 +409,7 @@ namespace picongpu
                 float_X affectedWeighting = ion[weighting_];
 
                 rateEquationSolverForExternalSpectrum(
-                    acc,
+                    worker,
                     randomGenFloat,
                     ion,
                     timeRemaining_SI,
@@ -427,13 +429,14 @@ namespace picongpu
             /** 4.) rate calculation for spontaneous photon emission*/
             template<
                 typename T_AtomicRate,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_Ion,
                 typename T_ConfigNumberDataType,
-                typename T_AtomicDataBox>
+                typename T_AtomicDataBox,
+                typename T_RandomGenFloat>
             DINLINE void spontaneousPhotonEmission(
-                T_Acc const& acc,
-                RandomGenFloat& randomGenFloat,
+                T_Worker const& worker,
+                T_RandomGenFloat& randomGenFloat,
                 T_Ion ion,
                 float_X& timeRemaining_SI, // unit: s, SI
                 T_AtomicDataBox const atomicDataBox,
@@ -448,7 +451,7 @@ namespace picongpu
                 using AtomicRate = T_AtomicRate;
 
                 float_X rate_SI = AtomicRate::RateSpontaneousPhotonEmission(
-                    acc,
+                    worker,
                     oldState, // unitless
                     newState, // unitless
                     transitionIndex, // unitless
@@ -460,7 +463,7 @@ namespace picongpu
                 float_X affectedWeighting = ion[weighting_];
 
                 rateEquationSolverSpontaneousTransition(
-                    acc,
+                    worker,
                     randomGenFloat,
                     ion,
                     timeRemaining_SI,
@@ -475,14 +478,16 @@ namespace picongpu
             /** calculating quasiProbability for special case of keeping current state */
             template<
                 typename T_AtomicRate,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_ConfigNumberDataType,
                 typename T_AtomicDataBox,
-                typename T_Histogram>
+                typename T_Histogram,
+                typename T_RandomGenInt,
+                typename T_RandomGenFloat>
             DINLINE void noStateChange(
-                T_Acc const& acc,
-                RandomGenInt& randomGenInt,
-                RandomGenFloat& randomGenFloat,
+                T_Worker const& worker,
+                T_RandomGenInt& randomGenInt,
+                T_RandomGenFloat& randomGenFloat,
                 float_X& timeRemaining_SI,
                 T_AtomicDataBox const atomicDataBox,
                 T_ConfigNumberDataType oldState,
@@ -500,19 +505,19 @@ namespace picongpu
                 {
                     printf("         no electrons present in one super cell\n");
 
-                    rate_SI = AtomicRate::totalSpontaneousRate(acc, oldState, atomicDataBox);
+                    rate_SI = AtomicRate::totalSpontaneousRate(worker, oldState, atomicDataBox);
                 }
                 else
                 {
                     uint16_t histogramBinIndex = static_cast<uint16_t>(randomGenInt()) % histogram->getNumBins();
                     float_X energyElectron = histogram->getEnergyBin(
-                        acc,
+                        worker,
                         histogramBinIndex,
                         atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
 
                     // get width of histogram bin width for this collection index
                     float_X energyElectronBinWidth = histogram->getBinWidth(
-                        acc,
+                        worker,
                         true, // answer to question: directionPositive?
                         histogram->getLeftBoundaryBin(histogramBinIndex), // unit: ATOMIC_UNIT_ENERGY
                         atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
@@ -529,7 +534,7 @@ namespace picongpu
                     // R_(i->i) = - sum_f( R_(i->f), rate_SI = - R_(i->i),
                     // R ... rate, i ... initial state, f ... final state
                     rate_SI = AtomicRate::totalRate(
-                        acc,
+                        worker,
                         oldState, // unitless
                         energyElectron, // unit: ATOMIC_UNIT_ENERGY
                         energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
@@ -561,14 +566,16 @@ namespace picongpu
              */
             template<
                 typename T_AtomicRate,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_Ion,
                 typename T_AtomicDataBox,
-                typename T_Histogram>
+                typename T_Histogram,
+                typename T_RandomGenInt,
+                typename T_RandomGenFloat>
             DINLINE void processIon(
-                T_Acc const& acc,
-                RandomGenInt& randomGenInt,
-                RandomGenFloat& randomGenFloat,
+                T_Worker const& worker,
+                T_RandomGenInt& randomGenInt,
+                T_RandomGenFloat& randomGenFloat,
                 T_Ion ion,
                 float_X& timeRemaining_SI,
                 T_AtomicDataBox const atomicDataBox,
@@ -608,7 +615,7 @@ namespace picongpu
                     if(newState == oldState)
                     {
                         noStateChange<AtomicRate>(
-                            acc,
+                            worker,
                             randomGenInt,
                             randomGenFloat,
                             timeRemaining_SI,
@@ -656,12 +663,12 @@ namespace picongpu
                             uint16_t histogramBinIndex
                                 = static_cast<uint16_t>(randomGenInt()) % histogram->getNumBins();
                             float_X energyElectron = histogram->getEnergyBin(
-                                acc,
+                                worker,
                                 histogramBinIndex,
                                 atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
 
                             float_X deltaEnergyTransition = AtomicRate::energyDifference(
-                                acc,
+                                worker,
                                 oldState,
                                 newState,
                                 atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
@@ -671,7 +678,7 @@ namespace picongpu
                             {
                                 // @TODO: do we realy need to pass both oldState and oldStateIndex?, BrianMarre, 2021
                                 freeElectronInteraction<AtomicRate>(
-                                    acc,
+                                    worker,
                                     randomGenFloat,
                                     ion,
                                     timeRemaining_SI, // unit: s, SI
@@ -693,7 +700,7 @@ namespace picongpu
                         else if(process == 1u)
                         {
                             float_X deltaEnergyTransition = AtomicRate::energyDifference(
-                                acc,
+                                worker,
                                 oldState,
                                 newState,
                                 atomicDataBox); // unit: ATOMIC_UNIT_ENERGY
@@ -702,7 +709,7 @@ namespace picongpu
                             {
                                 // @TODO: do we really need to pass both oldState and oldStateIndex?, BrianMarre, 2021
                                 spontaneousPhotonEmission<AtomicRate>(
-                                    acc,
+                                    worker,
                                     randomGenFloat,
                                     ion,
                                     timeRemaining_SI,
@@ -726,15 +733,14 @@ namespace picongpu
             // Fills the histogram return via the last parameter
             // should be called inside the AtomicPhysicsKernel
             template<
-                uint32_t T_numWorkers,
                 typename T_AtomicRate,
-                typename T_Acc,
+                typename T_Worker,
                 typename T_Mapping,
                 typename T_IonBox,
                 typename T_AtomicDataBox,
                 typename T_Histogram>
             DINLINE void solveRateEquation(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 T_Mapping mapper,
                 RngFactoryInt rngFactoryInt,
                 RngFactoryFloat rngFactoryFloat,
@@ -748,23 +754,19 @@ namespace picongpu
                 constexpr float_X timePerAtomicPhyiscsSubStep = picongpu::SI::DELTA_T_SI / numSubDivisions;
 
                 pmacc::DataSpace<simDim> const supercellIdx(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
                 /// todo: express framesize better, not via supercell size
                 constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                constexpr uint32_t numWorkers = T_numWorkers;
 
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-                auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
-                auto onlyMaster = lockstep::makeMaster(workerIdx);
+                auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
+                auto onlyMaster = lockstep::makeMaster(worker);
 
                 // Offset without guards for random numbers
                 auto const superCellLocalOffset = supercellIdx - mapper.getGuardingSuperCells();
-                auto workerCfg = pmacc::lockstep::Worker<numWorkers>(workerIdx);
 
-                auto generatorInt = rngFactoryInt(acc, superCellLocalOffset, workerCfg);
-                auto generatorFloat = rngFactoryFloat(acc, superCellLocalOffset, workerCfg);
+                auto generatorInt = rngFactoryInt(worker, superCellLocalOffset);
+                auto generatorFloat = rngFactoryFloat(worker, superCellLocalOffset);
 
                 auto frame = ionBox.getLastFrame(supercellIdx);
                 auto particlesInSuperCell = ionBox.getSuperCell(supercellIdx).getSizeLastFrame();
@@ -775,7 +777,7 @@ namespace picongpu
                     while(frame.isValid())
                     {
                         // all Ions of current frame processed
-                        PMACC_SMEM(acc, allIonsProcessed, bool);
+                        PMACC_SMEM(worker, allIonsProcessed, bool);
 
                         // init
                         onlyMaster([&]() { allIonsProcessed = false; });
@@ -796,7 +798,7 @@ namespace picongpu
                                         auto particle = frame[idx];
 
                                         processIon<T_AtomicRate>(
-                                            acc,
+                                            worker,
                                             generatorInt,
                                             generatorFloat,
                                             particle,
@@ -811,11 +813,11 @@ namespace picongpu
                                     }
                                 });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
 
                             onlyMaster([&]() { histogram->updateWithNewShiftBins(); });
 
-                            cupla::__syncthreads(acc);
+                            worker.sync();
                         }
 
                         // get the next frame once done with the current one.

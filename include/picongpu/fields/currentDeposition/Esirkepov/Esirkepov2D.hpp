@@ -70,9 +70,9 @@ namespace picongpu
 
             float_X charge;
 
-            template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Acc>
+            template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Worker>
             DINLINE void operator()(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 DataBoxJ dataBoxJ,
                 const PosType pos,
                 const VelType velocity,
@@ -124,14 +124,14 @@ namespace picongpu
                  */
 
                 using namespace cursor::tools;
-                cptCurrent1D(acc, status, cursorJ, line, cellSize.x());
+                cptCurrent1D(worker, status, cursorJ, line, cellSize.x());
                 cptCurrent1D(
-                    acc,
+                    worker,
                     DataSpace<DIM2>(status[1], status[0]),
                     twistVectorFieldAxes<pmacc::math::CT::Int<1, 0>>(cursorJ),
                     rotateOrigin<1, 0>(line),
                     cellSize.y());
-                cptCurrentZ(acc, status, cursorJ, line, velocity.z());
+                cptCurrentZ(worker, status, cursorJ, line, velocity.z());
             }
 
             /** deposites current in x-direction (rotated PIConGPU coordinate system)
@@ -143,9 +143,9 @@ namespace picongpu
              *
              * @{
              */
-            template<typename CursorJ, typename T_Acc>
+            template<typename CursorJ, typename T_Worker>
             DINLINE void cptCurrent1D(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 const DataSpace<simDim>& parStatus,
                 CursorJ cursorJ,
                 const Line<float2_X>& line,
@@ -200,14 +200,14 @@ namespace picongpu
                                 const float_X W = shapeI.DS(i) * tmp;
                                 accumulated_J += W;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                atomicOp(acc, (*cursorJ(i, j)).x(), accumulated_J);
+                                atomicOp(worker, (*cursorJ(i, j)).x(), accumulated_J);
                             }
                     }
             }
 
-            template<typename CursorJ, typename T_Acc>
+            template<typename CursorJ, typename T_Worker>
             DINLINE void cptCurrentZ(
-                T_Acc const& acc,
+                T_Worker const& worker,
                 const DataSpace<simDim>& parStatus,
                 CursorJ cursorJ,
                 const Line<float2_X>& line,
@@ -251,7 +251,7 @@ namespace picongpu
 
                                 const float_X j_z = W * currentSurfaceDensityZ;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                atomicOp(acc, (*cursorJ(i, j)).z(), j_z);
+                                atomicOp(worker, (*cursorJ(i, j)).z(), j_z);
                             }
                     }
             }

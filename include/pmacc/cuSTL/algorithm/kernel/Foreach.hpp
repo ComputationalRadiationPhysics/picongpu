@@ -58,11 +58,11 @@ namespace pmacc
         /* ... */                                                                                                     \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                                                                      \
                                                                                                                       \
-        auto blockSize = BlockDim::toRT();                                                                            \
+        auto workerCfg = lockstep::makeWorkerCfg(BlockDim{});                                                         \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                            \
         using namespace pmacc;                                                                                        \
-        PMACC_KERNEL(detail::KernelForeach{})                                                                         \
-        (mapper.cuplaGridDim(p_zone.size), blockSize) /* c0_shifted, c1_shifted, ... */                               \
+        PMACC_LOCKSTEP_KERNEL(detail::KernelForeach{}, workerCfg)                                                     \
+        (mapper.cuplaGridDim(p_zone.size)) /* c0_shifted, c1_shifted, ... */                                          \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                                                   \
     }
 
@@ -95,7 +95,7 @@ namespace pmacc
 #undef SHIFT_CURSOR_ZONE
 #undef SHIFTED_CURSOR
 
-            template<uint32_t T_numWorkers, typename BlockDim>
+            template<typename BlockDim>
             struct ForeachLockstep
             {
                 /* operator()(zone, functor, cursor0, cursor1, ..., cursorN-1)
@@ -115,8 +115,9 @@ namespace pmacc
                 {
                     detail::SphericMapper<T_dim, BlockDim> mapper;
 
-                    PMACC_KERNEL(detail::KernelForeachLockstep{})
-                    (mapper.cuplaGridDim(p_zone.size), T_numWorkers)(mapper, functor, args(p_zone.offset)...);
+                    auto workerCfg = lockstep::makeWorkerCfg(BlockDim{});
+                    PMACC_LOCKSTEP_KERNEL(detail::KernelForeachLockstep{}, workerCfg)
+                    (mapper.cuplaGridDim(p_zone.size))(mapper, functor, args(p_zone.offset)...);
                 }
             };
 

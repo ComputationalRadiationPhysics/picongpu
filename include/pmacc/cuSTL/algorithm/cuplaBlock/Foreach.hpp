@@ -45,41 +45,30 @@ namespace pmacc
         typename Zone,                                                                                                \
         BOOST_PP_ENUM_PARAMS(N, typename C),                                                                          \
         typename Functor,                                                                                             \
-        typename T_Acc> /*                     (      C0 c0, ..., C(N-1) c(N-1)           ,       ) */                \
-    DINLINE void operator()(T_Acc const& acc, Zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor)     \
+        typename T_Worker> /*                     (      C0 c0, ..., C(N-1) c(N-1)           ,       ) */             \
+    DINLINE void operator()(                                                                                          \
+        T_Worker const& worker,                                                                                       \
+        Zone,                                                                                                         \
+        BOOST_PP_ENUM_BINARY_PARAMS(N, C, c),                                                                         \
+        const Functor& functor)                                                                                       \
     {                                                                                                                 \
         const int dataVolume = math::CT::volume<typename Zone::Size>::type::value;                                    \
-        const int blockVolume = math::CT::volume<BlockDim>::type::value;                                              \
                                                                                                                       \
         typedef typename math::Int<Zone::dim> PosType;                                                                \
         using namespace pmacc::algorithms::precisionCast;                                                             \
                                                                                                                       \
-        for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)                                          \
+        for(int i = worker.getWorkerIdx(); i < dataVolume; i += T_Worker::getNumWorkers())                            \
         {                                                                                                             \
             PosType pos = Zone::Offset::toRT()                                                                        \
                 + precisionCast<typename PosType::type>(math::MapToPos<Zone::dim>()(typename Zone::Size(), i));       \
-            functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                    \
+            functor(worker, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                 \
         }                                                                                                             \
     }
 
             /** Foreach algorithm that is executed by one cupla thread block
-             *
-             * @tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
-             *
-             * BlockDim could also be obtained from cupla itself at runtime but
-             * it is faster to know it at compile-time.
              */
-            template<typename BlockDim>
             struct Foreach
             {
-            private:
-                const int linearThreadIdx;
-
-            public:
-                DINLINE Foreach(int linearThreadIdx) : linearThreadIdx(linearThreadIdx)
-                {
-                }
-
                 /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
                  *
                  * @param zone compile-time zone object, see zone::CT::SphericZone. (e.g. ContainerType::Zone())

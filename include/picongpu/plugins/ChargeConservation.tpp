@@ -182,8 +182,8 @@ namespace picongpu
 
         struct CalculateAndAssignChargeDeviation
         {
-            template<typename T_Rho, typename T_FieldE, typename T_Acc>
-            HDINLINE void operator()(const T_Acc& acc, T_Rho& rho, const T_FieldE& fieldECursor) const
+            template<typename T_Rho, typename T_FieldE, typename T_Worker>
+            HDINLINE void operator()(const T_Worker& worker, T_Rho& rho, const T_FieldE& fieldECursor) const
             {
                 typedef Div<simDim, typename FieldTmp::ValueType> MyDiv;
 

@@ -45,11 +45,11 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = float;
 
-                    template<typename T_Acc>
-                    DINLINE float operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE float operator()(T_Worker const& worker, StateType& state) const
                     {
                         const float value2pow32Inv = 2.3283064e-10f;
-                        const uint32_t random = RNGMethod().get32Bits(acc, state);
+                        const uint32_t random = RNGMethod().get32Bits(worker, state);
                         return static_cast<float>(random) * value2pow32Inv + (value2pow32Inv / 2.0f);
                     }
                 };
@@ -66,12 +66,12 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = float;
 
-                    template<typename T_Acc>
-                    DINLINE float operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE float operator()(T_Worker const& worker, StateType& state) const
                     {
                         const float randomValue
                             = pmacc::random::distributions::Uniform<uniform::ExcludeZero<float>, RNGMethod>()(
-                                acc,
+                                worker,
                                 state);
                         return randomValue == 1.0f ? 0.0f : randomValue;
                     }
@@ -91,11 +91,11 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = float;
 
-                    template<typename T_Acc>
-                    DINLINE float operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE float operator()(T_Worker const& worker, StateType& state) const
                     {
                         const float value2pow24Inv = 5.9604645e-08f;
-                        const float randomValue24Bit = RNGMethod().get32Bits(acc, state) >> 8;
+                        const float randomValue24Bit = RNGMethod().get32Bits(worker, state) >> 8;
                         return static_cast<float>(randomValue24Bit) * value2pow24Inv;
                     }
                 };
@@ -113,14 +113,14 @@ namespace pmacc
                     using StateType = typename RNGMethod::StateType;
                     using result_type = float;
 
-                    template<typename T_Acc>
-                    DINLINE float operator()(T_Acc const& acc, StateType& state) const
+                    template<typename T_Worker>
+                    DINLINE float operator()(T_Worker const& worker, StateType& state) const
                     {
                         do
                         {
                             const float randomValue
                                 = pmacc::random::distributions::Uniform<uniform::ExcludeZero<float>, RNGMethod>()(
-                                    acc,
+                                    worker,
                                     state);
 
                             if(randomValue != 1.0f)

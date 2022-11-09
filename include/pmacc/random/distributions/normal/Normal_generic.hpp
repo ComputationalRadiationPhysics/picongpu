@@ -45,10 +45,10 @@ namespace pmacc
                 public:
                     using result_type = T_Type;
 
-                    template<typename T_Acc>
-                    DINLINE result_type operator()(T_Acc const& acc, StateType& state)
+                    template<typename T_Worker>
+                    DINLINE result_type operator()(T_Worker const& worker, StateType& state)
                     {
-                        return ::alpaka::rand::distribution::createNormalReal<T_Type>(acc)(state);
+                        return ::alpaka::rand::distribution::createNormalReal<T_Type>(worker.getAcc())(state);
                     }
                 };
 

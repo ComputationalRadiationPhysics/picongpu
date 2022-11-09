@@ -32,7 +32,7 @@ namespace picongpu
             namespace detail
             {
                 template<
-                    typename T_Acc,
+                    typename T_Worker,
                     typename T_ForEach,
                     typename T_FramePtr,
                     typename T_ParBox,
@@ -40,7 +40,7 @@ namespace picongpu
                     typename T_Array,
                     typename T_Filter>
                 DINLINE void cellDensity(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_ForEach forEach,
                     T_FramePtr firstFrame,
                     T_ParBox parBox,
@@ -57,7 +57,7 @@ namespace picongpu
                             for(uint32_t ii = 0; ii < numParInCell; ii++)
                             {
                                 auto particle = getParticle(parBox, firstFrame, parListStart[ii]);
-                                if(filter(acc, particle))
+                                if(filter(worker, particle))
                                 {
                                     density += particle[weighting_];
                                 }

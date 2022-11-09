@@ -48,26 +48,24 @@ namespace picongpu
             /**@{*/
             /** implementation of current assignment
              *
-             * @tparam T_Acc alpaka accelerator type
              * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
              * @tparam T_Dim dimension of simulation
              */
-            template<typename T_Acc, typename T_DestSpecies, unsigned T_Dim>
+            template<typename T_DestSpecies, unsigned T_Dim>
             struct JIonizationAssignment;
 
             /** 3d case
              */
-            template<typename T_Acc, typename T_DestSpecies>
-            struct JIonizationAssignment<T_Acc, T_DestSpecies, DIM3>
-                : public JIonizationAssignmentParent<T_DestSpecies>
+            template<typename T_DestSpecies>
+            struct JIonizationAssignment<T_DestSpecies, DIM3> : public JIonizationAssignmentParent<T_DestSpecies>
             {
                 /** functor for  assigning current to databox
                  *
                  * @tparam T_JBox type of current density data box
                  */
-                template<typename T_JBox>
+                template<typename T_Worker, typename T_JBox>
                 HDINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     float3_X const jIonizationPar,
                     float3_X const pos,
                     T_JBox jBoxPar)
@@ -96,7 +94,10 @@ namespace picongpu
                                     float_X(x) - pos.x());
                                 for(int i = 0; i <= 2; i++)
                                 {
-                                    cupla::atomicAdd(acc, &(jBoxPar(DataSpace<DIM3>(x, y, z))[i]), jGridx[i]);
+                                    cupla::atomicAdd(
+                                        worker.getAcc(),
+                                        &(jBoxPar(DataSpace<DIM3>(x, y, z))[i]),
+                                        jGridx[i]);
                                 }
                             }
                         }
@@ -106,15 +107,14 @@ namespace picongpu
 
             /** 2d case
              */
-            template<typename T_Acc, typename T_DestSpecies>
-            struct JIonizationAssignment<T_Acc, T_DestSpecies, DIM2>
-                : public JIonizationAssignmentParent<T_DestSpecies>
+            template<typename T_DestSpecies>
+            struct JIonizationAssignment<T_DestSpecies, DIM2> : public JIonizationAssignmentParent<T_DestSpecies>
             {
                 /** functor for assigning current to databox
                  */
-                template<typename T_JBox>
+                template<typename T_Worker, typename T_JBox>
                 HDINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     float3_X const jIonizationPar,
                     float2_X const pos,
                     T_JBox jBoxPar)
@@ -135,7 +135,7 @@ namespace picongpu
                                 float_X(x) - pos.x());
                             for(int i = 0; i <= 2; i++)
                             {
-                                cupla::atomicAdd(acc, &(jBoxPar(DataSpace<DIM2>(x, y))[i]), jGridx[i]);
+                                cupla::atomicAdd(worker.getAcc(), &(jBoxPar(DataSpace<DIM2>(x, y))[i]), jGridx[i]);
                             }
                         }
                     }

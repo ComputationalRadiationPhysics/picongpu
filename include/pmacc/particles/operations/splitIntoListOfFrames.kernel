@@ -41,11 +41,7 @@ namespace pmacc
         {
             namespace detail
             {
-                /** transform a large frame into a list of small frames
-                 *
-                 * @tparam T_numWorkers number of workers
-                 */
-                template<uint32_t T_numWorkers>
+                //! transform a large frame into a list of small frames
                 struct KernelSplitIntoListOfFrames
                 {
                     /** Copy particles from big frame to PMacc frame structure
@@ -60,7 +56,7 @@ namespace pmacc
                      * @tparam T_Space pmacc::DataSpace, type for indicies and offsets within the domain
                      * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
                      * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
                      * @param acc alpaka accelerator
                      * @param counter box with three integers [sharedSrcParticleOffset, numLoadedParticles,
@@ -81,9 +77,9 @@ namespace pmacc
                         typename T_Space,
                         typename T_Identifier,
                         typename T_CellDescription,
-                        typename T_Acc>
+                        typename T_Worker>
                     DINLINE void operator()(
-                        T_Acc const& acc,
+                        T_Worker const& worker,
                         T_CounterBox counter,
                         T_DestBox destBox,
                         T_SrcFrame srcFrame,
@@ -99,20 +95,17 @@ namespace pmacc
                         using DestFramePtr = typename T_DestBox::FramePtr;
                         using SuperCellSize = typename DestFrameType::SuperCellSize;
 
-                        constexpr uint32_t numWorkers = T_numWorkers;
                         constexpr uint32_t numDims = T_DestBox::Dim;
                         constexpr uint32_t particlesPerFrame = math::CT::volume<SuperCellSize>::type::value;
 
-                        PMACC_SMEM(acc, destFramePtr, memory::Array<DestFramePtr, particlesPerFrame>);
-                        PMACC_SMEM(acc, sharedLinearSuperCellIds, memory::Array<int, particlesPerFrame>);
-                        PMACC_SMEM(acc, sharedSrcParticleOffset, int);
-
-                        uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                        PMACC_SMEM(worker, destFramePtr, memory::Array<DestFramePtr, particlesPerFrame>);
+                        PMACC_SMEM(worker, sharedLinearSuperCellIds, memory::Array<int, particlesPerFrame>);
+                        PMACC_SMEM(worker, sharedSrcParticleOffset, int);
 
                         DataSpace<numDims> const numSuperCells(
                             cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells() * 2);
 
-                        auto onlyMaster = lockstep::makeMaster(workerIdx);
+                        auto onlyMaster = lockstep::makeMaster(worker);
 
                         onlyMaster(
                             [&]()
@@ -121,16 +114,16 @@ namespace pmacc
                                  * offset in srcFrame to load N particles
                                  */
                                 sharedSrcParticleOffset = cupla::atomicAdd(
-                                    acc,
+                                    worker.getAcc(),
                                     &(counter[0]),
                                     particlesPerFrame,
                                     ::alpaka::hierarchy::Blocks{});
                             });
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
                         // loop over all particles in the frame
-                        auto forEachParticle = lockstep::makeForEach<particlesPerFrame, numWorkers>(workerIdx);
+                        auto forEachParticle = lockstep::makeForEach<particlesPerFrame>(worker);
 
                         auto srcParticleIdxCtx = lockstep::makeVar<int>(forEachParticle);
                         auto hasValidParticleCtx = lockstep::makeVar<bool>(forEachParticle);
@@ -145,7 +138,7 @@ namespace pmacc
                                 hasValidParticleCtx[idx] = srcParticleIdxCtx[idx] < maxParticles;
                             });
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
                         // linear cell index of the particle within the destination frame
                         auto lCellIdxCtx = lockstep::makeVar<lcellId_t>(forEachParticle, INV_LOC_IDX);
@@ -175,10 +168,7 @@ namespace pmacc
                                 return particlesSuperCellIdx;
                             });
 
-                        cupla::__syncthreads(acc);
-
-                        // auto masterVirtualThreadIdxCtx
-                        //     = forEachParticle([&](uint32_t const linearIdx) -> int { return linearIdx - 1; });
+                        worker.sync();
 
                         auto masterVirtualThreadIdxCtx = forEachParticle(
                             [&](lockstep::Idx const idx) -> int
@@ -202,11 +192,11 @@ namespace pmacc
                                     if(vThreadMasterIdx == static_cast<int32_t>(idx))
                                     {
                                         /* counter[2] -> number of used frames */
-                                        kernel::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});
-                                        DestFramePtr tmpFrame = destBox.getEmptyFrame(acc);
+                                        kernel::atomicAllInc(worker, &(counter[2]), ::alpaka::hierarchy::Blocks{});
+                                        DestFramePtr tmpFrame = destBox.getEmptyFrame(worker);
                                         destFramePtr[idx] = tmpFrame;
                                         destBox.setAsFirstFrame(
-                                            acc,
+                                            worker,
                                             tmpFrame,
                                             particlesSuperCellCtx[idx] + cellDesc.getGuardingSuperCells());
                                     }
@@ -214,7 +204,7 @@ namespace pmacc
                                 return vThreadMasterIdx;
                             });
 
-                        cupla::__syncthreads(acc);
+                        worker.sync();
 
                         forEachParticle(
                             [&](lockstep::Idx const idx)
@@ -232,7 +222,7 @@ namespace pmacc
                                      * this counter is evaluated on host side
                                      * (check that loaded particles by this kernel == loaded particles from HDF5
                                      * file)*/
-                                    kernel::atomicAllInc(acc, &(counter[1]), ::alpaka::hierarchy::Blocks{});
+                                    kernel::atomicAllInc(worker, &(counter[1]), ::alpaka::hierarchy::Blocks{});
                                 }
                             });
                     }
@@ -303,11 +293,10 @@ namespace pmacc
                     log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%")
                         % (i * chunkSize) % currentChunkSize % leftOverParticles;
 
-                    constexpr uint32_t numWorkers
-                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
-                    PMACC_KERNEL(detail::KernelSplitIntoListOfFrames<numWorkers>{})
-                    (math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), numWorkers)(
+                    PMACC_LOCKSTEP_KERNEL(detail::KernelSplitIntoListOfFrames{}, workerCfg)
+                    (math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)))(
                         counterBuffer.getDeviceBuffer().getDataBox(),
                         destSpecies.getDeviceParticlesBox(),
                         srcFrame,

@@ -122,11 +122,12 @@ namespace pmacc
          * This call synchronizes a block and must be called from all threads and
          * not inside a if clauses
          */
-        template<typename T_Acc>
-        static DINLINE SharedBox init(T_Acc const& acc)
+        template<typename T_Worker>
+        static DINLINE SharedBox init(T_Worker const& worker)
         {
             auto& mem_sh
-                = memory::shared::allocate<T_id, memory::Array<ValueType, math::CT::volume<Size>::type::value>>(acc);
+                = memory::shared::allocate<T_id, memory::Array<ValueType, math::CT::volume<Size>::type::value>>(
+                    worker);
             return {mem_sh.data()};
         }
 

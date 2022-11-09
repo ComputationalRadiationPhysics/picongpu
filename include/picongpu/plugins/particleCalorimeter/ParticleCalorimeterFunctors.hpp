@@ -86,8 +86,8 @@ namespace picongpu
             this->calorimeterCur = calorimeterCur;
         }
 
-        template<typename T_Particle, typename T_Acc>
-        DINLINE void operator()(const T_Acc& acc, T_Particle& particle)
+        template<typename T_Particle, typename T_Worker>
+        DINLINE void operator()(const T_Worker& worker, T_Particle& particle)
         {
             const float3_X mom = particle[momentum_];
             const float_X mom2 = pmacc::math::dot(mom, mom);
@@ -147,7 +147,7 @@ namespace picongpu
                 }
 
                 cupla::atomicAdd(
-                    acc,
+                    worker.getAcc(),
                     &(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
                     energy * normedWeighting,
                     ::alpaka::hierarchy::Threads{});

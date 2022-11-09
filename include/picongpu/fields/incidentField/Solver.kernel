@@ -423,17 +423,16 @@ namespace picongpu
 
                 /** Kernel to apply incidentField
                  *
-                 * @tparam T_numWorkers number of workers
                  * @tparam T_BlockDescription domain description
                  */
-                template<uint32_t T_numWorkers, typename T_BlockDescription>
+                template<typename T_BlockDescription>
                 struct ApplyIncidentFieldKernel
                 {
                     /** Run the incidentField kernel
                      *
                      * The kernel must be called for all grid values that need an update.
                      *
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      * @tparam T_UpdateFunctor update functor type
                      *
                      * @param acc alpaka accelerator
@@ -441,21 +440,21 @@ namespace picongpu
                      * @param beginGridIdx begin active grid index, in the local domain with guards
                      * @param endGridIdx end active grid index, in the local domain with guards
                      */
-                    template<typename T_Acc, typename T_UpdateFunctor>
+                    template<typename T_Worker, typename T_UpdateFunctor>
                     HDINLINE void operator()(
-                        T_Acc& acc,
+                        T_Worker const& worker,
                         T_UpdateFunctor const functor,
                         DataSpace<simDim> beginGridIdx,
                         DataSpace<simDim> endGridIdx) const
                     {
                         constexpr uint32_t planeSize = pmacc::math::CT::volume<T_BlockDescription>::type::value;
-                        const uint32_t workerIdx = cupla::threadIdx(acc).x;
+
 
                         // Offset of the superCell (in cells, without any guards) to the origin of the local domain
                         DataSpace<simDim> supercellOffsetCells
-                            = DataSpace<simDim>(cupla::blockIdx(acc)) * SuperCellSize::toRT();
+                            = DataSpace<simDim>(cupla::blockIdx(worker.getAcc())) * SuperCellSize::toRT();
 
-                        lockstep::makeForEach<planeSize, T_numWorkers>(workerIdx)(
+                        lockstep::makeForEach<planeSize>(worker)(
                             [&](uint32_t const linearIdx)
                             {
                                 auto cellIdxInSuperCell

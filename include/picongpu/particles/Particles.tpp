@@ -34,11 +34,11 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/Resolve.hpp>
@@ -376,11 +376,10 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+        auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
 
-        PMACC_KERNEL(KernelMoveAndMarkParticles<numWorkers, BlockArea>{})
-        (mapper.getGridDim(), numWorkers)(
+        PMACC_LOCKSTEP_KERNEL(KernelMoveAndMarkParticles<BlockArea>{}, workerCfg)
+        (mapper.getGridDim())(
             this->getDeviceParticlesBox(),
             fieldE->getDeviceDataBox(),
             fieldB->getDeviceDataBox(),
@@ -417,12 +416,10 @@ namespace picongpu
         DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain().offset;
         totalGpuCellOffset.y() += numSlides * localCells.y();
 
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
-        PMACC_KERNEL(KernelFillGridWithParticles<numWorkers, Particles>{})
-        (mapper.getGridDim(), numWorkers)(
+        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+        PMACC_LOCKSTEP_KERNEL(KernelFillGridWithParticles<Particles>{}, workerCfg)
+        (mapper.getGridDim())(
             densityFunctor,
             positionFunctor,
             totalGpuCellOffset,
@@ -448,11 +445,10 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
 
-        PMACC_KERNEL(KernelDeriveParticles<numWorkers>{})
-        (mapper.getGridDim(), numWorkers)(
+        PMACC_LOCKSTEP_KERNEL(KernelDeriveParticles{}, workerCfg)
+        (mapper.getGridDim())(
             this->getDeviceParticlesBox(),
             src.getDeviceParticlesBox(),
             manipulatorFunctor,

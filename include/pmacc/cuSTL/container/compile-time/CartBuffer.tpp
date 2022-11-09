@@ -28,10 +28,10 @@ namespace pmacc
         namespace CT
         {
             template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-            template<typename T_Acc>
-            DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer(T_Acc const& acc)
+            template<typename T_Worker>
+            DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer(T_Worker const& worker)
             {
-                this->dataPointer = Allocator::allocate(acc).getMarker();
+                this->dataPointer = Allocator::allocate(worker).getMarker();
             }
 
             template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>

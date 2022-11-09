@@ -27,11 +27,11 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/eventSystem/tasks/ITask.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/methods/AlpakaRand.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/types.hpp>
 
 #include <cstdint>
@@ -49,27 +49,24 @@ namespace pmacc
             using Space2D = pmacc::DataSpace<DIM2>;
             using Space3D = pmacc::DataSpace<DIM3>;
 
-            template<uint32_t T_numWorkers, uint32_t T_blockSize>
+            template<uint32_t T_blockSize>
             struct RandomFiller
             {
-                template<typename T_DataBox, typename T_Random, typename T_Acc>
+                template<typename T_DataBox, typename T_Random, typename T_Worker>
                 DINLINE void operator()(
-                    T_Acc const& acc,
+                    T_Worker const& worker,
                     T_DataBox box,
                     Space2D const boxSize,
                     T_Random const rand,
                     uint32_t const numSamples) const
                 {
-                    constexpr uint32_t numWorkers = T_numWorkers;
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                     // each virtual worker initialize one rng state
-                    auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
+                    auto forEachCell = lockstep::makeForEach<T_blockSize>(worker);
 
                     forEachCell(
                         [&](uint32_t const linearIdx)
                         {
-                            uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
+                            uint32_t const linearTid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
 
                             if(linearTid >= boxSize.productOfComponents())
                                 return;
@@ -80,8 +77,8 @@ namespace pmacc
                             vWorkerRand.init(ownIdx);
                             for(uint32_t i = 0u; i < numSamples; i++)
                             {
-                                Space2D idx = vWorkerRand(acc, boxSize);
-                                cupla::atomicAdd(acc, &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
+                                Space2D idx = vWorkerRand(worker, boxSize);
+                                cupla::atomicAdd(worker.getAcc(), &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
                             }
                         });
                 }
@@ -106,11 +103,11 @@ namespace pmacc
                     rand.init(globalCellIdx);
                 }
 
-                template<typename T_Acc>
-                DINLINE Space2D operator()(T_Acc const& acc, Space2D size)
+                template<typename T_Worker>
+                DINLINE Space2D operator()(T_Worker const& worker, Space2D size)
                 {
                     using pmacc::math::float2int_rd;
-                    return Space2D(float2int_rd(rand(acc) * size.x()), float2int_rd(rand(acc) * size.y()));
+                    return Space2D(float2int_rd(rand(worker) * size.x()), float2int_rd(rand(worker) * size.y()));
                 }
 
             private:
@@ -174,8 +171,6 @@ namespace pmacc
 
                 constexpr uint32_t blockSize = 256;
 
-                constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<blockSize>::value;
-
                 uint32_t gridSize = (rngSize.productOfComponents() + blockSize - 1u) / blockSize;
 
                 CUDA_CHECK(cuplaEventRecord(
@@ -187,8 +182,11 @@ namespace pmacc
                         .TransactionManager()
                         .getEventStream(pmacc::ITask::TASK_DEVICE)
                         ->getCudaStream()));
-                PMACC_KERNEL(RandomFiller<numWorkers, blockSize>{})
-                (gridSize, numWorkers)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
+
+                auto workerCfg = lockstep::makeWorkerCfg<blockSize>();
+
+                PMACC_LOCKSTEP_KERNEL(RandomFiller<blockSize>{}, workerCfg)
+                (gridSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
 
                 CUDA_CHECK(cuplaEventRecord(
                     stop,

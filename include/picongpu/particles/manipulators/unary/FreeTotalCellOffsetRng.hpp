@@ -61,13 +61,13 @@ namespace picongpu
                         /** call user functor
                          *
                          * @tparam T_Particle type of the particle to manipulate
-                         * @tparam T_Acc alpaka accelerator type
+                         * @tparam T_Worker lockstep worker type
                          *
-                         * @param alpaka accelerator
+                         * @param worker lockstep worker
                          * @param particle particle which is given to the user functor
                          */
-                        template<typename T_Particle, typename T_Acc>
-                        HDINLINE void operator()(T_Acc const&, T_Particle& particle)
+                        template<typename T_Particle, typename T_Worker>
+                        HDINLINE void operator()(T_Worker const&, T_Particle& particle)
                         {
                             DataSpace<simDim> const cellInSuperCell(
                                 DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]));
@@ -90,7 +90,6 @@ namespace picongpu
                     using Functor = functor::User<T_Functor>;
 
                     using RngGenerator = functor::misc::Rng<T_Distribution>;
-                    using RngType = typename RngGenerator::RandomGen;
                     using Distribution = T_Distribution;
 
                     template<typename T_SpeciesType>
@@ -112,26 +111,22 @@ namespace picongpu
 
                     /** Create functor for the accelerator
                      *
-                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
-                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Worker lockstep worker type
                      *
-                     * @param alpaka accelerator
+                     * @param worker lockstep worker
                      * @param localSupercellOffset offset (in superCells, without any guards) relative
                      *                             to the origin of the local domain
                      * @param workerCfg configuration of the worker
                      */
-                    template<typename T_WorkerCfg, typename T_Acc>
-                    HDINLINE auto operator()(
-                        T_Acc const& acc,
-                        DataSpace<simDim> const& localSupercellOffset,
-                        T_WorkerCfg const& workerCfg) const -> acc::FreeTotalCellOffsetRng<Functor, RngType>
+                    template<typename T_Worker>
+                    HDINLINE auto operator()(T_Worker const& worker, DataSpace<simDim> const& localSupercellOffset)
+                        const
                     {
                         auto& cellOffsetFunctor = *static_cast<CellOffsetFunctor const*>(this);
-                        RngType const rng
-                            = (*static_cast<RngGenerator const*>(this))(acc, localSupercellOffset, workerCfg);
-                        return acc::FreeTotalCellOffsetRng<Functor, RngType>(
+                        auto const rng = (*static_cast<RngGenerator const*>(this))(worker, localSupercellOffset);
+                        return acc::FreeTotalCellOffsetRng<Functor, ALPAKA_DECAY_T(decltype(rng))>(
                             *static_cast<Functor const*>(this),
-                            cellOffsetFunctor(acc, localSupercellOffset, workerCfg),
+                            cellOffsetFunctor(worker, localSupercellOffset),
                             rng);
                     }
 

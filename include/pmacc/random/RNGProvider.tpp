@@ -23,9 +23,8 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
-#include "pmacc/lockstep.hpp"
+#include "pmacc/lockstep/lockstep.hpp"
 #include "pmacc/random/RNGProvider.hpp"
-#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <memory>
 
@@ -36,27 +35,25 @@ namespace pmacc
     {
         namespace kernel
         {
-            template<uint32_t T_numWorkers, uint32_t T_blockSize, typename T_RNGMethod>
+            template<uint32_t T_blockSize, typename T_RNGMethod>
             struct InitRNGProvider
             {
-                template<typename T_RNGBox, typename T_Space, typename T_Acc>
-                DINLINE void operator()(T_Acc const& acc, T_RNGBox rngBox, uint32_t seed, const T_Space size) const
+                template<typename T_Worker, typename T_RNGBox, typename T_Space>
+                DINLINE void operator()(T_Worker const& worker, T_RNGBox rngBox, uint32_t seed, const T_Space size)
+                    const
                 {
-                    constexpr uint32_t numWorkers = T_numWorkers;
-                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
                     // each virtual worker initialize one rng state
-                    auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
+                    auto forEachCell = lockstep::makeForEach<T_blockSize>(worker);
 
                     forEachCell(
                         [&](uint32_t const linearIdx)
                         {
-                            int32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
+                            int32_t const linearTid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
                             if(linearTid >= size.productOfComponents())
                                 return;
 
                             T_Space const cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
-                            T_RNGMethod().init(acc, rngBox(cellIdx), seed, linearTid);
+                            T_RNGMethod().init(worker, rngBox(cellIdx), seed, linearTid);
                         });
                 }
             };
@@ -76,16 +73,16 @@ namespace pmacc
         template<uint32_t T_dim, class T_RNGMethod>
         void RNGProvider<T_dim, T_RNGMethod>::init(uint32_t seed)
         {
-            const uint32_t blockSize = 256;
+            constexpr uint32_t blockSize = 256;
 
-            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<blockSize>::value;
+            auto workerCfg = lockstep::makeWorkerCfg<blockSize>();
 
             const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
 
             auto bufferBox = buffer->getDeviceBuffer().getDataBox();
 
-            PMACC_KERNEL(kernel::InitRNGProvider<numWorkers, blockSize, RNGMethod>{})
-            (gridSize, numWorkers)(bufferBox, seed, m_size);
+            PMACC_LOCKSTEP_KERNEL(kernel::InitRNGProvider<blockSize, RNGMethod>{}, workerCfg)
+            (gridSize)(bufferBox, seed, m_size);
         }
 
         template<uint32_t T_dim, class T_RNGMethod>
