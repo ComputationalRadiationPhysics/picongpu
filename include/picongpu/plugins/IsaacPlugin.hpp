@@ -143,14 +143,14 @@ namespace picongpu
                         fieldTmpNumSlots >= 1u + requiredExtraSlots);
 
                     auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
-                    auto eventPtr = particles::particleToGrid::
+                    auto event = particles::particleToGrid::
                         ComputeFieldValue<CORE + BORDER, FrameSolver, ParticleType, ParticleFilter>()(
                             *fieldTmp,
                             *currentStep,
                             1u);
                     // wait for unfinished asynchronous communication
-                    if(eventPtr != nullptr)
-                        __setTransactionEvent(*eventPtr);
+                    if(event.has_value())
+                        __setTransactionEvent(*event);
                     __getTransactionEvent().waitForFinished();
 
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();

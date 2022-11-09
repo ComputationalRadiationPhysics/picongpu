@@ -91,14 +91,14 @@ namespace picongpu
                         using Solver = typename DeriveOperation::Solver;
                         using Species = typename DeriveOperation::Species;
                         using Filter = typename DeriveOperation::Filter;
-                        auto eventPtr
+                        auto event
                             = particles::particleToGrid::ComputeFieldValue<CORE + BORDER, Solver, Species, Filter>()(
                                 fieldTmp2,
                                 currentStep,
                                 extraSlotNr);
                         // wait for unfinished asynchronous communication
-                        if(eventPtr != nullptr)
-                            __setTransactionEvent(*eventPtr);
+                        if(event.has_value())
+                            __setTransactionEvent(*event);
                         fieldTmp1.template modifyByField<CORE + BORDER, T_Op>(fieldTmp2);
                     }
                 };
@@ -150,13 +150,13 @@ namespace picongpu
                     using Filter = typename DeriveOperation::Filter;
                     using Species = typename DeriveOperation::Species;
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto eventPtr = particles::particleToGrid::ComputeFieldValue<AREA, Solver, Species, Filter>()(
+                    auto event = particles::particleToGrid::ComputeFieldValue<AREA, Solver, Species, Filter>()(
                         fieldTmp1,
                         currentStep,
                         extraSlot);
                     // wait for unfinished asynchronous communication
-                    if(eventPtr != nullptr)
-                        __setTransactionEvent(*eventPtr);
+                    if(event.has_value())
+                        __setTransactionEvent(*event);
 
                     if constexpr(!bmpl::empty<RemainingFilteredSpecies>::value)
                     {

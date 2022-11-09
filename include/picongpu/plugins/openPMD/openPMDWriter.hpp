@@ -640,14 +640,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         fieldTmpNumSlots >= 1u + requiredExtraSlots);
                     auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
                     // compute field values
-                    auto eventPtr
+                    auto event
                         = particles::particleToGrid::ComputeFieldValue<CORE + BORDER, Solver, Species, Filter>()(
                             *fieldTmp,
                             params->currentStep,
                             1u);
                     // wait for unfinished asynchronous communication
-                    if(eventPtr != nullptr)
-                        __setTransactionEvent(*eventPtr);
+                    if(event.has_value())
+                        __setTransactionEvent(*event);
                     /* copy data to host that we can write same to disk*/
                     fieldTmp->getGridBuffer().deviceToHost();
                     /*## finish update field ##*/
