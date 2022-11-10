@@ -21,19 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/meta/conversion/MakeSeq.hpp>
-#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
 #include <boost/mpl/pair.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/vector.hpp>
 
 
 namespace picongpu
@@ -42,23 +33,22 @@ namespace picongpu
 
 
     template<typename T_Type>
-    struct MallocMemory
+    struct MallocMappedMemory
     {
         template<typename ValueType>
         HINLINE void operator()(ValueType& v1, const size_t size) const
         {
-            typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
+            using type = typename pmacc::traits::Resolve<T_Type>::type::type;
+
+            bool isMappedMemorySupported = alpaka::hasMappedBufSupport<::alpaka::Pltf<cupla::AccDev>>;
+
+            PMACC_VERIFY_MSG(isMappedMemorySupported, "Device must support mapped memory!");
 
             type* ptr = nullptr;
             if(size != 0)
             {
-#if(PMACC_CUDA_ENABLED == 1)
-                CUDA_CHECK((cuplaError_t) cudaHostAlloc(&ptr, size * sizeof(type), cudaHostAllocMapped));
-#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
-                CUDA_CHECK((cuplaError_t) hipHostMalloc((void**) &ptr, size * sizeof(type), hipHostRegisterMapped));
-#else
-                ptr = new type[size];
-#endif
+                // Memory is automatically mapped to the device if supported.
+                CUDA_CHECK(cuplaMallocHost((void**) &ptr, size * sizeof(type)));
             }
             v1.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
         }
@@ -74,8 +64,8 @@ namespace picongpu
         template<typename ValueType>
         HINLINE void operator()(ValueType& v1, const size_t size) const
         {
-            typedef T_Attribute Attribute;
-            typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
+            using Attribute = T_Attribute;
+            using type = typename pmacc::traits::Resolve<Attribute>::type::type;
 
             type* ptr = nullptr;
             if(size != 0)
@@ -105,50 +95,15 @@ namespace picongpu
     };
 
     template<typename T_Type>
-    struct GetDevicePtr
-    {
-        template<typename ValueType>
-        HINLINE void operator()(ValueType& dest, ValueType& src)
-        {
-            typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
-
-            type* ptr = nullptr;
-            type* srcPtr = src.getIdentifier(T_Type()).getPointer();
-            if(srcPtr != nullptr)
-            {
-#if(PMACC_CUDA_ENABLED == 1)
-                CUDA_CHECK((cuplaError_t) cudaHostGetDevicePointer(&ptr, srcPtr, 0));
-#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
-                CUDA_CHECK((cuplaError_t) hipHostGetDevicePointer((void**) &ptr, srcPtr, 0));
-#else
-                ptr = srcPtr;
-#endif
-            }
-            dest.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
-        }
-    };
-
-    template<typename T_Type>
-    struct FreeMemory
+    struct FreeMappedMemory
     {
         template<typename ValueType>
         HINLINE void operator()(ValueType& value) const
         {
-            typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
-
-            type* ptr = value.getIdentifier(T_Type()).getPointer();
+            auto* ptr = value.getIdentifier(T_Type()).getPointer();
             if(ptr != nullptr)
             {
-                /* cupla 0.2.0+ does not support the function cudaHostAlloc to create mapped memory.
-                 * Therefore we need to call the native CUDA function cuda/hipFreeHost to free memory.
-                 */
-#if(PMACC_CUDA_ENABLED == 1)
-                CUDA_CHECK((cuplaError_t) cudaFreeHost(ptr));
-#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
-                CUDA_CHECK((cuplaError_t) hipHostFree(ptr));
-#else
-                delete[] ptr;
-#endif
+                CUDA_CHECK(cuplaFreeHost(ptr));
             }
         }
     };
@@ -160,10 +115,9 @@ namespace picongpu
         template<typename ValueType>
         HINLINE void operator()(ValueType& value) const
         {
-            typedef T_Attribute Attribute;
-            typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
+            using Attribute = T_Attribute;
 
-            type* ptr = value.getIdentifier(Attribute()).getPointer();
+            auto* ptr = value.getIdentifier(Attribute()).getPointer();
             delete[] ptr;
         }
     };
