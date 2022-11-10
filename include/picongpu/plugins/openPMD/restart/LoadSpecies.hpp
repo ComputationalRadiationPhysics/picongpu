@@ -135,27 +135,22 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD: Loading %1% particles from offset %2%")
                     % (long long unsigned) totalNumParticles % (long long unsigned) particleOffset;
 
-                openPMDFrameType hostFrame;
+                // memory is visible on host and device
+                openPMDFrameType mappedFrame;
                 log<picLog::INPUT_OUTPUT>("openPMD: malloc mapped memory: %1%") % speciesName;
                 /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMemory<bmpl::_1>> mallocMem;
-                mallocMem(hostFrame, totalNumParticles);
-
-                log<picLog::INPUT_OUTPUT>("openPMD: get mapped memory device pointer: %1%") % speciesName;
-                /*load device pointer of mapped memory*/
-                openPMDFrameType deviceFrame;
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1>> getDevicePtr;
-                getDevicePtr(deviceFrame, hostFrame);
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<bmpl::_1>> mallocMem;
+                mallocMem(mappedFrame, totalNumParticles);
 
                 meta::ForEach<typename openPMDFrameType::ValueTypeSeq, LoadParticleAttributesFromOpenPMD<bmpl::_1>>
                     loadAttributes;
-                loadAttributes(params, hostFrame, particleSpecies, particleOffset, totalNumParticles);
+                loadAttributes(params, mappedFrame, particleSpecies, particleOffset, totalNumParticles);
 
                 if(totalNumParticles != 0)
                 {
                     pmacc::particles::operations::splitIntoListOfFrames(
                         *speciesTmp,
-                        deviceFrame,
+                        mappedFrame,
                         totalNumParticles,
                         restartChunkSize,
                         cellOffsetToTotalDomain,
@@ -164,8 +159,8 @@ namespace picongpu
                         picLog::INPUT_OUTPUT());
 
                     /*free host memory*/
-                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMemory<bmpl::_1>> freeMem;
-                    freeMem(hostFrame);
+                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<bmpl::_1>> freeMem;
+                    freeMem(mappedFrame);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) load species: %1%") % speciesName;
             }

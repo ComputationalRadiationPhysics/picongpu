@@ -179,31 +179,24 @@ namespace picongpu
         template<typename openPMDFrameType, typename RunParameters>
         struct StrategyHDF5 : Strategy<openPMDFrameType, RunParameters>
         {
-            void malloc(std::string name, openPMDFrameType& hostFrame, uint64_cu const myNumParticles) override
+            void malloc(std::string name, openPMDFrameType& mappedFrame, uint64_cu const myNumParticles) override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) malloc mapped memory: %1%") % name;
                 /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMemory<bmpl::_1>> mallocMem;
-                mallocMem(hostFrame, myNumParticles);
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<bmpl::_1>> mallocMem;
+                mallocMem(mappedFrame, myNumParticles);
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) malloc mapped memory: %1%") % name;
             }
 
-            void free(openPMDFrameType& hostFrame) override
+            void free(openPMDFrameType& mappedFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMemory<bmpl::_1>> freeMem;
-                freeMem(hostFrame);
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<bmpl::_1>> freeMem;
+                freeMem(mappedFrame);
             }
 
-            void prepare(std::string name, openPMDFrameType& hostFrame, RunParameters rp) override
+            void prepare(std::string name, openPMDFrameType& mappedFrame, RunParameters rp) override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) copy particle to host: %1%") % name;
-
-                log<picLog::INPUT_OUTPUT>("openPMD:  (begin) get mapped memory device pointer: %1%") % name;
-                /*load device pointer of mapped memory*/
-                openPMDFrameType deviceFrame;
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1>> getDevicePtr;
-                getDevicePtr(deviceFrame, hostFrame);
-                log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) get mapped memory device pointer: %1%") % name;
 
                 GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
                 auto const mapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
@@ -215,7 +208,7 @@ namespace picongpu
                 PMACC_LOCKSTEP_KERNEL(CopySpecies{}, workerCfg)
                 (mapper.getGridDim())(
                     counterBuffer.getDeviceBuffer().getPointer(),
-                    deviceFrame,
+                    mappedFrame,
                     rp.speciesTmp->getDeviceParticlesBox(),
                     rp.filter,
                     rp.particleToTotalDomainOffset,
