@@ -103,10 +103,8 @@ namespace pmacc
                     /* disable all particles since we can not assume that newly allocated memory contains zeros */
                     for(int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
                         (*tmp)[i][multiMask_] = 0;
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
                     /* takes care that changed values are visible to all threads inside this block*/
-                    __threadfence_block();
-#endif
+                    alpaka::mem_fence(worker.getAcc(), alpaka::memory_scope::Block{});
                     break;
                 }
                 else
@@ -208,13 +206,13 @@ namespace pmacc
 
             frame->previousFrame = FramePtr();
             frame->nextFrame = FramePtr(*firstFrameNativPtr);
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+
             /* - takes care that `next[index]` is visible to all threads on the gpu
              * - this is needed because later on in this method we change `previous`
              *   of an other frame, this must be done in order!
              */
-            __threadfence();
-#endif
+            alpaka::mem_fence(worker.getAcc(), alpaka::memory_scope::Device{});
+
             FramePtr oldFirstFramePtr((FrameType*) cupla::atomicExch(
                 worker.getAcc(),
                 (unsigned long long int*) firstFrameNativPtr,
@@ -246,13 +244,13 @@ namespace pmacc
 
             frame->nextFrame = FramePtr();
             frame->previousFrame = FramePtr(*lastFrameNativPtr);
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+
             /* - takes care that `next[index]` is visible to all threads on the gpu
              * - this is needed because later on in this method we change `next`
              *   of an other frame, this must be done in order!
              */
-            __threadfence();
-#endif
+            alpaka::mem_fence(worker.getAcc(), alpaka::memory_scope::Device{});
+
             FramePtr oldLastFramePtr((FrameType*) cupla::atomicExch(
                 worker.getAcc(),
                 (unsigned long long int*) lastFrameNativPtr,
