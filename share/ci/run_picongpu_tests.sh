@@ -10,6 +10,26 @@ if [[ ! -v PIC_BUILD_TYPE ]] ; then
     PIC_BUILD_TYPE=Release ;
 fi
 
+if [ -n "$CI_GPUS" ] ; then
+    # select randomly a device if multiple exists
+    # CI_GPUS is provided by the gitlab CI runner
+    SELECTED_DEVICE_ID=$((RANDOM%CI_GPUS))
+    export HIP_VISIBLE_DEVICES=$SELECTED_DEVICE_ID
+    export CUDA_VISIBLE_DEVICES=$SELECTED_DEVICE_ID
+    echo "selected device '$SELECTED_DEVICE_ID' of '$CI_GPUS'"
+else
+    echo "No GPU device selected because environment variable CI_GPUS is not set."
+fi
+
+if [[ "$PIC_BACKEND" =~ "hip.*" ]] ; then
+    if [ -z "$CI_GPU_ARCH" ] ; then
+        # In case the CI runner is not providing a GPU architecture e.g. a CPU runner set the architecture
+        # to Radeon VII or MI50/60.
+        export GPU_TARGETS="gfx906"
+    fi
+    export PIC_CMAKE_ARGS="$PIC_CMAKE_ARGS -DGPU_TARGETS=$GPU_TARGETS"
+fi
+
 ###################################################
 # cmake config builder
 ###################################################
