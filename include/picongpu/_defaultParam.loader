@@ -71,8 +71,4 @@
 #include "picongpu/param/isaac.param"
 #include "picongpu/param/radiationObserver.param"
 #include "picongpu/param/particleMerger.param"
-#if(ENABLE_OPENPMD == 1)
-#    include "picongpu/param/xrayScattering.param"
-#endif
-
 // clang-format on
