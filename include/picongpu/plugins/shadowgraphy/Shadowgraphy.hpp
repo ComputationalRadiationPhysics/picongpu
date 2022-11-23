@@ -37,6 +37,10 @@ export LD_LIBRARY_PATH=$FFTW3_ROOT/lib:$LD_LIBRARY_PATH
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/shadowgraphy/ShadowgraphyHelper.hpp"
+#include "picongpu/plugins/common/openPMDAttributes.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
@@ -52,11 +56,14 @@ export LD_LIBRARY_PATH=$FFTW3_ROOT/lib:$LD_LIBRARY_PATH
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
+#include <openPMD/openPMD.hpp>
+
 #include <iostream>
 #include <sstream>
 #include <string>
 
 #include <stdio.h>
+
 
 namespace picongpu
 {
@@ -91,6 +98,7 @@ namespace picongpu
                 // technical variables for PIConGPU plugins
                 std::string pluginName;
                 std::string pluginPrefix;
+                std::string filenameExtension = openPMD::getDefaultExtension().c_str();
 
                 MappingDesc* cellDescription = nullptr;
                 std::string notifyPeriod;
@@ -102,6 +110,9 @@ namespace picongpu
 
                 std::unique_ptr<container::DeviceBuffer<float3_64, 2>> dBuffer_SI1;
                 std::unique_ptr<container::DeviceBuffer<float3_64, 2>> dBuffer_SI2;
+
+                //std::unique_ptr<::openPMD::Series> openPMDSeries;
+
 
                 bool isIntegrating;
                 int startTime;
@@ -149,6 +160,10 @@ namespace picongpu
                         po::value<std::string>(&this->fileName)->multitoken(),
                         "file name to store slices in");
                     desc.add_options()(
+                        (this->pluginPrefix + ".ext").c_str(),
+                        po::value<std::string>(&this->filenameExtension)->multitoken(),
+                        "openPMD filename extension");
+                    desc.add_options()(
                         (this->pluginPrefix + ".plane").c_str(),
                         po::value<int>(&this->plane)->multitoken(),
                         "specifies the axis which stands on the cutting plane (0,1,2)");
@@ -178,6 +193,8 @@ namespace picongpu
                         "plugin disabled [compiled without dependency FFTW]");
 #endif
                 }
+            plugins::multi::Option<std::string> extension
+                = {"ext", "openPMD filename extension", openPMD::getDefaultExtension().c_str()};
 
                 //! Implementation of base class function.
                 void pluginLoad() override
@@ -328,7 +345,9 @@ namespace picongpu
                                 std::ostringstream filename;
                                 filename << this->fileName << "_" << startTime << ":" << currentStep << ".dat";
 
-                                writeFile(helper->get_shadowgram(), filename.str());
+                                writeFile(helper->getShadowgram(), filename.str());
+
+                                writeToOpenPMDFile(currentStep);
 
                                 delete(helper);
                             }
@@ -429,6 +448,81 @@ namespace picongpu
                     helper->storeField<Field>(localStep, currentStep, &globalBuffer1, &globalBuffer2);
                 }
 
+                void writeToOpenPMDFile(uint32_t currentStep)
+                {
+                    std::stringstream filename;
+                    filename << pluginPrefix << "_%T." << filenameExtension;
+                    ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
+/*
+                    ::openPMD::Offset offset = ::openPMD::Offset{0, 0};
+                    auto extent = ::openPMD::Extent{  
+                        static_cast<unsigned long int>(helper->getSizeX()),  
+                        static_cast<unsigned long int>(helper->getSizeY())};
+
+                    auto mesh = series.iterations[currentStep].meshes["shadowgram"];
+                    auto shadowgram = mesh[::openPMD::RecordComponent::SCALAR];
+*/
+
+                    //typedef pmacc::container::HostBuffer<float_X, DIM2> HBufShdg;
+
+            //this->hBufTotalCalorimeter = std::make_unique<HBufCalorimeter>(this->dBufCalorimeter->size());
+            //std::unique_ptr<HBufCalorimeter> hBufTotalCalorimeter;
+
+                    //std::unique_ptr<HBufShdg> hBuf = std::make_unique<HBufShdg>([helper->getSizeX(), helper->getSizeY()]);
+                    /*
+                    const int size = 10;
+                    std::vector<float_64> global_data(size * size);
+                    std::iota(global_data.begin(), global_data.end(), 0.);
+                    
+                    ::openPMD::Extent extent = {size, size};
+                    ::openPMD::Offset offset = {0, 0};
+                    */
+                    
+                    ::openPMD::Extent extent = {  
+                        static_cast<unsigned long int>(helper->getSizeX()),  
+                        static_cast<unsigned long int>(helper->getSizeY())};
+                    ::openPMD::Offset offset = {0, 0};
+                    
+
+                    ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_64>();
+                    ::openPMD::Dataset dataset{datatype, std::move(extent)};
+                   // auto mesh = series.iterations[currentStep].meshes["shadowgram"];
+                    //shadowgram.resetDataset(std::move(dataset));
+
+                    ::openPMD::MeshRecordComponent mesh = series.iterations[currentStep].meshes["shadowgram"][::openPMD::MeshRecordComponent::SCALAR];
+
+
+                    series.flush();
+                    mesh.resetDataset(dataset);
+
+                    series.flush();
+
+                    //    std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
+
+                    //shadowgram.resetDataset({::openPMD::determineDatatype<float_64>(), extent});
+                    mesh.storeChunk(
+                        std::shared_ptr<float_64>{&(helper->getShadowgramBuf()->origin()), [](auto const*) {}},
+                        std::move(offset),
+                        std::move(extent));
+                    
+                        //std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
+                        //std::shared_ptr<float_X>{&(helper->getShadowgram()), [](auto const*) {}},
+                        //::openPMD::shareRaw(&(helper->getShadowgram()[0][0])), <- compiles
+                        //std::shared_ptr<float_64>{&(helper->getShadowgram().front()), [](auto const*) {}},
+                        //helper->getShadowgram1D(),
+                        //std::make_shared<std::vector<float_64>>(std::move(helper->getShadowgram1D())),
+                        //global_data,
+                        //::openPMD::shareRaw(&(helper->getShadowgram()->orgin())),
+                        //std::shared_ptr<float_X>{(&(helper->getShadowgram()[0][0])), [](auto const*) {}},
+                        //std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
+                        //std::shared_ptr<float_64>{&(*helper.getShadowgramBuf()->origin()), [](auto const*) {}},
+
+                    series.flush();
+                    series.iterations[currentStep].close();
+                }
+
+                
+
                 void writeFile(std::vector<std::vector<float_64>> values, std::string name)
                 {
                     std::ofstream outFile;
@@ -442,9 +536,9 @@ namespace picongpu
                     }
                     else
                     {
-                        for(unsigned int i = 0; i < helper->get_n_x(); ++i) // over all x
+                        for(unsigned int i = 0; i < helper->getSizeX(); ++i) // over all x
                         {
-                            for(unsigned int j = 0; j < helper->get_n_y(); ++j) // over all y
+                            for(unsigned int j = 0; j < helper->getSizeY(); ++j) // over all y
                             {
                                 outFile << values[i][j] << "\t";
                             } // for loop over all y
@@ -462,6 +556,7 @@ namespace picongpu
                     }
                 }
             };
+
         } // namespace shadowgraphy
     } // namespace plugins
 } // namespace picongpu

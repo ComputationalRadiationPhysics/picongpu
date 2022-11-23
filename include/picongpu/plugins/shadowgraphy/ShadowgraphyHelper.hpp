@@ -3,9 +3,10 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/simulation/control/Window.hpp"
-#include "pmacc/assert.hpp"
 
+#include <pmacc/assert.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
+#include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/vector/Float.hpp>
@@ -81,6 +82,10 @@ namespace picongpu
 
                 bool fourierOutputEnabled;
                 bool intermediateOutputEnabled;
+
+                std::shared_ptr<pmacc::container::HostBuffer<float_64, DIM2>> retBuffer;
+
+                
 
             public:
                 /** Constructor of shadowgraphy helper class
@@ -491,19 +496,46 @@ namespace picongpu
                 }
 
                 //! Get shadowgram as a 2D image
-                vec2r get_shadowgram() const
+                vec2r getShadowgram() const
                 {
                     return shadowgram;
                 }
 
+                std::vector<float_64> getShadowgram1D()
+                {
+                    std::vector<float_64> retVec(getSizeX() * getSizeY());
+
+                    for (int i = 0; i < getSizeX(); ++i){
+                        for (int j = 0; j < getSizeY(); ++j){
+                            retVec[i + j * getSizeX()] = shadowgram[i][j];
+                        }
+                    }
+
+                    return retVec;
+                }
+
+                std::shared_ptr<pmacc::container::HostBuffer<float_64, DIM2>> getShadowgramBuf()
+                {
+                    //pmacc::container::HostBuffer<float_64, DIM2> retBuffer(getSizeX(), getSizeY());
+                    retBuffer = std::make_shared<pmacc::container::HostBuffer<float_64, DIM2>>(getSizeX(), getSizeY());
+
+                    for (int i = 0; i < getSizeX(); ++i){
+                        for (int j = 0; j < getSizeY(); ++j){
+                            retBuffer->origin()[i + j * getSizeX()] = static_cast<float_64>(shadowgram[i][j]);
+                        }
+                    }
+
+                    return retBuffer;
+                }
+
                 //! Get amount of shadowgram pixels in x direction
-                int get_n_x() const
+                int getSizeX() const
                 {
                     return pluginNumX;
                 }
 
                 //! Get amount of shadowgram pixels in y direction
-                int get_n_y() const
+                int getSizeY() const
                 {
                     return pluginNumY;
                 }
@@ -576,10 +608,10 @@ namespace picongpu
                     }
                     else
                     {
-                        for(unsigned int i = 0; i < get_n_x(); ++i) // over all x
+                        for(unsigned int i = 0; i < getSizeX(); ++i) // over all x
                         {
                             int const iffs = (i + pluginNumX / 2) % pluginNumX;
-                            for(unsigned int j = 0; j < get_n_y(); ++j) // over all y
+                            for(unsigned int j = 0; j < getSizeY(); ++j) // over all y
                             {
                                 int const index = i + j * pluginNumX;
                                 int const jffs = (j + pluginNumY / 2) % pluginNumY;
@@ -650,9 +682,9 @@ namespace picongpu
                     }
                     else
                     {
-                        for(unsigned int i = 0; i < get_n_x(); ++i) // over all x
+                        for(unsigned int i = 0; i < getSizeX(); ++i) // over all x
                         {
-                            for(unsigned int j = 0; j < get_n_y(); ++j) // over all y
+                            for(unsigned int j = 0; j < getSizeY(); ++j) // over all y
                             {
                                 int const index = i + j * pluginNumX;
                                 outFile << fftwInF[index][0] << "+" << fftwInF[index][1] << "j"
