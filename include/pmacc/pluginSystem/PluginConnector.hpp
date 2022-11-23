@@ -25,7 +25,7 @@
 #include "pmacc/Environment.def"
 #include "pmacc/pluginSystem/INotify.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
-#include "pmacc/pluginSystem/TimeSlice.hpp"
+#include "pmacc/pluginSystem/Slice.hpp"
 
 #include <list>
 #include <string>
@@ -42,7 +42,7 @@ namespace pmacc
     class PluginConnector
     {
     private:
-        using SeqOfTimeSlices = std::vector<pluginSystem::TimeSlice>;
+        using SeqOfTimeSlices = std::vector<pluginSystem::Slice>;
         using PluginPair = std::pair<INotify*, SeqOfTimeSlices>;
         using NotificationList = std::list<PluginPair>;
 

@@ -63,7 +63,7 @@
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/operations/CountParticles.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include <pmacc/pluginSystem/toTimeSlice.hpp>
+#include <pmacc/pluginSystem/toSlice.hpp>
 #include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/Limits.hpp>
@@ -1671,7 +1671,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 parsed.begin(),
                 parsed.end(),
                 std::back_inserter(res),
-                [](pmacc::pluginSystem::TimeSlice timeSlice) -> TimeSlice {
+                [](pmacc::pluginSystem::Slice timeSlice) -> TimeSlice {
                     return {timeSlice.values[0], timeSlice.values[1], timeSlice.values[2]};
                 });
             return res;

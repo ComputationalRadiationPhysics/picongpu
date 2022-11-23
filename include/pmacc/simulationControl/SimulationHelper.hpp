@@ -47,7 +47,7 @@ namespace pmacc
     class SimulationHelper : public IPlugin
     {
     public:
-        using SeqOfTimeSlices = std::vector<pluginSystem::TimeSlice>;
+        using SeqOfTimeSlices = std::vector<pluginSystem::Slice>;
 
         /**
          * Constructor

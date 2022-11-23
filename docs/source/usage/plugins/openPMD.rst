@@ -124,6 +124,7 @@ PIConGPU command line option          description
 ``--openPMD.source``                  Select data sources and filters to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
 ``--openPMD.range``                   Define a contiguous range of cells per dimension to dump. Each dimension is separated by a comma.
                                       A range is defined as ``[BEGIN:END)`` where out of range indices will be clipped.
+                                      A single value e.g. ``10,:,:`` for a dimension will only dump a slice.
                                       Default is ``:,:,:``, which dumps all cells.
 ``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
 ``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).

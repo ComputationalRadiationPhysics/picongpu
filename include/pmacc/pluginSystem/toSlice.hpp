@@ -1,4 +1,4 @@
-/* Copyright 2018-2022 Rene Widera
+/* Copyright 2022 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,12 +22,12 @@
 #pragma once
 
 #include "pmacc/misc/splitString.hpp"
-#include "pmacc/pluginSystem/TimeSlice.hpp"
-#include "pmacc/types.hpp"
+#include "pmacc/pluginSystem/Slice.hpp"
 #include "pmacc/verify.hpp"
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <iostream>
 #include <regex>
 #include <string>
@@ -53,14 +53,17 @@ namespace pmacc
 
         /** create a TimeSlice out of an string
          *
-         * Parse a comma separated list of time slices and creates a vector of TimeSlices.
-         * TimeSlice Syntax:
+         * Parse a comma separated list of time slices and creates a vector of slices.
+         * time slice syntax:
          *   - `start:stop:period`
          *   - a number ``N is equal to `::N`
+         *   - `:` is equal to `0:-1:1`
+         *
+         * If stop is `-1` there is no defined end.
          */
-        HINLINE std::vector<TimeSlice> toTimeSlice(std::string const& str)
+        HINLINE std::vector<Slice> toTimeSlice(std::string const& str)
         {
-            std::vector<TimeSlice> result;
+            std::vector<Slice> result;
             auto const seqOfSlices = misc::splitString(str, ",");
             for(auto const& slice : seqOfSlices)
             {
@@ -76,7 +79,7 @@ namespace pmacc
                 // id of the component
                 size_t n = 0;
                 bool const hasOnlyPeriod = sliceComponents.size() == 1u;
-                TimeSlice timeSlice;
+                Slice timeSlice;
                 for(auto& component : sliceComponents)
                 {
                     // be sure that component it is a number or empty
@@ -87,6 +90,57 @@ namespace pmacc
                     timeSlice.setValue(hasOnlyPeriod ? 2 : n, component);
                     n++;
                 }
+                result.push_back(timeSlice);
+            }
+            return result;
+        }
+
+        /** create a RangeSlice out of an string
+         *
+         * Parse a comma separated list of slices and creates a vector of slices.
+         * range slice syntax:
+         *   - `begin:end:period`
+         *   - a number ``N is equal to `N:N+1,1`
+         *   - `:` is equal to `0:-1:1`
+         *
+         * If end is `-1` there is no defined end if the range.
+         */
+        HINLINE std::vector<Slice> toRangeSlice(std::string const& str)
+        {
+            std::vector<Slice> result;
+            auto const seqOfSlices = misc::splitString(str, ",");
+            for(auto const& slice : seqOfSlices)
+            {
+                // skip empty slice strings
+                if(slice.empty())
+                    continue;
+
+                auto const sliceComponents = misc::splitString(slice, ":");
+                PMACC_VERIFY_MSG(
+                    !sliceComponents.empty(),
+                    std::string("time slice without a defined element is not allowed") + str);
+
+                // id of the component
+                size_t n = 0;
+                bool const sliceOnly = sliceComponents.size() == 1u;
+                Slice timeSlice;
+
+                for(auto& component : sliceComponents)
+                {
+                    // be sure that component it is a number or empty
+                    PMACC_VERIFY_MSG(
+                        component.empty() || detail::is_number(component),
+                        std::string("value") + component + " in " + str + "is not a number");
+
+                    timeSlice.setValue(n, component);
+                    if(sliceOnly)
+                    {
+                        // set end to begin + 1 to select only one slice
+                        timeSlice.values[1] = std::stoul(component) + 1;
+                    }
+                    n++;
+                }
+
                 result.push_back(timeSlice);
             }
             return result;

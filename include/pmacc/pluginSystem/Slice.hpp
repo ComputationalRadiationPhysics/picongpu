@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/verify.hpp"
 
 #include <array>
+#include <cstdint>
 #include <string>
 
 
@@ -32,7 +32,7 @@ namespace pmacc
 {
     namespace pluginSystem
     {
-        struct TimeSlice
+        struct Slice
         {
             /** time slice configuration
              *
@@ -74,7 +74,7 @@ namespace pmacc
              * @param end last time step taken into account
              * @param period select any period(st) time step between start and end
              */
-            TimeSlice(uint32_t start = 0, uint32_t end = uint32_t(-1), uint32_t period = 1)
+            Slice(uint32_t start = 0, uint32_t end = uint32_t(-1), uint32_t period = 1)
                 : /* default: start:end:period
                    * -1 stored as unsigned is the highest available unsigned integer
                    */

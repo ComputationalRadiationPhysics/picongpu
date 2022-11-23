@@ -29,7 +29,7 @@
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
-#include "pmacc/pluginSystem/toTimeSlice.hpp"
+#include "pmacc/pluginSystem/toSlice.hpp"
 #include "pmacc/simulationControl/signal.hpp"
 #include "pmacc/types.hpp"
 
@@ -400,7 +400,7 @@ namespace pmacc
                 signalCreateCheckpoint = false;
 
                 // add a new checkpoint
-                seqCheckpointPeriod.push_back(pluginSystem::TimeSlice(signalMaxTimestep, signalMaxTimestep));
+                seqCheckpointPeriod.push_back(pluginSystem::Slice(signalMaxTimestep, signalMaxTimestep));
             }
             if(signalStopSimulation)
             {
