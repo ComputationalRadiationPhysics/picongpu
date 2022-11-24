@@ -6,58 +6,91 @@
 # License: GPLv3+
 #
 
+function absolute_path()
+{
+    cd $1
+    pwd
+}
+
+help()
+{
+  echo "Execute the KHI example and validate the output data."
+  echo "The validation is evaluating the magnetic field growth rate with the corresponding analytic solution."
+  echo ""
+  echo "Usage:"
+  echo "    ci.sh [-d dataPath] [inputSetPath] [destinationPath]"
+  echo ""
+  echo "  -d | --data dataPath                - path to simulation output data"
+  echo "  --delete                            - delete dataPath after verification"
+  echo "                                        Default: destinationPath/simOutput_<timestamp>"
+  echo "  -f | --force                        - Override if 'destinationPath' exists."
+  echo "  -h | --help                         - show help"
+  echo ""
+  echo "  inputSetPath                         - path to the simulation input set"
+  echo "                                         Default: current directory"
+  echo "  destinationPath                      - path to the destination where the input set is cloned to via"
+  echo "                                         'pic-create'"
+  echo "                                         Default: current directory"
+}
+
 currentPath=$(cd `dirname $0` && pwd)
-create="true"
+currentPath=$(absolute_path $currentPath)
 
-while [[ $# > 0 ]] ; do
-        case "$1" in
 
-                -t|--testPar)
-                        testPar="$2"
-                        shift
-                        ;;
-
-                -s|--simDir)
-                        simDir="$2"
-                        shift
-                        ;;
-
-                -f|--force)
-                        force="true"
-                        ;;
-
-                -c|--create)
-                        create="false"
-                        ;;
-
-                --help|-h)
-                        echo "With this file the test of the growth rate of the KHI can"
-                        echo " be started. The specified test case is used by default "
-                        echo "(see parameters)."
-                        echo "Alternatives to run the test suite are validate.sh and MainTest.py."
-                        echo "If the parameter -t is not set, it is assumed that"
-                        echo " picongpu is in the home directory"
-                        echo "Usage:"
-                        echo "  --testPar|-t \"direction/to/picongpu/\""
-                        echo "  --simDir|-s \"direction/where/simulation/should/be/build/\""
-                        echo "  -c|--create do not run pic-create"
-                        echo "  -f|--force  - Override if 'destinationPath' exists."
-                        echo "  --help|-h"
-                        echo "Example:"
-                        echo " bash ci.sh - creates a new temporary folder in which the "
-                        echo "              test-suite is run and then deletes it"
-                        exit 0
-                        ;;
-        esac
-        shift
-done
-
-if [ -z "$simDir" ] ; then
-        date_stamp=$(date +"%F-%h-%M-%S")
-        simDir=/tmp/$date_stamp
+# options may be followed by
+# - one colon to indicate they has a required argument
+OPTS=`getopt -o d:hf -l data:,help,force,delete -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
 fi
 
-if [ -d "$simDir" ] ; then
+eval set -- "$OPTS"
+
+# parser
+while true ; do
+    case "$1" in
+        -d|--data)
+            dataPath=$2
+            shift
+            ;;
+        -f|--force)
+            force="true"
+            ;;
+        --delete)
+            deleteData="true"
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            shift
+            exit 0
+            ;;
+        --) shift; break;;
+    esac
+    shift
+done
+
+# the first parameter is the project path
+if [ $# -ge 1 ] ; then
+    inputSetPath="$1"
+else
+    inputSetPath="./"
+fi
+
+echo $*
+if [ $# -eq 2 ] ; then
+    inputDestinationPath=$2
+    create="true"
+else
+    inputDestinationPath=$inputSetPath
+fi
+
+if [ -z "$dataPath" ] ; then
+    date_stamp=$(date +"%F-%h-%M-%S")
+    dataPath="$inputDestinationPath/simOutput_$date_stamp"
+fi
+
+if [ -d "$dataPath" ] ; then
     if [ "$force" == "true" ] ; then
         echo "Warning: using existing folder on user-request [-f]"
     else
@@ -66,33 +99,33 @@ if [ -d "$simDir" ] ; then
     fi
 fi
 
-if [ -z "$testPar" ] ; then
-        testPar=$HOME
-fi
-
 if [ "$create" == "true" ] ; then
-        mktemp -d $date_stamp
-        pic-create $testPar/picongpu/test/KHI_growthRate/ $simDir
-        currentPath=$simDir/bin/
+    if [ "$force" == "true" ] ; then
+        pic-create -f $inputSetPath $inputDestinationPath
     else
-        mkdir -p $simDir
+        pic-create $inputSetPath $inputDestinationPath
+    fi
 fi
 
-cd $currentPath/../
+mkdir -p $dataPath
+
+# use absolut path's
+inputDestinationPath=$(absolute_path $inputDestinationPath)
+dataPath=$(absolute_path $dataPath)
+
+cd $inputDestinationPath
 pic-build
 
-mkdir $simDir/simOutput
-
-cd $simDir/simOutput
-mpiexec -n 1 $currentPath/picongpu -d 1 1 1 -g 192 512 12 --periodic 1 1 1 -s 3000 --fields_energy.period 10
+cd $dataPath
+mpiexec -n 1 $inputDestinationPath/bin/picongpu -d 1 1 1 -g 192 512 12 --periodic 1 1 1 -s 3000 --fields_energy.period 10
 cd ..
 
 # test with python
-bash $currentPath/validate.sh -t $testPar -s $simDir
+$currentPath/validate.sh $inputDestinationPath -d $dataPath
 ret=$?
 
-if [ "$create" == "true" ] ; then
-        rm -r $simDir
+if [ "$deleteData" == "true" ] ; then
+        rm -r $dataPath
 fi
 
 exit $ret
