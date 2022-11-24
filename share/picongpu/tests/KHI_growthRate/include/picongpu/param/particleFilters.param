@@ -1,0 +1,119 @@
+/* Copyright 2013-2022 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * A common task in both modeling and in situ processing (output) is the
+ * selection of particles of a particle species by attributes. Users can
+ * define such selections as particle filters in this file.
+ *
+ * Particle filters are simple mappings assigning each particle of a species
+ * either `true` or `false` (ignore / filter out).
+ *
+ * All active filters need to be listed in `AllParticleFilters`. They are then
+ * combined with `VectorAllSpecies` at compile-time, e.g. for plugins.
+ */
+
+#pragma once
+
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace filter
+        {
+            struct IfRelativeGlobalPositionParamLowQuarterPosition
+            {
+                /* lowerBound is included in the range */
+                static constexpr float_X lowerBound = 0.0;
+                /* upperBound is excluded in the range */
+                static constexpr float_X upperBound = 0.25;
+                /* dimension for the filter
+                 * x = 0; y= 1; z = 2
+                 */
+                static constexpr uint32_t dimension = 1u;
+
+                // filter name
+                static constexpr char const* name = "lowerQuarterYPosition";
+            };
+
+            using LowerQuarterYPosition
+                = filter::RelativeGlobalDomainPosition<IfRelativeGlobalPositionParamLowQuarterPosition>;
+
+            struct IfRelativeGlobalPositionParamMiddleHalf
+            {
+                /* lowerBound is included in the range */
+                static constexpr float_X lowerBound = 0.25;
+                /* upperBound is excluded in the range */
+                static constexpr float_X upperBound = 0.75;
+                /* dimension for the filter
+                 * x = 0; y= 1; z = 2
+                 */
+                static constexpr uint32_t dimension = 1u;
+
+                // filter name
+                static constexpr char const* name = "middleHalfYPosition";
+            };
+
+            using MiddleHalfYPosition = filter::RelativeGlobalDomainPosition<IfRelativeGlobalPositionParamMiddleHalf>;
+
+            struct IfRelativeGlobalPositionParamUpperQuarter
+            {
+                /* lowerBound is included in the range */
+                static constexpr float_X lowerBound = 0.75;
+                /* upperBound is excluded in the range */
+                static constexpr float_X upperBound = 1.0;
+                /* dimension for the filter
+                 * x = 0; y= 1; z = 2
+                 */
+                static constexpr uint32_t dimension = 1u;
+
+                // filter name
+                static constexpr char const* name = "upperQuarterYPosition";
+            };
+
+            using UpperQuarterYPosition
+                = filter::RelativeGlobalDomainPosition<IfRelativeGlobalPositionParamUpperQuarter>;
+
+            /** Plugins: collection of all available particle filters
+             *
+             * Create a list of all filters here that you want to use in plugins.
+             *
+             * Note: filter All is defined in picongpu/particles/filter/filter.def
+             */
+            using AllParticleFilters
+                = MakeSeq_t<All, LowerQuarterYPosition, MiddleHalfYPosition, UpperQuarterYPosition>;
+
+        } // namespace filter
+
+        namespace traits
+        {
+            /* if needed for generic "free" filters,
+             * place `SpeciesEligibleForSolver` traits for filters here
+             */
+        } // namespace traits
+    } // namespace particles
+} // namespace picongpu
