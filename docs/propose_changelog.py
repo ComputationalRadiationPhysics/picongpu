@@ -74,7 +74,7 @@ for i in issues:
     # filter out bugs that only appeared in development
     pr_nr = i.number
     pr_labels = i.labels
-    pr_labels_names = list(map(lambda l: l.name, pr_labels))
+    pr_labels_names = list(map(lambda x: x.name, pr_labels))
     pr_url = "https://github.com/ComputationalRadiationPhysics/picongpu/pull/"
     if "bug" in pr_labels_names:
         if "affects latest release" not in pr_labels_names:
