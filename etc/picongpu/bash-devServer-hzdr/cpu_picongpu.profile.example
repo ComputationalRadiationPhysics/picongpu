@@ -53,7 +53,7 @@ export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
 export PATH=$PATH:$PICSRC/src/tools/binspa
 
-export PYTHONPATH=$HOME/pypicongpu/lib/python:$PICSRC/lib/python:$PYTHONPATH
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # "tbg" default options #######################################################
 export TBG_SUBMIT="bash"
