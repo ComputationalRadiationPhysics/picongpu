@@ -35,8 +35,8 @@ class DensityProfile(RenderedObject):
         retrieve a context valid for "any profile"
 
         Problem: Every profile has its respective schema, and it is difficult
-        in JSON (particularly in a mustache-compatible way) the type of the
-        schema.
+        in JSON (particularly in a mustache-compatible way) to get the type
+        of the schema.
 
         Solution: The normal rendering of profiles get_rendering_context()
         provides **only their parameters**, i.e. there is **no meta
