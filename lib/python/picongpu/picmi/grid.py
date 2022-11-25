@@ -59,26 +59,26 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
             "periodic": grid.BoundaryCondition.PERIODIC,
         }
 
-        assert self.bc_xmin in picongpu_boundary_condition_by_picmi_id, \
+        assert self.lower_boundary_conditions[0] in picongpu_boundary_condition_by_picmi_id, \
             "X: boundary condition not supported"
-        assert self.bc_ymin in picongpu_boundary_condition_by_picmi_id, \
+        assert self.lower_boundary_conditions[1] in picongpu_boundary_condition_by_picmi_id, \
             "Y: boundary condition not supported"
-        assert self.bc_zmin in picongpu_boundary_condition_by_picmi_id, \
+        assert self.lower_boundary_conditions[2] in picongpu_boundary_condition_by_picmi_id, \
             "Z: boundary condition not supported"
 
         g = grid.Grid3D()
-        g.cell_size_x_si = (self.xmax - self.xmin) / self.nx
-        g.cell_size_y_si = (self.ymax - self.ymin) / self.ny
-        g.cell_size_z_si = (self.zmax - self.zmin) / self.nz
-        g.cell_cnt_x = self.nx
-        g.cell_cnt_y = self.ny
-        g.cell_cnt_z = self.nz
+        g.cell_size_x_si = (self.upper_bound[0] - self.lower_bound[0]) / self.number_of_cells[0]
+        g.cell_size_y_si = (self.upper_bound[1] - self.lower_bound[1]) / self.number_of_cells[1]
+        g.cell_size_z_si = (self.upper_bound[2] - self.lower_bound[2]) / self.number_of_cells[2]
+        g.cell_cnt_x = self.number_of_cells[0]
+        g.cell_cnt_y = self.number_of_cells[1]
+        g.cell_cnt_z = self.number_of_cells[2]
         g.boundary_condition_x = \
-            picongpu_boundary_condition_by_picmi_id[self.bc_xmin]
+            picongpu_boundary_condition_by_picmi_id[self.lower_boundary_conditions[0]]
         g.boundary_condition_y = \
-            picongpu_boundary_condition_by_picmi_id[self.bc_ymin]
+            picongpu_boundary_condition_by_picmi_id[self.lower_boundary_conditions[1]]
         g.boundary_condition_z = \
-            picongpu_boundary_condition_by_picmi_id[self.bc_zmin]
+            picongpu_boundary_condition_by_picmi_id[self.lower_boundary_conditions[2]]
 
         # gpu distribution
         # convert input to 3 integer list
@@ -100,7 +100,7 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         # check if gpu distribution fits grid
         # TODO: super_cell_size still hard coded
         super_cell_size = [8, 8, 4]
-        cells = [self.nx, self.ny, self.nz]
+        cells = [self.number_of_cells[0], self.number_of_cells[1], self.number_of_cells[2]]
         dim_name = ["x", "y", "z"]
         for dim in range(3):
             assert (((cells[dim] // g.n_gpus[dim]) // super_cell_size[dim])
