@@ -34,7 +34,6 @@
 #    include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
 #endif
 #include "picongpu/particles/creation/creation.hpp"
-#include "picongpu/particles/flylite/IFlyLite.hpp"
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/traits/GetPhotonCreator.hpp"
 
@@ -126,49 +125,6 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto species = dc.get<SpeciesType>(FrameType::getName(), true);
                 species->reset(currentStep);
-            }
-        };
-
-        /** Allocate helper fields for FLYlite population kinetics for atomic physics
-         *
-         * energy histograms, rate matrix, etc.
-         *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of ion species
-         */
-        template<typename T_SpeciesType>
-        struct CallPopulationKineticsInit
-        {
-            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
-            using FrameType = typename SpeciesType::FrameType;
-
-            using PopulationKineticsSolver =
-                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, populationKinetics<>>::type>::type;
-
-            HINLINE void operator()(pmacc::DataSpace<simDim> gridSizeLocal) const
-            {
-                PopulationKineticsSolver flylite;
-                flylite.init(gridSizeLocal, FrameType::getName());
-            }
-        };
-
-        /** Calculate FLYlite population kinetics evolving one time step
-         *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of ion species
-         */
-        template<typename T_SpeciesType>
-        struct CallPopulationKinetics
-        {
-            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
-
-            using FrameType = typename SpeciesType::FrameType;
-
-            using PopulationKineticsSolver =
-                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, populationKinetics<>>::type>::type;
-
-            HINLINE void operator()(uint32_t currentStep) const
-            {
-                PopulationKineticsSolver flylite{};
-                flylite.template update<SpeciesType>(FrameType::getName(), currentStep);
             }
         };
 

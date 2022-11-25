@@ -43,14 +43,6 @@ ionizationEnergies.param
    :path: include/picongpu/param/ionizationEnergies.param
    :no-link:
 
-flylite.param
-^^^^^^^^^^^^^
-
-.. doxygenfile:: flylite.param
-   :project: PIConGPU
-   :path: include/picongpu/param/flylite.param
-   :no-link:
-
 collision.param
 ^^^^^^^^^^^^^^^
 

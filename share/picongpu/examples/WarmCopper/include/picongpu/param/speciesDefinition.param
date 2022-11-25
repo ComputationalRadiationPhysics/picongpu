@@ -129,15 +129,11 @@ namespace picongpu
         massRatio<MassRatioCopper>,
         chargeRatio<ChargeRatioCopper>,
         densityRatio<DensityRatioCopper>,
-        atomicNumbers<ionization::atomicNumbers::Copper_t>,
-        // note: this method is not yet fully implemented
-        populationKinetics<particles::flylite::NonLTE<MakeSeq_t<BulkElectrons, PromptElectrons>, MakeSeq_t<Photons>>>>;
+        atomicNumbers<ionization::atomicNumbers::Copper_t>>;
 
     /* define species ions */
-    using CopperIons = Particles<
-        PMACC_CSTRING("Cu"),
-        ParticleFlagsCopper,
-        MakeSeq_t<DefaultParticleAttributes, boundElectrons, superconfig>>;
+    using CopperIons
+        = Particles<PMACC_CSTRING("Cu"), ParticleFlagsCopper, MakeSeq_t<DefaultParticleAttributes, boundElectrons>>;
 
     /*########################### end species ####################################*/
 
