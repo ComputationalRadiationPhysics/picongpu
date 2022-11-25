@@ -27,6 +27,8 @@
 
 #include <pmacc/Environment.hpp>
 
+#include <optional>
+
 
 namespace picongpu
 {
@@ -62,20 +64,18 @@ namespace picongpu
                  * possibly taking an advantage of parallel execution alongside with other tasks. The nullPtr check is
                  * needed since some specializations of this method may not need it and will return a nullptr instead.
                  */
-                HINLINE std::unique_ptr<EventTask> operator()(
+                HINLINE std::optional<EventTask> operator()(
                     FieldTmp& fieldTmp,
                     uint32_t const& currentStep,
                     uint32_t const& extraSlotNr) const;
             };
 
 
-            // TODO: Consider using std::optional<EventTask> instead of std::unique_ptr<EventTask>
-            // after switching to c++17.
             //! Specialization for normal derived attributes
             template<uint32_t AREA, typename T_Species, typename T_Filter, typename... T>
             struct ComputeFieldValue<AREA, ComputeGridValuePerFrame<T...>, T_Species, T_Filter>
             {
-                HINLINE std::unique_ptr<EventTask> operator()(
+                HINLINE std::optional<EventTask> operator()(
                     FieldTmp& fieldTmp,
                     uint32_t const& currentStep,
                     uint32_t const& extraSlotNr) const
@@ -90,7 +90,7 @@ namespace picongpu
                     fieldTmp.template computeValue<AREA, Solver, T_Filter>(*speciesTmp, currentStep);
                     // Particles can contribute to cells in GUARD (due to their shape) this values need to be
                     //  added to the neighbouring GPU BOARDERs.
-                    return std::make_unique<EventTask>(fieldTmp.asyncCommunication(__getTransactionEvent()));
+                    return fieldTmp.asyncCommunication(__getTransactionEvent());
                 }
             };
 
@@ -98,7 +98,7 @@ namespace picongpu
             template<uint32_t AREA, typename T_Species, typename T_Filter, typename... T>
             struct ComputeFieldValue<AREA, CombinedDeriveSolver<T...>, T_Species, T_Filter>
             {
-                HINLINE std::unique_ptr<EventTask> operator()(
+                HINLINE std::optional<EventTask> operator()(
                     FieldTmp& fieldTmp1,
                     uint32_t const& currentStep,
                     uint32_t const& extraSlotNr) const
@@ -135,7 +135,7 @@ namespace picongpu
 
                     // Modify the 1st field by the values in the 2nd field according to the ModifyingOperation.
                     fieldTmp1.template modifyByField<AREA, typename CombinedSolver::ModifyingOperation>(*fieldTmp2);
-                    return nullptr;
+                    return std::nullopt;
                 }
             };
         } // namespace particleToGrid
