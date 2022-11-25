@@ -3,7 +3,7 @@ spack load cmake@3.24.2 %gcc@10.2.0
 
 echo "openpmd-api:"
 spack install --reuse openpmd-api@0.14.5 %gcc@10.2.0 \
-    ^adios2@2.8.3 +cuda +cuda_arch=70\
+    ^adios2@2.8.3 +cuda cuda_arch=70\
     ^cmake@3.24.2 \
     ^hdf5@1.12.2 \
     ^openmpi@4.1.3 +atomics +cuda cuda_arch=70\
