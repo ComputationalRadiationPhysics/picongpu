@@ -90,4 +90,4 @@ class DifferenceKHIGrowthRate:
         """
 
         simMax = max(simMax)
-        return (theoryMax - simMax) / simMax * 100
+        return (theoryMax - simMax) / theoryMax * 100
