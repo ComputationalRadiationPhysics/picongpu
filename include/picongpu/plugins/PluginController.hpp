@@ -57,10 +57,6 @@
 #    if(ENABLE_OPENPMD == 1)
 #        include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #    endif
-
-#    if(SIMDIM == DIM3)
-#        include "picongpu/plugins/IntensityPlugin.hpp"
-#    endif
 #endif
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
@@ -157,10 +153,6 @@ namespace picongpu
             ,
             SumCurrents,
             ChargeConservation
-#    if(SIMDIM == DIM3)
-            ,
-            IntensityPlugin
-#    endif
 #endif
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
