@@ -1,4 +1,4 @@
-spack install --resuse cmake@3.24.2 %gcc@10.2.0
+spack install --reuse cmake@3.24.2 %gcc@10.2.0
 spack load cmake@3.24.2 %gcc@10.2.0
 
 echo "openpmd-api:"
@@ -27,4 +27,4 @@ spack install --reuse boost@1.78.0 \
     %gcc@10.2.0
 
 echo "pngwriter"
-spack install --resue pngwriter@0.7.0 %gcc@10.2.0
+spack install --reuse pngwriter@0.7.0 %gcc@10.2.0
