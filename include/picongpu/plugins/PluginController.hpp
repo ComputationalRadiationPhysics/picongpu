@@ -47,7 +47,6 @@
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
-#    include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
 #endif
 
 #if(PMACC_CUDA_ENABLED == 1)
@@ -187,7 +186,6 @@ namespace picongpu
 #endif
 #if(ENABLE_OPENPMD == 1)
             ,
-            plugins::xrayScattering::XrayScattering<bmpl::_1>,
             plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>,
             plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1>>
 #endif

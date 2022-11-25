@@ -26,7 +26,6 @@ Plugin name                                                                     
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
 :ref:`sum currents <usage-plugins-sumCurrents>` [#f5]_                               compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-transitionRadiation>`                       compute emitted electromagnetic spectra
-:ref:`xrayScattering <usage-plugins-xrayScattering>` [#f2]_                          compute SAXS scattering amplitude ( based on `FieldTmp` species density )
 ==================================================================================== =================================================================================
 
 .. rubric:: Footnotes
