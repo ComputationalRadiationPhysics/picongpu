@@ -69,7 +69,7 @@ To enable collisions between the Ions and Electrons with a constant coulomb loga
                 * the functors are called in order (from first to last functor)
                 */
                using CollisionPipeline = bmpl::
-                   vector<Collider<relativistic::RelativisticCollisionConstLog<Params>, Pairs>;
+                   vector<Collider<relativistic::RelativisticCollisionConstLog<Params>, Pairs> >;
            } // namespace collision
        } // namespace particles
    } // namespace picongpu
@@ -145,7 +145,7 @@ You need to define your filters in ``particleFilters.param`` and than you can us
             Collider<
                 relativistic::RelativisticCollisionConstLog<Params2>,
                 Pairs2,
-                OneFilter<filter::FilterA>
+                OneFilter<filter::FilterA>>
             >;
 
 Here only the electrons passing the A-filter will collide with ions but only with the ions that pass the B-filter.
