@@ -58,7 +58,7 @@ namespace picongpu
                                 = factor1 * factor2 * factor3 / precision::WEIGHT_NORM_COLL;
 
                             // formula in line above eq. (22) in [Perez2012]:
-                            const float_COLL minImpactParam = pmacc::math::max(
+                            const float_COLL minImpactParam = math::max(
                                 static_cast<float_COLL>(HBAR) * pmacc::math::Pi<float_COLL>::doubleValue
                                     / (2._COLL * math::sqrt(v.comsMomentum0Abs2) / precision::WEIGHT_NORM_COLL),
                                 twoRadImpactParam);
@@ -68,7 +68,7 @@ namespace picongpu
                                 * math::log(1.0_COLL
                                             + static_cast<float_COLL>(screeningLengthSquared_m)
                                                 / (minImpactParam * minImpactParam));
-                            return pmacc::math::max(2._COLL, coulombLog);
+                            return math::max(2._COLL, coulombLog);
                         }
                         PMACC_ALIGN(screeningLengthSquared_m, float_X);
                     };

@@ -80,8 +80,8 @@ namespace picongpu
         auto const& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
         auto const interpolationLowerMargin = interpolation.getLowerMargin();
         auto const interpolationUpperMargin = interpolation.getUpperMargin();
-        auto const originGuard = pmacc::math::max(LowerMarginShapes::toRT(), interpolationLowerMargin);
-        auto const endGuard = pmacc::math::max(UpperMarginShapes::toRT(), interpolationUpperMargin);
+        auto const originGuard = math::max(LowerMarginShapes::toRT(), interpolationLowerMargin);
+        auto const endGuard = math::max(UpperMarginShapes::toRT(), interpolationUpperMargin);
 
         /*go over all directions*/
         for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)

@@ -73,40 +73,6 @@ namespace pmacc
 {
     namespace math
     {
-        /*specialize max algorithm*/
-        template<typename Type, int dim>
-        struct Max<::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim>>
-        {
-            using result = ::pmacc::math::Vector<Type, dim>;
-
-            HDINLINE result operator()(
-                const ::pmacc::math::Vector<Type, dim>& vector1,
-                const ::pmacc::math::Vector<Type, dim>& vector2)
-            {
-                result tmp;
-                for(int i = 0; i < dim; ++i)
-                    tmp[i] = pmacc::math::max(vector1[i], vector2[i]);
-                return tmp;
-            }
-        };
-
-        /*specialize min algorithm*/
-        template<typename Type, int dim>
-        struct Min<::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim>>
-        {
-            using result = ::pmacc::math::Vector<Type, dim>;
-
-            HDINLINE result operator()(
-                const ::pmacc::math::Vector<Type, dim>& vector1,
-                const ::pmacc::math::Vector<Type, dim>& vector2)
-            {
-                result tmp;
-                for(int i = 0; i < dim; ++i)
-                    tmp[i] = pmacc::math::min(vector1[i], vector2[i]);
-                return tmp;
-            }
-        };
-
         /*! Specialisation of cross where base is a vector with three components */
         template<typename Type>
         struct Cross<::pmacc::math::Vector<Type, DIM3>, ::pmacc::math::Vector<Type, DIM3>>
@@ -196,7 +162,7 @@ namespace alpaka
         {
             /*! Specialisation of pow where base is a vector and exponent is a scalar
              *
-             * Create pow separatley for every component of the vector.
+             * Create pow separately for every component of the vector.
              */
             template<typename T_Ctx, typename T_ScalarType, int T_dim>
             struct Pow<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, T_ScalarType, void>
@@ -212,6 +178,58 @@ namespace alpaka
                     ResultType tmp;
                     for(int i = 0; i < T_dim; ++i)
                         tmp[i] = cupla::pow(vector[i], exponent);
+                    return tmp;
+                }
+            };
+
+            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, int T_dim>
+            struct Min<
+                T_Ctx,
+                ::pmacc::math::Vector<T_ScalarType1, T_dim>,
+                ::pmacc::math::Vector<T_ScalarType2, T_dim>,
+                void>
+            {
+                using ScalarResultType = ALPAKA_DECAY_T(decltype(alpaka::math::min(
+                    std::declval<T_Ctx>(),
+                    std::declval<T_ScalarType1>(),
+                    std::declval<T_ScalarType2>())));
+                using ResultType = ::pmacc::math::Vector<ScalarResultType, T_dim>;
+
+                ALPAKA_FN_HOST_ACC auto operator()(
+                    T_Ctx const& mathConcept,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector1,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector2) -> ResultType
+                {
+                    PMACC_CASSERT(T_dim > 0);
+                    ResultType tmp;
+                    for(int i = 0; i < T_dim; ++i)
+                        tmp[i] = alpaka::math::min(mathConcept, vector1[i], vector2[i]);
+                    return tmp;
+                }
+            };
+
+            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, int T_dim>
+            struct Max<
+                T_Ctx,
+                ::pmacc::math::Vector<T_ScalarType1, T_dim>,
+                ::pmacc::math::Vector<T_ScalarType2, T_dim>,
+                void>
+            {
+                using ScalarResultType = ALPAKA_DECAY_T(decltype(alpaka::math::max(
+                    std::declval<T_Ctx>(),
+                    std::declval<T_ScalarType1>(),
+                    std::declval<T_ScalarType2>())));
+                using ResultType = ::pmacc::math::Vector<ScalarResultType, T_dim>;
+
+                ALPAKA_FN_HOST_ACC auto operator()(
+                    T_Ctx const& mathConcept,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector1,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector2) -> ResultType
+                {
+                    PMACC_CASSERT(T_dim > 0);
+                    ResultType tmp;
+                    for(int i = 0; i < T_dim; ++i)
+                        tmp[i] = alpaka::math::max(mathConcept, vector1[i], vector2[i]);
                     return tmp;
                 }
             };

@@ -187,7 +187,7 @@ namespace picongpu
                         // TODO chose a better limit?
                         // limit px->0 py=0. this also covers the pPerp = pAbs = 0 case. An alternative would
                         // be to let the momentum unchanged in that case.
-                        if(pPerp <= pmacc::math::max(std::numeric_limits<float_COLL>::epsilon(), 1.0e-10_COLL) * pAbs)
+                        if(pPerp <= math::max(std::numeric_limits<float_COLL>::epsilon(), 1.0e-10_COLL) * pAbs)
                         {
                             finalVec[0] = pAbs * sinXi * cosPhi;
                             finalVec[1] = pAbs * sinXi * sinPhi;
@@ -360,7 +360,7 @@ namespace picongpu
                             // Statistical part from [Higginson 2020],
                             // corresponds to n1*n2/n12 in [Perez 2012]:
                             float_COLL const s12Factor3 = potentialPartners
-                                * pmacc::math::max(v.normalizedWeight0, v.normalizedWeight1) * WEIGHT_NORM_COLL
+                                * math::max(v.normalizedWeight0, v.normalizedWeight1) * WEIGHT_NORM_COLL
                                 / static_cast<float_COLL>(duplicationCorrection) / CELL_VOLUME_COLL;
                             float_COLL const s12n = s12Factor0 * s12Factor1 * s12Factor2 * s12Factor2 * s12Factor3;
 
@@ -381,10 +381,9 @@ namespace picongpu
                                                     4.0_COLL * pmacc::math::Pi<float_COLL>::value / 3._COLL,
                                                     1.0_COLL / 3.0_COLL)
                                 * DELTA_T_COLL * (v.mass0 + v.mass1)
-                                / pmacc::math::max(v.mass0 * densitySqCbrt0, v.mass1 * densitySqCbrt1)
-                                * relativeComsVelocity;
+                                / math::max(v.mass0 * densitySqCbrt0, v.mass1 * densitySqCbrt1) * relativeComsVelocity;
                             s12Max *= s12Factor3;
-                            return pmacc::math::min(s12n, s12Max);
+                            return math::min(s12n, s12Max);
                         }
 
                         //! sample scattering angles and apply the new momenta

@@ -235,9 +235,9 @@ namespace picongpu
                     using Index = pmacc::DataSpace<simDim>;
                     using IntVector = pmacc::math::Vector<int, simDim>;
                     auto const beginLocalUserIdx
-                        = Index{pmacc::math::max(IntVector{beginUserIdx - totalCellOffset}, IntVector::create(0))};
-                    auto const endLocalUserIdx = Index{
-                        pmacc::math::min(IntVector{endUserIdx - totalCellOffset}, IntVector{localDomain.size})};
+                        = Index{math::max(IntVector{beginUserIdx - totalCellOffset}, IntVector::create(0))};
+                    auto const endLocalUserIdx
+                        = Index{math::min(IntVector{endUserIdx - totalCellOffset}, IntVector{localDomain.size})};
 
                     // Check if we have any active cells in the local domain
                     bool areAnyCellsInLocalDomain = true;
