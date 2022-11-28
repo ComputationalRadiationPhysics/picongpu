@@ -43,63 +43,50 @@ namespace picongpu
     {
         namespace creation
         {
-            /** Functor with main kernel for particle creation
-             *
-             * - maps the frame dimensions and gathers the particle boxes
-             * - contains / calls the Creator
-             *
-             * @tparam T_ParBoxSource container of the source species
-             * @tparam T_ParBoxTarget container of the target species
-             * @tparam T_ParticleCreator type of the particle creation functor
-             */
-            template<typename T_ParBoxSource, typename T_ParBoxTarget, typename T_ParticleCreator>
+            //! Functor with main kernel for particle creation
             struct CreateParticlesKernel
             {
-                using ParBoxSource = T_ParBoxSource;
-                using ParBoxTarget = T_ParBoxTarget;
-                using ParticleCreator = T_ParticleCreator;
-
-                ParBoxSource sourceBox;
-                ParBoxTarget targetBox;
-                ParticleCreator particleCreator;
-                DataSpace<simDim> const guardSuperCells;
-
-                CreateParticlesKernel(
-                    ParBoxSource const& sourceBox,
-                    ParBoxTarget const& targetBox,
-                    ParticleCreator const& particleCreator,
-                    DataSpace<simDim> const guardSuperCells)
-                    : sourceBox(sourceBox)
-                    , targetBox(targetBox)
-                    , particleCreator(particleCreator)
-                    , guardSuperCells(guardSuperCells)
-                {
-                }
-
-                HDINLINE CreateParticlesKernel(CreateParticlesKernel const&) = default;
-
                 /** Goes over all frames and calls `ParticleCreator`
                  *
                  * @tparam T_Worker lockstep worker type
+                 * @tparam T_ParticleCreator type of the particle creation functor
+                 * @tparam T_ParBoxSource container of the source species
+                 * @tparam T_ParBoxTarget container of the target species
+                 * @tparam T_Mapping mapper functor type
                  *
-                 * @param blockCell n-dim. block offset (in cells) relative to the origin
-                 *                  of the local domain plus guarding cells
+                 * @param worker lockstep worker
+                 * @param particleCreator particle creation functor
+                 * @param parBoxSource particle box of the source species
+                 * @param parBoxTarget particle box of the target species
+                 * @param mapper functor to map a block to a supercell
                  */
-                template<typename T_Worker>
-                DINLINE void operator()(T_Worker const& worker, pmacc::math::Int<simDim> const& blockCell)
+                template<
+                    typename T_Worker,
+                    typename T_ParticleCreator,
+                    typename T_ParBoxSource,
+                    typename T_ParBoxTarget,
+                    typename T_Mapping>
+                DINLINE void operator()(
+                    T_Worker const& worker,
+                    T_ParticleCreator particleCreator,
+                    T_ParBoxSource sourceBox,
+                    T_ParBoxTarget targetBox,
+                    T_Mapping const& mapper) const
                 {
-                    /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-                    pmacc::math::Int<simDim> const block = blockCell / SuperCellSize::toRT();
+                    const DataSpace<simDim> superCellIdx(
+                        mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+
+                    DataSpace<simDim> const supercellCellOffset = superCellIdx * SuperCellSize::toRT();
 
                     // relative offset to the origin of the local domain (without any guarding cells)
-                    pmacc::math::Int<simDim> const supercellCellOffset
-                        = blockCell - this->guardSuperCells * SuperCellSize::toRT();
+                    pmacc::math::Int<simDim> const simDomainSupercellCellOffset
+                        = supercellCellOffset - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
                     /* "particle box" : container/iterator where the particles live in
                      * and where one can get the frame in a super cell from
                      */
-                    using SourceFramePtr = typename ParBoxSource::FramePtr;
-                    using TargetFramePtr = typename ParBoxTarget::FramePtr;
+                    using SourceFramePtr = typename T_ParBoxSource::FramePtr;
+                    using TargetFramePtr = typename T_ParBoxTarget::FramePtr;
 
                     /* for not mixing operations::assign up with the nvidia functor assign */
                     namespace partOp = pmacc::particles::operations;
@@ -114,7 +101,7 @@ namespace picongpu
                     PMACC_SMEM(worker, targetFrames, FrameArray);
 
                     // find last frame in super cell
-                    SourceFramePtr sourceFrame(sourceBox.getLastFrame(block));
+                    SourceFramePtr sourceFrame(sourceBox.getLastFrame(superCellIdx));
 
                     // end method if we have no frames
                     if(!sourceFrame.isValid())
@@ -123,9 +110,9 @@ namespace picongpu
                     auto forEachParticle = lockstep::makeForEach<maxParticlesInFrame>(worker);
 
                     // initialize the collective part of the functor (e.g. field caching)
-                    particleCreator.collectiveInit(worker, blockCell);
+                    particleCreator.collectiveInit(worker, supercellCellOffset);
 
-                    auto particleCreatorCtx = lockstep::makeVar<ParticleCreator>(forEachParticle);
+                    auto particleCreatorCtx = lockstep::makeVar<T_ParticleCreator>(forEachParticle);
 
                     forEachParticle(
                         [&](lockstep::Idx const idx)
@@ -135,13 +122,13 @@ namespace picongpu
                                 = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
 
                             // cell offset with respect to the local domain origin (without any guarding cells
-                            pmacc::math::Int<simDim> const localCellIndex = supercellCellOffset + cellIdx;
+                            pmacc::math::Int<simDim> const localCellIndex = simDomainSupercellCellOffset + cellIdx;
 
                             // create a copy of the functor for each virtual worker
                             particleCreatorCtx[idx] = particleCreator;
 
                             // init particle creator functor for each virtual worker
-                            particleCreatorCtx[idx].init(worker, blockCell, localCellIndex);
+                            particleCreatorCtx[idx].init(worker, supercellCellOffset, localCellIndex);
                         });
 
                     /* Declare counter in shared memory that will later tell the current fill level or
@@ -256,7 +243,7 @@ namespace picongpu
                                     if(linearIdx < numFramesNeeded && !targetFrames[linearIdx].isValid())
                                     {
                                         targetFrames[linearIdx] = targetBox.getEmptyFrame(worker);
-                                        targetBox.setAsLastFrame(worker, targetFrames[linearIdx], block);
+                                        targetBox.setAsLastFrame(worker, targetFrames[linearIdx], superCellIdx);
                                     }
                                 });
 
@@ -313,28 +300,6 @@ namespace picongpu
                     }
                 }
             };
-
-            /** Convenient function to create a `CreateParticlesKernel` instance
-             *
-             * @param parBoxSource particle box of the source species
-             * @param parBoxTarget particle box of the target species
-             * @param particleCreator particle creation functor
-             * @param guardSuperCells number of guard cells per dimension
-             * @return new `CreateParticlesKernel` instance
-             */
-            template<typename T_ParBoxSource, typename T_ParBoxTarget, typename T_ParticleCreator>
-            CreateParticlesKernel<T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator> make_CreateParticlesKernel(
-                T_ParBoxSource const& parBoxSource,
-                T_ParBoxTarget const& parBoxTarget,
-                T_ParticleCreator const& particleCreator,
-                DataSpace<simDim> const& guardSuperCells)
-            {
-                return CreateParticlesKernel<T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>(
-                    parBoxSource,
-                    parBoxTarget,
-                    particleCreator,
-                    guardSuperCells);
-            }
 
         } // namespace creation
     } // namespace particles
