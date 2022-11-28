@@ -173,7 +173,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
                                           focal_position=[0, 0, 0],
                                           centroid_position=[0, 0, 0],
                                           propagation_direction=[0, 1, 0],
-                                          polarization_direction=[1,0,0],
+                                          polarization_direction=[1, 0, 0],
                                           E0=1)
         pypic_laser = picmi_laser.get_as_pypicongpu()
         self.assertNotEqual({}, pypic_laser.get_rendering_context())
@@ -231,7 +231,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
             centroid_position=[0, 0, 0],
             E0=5,
             propagation_direction=[0, 1, 0],
-            polarization_direction=[1 ,0, 0])
+            polarization_direction=[1, 0, 0])
         pypic_laser = picmi_laser.get_as_pypicongpu()
         self.assertEqual([1.0], pypic_laser.laguerre_modes)
         self.assertEqual([0.0], pypic_laser.laguerre_phases)
@@ -245,7 +245,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
             centroid_position=[0, 0, 0],
             E0=5,
             propagation_direction=[0, 1, 0],
-            polarization_direction=[1 ,0, 0],
+            polarization_direction=[1, 0, 0],
             picongpu_laguerre_modes=None,
             picongpu_laguerre_phases=None)
         pypic_laser = picmi_laser.get_as_pypicongpu()

@@ -28,7 +28,7 @@ class TestSpecies(unittest.TestCase):
         laser = picmi.GaussianLaser(0.8e-6, 5.0e-6 / 1.17741, 5.0e-15,
                                     a0=8,
                                     propagation_direction=[0, 1, 0],
-                                    polarization_Driection=[1, 0, 0],
+                                    polarization_direction=[1, 0, 0],
                                     centroid_position=[
                                         0.5*grid.upper_bound[0],
                                         0,
