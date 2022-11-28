@@ -40,6 +40,7 @@ class TestSimulation(unittest.TestCase):
         sim.grid.cell_cnt_x = 1
         sim.grid.cell_cnt_y = 1
         sim.grid.cell_cnt_z = 1
+        sim.grid.n_gpus = (1, 1, 1)
         sim.grid.boundary_condition_x = \
             pypicongpu.grid.BoundaryCondition.PERIODIC
         sim.grid.boundary_condition_y = \
