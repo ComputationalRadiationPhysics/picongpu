@@ -31,9 +31,6 @@
 #include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
