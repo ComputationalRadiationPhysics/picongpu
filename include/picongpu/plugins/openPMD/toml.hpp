@@ -54,7 +54,7 @@ namespace picongpu
             }
         };
 
-        // We can't use pmacc::pluginSystem::TimeSlice in a hostonly file due to PIConGPU include structure
+        // We can't use pmacc::pluginSystem::Slice in a hostonly file due to PIConGPU include structure
         // so reimplement it here
         struct TimeSlice
         {

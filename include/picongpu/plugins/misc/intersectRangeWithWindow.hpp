@@ -22,7 +22,7 @@
 #include "picongpu/simulation/control/Window.hpp"
 
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/pluginSystem/toTimeSlice.hpp>
+#include <pmacc/pluginSystem/toSlice.hpp>
 
 #include <algorithm>
 #include <string>
@@ -54,7 +54,7 @@ namespace picongpu
             {
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-                auto parsedSlice = pmacc::pluginSystem::toTimeSlice(selectedRange);
+                auto parsedSlice = pmacc::pluginSystem::toRangeSlice(selectedRange);
 
                 Window resultWindow = inputWindow;
                 // Parse the ranges only for dimensions the user is providing.

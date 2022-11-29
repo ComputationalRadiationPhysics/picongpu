@@ -24,9 +24,9 @@
 
 #include "pmacc/pluginSystem/INotify.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
-#include "pmacc/pluginSystem/TimeSlice.hpp"
+#include "pmacc/pluginSystem/Slice.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
-#include "pmacc/pluginSystem/toTimeSlice.hpp"
+#include "pmacc/pluginSystem/toSlice.hpp"
 
 #include <list>
 #include <string>
