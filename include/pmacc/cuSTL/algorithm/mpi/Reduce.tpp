@@ -136,6 +136,12 @@ namespace pmacc
 
             namespace detail
             {
+                /** user defined MPI operator
+                 *
+                 * @tparam Functor PMacc binary functor type (pmacc::math::operation), returning void and update first
+                 *                 input parameter
+                 * @tparam type dada type
+                 */
                 template<typename Functor, typename type>
                 struct MPI_User_Op
                 {
@@ -148,7 +154,9 @@ namespace pmacc
                         int size = (*len) / sizeof(type);
                         for(int i = 0; i < size; i++)
                         {
-                            inoutvec_t[i] = functor(inoutvec_t[i], invec_t[i]);
+                            auto tmp = inoutvec_t[i];
+                            functor(tmp, invec_t[i]);
+                            inoutvec_t[i] = tmp;
                         }
                     }
                 };

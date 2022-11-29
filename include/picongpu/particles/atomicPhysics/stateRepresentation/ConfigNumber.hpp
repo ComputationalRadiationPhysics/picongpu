@@ -68,8 +68,6 @@
 
 #pragma once
 
-
-#include <pmacc/algorithms/math/defines/comparison.hpp>
 #include <pmacc/assert.hpp>
 #include <pmacc/math/Vector.hpp>
 

@@ -249,16 +249,13 @@ namespace picongpu
         typename FieldTmp::ValueType maxChargeDiff = algorithm::kernel::Reduce()(
             fieldTmp_coreBorder.origin(),
             fieldTmp_coreBorder.zone(),
-            pmacc::math::operation::Max());
+            pmacc::math::operation::Max{});
 
         /* reduce again across mpi cluster */
         container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);
         *maxChargeDiff_host.origin() = maxChargeDiff;
         container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_cluster(1);
-        (*this->allGPU_reduce)(
-            maxChargeDiff_cluster,
-            maxChargeDiff_host,
-            ::pmacc::math::Max<typename FieldTmp::ValueType, typename FieldTmp::ValueType>());
+        (*this->allGPU_reduce)(maxChargeDiff_cluster, maxChargeDiff_host, pmacc::math::operation::Max{});
 
         if(!this->allGPU_reduce->root())
             return;

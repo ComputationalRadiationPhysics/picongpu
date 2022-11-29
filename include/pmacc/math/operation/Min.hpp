@@ -35,15 +35,15 @@ namespace pmacc
             struct Min
             {
                 template<typename Dst, typename Src>
-                DINLINE void operator()(Dst& dst, const Src& src) const
+                HDINLINE void operator()(Dst& dst, const Src& src) const
                 {
-                    dst = math::min(dst, src);
+                    dst = cupla::math::min(dst, src);
                 }
 
                 template<typename Dst, typename Src, typename T_Worker>
-                DINLINE void operator()(const T_Worker&, Dst& dst, const Src& src) const
+                HDINLINE void operator()(const T_Worker& worker, Dst& dst, const Src& src) const
                 {
-                    dst = math::min(dst, src);
+                    dst = alpaka::math::min(worker.getAcc(), dst, src);
                 }
             };
         } // namespace operation
