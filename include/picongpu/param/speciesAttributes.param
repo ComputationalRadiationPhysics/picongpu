@@ -125,13 +125,6 @@ namespace picongpu
      */
     value_identifier(float_X, boundElectrons, 0._X);
 
-    /** atomic superconfiguration
-     *
-     * atomic configuration of an ion for collisional-radiative modeling,
-     * see also flylite.param
-     */
-    value_identifier(flylite::Superconfig, superconfig, flylite::Superconfig::create(0.));
-
     //! alias for one of two representations of the atomic state, see also atomicPhysics.param
     alias(atomicLevels);
 
@@ -188,12 +181,6 @@ namespace picongpu
      * - only reasonable for atoms / ions / nuclei
      */
     alias(effectiveNuclearCharge);
-
-    /** alias for particle population kinetics model (e.g. FLYlite)
-     *
-     * see also flylite.param
-     */
-    alias(populationKinetics);
 
     /** alias for particle mass ratio
      *

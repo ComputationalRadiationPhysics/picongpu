@@ -36,7 +36,6 @@
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/flylite/NonLTE.tpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
@@ -55,7 +54,6 @@
 #include "picongpu/simulation/stage/ParticleBoundaries.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
-#include "picongpu/simulation/stage/PopulationKinetics.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
@@ -388,16 +386,6 @@ namespace picongpu
             cuplaStreamSynchronize(0);
 #endif
 
-            /* Allocate helper fields for FLYlite population kinetics for atomic physics
-             * (histograms, rate matrix, etc.)
-             */
-            using AllFlyLiteIons =
-                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, populationKinetics<>>::type;
-
-            meta::ForEach<AllFlyLiteIons, particles::CallPopulationKineticsInit<bmpl::_1>, bmpl::_1>
-                initPopulationKinetics;
-            initPopulationKinetics(gridSizeLocal);
-
             // Allocate and initialize particle species with all left-over memory below
             meta::ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>> createSpeciesMemory;
             createSpeciesMemory(deviceHeap, cellDescription.get());
@@ -557,7 +545,6 @@ namespace picongpu
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
             ParticleIonization{*cellDescription}(currentStep);
-            PopulationKinetics{}(currentStep);
             SynchrotronRadiation{*cellDescription, synchrotronFunctions}(currentStep);
 #if(PMACC_CUDA_ENABLED == 1)
             Bremsstrahlung{*cellDescription, scaledBremsstrahlungSpectrumMap, bremsstrahlungPhotonAngle}(currentStep);
