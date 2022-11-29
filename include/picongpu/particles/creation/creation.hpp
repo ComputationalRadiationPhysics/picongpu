@@ -55,26 +55,15 @@ namespace picongpu
                 T_ParticleCreator particleCreator,
                 T_CellDescription cellDesc)
             {
-                using SuperCellSize = typename MappingDesc::SuperCellSize;
-                const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc.getGridSuperCells();
-                const pmacc::math::Int<simDim> guardSuperCells = cellDesc.getGuardingSuperCells();
-                const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2 * guardSuperCells;
+                auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                /* Functor holding the actual generic particle creation kernel */
-                auto createParticlesKernel = make_CreateParticlesKernel(
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                PMACC_LOCKSTEP_KERNEL(CreateParticlesKernel{}, workerCfg)
+                (mapper.getGridDim())(
+                    particleCreator,
                     sourceSpecies.getDeviceParticlesBox(),
                     targetSpecies.getDeviceParticlesBox(),
-                    particleCreator,
-                    guardSuperCells);
-
-                /* This zone represents the core+border area with guard offset in unit of cells */
-                const zone::SphericZone<simDim> zone(
-                    static_cast<pmacc::math::Size_t<simDim>>(coreBorderSuperCells * SuperCellSize::toRT()),
-                    guardSuperCells * SuperCellSize::toRT());
-
-                algorithm::kernel::ForeachLockstep<SuperCellSize> foreach;
-                foreach(zone, createParticlesKernel, cursor::make_MultiIndexCursor<simDim>())
-                    ;
+                    mapper);
 
                 /* Make sure to leave no gaps in newly created frames */
                 targetSpecies.fillAllGaps();
