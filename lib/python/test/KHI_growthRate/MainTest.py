@@ -47,7 +47,7 @@ except Exception:
     error2 = str(sys.exc_info()[2])
 
     # print error0 + error1 + error2
-    fobj_out = open(args.simDir + "/khi_error.log", "w")
+    fobj_out = open(args.simDir + "/khi_error.log", "w+")
     fobj_out.write(date + " " + timeOfDay + "\n")
     fobj_out.write("\n")
     fobj_out.write(error0 + " " + error1 + " " + error2 + "\n")

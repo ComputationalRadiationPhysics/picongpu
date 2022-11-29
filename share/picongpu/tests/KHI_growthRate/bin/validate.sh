@@ -2,50 +2,67 @@
 #
 # This file is part of PIConGPU.
 # Copyright 2022 PIConGPU contributors
-# Authors: Mika Soren Voss
+# Authors: Mika Soren Voss, Rene Widera
 # License: GPLv3+
 #
 
-while [[ $# > 0 ]] ; do
-        case "$1" in
+help()
+{
+  echo "Validate KHI output data."
+  echo "The test is evaluating the magnetic field growth rate with the corresponding analytic solution."
+  echo ""
+  echo "Usage:"
+  echo "    validate.sh [-d dataPath] [inputSetPath]"
+  echo ""
+  echo "  -d | --data dataPath                 - path to simulation output data"
+  echo "                                         Default: inputPath/simOutput"
+  echo "  -h | --help                          - show help"
+  echo ""
+  echo "  inputSetPath                         - path to the simulation input set"
+  echo "                                         Default: current directory"
+}
 
-                -t|--testPar)
-                        testPar="$2"
-                        shift
-                        ;;
-
-                -s|--simDir)
-                        simDir="$2"
-                        shift
-                        ;;
-
-                --help|-h)
-                        echo "With this file the test of the growth rate of the KHI"
-                        echo "can be started. An already existing KHI simulation"
-                        echo "must be used."
-                        echo "Alternatives to run the test suite are ci.sh and MainTest.py."
-                        echo "If the parameter -t is not set, it is assumed that"
-                        echo "picongpu is in the home directory"
-                        echo "Usage:"
-                        echo "  --testPar|-t \"direction/to/picongpu/test/KHI_growthRate/\""
-                        echo "  --simDir|-s \"direction/to/simulation\""
-                        echo "  --help|-h"
-                        exit 0
-                        ;;
-        esac
-        shift
-done
-
-if [ -z "$simDir" ] ; then
-        simDir="."
+# options may be followed by
+# - one colon to indicate they has a required argument
+OPTS=`getopt -o d:h -l data:,help -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
 fi
 
-if [ -z "$testPar" ] ; then
-        testPar=$HOME
+eval set -- "$OPTS"
+
+# parser
+while true ; do
+    case "$1" in
+        -d|--data)
+            dataPath=$2
+            shift
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            shift
+            exit 0
+            ;;
+        --) shift; break;;
+    esac
+    shift
+done
+
+
+# the first parameter is the project path
+if [ $# -eq 1 ] ; then
+    inputSetPath="$1"
+else
+    inputSetPath="./"
+fi
+
+if [ -z "$dataPath" ] ; then
+    dataPath=$inputSetPath/simOutput
 fi
 
 # test for growth rate
-MAINTEST="$testPar/picongpu/lib/python/test/KHI_growthRate"
+MAINTEST="$inputSetPath/lib/python/test/KHI_growthRate"
 
-python $MAINTEST/MainTest.py $testPar/picongpu/test/KHI_growthRate/include/picongpu/param/ $simDir/simOutput/
+python $MAINTEST/MainTest.py $inputSetPath/include/picongpu/param/ $dataPath/
 exit $?
