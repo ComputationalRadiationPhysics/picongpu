@@ -452,6 +452,42 @@ namespace picongpu
                 {
                     std::stringstream filename;
 
+                    std::cout << "helo" << std::endl;
+
+                    filename << pluginPrefix << "_test.txt";
+                    std::ofstream outFile;
+                    outFile.open(filename.str(), std::ofstream::out | std::ostream::trunc);
+
+                    if(!outFile)
+                    {
+                        std::cerr << "Can't open file [" << filename.str() << "] for output, disable plugin output. "
+                                  << std::endl;
+                        isMaster = false; // no Master anymore -> no process is able to write
+                    }
+                    else
+                    {
+                        for(unsigned int i = 0; i < helper->getSizeX(); ++i) // over all x
+                        {
+                            for(unsigned int j = 0; j < helper->getSizeY(); ++j) // over all y
+                            {
+                                outFile << *(helper->getShadowgramBuf()->origin()(i, j)) << "\t";
+                            } // for loop over all y ((*(fieldBuffer2->origin()(simI, simJ + 1)))
+
+                            outFile << std::endl;
+                        } // for loop over all x
+
+                        outFile.flush();
+                        outFile << std::endl; // now all data are written to file
+
+                        if(outFile.fail())
+                            std::cerr << "Error on flushing file [" << filename.str() << "]. " << std::endl;
+
+                        outFile.close();
+                    }
+
+                    std::cout << "gud bye" << std::endl;
+                    
+                    filename.str("");
                     filename << pluginPrefix << "_%T." << filenameExtension;
                     ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 /*
