@@ -521,7 +521,7 @@ namespace picongpu
 
                     for (int i = 0; i < getSizeX(); ++i){
                         for (int j = 0; j < getSizeY(); ++j){
-                            retBuffer->origin()[i + j * getSizeX()] = static_cast<float_64>(shadowgram[i][j]);
+                            *(retBuffer->origin()(i,j)) = static_cast<float_64>(shadowgram[i][j]);
                         }
                     }
 

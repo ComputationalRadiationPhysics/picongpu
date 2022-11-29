@@ -451,6 +451,7 @@ namespace picongpu
                 void writeToOpenPMDFile(uint32_t currentStep)
                 {
                     std::stringstream filename;
+
                     filename << pluginPrefix << "_%T." << filenameExtension;
                     ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 /*
@@ -485,7 +486,7 @@ namespace picongpu
                     
 
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_64>();
-                    ::openPMD::Dataset dataset{datatype, std::move(extent)};
+                    ::openPMD::Dataset dataset{datatype, extent};
                    // auto mesh = series.iterations[currentStep].meshes["shadowgram"];
                     //shadowgram.resetDataset(std::move(dataset));
 
@@ -501,9 +502,9 @@ namespace picongpu
 
                     //shadowgram.resetDataset({::openPMD::determineDatatype<float_64>(), extent});
                     mesh.storeChunk(
-                        std::shared_ptr<float_64>{&(helper->getShadowgramBuf()->origin()), [](auto const*) {}},
-                        std::move(offset),
-                        std::move(extent));
+                        std::shared_ptr<float_64>{&(*(helper->getShadowgramBuf()->origin())), [](auto const*) {}},
+                        offset,
+                        extent);
                     
                         //std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
                         //std::shared_ptr<float_X>{&(helper->getShadowgram()), [](auto const*) {}},
