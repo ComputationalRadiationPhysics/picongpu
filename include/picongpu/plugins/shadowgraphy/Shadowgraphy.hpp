@@ -452,68 +452,9 @@ namespace picongpu
                 {
                     std::stringstream filename;
 
-                    std::cout << "helo" << std::endl;
-
-                    filename << pluginPrefix << "_test.txt";
-                    std::ofstream outFile;
-                    outFile.open(filename.str(), std::ofstream::out | std::ostream::trunc);
-
-                    if(!outFile)
-                    {
-                        std::cerr << "Can't open file [" << filename.str() << "] for output, disable plugin output. "
-                                  << std::endl;
-                        isMaster = false; // no Master anymore -> no process is able to write
-                    }
-                    else
-                    {
-                        for(unsigned int i = 0; i < helper->getSizeX(); ++i) // over all x
-                        {
-                            for(unsigned int j = 0; j < helper->getSizeY(); ++j) // over all y
-                            {
-                                outFile << *(helper->getShadowgramBuf()->origin()(i, j)) << "\t";
-                            } // for loop over all y ((*(fieldBuffer2->origin()(simI, simJ + 1)))
-
-                            outFile << std::endl;
-                        } // for loop over all x
-
-                        outFile.flush();
-                        outFile << std::endl; // now all data are written to file
-
-                        if(outFile.fail())
-                            std::cerr << "Error on flushing file [" << filename.str() << "]. " << std::endl;
-
-                        outFile.close();
-                    }
-
-                    std::cout << "gud bye" << std::endl;
                     
-                    filename.str("");
                     filename << pluginPrefix << "_%T." << filenameExtension;
                     ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
-/*
-                    ::openPMD::Offset offset = ::openPMD::Offset{0, 0};
-                    auto extent = ::openPMD::Extent{  
-                        static_cast<unsigned long int>(helper->getSizeX()),  
-                        static_cast<unsigned long int>(helper->getSizeY())};
-
-                    auto mesh = series.iterations[currentStep].meshes["shadowgram"];
-                    auto shadowgram = mesh[::openPMD::RecordComponent::SCALAR];
-*/
-
-                    //typedef pmacc::container::HostBuffer<float_X, DIM2> HBufShdg;
-
-            //this->hBufTotalCalorimeter = std::make_unique<HBufCalorimeter>(this->dBufCalorimeter->size());
-            //std::unique_ptr<HBufCalorimeter> hBufTotalCalorimeter;
-
-                    //std::unique_ptr<HBufShdg> hBuf = std::make_unique<HBufShdg>([helper->getSizeX(), helper->getSizeY()]);
-                    /*
-                    const int size = 10;
-                    std::vector<float_64> global_data(size * size);
-                    std::iota(global_data.begin(), global_data.end(), 0.);
-                    
-                    ::openPMD::Extent extent = {size, size};
-                    ::openPMD::Offset offset = {0, 0};
-                    */
                     
                     ::openPMD::Extent extent = {  
                         static_cast<unsigned long int>(helper->getSizeX()),  
@@ -523,8 +464,6 @@ namespace picongpu
 
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_64>();
                     ::openPMD::Dataset dataset{datatype, extent};
-                   // auto mesh = series.iterations[currentStep].meshes["shadowgram"];
-                    //shadowgram.resetDataset(std::move(dataset));
 
                     ::openPMD::MeshRecordComponent mesh = series.iterations[currentStep].meshes["shadowgram"][::openPMD::MeshRecordComponent::SCALAR];
 
@@ -534,26 +473,11 @@ namespace picongpu
 
                     series.flush();
 
-                    //    std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
-
-                    //shadowgram.resetDataset({::openPMD::determineDatatype<float_64>(), extent});
                     mesh.storeChunk(
                         std::shared_ptr<float_64>{&(*(helper->getShadowgramBuf()->origin())), [](auto const*) {}},
                         offset,
                         extent);
-                    
-                        //std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
-                        //std::shared_ptr<float_X>{&(helper->getShadowgram()), [](auto const*) {}},
-                        //::openPMD::shareRaw(&(helper->getShadowgram()[0][0])), <- compiles
-                        //std::shared_ptr<float_64>{&(helper->getShadowgram().front()), [](auto const*) {}},
-                        //helper->getShadowgram1D(),
-                        //std::make_shared<std::vector<float_64>>(std::move(helper->getShadowgram1D())),
-                        //global_data,
-                        //::openPMD::shareRaw(&(helper->getShadowgram()->orgin())),
-                        //std::shared_ptr<float_X>{(&(helper->getShadowgram()[0][0])), [](auto const*) {}},
-                        //std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
-                        //std::shared_ptr<float_64>{&(*helper.getShadowgramBuf()->origin()), [](auto const*) {}},
-
+                
                     series.flush();
                     series.iterations[currentStep].close();
                 }
