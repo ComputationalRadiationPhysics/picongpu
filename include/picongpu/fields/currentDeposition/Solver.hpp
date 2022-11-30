@@ -20,8 +20,3 @@
 
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.hpp"
-#include "picongpu/fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
-
-#if(SIMDIM == DIM3)
-#    include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
-#endif
