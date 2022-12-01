@@ -28,19 +28,6 @@ EZ (alias for EmZ)
 .. doxygentypedef:: picongpu::currentSolver::EZ
    :project: PIConGPU
 
-VillaBune
-~~~~~~~~~
-
-.. doxygenstruct:: picongpu::currentSolver::VillaBune
-   :project: PIConGPU
-
-EsirkepovNative
-~~~~~~~~~~~~~~~
-
-.. doxygenstruct:: picongpu::currentSolver::EsirkepovNative
-   :project: PIConGPU
-
-
 .. _usage-params-core-particles-depositionstrategy:
 
 Deposition Strategy
