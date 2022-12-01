@@ -46,16 +46,8 @@ class TestDistribution(unittest.TestCase):
         uniform_dist = picmi.UniformDistribution(density=8e24)
         self._compile_distribution(uniform_dist)
 
-#    def test_analytic(self):
-#        analytic_dist = picmi.AnalyticDistribution(
-#            density_expression="a * sin(x) + z - sqrt(y)",
-#            a=42)
-#        self._compile_distribution(analytic_dist)
-
-#    def test_gaussian_bunch(self):
-#        gaussian_dist = picmi.GaussianBunchDistribution(
-#            1283, 0.3e-7, centroid_position=[-1321, -4e-3, 0])
-#        self._compile_distribution(gaussian_dist)
+# tests for analytic distribution and gaussian-bunch distribution have been
+#   removed for now, see issue #4367 for the test cases
 
     def test_temperature(self):
         uniform_dist = picmi.UniformDistribution(
