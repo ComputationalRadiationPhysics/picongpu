@@ -21,7 +21,6 @@ Plugin name                                                                     
 :ref:`PNG <usage-plugins-PNG>` [#f6]_                                                pictures of 2D slices
 :ref:`positions particles <usage-plugins-positionsParticles>` [#f1]_ [#f4]_ [#f5]_   save trajectory, momentum, ... of a *single* particle
 :ref:`radiation <usage-plugins-radiation>` [#f2]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
-:ref:`resource log <usage-plugins-resourceLog>`                                      monitor used hardware resources & memory
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
 :ref:`sum currents <usage-plugins-sumCurrents>` [#f5]_                               compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-transitionRadiation>`                       compute emitted electromagnetic spectra

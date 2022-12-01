@@ -73,7 +73,6 @@
 #include "picongpu/plugins/Checkpoint.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 
@@ -159,8 +158,7 @@ namespace picongpu
             ,
             isaacP::IsaacPlugin
 #endif
-            ,
-            ResourceLog>;
+            >;
 
         using AllFields = bmpl::vector<FieldB, FieldE, FieldJ>;
 
