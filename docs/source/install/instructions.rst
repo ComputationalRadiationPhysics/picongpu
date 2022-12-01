@@ -10,7 +10,6 @@ As explained in the previous section, select and **follow exactly one** of the f
 .. toctree::
    :maxdepth: 1
 
-   instructions/spack
    instructions/docker
    instructions/source
 

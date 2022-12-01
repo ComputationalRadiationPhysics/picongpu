@@ -28,13 +28,6 @@ It loads according modules and sets :ref:`helper environment variables <install-
    For many HPC systems we have already prepared and maintain an environment which will run out of the box.
    See if your system is :ref:`in the list <install-profile>` so you can skip the installation completely!
 
-Spack
-^^^^^
-
-[Spack]_ is a flexible package manager that can build and organize software dependencies.
-It can be configured once for your hardware architecture to create optimally tuned binaries and provides modulefile support (e.g. [modules]_, [Lmod]_).
-Those auto-build modules manage your environment variables and allow easy switching between versions, configurations and compilers.
-
 Build from Source
 ^^^^^^^^^^^^^^^^^
 
@@ -60,13 +53,6 @@ We are also working on `Singularity <http://singularity.lbl.gov/>`_ images.
 
 References
 ----------
-
-.. [Spack]
-        T. Gamblin and contributors.
-        *A flexible package manager that supports multiple versions, configurations, platforms, and compilers*,
-        SC '15 Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (2015),
-        `DOI:10.1145/2807591.2807623 <https://dx.doi.org/10.1145/2807591.2807623>`_,
-        https://github.com/spack/spack
 
 .. [modules]
         J.L. Furlani, P.W. Osel.
