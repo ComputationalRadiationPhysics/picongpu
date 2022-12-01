@@ -19,7 +19,6 @@ Plugin name                                                                     
 :ref:`particle merger <usage-plugins-particleMerger>` [#f5]_                         macro particle merging
 :ref:`phase space <usage-plugins-phaseSpace>` [#f2]_ [#f5]_ [#f6]_                   calculate 2D phase space [Huebl2014]_
 :ref:`PNG <usage-plugins-PNG>` [#f6]_                                                pictures of 2D slices
-:ref:`positions particles <usage-plugins-positionsParticles>` [#f1]_ [#f4]_ [#f5]_   save trajectory, momentum, ... of a *single* particle
 :ref:`radiation <usage-plugins-radiation>` [#f2]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
 :ref:`resource log <usage-plugins-resourceLog>`                                      monitor used hardware resources & memory
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
