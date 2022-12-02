@@ -42,6 +42,7 @@
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <cstdlib>
 #include <fstream>
@@ -167,53 +168,39 @@ namespace picongpu
                     for(int super_cell_index = jobIdx; super_cell_index < numSuperCells; super_cell_index += numJobs)
                     {
                         // select SuperCell and add one sided guard again
-                        DataSpace<simDim> const superCell
+                        DataSpace<simDim> const superCellIdx
                             = DataSpaceOperations<simDim>::map(superCellsCount, super_cell_index) + guardingSuperCells;
 
                         // -guardingSuperCells remove guarding block
                         DataSpace<simDim> const superCellOffset(
-                            globalOffset + ((superCell - guardingSuperCells) * SuperCellSize::toRT()));
+                            globalOffset + ((superCellIdx - guardingSuperCells) * SuperCellSize::toRT()));
 
-                        // pointer to  frame storing particles
-                        FramePtr frame = pb.getLastFrame(superCell);
+                        namespace particleAccAlgos = pmacc::particles::algorithm::acc;
+                        auto forEachFrameInSupercell
+                            = particleAccAlgos::makeForEachFrame<particleAccAlgos::Forward>(worker, pb, superCellIdx);
 
-                        // number  of particles in current frame
-                        lcellId_t particlesInFrame = pb.getSuperCell(superCell).getSizeLastFrame();
+                        if(!forEachFrameInSupercell.hasParticles())
+                            continue;
 
-                        /* go to next supercell
-                         *
-                         * if "isValid" is false then there is no frame
-                         * inside the superCell (anymore)
-                         */
-                        while(frame.isValid())
-                        {
-                            /* since a race condition can occur if "continue loop" is called,
-                             *  all threads must wait for the selection of a new frame
-                             *  until all threads have evaluated "isValid"
-                             */
-                            worker.sync();
+                        forEachFrameInSupercell(
+                            /* iterate over the frame list of the current supercell */
+                            [&](auto const& lockstepWorker, auto& frameCtx)
+                            {
+                                lockstep::makeMaster(worker)([&]() { counter_s = 0; });
 
-                            auto onlyMaster = lockstep::makeMaster(worker);
+                                // wait for particle counter update
+                                worker.sync();
 
-                            /* The Master process (thread 0) in every thread block is in
-                             * charge of loading a frame from
-                             * the current super cell and evaluate the total number of
-                             * particles in this frame.
-                             */
-                            onlyMaster([&]() { counter_s = 0; });
+                                // loop over all particles in the frame
+                                auto forEachParticleInFrame = forEachFrameInSupercell.lockstepForEach();
 
-                            worker.sync();
-
-                            // loop over all particles in the frame
-                            auto forEachParticle = lockstep::makeForEach<frameSize>(worker);
-
-                            forEachParticle(
-                                [&](uint32_t const linearIdx)
-                                {
-                                    // only threads with particles are running
-                                    if(linearIdx < particlesInFrame)
+                                forEachParticleInFrame(
+                                    [&](lockstep::Idx const linearIdx)
                                     {
-                                        auto par = frame[linearIdx];
+                                        /* modulo is required if the kernel is started with more workers than particle
+                                         * in a supercell
+                                         */
+                                        auto par = frameCtx[linearIdx][linearIdx % frameSize];
                                         // get old and new particle momenta
                                         vector_X const particle_momentumNow = vector_X(par[momentum_]);
                                         vector_X const particle_momentumOld = vector_X(par[momentumPrev1_]);
@@ -260,7 +247,8 @@ namespace picongpu
                                                     + DataSpaceOperations<simDim>::template map<SuperCellSize>(
                                                         cellIdx));
 
-                                                /* add global position of cell with local position of particle in cell
+                                                /* add global position of cell with local position of particle
+                                                 * in cell
                                                  *
                                                  * Info:
                                                  * Mandatory 64 bit precision to avoid artefacts above betatron
@@ -283,10 +271,10 @@ namespace picongpu
                                                  */
                                                 float_X const weighting = par[weighting_];
 
-                                                /* only of coherent and incoherent radiation of a single macro-particle
-                                                 * is considered, the weighting of each macro-particle needs to be
-                                                 * stored in order to be considered when the actual frequency
-                                                 * calculation is done
+                                                /* only of coherent and incoherent radiation of a single
+                                                 * macro-particle is considered, the weighting of each
+                                                 * macro-particle needs to be stored in order to be considered
+                                                 * when the actual frequency calculation is done
                                                  */
                                                 radWeighting_s[saveParticleAt] = weighting;
 
@@ -347,85 +335,67 @@ namespace picongpu
 
                                             } // END: if a particle needs to be considered
                                         } // END: check if particle is accelerated
-                                    } // END: only threads with particles are running
-                                });
+                                    });
 
-                            worker.sync(); // wait till every thread has loaded its particle data
+                                worker.sync(); // wait till every worker has loaded its particle data
 
-
-                            // run over all  valid omegas for this thread
-                            for(uint32_t o = worker.getWorkerIdx(); o < radiation_frequencies::N_omega;
-                                o += T_Worker::getNumWorkers())
-                            {
-                                /* storage for amplitude (complex 3D vector)
-                                 * it  is initialized with zeros (  0 +  i 0 )
-                                 * Attention: This is an accumulator and should
-                                 * be in double precision to ameliorate roundoff
-                                 * errors!
-                                 */
-                                Amplitude amplitude = Amplitude::zero();
-
-                                // compute frequency "omega" using for-loop-index "o"
-                                picongpu::float_X const omega = static_cast<float_X>(freqFkt(o));
-
-                                // create a form factor functor
-                                radFormFactor::radFormFactor const myRadFormFactor{omega, look};
-
-                                /* Particle loop: thread runs through loaded particle data
-                                 *
-                                 * Summation of Jackson radiation formula integrand
-                                 * over all electrons for fixed, thread-specific
-                                 * frequency
-                                 *
-                                 * This is the hot loop of this kernel, taking ~95% of its time.
-                                 * So performance-wise the rest of this kernel does not significantly contribute.
-                                 * On the contrary, few operations done inside the loop matter a lot.
-                                 */
-                                for(int j = 0; j < counter_s; ++j)
-                                {
-                                    // check Nyquist-limit for each particle "j" and each frequency "omega"
-                                    if(lowpass_s[j].check(omega))
+                                auto forEachOmega = lockstep::makeForEach<radiation_frequencies::N_omega>(worker);
+                                forEachOmega(
+                                    [&](uint32_t const o)
                                     {
-                                        // Here happens the true physical calculation
-                                        float_X const formFactorValue = myRadFormFactor(radWeighting_s[j]);
-                                        float_X const phase = t_ret_s[j] * omega;
-                                        amplitude.addContribution(real_amplitude_s[j], phase, formFactorValue);
-                                    }
-                                }
+                                        /* storage for amplitude (complex 3D vector)
+                                         * it  is initialized with zeros (  0 +  i 0 )
+                                         * Attention: This is an accumulator and should
+                                         * be in double precision to ameliorate roundoff
+                                         * errors!
+                                         */
+                                        Amplitude amplitude = Amplitude::zero();
 
-                                /* the radiation contribution of the following is added to global memory:
-                                 *     - valid particles of last super cell
-                                 *     - from this (one) time step
-                                 *     - omega_id = theta_idx * radiation_frequencies::N_omega + o
-                                 */
-                                radiation(DataSpace<2>(theta_idx * radiation_frequencies::N_omega + o, jobIdx))
-                                    += amplitude;
+                                        // compute frequency "omega" using for-loop-index "o"
+                                        picongpu::float_X const omega = static_cast<float_X>(freqFkt(o));
 
-                            } // end frequency loop
+                                        // create a form factor functor
+                                        radFormFactor::radFormFactor const myRadFormFactor{omega, look};
 
+                                        /* Particle loop: thread runs through loaded particle data
+                                         *
+                                         * Summation of Jackson radiation formula integrand
+                                         * over all electrons for fixed, thread-specific
+                                         * frequency
+                                         *
+                                         * This is the hot loop of this kernel, taking ~95% of its time.
+                                         * So performance-wise the rest of this kernel does not significantly
+                                         * contribute. On the contrary, few operations done inside the loop matter
+                                         * a lot.
+                                         */
+                                        for(int j = 0; j < counter_s; ++j)
+                                        {
+                                            // check Nyquist-limit for each particle "j" and each frequency "omega"
+                                            if(lowpass_s[j].check(omega))
+                                            {
+                                                // Here happens the true physical calculation
+                                                float_X const formFactorValue = myRadFormFactor(radWeighting_s[j]);
+                                                float_X const phase = t_ret_s[j] * omega;
+                                                amplitude.addContribution(real_amplitude_s[j], phase, formFactorValue);
+                                            }
+                                        }
 
-                            // wait till all radiation contributions for this super cell are done
-                            worker.sync();
+                                        /* the radiation contribution of the following is added to global memory:
+                                         *     - valid particles of last super cell
+                                         *     - from this (one) time step
+                                         *     - omega_id = theta_idx * radiation_frequencies::N_omega + o
+                                         */
+                                        radiation(DataSpace<2>(theta_idx * radiation_frequencies::N_omega + o, jobIdx))
+                                            += amplitude;
+                                    });
 
-                            /* First threads starts loading next frame of the super-cell:
-                             *
-                             * Info:
-                             *   The calculation starts with the last SuperCell (must not be full filled)
-                             *   all previous SuperCells are full with particles
-                             */
-                            particlesInFrame = frameSize;
-                            frame = pb.getPreviousFrame(frame);
-
-                        } // end while(frame.isValid())
-
+                                // wait till all radiation contributions for this super cell are done
+                                worker.sync();
+                            });
                     } // end loop over all super cells
-
-
-                } // end radiation kernel
-            };
+                }
+            }; // end radiation kernel
 
         } // namespace radiation
-
     } // namespace plugins
-
 } // namespace picongpu
