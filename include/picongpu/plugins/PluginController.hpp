@@ -51,7 +51,6 @@
 
 #if(PMACC_CUDA_ENABLED == 1)
 #    include "picongpu/plugins/ChargeConservation.hpp"
-#    include "picongpu/plugins/PositionsParticles.hpp"
 #    include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #    include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.hpp"
 #    if(ENABLE_OPENPMD == 1)
@@ -183,7 +182,6 @@ namespace picongpu
 #endif
 #if(PMACC_CUDA_ENABLED == 1)
             ,
-            PositionsParticles<bmpl::_1>,
             plugins::particleMerging::ParticleMerger<bmpl::_1>,
             plugins::randomizedParticleMerger::RandomizedParticleMerger<bmpl::_1>
 #    if(ENABLE_OPENPMD == 1)
