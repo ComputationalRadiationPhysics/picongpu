@@ -38,7 +38,6 @@
 
 #include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
 #include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
-#include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
 #include "picongpu/fields/currentDeposition/Solver.def"
 #include "picongpu/particles/shapes.hpp"
 
