@@ -31,12 +31,12 @@ Mandatory
 
 Compiler
 """"""""
-- C++17 supporting compiler, e.g. GCC 7+ or Clang 6+
+- C++17 supporting compiler, e.g. GCC 9+ or Clang 10+
 - if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
 - *note:* be sure to build all libraries/dependencies with the *same* compiler version
 - *Debian/Ubuntu:*
 
-  - ``sudo apt-get install gcc-8 g++-8 build-essential``
+  - ``sudo apt-get install gcc-9 g++-9 build-essential``
   - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8``
 - *Arch Linux:*
 

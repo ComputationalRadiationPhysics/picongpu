@@ -41,6 +41,8 @@
 #endif
 
 
+#include <pmacc/boost_workaround.hpp>
+
 #include "pmacc/attribute/Constexpr.hpp"
 #include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/cuplaHelper/ValidateCall.hpp"

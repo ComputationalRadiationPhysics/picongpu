@@ -123,6 +123,10 @@ def is_valid_combination(row):
         if is_clang_cuda:
             if not is_cuda:
                 return False
+            # clang cuda containers shipped without clang-11 and clang-12
+            # https://codebase.helmholtz.cloud/crp/alpaka-group-container/-/issues/28#note_3118676
+            if v_compiler == 11 or v_compiler == 12:
+                return False
             # native CMake CUDA compile is not supporting clang 8
             if v_compiler == 8:
                 return False
@@ -130,8 +134,7 @@ def is_valid_combination(row):
                 return True
             if v_cuda == 10.1 and v_compiler >= 9:
                 return True
-            # CUDA 11.4 is the last container called '*cuda114-clang'
-            if 11.0 <= v_cuda <= 11.4 and v_compiler >= 11:
+            if 11.0 <= v_cuda <= 11.6 and v_compiler >= 11:
                 return True
 
             return False
@@ -154,8 +157,7 @@ def is_valid_combination(row):
                 # for C++17 support CUDA >= 11 is required
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
-                # CUDA 11.4 is the last container called '*cuda114-clang'
-                if 11.1 <= v_cuda <= 11.4 and v_compiler <= 10:
+                if 11.1 <= v_cuda <= 11.6 and v_compiler <= 10:
                     return True
 
             return False
@@ -165,10 +167,9 @@ def is_valid_combination(row):
 
 # compiler list
 # tuple with two components (compiler name, version)
-clang_compiers = [("clang++", 6.0), ("clang++", 7),
-                  ("clang++", 8), ("clang++", 9), ("clang++", 10),
-                  ("clang++", 11), ("clang++", 12), ("clang++", 13)]
-gnu_compilers = [("g++", 7), ("g++", 8), ("g++", 9), ("g++", 10)]
+clang_compiers = [("clang++", 10), ("clang++", 11), ("clang++", 12),
+                  ("clang++", 13), ("clang++", 14), ("clang++", 15)]
+gnu_compilers = [("g++", 9), ("g++", 10), ("g++", 11)]
 compilers = [
     clang_compiers,
     gnu_compilers
@@ -198,14 +199,14 @@ compilers.append(hip_clang_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("hip", 4.3), ("hip", 4.5), ("hip", 5.0),
-            ("hip", 5.1), ("hip", 5.2),
+backends = [("hip", 5.0), ("hip", 5.1), ("hip", 5.2),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
             ("cuda", 11.3), ("cuda", 11.4),
             ("omp2b", ), ("serial", )]
 
-boost_libs_all = ["1.74.0", "1.75.0"]
+boost_libs_all = ["1.74.0", "1.75.0", "1.76.0",
+                  "1.77.0", "1.78.0"]
 
 operating_system = [("ubuntu", 18.04), ("ubuntu", 20.04)]
 
@@ -296,7 +297,7 @@ for stage in range(num_stages):
             if backend == "hip":
                 print("    - wget -q -O - "
                       "https://repo.radeon.com/rocm/rocm.gpg.key | "
-                      "sudo apt-key add -")
+                      "apt-key add -")
             if backend == "cuda":
                 print("    - apt-key adv --fetch-keys "
                       "https://developer.download.nvidia.com/compute"
