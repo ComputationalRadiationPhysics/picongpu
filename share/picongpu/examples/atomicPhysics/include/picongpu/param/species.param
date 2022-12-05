@@ -21,7 +21,6 @@
 
 #include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
 #include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
-#include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
 #include "picongpu/fields/currentDeposition/Solver.def"
 #include "picongpu/particles/shapes.hpp"
 
@@ -46,14 +45,18 @@ namespace picongpu
     /* define which interpolation method is used to interpolate fields to particle*/
     using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-/*! select current solver method -----------------------------------------------
- * - currentSolver::Esirkepov<SHAPE>  : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
- * - currentSolver::VillaBune<>       : particle shapes - CIC (1st order) only
- * - currentSolver::EmZ<SHAPE>        : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
+/*! select current solver method
+ * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+ * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+ * - currentSolver::EZ< SHAPE, STRATEGY >        : same as EmZ (just an alias to match the currently used naming)
  *
- * For development purposes: ---------------------------------------------------
- * - currentSolver::EsirkepovNative<SHAPE> : generic version of currentSolverEsirkepov
- *   without optimization (~4x slower and needs more shared memory)
+ * STRATEGY (optional):
+ * - currentSolver::strategy::StridedCachedSupercells
+ * - currentSolver::strategy::StridedCachedSupercellsScaled<N> with N >= 1
+ * - currentSolver::strategy::CachedSupercells
+ * - currentSolver::strategy::CachedSupercellsScaled<N> with N >= 1
+ * - currentSolver::strategy::NonCachedSupercells
+ * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
  */
 #ifndef PARAM_CURRENTSOLVER
 #    define PARAM_CURRENTSOLVER EmZ

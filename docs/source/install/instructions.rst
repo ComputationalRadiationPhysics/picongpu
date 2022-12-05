@@ -10,7 +10,6 @@ As explained in the previous section, select and **follow exactly one** of the f
 .. toctree::
    :maxdepth: 1
 
-   instructions/docker
    instructions/source
 
 If anything goes wrong, an overview of the full list of PIConGPU dependencies is provided in :ref:`section Dependencies <install-dependencies>`.

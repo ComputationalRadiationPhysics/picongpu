@@ -33,13 +33,14 @@ class TestSimulation(unittest.TestCase):
         sim = pypicongpu.Simulation()
         sim.delta_t_si = 1.39e-16
         sim.time_steps = 1
-        sim.grid = pypicongpu.Grid3D()
+        sim.grid = pypicongpu.grid.Grid3D()
         sim.grid.cell_size_x_si = 1.776e-07
         sim.grid.cell_size_y_si = 4.43e-08
         sim.grid.cell_size_z_si = 1.776e-07
         sim.grid.cell_cnt_x = 1
         sim.grid.cell_cnt_y = 1
         sim.grid.cell_cnt_z = 1
+        sim.grid.n_gpus = (1, 1, 1)
         sim.grid.boundary_condition_x = \
             pypicongpu.grid.BoundaryCondition.PERIODIC
         sim.grid.boundary_condition_y = \

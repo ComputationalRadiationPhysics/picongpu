@@ -58,12 +58,15 @@ class Simulation(picmistandard.PICMI_Simulation):
         assert "Yee" == self.solver.method
         assert isinstance(self.solver.grid, Cartesian3DGrid)
 
-        delta_x = (self.solver.grid.xmax - self.solver.grid.xmin) \
-            / self.solver.grid.nx
-        delta_y = (self.solver.grid.ymax - self.solver.grid.ymin) \
-            / self.solver.grid.ny
-        delta_z = (self.solver.grid.zmax - self.solver.grid.zmin) \
-            / self.solver.grid.nz
+        delta_x = ((self.solver.grid.upper_bound[0]
+                    - self.solver.grid.lower_bound[0])
+                   / self.solver.grid.number_of_cells[0])
+        delta_y = ((self.solver.grid.upper_bound[1]
+                    - self.solver.grid.lower_bound[1])
+                   / self.solver.grid.number_of_cells[1])
+        delta_z = ((self.solver.grid.upper_bound[2]
+                    - self.solver.grid.lower_bound[2])
+                   / self.solver.grid.number_of_cells[2])
 
         if self.time_step_size is not None and \
                 self.solver.cfl is not None:

@@ -42,11 +42,9 @@ spack load pngwriter@0.7.0 %gcc@10.2.0
 
 # Environment #################################################################
 #
-export PIC_BACKEND="cuda:70" # running on gpu
-
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="omp2b:skylake-avx512"
+export PIC_BACKEND="cuda:70"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin

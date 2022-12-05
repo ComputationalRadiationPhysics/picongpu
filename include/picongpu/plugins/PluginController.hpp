@@ -51,7 +51,6 @@
 
 #if(PMACC_CUDA_ENABLED == 1)
 #    include "picongpu/plugins/ChargeConservation.hpp"
-#    include "picongpu/plugins/PositionsParticles.hpp"
 #    include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #    include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.hpp"
 #    if(ENABLE_OPENPMD == 1)
@@ -73,7 +72,6 @@
 #include "picongpu/plugins/Checkpoint.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 
@@ -159,8 +157,7 @@ namespace picongpu
             ,
             isaacP::IsaacPlugin
 #endif
-            ,
-            ResourceLog>;
+            >;
 
         using AllFields = bmpl::vector<FieldB, FieldE, FieldJ>;
 
@@ -183,7 +180,6 @@ namespace picongpu
 #endif
 #if(PMACC_CUDA_ENABLED == 1)
             ,
-            PositionsParticles<bmpl::_1>,
             plugins::particleMerging::ParticleMerger<bmpl::_1>,
             plugins::randomizedParticleMerger::RandomizedParticleMerger<bmpl::_1>
 #    if(ENABLE_OPENPMD == 1)

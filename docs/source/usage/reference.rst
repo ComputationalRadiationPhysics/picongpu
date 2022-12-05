@@ -130,7 +130,6 @@ Particle pushers
 Current deposition
 """"""""""""""""""
  - Esirkepov method\ :sup:`\*` [Esirkepov2001]_
- - Villasenor and Buneman method\ :sup:`\*` [Villasenior1991]_
 
 Ionization-physics extensions
 """""""""""""""""""""""""""""
@@ -439,12 +438,6 @@ List of other references in chronological order
         *Pressure Ionization, Resonances, and the Continuity of Bound and Free States*,
         Advances in Atomic, Molecular and Optical Physics Vol. 21 C, 305-356 (1985),
         https://dx.doi.org/10.1016/S0065-2199(08)60145-1
-
-.. [Villasenior1991]
-        Villasenor, J. and Buneman, O.,
-	*Rigorous charge conservation for local electromagnetic field solvers*,
-	Computer Physics Communications, Volume 69, Issues 2–3, March–April 1992, Pages 306-316,
-	https://doi.org/10.1016/0010-4655(92)90169-Y
 
 .. [Mulser1998]
         Mulser, P. et al.,

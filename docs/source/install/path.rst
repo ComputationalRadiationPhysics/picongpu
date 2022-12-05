@@ -43,14 +43,6 @@ We currently do not have an official conda install (yet).
 Due to pre-build binaries, performance could be not ideal and HPC cluster support (e.g. MPI) might be very limited.
 Useful for small desktop or single-node runs.
 
-Nvidia-Docker
-^^^^^^^^^^^^^
-
-Not yet officially supported [nvidia-docker]_, but we already provide a ``Dockerfile`` to get started.
-Performance might be not ideal if the image is not built for the specific local hardware again.
-Useful for small desktop or single-node runs.
-We are also working on `Singularity <http://singularity.lbl.gov/>`_ images.
-
 References
 ----------
 
@@ -64,8 +56,3 @@ References
         R. McLay and contributors.
         *Lmod: An Environment Module System based on Lua, Reads TCL Modules, Supports a Software Hierarchy*,
         https://github.com/TACC/Lmod
-
-.. [nvidia-docker]
-        Nvidia Corporation and contributors.
-        *Build and run Docker containers leveraging NVIDIA GPUs*,
-        https://github.com/NVIDIA/nvidia-docker

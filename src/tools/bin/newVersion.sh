@@ -117,31 +117,6 @@ sed -i "s/"\
 "release = u'$VERSION_STR'/g" \
     $REPO_DIR/docs/source/conf.py
 
-# containers
-#   share/picongpu/dockerfiles
-sed -i 's/'\
-'\/picongpu:[0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
-'\/picongpu:'$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/README.rst
-sed -i 's/'\
-'--tag [0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
-'--tag '$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/README.rst
-
-sed -i 's/'\
-'picongpu@[0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
-'picongpu@'$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-2004/Dockerfile
-
-sed -i 's/'\
-'\/picongpu:[0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
-'\/picongpu:'$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-2004/Singularity
-sed -i 's/'\
-'Version [0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
-'Version '$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-2004/Singularity
-
 # @todo `project(...)` version in CMakeLists.txt (future)
 
 
