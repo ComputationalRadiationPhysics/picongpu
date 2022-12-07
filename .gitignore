@@ -33,3 +33,7 @@ docs/build/
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Visual Studio configuration and output files
+out
+/.vs
