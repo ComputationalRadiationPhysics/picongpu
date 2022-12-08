@@ -47,6 +47,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -140,6 +141,10 @@ namespace picongpu
                 mpi::MPIReduce reduce;
                 static const int numberMeshRecords = 3;
 
+                std::optional<::openPMD::Series> m_series;
+                std::string openPMDSuffix = "_%T_0_0_0.h5";
+                std::string openPMDConfig = "{}";
+
             public:
                 Radiation()
                     : pluginName("Radiation: calculate the radiation of a species")
@@ -216,7 +221,13 @@ namespace picongpu
                         "folder in which the radiation of each GPU is written")(
                         (pluginPrefix + ".numJobs").c_str(),
                         po::value<int>(&numJobs)->default_value(2),
-                        "Number of independent jobs used for the radiation calculation.");
+                        "Number of independent jobs used for the radiation calculation.")(
+                        (pluginPrefix + ".openPMDSuffix").c_str(),
+                        po::value<std::string>(&openPMDSuffix)->default_value("_%T_0_0_0.h5"),
+                        "Suffix for openPMD filename extension and iteration expansion pattern.")(
+                        (pluginPrefix + ".openPMDConfig").c_str(),
+                        po::value<std::string>(&openPMDConfig)->default_value("{}"),
+                        "JSON/TOML configuration for initializing openPMD.");
                 }
 
 
@@ -268,7 +279,7 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             tmp_result,
-                            restartDirectory + "/" + speciesName + std::string("_radRestart_"));
+                            restartDirectory + "/" + speciesName + std::string("_radRestart"));
                     }
                 }
 
@@ -521,7 +532,7 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             timeSumArray,
-                            std::string("radiationOpenPMD/") + speciesName + std::string("_radAmplitudes_"));
+                            std::string("radiationOpenPMD/") + speciesName + std::string("_radAmplitudes"));
                     }
                 }
 
@@ -652,12 +663,15 @@ namespace picongpu
                  */
                 void writeOpenPMDfile(std::vector<Amplitude>& values, std::string name)
                 {
-                    std::ostringstream filename;
-                    // TODO: needs to be changed to ".h5" and also support adios2
-                    filename << name << "%T_0_0_0.h5";
-
-                    ::openPMD::Series openPMDdataFile = ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE);
-                    ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.iterations[currentStep];
+                    if(!m_series.has_value())
+                    {
+                        std::ostringstream filename;
+                        filename << name << openPMDSuffix;
+                        m_series = std::make_optional(
+                            ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
+                    }
+                    ::openPMD::Series& openPMDdataFile = m_series.value();
+                    ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
                     openPMDdataFile.setMeshesPath(meshesPathName);
 
                     // begin: write amplitude data
