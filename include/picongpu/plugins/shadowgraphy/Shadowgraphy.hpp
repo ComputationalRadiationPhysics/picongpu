@@ -451,34 +451,31 @@ namespace picongpu
                 void writeToOpenPMDFile(uint32_t currentStep)
                 {
                     std::stringstream filename;
-
-                    
                     filename << pluginPrefix << "_%T." << filenameExtension;
                     ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
                     
                     ::openPMD::Extent extent = {  
-                        static_cast<unsigned long int>(helper->getSizeX()),  
-                        static_cast<unsigned long int>(helper->getSizeY())};
+                        static_cast<unsigned long int>(helper->getSizeY()),  
+                        static_cast<unsigned long int>(helper->getSizeX())};
                     ::openPMD::Offset offset = {0, 0};
-                    
-
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_64>();
                     ::openPMD::Dataset dataset{datatype, extent};
 
-                    ::openPMD::MeshRecordComponent mesh = series.iterations[currentStep].meshes["shadowgram"][::openPMD::MeshRecordComponent::SCALAR];
+                    auto mesh = series.iterations[currentStep].meshes["shadowgram"];
+                    mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    mesh.setDataOrder(::openPMD::Mesh::DataOrder::F);
+                    mesh.setGridUnitSI(1.0);
+                    mesh.setAxisLabels(std::vector<std::string>{"x", "y"});
+                    mesh.setGridSpacing(std::vector<double>{1.0, 1.0});
 
+                    auto shadowgram = mesh[::openPMD::RecordComponent::SCALAR];
+                    shadowgram.resetDataset(dataset);
 
-                    series.flush();
-                    mesh.resetDataset(dataset);
-
-                    series.flush();
-
-                    mesh.storeChunk(
+                    shadowgram.storeChunk(
                         std::shared_ptr<float_64>{&(*(helper->getShadowgramBuf()->origin())), [](auto const*) {}},
                         offset,
                         extent);
-                
-                    series.flush();
+
                     series.iterations[currentStep].close();
                 }
 

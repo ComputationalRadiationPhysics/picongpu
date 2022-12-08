@@ -519,8 +519,8 @@ namespace picongpu
                     //pmacc::container::HostBuffer<float_64, DIM2> retBuffer(getSizeX(), getSizeY());
                     retBuffer = std::make_shared<pmacc::container::HostBuffer<float_64, DIM2>>(getSizeX(), getSizeY());
 
-                    for (int i = 0; i < getSizeX(); ++i){
-                        for (int j = 0; j < getSizeY(); ++j){
+                    for (int j = 0; j < getSizeY(); ++j){
+                        for (int i = 0; i < getSizeX(); ++i){
                             *(retBuffer->origin()(i,j)) = static_cast<float_64>(shadowgram[i][j]);
                         }
                     }
