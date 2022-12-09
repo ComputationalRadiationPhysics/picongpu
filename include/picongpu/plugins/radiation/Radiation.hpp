@@ -20,14 +20,15 @@
 
 #pragma once
 
-#if(ENABLE_OPENPMD * openPMD_HAVE_HDF5 != 1)
-#    error The activated radiation plugin (radiation.param) requires openPMD-api with a HDF5 backend
+#if !ENABLE_OPENPMD
+#    error The activated radiation plugin (radiation.param) requires openPMD-api.
 #endif
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
@@ -142,7 +143,8 @@ namespace picongpu
                 static const int numberMeshRecords = 3;
 
                 std::optional<::openPMD::Series> m_series;
-                std::string openPMDSuffix = "_%T_0_0_0.h5";
+                std::string openPMDSuffix
+                    = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
 
             public:
@@ -223,7 +225,9 @@ namespace picongpu
                         po::value<int>(&numJobs)->default_value(2),
                         "Number of independent jobs used for the radiation calculation.")(
                         (pluginPrefix + ".openPMDSuffix").c_str(),
-                        po::value<std::string>(&openPMDSuffix)->default_value("_%T_0_0_0.h5"),
+                        po::value<std::string>(&openPMDSuffix)
+                            ->default_value(
+                                "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5)),
                         "Suffix for openPMD filename extension and iteration expansion pattern.")(
                         (pluginPrefix + ".openPMDConfig").c_str(),
                         po::value<std::string>(&openPMDConfig)->default_value("{}"),

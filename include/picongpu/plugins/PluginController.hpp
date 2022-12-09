@@ -62,8 +62,7 @@
 #    include "picongpu/plugins/IsaacPlugin.hpp"
 #endif
 
-#if((ENABLE_OPENPMD == 1) && (openPMD_HAVE_HDF5 == 1))
-// Radiation postprocessing is still native hdf5, so only enable the plugin for this backend
+#if ENABLE_OPENPMD
 #    include "picongpu/plugins/radiation/Radiation.hpp"
 #    include "picongpu/plugins/radiation/VectorTypes.hpp"
 #endif
@@ -169,7 +168,7 @@ namespace picongpu
             CountParticles<bmpl::_1>,
             PngPlugin<Visualisation<bmpl::_1, PngCreator>>,
             plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
-#if((ENABLE_OPENPMD == 1) && (openPMD_HAVE_HDF5 == 1))
+#if ENABLE_OPENPMD
             ,
             plugins::radiation::Radiation<bmpl::_1>
 #endif
