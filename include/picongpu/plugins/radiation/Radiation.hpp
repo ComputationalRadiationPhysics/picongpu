@@ -673,10 +673,27 @@ namespace picongpu
                         filename << name << openPMDSuffix;
                         m_series = std::make_optional(
                             ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
+
+                        /* begin recommended openPMD global attributes */
+                        m_series->setMeshesPath(meshesPathName);
+                        const std::string software("PIConGPU");
+                        std::stringstream softwareVersion;
+                        softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
+                                        << PICONGPU_VERSION_PATCH;
+                        if(!std::string(PICONGPU_VERSION_LABEL).empty())
+                            softwareVersion << "-" << PICONGPU_VERSION_LABEL;
+                        m_series->setSoftware(software, softwareVersion.str());
+
+                        std::string author = Environment<>::get().SimulationDescription().getAuthor();
+                        if(author.length() > 0)
+                            m_series->setAuthor(author);
+
+                        std::string date = helper::getDateString("%F %T %z");
+                        m_series->setDate(date);
+                        /* end recommended openPMD global attributes */
                     }
                     ::openPMD::Series& openPMDdataFile = m_series.value();
                     ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
-                    openPMDdataFile.setMeshesPath(meshesPathName);
 
                     // begin: write amplitude data
                     ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
@@ -851,23 +868,6 @@ namespace picongpu
                     openPMDdataFileIteration.setTime(time);
                     openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
                     /* end required openPMD global attributes */
-
-                    /* begin recommended openPMD global attributes */
-                    const std::string software("PIConGPU");
-                    std::stringstream softwareVersion;
-                    softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
-                                    << PICONGPU_VERSION_PATCH;
-                    if(!std::string(PICONGPU_VERSION_LABEL).empty())
-                        softwareVersion << "-" << PICONGPU_VERSION_LABEL;
-                    openPMDdataFile.setSoftware(software, softwareVersion.str());
-
-                    std::string author = Environment<>::get().SimulationDescription().getAuthor();
-                    if(author.length() > 0)
-                        openPMDdataFile.setAuthor(author);
-
-                    std::string date = helper::getDateString("%F %T %z");
-                    openPMDdataFile.setDate(date);
-                    /* end recommended openPMD global attributes */
 
                     openPMDdataFileIteration.close();
                     openPMDdataFile.flush();
