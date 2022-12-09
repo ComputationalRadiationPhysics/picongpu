@@ -44,6 +44,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include <algorithm> // std::any
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -670,7 +671,18 @@ namespace picongpu
                     if(!m_series.has_value())
                     {
                         std::ostringstream filename;
-                        filename << name << openPMDSuffix;
+                        if(std::any_of(
+                               openPMDSuffix.begin(),
+                               openPMDSuffix.end(),
+                               [](char const c) { return c == '.'; }))
+                        {
+                            filename << name << openPMDSuffix;
+                        }
+                        else
+                        {
+                            filename << name << '.' << openPMDSuffix;
+                        }
+
                         m_series = std::make_optional(
                             ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
 
