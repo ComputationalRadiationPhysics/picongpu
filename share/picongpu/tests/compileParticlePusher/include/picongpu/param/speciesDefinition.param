@@ -35,8 +35,7 @@ namespace picongpu
     /*########################### define particle attributes #####################*/
 
     /** describe attributes of a particle*/
-    using DefaultParticleAttributes
-        = MakeSeq_t<position<position_pic>, momentum, weighting, probeE, probeB, voronoiCellId>;
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting, probeE, probeB>;
 
     /*########################### end particle attributes ########################*/
 

@@ -16,7 +16,6 @@ Plugin name                                                                     
 :ref:`energy particles <usage-plugins-energyParticles>` [#f6]_                       kinetic and total energies summed over all electrons and/or ions
 :ref:`ISAAC <usage-plugins-ISAAC>`                                                   interactive 3D live visualization [Matthes2016]_
 :ref:`particle calorimeter <usage-plugins-particleCalorimeter>` [#f2]_ [#f3]_ [#f6]_ spatially resolved, particle energy detector in infinite distance
-:ref:`particle merger <usage-plugins-particleMerger>` [#f5]_                         macro particle merging
 :ref:`phase space <usage-plugins-phaseSpace>` [#f2]_ [#f5]_ [#f6]_                   calculate 2D phase space [Huebl2014]_
 :ref:`PNG <usage-plugins-PNG>` [#f6]_                                                pictures of 2D slices
 :ref:`radiation <usage-plugins-radiation>` [#f2]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
