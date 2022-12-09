@@ -68,6 +68,10 @@ namespace picongpu
             case EP::HDF5:
                 return "h5";
             }
+            /*
+             * This silences compiler warnings
+             */
+            return "[openPMD::getDefaultExtension()] Unreachable!";
 #elif openPMD_HAVE_ADIOS2
             return getADIOSExtension();
 #elif openPMD_HAVE_HDF5
