@@ -2,7 +2,7 @@
 #
 # This file is part of PIConGPU.
 # Copyright 2022 PIConGPU contributors
-# Authors: Mika Soren Voss
+# Authors: Mika Soren Voss, Rene Widera
 # License: GPLv3+
 #
 
@@ -121,7 +121,7 @@ mpiexec -n 1 $inputDestinationPath/bin/picongpu -d 1 1 1 -g 192 512 12 --periodi
 cd ..
 
 # test with python
-$currentPath/validate.sh $inputDestinationPath -d $dataPath
+$currentPath/validate.sh $inputDestinationPath -d $dataPath/
 ret=$?
 
 if [ "$deleteData" == "true" ] ; then

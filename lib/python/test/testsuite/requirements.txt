@@ -1,0 +1,3 @@
+-r Math/requirements.txt
+-r Output/requirements.txt
+-r Reader/requirements.txt
