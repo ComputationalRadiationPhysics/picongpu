@@ -67,10 +67,6 @@ namespace pmacc
             auto const seqOfSlices = misc::splitString(str, ",");
             for(auto const& slice : seqOfSlices)
             {
-                // skip empty slice strings
-                if(slice.empty())
-                    continue;
-
                 auto const sliceComponents = misc::splitString(slice, ":");
                 PMACC_VERIFY_MSG(
                     !sliceComponents.empty(),
@@ -111,10 +107,6 @@ namespace pmacc
             auto const seqOfSlices = misc::splitString(str, ",");
             for(auto const& slice : seqOfSlices)
             {
-                // skip empty slice strings
-                if(slice.empty())
-                    continue;
-
                 auto const sliceComponents = misc::splitString(slice, ":");
                 PMACC_VERIFY_MSG(
                     !sliceComponents.empty(),
@@ -136,11 +128,10 @@ namespace pmacc
                     if(sliceOnly)
                     {
                         // set end to begin + 1 to select only one slice
-                        timeSlice.values[1] = std::stoul(component) + 1;
+                        timeSlice.values[1] = timeSlice.values[0] + 1;
                     }
                     n++;
                 }
-
                 result.push_back(timeSlice);
             }
             return result;
