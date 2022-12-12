@@ -32,13 +32,9 @@ namespace pmacc
     {
         std::vector<std::string> splitString(std::string const& input, std::string const& delimiter)
         {
-            /* Extent the input with one delimiter to get an empty string in cases where the input ends with a
-             * delimiter without any other following characters.
-             */
-            auto inputExtended = input + delimiter;
             std::regex re(delimiter);
             // passing -1 as the submatch index parameter performs splitting
-            std::sregex_token_iterator first{inputExtended.begin(), inputExtended.end(), re, -1};
+            std::sregex_token_iterator first{input.begin(), input.end(), re, -1};
             std::sregex_token_iterator last;
 
             return {first, last};
