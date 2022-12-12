@@ -193,7 +193,6 @@ namespace pmacc
             using usedFilters = bmpl::vector<typename GetPositionFilter<Space::Dim>::type>;
             using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
             MyParticleFilter filter;
-            filter.setStatus(true); /*activeate filter pipline*/
             filter.setWindowPosition(origin, size);
             return pmacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter, parFilter);
         }

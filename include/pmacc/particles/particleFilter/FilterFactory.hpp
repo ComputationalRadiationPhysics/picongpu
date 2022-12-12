@@ -25,7 +25,6 @@
 #include "pmacc/meta/conversion/MakeSeq.hpp"
 #include "pmacc/particles/boostExtension/InheritGenerators.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
-#include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
 #include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
 
 #include <boost/mpl/back_inserter.hpp>
@@ -40,8 +39,6 @@ namespace pmacc
     class FilterFactory
     {
     public:
-        using FilterType =
-            typename LinearInherit<typename MakeSeq<DefaultFilter<>, UserTypeList, TrueFilter>::type>::type;
+        using FilterType = typename LinearInherit<typename MakeSeq<UserTypeList, TrueFilter>::type>::type;
     };
-
 } // namespace pmacc
