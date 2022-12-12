@@ -51,8 +51,6 @@
 
 #if(PMACC_CUDA_ENABLED == 1)
 #    include "picongpu/plugins/ChargeConservation.hpp"
-#    include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
-#    include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.hpp"
 #    if(ENABLE_OPENPMD == 1)
 #        include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #    endif
@@ -179,9 +177,6 @@ namespace picongpu
             plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1>>
 #endif
 #if(PMACC_CUDA_ENABLED == 1)
-            ,
-            plugins::particleMerging::ParticleMerger<bmpl::_1>,
-            plugins::randomizedParticleMerger::RandomizedParticleMerger<bmpl::_1>
 #    if(ENABLE_OPENPMD == 1)
             ,
             PerSuperCell<bmpl::_1>

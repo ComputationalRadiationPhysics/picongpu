@@ -375,46 +375,6 @@ namespace picongpu
         };
 
         template<>
-        struct Unit<voronoiCellId>
-        {
-            // unitless and not scaled by a factor: by convention 1.0
-            static std::vector<double> get()
-            {
-                std::vector<double> unit(1, 1.0);
-                return unit;
-            }
-        };
-        template<>
-        struct UnitDimension<voronoiCellId>
-        {
-            static std::vector<float_64> get()
-            {
-                // voronoiCellId is unitless
-                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
-
-                return unitDimension;
-            }
-        };
-        template<>
-        struct MacroWeighted<voronoiCellId>
-        {
-            // the voronoiCellId attribute is not a physical parameter
-            static bool get()
-            {
-                return false;
-            }
-        };
-        template<>
-        struct WeightingPower<voronoiCellId>
-        {
-            // the voronoiCellId attribute is not a physical parameter
-            static float_64 get()
-            {
-                return 0.0;
-            }
-        };
-
-        template<>
         struct Unit<probeE>
         {
             static std::vector<double> get()
