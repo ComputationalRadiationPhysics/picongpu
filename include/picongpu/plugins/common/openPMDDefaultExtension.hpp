@@ -27,6 +27,12 @@ namespace picongpu
 {
     namespace openPMD
     {
+        enum class ExtensionPreference
+        {
+            ADIOS,
+            HDF5
+        };
+
         /** Get default extension for openPMD files
          *
          * Make a uniform choice when several valid backends are available.
@@ -34,23 +40,40 @@ namespace picongpu
          *
          * This function can only be compiled when openPMD is enabled.
          */
-        inline std::string getDefaultExtension()
+        inline std::string getDefaultExtension(ExtensionPreference ep = ExtensionPreference::ADIOS)
         {
-#if openPMD_HAVE_ADIOS2
-            auto availableExtensions = ::openPMD::getFileExtensions();
-            for(auto const& ext : availableExtensions)
+            using EP = ExtensionPreference;
+            auto getADIOSExtension = []()
             {
-                if(ext == "bp4")
+                auto availableExtensions = ::openPMD::getFileExtensions();
+                for(auto const& ext : availableExtensions)
                 {
-                    return "bp4";
+                    if(ext == "bp4")
+                    {
+                        return "bp4";
+                    }
                 }
+                /*
+                 * BP4 engine is always available in all supported ADIOS2 versions,
+                 * but the bp4 extensions is new in openPMD, so we might need to
+                 * fallback to "bp".
+                 */
+                return "bp";
+            };
+#if openPMD_HAVE_ADIOS2 && openPMD_HAVE_HDF5
+            switch(ep)
+            {
+            case EP::ADIOS:
+                return getADIOSExtension();
+            case EP::HDF5:
+                return "h5";
             }
             /*
-             * BP4 engine is always available in all supported ADIOS2 versions,
-             * but the bp4 extensions is new in openPMD, so we might need to
-             * fallback to "bp".
+             * This silences compiler warnings
              */
-            return "bp";
+            return "[openPMD::getDefaultExtension()] Unreachable!";
+#elif openPMD_HAVE_ADIOS2
+            return getADIOSExtension();
 #elif openPMD_HAVE_HDF5
             return "h5";
 #else

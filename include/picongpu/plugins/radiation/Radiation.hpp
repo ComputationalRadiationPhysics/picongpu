@@ -20,14 +20,15 @@
 
 #pragma once
 
-#if(ENABLE_OPENPMD * openPMD_HAVE_HDF5 != 1)
-#    error The activated radiation plugin (radiation.param) requires openPMD-api with a HDF5 backend
+#if !ENABLE_OPENPMD
+#    error The activated radiation plugin (radiation.param) requires openPMD-api.
 #endif
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
@@ -43,10 +44,12 @@
 
 #include <boost/filesystem.hpp>
 
+#include <algorithm> // std::any
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -140,6 +143,11 @@ namespace picongpu
                 mpi::MPIReduce reduce;
                 static const int numberMeshRecords = 3;
 
+                std::optional<::openPMD::Series> m_series;
+                std::string openPMDSuffix
+                    = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+                std::string openPMDConfig = "{}";
+
             public:
                 Radiation()
                     : pluginName("Radiation: calculate the radiation of a species")
@@ -216,7 +224,15 @@ namespace picongpu
                         "folder in which the radiation of each GPU is written")(
                         (pluginPrefix + ".numJobs").c_str(),
                         po::value<int>(&numJobs)->default_value(2),
-                        "Number of independent jobs used for the radiation calculation.");
+                        "Number of independent jobs used for the radiation calculation.")(
+                        (pluginPrefix + ".openPMDSuffix").c_str(),
+                        po::value<std::string>(&openPMDSuffix)
+                            ->default_value(
+                                "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5)),
+                        "Suffix for openPMD filename extension and iteration expansion pattern.")(
+                        (pluginPrefix + ".openPMDConfig").c_str(),
+                        po::value<std::string>(&openPMDConfig)->default_value("{}"),
+                        "JSON/TOML configuration for initializing openPMD.");
                 }
 
 
@@ -268,7 +284,7 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             tmp_result,
-                            restartDirectory + "/" + speciesName + std::string("_radRestart_"));
+                            restartDirectory + "/" + speciesName + std::string("_radRestart"));
                     }
                 }
 
@@ -521,7 +537,7 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             timeSumArray,
-                            std::string("radiationOpenPMD/") + speciesName + std::string("_radAmplitudes_"));
+                            std::string("radiationOpenPMD/") + speciesName + std::string("_radAmplitudes"));
                     }
                 }
 
@@ -652,13 +668,44 @@ namespace picongpu
                  */
                 void writeOpenPMDfile(std::vector<Amplitude>& values, std::string name)
                 {
-                    std::ostringstream filename;
-                    // TODO: needs to be changed to ".h5" and also support adios2
-                    filename << name << "%T_0_0_0.h5";
+                    if(!m_series.has_value())
+                    {
+                        std::ostringstream filename;
+                        if(std::any_of(
+                               openPMDSuffix.begin(),
+                               openPMDSuffix.end(),
+                               [](char const c) { return c == '.'; }))
+                        {
+                            filename << name << openPMDSuffix;
+                        }
+                        else
+                        {
+                            filename << name << '.' << openPMDSuffix;
+                        }
 
-                    ::openPMD::Series openPMDdataFile = ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE);
-                    ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.iterations[currentStep];
-                    openPMDdataFile.setMeshesPath(meshesPathName);
+                        m_series = std::make_optional(
+                            ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
+
+                        /* begin recommended openPMD global attributes */
+                        m_series->setMeshesPath(meshesPathName);
+                        const std::string software("PIConGPU");
+                        std::stringstream softwareVersion;
+                        softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
+                                        << PICONGPU_VERSION_PATCH;
+                        if(!std::string(PICONGPU_VERSION_LABEL).empty())
+                            softwareVersion << "-" << PICONGPU_VERSION_LABEL;
+                        m_series->setSoftware(software, softwareVersion.str());
+
+                        std::string author = Environment<>::get().SimulationDescription().getAuthor();
+                        if(author.length() > 0)
+                            m_series->setAuthor(author);
+
+                        std::string date = helper::getDateString("%F %T %z");
+                        m_series->setDate(date);
+                        /* end recommended openPMD global attributes */
+                    }
+                    ::openPMD::Series& openPMDdataFile = m_series.value();
+                    ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
 
                     // begin: write amplitude data
                     ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
@@ -833,23 +880,6 @@ namespace picongpu
                     openPMDdataFileIteration.setTime(time);
                     openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
                     /* end required openPMD global attributes */
-
-                    /* begin recommended openPMD global attributes */
-                    const std::string software("PIConGPU");
-                    std::stringstream softwareVersion;
-                    softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
-                                    << PICONGPU_VERSION_PATCH;
-                    if(!std::string(PICONGPU_VERSION_LABEL).empty())
-                        softwareVersion << "-" << PICONGPU_VERSION_LABEL;
-                    openPMDdataFile.setSoftware(software, softwareVersion.str());
-
-                    std::string author = Environment<>::get().SimulationDescription().getAuthor();
-                    if(author.length() > 0)
-                        openPMDdataFile.setAuthor(author);
-
-                    std::string date = helper::getDateString("%F %T %z");
-                    openPMDdataFile.setDate(date);
-                    /* end recommended openPMD global attributes */
 
                     openPMDdataFileIteration.close();
                     openPMDdataFile.flush();
