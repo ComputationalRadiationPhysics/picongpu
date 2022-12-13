@@ -60,13 +60,25 @@ namespace pmacc
          *   - `:` is equal to `0:-1:1`
          *
          * If stop is `-1` there is no defined end.
+         *
+         * @param str Comma separated list of slices. Empty slices will be skipped.
          */
         HINLINE std::vector<Slice> toTimeSlice(std::string const& str)
         {
             std::vector<Slice> result;
             auto const seqOfSlices = misc::splitString(str, ",");
-            for(auto const& slice : seqOfSlices)
+            for(auto slice : seqOfSlices)
             {
+                // skip empty slice strings
+                if(slice.empty())
+                    continue;
+                else
+                {
+                    /* If the slice is not empty extent the input with one delimiter to get an empty string in cases
+                     * where the slice ends with a delimiter without any other following characters.
+                     */
+                    slice += ":";
+                }
                 auto const sliceComponents = misc::splitString(slice, ":");
                 PMACC_VERIFY_MSG(
                     !sliceComponents.empty(),
@@ -78,6 +90,8 @@ namespace pmacc
                 Slice timeSlice;
                 for(auto& component : sliceComponents)
                 {
+                    if(n == 3)
+                        break;
                     // be sure that component it is a number or empty
                     PMACC_VERIFY_MSG(
                         component.empty() || detail::is_number(component),
@@ -100,13 +114,26 @@ namespace pmacc
          *   - `:` is equal to `0:-1:1`
          *
          * If end is `-1` there is no defined end if the range.
+         *
+         * @param str Comma separated list of slices. Empty slices will be skipped.
          */
         HINLINE std::vector<Slice> toRangeSlice(std::string const& str)
         {
             std::vector<Slice> result;
             auto const seqOfSlices = misc::splitString(str, ",");
-            for(auto const& slice : seqOfSlices)
+            for(auto slice : seqOfSlices)
             {
+                // skip empty slice strings
+                if(slice.empty())
+                    continue;
+                else
+                {
+                    /* If the input is not empty extent the slice with one delimiter to get an empty string in cases
+                     * where the slice ends with a delimiter without any other following characters.
+                     */
+                    slice += ":";
+                }
+
                 auto const sliceComponents = misc::splitString(slice, ":");
                 PMACC_VERIFY_MSG(
                     !sliceComponents.empty(),
@@ -115,24 +142,26 @@ namespace pmacc
                 // id of the component
                 size_t n = 0;
                 bool const sliceOnly = sliceComponents.size() == 1u;
-                Slice timeSlice;
+                Slice rangeSlice;
 
                 for(auto& component : sliceComponents)
                 {
+                    if(n == 3)
+                        break;
                     // be sure that component it is a number or empty
                     PMACC_VERIFY_MSG(
                         component.empty() || detail::is_number(component),
                         std::string("value") + component + " in " + str + "is not a number");
 
-                    timeSlice.setValue(n, component);
+                    rangeSlice.setValue(n, component);
                     if(sliceOnly)
                     {
                         // set end to begin + 1 to select only one slice
-                        timeSlice.values[1] = timeSlice.values[0] + 1;
+                        rangeSlice.values[1] = rangeSlice.values[0] + 1;
                     }
                     n++;
                 }
-                result.push_back(timeSlice);
+                result.push_back(rangeSlice);
             }
             return result;
         }
