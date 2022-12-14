@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Klaus Steiniger, Sergei Bastrakov
+/* Copyright 2020-2022 Klaus Steiniger, Sergei Bastrakov, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -45,21 +45,21 @@ namespace picongpu
                 {
                     HDINLINE constexpr AOFDTDWeights()
                     {
-                        namespace powSpace = ::picongpu::plugins::radiation::util;
+                        namespace powSpace = pmacc::math;
                         // Set initial value
                         weights[0] = 4.0_X * T_neighbors
-                            * powSpace::pow(
+                            * powSpace::cPow(
                                          (factorial(2 * T_neighbors)
                                           / float_X(
-                                              powSpace::pow(2.0_X, 2 * T_neighbors)
-                                              * powSpace::pow(factorial(T_neighbors), 2))),
-                                         2);
+                                              powSpace::cPow(2.0_X, 2u * T_neighbors)
+                                              * powSpace::cPow(factorial(T_neighbors), 2u))),
+                                         2u);
 
                         // Compute all other values
                         for(uint32_t l = 1u; l < T_neighbors; ++l)
                         {
-                            weights[l] = -1.0_X * powSpace::pow(float_X(l) - 0.5_X, 2) * (T_neighbors - l)
-                                / float_X(T_neighbors + l) / float_X(powSpace::pow(float_X(l) + 0.5_X, 2))
+                            weights[l] = -1.0_X * powSpace::cPow(float_X(l) - 0.5_X, 2u) * (T_neighbors - l)
+                                / float_X(T_neighbors + l) / float_X(powSpace::cPow(float_X(l) + 0.5_X, 2u))
                                 * weights[l - 1];
                         }
                     }

@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov
+/* Copyright 2013-2022 Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +22,7 @@
 
 #include "picongpu/plugins/radiation/utilities.hpp"
 
+#include <cstdint>
 
 namespace picongpu
 {
@@ -112,7 +113,7 @@ namespace picongpu
                         for(uint32_t d = 0; d < DIM3; ++d)
                             sincValue *= pmacc::math::sinc(
                                 observerUnitVec[d] * cellSize[d] / (SPEED_OF_LIGHT * 2.0_X) * omega);
-                        return util::pow(sincValue, 2 * T_shapeOrder);
+                        return pmacc::math::cPow(sincValue, static_cast<uint32_t>(2u) * T_shapeOrder);
                     }
                 };
             } // namespace radFormFactor_baseShape_3D

@@ -17,11 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/algorithms/math.hpp>
 
-#pragma once
+#include <cstdint>
 
 /** rate calculation from given atomic data, extracted from flylite, based on FLYCHK
  *
@@ -119,7 +121,8 @@ namespace picongpu
                     for(uint8_t i = 0u; i < T_numLevels; i++)
                     {
                         result *= binomialCoefficients(
-                            static_cast<uint8_t>(2u * math::pow(float(i + 1), 2.0f)),
+                            static_cast<uint8_t>(2u)
+                                * pmacc::math::cPow(i + static_cast<uint8_t>(1u), static_cast<uint8_t>(2u)),
                             levelVector[i]); // unitless
                     }
 
@@ -238,7 +241,10 @@ namespace picongpu
                     // physical constants
                     // (unitless * m)^2 / unitless = m^2
                     float_X c0_SI = float_X(
-                        8._X * math::pow(picongpu::PI * picongpu::SI::BOHR_RADIUS, 2.0_X)
+                        8._X
+                        * pmacc::math::cPow(
+                            picongpu::PI * picongpu::SI::BOHR_RADIUS,
+                            static_cast<uint8_t>(2u))
                         / math::sqrt(3._X)); // uint: m^2, SI
 
                     // scaling constants * E_Ry^2/deltaE_Trans^2 * f * deltaE_Trans/E_kin

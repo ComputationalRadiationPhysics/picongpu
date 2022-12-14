@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Marco Garten, Axel Huebl
+/* Copyright 2016-2022 Marco Garten, Axel Huebl, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -34,6 +34,8 @@
 #include "picongpu/traits/attribute/GetChargeState.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
+
+#include <cstdint>
 
 namespace picongpu
 {
@@ -100,7 +102,7 @@ namespace picongpu
 
                     float_64 const B = -math::exp(
                         thomasFermi::TFB0 + thomasFermi::TFB1 * T_F
-                        + thomasFermi::TFB2 * math::pow(T_F, float_64(7.)));
+                        + thomasFermi::TFB2 * pmacc::math::cPow(T_F, static_cast<uint8_t>(7u)));
 
                     float_64 const C = thomasFermi::TFC1 * T_F + thomasFermi::TFC2;
 
