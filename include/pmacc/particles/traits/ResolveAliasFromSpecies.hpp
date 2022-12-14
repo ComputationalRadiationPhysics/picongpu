@@ -45,7 +45,6 @@ namespace pmacc
              *   current<UsedParticleCurrentSolver>,
              *   massRatio<MassRatioElectrons>,
              *   chargeRatio<ChargeRatioElectrons>,
-             *   synchrotronPhotons<PIC_Photons>
              * > ParticleFlagsElectrons;
              *
              * typedef picongpu::Particles<
@@ -54,11 +53,11 @@ namespace pmacc
              *     DefaultAttributesSeq
              * > PIC_Electrons;
              *
-             * typedef typename ResolveAliasFromSpecies<
+             * using InterpolationMethod = typename ResolveAliasFromSpecies<
              *      PIC_Electrons,
-             *      synchrotronPhotons<>
-             * >::type PhotonSpecies;
-             * boost::static_assert(boost::is_same<PhotonsSpecies, PIC_Photons>::value);
+             *      interpolation<>
+             * >::type;
+             * boost::static_assert(boost::is_same<InterpolationMethod, UsedField2Particle>::value);
              * \endcode
              *
              * @tparam T_SpeciesType particle species

@@ -33,7 +33,9 @@
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
+#include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
@@ -41,7 +43,6 @@
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/simulation/stage/AtomicPhysics.hpp"
-#include "picongpu/simulation/stage/Bremsstrahlung.hpp"
 #include "picongpu/simulation/stage/Collision.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
@@ -55,7 +56,6 @@
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
-#include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
 
 #include <pmacc/assert.hpp>
@@ -65,30 +65,6 @@
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/random/RNGProvider.hpp>
-#include <pmacc/random/methods/methods.hpp>
-#include <pmacc/simulationControl/SimulationHelper.hpp>
-#include <pmacc/types.hpp>
-#include <pmacc/verify.hpp>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/mpl/count.hpp>
-
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <string>
-#include <vector>
-
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
-#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
-#endif
-
-#include "picongpu/particles/InitFunctors.hpp"
-#include "picongpu/particles/ParticlesFunctors.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/InvokeIf.hpp>
@@ -98,11 +74,23 @@
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/random/methods/methods.hpp>
+#include <pmacc/simulationControl/SimulationHelper.hpp>
+#include <pmacc/types.hpp>
+#include <pmacc/verify.hpp>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/mpl/count.hpp>
 #include <boost/mpl/int.hpp>
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
 #include <functional>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace picongpu
 {
@@ -334,13 +322,6 @@ namespace picongpu
             // initialize runtime density file paths
             runtimeDensityFile.init();
 
-            // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung
-            // Photons
-            using AllSynchrotronPhotonsSpecies =
-                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, synchrotronPhotons<>>::type;
-            using AllBremsstrahlungPhotonsSpecies =
-                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, bremsstrahlungPhotons<>>::type;
-
             // create factory for the random number generator
             const uint32_t userSeed = random::seed::ISeed<random::SeedGenerator>{}();
             const uint32_t seed = std::hash<std::string>{}(std::to_string(userSeed));
@@ -356,25 +337,6 @@ namespace picongpu
             pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
             rngFactory->init(gridCon.getScalarPosition() ^ seed);
             dc.consume(std::move(rngFactory));
-
-            // Initialize synchrotron functions, if there are synchrotron photon species
-            if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
-            {
-                this->synchrotronFunctions.init();
-            }
-#if(PMACC_CUDA_ENABLED == 1)
-            // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
-            if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
-            {
-                meta::ForEach<
-                    AllBremsstrahlungPhotonsSpecies,
-                    particles::bremsstrahlung::FillScaledSpectrumMap<bmpl::_1>>
-                    fillScaledSpectrumMap;
-                fillScaledSpectrumMap(this->scaledBremsstrahlungSpectrumMap);
-
-                this->bremsstrahlungPhotonAngle.init();
-            }
-#endif
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             auto nativeCudaStream = cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(0);
@@ -545,10 +507,6 @@ namespace picongpu
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
             ParticleIonization{*cellDescription}(currentStep);
-            SynchrotronRadiation{*cellDescription, synchrotronFunctions}(currentStep);
-#if(PMACC_CUDA_ENABLED == 1)
-            Bremsstrahlung{*cellDescription, scaledBremsstrahlungSpectrumMap, bremsstrahlungPhotonAngle}(currentStep);
-#endif
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
             fieldBackground.subtract(currentStep);
@@ -645,18 +603,6 @@ namespace picongpu
         // Runtime density file stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::RuntimeDensityFile runtimeDensityFile;
-
-#if(PMACC_CUDA_ENABLED == 1)
-        // creates lookup tables for the bremsstrahlung effect
-        // map<atomic number, scaled bremsstrahlung spectrum>
-        std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
-        particles::bremsstrahlung::GetPhotonAngle bremsstrahlungPhotonAngle;
-#endif
-
-        // Synchrotron functions (used in synchrotronPhotons module)
-        particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
-
-        // output classes
 
         IInitPlugin* initialiserController{nullptr};
 
@@ -812,9 +758,3 @@ namespace picongpu
 } /* namespace picongpu */
 
 #include "picongpu/fields/Fields.tpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
-
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/particles/bremsstrahlung/Bremsstrahlung.tpp"
-#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.tpp"
-#endif

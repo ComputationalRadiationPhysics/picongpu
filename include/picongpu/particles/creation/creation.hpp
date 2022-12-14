@@ -42,7 +42,6 @@ namespace picongpu
              * @param cellDesc mapping description
              *
              * `particleCreator` must define: `init()`, `numNewParticles()` and `operator()()`
-             * @see `PhotonCreator.hpp` for a further description.
              */
             template<
                 typename T_SourceSpecies,

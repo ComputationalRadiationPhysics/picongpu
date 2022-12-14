@@ -42,8 +42,6 @@ Its features for the electro-magnetic PIC algorithm include:
 and the electro-magnetic PIC algorithm is further self-consistently coupled to:
 - classical radiation reaction
   ([DOI:10.1016/j.cpc.2016.04.002](http://dx.doi.org/10.1016/j.cpc.2016.04.002))
-- QED synchrotron radiation (photon emission)
-  ([DOI:10.1103/PhysRevE.92.023305](http://dx.doi.org/10.1103/PhysRevE.92.023305))
 - advanced field ionization methods
   ([DOI:10.1103/PhysRevA.59.569](http://dx.doi.org/10.1103/PhysRevA.59.569),
    [LV Keldysh](http://www.jetp.ac.ru/cgi-bin/dn/e_020_05_1307.pdf), BSI)
