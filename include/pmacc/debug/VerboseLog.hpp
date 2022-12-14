@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <pmacc/boost_workaround.hpp>
+
 #include "pmacc/debug/VerboseLogMakros.hpp"
 
 #include <boost/format.hpp>

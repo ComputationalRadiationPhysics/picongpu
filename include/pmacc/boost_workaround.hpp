@@ -29,7 +29,11 @@
 /* workaround for compile error with clang-cuda
  * boost/type_traits/is_base_and_derived.hpp:142:25: error: invalid application of 'sizeof' to an incomplete type
  * 'boost::in_place_factory_base' BOOST_STATIC_ASSERT(sizeof(B) != 0);
+ *
+ * https://github.com/boostorg/config/issues/406#issuecomment-928151025
  */
+#include <boost/utility/in_place_factory.hpp>
+#include <boost/utility/typed_in_place_factory.hpp>
 #include <boost/optional/optional.hpp>
 
 #if defined(__clang__) && defined(__CUDACC__)

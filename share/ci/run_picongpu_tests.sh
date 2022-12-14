@@ -41,6 +41,7 @@ CMAKE_ARGS="${PIC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSI
 
 # check and activate if clang should be used as CUDA device compiler
 if [ -n "$CI_CLANG_AS_CUDA_COMPILER" ] ; then
+  export PATH="$(agc-manager -b cuda)/bin:$PATH"
   CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CUDA_COMPILER=${CXX_VERSION}"
 fi
 

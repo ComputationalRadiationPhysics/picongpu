@@ -21,6 +21,8 @@
 
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 
+#include <pmacc/boost_workaround.hpp>
+
 #include "pmacc/Environment.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 
