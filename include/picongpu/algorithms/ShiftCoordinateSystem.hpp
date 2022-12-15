@@ -42,8 +42,8 @@ namespace picongpu
     template<typename T_Component, typename T_Supports>
     struct AssignToDim
     {
-        template<typename T_Type, typename T_Vector, typename T_FieldType>
-        HDINLINE void operator()(T_Type& cursor, T_Vector& pos, const T_FieldType& fieldPos)
+        template<typename T_DataBox, typename T_Vector, typename T_FieldType>
+        HDINLINE void operator()(T_DataBox& dataBox, T_Vector& pos, const T_FieldType& fieldPos)
         {
             const uint32_t dim = T_Vector::dim;
             using ValueType = typename T_Vector::type;
@@ -59,7 +59,7 @@ namespace picongpu
             const ValueType v_pos = pos[component] - fieldPos[component];
             DataSpace<dim> intShift;
             intShift[component] = GetOffsetToStaticShapeSystem<isEven>()(v_pos);
-            cursor = cursor(intShift);
+            dataBox = dataBox.shift(intShift);
             pos[component] = v_pos - ValueType(intShift[component]);
         }
     };
@@ -73,8 +73,8 @@ namespace picongpu
     {
         /** shift to new coordinate system
          *
-         * shift cursor and vector to new coordinate system
-         * @param[in,out] cursor cursor to memory
+         * shift DataBox and vector to new coordinate system
+         * @param[in,out] dataBox DataBox pointing to the particle located cell
          * @param[in,out] vector short vector with coordinates in old system
          *                        - defined for [0.0;1.0) per dimension
          * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
@@ -85,19 +85,16 @@ namespace picongpu
          * - Even Support: vector is always [0.0;1.0)
          * - Odd Support: vector is always [-0.5;0.5)
          */
-        template<typename T_Cursor, typename T_Vector, typename T_FieldType>
-        HDINLINE void operator()(T_Cursor& cursor, T_Vector& vector, const T_FieldType& fieldPos)
+        template<typename T_DataBox, typename T_Vector, typename T_FieldType>
+        HDINLINE void operator()(T_DataBox& dataBox, T_Vector& vector, const T_FieldType& fieldPos)
         {
-            /** \todo check if a static assert on
-             *  "T_Cursor::dim" == T_Vector::dim ==  T_FieldType::dim is possible
-             *  and does not waste registers */
-            const uint32_t dim = T_Vector::dim;
+            constexpr uint32_t dim = T_DataBox::Dim;
 
             using Size = boost::mpl::vector1<boost::mpl::range_c<uint32_t, 0, dim>>;
             using CombiTypes = typename AllCombinations<Size>::type;
 
             meta::ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports>> shift;
-            shift(cursor, vector, fieldPos);
+            shift(dataBox, vector, fieldPos);
         }
     };
 

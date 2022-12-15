@@ -191,12 +191,10 @@ namespace picongpu
                         DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
                     /* interpolation of E- */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
-                    ValueType_E eField
-                        = Field2ParticleInterpolation()(cachedE.shift(localCell).toCursor(), pos, fieldPosE());
+                    ValueType_E eField = Field2ParticleInterpolation()(cachedE.shift(localCell), pos, fieldPosE());
                     /*                     and B-field on the particle position */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
-                    ValueType_B bField
-                        = Field2ParticleInterpolation()(cachedB.shift(localCell).toCursor(), pos, fieldPosB());
+                    ValueType_B bField = Field2ParticleInterpolation()(cachedB.shift(localCell), pos, fieldPosB());
 
                     IonizationAlgorithm ionizeAlgo;
                     /* determine number of new macro electrons to be created and energy used for ionization */

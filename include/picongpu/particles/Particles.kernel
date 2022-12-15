@@ -301,12 +301,10 @@ namespace picongpu
             const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
             const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
 
-            auto functorEfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()(
-                eBox.shift(localCell).toCursor(),
-                fieldPosE());
-            auto functorBfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()(
-                bBox.shift(localCell).toCursor(),
-                fieldPosB());
+            auto functorEfield
+                = CreateInterpolationForPusher<Field2ParticleInterpolation>()(eBox.shift(localCell), fieldPosE());
+            auto functorBfield
+                = CreateInterpolationForPusher<Field2ParticleInterpolation>()(bBox.shift(localCell), fieldPosB());
 
             /** @todo this functor should only manipulate the momentum and all changes
              *        in position and cell below need to go into a separate kernel

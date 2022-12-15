@@ -35,7 +35,7 @@ namespace picongpu
                 HDINLINE T_MemoryType memory(const T_MemoryType& mem, const T_PosType& pos) const
                 {
                     const T_PosType pos_floor = math::floor(pos);
-                    return mem(precisionCast<int>(pos_floor));
+                    return mem.shift(precisionCast<int>(pos_floor));
                 }
 
                 template<typename T_PosType>

@@ -248,11 +248,11 @@ namespace picongpu
                     /* interpolation of density */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosRho;
                     ValueType_Rho densityV
-                        = Field2ParticleInterpolation()(cachedRho.shift(localCell).toCursor(), pos, fieldPosRho());
+                        = Field2ParticleInterpolation()(cachedRho.shift(localCell), pos, fieldPosRho());
                     /*                          and energy density field on the particle position */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosEne;
                     ValueType_Ene kinEnergyV
-                        = Field2ParticleInterpolation()(cachedEne.shift(localCell).toCursor(), pos, fieldPosEne());
+                        = Field2ParticleInterpolation()(cachedEne.shift(localCell), pos, fieldPosEne());
 
                     /* density in sim units */
                     float_X const density = densityV[0];

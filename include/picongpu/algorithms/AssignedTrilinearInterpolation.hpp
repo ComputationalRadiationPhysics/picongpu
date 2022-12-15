@@ -20,7 +20,6 @@
 #pragma once
 
 #include <pmacc/attribute/unroll.hpp>
-#include <pmacc/result_of_Functor.hpp>
 #include <pmacc/types.hpp>
 
 #include <type_traits>
@@ -54,9 +53,11 @@ namespace picongpu
          *
          * @tparam T_begin lower margin for interpolation
          * @tparam T_end upper margin for interpolation
+         * @tparam T_FieldAccessorFunctor type of the field access functor supporting a initializer list of simdDim
+         *                                indices
          * @tparam T_AssignmentFunction type of shape functors
          *
-         * @param cursor cursor pointing to the field
+         * @param fieldAccess field access method pointing to the particle located cell
          * @param shapeFunctors Array with d shape functors, where d is the dimensionality of the field represented by
          *                      cursor. The shape functor must have the interface to call
          *                      `operator()(relative_grid_point)` and return the assignment value for the given grid
@@ -67,14 +68,14 @@ namespace picongpu
          *
          * @{
          */
-        template<int T_begin, int T_end, typename T_Cursor, typename T_AssignmentFunction>
+        template<int T_begin, int T_end, typename T_FieldAccessorFunctor, typename T_AssignmentFunction>
         HDINLINE static auto interpolate(
-            const T_Cursor& cursor,
-            const pmacc::memory::Array<T_AssignmentFunction, 3>& shapeFunctors)
+            T_FieldAccessorFunctor const& fieldAccess,
+            pmacc::memory::Array<T_AssignmentFunction, 3> const& shapeFunctors)
         {
             [[maybe_unused]] constexpr auto iterations = T_end - T_begin + 1;
 
-            using type = decltype(*cursor(0, 0, 0) * shapeFunctors[0](0));
+            using type = decltype(fieldAccess({0, 0, 0}) * shapeFunctors[0](0));
 
             /* The implementation assumes that x is the fastest moving index to iterate over contiguous memory
              * e.g. a row, to optimize memory fetch operations.
@@ -93,7 +94,7 @@ namespace picongpu
                         /* a form factor is the "amount of particle" that is affected by this cell
                          * so we have to sum over: cell_value * form_factor
                          */
-                        result_x += *cursor(x, y, z) * shapeFunctors[0](x);
+                        result_x += fieldAccess({x, y, z}) * shapeFunctors[0](x);
 
                     result_y += result_x * shapeFunctors[1](y);
                 }
@@ -103,14 +104,14 @@ namespace picongpu
         }
 
         /** Implementation for 2D position*/
-        template<int T_begin, int T_end, class T_Cursor, class T_AssignmentFunction>
+        template<int T_begin, int T_end, class T_FieldAccessorFunctor, class T_AssignmentFunction>
         HDINLINE static auto interpolate(
-            T_Cursor const& cursor,
+            T_FieldAccessorFunctor const& fieldAccess,
             const pmacc::memory::Array<T_AssignmentFunction, 2>& shapeFunctors)
         {
             [[maybe_unused]] constexpr int iterations = T_end - T_begin + 1;
 
-            using type = decltype(*cursor(0, 0) * shapeFunctors[0](0));
+            using type = decltype(fieldAccess({0, 0}) * shapeFunctors[0](0));
             /* The implementation assumes that x is the fastest moving index to iterate over contiguous memory
              * e.g. a row, to optimize memory fetch operations.
              */
@@ -123,7 +124,7 @@ namespace picongpu
                 for(int x = T_begin; x <= T_end; ++x)
                     // a form factor is the "amount of particle" that is affected by this cell
                     // so we have to sum over: cell_value * form_factor
-                    result_x += *cursor(x, y) * shapeFunctors[0](x);
+                    result_x += fieldAccess({x, y}) * shapeFunctors[0](x);
 
                 result_y += result_x * shapeFunctors[1](y);
             }
