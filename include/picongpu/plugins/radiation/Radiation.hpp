@@ -143,7 +143,8 @@ namespace picongpu
                 mpi::MPIReduce reduce;
                 static const int numberMeshRecords = 3;
 
-                std::optional<::openPMD::Series> m_series;
+                std::optional<::openPMD::Series> m_outputSeries;
+                std::optional<::openPMD::Series> m_checkpointSeries;
                 std::string openPMDSuffix
                     = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
@@ -284,7 +285,9 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             tmp_result,
-                            restartDirectory + "/" + speciesName + std::string("_radRestart"));
+                            restartDirectory,
+                            speciesName + std::string("_radRestart"),
+                            m_checkpointSeries);
                     }
                 }
 
@@ -537,7 +540,9 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             timeSumArray,
-                            std::string("radiationOpenPMD/") + speciesName + std::string("_radAmplitudes"));
+                            std::string("radiationOpenPMD/"),
+                            speciesName + std::string("_radAmplitudes"),
+                            m_outputSeries);
                     }
                 }
 
@@ -666,45 +671,71 @@ namespace picongpu
                  * Amplitude* values - array of complex amplitude values
                  * std::string name - path and beginning of file name to store data to
                  */
-                void writeOpenPMDfile(std::vector<Amplitude>& values, std::string name)
+                void writeOpenPMDfile(
+                    std::vector<Amplitude>& values,
+                    std::string const& dir,
+                    std::string const& name,
+                    std::optional<::openPMD::Series>& series)
                 {
-                    if(!m_series.has_value())
+                    std::ostringstream filename;
+                    if(std::any_of(openPMDSuffix.begin(), openPMDSuffix.end(), [](char const c) { return c == '.'; }))
                     {
-                        std::ostringstream filename;
-                        if(std::any_of(
-                               openPMDSuffix.begin(),
-                               openPMDSuffix.end(),
-                               [](char const c) { return c == '.'; }))
-                        {
-                            filename << name << openPMDSuffix;
-                        }
-                        else
-                        {
-                            filename << name << '.' << openPMDSuffix;
-                        }
+                        filename << name << openPMDSuffix;
+                    }
+                    else
+                    {
+                        filename << name << '.' << openPMDSuffix;
+                    }
 
-                        m_series = std::make_optional(
-                            ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
+                    if(!series.has_value())
+                    {
+                        series = std::make_optional(
+                            ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
 
                         /* begin recommended openPMD global attributes */
-                        m_series->setMeshesPath(meshesPathName);
+                        series->setMeshesPath(meshesPathName);
                         const std::string software("PIConGPU");
                         std::stringstream softwareVersion;
                         softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
                                         << PICONGPU_VERSION_PATCH;
                         if(!std::string(PICONGPU_VERSION_LABEL).empty())
                             softwareVersion << "-" << PICONGPU_VERSION_LABEL;
-                        m_series->setSoftware(software, softwareVersion.str());
+                        series->setSoftware(software, softwareVersion.str());
 
                         std::string author = Environment<>::get().SimulationDescription().getAuthor();
                         if(author.length() > 0)
-                            m_series->setAuthor(author);
+                            series->setAuthor(author);
 
                         std::string date = helper::getDateString("%F %T %z");
-                        m_series->setDate(date);
+                        series->setDate(date);
                         /* end recommended openPMD global attributes */
                     }
-                    ::openPMD::Series& openPMDdataFile = m_series.value();
+                    else
+                    {
+                        /*
+                         * Check that the filename is the same.
+                         * Series::name() returns the specified path without filename extension and without the dirname,
+                         * so we need to strip that information.
+                         */
+                        auto filename_str = filename.str();
+                        auto pos = filename_str.find_last_of('.');
+                        if(pos != std::string::npos)
+                        {
+                            filename_str = filename_str.substr(0, pos);
+                        }
+                        if(series->name() != filename_str)
+                        {
+                            /*
+                             * Should normally not happen, this is just to aid debugging if it does happen anyway.
+                             */
+                            throw std::runtime_error(
+                                "[Radiation plugin] Internal error: openPMD Series from previous run of the plugin "
+                                "was initiated with file name '"
+                                + series->name() + "', but now filename '" + filename_str
+                                + "' is requested. Aborting.");
+                        }
+                    }
+                    ::openPMD::Series& openPMDdataFile = series.value();
                     ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
 
                     // begin: write amplitude data
