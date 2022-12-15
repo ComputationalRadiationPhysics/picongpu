@@ -143,8 +143,7 @@ namespace picongpu
                 mpi::MPIReduce reduce;
                 static const int numberMeshRecords = 3;
 
-                std::optional<::openPMD::Series> m_outputSeries;
-                std::optional<::openPMD::Series> m_checkpointSeries;
+                std::optional<::openPMD::Series> m_series;
                 std::string openPMDSuffix
                     = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
@@ -283,11 +282,16 @@ namespace picongpu
                     // write backup file
                     if(isMaster)
                     {
+                        /*
+                         * No need to keep the Series open for checkpointing, so
+                         * just quickly open it here.
+                         */
+                        std::optional<::openPMD::Series> tmp;
                         writeOpenPMDfile(
                             tmp_result,
                             restartDirectory,
                             speciesName + std::string("_radRestart"),
-                            m_checkpointSeries);
+                            tmp);
                     }
                 }
 
@@ -542,7 +546,7 @@ namespace picongpu
                             timeSumArray,
                             std::string("radiationOpenPMD/"),
                             speciesName + std::string("_radAmplitudes"),
-                            m_outputSeries);
+                            m_series);
                     }
                 }
 
@@ -669,7 +673,9 @@ namespace picongpu
                  *
                  * Arguments:
                  * Amplitude* values - array of complex amplitude values
-                 * std::string name - path and beginning of file name to store data to
+                 * std::string const & path - directory for data storage
+                 * std::string const & name - file name to store data to
+                 * std::optional<::openPMD::Series>& series - Series to be used, maybe already initialized
                  */
                 void writeOpenPMDfile(
                     std::vector<Amplitude>& values,
