@@ -287,11 +287,7 @@ namespace picongpu
                          * just quickly open it here.
                          */
                         std::optional<::openPMD::Series> tmp;
-                        writeOpenPMDfile(
-                            tmp_result,
-                            restartDirectory,
-                            speciesName + std::string("_radRestart"),
-                            tmp);
+                        writeOpenPMDfile(tmp_result, restartDirectory, speciesName + std::string("_radRestart"), tmp);
                     }
                 }
 
@@ -720,8 +716,8 @@ namespace picongpu
                     {
                         /*
                          * Check that the filename is the same.
-                         * Series::name() returns the specified path without filename extension and without the dirname,
-                         * so we need to strip that information.
+                         * Series::name() returns the specified path without filename extension and without the
+                         * dirname, so we need to strip that information.
                          */
                         auto filename_str = filename.str();
                         auto pos = filename_str.find_last_of('.');
