@@ -38,7 +38,6 @@
 #include "picongpu/param/atomicPhysics.param"
 #include "picongpu/param/speciesConstants.param"
 #include "picongpu/param/speciesAttributes.param"
-#include "picongpu/param/synchrotronPhotons.param"
 #include "picongpu/param/grid.param"
 #include "picongpu/param/pusher.param"
 #include "picongpu/param/fieldAbsorber.param"
@@ -49,9 +48,6 @@
 #include "picongpu/param/particle.param"
 #include "picongpu/param/unit.param"
 #include "picongpu/param/particleFilters.param"
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/param/bremsstrahlung.param"
-#endif
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"
 #include "picongpu/param/species.param"
@@ -62,7 +58,6 @@
 #include "picongpu/param/laser.param"
 #include "picongpu/param/fieldSolver.param"
 #include "picongpu/param/fieldBackground.param"
-
 #include "picongpu/param/fileOutput.param"
 #include "picongpu/param/pngColorScales.param"
 #include "picongpu/param/png.param"

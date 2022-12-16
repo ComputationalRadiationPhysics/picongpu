@@ -11,22 +11,6 @@ fieldBackground.param
    :path: include/picongpu/param/fieldBackground.param
    :no-link:
 
-bremsstrahlung.param
-^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenfile:: bremsstrahlung.param
-   :project: PIConGPU
-   :path: include/picongpu/param/bremsstrahlung.param
-   :no-link:
-
-synchrotronPhotons.param
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenfile:: synchrotronPhotons.param
-   :project: PIConGPU
-   :path: include/picongpu/param/synchrotronPhotons.param
-   :no-link:
-
 ionizer.param
 ^^^^^^^^^^^^^
 

@@ -53,21 +53,6 @@ namespace picongpu
 
     /*########################### define species #################################*/
 
-    /*--------------------------- photons -------------------------------------------*/
-
-    value_identifier(float_X, MassRatioPhotons, 0.0);
-    value_identifier(float_X, ChargeRatioPhotons, 0.0);
-
-    using ParticleFlagsPhotons = MakeSeq_t<
-        particlePusher<particles::pusher::Photon>,
-        shape<UsedParticleShape>,
-        interpolation<UsedField2Particle>,
-        massRatio<MassRatioPhotons>,
-        chargeRatio<ChargeRatioPhotons>>;
-
-    /* define species photons */
-    using PIC_Photons = Particles<PMACC_CSTRING("ph"), ParticleFlagsPhotons, DefaultParticleAttributes>;
-
     /*--------------------------- electrons --------------------------------------*/
 
     /* ratio relative to BASE_CHARGE and BASE_MASS */
@@ -80,12 +65,7 @@ namespace picongpu
         interpolation<UsedField2Particle>,
         current<UsedParticleCurrentSolver>,
         massRatio<MassRatioElectrons>,
-        chargeRatio<ChargeRatioElectrons>
-#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
-        ,
-        synchrotronPhotons<PIC_Photons>
-#endif
-        >;
+        chargeRatio<ChargeRatioElectrons>>;
 
     /* define species electrons */
     using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
@@ -119,13 +99,6 @@ namespace picongpu
      * List all defined particle species from above in this list
      * to make them available to the PIC algorithm.
      */
-    using VectorAllSpecies = MakeSeq_t<
-        PIC_Electrons,
-        PIC_Ions
-#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
-        ,
-        PIC_Photons
-#endif
-        >;
+    using VectorAllSpecies = MakeSeq_t<PIC_Electrons, PIC_Ions>;
 
 } // namespace picongpu
