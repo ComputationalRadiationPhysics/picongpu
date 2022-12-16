@@ -22,9 +22,7 @@
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/TrajectoryAssignmentShapeFunction.hpp"
-
-#include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
+#include "picongpu/fields/currentDeposition/PermutatedFieldValueAccess.hpp"
 
 
 namespace picongpu
@@ -36,10 +34,10 @@ namespace picongpu
             template<typename T_Strategy, typename T_ParticleAssign, int T_begin, int T_end>
             struct DepositCurrent<T_Strategy, T_ParticleAssign, T_begin, T_end, DIM3>
             {
-                template<typename T_Cursor, typename T_Worker>
+                template<typename T_DataBox, typename T_Worker>
                 DINLINE void operator()(
                     T_Worker const& worker,
-                    const T_Cursor& cursorJ,
+                    const T_DataBox& fieldJ,
                     const Line<float3_X>& line,
                     const float_X chargeDensity) const
                 {
@@ -49,30 +47,36 @@ namespace picongpu
                      * Therefore the coordinate system has to be rotated so that the z-direction
                      * is always specific.
                      */
-                    using namespace cursor::tools;
                     cptCurrent1D(
                         worker,
-                        twistVectorFieldAxes<pmacc::math::CT::Int<1, 2, 0>>(cursorJ),
+                        makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 2, 0>>(fieldJ),
                         rotateOrigin<1, 2, 0>(line),
                         cellSize.x() * chargeDensity / DELTA_T);
                     cptCurrent1D(
                         worker,
-                        twistVectorFieldAxes<pmacc::math::CT::Int<2, 0, 1>>(cursorJ),
+                        makePermutatedFieldValueAccess<pmacc::math::CT::Int<2, 0, 1>>(fieldJ),
                         rotateOrigin<2, 0, 1>(line),
                         cellSize.y() * chargeDensity / DELTA_T);
-                    cptCurrent1D(worker, cursorJ, line, cellSize.z() * chargeDensity / DELTA_T);
+                    cptCurrent1D(
+                        worker,
+                        makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1, 2>>(fieldJ),
+                        line,
+                        cellSize.z() * chargeDensity / DELTA_T);
                 }
 
                 /** deposites current in z-direction
                  *
-                 * @param cursorJ cursor pointing at the current density field of the particle's cell
+                 * @tparam T_DataBox databox type
+                 * @tparam T_Permutation compile time permutation vector @see PermutatedFieldValueAccess
+                 *
+                 * @param jField permuted current field shifted to the particle position
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensity surface density
                  */
-                template<typename CursorJ, typename T_Line, typename T_Worker>
+                template<typename T_DataBox, typename T_Permutation, typename T_Line, typename T_Worker>
                 DINLINE void cptCurrent1D(
                     T_Worker const& worker,
-                    CursorJ cursorJ,
+                    PermutatedFieldValueAccess<T_DataBox, T_Permutation> jField,
                     const T_Line& line,
                     const float_X currentSurfaceDensity) const
                 {
@@ -117,7 +121,7 @@ namespace picongpu
                                 const float_X W = shapeK.DS(k) * tmp;
                                 accumulated_J += W;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                atomicOp(worker, (*cursorJ(i, j, k)).z(), accumulated_J);
+                                atomicOp(worker, jField.template get<2>(i, j, k), accumulated_J);
                             }
                         }
                     }
@@ -133,32 +137,35 @@ namespace picongpu
                  * It is done in computeCurrentZ() which has to be explicitly called by a user.
                  * This it different from 3d, where only calling operator() is needed.
                  */
-                template<typename T_Cursor, typename T_Worker>
+                template<typename T_DataBox, typename T_Worker>
                 DINLINE void operator()(
                     T_Worker const& worker,
-                    const T_Cursor& cursorJ,
+                    const T_DataBox& fieldJ,
                     const Line<float2_X>& line,
                     const float_X chargeDensity) const
                 {
-                    using namespace cursor::tools;
-                    cptCurrent1D(worker, cursorJ, line, cellSize.x() * chargeDensity / DELTA_T);
                     cptCurrent1D(
                         worker,
-                        twistVectorFieldAxes<pmacc::math::CT::Int<1, 0>>(cursorJ),
+                        makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1>>(fieldJ),
+                        line,
+                        cellSize.x() * chargeDensity / DELTA_T);
+                    cptCurrent1D(
+                        worker,
+                        makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 0>>(fieldJ),
                         rotateOrigin<1, 0>(line),
                         cellSize.y() * chargeDensity / DELTA_T);
                 }
 
                 /** deposites current in x-direction
                  *
-                 * @param cursorJ cursor pointing at the current density field of the particle's cell
+                 * @param jField current density field of the particle's cell
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensity surface density
                  */
-                template<typename CursorJ, typename T_Line, typename T_Worker>
+                template<typename T_DataBox, typename T_Permutation, typename T_Line, typename T_Worker>
                 DINLINE void cptCurrent1D(
                     T_Worker const& worker,
-                    CursorJ cursorJ,
+                    PermutatedFieldValueAccess<T_DataBox, T_Permutation> jField,
                     const T_Line& line,
                     const float_X currentSurfaceDensity) const
                 {
@@ -190,7 +197,7 @@ namespace picongpu
                             const float_X W = shapeI.DS(i) * tmp;
                             accumulated_J += W;
                             auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                            atomicOp(worker, (*cursorJ(i, j)).x(), accumulated_J);
+                            atomicOp(worker, jField.template get<0>(i, j), accumulated_J);
                         }
                     }
                 }
@@ -204,14 +211,14 @@ namespace picongpu
                  * When these conditions are met, this function is basically same to how Jz is assigned in Esirkepov 2d
                  * implementation.
                  *
-                 * @param cursorJ cursor pointing at the current density field of the particle's cell
+                 * @param jField current density field of the particle's cell (not permuted)
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensityZ surface density in z direction
                  */
-                template<typename CursorJ, typename T_Line, typename T_Worker>
+                template<typename T_JField, typename T_Line, typename T_Worker>
                 DINLINE void computeCurrentZ(
                     T_Worker const& worker,
-                    CursorJ cursorJ,
+                    T_JField jField,
                     const T_Line& line,
                     const float_X currentSurfaceDensityZ) const
                 {
@@ -238,7 +245,7 @@ namespace picongpu
 
                             const float_X j_z = W * currentSurfaceDensityZ;
                             auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                            atomicOp(worker, (*cursorJ(i, j)).z(), j_z);
+                            atomicOp(worker, jField(DataSpace<DIM2>(i, j)).z(), j_z);
                         }
                     }
                 }
