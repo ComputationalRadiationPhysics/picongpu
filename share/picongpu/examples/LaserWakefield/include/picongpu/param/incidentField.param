@@ -1,0 +1,273 @@
+/* Copyright 2020-2022 Sergei Bastrakov, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file incidentField.param
+ *
+ * Configure incident field profile and offset of the Huygens surface for each boundary.
+ *
+ * Available profiles:
+ *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ * in focus. That is, SD, AD, GDD, and TOD, respectively.
+ *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
+ *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
+ *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::None                  : no incident field
+ *  - profiles::PlaneWave<>           : plane wave profile with given parameters
+ *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
+ * parameters
+ *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
+ * parameters
+ *
+ * All profiles but `Free<>` and `None` are parametrized with a profile-specific structure.
+ * Their interfaces are defined in the corresponding `.def` files inside directory
+ * picongpu/fields/incidentField/profiles/. Note that all these parameter structures inherit common base structures
+ * from `BaseParam.def`. Thus, a user-provided structure must also define all members according to the base struct.
+ *
+ * In the end, this file needs to define `XMin`, `XMax`, `YMin`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
+ * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
+ * effects of all profiles in the list. This file also has to define constexpr array `POSITION` that controls
+ * positioning of the generating surface relative to total domain. For example:
+ *
+ * @code{.cpp}
+ * using XMin = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
+ * using XMax = profiles::None;
+ * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
+ * using YMax = profiles::None;
+ * using ZMin = profiles::Polynom<UserPolynomParams>;
+ * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ *
+ * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
+ * @endcode
+ */
+
+#pragma once
+
+#include "picongpu/fields/incidentField/profiles/profiles.def"
+
+#ifndef PARAM_A0
+#    define PARAM_A0 8.0
+#endif
+
+#ifndef PARAM_WAVE_LENGTH_SI
+#    define PARAM_WAVE_LENGTH_SI 0.8e-6
+#endif
+
+#ifndef PARAM_PULSE_LENGTH_SI
+#    define PARAM_PULSE_LENGTH_SI 5.e-15
+#endif
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            /** Base structure for parameters of all lasers
+             *
+             * The particular used parameter structures do not have to inherit this, but must define same members
+             * with same meaning.
+             */
+            struct LwfaGaussianBeamBaseParams
+            {
+                /** Wave length along propagation direction
+                 *
+                 * unit: m
+                 */
+                static constexpr float_64 WAVE_LENGTH_SI = PARAM_WAVE_LENGTH_SI;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: none */
+                static constexpr float_64 _A0 = PARAM_A0;
+
+                /** Max amplitude of E field
+                 *
+                 * To convert the normalized laser strength parameter a0 to Volt per meter:
+                 * calculate A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized),
+                 *
+                 * unit: Volt / meter
+                 */
+                static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *  unit: seconds (1 sigma)
+                 */
+                static constexpr float_64 PULSE_LENGTH_SI = PARAM_PULSE_LENGTH_SI;
+
+                /** Laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0_X;
+
+                /** Unit propagation direction vector
+                 *
+                 * Norm of this vector must be 1.0.
+                 * (Normalization is required on a user side as internally it is awkward to do with the
+                 * static-constexpr style of using parameters.)
+                 *
+                 * For 2d simulations, z component is not required, will be always set to 0.
+                 *
+                 * unit: none
+                 *
+                 * @{
+                 */
+                static constexpr float_64 DIRECTION_X = 0.0;
+                static constexpr float_64 DIRECTION_Y = 1.0;
+                static constexpr float_64 DIRECTION_Z = 0.0;
+                /** @} */
+
+                /** Focus position in total coordinate system
+                 *
+                 * "Non-focused" lasers should have it set at or near the generation surface where the laser enters
+                 * the domain. The position does not have to be inside the domain.
+                 *
+                 * The focus position and propagation direction together define the entry point of laser to
+                 * the generation surface.
+                 * So they also control the laser center at the generation plane, not just a shift inwards.
+                 *
+                 * For 2d simulations, z component has no effect and is not required.
+                 *
+                 * unit: m
+                 *
+                 * @{
+                 */
+                static constexpr float_64 FOCUS_POSITION_X_SI = 1.70112e-5; // 96 cells
+                static constexpr float_64 FOCUS_POSITION_Y_SI = 4.62e-5;
+                static constexpr float_64 FOCUS_POSITION_Z_SI = 1.70112e-5; // 96 cells
+                /** @} */
+
+                /** E polarization type
+                 *
+                 * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                 */
+                static constexpr PolarisationType Polarisation = PolarisationType::Circular;
+
+                /** Unit E polarization direction
+                 *
+                 * Must be orthogonal to the propagation direction.
+                 * For linear polarization, E vectors will be aligned to this direction.
+                 * For circular polarization, that is one of its axes, with the other axis being
+                 * cross(propagation direction, polarization direction).
+                 *
+                 * Norm of this vector must be 1.0.
+                 * (Normalization is required on a user side as internally it is awkward to do with the
+                 * static-constexpr style of using parameters.)
+                 *
+                 * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                 *
+                 * unit: none
+                 *
+                 * @{
+                 */
+                static constexpr float_64 POLARISATION_DIRECTION_X = 1.0;
+                static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
+                static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
+                /** @} */
+            };
+
+            namespace lwfaGaussianBeam
+            {
+                //! Use only the 0th Laguerremode for a standard Gaussian
+                static constexpr uint32_t MODENUMBER = 0;
+                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
+                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES, 0.0);
+            } // namespace lwfaGaussianBeam
+
+            /** Special structure for parameters of Gaussian laser pulses.
+             *
+             * Inherits from LwfaGaussianBeamBaseParams in order to combine all Gaussian pulse parameters.
+             */
+            struct GaussianBeamParam : public LwfaGaussianBeamBaseParams
+            {
+                /** Beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *
+                 * unit: meter
+                 */
+                static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                 *
+                 *  unit: none
+                 */
+                static constexpr float_64 PULSE_INIT = 15.0;
+
+                /** Laguerre mode parameters
+                 *
+                 * @{
+                 */
+                using LAGUERREMODES_t = lwfaGaussianBeam::LAGUERREMODES_t;
+                using LAGUERREPHASES_t = lwfaGaussianBeam::LAGUERREPHASES_t;
+                static constexpr uint32_t MODENUMBER = lwfaGaussianBeam::MODENUMBER;
+                /** @} */
+            };
+
+            /**@{*/
+            //! Incident field profile types along each boundary, these 6 types (or aliases) are required.
+            using XMin = profiles::None;
+            using XMax = profiles::None;
+            using YMin = profiles::GaussianBeam<GaussianBeamParam>;
+            using YMax = profiles::None;
+            using ZMin = profiles::None;
+            using ZMax = profiles::None;
+            /**@}*/
+
+            /** Position in cells of the Huygens surface relative to start of the total domain
+             *
+             * The position is set as an offset, in cells, counted from the start of the total domain.
+             * For the max boundaries, negative position values are allowed.
+             * These negative values are treated as position at (global_domain_size[d] + POSITION[d][1]).
+             * It is also possible to specify the position explicitly as a positive number.
+             * Then it is on a user to make sure the position is correctly calculated wrt the grid size.
+             *
+             * Except moving window simulations, the position must be inside the global domain.
+             * The distance between the Huygens surface and each global domain boundary must be at least
+             * absorber_thickness + (FDTD_spatial_order / 2 - 1). However beware of setting position = direction *
+             * (absorber_thickness + const), as then changing absorber parameters will affect laser positioning.
+             * When all used profiles are None, the check for POSITION validity is skipped.
+             *
+             * For moving window simulations, POSITION for the YMax side can be located outside the initially
+             * simulated volume. In this case, parts of the generation surface outside of the currently simulated
+             * volume is are treated as if they had zero incident field and it is user's responsibility to apply a
+             * source matching such a case.
+             */
+            constexpr int32_t POSITION[3][2] = {
+                {16, -16}, // x direction [negative, positive]
+                {16, -16}, // y direction [negative, positive]
+                {16, -16} // z direction [negative, positive]
+            };
+
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu

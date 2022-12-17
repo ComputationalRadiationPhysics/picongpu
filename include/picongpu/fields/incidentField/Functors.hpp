@@ -141,8 +141,8 @@ namespace picongpu
                      *                  fieldE_internal = fieldE_SI / unitField
                      */
                     HINLINE BaseFunctorE(float_X const currentStep, float3_64 const unitField)
-                        : currentTimeOrigin(currentStep * DELTA_T)
-                        , origin(getOrigin())
+                        : origin(getOrigin())
+                        , currentTimeOrigin(currentStep * DELTA_T)
                         , phaseVelocity(getPhaseVelocity())
                     {
                         checkUnit(unitField);
