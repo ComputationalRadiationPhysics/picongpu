@@ -149,6 +149,7 @@ namespace picongpu
                 std::string openPMDExtensionCheckpointing
                     = openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
+                std::string openPMDCheckpointConfig = "{}";
 
             public:
                 Radiation()
@@ -238,7 +239,10 @@ namespace picongpu
                         "Filename extension for openPMD checkpoints.")(
                         (pluginPrefix + ".openPMDConfig").c_str(),
                         po::value<std::string>(&openPMDConfig)->default_value("{}"),
-                        "JSON/TOML configuration for initializing openPMD.");
+                        "JSON/TOML configuration for initializing openPMD.")(
+                        (pluginPrefix + ".openPMDCheckpointConfig").c_str(),
+                        po::value<std::string>(&openPMDCheckpointConfig)->default_value("{}"),
+                        "JSON/TOML configuration for initializing openPMD checkpointing.");
                 }
 
 
@@ -300,11 +304,13 @@ namespace picongpu
                             tmp_result,
                             restartDirectory,
                             speciesName + std::string("_radRestart"),
-                            tmp,
-                            "_%T_0_0_0"
-                                + (*openPMDExtensionCheckpointing.begin() == '.'
-                                       ? openPMDExtensionCheckpointing
-                                       : '.' + openPMDExtensionCheckpointing));
+                            WriteOpenPMDParams{
+                                tmp,
+                                "_%T_0_0_0"
+                                    + (*openPMDExtensionCheckpointing.begin() == '.'
+                                           ? openPMDExtensionCheckpointing
+                                           : '.' + openPMDExtensionCheckpointing),
+                                openPMDCheckpointConfig});
                     }
                 }
 
@@ -559,8 +565,7 @@ namespace picongpu
                             timeSumArray,
                             std::string("radiationOpenPMD/"),
                             speciesName + std::string("_radAmplitudes"),
-                            m_series,
-                            openPMDSuffix);
+                            WriteOpenPMDParams{m_series, openPMDSuffix, openPMDConfig});
                     }
                 }
 
@@ -682,6 +687,16 @@ namespace picongpu
                         return std::string("this-record-does-not-exist");
                 }
 
+                /*
+                 * These are the params that are different between checkpointing and regular output.
+                 */
+                struct WriteOpenPMDParams
+                {
+                    // Series to be used, maybe already initialized
+                    std::optional<::openPMD::Series>& series;
+                    std::string const& extension;
+                    std::string const& jsonConfig;
+                };
 
                 /** Write Amplitude data to openPMD file
                  *
@@ -689,15 +704,15 @@ namespace picongpu
                  * Amplitude* values - array of complex amplitude values
                  * std::string const & path - directory for data storage
                  * std::string const & name - file name to store data to
-                 * std::optional<::openPMD::Series>& series - Series to be used, maybe already initialized
+                 * WriteOpenPMDParams params - See struct description
                  */
                 void writeOpenPMDfile(
                     std::vector<Amplitude>& values,
                     std::string const& dir,
                     std::string const& name,
-                    std::optional<::openPMD::Series>& series,
-                    std::string const& extension)
+                    WriteOpenPMDParams const& params)
                 {
+                    auto const& [series, extension, jsonConfig] = params;
                     std::ostringstream filename;
                     if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
                     {
@@ -711,7 +726,7 @@ namespace picongpu
                     if(!series.has_value())
                     {
                         series = std::make_optional(
-                            ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
+                            ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE, jsonConfig));
 
                         /* begin recommended openPMD global attributes */
                         series->setMeshesPath(meshesPathName);
