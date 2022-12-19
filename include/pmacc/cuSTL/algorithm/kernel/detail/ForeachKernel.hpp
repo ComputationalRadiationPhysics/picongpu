@@ -69,28 +69,6 @@ namespace pmacc
 #undef KERNEL_FOREACH
 #undef SHIFTACCESS_CURSOR
 
-                struct KernelForeachLockstep
-                {
-                    /** call functor
-                     *
-                     * Each argument is shifted to the origin of the block before it is passed
-                     * to the functor.
-                     */
-                    template<typename T_Worker, typename T_Mapper, typename T_Functor, typename... T_Args>
-                    ALPAKA_FN_ACC void operator()(
-                        T_Worker const& worker,
-                        T_Mapper const mapper,
-                        T_Functor functor,
-                        T_Args... args) const
-                    {
-                        // map to the origin of the block
-                        math::Int<T_Mapper::dim> cellIndex(
-                            mapper(worker, cupla::dim3(cupla::blockIdx(worker.getAcc())), cupla::dim3(0, 0, 0)));
-
-                        functor(worker, args[cellIndex]...);
-                    }
-                };
-
                 namespace RT
                 {
                     /** Run a cuSTL KernelForeach
