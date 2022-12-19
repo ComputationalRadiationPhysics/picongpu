@@ -146,6 +146,8 @@ namespace picongpu
                 std::optional<::openPMD::Series> m_series;
                 std::string openPMDSuffix
                     = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+                std::string openPMDExtensionCheckpointing
+                    = openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
 
             public:
@@ -230,6 +232,10 @@ namespace picongpu
                             ->default_value(
                                 "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5)),
                         "Suffix for openPMD filename extension and iteration expansion pattern.")(
+                        (pluginPrefix + ".openPMDCheckpointExtension").c_str(),
+                        po::value<std::string>(&openPMDExtensionCheckpointing)
+                            ->default_value(openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5)),
+                        "Filename extension for openPMD checkpoints.")(
                         (pluginPrefix + ".openPMDConfig").c_str(),
                         po::value<std::string>(&openPMDConfig)->default_value("{}"),
                         "JSON/TOML configuration for initializing openPMD.");
@@ -259,10 +265,13 @@ namespace picongpu
                         // this will lead to wrong lastRad output right after the checkpoint if the restart point is
                         // not a dump point. The correct lastRad data can be reconstructed from openPMD data
                         // since text based lastRad output will be obsolete soon, this is not a problem
+
                         readOpenPMDfile(
                             timeSumArray,
                             restartDirectory + "/" + speciesName + std::string("_radRestart_"),
-                            timeStep);
+                            timeStep,
+                            *openPMDExtensionCheckpointing.begin() == '.' ? openPMDExtensionCheckpointing
+                                                                          : '.' + openPMDExtensionCheckpointing);
                         log<radLog::SIMULATION_STATE>("Radiation (%1%): restart finished") % speciesName;
                     }
                 }
@@ -287,7 +296,15 @@ namespace picongpu
                          * just quickly open it here.
                          */
                         std::optional<::openPMD::Series> tmp;
-                        writeOpenPMDfile(tmp_result, restartDirectory, speciesName + std::string("_radRestart"), tmp);
+                        writeOpenPMDfile(
+                            tmp_result,
+                            restartDirectory,
+                            speciesName + std::string("_radRestart"),
+                            tmp,
+                            "_%T_0_0_0"
+                                + (*openPMDExtensionCheckpointing.begin() == '.'
+                                       ? openPMDExtensionCheckpointing
+                                       : '.' + openPMDExtensionCheckpointing));
                     }
                 }
 
@@ -542,7 +559,8 @@ namespace picongpu
                             timeSumArray,
                             std::string("radiationOpenPMD/"),
                             speciesName + std::string("_radAmplitudes"),
-                            m_series);
+                            m_series,
+                            openPMDSuffix);
                     }
                 }
 
@@ -677,16 +695,17 @@ namespace picongpu
                     std::vector<Amplitude>& values,
                     std::string const& dir,
                     std::string const& name,
-                    std::optional<::openPMD::Series>& series)
+                    std::optional<::openPMD::Series>& series,
+                    std::string const& extension)
                 {
                     std::ostringstream filename;
-                    if(std::any_of(openPMDSuffix.begin(), openPMDSuffix.end(), [](char const c) { return c == '.'; }))
+                    if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
                     {
-                        filename << name << openPMDSuffix;
+                        filename << name << extension;
                     }
                     else
                     {
-                        filename << name << '.' << openPMDSuffix;
+                        filename << name << '.' << extension;
                     }
 
                     if(!series.has_value())
@@ -926,11 +945,15 @@ namespace picongpu
                  * std::string name - path and beginning of file name with data stored in
                  * const int timeStep - time step to read
                  */
-                void readOpenPMDfile(std::vector<Amplitude>& values, std::string name, const int timeStep)
+                void readOpenPMDfile(
+                    std::vector<Amplitude>& values,
+                    std::string name,
+                    const int timeStep,
+                    std::string const& extension)
                 {
                     std::ostringstream filename;
                     /* add to standard file ending */
-                    filename << name << timeStep << "_0_0_0.h5";
+                    filename << name << timeStep << "_0_0_0" + extension;
 
                     /* check if restart file exists */
                     if(!boost::filesystem::exists(filename.str()))
