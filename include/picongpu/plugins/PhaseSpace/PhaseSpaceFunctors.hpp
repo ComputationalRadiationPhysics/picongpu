@@ -19,39 +19,19 @@
 
 #pragma once
 
+#include "picongpu/algorithms/Set.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
-#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <utility>
 
-#include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
-
 namespace picongpu
 {
-    using namespace pmacc;
-
-    /** Atomic Add Functor
-     *
-     * @tparam Type of the values to perform a atomicAdd on
-     */
-    template<typename Type>
-    struct FunctorAtomicAdd
-    {
-        typedef void result_type;
-
-        template<typename T_Worker>
-        DINLINE void operator()(const T_Worker& worker, Type& dest, const Type src) const
-        {
-            cupla::atomicAdd(worker.getAcc(), &dest, src, ::alpaka::hierarchy::Blocks{});
-        }
-    };
-
     /** Functor called for each particle
      *
      * Every particle in a frame of particles will end up here.
@@ -61,9 +41,8 @@ namespace picongpu
      *
      * @tparam r_dir spatial direction of the phase space (0,1,2) @see AxisDescription
      * @tparam num_pbins number of bins in momentum space @see PhaseSpace.hpp
-     * @tparam SuperCellSize how many cells form a super cell @see memory.param
      */
-    template<uint32_t r_dir, uint32_t num_pbins, typename SuperCellSize>
+    template<uint32_t r_dir, uint32_t num_pbins>
     struct FunctorParticle
     {
         typedef void result_type;
@@ -71,24 +50,27 @@ namespace picongpu
         /** Functor implementation
          *
          * @param particle particle to process
-         * @param curDBufferOriginInBlock section of the phase space, shifted to the start of the block
+         * @param sharedMemHist section of the phase space, shifted to the start of the block
          * @param el_p coordinate of the momentum @see PhaseSpace::axis_element @see AxisDescription
          * @param axis_p_range range of the momentum coordinate @see PhaseSpace::axis_p_range
          */
-        template<typename T_Particle, typename float_PS, typename Pitch, typename T_Worker>
+        template<typename T_Particle, typename T_SharedMemHist, typename T_Worker>
         DINLINE void operator()(
             const T_Worker& worker,
             T_Particle particle,
-            cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
+            T_SharedMemHist sharedMemHist,
             const uint32_t el_p,
             const std::pair<float_X, float_X>& axis_p_range)
         {
-            /** \todo this can become a functor to be even more flexible */
+            using float_PS = typename T_SharedMemHist::ValueType;
+            /** \todo this can become a functor to be even more flexible
+             * This requires increasing the y extent of the histogram to take the guard into account
+             */
             const float_X mom_i = particle[momentum_][el_p];
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const pmacc::math::UInt32<simDim> cellIdx(pmacc::math::MapToPos<simDim>()(SuperCellSize(), linearCellIdx));
+            const pmacc::math::UInt32<simDim> cellIdx(pmacc::math::MapToPos<simDim>()(SuperCellSize{}, linearCellIdx));
 
             const uint32_t r_bin = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
@@ -105,10 +87,10 @@ namespace picongpu
             if(p_bin >= static_cast<int32_t>(num_pbins))
                 p_bin = num_pbins - 1;
 
-            /** \todo take particle shape into account */
+            /** @todo take particle shape into account */
             cupla::atomicAdd(
                 worker.getAcc(),
-                &(*curDBufferOriginInBlock(p_bin, r_bin)),
+                &(sharedMemHist(DataSpace<2>(p_bin, r_bin))),
                 particleChargeDensity,
                 ::alpaka::hierarchy::Threads{});
         }
@@ -123,18 +105,11 @@ namespace picongpu
      *
      * @tparam Species the particle species to create the phase space for
      * @tparam T_filter type of the particle filter
-     * @tparam SuperCellSize how many cells form a super cell @see memory.param
      * @tparam float_PS type for each bin in the phase space
      * @tparam num_pbins number of bins in momentum space @see PhaseSpace.hpp
      * @tparam r_dir spatial direction of the phase space (0,1,2) @see AxisDescription
      */
-    template<
-        typename Species,
-        typename SuperCellSize,
-        typename float_PS,
-        uint32_t num_pbins,
-        uint32_t r_dir,
-        typename T_Filter>
+    template<typename Species, typename float_PS, uint32_t num_pbins, uint32_t r_dir, typename T_Filter>
     struct FunctorBlock
     {
         typedef void result_type;
@@ -142,7 +117,7 @@ namespace picongpu
         typedef typename Species::ParticlesBoxType TParticlesBox;
 
         TParticlesBox particlesBox;
-        cursor::BufferCursor<float_PS, 2> curOriginPhaseSpace;
+        pmacc::DataBox<PitchedBox<float_PS, 2>> globalHist;
         uint32_t p_element;
         std::pair<const float_X, float_X> axis_p_range;
         T_Filter particleFilter;
@@ -151,19 +126,19 @@ namespace picongpu
          *
          * @param pb ParticleBox for a species
          * @param parFilter filter functor to select particles
-         * @param cur cursor to start of the local phase space in global memory
+         * @param phaseSpaceHistogram device local part of the histogram
          * @param p_dir direction of the 2D phase space in momentum @see AxisDescription
          * @param p_range range of the momentum axis @see PhaseSpace::axis_p_range
          */
         HDINLINE
         FunctorBlock(
             const TParticlesBox& pb,
-            cursor::BufferCursor<float_PS, 2> cur,
+            pmacc::DataBox<PitchedBox<float_PS, 2>> phaseSpaceHistogram,
             const uint32_t p_dir,
             const std::pair<float_X, float_X>& p_range,
             const T_Filter& parFilter)
             : particlesBox(pb)
-            , curOriginPhaseSpace(cur)
+            , globalHist(phaseSpaceHistogram)
             , p_element(p_dir)
             , axis_p_range(p_range)
             , particleFilter(parFilter)
@@ -180,27 +155,28 @@ namespace picongpu
          *                         the current block starts, including guard cells
          *                         @see cuSTL/algorithm/kernel/Foreach.hpp
          */
-        template<typename T_Worker>
-        DINLINE void operator()(const T_Worker& worker, const pmacc::math::Int<simDim>& indexBlockOffset)
+        template<typename T_Worker, typename T_Mapping>
+        DINLINE void operator()(const T_Worker& worker, T_Mapping const& mapper) const
         {
-            /* create shared mem */
-            const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
-            typedef typename pmacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
-            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock> dBufferInBlock(worker);
+            const DataSpace<simDim> superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            auto forEachThreadInBlock = pmacc::algorithm::cuplaBlock::Foreach{};
-            forEachThreadInBlock(
-                worker,
-                dBufferInBlock.zone(),
-                dBufferInBlock.origin(),
-                pmacc::algorithm::functor::AssignValue<float_PS>(0.0));
+            /* create shared mem */
+            constexpr int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
+            using SharedMemSize = SuperCellDescription<pmacc::math::CT::Int<num_pbins, blockCellsInDir>>;
+            auto sharedMemHist = CachedBox::create<0u, float_PS>(worker, SharedMemSize{});
+
+            Set<float_PS> set(float_PS{0.0});
+            auto collectiveOnSharedHistogram = makeThreadCollective<SharedMemSize>();
+
+            /* initialize shared memory with zeros */
+            collectiveOnSharedHistogram(worker, set, sharedMemHist);
+
             worker.sync();
 
-            FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
+            FunctorParticle<r_dir, num_pbins> functorParticle;
 
-            auto superCellIdx = indexBlockOffset / static_cast<pmacc::math::Int<simDim>>(SuperCellSize::toRT());
-
-            auto accFilter = particleFilter(worker, superCellIdx - GuardSize::toRT());
+            auto accFilter = particleFilter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             auto forEachParticle
                 = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, DataSpace<simDim>(superCellIdx));
@@ -209,21 +185,19 @@ namespace picongpu
                 [&](auto const& lockstepWorker, auto& particle)
                 {
                     if(accFilter(lockstepWorker, particle))
-                        functorParticle(lockstepWorker, particle, dBufferInBlock.origin(), p_element, axis_p_range);
+                        functorParticle(lockstepWorker, particle, sharedMemHist, p_element, axis_p_range);
                 });
 
             worker.sync();
-            /* add to global dBuffer */
-            forEachThreadInBlock(
+
+            // flush shared memory data to global stored histogram
+            auto supercellCellOffset = (superCellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
+            auto const atomicOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>{};
+            collectiveOnSharedHistogram(
                 worker,
-                /* area to work on */
-                dBufferInBlock.zone(),
-                /* data below - cursors will be shifted and
-                 * dereferenced */
-                curOriginPhaseSpace(0, indexBlockOffset[r_dir]),
-                dBufferInBlock.origin(),
-                /* functor */
-                FunctorAtomicAdd<float_PS>());
+                atomicOp,
+                globalHist.shift({0, supercellCellOffset[r_dir]}),
+                sharedMemHist);
         }
     };
 

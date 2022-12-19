@@ -24,7 +24,6 @@
 #include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
 
 #include <pmacc/communication/manager_common.hpp>
-#include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
@@ -44,9 +43,6 @@ namespace picongpu
 {
     class DumpHBuffer
     {
-    private:
-        using SuperCellSize = typename MappingDesc::SuperCellSize;
-
     public:
         /** Dump the PhaseSpace host Buffer
          *
@@ -60,9 +56,9 @@ namespace picongpu
          * @param currentStep current time step
          * @param mpiComm communicator of the participating ranks
          */
-        template<typename T_Type, int T_bufDim>
+        template<typename T_Type, uint32_t T_bufDim>
         void operator()(
-            const pmacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
+            HostBufferIntern<T_Type, T_bufDim>& hBuffer,
             const AxisDescription axis_element,
             const std::pair<float_X, float_X> axis_p_range,
             const float_64 pRange_unit,
@@ -99,20 +95,18 @@ namespace picongpu
                 softwareVersion << "-" << PICONGPU_VERSION_LABEL;
             series.setSoftware(software, softwareVersion.str());
 
-            /** calculate GUARD offset in the source hBuffer *****************/
-            const uint32_t rGuardCells
-                = SuperCellSize().toRT()[axis_element.space] * GuardSize::toRT()[axis_element.space];
+            auto bufferExtents = hBuffer.getDataSpace();
 
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             const std::uint64_t rLocalOffset = subGrid.getLocalDomain().offset[axis_element.space];
-            const std::uint64_t rLocalSize = int(hBuffer.size().y() - 2 * rGuardCells);
+            const std::uint64_t rLocalSize = static_cast<size_t>(bufferExtents.y());
             const std::uint64_t rGlobalSize = subGrid.getGlobalDomain().size[axis_element.space];
             PMACC_VERIFY(int(rLocalSize) == subGrid.getLocalDomain().size[axis_element.space]);
 
             /* globalDomain of the phase space */
-            ::openPMD::Extent globalPhaseSpace_extent{rGlobalSize, hBuffer.size().x()};
+            ::openPMD::Extent globalPhaseSpace_extent{rGlobalSize, static_cast<size_t>(bufferExtents.x())};
 
             /* global moving window meta information */
             ::openPMD::Offset globalPhaseSpace_offset{0, 0};
@@ -128,7 +122,7 @@ namespace picongpu
 
             /* localDomain: offset of it in the globalDomain and size */
             ::openPMD::Offset localPhaseSpace_offset{rLocalOffset, 0};
-            ::openPMD::Extent localPhaseSpace_extent{rLocalSize, hBuffer.size().x()};
+            ::openPMD::Extent localPhaseSpace_extent{rLocalSize, static_cast<size_t>(bufferExtents.x())};
 
             /** Dataset Name **************************************************/
             std::ostringstream dataSetName;
@@ -145,9 +139,9 @@ namespace picongpu
                 localExtentAsString << "[" << localPhaseSpace_extent[0] << ", " << localPhaseSpace_extent[1] << "]";
                 globalExtentAsString << "[" << globalPhaseSpace_extent[0] << ", " << globalPhaseSpace_extent[1] << "]";
                 log<picLog::INPUT_OUTPUT>(
-                    "Dump buffer %1% to %2% at offset %3% with size %4% for total size %5% for rank %6% / %7%")
-                    % (*(hBuffer.origin()(0, rGuardCells))) % dataSetName.str() % offsetAsString.str()
-                    % localExtentAsString.str() % globalExtentAsString.str() % rank % size;
+                    "Dump pointer %1% to %2% at offset %3% with size %4% for total size %5% for rank %6% / %7%")
+                    % (hBuffer.getBasePointer()) % dataSetName.str() % offsetAsString.str() % localExtentAsString.str()
+                    % globalExtentAsString.str() % rank % size;
             }
 
             /** write local domain ********************************************/
@@ -156,7 +150,7 @@ namespace picongpu
             ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
             dataset.resetDataset({::openPMD::determineDatatype<Type>(), globalPhaseSpace_extent});
-            std::shared_ptr<Type> data(&(*hBuffer.origin()(0, rGuardCells)), [](auto const&) {});
+            std::shared_ptr<Type> data(hBuffer.getBasePointer(), [](auto const&) {});
             dataset.storeChunk<Type>(data, localPhaseSpace_offset, localPhaseSpace_extent);
 
             /** meta attributes for the data set: unit, range, moving window **/

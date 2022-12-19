@@ -27,12 +27,6 @@
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 
 #include <pmacc/communication/manager_common.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
-#include <pmacc/cuSTL/container/HostBuffer.hpp>
-#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
-#include <pmacc/cuSTL/zone/SphericZone.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/pluginSystem/INotify.hpp>
@@ -218,12 +212,14 @@ namespace picongpu
         static constexpr uint32_t maxShared = 30000;
         static constexpr uint32_t num_pbins = maxShared / (sizeof(float_PS) * SuperCellsLongestEdge::value);
 
-        std::unique_ptr<container::DeviceBuffer<float_PS, 2>> dBuffer;
+        std::unique_ptr<HostDeviceBuffer<float_PS, 2>> dBuffer;
 
         /** reduce functor to a single host per plane */
-        std::unique_ptr<pmacc::algorithm::mpi::Reduce<simDim>> planeReduce;
+        std::unique_ptr<mpi::MPIReduce> planeReduce;
         bool isPlaneReduceRoot = false;
         /** MPI communicator that contains the root ranks of the \p planeReduce
+         *
+         * This communicator is used to dump data via openPMD.
          */
         MPI_Comm commFileWriter = MPI_COMM_NULL;
 
@@ -234,31 +230,39 @@ namespace picongpu
             using TParticlesBox = typename Species::ParticlesBoxType;
 
             TParticlesBox particlesBox;
-            cursor::BufferCursor<float_PS, 2> curOriginPhaseSpace;
+            pmacc::DataBox<PitchedBox<float_PS, 2>> phaseSpaceBox;
             uint32_t p_element;
             std::pair<float_X, float_X> axis_p_range;
+            MappingDesc cellDesc;
 
             StartBlockFunctor(
                 const TParticlesBox& pb,
-                cursor::BufferCursor<float_PS, 2> cur,
+                pmacc::DataBox<PitchedBox<float_PS, 2>> phaseSpaceDeviceBox,
                 const uint32_t p_dir,
-                const std::pair<float_X, float_X>& p_range)
+                const std::pair<float_X, float_X>& p_range,
+                MappingDesc const& cellDescription)
                 : particlesBox(pb)
-                , curOriginPhaseSpace(cur)
+                , phaseSpaceBox(phaseSpaceDeviceBox)
                 , p_element(p_dir)
                 , axis_p_range(p_range)
+                , cellDesc(cellDescription)
             {
             }
 
-            template<typename T_Filter, typename T_Zone, typename... T_Args>
-            void operator()(T_Filter const& filter, T_Zone const& zone, T_Args&&... args) const
+            template<typename T_Filter>
+            void operator()(T_Filter const& filter) const
             {
-                algorithm::kernel::ForeachLockstep<SuperCellSize> forEachSuperCell;
+                auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir, T_Filter>
-                    functorBlock(particlesBox, curOriginPhaseSpace, p_element, axis_p_range, filter);
-
-                forEachSuperCell(zone, functorBlock, args...);
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                auto functorBlock = FunctorBlock<Species, float_PS, num_pbins, r_dir, T_Filter>(
+                    particlesBox,
+                    phaseSpaceBox,
+                    p_element,
+                    axis_p_range,
+                    filter);
+                PMACC_LOCKSTEP_KERNEL(functorBlock, workerCfg)
+                (mapper.getGridDim())(mapper);
             }
         };
 
