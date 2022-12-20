@@ -26,8 +26,6 @@
 #include "picongpu/particles/shapes.hpp"
 
 #include <pmacc/attribute/unroll.hpp>
-#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
-#include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
 #include <pmacc/math/Vector.hpp>
 
 namespace picongpu
@@ -95,28 +93,31 @@ namespace picongpu
             return result;
         };
 
-        template<class Cursor, class VecVector>
-        HDINLINE typename Cursor::ValueType operator()(
-            Cursor field,
-            const floatD_X& particlePos,
-            const VecVector& fieldPos)
+        template<class T_FieldDataBox, class VecVector>
+        HDINLINE auto operator()(T_FieldDataBox const& field, const floatD_X& particlePos, const VecVector& fieldPos)
         {
             /**\brief:
              * The following calls seperate the vector interpolation into
              * independent scalar interpolations.
              */
             using Supports = typename pmacc::math::CT::make_Int<simDim, supp>::type;
+            using ResultType = typename T_FieldDataBox::ValueType;
 
-            typename Cursor::ValueType result;
-            PMACC_UNROLL(Cursor::ValueType::dim)
-            for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
+            ResultType result;
+            PMACC_UNROLL(ResultType::dim)
+            for(uint32_t i = 0; i < ResultType::dim; i++)
             {
-                auto fieldComponent
-                    = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(i));
+                // work on a copy to shift the field for each loop round separate
+                auto shiftedField = field;
                 floatD_X particlePosShifted = particlePos;
-                ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
+                ShiftCoordinateSystem<Supports>()(shiftedField, particlePosShifted, fieldPos[i]);
+
+                auto accessFunctor = [&](DataSpace<simDim> const& idx) constexpr
+                {
+                    return shiftedField(idx)[i];
+                };
                 result[i] = InterpolationMethod::template interpolate<begin, end>(
-                    fieldComponent,
+                    accessFunctor,
                     getShapeFunctors(particlePosShifted));
             }
 
