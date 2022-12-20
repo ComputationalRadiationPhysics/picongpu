@@ -146,7 +146,10 @@ namespace picongpu
                 std::optional<::openPMD::Series> m_series;
                 std::string openPMDSuffix
                     = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+                std::string openPMDExtensionCheckpointing
+                    = openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
+                std::string openPMDCheckpointConfig = "{}";
 
             public:
                 Radiation()
@@ -230,9 +233,16 @@ namespace picongpu
                             ->default_value(
                                 "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5)),
                         "Suffix for openPMD filename extension and iteration expansion pattern.")(
+                        (pluginPrefix + ".openPMDCheckpointExtension").c_str(),
+                        po::value<std::string>(&openPMDExtensionCheckpointing)
+                            ->default_value(openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5)),
+                        "Filename extension for openPMD checkpoints.")(
                         (pluginPrefix + ".openPMDConfig").c_str(),
                         po::value<std::string>(&openPMDConfig)->default_value("{}"),
-                        "JSON/TOML configuration for initializing openPMD.");
+                        "JSON/TOML configuration for initializing openPMD.")(
+                        (pluginPrefix + ".openPMDCheckpointConfig").c_str(),
+                        po::value<std::string>(&openPMDCheckpointConfig)->default_value("{}"),
+                        "JSON/TOML configuration for initializing openPMD checkpointing.");
                 }
 
 
@@ -259,10 +269,13 @@ namespace picongpu
                         // this will lead to wrong lastRad output right after the checkpoint if the restart point is
                         // not a dump point. The correct lastRad data can be reconstructed from openPMD data
                         // since text based lastRad output will be obsolete soon, this is not a problem
+
                         readOpenPMDfile(
                             timeSumArray,
                             restartDirectory + "/" + speciesName + std::string("_radRestart_"),
-                            timeStep);
+                            timeStep,
+                            *openPMDExtensionCheckpointing.begin() == '.' ? openPMDExtensionCheckpointing
+                                                                          : '.' + openPMDExtensionCheckpointing);
                         log<radLog::SIMULATION_STATE>("Radiation (%1%): restart finished") % speciesName;
                     }
                 }
@@ -282,9 +295,22 @@ namespace picongpu
                     // write backup file
                     if(isMaster)
                     {
+                        /*
+                         * No need to keep the Series open for checkpointing, so
+                         * just quickly open it here.
+                         */
+                        std::optional<::openPMD::Series> tmp;
                         writeOpenPMDfile(
                             tmp_result,
-                            restartDirectory + "/" + speciesName + std::string("_radRestart"));
+                            restartDirectory,
+                            speciesName + std::string("_radRestart"),
+                            WriteOpenPMDParams{
+                                tmp,
+                                "_%T_0_0_0"
+                                    + (*openPMDExtensionCheckpointing.begin() == '.'
+                                           ? openPMDExtensionCheckpointing
+                                           : '.' + openPMDExtensionCheckpointing),
+                                openPMDCheckpointConfig});
                     }
                 }
 
@@ -537,7 +563,9 @@ namespace picongpu
                     {
                         writeOpenPMDfile(
                             timeSumArray,
-                            std::string("radiationOpenPMD/") + speciesName + std::string("_radAmplitudes"));
+                            std::string("radiationOpenPMD/"),
+                            speciesName + std::string("_radAmplitudes"),
+                            WriteOpenPMDParams{m_series, openPMDSuffix, openPMDConfig});
                     }
                 }
 
@@ -659,52 +687,91 @@ namespace picongpu
                         return std::string("this-record-does-not-exist");
                 }
 
+                /*
+                 * These are the params that are different between checkpointing and regular output.
+                 */
+                struct WriteOpenPMDParams
+                {
+                    // Series to be used, maybe already initialized
+                    std::optional<::openPMD::Series>& series;
+                    std::string const& extension;
+                    std::string const& jsonConfig;
+                };
 
                 /** Write Amplitude data to openPMD file
                  *
                  * Arguments:
                  * Amplitude* values - array of complex amplitude values
-                 * std::string name - path and beginning of file name to store data to
+                 * std::string const & path - directory for data storage
+                 * std::string const & name - file name to store data to
+                 * WriteOpenPMDParams params - See struct description
                  */
-                void writeOpenPMDfile(std::vector<Amplitude>& values, std::string name)
+                void writeOpenPMDfile(
+                    std::vector<Amplitude>& values,
+                    std::string const& dir,
+                    std::string const& name,
+                    WriteOpenPMDParams const& params)
                 {
-                    if(!m_series.has_value())
+                    auto const& [series, extension, jsonConfig] = params;
+                    std::ostringstream filename;
+                    if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
                     {
-                        std::ostringstream filename;
-                        if(std::any_of(
-                               openPMDSuffix.begin(),
-                               openPMDSuffix.end(),
-                               [](char const c) { return c == '.'; }))
-                        {
-                            filename << name << openPMDSuffix;
-                        }
-                        else
-                        {
-                            filename << name << '.' << openPMDSuffix;
-                        }
+                        filename << name << extension;
+                    }
+                    else
+                    {
+                        filename << name << '.' << extension;
+                    }
 
-                        m_series = std::make_optional(
-                            ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE, openPMDConfig));
+                    if(!series.has_value())
+                    {
+                        series = std::make_optional(
+                            ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE, jsonConfig));
 
                         /* begin recommended openPMD global attributes */
-                        m_series->setMeshesPath(meshesPathName);
+                        series->setMeshesPath(meshesPathName);
                         const std::string software("PIConGPU");
                         std::stringstream softwareVersion;
                         softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
                                         << PICONGPU_VERSION_PATCH;
                         if(!std::string(PICONGPU_VERSION_LABEL).empty())
                             softwareVersion << "-" << PICONGPU_VERSION_LABEL;
-                        m_series->setSoftware(software, softwareVersion.str());
+                        series->setSoftware(software, softwareVersion.str());
 
                         std::string author = Environment<>::get().SimulationDescription().getAuthor();
                         if(author.length() > 0)
-                            m_series->setAuthor(author);
+                            series->setAuthor(author);
 
                         std::string date = helper::getDateString("%F %T %z");
-                        m_series->setDate(date);
+                        series->setDate(date);
                         /* end recommended openPMD global attributes */
                     }
-                    ::openPMD::Series& openPMDdataFile = m_series.value();
+                    else
+                    {
+                        /*
+                         * Check that the filename is the same.
+                         * Series::name() returns the specified path without filename extension and without the
+                         * dirname, so we need to strip that information.
+                         */
+                        auto filename_str = filename.str();
+                        auto pos = filename_str.find_last_of('.');
+                        if(pos != std::string::npos)
+                        {
+                            filename_str = filename_str.substr(0, pos);
+                        }
+                        if(series->name() != filename_str)
+                        {
+                            /*
+                             * Should normally not happen, this is just to aid debugging if it does happen anyway.
+                             */
+                            throw std::runtime_error(
+                                "[Radiation plugin] Internal error: openPMD Series from previous run of the plugin "
+                                "was initiated with file name '"
+                                + series->name() + "', but now filename '" + filename_str
+                                + "' is requested. Aborting.");
+                        }
+                    }
+                    ::openPMD::Series& openPMDdataFile = series.value();
                     ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
 
                     // begin: write amplitude data
@@ -893,11 +960,15 @@ namespace picongpu
                  * std::string name - path and beginning of file name with data stored in
                  * const int timeStep - time step to read
                  */
-                void readOpenPMDfile(std::vector<Amplitude>& values, std::string name, const int timeStep)
+                void readOpenPMDfile(
+                    std::vector<Amplitude>& values,
+                    std::string name,
+                    const int timeStep,
+                    std::string const& extension)
                 {
                     std::ostringstream filename;
                     /* add to standard file ending */
-                    filename << name << timeStep << "_0_0_0.h5";
+                    filename << name << timeStep << "_0_0_0" + extension;
 
                     /* check if restart file exists */
                     if(!boost::filesystem::exists(filename.str()))
