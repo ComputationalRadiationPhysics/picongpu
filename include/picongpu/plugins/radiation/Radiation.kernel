@@ -201,6 +201,12 @@ namespace picongpu
                                          * in a supercell
                                          */
                                         auto par = frameCtx[linearIdx][linearIdx % frameSize];
+                                        /* Not all particle slots in a frame representing an exiting particle.
+                                         * Process only real particles and ignore gaps in a frame.
+                                         */
+                                        if(par[multiMask_] != 1)
+                                            return;
+
                                         // get old and new particle momenta
                                         vector_X const particle_momentumNow = vector_X(par[momentum_]);
                                         vector_X const particle_momentumOld = vector_X(par[momentumPrev1_]);
@@ -389,7 +395,7 @@ namespace picongpu
                                             += amplitude;
                                     });
 
-                                // wait till all radiation contributions for this super cell are done
+                                // wait till all radiation contributions for frame are done
                                 worker.sync();
                             });
                     } // end loop over all super cells
