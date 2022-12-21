@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Alexander Debus
+/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Alexander Debus, Brian Marre
  *
  * This file is part of PMacc.
  *
@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/algorithms/math/PowerFunction.hpp"
 #include "pmacc/algorithms/math/defines/abs.hpp"
 #include "pmacc/algorithms/math/defines/bessel.hpp"
 #include "pmacc/algorithms/math/defines/cross.hpp"
