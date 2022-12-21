@@ -774,6 +774,13 @@ namespace picongpu
                     ::openPMD::Series& openPMDdataFile = series.value();
                     ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
 
+                    /* begin required openPMD global attributes */
+                    openPMDdataFileIteration.setDt<float_X>(DELTA_T);
+                    const float_X time = float_X(currentStep) * DELTA_T;
+                    openPMDdataFileIteration.setTime(time);
+                    openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
+                    /* end required openPMD global attributes */
+
                     // begin: write amplitude data
                     ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
 
@@ -938,15 +945,6 @@ namespace picongpu
                      */
                     omega_mrc.storeChunk(detectorFrequencies, offset_omega, extent_omega);
                     // end: write frequencies
-
-                    /* begin openPMD attributes */
-                    /* begin required openPMD global attributes */
-
-                    openPMDdataFileIteration.setDt<float_X>(DELTA_T);
-                    const float_X time = float_X(currentStep) * DELTA_T;
-                    openPMDdataFileIteration.setTime(time);
-                    openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
-                    /* end required openPMD global attributes */
 
                     openPMDdataFileIteration.close();
                     openPMDdataFile.flush();
