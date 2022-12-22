@@ -22,13 +22,6 @@
 #include "DumpHBufferOpenPMD.hpp"
 #include "PhaseSpace.hpp"
 
-#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
-#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
@@ -96,11 +89,12 @@ namespace picongpu
 
             const uint32_t r_element = axis_element.space;
 
-            /* CORE + BORDER + GUARD elements for spatial bins */
-            this->r_bins = SuperCellSize().toRT()[r_element] * this->m_cellDescription->getGridSuperCells()[r_element];
+            /* CORE + BORDER elements for spatial bins */
+            this->r_bins = this->m_cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[r_element];
 
             auto const num_pbinsToAvoidOdrUse = this->num_pbins;
-            this->dBuffer = std::make_unique<container::DeviceBuffer<float_PS, 2>>(num_pbinsToAvoidOdrUse, r_bins);
+            this->dBuffer
+                = std::make_unique<HostDeviceBuffer<float_PS, 2>>(DataSpace<2>(num_pbinsToAvoidOdrUse, r_bins));
 
             /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
              * to "lowest" node in range
@@ -118,37 +112,18 @@ namespace picongpu
 
             for(int planePos = 0; planePos <= (int) gpuDim[this->axis_element.space]; ++planePos)
             {
-                /* my plane means: the offset for the transversal plane to my r_element
-                 * should be zero
-                 */
-                pmacc::math::Int<simDim> longOffset(pmacc::math::Int<simDim>::create(0));
-                longOffset[this->axis_element.space] = planePos;
-
-                zone::SphericZone<simDim> zoneTransversalPlane(sizeTransversalPlane, longOffset);
-
-                /* Am I the lowest GPU in my plane? */
-                bool isGroupRoot = false;
+                auto mpiReduce = std::make_unique<mpi::MPIReduce>();
                 bool isInGroup = (gpuPos[this->axis_element.space] == planePos);
-                if(isInGroup)
-                {
-                    pmacc::math::Int<simDim> inPlaneGPU(gpuPos);
-                    inPlaneGPU[this->axis_element.space] = 0;
-                    if(inPlaneGPU == pmacc::math::Int<simDim>::create(0))
-                        isGroupRoot = true;
-                }
 
-                algorithm::mpi::Reduce<simDim>* createReduce
-                    = new algorithm::mpi::Reduce<simDim>(zoneTransversalPlane, isGroupRoot);
+                mpiReduce->participate(isInGroup);
                 if(isInGroup)
                 {
-                    this->planeReduce.reset(createReduce);
-                    this->isPlaneReduceRoot = isGroupRoot;
+                    this->isPlaneReduceRoot = mpiReduce->hasResult(::pmacc::mpi::reduceMethods::Reduce{});
+                    this->planeReduce = std::move(mpiReduce);
                 }
-                else
-                    delete createReduce;
             }
 
-            /* Create communicator with ranks of each plane reduce root */
+            /* Create MPI communicator for openPMD IO with ranks of each plane reduce root */
             {
                 /* Array with root ranks of the planeReduce operations */
                 std::vector<int> planeReduceRootRanks(gc.getGlobalSize(), -1);
@@ -158,14 +133,8 @@ namespace picongpu
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 __getTransactionEvent().waitForFinished();
                 MPI_Group world_group, new_group;
-                MPI_CHECK(MPI_Allgather(
-                    &myRootRank,
-                    1,
-                    MPI_INT,
-                    &(planeReduceRootRanks.front()),
-                    1,
-                    MPI_INT,
-                    MPI_COMM_WORLD));
+                MPI_CHECK(
+                    MPI_Allgather(&myRootRank, 1, MPI_INT, planeReduceRootRanks.data(), 1, MPI_INT, MPI_COMM_WORLD));
 
                 /* remove all non-roots (-1 values) */
                 std::sort(planeReduceRootRanks.begin(), planeReduceRootRanks.end());
@@ -201,35 +170,21 @@ namespace picongpu
     template<uint32_t r_dir>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace(const uint32_t currentStep)
     {
-        const pmacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * GuardSize::toRT();
-        const pmacc::math::Size_t<simDim> coreBorderSuperCells(
-            this->m_cellDescription->getGridSuperCells() - 2 * GuardSize::toRT());
-        const pmacc::math::Size_t<simDim> coreBorderCells
-            = coreBorderSuperCells * precisionCast<size_t>(SuperCellSize().toRT());
-
         /* register particle species observer */
         DataConnector& dc = Environment<>::get().DataConnector();
         auto particles = dc.get<Species>(Species::FrameType::getName(), true);
 
-        /* select CORE + BORDER for all cells
-         * CORE + BORDER is contiguous, in cuSTL we call this a "topological spheric zone"
-         */
-        zone::SphericZone<simDim> zoneCoreBorder(coreBorderCells, guardCells);
-
         StartBlockFunctor<r_dir> startBlockFunctor(
             particles->getDeviceParticlesBox(),
-            dBuffer->origin(),
+            dBuffer->getDeviceBuffer().getDataBox(),
             this->axis_element.momentum,
-            this->axis_p_range);
+            this->axis_p_range,
+            *this->m_cellDescription);
 
         auto bindFunctor = std::bind(
             startBlockFunctor,
             // particle filter
-            std::placeholders::_1,
-            // area to work on
-            zoneCoreBorder,
-            // data below - passed to functor operator()
-            cursor::make_MultiIndexCursor<simDim>());
+            std::placeholders::_1);
 
         meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<bmpl::_1>>{}(
             m_help->filter.get(m_id),
@@ -241,7 +196,7 @@ namespace picongpu
     void PhaseSpace<AssignmentFunction, Species>::notify(uint32_t currentStep)
     {
         /* reset device buffer */
-        this->dBuffer->assign(float_PS(0.0));
+        dBuffer->getDeviceBuffer().setValue(float_PS(0.0));
 
         /* calculate local phase space */
         if(this->axis_element.space == AxisDescription::x)
@@ -254,8 +209,12 @@ namespace picongpu
 #endif
 
         /* transfer to host */
-        container::HostBuffer<float_PS, 2> hBuffer(this->dBuffer->size());
-        hBuffer = *this->dBuffer;
+        this->dBuffer->deviceToHost();
+        auto bufferExtent = this->dBuffer->getDeviceBuffer().getDataSpace();
+
+        auto hReducedBuffer = HostBufferIntern<float_PS, 2>(this->dBuffer->getDeviceBuffer().getDataSpace());
+
+        __getTransactionEvent().waitForFinished();
 
         /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
          * to "lowest" node in range
@@ -263,20 +222,18 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        container::HostBuffer<float_PS, 2> hReducedBuffer(hBuffer.size());
-        hReducedBuffer.assign(float_PS(0.0));
+        (*planeReduce)(
+            pmacc::math::operation::Add(),
+            hReducedBuffer.getBasePointer(),
+            this->dBuffer->getHostBuffer().getBasePointer(),
+            bufferExtent.productOfComponents(),
+            mpi::reduceMethods::Reduce());
 
-        planeReduce->template operator()(/* parameters: dest, source */
-                                         hReducedBuffer,
-                                         hBuffer,
-                                         /* the functors return value will be written to dst */
-                                         pmacc::algorithm::functor::Add());
+        __getTransactionEvent().waitForFinished();
 
         /** all non-reduce-root processes are done now */
         if(!this->isPlaneReduceRoot)
             return;
-
-        /** \todo communicate GUARD and add it to the two neighbors BORDER */
 
         /* write to file */
         const float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;

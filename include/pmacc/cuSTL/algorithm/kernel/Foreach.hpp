@@ -95,32 +95,6 @@ namespace pmacc
 #undef SHIFT_CURSOR_ZONE
 #undef SHIFTED_CURSOR
 
-            template<typename BlockDim>
-            struct ForeachLockstep
-            {
-                /* operator()(zone, functor, cursor0, cursor1, ..., cursorN-1)
-                 *
-                 * @param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
-                 * @param functor either a functor with N arguments
-                 * @param args cursor for the N-th data source (e.g. containerObj.origin())
-                 *
-                 * The functor is called for each worker within the zone.
-                 * It is called like
-                 * @code[.cpp}
-                 * functor(*cursor0(cellBlockOffset), ..., *cursorN(cellBlockOffset))
-                 * @endcode
-                 */
-                template<int T_dim, typename T_Functor, typename... T_Args>
-                void operator()(zone::SphericZone<T_dim> const& p_zone, T_Functor& functor, T_Args... args)
-                {
-                    detail::SphericMapper<T_dim, BlockDim> mapper;
-
-                    auto workerCfg = lockstep::makeWorkerCfg(BlockDim{});
-                    PMACC_LOCKSTEP_KERNEL(detail::KernelForeachLockstep{}, workerCfg)
-                    (mapper.cuplaGridDim(p_zone.size))(mapper, functor, args(p_zone.offset)...);
-                }
-            };
-
         } // namespace kernel
     } // namespace algorithm
 } // namespace pmacc
