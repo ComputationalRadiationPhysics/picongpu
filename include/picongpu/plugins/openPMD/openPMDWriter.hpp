@@ -1524,6 +1524,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     threadParams->openSeries(::openPMD::Access::CREATE);
                 }
 
+                /* attributes written here are pure meta data */
+                WriteMeta writeMetaAttributes;
+                writeMetaAttributes(
+                    *threadParams->openPMDSeries,
+                    (*threadParams->openPMDSeries).writeIterations()[threadParams->currentStep],
+                    threadParams->currentStep);
+
                 bool dumpAllParticles = plugins::misc::containsObject(vectorOfDataSourceNames, "species_all");
 
                 /* write fields */
@@ -1601,13 +1608,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu", "idProvider", "nextId");
                 writeIdProviderStartId(*threadParams, idProviderState.startId, idProviderState.maxNumProc);
                 writeIdProviderNextId(*threadParams, idProviderState.nextId);
-
-                /* attributes written here are pure meta data */
-                WriteMeta writeMetaAttributes;
-                writeMetaAttributes(
-                    *threadParams->openPMDSeries,
-                    (*threadParams->openPMDSeries).writeIterations()[threadParams->currentStep],
-                    threadParams->currentStep);
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
