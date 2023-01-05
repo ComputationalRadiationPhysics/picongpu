@@ -114,7 +114,7 @@ namespace picongpu
                     line.m_pos1[d] -= gridShift[d];
                 }
                 /* shift current field to the virtual coordinate system */
-                auto cursorJ = dataBoxJ.shift(gridShift).toCursor();
+                auto fieldJ = dataBoxJ.shift(gridShift);
 
                 /**
                  * \brief the following three calls separate the 3D current deposition
@@ -122,32 +122,38 @@ namespace picongpu
                  * Therefore the coordinate system has to be rotated so that the z-direction
                  * is always specific.
                  */
-
-                using namespace cursor::tools;
-                cptCurrent1D(worker, status, cursorJ, line, cellSize.x());
+                cptCurrent1D(
+                    worker,
+                    status,
+                    makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1>>(fieldJ),
+                    line,
+                    cellSize.x());
                 cptCurrent1D(
                     worker,
                     DataSpace<DIM2>(status[1], status[0]),
-                    twistVectorFieldAxes<pmacc::math::CT::Int<1, 0>>(cursorJ),
+                    makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 0>>(fieldJ),
                     rotateOrigin<1, 0>(line),
                     cellSize.y());
-                cptCurrentZ(worker, status, cursorJ, line, velocity.z());
+                cptCurrentZ(worker, status, fieldJ, line, velocity.z());
             }
 
             /** deposites current in x-direction (rotated PIConGPU coordinate system)
              *
+             * @tparam T_DataBox databox type
+             * @tparam T_Permutation compile time permutation vector @see PermutatedFieldValueAccess
+             *
              * @param parStatus vector with particle status information for each direction
-             * @param cursorJ cursor pointing at the current density field of the particle's cell
+             * @param jField permuted current field shifted to the particle position
              * @param line trajectory of the particle from to last to the current time step
              * @param cellEdgeLength length of edge of the cell in z-direction
              *
              * @{
              */
-            template<typename CursorJ, typename T_Worker>
+            template<typename T_DataBox, typename T_Permutation, typename T_Worker>
             DINLINE void cptCurrent1D(
                 T_Worker const& worker,
                 const DataSpace<simDim>& parStatus,
-                CursorJ cursorJ,
+                PermutatedFieldValueAccess<T_DataBox, T_Permutation> jField,
                 const Line<float2_X>& line,
                 const float_X cellEdgeLength)
             {
@@ -200,16 +206,16 @@ namespace picongpu
                                 const float_X W = shapeI.DS(i) * tmp;
                                 accumulated_J += W;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                atomicOp(worker, (*cursorJ(i, j)).x(), accumulated_J);
+                                atomicOp(worker, jField.template get<0>(i, j), accumulated_J);
                             }
                     }
             }
 
-            template<typename CursorJ, typename T_Worker>
+            template<typename T_JField, typename T_Worker>
             DINLINE void cptCurrentZ(
                 T_Worker const& worker,
                 const DataSpace<simDim>& parStatus,
-                CursorJ cursorJ,
+                T_JField jField,
                 const Line<float2_X>& line,
                 const float_X v_z)
             {
@@ -251,7 +257,7 @@ namespace picongpu
 
                                 const float_X j_z = W * currentSurfaceDensityZ;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                atomicOp(worker, (*cursorJ(i, j)).z(), j_z);
+                                atomicOp(worker, jField(DataSpace<DIM2>(i, j)).z(), j_z);
                             }
                     }
             }

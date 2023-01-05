@@ -25,14 +25,10 @@
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/TrajectoryAssignmentShapeFunction.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/bitPacking.hpp"
+#include "picongpu/fields/currentDeposition/PermutatedFieldValueAccess.hpp"
 #include "picongpu/fields/currentDeposition/RelayPoint.hpp"
 
-#include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <pmacc/types.hpp>
-
-#include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>
-
 
 namespace picongpu
 {
@@ -110,41 +106,49 @@ namespace picongpu
                     line.m_pos1[d] -= gridShift[d];
                 }
                 /* shift current field to the virtual coordinate system */
-                auto cursorJ = dataBoxJ.shift(gridShift).toCursor();
+                auto fieldJ = dataBoxJ.shift(gridShift);
                 /**
                  * \brief the following three calls separate the 3D current deposition
                  * into three independent 1D calls, each for one direction and current component.
                  * Therefore the coordinate system has to be rotated so that the z-direction
                  * is always specific.
                  */
-                using namespace cursor::tools;
+
                 cptCurrent1D(
                     worker,
                     DataSpace<simDim>(status.y(), status.z(), status.x()),
-                    twistVectorFieldAxes<pmacc::math::CT::Int<1, 2, 0>>(cursorJ),
+                    makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 2, 0>>(fieldJ),
                     rotateOrigin<1, 2, 0>(line),
                     cellSize.x());
                 cptCurrent1D(
                     worker,
                     DataSpace<simDim>(status.z(), status.x(), status.y()),
-                    twistVectorFieldAxes<pmacc::math::CT::Int<2, 0, 1>>(cursorJ),
+                    makePermutatedFieldValueAccess<pmacc::math::CT::Int<2, 0, 1>>(fieldJ),
                     rotateOrigin<2, 0, 1>(line),
                     cellSize.y());
-                cptCurrent1D(worker, status, cursorJ, line, cellSize.z());
+                cptCurrent1D(
+                    worker,
+                    status,
+                    makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1, 2>>(fieldJ),
+                    line,
+                    cellSize.z());
             }
 
             /** deposites current in z-direction (rotated PIConGPU coordinate system)
              *
+             * @tparam T_DataBox databox type
+             * @tparam T_Permutation compile time permutation vector @see PermutatedFieldValueAccess
+             *
              * @param parStatus vector with particle status information for each direction
-             * @param cursorJ cursor pointing at the current density field of the particle's cell
+             * @param jField permuted current field shifted to the particle position
              * @param line trajectory of the particle from to last to the current time step
              * @param cellEdgeLength length of edge of the cell in z-direction
              */
-            template<typename CursorJ, typename T_Worker>
+            template<typename T_DataBox, typename T_Permutation, typename T_Worker>
             DINLINE void cptCurrent1D(
                 T_Worker const& worker,
                 const DataSpace<simDim>& parStatus,
-                CursorJ cursorJ,
+                PermutatedFieldValueAccess<T_DataBox, T_Permutation> jField,
                 const Line<float3_X>& line,
 
                 const float_X cellEdgeLength)
@@ -231,7 +235,7 @@ namespace picongpu
                                         const float_X W = shapeK.DS(k) * tmp;
                                         accumulated_J += W;
                                         auto const atomicOp = typename T_Strategy::BlockReductionOp{};
-                                        atomicOp(worker, (*cursorJ(i, j, k)).z(), accumulated_J);
+                                        atomicOp(worker, jField.template get<2>(i, j, k), accumulated_J);
                                     }
                             }
                     }

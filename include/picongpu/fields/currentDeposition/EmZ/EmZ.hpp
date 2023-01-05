@@ -24,7 +24,6 @@
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/RelayPoint.hpp"
 
-#include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/meta/InvokeIf.hpp>
 
 
@@ -107,7 +106,7 @@ namespace picongpu
                     line.m_pos1[d] = relayPoint[d] - shiftStart[d];
                 }
 
-                deposit(worker, dataBoxJ.shift(shiftStart).toCursor(), line, chargeDensity);
+                deposit(worker, dataBoxJ.shift(shiftStart), line, chargeDensity);
 
                 /* detect if there is a second virtual particle */
                 const bool twoParticlesNeeded = (shiftStart != shiftEnd);
@@ -120,7 +119,7 @@ namespace picongpu
                         line.m_pos1[d] = posEnd[d] - shiftEnd[d];
                         line.m_pos0[d] = relayPoint[d] - shiftEnd[d];
                     }
-                    deposit(worker, dataBoxJ.shift(shiftEnd).toCursor(), line, chargeDensity);
+                    deposit(worker, dataBoxJ.shift(shiftEnd), line, chargeDensity);
                 }
 
                 /* 2d case requires special handling of Jz as explained in #3889.
@@ -158,11 +157,7 @@ namespace picongpu
                             end + 1,
                             DIM2>
                             depositZ;
-                        depositZ.computeCurrentZ(
-                            worker,
-                            dataBoxJ.shift(shiftEnd).toCursor(),
-                            line,
-                            velocity.z() * chargeDensity);
+                        depositZ.computeCurrentZ(worker, dataBoxJ.shift(shiftEnd), line, velocity.z() * chargeDensity);
                     },
                     dataBoxJ);
             }
