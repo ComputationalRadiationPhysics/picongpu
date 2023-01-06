@@ -157,12 +157,29 @@ Backend-specific notes
 ADIOS2
 ======
 
+Optional memory optimizations
+"""""""""""""""""""""""""""""
+
 * **Only for openPMD-api <= 0.14.3:**
   The memory usage of some engines in ADIOS2 can be reduced by specifying the environment variable ``openPMD_USE_STORECHUNK_SPAN=1``.
   This makes PIConGPU use the `span-based Put() API <https://adios2.readthedocs.io/en/latest/components/components.html#put-modes-and-memory-contracts>`_ of ADIOS2 which avoids buffer copies, but does not allow for compression.
   Do *not* use this optimization in combination with compression, otherwise the resulting datasets will not be usable.
 * **For openPMD-api >= 0.14.4:** The above behavior has been fixed, no user interaction is required. The memory-optimized implementation will be automatically selected if possible.
 * **You don't know the precise settings and versions in your setup?** Then keep everything as it is and use the defaults.
+
+Streaming with the MPI-based SST implementation
+"""""""""""""""""""""""""""""""""""""""""""""""
+
+The `SST engine <https://adios2.readthedocs.io/en/latest/engines/engines.html#sst-sustainable-staging-transport>`_ (sustainable staging transport) of ADIOS2 has a number of possible backends, including an MPI data transport (still in development at the time of writing this 2023-01-06).
+It internally uses MPI to set up communcation between data producer (PIConGPU) and consumer via ``MPI_Open_Port()`` and ``MPI_Comm_Accept()``.
+
+Use of this engine requires availability of threaded MPI, which can be activated in PIConGPU via the environment variable ``PIC_USE_THREADED_MPI``.
+Its possible values include ``"MPI_THREAD_SINGLE"``, ``"MPI_THREAD_FUNNELED"``, ``"MPI_THREAD_SERIALIZED"`` and ``"MPI_THREAD_MULTIPLE"``.
+The specified value determines the ``int required`` parameter that will be used in the initialization of MPI via ``int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )``.
+For support of MPI-based SST, the variable must be specified as ``PIC_USE_THREADED_MPI=MPI_THREAD_MULTIPLE``.
+
+Additionally, `a workaround <https://github.com/ornladios/ADIOS2/blob/770d852ac1e5d2faff0b9e62cb8da43d448cca67/docs/user_guide/source/advanced/ecp_hardware.rst>`_ is required in order to let PIConGPU cleanly terminate after using this engine on ECP hardware.
+This workaround can be activated on such systems via ``PIC_WORKAROUND_CRAY_MPI_FINALIZE=1``.
 
 HDF5
 ====
