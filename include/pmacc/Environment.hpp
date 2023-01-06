@@ -37,6 +37,10 @@
 #include "pmacc/pluginSystem/PluginConnector.hpp"
 #include "pmacc/simulationControl/SimulationDescription.hpp"
 
+#include <cstdlib> // std::getenv
+#include <iostream>
+#include <stdexcept> // std::invalid_argument
+
 #include <mpi.h>
 
 #if !defined(ALPAKA_API_PREFIX)
@@ -417,8 +421,40 @@ namespace pmacc
         {
             m_isMpiInitialized = true;
 
-            // MPI_Init with NULL is allowed since MPI 2.0
-            MPI_CHECK(MPI_Init(nullptr, nullptr));
+            char const* env_value = std::getenv("PIC_USE_THREADED_MPI");
+            if(env_value)
+            {
+                int required_level{};
+                if(strcmp(env_value, "MPI_THREAD_SINGLE") == 0)
+                {
+                    required_level = MPI_THREAD_SINGLE;
+                }
+                else if(strcmp(env_value, "MPI_THREAD_FUNNELED") == 0)
+                {
+                    required_level = MPI_THREAD_FUNNELED;
+                }
+                else if(strcmp(env_value, "MPI_THREAD_SERIALIZED") == 0)
+                {
+                    required_level = MPI_THREAD_SERIALIZED;
+                }
+                else if(strcmp(env_value, "MPI_THREAD_MULTIPLE") == 0)
+                {
+                    required_level = MPI_THREAD_MULTIPLE;
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "Environment variable PIC_USE_THREADED_MPI must be one of MPI_THREAD_SINGLE, "
+                        "MPI_THREAD_FUNNELED, MPI_THREAD_SERIALIZED or MPI_THREAD_MULTIPLE.");
+                }
+                // MPI_Init with NULL is allowed since MPI 2.0
+                MPI_CHECK(MPI_Init_thread(nullptr, nullptr, required_level, nullptr));
+            }
+            else
+            {
+                // MPI_Init with NULL is allowed since MPI 2.0
+                MPI_CHECK(MPI_Init(nullptr, nullptr));
+            }
         }
 
         void EnvironmentContext::finalize()
