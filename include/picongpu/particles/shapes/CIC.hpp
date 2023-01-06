@@ -55,9 +55,11 @@ namespace picongpu
                         static_assert(T_size >= 2);
                         pmacc::memory::Array<float_X, T_size> shapeValues;
                         // grid points [0;1]
-                        // note: math::abs(0 - x) == math::abs(x)
-                        shapeValues[0] = math::abs(x);
-                        shapeValues[1] = 1.0_X - x;
+                        // x is always postive therefore abs(x) is not required
+                        shapeValues[0] = 1.0_X - x;
+                        // x == 1 - 1 - abs(x)
+                        shapeValues[1] = x;
+
                         return shapeValues;
                     }
                 };
