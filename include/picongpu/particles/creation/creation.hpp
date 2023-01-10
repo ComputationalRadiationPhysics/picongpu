@@ -23,9 +23,6 @@
 
 #include "picongpu/particles/creation/creation.kernel"
 
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
-#include <pmacc/cuSTL/zone/SphericZone.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 
 namespace picongpu
