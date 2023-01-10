@@ -37,6 +37,10 @@
 #include "pmacc/pluginSystem/PluginConnector.hpp"
 #include "pmacc/simulationControl/SimulationDescription.hpp"
 
+#include <cstdlib> // std::getenv
+#include <iostream>
+#include <stdexcept> // std::invalid_argument
+
 #include <mpi.h>
 
 #if !defined(ALPAKA_API_PREFIX)
@@ -417,8 +421,40 @@ namespace pmacc
         {
             m_isMpiInitialized = true;
 
-            // MPI_Init with NULL is allowed since MPI 2.0
-            MPI_CHECK(MPI_Init(nullptr, nullptr));
+            char const* env_value = std::getenv("PIC_USE_THREADED_MPI");
+            if(env_value)
+            {
+                int required_level{};
+                if(strcmp(env_value, "MPI_THREAD_SINGLE") == 0)
+                {
+                    required_level = MPI_THREAD_SINGLE;
+                }
+                else if(strcmp(env_value, "MPI_THREAD_FUNNELED") == 0)
+                {
+                    required_level = MPI_THREAD_FUNNELED;
+                }
+                else if(strcmp(env_value, "MPI_THREAD_SERIALIZED") == 0)
+                {
+                    required_level = MPI_THREAD_SERIALIZED;
+                }
+                else if(strcmp(env_value, "MPI_THREAD_MULTIPLE") == 0)
+                {
+                    required_level = MPI_THREAD_MULTIPLE;
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "Environment variable PIC_USE_THREADED_MPI must be one of MPI_THREAD_SINGLE, "
+                        "MPI_THREAD_FUNNELED, MPI_THREAD_SERIALIZED or MPI_THREAD_MULTIPLE.");
+                }
+                // MPI_Init with NULL is allowed since MPI 2.0
+                MPI_CHECK(MPI_Init_thread(nullptr, nullptr, required_level, nullptr));
+            }
+            else
+            {
+                // MPI_Init with NULL is allowed since MPI 2.0
+                MPI_CHECK(MPI_Init(nullptr, nullptr));
+            }
         }
 
         void EnvironmentContext::finalize()
@@ -429,11 +465,40 @@ namespace pmacc
                 // Required by scorep for flushing the buffers
                 cuplaDeviceSynchronize();
                 m_isMpiInitialized = false;
+                /*
+                 * When using the combination of MPI_Comm_Accept() and MPI_Open_Port() (as is done by the MPI-based
+                 * implementation of the ADIOS2 SST engine), the current (2023-01-06) Cray MPI implementation
+                 * on Crusher/Frontier will hang inside MPI_Finalize().
+                 * The workaround is to replace it with an MPI_Barrier().
+                 */
+                char const* env_value = std::getenv("PIC_WORKAROUND_CRAY_MPI_FINALIZE");
+                bool use_cray_workaround = false;
+                if(env_value)
+                {
+                    try
+                    {
+                        int env_value_int = std::stoi(env_value);
+                        use_cray_workaround = env_value_int != 0;
+                    }
+                    catch(std::invalid_argument const& e)
+                    {
+                        std::cerr
+                            << "Warning: PIC_WORKAROUND_CRAY_MPI_FINALIZE must have an integer value, received: '"
+                            << env_value << "'. Will ignore." << std::endl;
+                    }
+                }
                 /* Free the MPI context.
                  * The gpu context is freed by the `StreamController`, because
                  * MPI and CUDA are independent.
                  */
-                MPI_CHECK(MPI_Finalize());
+                if(use_cray_workaround)
+                {
+                    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
+                }
+                else
+                {
+                    MPI_CHECK(MPI_Finalize());
+                }
             }
         }
 
