@@ -27,12 +27,6 @@
 #include "picongpu/fields/currentDeposition/Esirkepov/TrajectoryAssignmentShapeFunction.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/bitPacking.hpp"
 
-#include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
-
-#include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>
-
-
 namespace picongpu
 {
     namespace currentSolver

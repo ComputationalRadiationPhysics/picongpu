@@ -210,13 +210,6 @@ namespace pmacc
         }
 
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
-        HINLINE cursor::SafeCursor<cursor::BufferCursor<Type, T_dim>>
-        CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
-        {
-            return cursor::make_SafeCursor(this->origin(), math::Int<T_dim>::create(0), math::Int<T_dim>(size()));
-        }
-
-        template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
         HINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<T_dim>, char*>
         CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originCustomAxes(const math::UInt32<T_dim>& axes) const
         {

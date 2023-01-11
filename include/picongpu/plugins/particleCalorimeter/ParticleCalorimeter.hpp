@@ -36,7 +36,6 @@
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>

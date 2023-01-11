@@ -23,7 +23,6 @@
 
 #include "pmacc/cuSTL/container/view/View.hpp"
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
-#include "pmacc/cuSTL/cursor/SafeCursor.hpp"
 #include "pmacc/cuSTL/cursor/accessor/PointerAccessor.hpp"
 #include "pmacc/cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
@@ -115,8 +114,7 @@ namespace pmacc
 
             /* get a cursor at the container's origin cell */
             HINLINE cursor::BufferCursor<Type, T_dim> origin() const;
-            /* get a safe cursor at the container's origin cell */
-            HINLINE cursor::SafeCursor<cursor::BufferCursor<Type, T_dim>> originSafe() const;
+
             /* get a component-twisted cursor at the container's origin cell
              * @param axes x-axis -> axes[0], y-axis -> axes[1], ...
              * */
