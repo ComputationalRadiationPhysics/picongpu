@@ -214,7 +214,7 @@ namespace alpaka
             {
                 // explicitly copy the shared_ptr so that this method holds the state even when the executing thread
                 // has already finished.
-                const auto spCallbackSynchronizationData
+                auto const spCallbackSynchronizationData
                     = reinterpret_cast<CallbackSynchronizationData*>(arg)->shared_from_this();
 
                 // Notify the executing thread.

@@ -11,7 +11,6 @@ Alpaka configures a lot of its functionality at compile time. Therefore a lot of
 
    * :ref:`CPU Serial <cpu-serial>`
    * :ref:`C++ Threads <cpp-threads>`
-   * :ref:`Boost Fiber <boost-fiber>`
    * :ref:`Intel TBB <intel-tbb>`
    * :ref:`OpenMP 2 Grid Block <openmp2-grid-block>`
    * :ref:`OpenMP 2 Block Thread <openmp2-block-thread>`
@@ -104,16 +103,6 @@ alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE
   .. code-block::
 
      Enable the threads CPU block thread back-end.
-
-.. _boost-fiber:
-
-Boost Fiber
------------
-
-alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE
-  .. code-block::
-
-     Enable the fibers CPU block thread back-end.
 
 .. _intel-tbb:
 

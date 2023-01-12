@@ -27,7 +27,7 @@ template<typename T, typename TBuf = T>
 class Iterator
 {
 protected:
-    const TBuf* mData;
+    TBuf const* mData;
     uint64_t mIndex;
     const uint64_t mMaximum;
 
@@ -37,7 +37,7 @@ public:
     //! \param data A pointer to the data.
     //! \param index The index.
     //! \param maximum The first index outside of the iterator memory.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const TBuf* data, uint32_t index, uint64_t maximum)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(TBuf const* data, uint32_t index, uint64_t maximum)
         : mData(data)
         , mIndex(index)
         , mMaximum(maximum)
@@ -47,14 +47,14 @@ public:
     //! Constructor.
     //!
     //! \param other The other iterator object.
-    Iterator(const Iterator& other) = default;
+    Iterator(Iterator const& other) = default;
 
     //! Compare operator.
     //!
     //! \param other The other object.
     //!
     //! Returns true if objects are equal and false otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator==(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator==(Iterator const& other) const -> bool
     {
         return (this->mData == other.mData) && (this->mIndex == other.mIndex) && (this->mMaximum == other.mMaximum);
     }
@@ -64,7 +64,7 @@ public:
     //! \param other The other object.
     //!
     //! Returns false if objects are equal and true otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator!=(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator!=(Iterator const& other) const -> bool
     {
         return !operator==(other);
     }
@@ -75,7 +75,7 @@ public:
     //!
     //! Returns false if the other object is equal or smaller and true
     //! otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<(Iterator const& other) const -> bool
     {
         return mIndex < other.mIndex;
     }
@@ -85,7 +85,7 @@ public:
     //! \param other The other object.
     //!
     //! Returns false if the other object is equal or bigger and true otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>(Iterator const& other) const -> bool
     {
         return mIndex > other.mIndex;
     }
@@ -95,7 +95,7 @@ public:
     //! \param other The other object.
     //!
     //! Returns true if the other object is equal or bigger and false otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<=(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<=(Iterator const& other) const -> bool
     {
         return mIndex <= other.mIndex;
     }
@@ -106,7 +106,7 @@ public:
     //!
     //! Returns true if the other object is equal or smaller and false
     //! otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>=(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>=(Iterator const& other) const -> bool
     {
         return mIndex >= other.mIndex;
     }
@@ -137,7 +137,7 @@ public:
     //! \param gridSize The grid size.
     //! \param n The problem size.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorCpu(const TAcc& acc, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
+    IteratorCpu(TAcc const& acc, TBuf const* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
         : Iterator<T, TBuf>(
             data,
             static_cast<uint32_t>((n * linearizedIndex) / alpaka::math::min(acc, static_cast<uint64_t>(gridSize), n)),
@@ -258,7 +258,7 @@ public:
     //! \param gridSize The grid size.
     //! \param n The problem size.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorGpu(const TAcc&, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
+    IteratorGpu(TAcc const&, TBuf const* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
         : Iterator<T, TBuf>(data, linearizedIndex, n)
         , mGridSize(gridSize)
     {

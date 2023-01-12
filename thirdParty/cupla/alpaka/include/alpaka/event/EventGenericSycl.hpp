@@ -80,7 +80,7 @@ namespace alpaka::trait
     {
         static auto isComplete(experimental::EventGenericSycl<TDev> const& event)
         {
-            const auto status
+            auto const status
                 = event.getNativeHandle().template get_info<sycl::info::event::command_execution_status>();
             return (status == sycl::info::event_command_status::complete);
         }

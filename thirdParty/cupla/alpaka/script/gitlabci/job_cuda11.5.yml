@@ -1,6 +1,6 @@
 # nvcc + g++
-linux_nvcc-11.5_gcc-7_debug:
-  extends: .base_cuda_gcc
+linux_nvcc-11.5_gcc-7_debug_compile_only:
+  extends: .base_cuda_gcc_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
     ALPAKA_CI_CUDA_VERSION: "11.5"
@@ -9,20 +9,18 @@ linux_nvcc-11.5_gcc-7_debug:
     ALPAKA_BOOST_VERSION: 1.75.0
     ALPAKA_CI_CMAKE_VER: 3.20.6
     CMAKE_CUDA_ARCHITECTURES: "61;86"
-  stage: stageRun0
 
-linux_nvcc-11.5_gcc-8_release:
-  extends: .base_cuda_gcc
+linux_nvcc-11.5_gcc-8_release_compile_only:
+  extends: .base_cuda_gcc_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
     ALPAKA_CI_CUDA_VERSION: "11.5"
     ALPAKA_CI_GCC_VER: 8
     ALPAKA_BOOST_VERSION: 1.77.0
     ALPAKA_CI_CMAKE_VER: 3.18.6
-  stage: stageRun1
 
-linux_nvcc-11.5_gcc-9_release:
-  extends: .base_cuda_gcc
+linux_nvcc-11.5_gcc-9_release_compile_only:
+  extends: .base_cuda_gcc_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
     ALPAKA_CI_CUDA_VERSION: "11.5"
@@ -30,10 +28,9 @@ linux_nvcc-11.5_gcc-9_release:
     ALPAKA_CI_GCC_VER: 9
     ALPAKA_BOOST_VERSION: 1.76.0
     ALPAKA_CI_CMAKE_VER: 3.19.8
-  stage: stageRun0
 
-linux_nvcc-11.5_gcc-10_debug:
-  extends: .base_cuda_gcc
+linux_nvcc-11.5_gcc-10_debug_compile_only:
+  extends: .base_cuda_gcc_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
     ALPAKA_CI_CUDA_VERSION: "11.5"
@@ -41,9 +38,21 @@ linux_nvcc-11.5_gcc-10_debug:
     CMAKE_BUILD_TYPE: Debug
     ALPAKA_BOOST_VERSION: 1.76.0
     ALPAKA_CI_CMAKE_VER: 3.19.8
-  stage: stageRun1
 
-# clang not included because of an CUDA 11.5 bug: https://github.com/alpaka-group/alpaka/issues/1625
+# nvcc + clang not included because of an CUDA 11.5 bug: https://github.com/alpaka-group/alpaka/issues/1625
+
+# clang++ as CUDA compiler
+linux_clang-14_cuda-11.5_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.5"
+    ALPAKA_CI_CLANG_VER: 14
+    ALPAKA_BOOST_VERSION: 1.79.0
+    ALPAKA_CI_CMAKE_VER: 3.23.2
+    alpaka_ACC_GPU_CUDA_ENABLE: "ON"
+    CMAKE_CUDA_COMPILER: clang++
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "OFF"
 
 # nvhpc
 linux_nvhpc-21.11_cuda-11.5_oacc:
@@ -56,5 +65,4 @@ linux_nvhpc-21.11_cuda-11.5_oacc:
     ALPAKA_BOOST_VERSION: 1.74.0
     ALPAKA_CI_CMAKE_VER: 3.19.8
     alpaka_CHECK_HEADERS: "ON"
-  stage: stageRun0
   

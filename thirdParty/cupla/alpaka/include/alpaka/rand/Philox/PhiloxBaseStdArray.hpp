@@ -17,9 +17,8 @@ namespace alpaka::rand::engine
     /** Philox backend using std::array for Key and Counter storage
      *
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
-     * @tparam TImpl engine type implementation (CRTP)
      */
-    template<typename TParams, typename TImpl>
+    template<typename TParams>
     class PhiloxBaseStdArray
     {
     public:

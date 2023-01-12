@@ -162,8 +162,8 @@ namespace alpaka::trait
             std::cout << "Backend version: " << device.get_info<sycl::info::device::backend_version>() << '\n';
 
             std::cout << "Aspects: " << '\n';
-            const auto aspects = device.get_info<sycl::info::device::aspects>();
-            for(const auto& asp : aspects)
+            auto const aspects = device.get_info<sycl::info::device::aspects>();
+            for(auto const& asp : aspects)
             {
                 switch(asp)
                 {
@@ -244,9 +244,9 @@ namespace alpaka::trait
             std::cout << dims << std::endl;
 
             std::cout << "Maximum number of work items:\n";
-            const auto wi_1D = device.get_info<sycl::info::device::max_work_item_sizes<1>>();
-            const auto wi_2D = device.get_info<sycl::info::device::max_work_item_sizes<2>>();
-            const auto wi_3D = device.get_info<sycl::info::device::max_work_item_sizes<3>>();
+            auto const wi_1D = device.get_info<sycl::info::device::max_work_item_sizes<1>>();
+            auto const wi_2D = device.get_info<sycl::info::device::max_work_item_sizes<2>>();
+            auto const wi_3D = device.get_info<sycl::info::device::max_work_item_sizes<3>>();
             std::cout << "\t* 1D: (" << wi_1D.get(0) << ")\n";
             std::cout << "\t* 2D: (" << wi_2D.get(0) << ", " << wi_2D.get(1) << ")\n";
             std::cout << "\t* 3D: (" << wi_3D.get(0) << ", " << wi_3D.get(1) << ", " << wi_3D.get(2) << ")\n";
@@ -389,16 +389,16 @@ namespace alpaka::trait
 
             if(device.has_aspect(sycl::aspect::fp16))
             {
-                const auto fp16_conf = device.get_info<sycl::info::device::half_fp_config>();
+                auto const fp16_conf = device.get_info<sycl::info::device::half_fp_config>();
                 print_fp_config("Half", fp16_conf);
             }
 
-            const auto fp32_conf = device.get_info<sycl::info::device::single_fp_config>();
+            auto const fp32_conf = device.get_info<sycl::info::device::single_fp_config>();
             print_fp_config("Single", fp32_conf);
 
             if(device.has_aspect(sycl::aspect::fp64))
             {
-                const auto fp64_conf = device.get_info<sycl::info::device::double_fp_config>();
+                auto const fp64_conf = device.get_info<sycl::info::device::double_fp_config>();
                 print_fp_config("Double", fp64_conf);
             }
 

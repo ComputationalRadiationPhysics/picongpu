@@ -64,19 +64,24 @@ namespace alpaka
             return *this;
         }
 
+        ALPAKA_FN_HOST_ACC friend constexpr auto operator==(WorkDivMembers const& a, WorkDivMembers const& b) -> bool
+        {
+            return a.m_gridBlockExtent == b.m_gridBlockExtent && a.m_blockThreadExtent == b.m_blockThreadExtent
+                   && a.m_threadElemExtent == b.m_threadElemExtent;
+        }
+
+        ALPAKA_FN_HOST friend auto operator<<(std::ostream& os, WorkDivMembers const& workDiv) -> std::ostream&
+        {
+            return os << "{gridBlockExtent: " << workDiv.m_gridBlockExtent
+                      << ", blockThreadExtent: " << workDiv.m_blockThreadExtent
+                      << ", threadElemExtent: " << workDiv.m_threadElemExtent << "}";
+        }
+
     public:
         Vec<TDim, TIdx> m_gridBlockExtent;
         Vec<TDim, TIdx> m_blockThreadExtent;
         Vec<TDim, TIdx> m_threadElemExtent;
     };
-
-    template<typename TDim, typename TIdx>
-    ALPAKA_FN_HOST auto operator<<(std::ostream& os, WorkDivMembers<TDim, TIdx> const& workDiv) -> std::ostream&
-    {
-        return (
-            os << "{gridBlockExtent: " << workDiv.m_gridBlockExtent << ", blockThreadExtent: "
-               << workDiv.m_blockThreadExtent << ", threadElemExtent: " << workDiv.m_threadElemExtent << "}");
-    }
 
     namespace trait
     {

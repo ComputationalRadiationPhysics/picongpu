@@ -25,7 +25,6 @@
 #    include <alpaka/math/MathStdLib.hpp>
 #    include <alpaka/mem/fence/MemFenceCpu.hpp>
 #    include <alpaka/rand/RandStdLib.hpp>
-#    include <alpaka/time/TimeStdLib.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
@@ -37,6 +36,7 @@
 #    include <alpaka/pltf/Traits.hpp>
 
 // Implementation details.
+#    include <alpaka/acc/Tag.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 
@@ -68,7 +68,6 @@ namespace alpaka
         public IntrinsicCpu,
         public MemFenceCpu,
         public rand::RandStdLib,
-        public TimeStdLib,
         public warp::WarpSingleThread,
         public concepts::Implements<ConceptAcc, AccCpuTbbBlocks<TDim, TIdx>>
     {
@@ -80,6 +79,11 @@ namespace alpaka
         // Partial specialization with the correct TDim and TIdx is not allowed.
         template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
         friend class ::alpaka::TaskKernelCpuTbbBlocks;
+
+        AccCpuTbbBlocks(AccCpuTbbBlocks const&) = delete;
+        AccCpuTbbBlocks(AccCpuTbbBlocks&&) = delete;
+        auto operator=(AccCpuTbbBlocks const&) -> AccCpuTbbBlocks& = delete;
+        auto operator=(AccCpuTbbBlocks&&) -> AccCpuTbbBlocks& = delete;
 
     private:
         template<typename TWorkDiv>
@@ -98,7 +102,6 @@ namespace alpaka
             , BlockSyncNoOp()
             , MemFenceCpu()
             , rand::RandStdLib()
-            , TimeStdLib()
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -192,6 +195,18 @@ namespace alpaka
         struct IdxType<AccCpuTbbBlocks<TDim, TIdx>>
         {
             using type = TIdx;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct AccToTag<alpaka::AccCpuTbbBlocks<TDim, TIdx>>
+        {
+            using type = alpaka::TagCpuTbbBlocks;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct TagToAcc<alpaka::TagCpuTbbBlocks, TDim, TIdx>
+        {
+            using type = alpaka::AccCpuTbbBlocks<TDim, TIdx>;
         };
     } // namespace trait
 } // namespace alpaka

@@ -1,7 +1,7 @@
 
 //              Copyright Catch2 Authors
 // Distributed under the Boost Software License, Version 1.0.
-//   (See accompanying file LICENSE_1_0.txt or copy at
+//   (See accompanying file LICENSE.txt or copy at
 //        https://www.boost.org/LICENSE_1_0.txt)
 
 // SPDX-License-Identifier: BSL-1.0
@@ -126,7 +126,7 @@ namespace Catch {
                     return {};
                 }
 
-                auto ret = kvPairs.emplace( kv.key, kv.value );
+                auto ret = kvPairs.emplace( std::string(kv.key), std::string(kv.value) );
                 if ( !ret.second ) {
                     // Duplicated key. We might want to handle this differently,
                     // e.g. by overwriting the existing value?

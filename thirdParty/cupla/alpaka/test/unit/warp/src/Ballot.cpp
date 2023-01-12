@@ -42,8 +42,8 @@ struct BallotMultipleThreadWarpTestKernel
 
         using BallotResultType = decltype(alpaka::warp::ballot(acc, 42));
         BallotResultType const allActive = static_cast<size_t>(warpExtent) == sizeof(BallotResultType) * CHAR_BIT
-            ? ~BallotResultType{0u}
-            : (BallotResultType{1} << warpExtent) - 1u;
+                                               ? ~BallotResultType{0u}
+                                               : (BallotResultType{1} << warpExtent) - 1u;
         ALPAKA_CHECK(*success, alpaka::warp::ballot(acc, 42) == allActive);
         ALPAKA_CHECK(*success, alpaka::warp::ballot(acc, 0) == 0u);
 
@@ -82,7 +82,7 @@ TEMPLATE_LIST_TEST_CASE("ballot", "[warp]", alpaka::test::TestAccs)
     auto const warpExtents = alpaka::getWarpSizes(dev);
     for(auto const warpExtent : warpExtents)
     {
-        const auto scalar = Dim::value == 0 || warpExtent == 1;
+        auto const scalar = Dim::value == 0 || warpExtent == 1;
         if(scalar)
         {
             alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));

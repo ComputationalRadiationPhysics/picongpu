@@ -186,7 +186,7 @@
 :test-result: PASS Our PCG implementation provides expected results for known seeds
 :test-result: FAIL Output from all sections is reported
 :test-result: PASS Overloaded comma or address-of operators are not used
-:test-result: PASS Parse test names and tags
+:test-result: PASS Parse uints
 :test-result: PASS Parsed tags are matched case insensitive
 :test-result: PASS Parsing sharding-related cli flags
 :test-result: PASS Parsing tags with non-alphabetical characters is pass-through
@@ -264,8 +264,11 @@
 :test-result: FAIL Unexpected exceptions can be translated
 :test-result: PASS Upcasting special member functions
 :test-result: PASS Usage of AllMatch range matcher
+:test-result: PASS Usage of AllTrue range matcher
 :test-result: PASS Usage of AnyMatch range matcher
+:test-result: PASS Usage of AnyTrue range matcher
 :test-result: PASS Usage of NoneMatch range matcher
+:test-result: PASS Usage of NoneTrue range matcher
 :test-result: PASS Usage of the SizeIs range matcher
 :test-result: PASS Use a custom approx
 :test-result: PASS Variadic macros

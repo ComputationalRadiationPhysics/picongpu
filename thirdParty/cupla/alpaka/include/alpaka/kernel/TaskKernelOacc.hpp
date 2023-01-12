@@ -59,7 +59,7 @@ namespace alpaka
         }
 
         //! Executes the kernel function object.
-        ALPAKA_FN_HOST auto operator()(const DevOacc& dev) const -> void
+        ALPAKA_FN_HOST auto operator()(DevOacc const& dev) const -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 

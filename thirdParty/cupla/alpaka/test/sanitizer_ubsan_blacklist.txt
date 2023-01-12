@@ -2,14 +2,6 @@
 src:*/boost/random/mersenne_twister.hpp
 # boost/uuid/sha1.hpp:171:43: runtime error: unsigned integer overflow: 3903086636 + 2562383102 cannot be represented in type 'unsigned int'
 src:*/boost/uuid/sha1.hpp
-# boost/boost/fiber/context.hpp:570:25: runtime error: constructor call on misaligned address 0x7f8f6c0113e0 for type 'boost::fibers::context', which requires 64 byte alignment
-src:*boost/fiber/context.hpp
-# boost/fiber/condition_variable.hpp:71:9: runtime error: member call on misaligned address 0x0000066b2d20 for type 'boost::fibers::context', which requires 64 byte alignment
-src:*boost/fiber/condition_variable.hpp
-src:*boost/fiber/operations.hpp
-# boost/intrusive/slist.hpp:452:52: runtime error: reference binding to misaligned address 0x0000066b2d20 for type 'boost::fibers::context', which requires 64 byte alignment
-src:*boost/intrusive/slist.hpp
-src:*boost/intrusive/detail/hook_traits.hpp
 # /usr/include/tbb/task.h:705:30: runtime error: member call on address 0x7ff8ceee3200 which does not point to an object of type 'tbb::internal::scheduler'
 src:*/tbb/task.h
 # /usr/lib/gcc/x86_64-linux-gnu/5.4.1/../../../../include/c++/5.4.1/memory:118:54: runtime error: negation of 64 cannot be represented in type 'size_t' (aka 'unsigned long')

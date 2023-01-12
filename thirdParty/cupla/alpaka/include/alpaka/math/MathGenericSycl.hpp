@@ -32,6 +32,11 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL acosh.
+    class AcoshGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAcosh, AcoshGenericSycl>
+    {
+    };
+
     //! The SYCL arg.
     class ArgGenericSycl : public concepts::Implements<alpaka::math::ConceptMathArg, ArgGenericSycl>
     {
@@ -42,8 +47,18 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL asinh.
+    class AsinhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAsinh, AsinhGenericSycl>
+    {
+    };
+
     //! The SYCL atan.
     class AtanGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAtan, AtanGenericSycl>
+    {
+    };
+
+    //! The SYCL atanh.
+    class AtanhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAtanh, AtanhGenericSycl>
     {
     };
 
@@ -69,6 +84,11 @@ namespace alpaka::experimental::math
 
     //! The SYCL cos.
     class CosGenericSycl : public concepts::Implements<alpaka::math::ConceptMathCos, CosGenericSycl>
+    {
+    };
+
+    //! The SYCL cosh.
+    class CoshGenericSycl : public concepts::Implements<alpaka::math::ConceptMathCosh, CoshGenericSycl>
     {
     };
 
@@ -147,6 +167,11 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL sinh.
+    class SinhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathSinh, SinhGenericSycl>
+    {
+    };
+
     //! The SYCL sincos.
     class SinCosGenericSycl : public concepts::Implements<alpaka::math::ConceptMathSinCos, SinCosGenericSycl>
     {
@@ -162,6 +187,11 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL tanh.
+    class TanhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathTanh, TanhGenericSycl>
+    {
+    };
+
     //! The SYCL trunc.
     class TruncGenericSycl : public concepts::Implements<alpaka::math::ConceptMathTrunc, TruncGenericSycl>
     {
@@ -171,14 +201,18 @@ namespace alpaka::experimental::math
     class MathGenericSycl
         : public AbsGenericSycl
         , public AcosGenericSycl
+        , public AcoshGenericSycl
         , public ArgGenericSycl
         , public AsinGenericSycl
+        , public AsinhGenericSycl
         , public AtanGenericSycl
+        , public AtanhGenericSycl
         , public Atan2GenericSycl
         , public CbrtGenericSycl
         , public CeilGenericSycl
         , public ConjGenericSycl
         , public CosGenericSycl
+        , public CoshGenericSycl
         , public ErfGenericSycl
         , public ExpGenericSycl
         , public FloorGenericSycl
@@ -194,9 +228,11 @@ namespace alpaka::experimental::math
         , public RoundGenericSycl
         , public RsqrtGenericSycl
         , public SinGenericSycl
+        , public SinhGenericSycl
         , public SinCosGenericSycl
         , public SqrtGenericSycl
         , public TanGenericSycl
+        , public TanhGenericSycl
         , public TruncGenericSycl
     {
     };
@@ -229,6 +265,16 @@ namespace alpaka::math::trait
         }
     };
 
+    //! The SYCL acosh trait specialization.
+    template<typename TArg>
+    struct Acosh<experimental::math::AcoshGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(experimental::math::AcoshGenericSycl const&, TArg const& arg)
+        {
+            return sycl::acosh(arg);
+        }
+    };
+
     //! The SYCL arg trait specialization.
     template<typename TArgument>
     struct Arg<experimental::math::ArgGenericSycl, TArgument, std::enable_if_t<std::is_arithmetic_v<TArgument>>>
@@ -254,6 +300,16 @@ namespace alpaka::math::trait
         }
     };
 
+    //! The SYCL asinh trait specialization.
+    template<typename TArg>
+    struct Asinh<experimental::math::AsinhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(experimental::math::AsinhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::asinh(arg);
+        }
+    };
+
     //! The SYCL atan trait specialization.
     template<typename TArg>
     struct Atan<experimental::math::AtanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
@@ -261,6 +317,16 @@ namespace alpaka::math::trait
         auto operator()(experimental::math::AtanGenericSycl const&, TArg const& arg)
         {
             return sycl::atan(arg);
+        }
+    };
+
+    //! The SYCL atanh trait specialization.
+    template<typename TArg>
+    struct Atanh<experimental::math::AtanhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(experimental::math::AtanhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::atanh(arg);
         }
     };
 
@@ -320,6 +386,16 @@ namespace alpaka::math::trait
         auto operator()(experimental::math::CosGenericSycl const&, TArg const& arg)
         {
             return sycl::cos(arg);
+        }
+    };
+
+    //! The SYCL cos trait specialization.
+    template<typename TArg>
+    struct Cosh<experimental::math::CoshGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(experimental::math::CoshGenericSycl const&, TArg const& arg)
+        {
+            return sycl::cosh(arg);
         }
     };
 
@@ -536,6 +612,16 @@ namespace alpaka::math::trait
         }
     };
 
+    //! The SYCL sinh trait specialization.
+    template<typename TArg>
+    struct Sinh<experimental::math::SinhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(experimental::math::SinhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::sinh(arg);
+        }
+    };
+
     //! The SYCL sincos trait specialization.
     template<typename TArg>
     struct SinCos<experimental::math::SinCosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
@@ -570,6 +656,16 @@ namespace alpaka::math::trait
         auto operator()(experimental::math::TanGenericSycl const&, TArg const& arg)
         {
             return sycl::tan(arg);
+        }
+    };
+
+    //! The SYCL tanh trait specialization.
+    template<typename TArg>
+    struct Tanh<experimental::math::TanhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(experimental::math::TanhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::tanh(arg);
         }
     };
 

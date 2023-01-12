@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 # detect if Catch is being bundled,
 # disable testsuite in that case
@@ -30,16 +30,12 @@ if (CMAKE_BINARY_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     message(FATAL_ERROR "Building in-source is not supported! Create a build dir and remove ${CMAKE_SOURCE_DIR}/CMakeCache.txt")
 endif()
 
-if(CMAKE_VERSION VERSION_GREATER 3.8)
-  # Enable IPO for CMake versions that support it
-  cmake_policy(SET CMP0069 NEW)
-endif()
-
-
 project(Catch2
-  VERSION 3.0.1 # CML version placeholder, don't delete
+  VERSION 3.2.1 # CML version placeholder, don't delete
   LANGUAGES CXX
-  HOMEPAGE_URL "https://github.com/catchorg/Catch2"
+  # HOMEPAGE_URL is not supported until CMake version 3.12, which
+  # we do not target yet.
+  # HOMEPAGE_URL "https://github.com/catchorg/Catch2"
   DESCRIPTION "A modern, C++-native, unit test framework."
 )
 

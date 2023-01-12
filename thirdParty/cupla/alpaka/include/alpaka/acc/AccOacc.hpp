@@ -23,7 +23,6 @@
 #    include <alpaka/math/MathStdLib.hpp>
 #    include <alpaka/mem/fence/MemFenceOacc.hpp>
 #    include <alpaka/rand/RandDefault.hpp>
-#    include <alpaka/time/TimeStdLib.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 
 // Specialized traits.
@@ -34,6 +33,7 @@
 #    include <alpaka/pltf/Traits.hpp>
 
 // Implementation details.
+#    include <alpaka/acc/Tag.hpp>
 #    include <alpaka/core/ClipCast.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/ctx/block/CtxBlockOacc.hpp>
@@ -50,7 +50,7 @@ namespace alpaka
     // define max gang/worker num because there is no standart way in OpenACC to
     // get this information
 #    ifndef ALPAKA_OACC_MAX_GANG_NUM
-    constexpr size_t oaccMaxGangNum = std::numeric_limits<unsigned int>::max();
+    constexpr size_t oaccMaxGangNum = 1;
 #    else
     constexpr size_t oaccMaxGangNum = ALPAKA_OACC_MAX_GANG_NUM;
 #    endif
@@ -67,7 +67,6 @@ namespace alpaka
         , public math::MathStdLib
         , public MemFenceOacc
         , public rand::RandDefault
-        , public TimeStdLib
         , public warp::WarpSingleThread
         ,
           // NVHPC calls a builtin in the STL implementation, which fails in OpenACC offload, using fallback
@@ -91,12 +90,16 @@ namespace alpaka
             , math::MathStdLib()
             , MemFenceOacc()
             , rand::RandDefault()
-            , TimeStdLib()
             , m_blockShared(blockShared)
         {
         }
 
     public:
+        AccOacc(AccOacc const&) = delete;
+        AccOacc(AccOacc&&) = delete;
+        auto operator=(AccOacc const&) -> AccOacc& = delete;
+        auto operator=(AccOacc&&) -> AccOacc& = delete;
+
         CtxBlockOacc<TDim, TIdx>& m_blockShared;
     };
 
@@ -118,8 +121,8 @@ namespace alpaka
                 auto const gridBlockCountMax(alpaka::core::clipCast<TIdx>(oaccMaxGangNum));
 
                 return {// m_multiProcessorCount
-                        static_cast<TIdx>(gridBlockCountMax),
-                        // m_gridBlockExtentMax
+                        static_cast<TIdx>(gridBlockCountMax), // TODO: standardize a way to return "unknown"
+                                                              // m_gridBlockExtentMax
                         Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_gridBlockCountMax
                         std::numeric_limits<TIdx>::max(),
@@ -344,6 +347,18 @@ namespace alpaka
                 return GetWorkDiv<WorkDivMembers<TDim, TIdx>, origin::Thread, unit::Elems>::getWorkDiv(
                     workDiv.m_blockShared);
             }
+        };
+
+        template<typename TDim, typename TIdx>
+        struct AccToTag<alpaka::AccOacc<TDim, TIdx>>
+        {
+            using type = alpaka::TagOacc;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct TagToAcc<alpaka::TagOacc, TDim, TIdx>
+        {
+            using type = alpaka::AccOacc<TDim, TIdx>;
         };
     } // namespace trait
 } // namespace alpaka

@@ -12,9 +12,6 @@
 #include <boost/version.hpp>
 
 #ifndef ALPAKA_DISABLE_ATOMIC_ATOMICREF
-#    if BOOST_VERSION < 107300
-#        warning boost::atomic_ref requires Boost version 1.73 or higher. Please update your version of Boost, or disable the use of boost::atomic_ref with -DALPAKA_DISABLE_ATOMIC_ATOMICREF
-#    endif
 #    define ALPAKA_DISABLE_ATOMIC_ATOMICREF
 #endif
 

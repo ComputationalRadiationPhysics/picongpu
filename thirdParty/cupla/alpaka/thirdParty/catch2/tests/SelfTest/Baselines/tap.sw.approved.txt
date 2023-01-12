@@ -1,3 +1,4 @@
+# filters: "*" ~[!nonportable] ~[!benchmark] ~[approvals]
 # rng-seed: 1
 # # A test name that starts with a #
 ok {test-number} - with 1 message: 'yay'
@@ -2081,308 +2082,28 @@ ok {test-number} - &EvilMatcher(), EvilAddressOfOperatorUsed
 ok {test-number} - EvilMatcher() || ( EvilMatcher() && !EvilMatcher() )
 # Overloaded comma or address-of operators are not used
 ok {test-number} - ( EvilMatcher() && EvilMatcher() ) || !EvilMatcher()
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - parseTestSpec( "*a" ).matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - parseTestSpec( "a*" ).matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - parseTestSpec( "*a*" ).matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.hasFilters() == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcA ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcB ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcC ) == false for: false == false
-# Parse test names and tags
-ok {test-number} - spec.matches( *tcD ) == true for: true == true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "  aardvark " ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "  aardvark" ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( " aardvark " ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "aardvark " ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "aardvark" ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "  aardvark " ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "  aardvark" ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( " aardvark " ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "aardvark " ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches( *fakeTestCase( "aardvark" ) ) for: true
-# Parse test names and tags
-ok {test-number} - spec.matches(*fakeTestCase("hidden and foo", "[.][foo]")) for: true
-# Parse test names and tags
-ok {test-number} - !(spec.matches(*fakeTestCase("only foo", "[foo]"))) for: !false
-# Parse test names and tags
-ok {test-number} - !(spec.matches(*fakeTestCase("hidden and foo", "[.][foo]"))) for: !false
-# Parse test names and tags
-ok {test-number} - !(spec.matches(*fakeTestCase("only foo", "[foo]"))) for: !false
-# Parse test names and tags
-ok {test-number} - !(spec.matches(*fakeTestCase("only hidden", "[.]"))) for: !false
-# Parse test names and tags
-ok {test-number} - spec.matches(*fakeTestCase("neither foo nor hidden", "[bar]")) for: true
+# Parse uints
+ok {test-number} - parseUInt( "0" ) == Optional<unsigned int>{ 0 } for: {?} == {?}
+# Parse uints
+ok {test-number} - parseUInt( "100" ) == Optional<unsigned int>{ 100 } for: {?} == {?}
+# Parse uints
+ok {test-number} - parseUInt( "4294967295" ) == Optional<unsigned int>{ 4294967295 } for: {?} == {?}
+# Parse uints
+ok {test-number} - parseUInt( "0x<hex digits>", 16 ) == Optional<unsigned int>{ 255 } for: {?} == {?}
+# Parse uints
+ok {test-number} - !(parseUInt( "" )) for: !{?}
+# Parse uints
+ok {test-number} - !(parseUInt( "!!KJHF*#" )) for: !{?}
+# Parse uints
+ok {test-number} - !(parseUInt( "-1" )) for: !{?}
+# Parse uints
+ok {test-number} - !(parseUInt( "4294967296" )) for: !{?}
+# Parse uints
+ok {test-number} - !(parseUInt( "42949672964294967296429496729642949672964294967296" )) for: !{?}
+# Parse uints
+ok {test-number} - !(parseUInt( "2 4" )) for: !{?}
+# Parse uints
+ok {test-number} - !(parseUInt( "0x<hex digits>", 10 )) for: !{?}
 # Parsed tags are matched case insensitive
 ok {test-number} - spec.hasFilters() for: true
 # Parsed tags are matched case insensitive
@@ -2396,11 +2117,11 @@ ok {test-number} - config.shardCount == 8 for: 8 == 8
 # Parsing sharding-related cli flags
 ok {test-number} - !(result) for: !{?}
 # Parsing sharding-related cli flags
-ok {test-number} - result.errorMessage(), ContainsSubstring("Shard count must be a positive number") for: "Shard count must be a positive number" contains: "Shard count must be a positive number"
+ok {test-number} - result.errorMessage(), ContainsSubstring( "Could not parse '-1' as shard count" ) for: "Could not parse '-1' as shard count" contains: "Could not parse '-1' as shard count"
 # Parsing sharding-related cli flags
 ok {test-number} - !(result) for: !{?}
 # Parsing sharding-related cli flags
-ok {test-number} - result.errorMessage(), ContainsSubstring("Shard count must be a positive number") for: "Shard count must be a positive number" contains: "Shard count must be a positive number"
+ok {test-number} - result.errorMessage(), ContainsSubstring( "Shard count must be positive" ) for: "Shard count must be positive" contains: "Shard count must be positive"
 # Parsing sharding-related cli flags
 ok {test-number} - cli.parse({ "test", "--shard-index=2" }) for: {?}
 # Parsing sharding-related cli flags
@@ -2408,7 +2129,7 @@ ok {test-number} - config.shardIndex == 2 for: 2 == 2
 # Parsing sharding-related cli flags
 ok {test-number} - !(result) for: !{?}
 # Parsing sharding-related cli flags
-ok {test-number} - result.errorMessage(), ContainsSubstring("Shard index must be a non-negative number") for: "Shard index must be a non-negative number" contains: "Shard index must be a non-negative number"
+ok {test-number} - result.errorMessage(), ContainsSubstring( "Could not parse '-12' as shard index" ) for: "Could not parse '-12' as shard index" contains: "Could not parse '-12' as shard index"
 # Parsing sharding-related cli flags
 ok {test-number} - cli.parse({ "test", "--shard-index=0" }) for: {?}
 # Parsing sharding-related cli flags
@@ -3530,6 +3251,44 @@ ok {test-number} - mocked.m_derefed[2] for: true
 ok {test-number} - !(mocked.m_derefed[3]) for: !false
 # Usage of AllMatch range matcher
 ok {test-number} - !(mocked.m_derefed[4]) for: !false
+# Usage of AllTrue range matcher
+ok {test-number} - data, AllTrue() for: { true, true, true, true, true } contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - data, AllTrue() for: {  } contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - data, !AllTrue() for: { true, true, false, true, true } not contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - data, !AllTrue() for: { false, false, false, false, false } not contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - data, AllTrue() for: { true, true, true, true, true } contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - data, !AllTrue() for: { true, true, false, true, true } not contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - data, !AllTrue() for: { false, false, false, false, false } not contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked, AllTrue() for: { true, true, true, true, true } contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[0] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[1] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[2] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[3] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[4] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked, !AllTrue() for: { true, true, false, true, true } not contains only true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[0] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[1] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - mocked.m_derefed[2] for: true
+# Usage of AllTrue range matcher
+ok {test-number} - !(mocked.m_derefed[3]) for: !false
+# Usage of AllTrue range matcher
+ok {test-number} - !(mocked.m_derefed[4]) for: !false
 # Usage of AnyMatch range matcher
 ok {test-number} - data, AnyMatch(SizeIs(5)) for: { { 0, 1, 2, 3, 5 }, { 4, -3, -2, 5, 0 }, { 0, 0, 0, 5, 0 }, { 0, -5, 0, 5, 0 }, { 1, 0, 0, -1, 5 } } any match has size == 5
 # Usage of AnyMatch range matcher
@@ -3560,6 +3319,44 @@ ok {test-number} - !(mocked.m_derefed[2]) for: !false
 ok {test-number} - !(mocked.m_derefed[3]) for: !false
 # Usage of AnyMatch range matcher
 ok {test-number} - !(mocked.m_derefed[4]) for: !false
+# Usage of AnyTrue range matcher
+ok {test-number} - data, AnyTrue() for: { true, true, true, true, true } contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - data, !AnyTrue() for: {  } not contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - data, AnyTrue() for: { false, false, true, false, false } contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - data, !AnyTrue() for: { false, false, false, false, false } not contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - data, AnyTrue() for: { true, true, true, true, true } contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - data, AnyTrue() for: { false, false, true, false, false } contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - data, !AnyTrue() for: { false, false, false, false, false } not contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked, AnyTrue() for: { false, false, false, false, true } contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[0] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[1] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[2] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[3] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[4] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked, AnyTrue() for: { false, false, true, true, true } contains at least one true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[0] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[1] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - mocked.m_derefed[2] for: true
+# Usage of AnyTrue range matcher
+ok {test-number} - !(mocked.m_derefed[3]) for: !false
+# Usage of AnyTrue range matcher
+ok {test-number} - !(mocked.m_derefed[4]) for: !false
 # Usage of NoneMatch range matcher
 ok {test-number} - data, NoneMatch(SizeIs(6)) for: { { 0, 1, 2, 3, 5 }, { 4, -3, -2, 5, 0 }, { 0, 0, 0, 5, 0 }, { 0, -5, 0, 5, 0 }, { 1, 0, 0, -1, 5 } } none match has size == 6
 # Usage of NoneMatch range matcher
@@ -3589,6 +3386,44 @@ ok {test-number} - !(mocked.m_derefed[2]) for: !false
 # Usage of NoneMatch range matcher
 ok {test-number} - !(mocked.m_derefed[3]) for: !false
 # Usage of NoneMatch range matcher
+ok {test-number} - !(mocked.m_derefed[4]) for: !false
+# Usage of NoneTrue range matcher
+ok {test-number} - data, !NoneTrue() for: { true, true, true, true, true } not contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - data, NoneTrue() for: {  } contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - data, !NoneTrue() for: { false, false, true, false, false } not contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - data, NoneTrue() for: { false, false, false, false, false } contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - data, !NoneTrue() for: { true, true, true, true, true } not contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - data, !NoneTrue() for: { false, false, true, false, false } not contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - data, NoneTrue() for: { false, false, false, false, false } contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked, NoneTrue() for: { false, false, false, false, false } contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[0] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[1] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[2] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[3] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[4] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked, !NoneTrue() for: { false, false, true, true, true } not contains no true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[0] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[1] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - mocked.m_derefed[2] for: true
+# Usage of NoneTrue range matcher
+ok {test-number} - !(mocked.m_derefed[3]) for: !false
+# Usage of NoneTrue range matcher
 ok {test-number} - !(mocked.m_derefed[4]) for: !false
 # Usage of the SizeIs range matcher
 ok {test-number} - empty_vec, SizeIs(0) for: {  } has size == 0
@@ -4487,5 +4322,5 @@ ok {test-number} - q3 == 23. for: 23.0 == 23.0
 ok {test-number} -
 # xmlentitycheck
 ok {test-number} -
-1..2242
+1..2159
 

@@ -33,8 +33,6 @@ namespace alpaka
     using ExampleDefaultAcc = alpaka::AccCpuOmp2Blocks<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
     using ExampleDefaultAcc = alpaka::AccCpuTbbBlocks<TDim, TIdx>;
-#elif defined(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
-    using ExampleDefaultAcc = alpaka::AccCpuFibers<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED)
     using ExampleDefaultAcc = alpaka::AccCpuOmp2Threads<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)

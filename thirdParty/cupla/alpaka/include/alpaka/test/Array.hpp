@@ -20,7 +20,7 @@ namespace alpaka::test
         TType m_data[TSize];
 
         template<typename T_Idx>
-        ALPAKA_FN_HOST_ACC auto operator[](const T_Idx idx) const -> const TType&
+        ALPAKA_FN_HOST_ACC auto operator[](const T_Idx idx) const -> TType const&
         {
             return m_data[idx];
         }

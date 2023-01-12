@@ -59,7 +59,7 @@ namespace alpaka
             public:
                 explicit QueueGenericThreadsNonBlockingImpl(TDev dev)
                     : m_dev(std::move(dev))
-                    , m_workerThread(std::make_unique<ThreadPool>(1u))
+                    , m_workerThread(std::make_shared<ThreadPool>(1u))
                 {
                 }
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev> const&) = delete;
@@ -73,13 +73,11 @@ namespace alpaka
                     m_dev.registerCleanup(
                         [pool = std::weak_ptr<ThreadPool>(m_workerThread)]() noexcept
                         {
-                            auto s = pool.lock();
-                            if(s)
-                            {
-                                s = s->takeDetachHandle();
-                            }
+                            if(auto s = pool.lock())
+                                static_cast<void>(s->takeDetachHandle()); // let returned shared_ptr destroy itself
                         });
-                    m_workerThread->detach(std::move(m_workerThread));
+                    auto* wt = m_workerThread.get();
+                    wt->detach(std::move(m_workerThread));
                 }
 
                 void enqueue(EventGenericThreads<TDev>& ev) final

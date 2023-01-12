@@ -2191,7 +2191,6 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED \
                          ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED \
-                         ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED \
                          ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED \
                          ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED \
                          ALPAKA_ACC_ANY_BT_OMP5_ENABLED \

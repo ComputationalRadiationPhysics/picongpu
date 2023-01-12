@@ -54,8 +54,8 @@ namespace alpaka
                 , m_srcMemNative(reinterpret_cast<void const*>(getPtrNative(viewSrc)))
             {
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                const auto dstExtent(castVec<size_t>(getExtentVec(viewDst)));
-                const auto srcExtent(castVec<size_t>(getExtentVec(viewSrc)));
+                auto const dstExtent(castVec<size_t>(getExtentVec(viewDst)));
+                auto const srcExtent(castVec<size_t>(getExtentVec(viewSrc)));
                 for(auto i = static_cast<decltype(TDim::value)>(0u); i < TDim::value; ++i)
                 {
                     ALPAKA_ASSERT(m_extent[i] <= dstExtent[i]);
@@ -103,8 +103,8 @@ namespace alpaka
 
                     const size_t elementSize
                         = (m_dstPitchBytes[0] % sizeof(Elem<TViewDst>) || m_srcPitchBytes[0] % sizeof(Elem<TViewDst>))
-                        ? 1
-                        : sizeof(Elem<TViewDst>);
+                              ? 1
+                              : sizeof(Elem<TViewDst>);
 
                     dstExtentFull[lastDim] = m_dstPitchBytes[lastDim] / elementSize;
                     srcExtentFull[lastDim] = m_srcPitchBytes[lastDim] / elementSize;

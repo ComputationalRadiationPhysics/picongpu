@@ -147,7 +147,7 @@ validity, and throw an error if they are wrong._
 
 > Support for passing arguments to reporters through the `-r`, `--reporter` flag was introduced in Catch2 3.0.1
 
-There are multiple built-in reporters, you can see what they do by using the 
+There are multiple built-in reporters, you can see what they do by using the
 [`--list-reporter`](command-line.md#listing-available-tests-tags-or-reporters)
 flag. If you need a reporter providing custom format outside of the already
 provided ones, look at the ["write your own reporter" part of the reporter
@@ -220,6 +220,15 @@ similar information.
 
 `--list-listeners` lists all registered listeners and their descriptions.
 
+The [`--verbosity` argument](#output-verbosity) modifies the level of detail provided by the default `--list*` options
+as follows:
+
+| Option             | `normal` (default)              | `quiet`             | `high`                                  |
+|--------------------|---------------------------------|---------------------|-----------------------------------------|
+| `--list-tests`     | Test names and tags             | Test names only     | Same as `normal`, plus source code line |
+| `--list-tags`      | Tags and counts                 | Same as `normal`    | Same as `normal`                        |
+| `--list-reporters` | Reporter names and descriptions | Reporter names only | Same as `normal`                        |
+| `--list-listeners` | Listener names and descriptions | Same as `normal`    | Same as `normal`                        |
 
 <a id="sending-output-to-a-file"></a>
 ## Sending output to a file
@@ -275,7 +284,7 @@ This option transforms tabs and newline characters into ```\t``` and ```\n``` re
 <pre>-w, --warn &lt;warning name></pre>
 
 You can think of Catch2's warnings as the equivalent of `-Werror` (`/WX`)
-flag for C++ compilers. It turns some suspicious occurences, like a section
+flag for C++ compilers. It turns some suspicious occurrences, like a section
 without assertions, into errors. Because these might be intended, warnings
 are not enabled by default, but user can opt in.
 
@@ -304,7 +313,7 @@ When set to ```yes``` Catch will report the duration of each test case, in milli
 > `--min-duration` was [introduced](https://github.com/catchorg/Catch2/pull/1910) in Catch2 2.13.0
 
 When set, Catch will report the duration of each test case that took more
-than &lt;value> seconds, in milliseconds. This option is overriden by both
+than &lt;value> seconds, in milliseconds. This option is overridden by both
 `-d yes` and `-d no`, so that either all durations are reported, or none
 are.
 
@@ -330,8 +339,8 @@ Test cases are ordered one of three ways:
 
 ### decl
 Declaration order (this is the default order if no --order argument is provided).
-Tests in the same TU are sorted using their declaration orders, different
-TUs are in an implementation (linking) dependent order.
+Tests in the same translation unit are sorted using their declaration orders,
+different TUs are sorted in an implementation (linking) dependent order.
 
 
 ### lex
@@ -533,12 +542,18 @@ when writing to a file
 
 > [Introduced](https://github.com/catchorg/Catch2/pull/2257) in Catch2 3.0.1.
 
-When `--shard-count <#number of shards>` is used, the tests to execute will be split evenly in to the given number of sets,
-identified by indicies starting at 0. The tests in the set given by `--shard-index <#shard index to run>` will be executed.
-The default shard count is `1`, and the default index to run is `0`. It is an error to specify a shard index greater than
-the number of shards.
+When `--shard-count <#number of shards>` is used, the tests to execute
+will be split evenly in to the given number of sets, identified by indices
+starting at 0. The tests in the set given by
+`--shard-index <#shard index to run>` will be executed. The default shard
+count is `1`, and the default index to run is `0`.
 
-This is useful when you want to split test execution across multiple processes, as is done with [Bazel test sharding](https://docs.bazel.build/versions/main/test-encyclopedia.html#test-sharding). 
+_Shard index must be less than number of shards. As the name suggests,
+it is treated as an index of the shard to run._
+
+Sharding is useful when you want to split test execution across multiple
+processes, as is done with the [Bazel test sharding](https://docs.bazel.build/versions/main/test-encyclopedia.html#test-sharding).
+
 
 <a id="no-tests-override"></a>
 ## Allow running the binary without tests
@@ -556,7 +571,7 @@ tests still returns 0.
 -v, --verbosity <quiet|normal|high>
 ```
 
-Changing verbosity might change how much details Catch2's reporters output.
+Changing verbosity might change how many details Catch2's reporters output.
 However, you should consider changing the verbosity level as a _suggestion_.
 Not all reporters support all verbosity levels, e.g. because the reporter's
 format cannot meaningfully change. In that case, the verbosity level is

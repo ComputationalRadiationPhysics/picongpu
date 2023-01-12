@@ -24,7 +24,6 @@
 #    include <alpaka/math/MathStdLib.hpp>
 #    include <alpaka/mem/fence/MemFenceCpu.hpp>
 #    include <alpaka/rand/RandStdLib.hpp>
-#    include <alpaka/time/TimeStdLib.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
@@ -36,6 +35,7 @@
 #    include <alpaka/pltf/Traits.hpp>
 
 // Implementation details.
+#    include <alpaka/acc/Tag.hpp>
 #    include <alpaka/core/BoostPredef.hpp>
 #    include <alpaka/core/ClipCast.hpp>
 #    include <alpaka/core/Concepts.hpp>
@@ -73,7 +73,6 @@ namespace alpaka
         public IntrinsicCpu,
         public MemFenceCpu,
         public rand::RandStdLib,
-        public TimeStdLib,
         public warp::WarpSingleThread,
         public concepts::Implements<ConceptAcc, AccCpuThreads<TDim, TIdx>>
     {
@@ -85,6 +84,11 @@ namespace alpaka
         // Partial specialization with the correct TDim and TIdx is not allowed.
         template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
         friend class ::alpaka::TaskKernelCpuThreads;
+
+        AccCpuThreads(AccCpuThreads const&) = delete;
+        AccCpuThreads(AccCpuThreads&&) = delete;
+        auto operator=(AccCpuThreads const&) -> AccCpuThreads& = delete;
+        auto operator=(AccCpuThreads&&) -> AccCpuThreads& = delete;
 
     private:
         template<typename TWorkDiv>
@@ -107,7 +111,6 @@ namespace alpaka
             , BlockSyncBarrierThread<TIdx>(getWorkDiv<Block, Threads>(workDiv).prod())
             , MemFenceCpu()
             , rand::RandStdLib()
-            , TimeStdLib()
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -217,6 +220,18 @@ namespace alpaka
         struct IdxType<AccCpuThreads<TDim, TIdx>>
         {
             using type = TIdx;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct AccToTag<alpaka::AccCpuThreads<TDim, TIdx>>
+        {
+            using type = alpaka::TagCpuThreads;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct TagToAcc<alpaka::TagCpuThreads, TDim, TIdx>
+        {
+            using type = alpaka::AccCpuThreads<TDim, TIdx>;
         };
     } // namespace trait
 } // namespace alpaka

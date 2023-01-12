@@ -111,8 +111,8 @@ namespace alpaka
                 ALPAKA_FN_HOST auto printDebug() const -> void
                 {
                     std::cout << __func__ << " dev: " << m_dev.getNativeHandle() << " ew: " << m_extent
-                              << " dw: " << m_dstExtent << " dptr: " << static_cast<const void*>(m_dstMemNative)
-                              << " sw: " << m_srcExtent << " sptr: " << static_cast<const void*>(m_srcMemNative)
+                              << " dw: " << m_dstExtent << " dptr: " << static_cast<void const*>(m_dstMemNative)
+                              << " sw: " << m_srcExtent << " sptr: " << static_cast<void const*>(m_srcMemNative)
                               << std::endl;
                 }
 #    endif
@@ -203,8 +203,8 @@ namespace alpaka
                 ALPAKA_FN_HOST auto printDebug() const -> void
                 {
                     std::cout << __func__ << " dev: " << m_dev.getNativeHandle() << " ew: " << Idx(1u)
-                              << " dw: " << Idx(1u) << " dptr: " << static_cast<const void*>(m_dstMemNative)
-                              << " sw: " << Idx(1u) << " sptr: " << static_cast<const void*>(m_srcMemNative)
+                              << " dw: " << Idx(1u) << " dptr: " << static_cast<void const*>(m_dstMemNative)
+                              << " sw: " << Idx(1u) << " sptr: " << static_cast<void const*>(m_srcMemNative)
                               << std::endl;
                 }
 #    endif

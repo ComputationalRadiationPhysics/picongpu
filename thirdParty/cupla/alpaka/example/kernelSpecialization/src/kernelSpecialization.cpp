@@ -1,4 +1,4 @@
-/* Copyright 2021 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -79,7 +79,6 @@ auto main() -> int
     // - AccGpuCudaRt
     // - AccGpuHipRt
     // - AccCpuThreads
-    // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
     // - AccOmp5

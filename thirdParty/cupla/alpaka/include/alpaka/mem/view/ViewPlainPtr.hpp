@@ -113,8 +113,7 @@ namespace alpaka
             ViewPlainPtr<TDev, TElem, TDim, TIdx>,
             std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC
+            ALPAKA_FN_HOST
             static auto getExtent(ViewPlainPtr<TDev, TElem, TDim, TIdx> const& extent) -> TIdx
             {
                 return extent.m_extentElements[TIdxIntegralConst::value];
@@ -294,8 +293,7 @@ namespace alpaka
         template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
         struct GetOffset<TIdxIntegralConst, ViewPlainPtr<TDev, TElem, TDim, TIdx>>
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC
+            ALPAKA_FN_HOST
             static auto getOffset(ViewPlainPtr<TDev, TElem, TDim, TIdx> const&) -> TIdx
             {
                 return 0u;

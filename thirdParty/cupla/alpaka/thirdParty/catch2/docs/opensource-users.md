@@ -72,7 +72,7 @@ A header-only template engine for modern C++.
 A C++17 template header-only library for the abstraction of memory access patterns.
 
 ### [libcluon](https://github.com/chrberger/libcluon)
-A single-header-only library written in C++14 to glue distributed software components (UDP, TCP, shared memory) supporting natively Protobuf, LCM/ZCM, MsgPack, and JSON for dynamic message transformations in-between. 
+A single-header-only library written in C++14 to glue distributed software components (UDP, TCP, shared memory) supporting natively Protobuf, LCM/ZCM, MsgPack, and JSON for dynamic message transformations in-between.
 
 ### [MNMLSTC Core](https://github.com/mnmlstc/core)
 A small and easy to use C++11 library that adds a functionality set that will be available in C++14 and later, as well as some useful additions.
@@ -117,6 +117,9 @@ A high available cloud native micro-service application management platform impl
 
 ### [ArangoDB](https://github.com/arangodb/arangodb)
 ArangoDB is a native multi-model database with flexible data models for documents, graphs, and key-values.
+
+### [Cytopia](https://github.com/CytopiaTeam/Cytopia)
+Cytopia is a free, open source retro pixel-art city building game with a big focus on mods. It utilizes a custom isometric rendering engine based on SDL2.
 
 ### [d-SEAMS](https://github.com/d-SEAMS/seams-core)
 Open source molecular dynamics simulation structure analysis suite of tools in modern C++.

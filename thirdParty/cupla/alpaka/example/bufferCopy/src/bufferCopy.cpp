@@ -1,4 +1,5 @@
-/* Copyright 2020 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner, Bernhard Manfred Gruber
+/* Copyright 2022 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner, Bernhard Manfred Gruber,
+ *                Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -117,7 +118,6 @@ auto main() -> int
     // - AccGpuCudaRt
     // - AccGpuHipRt
     // - AccCpuThreads
-    // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
     // - AccOmp5
@@ -136,7 +136,6 @@ auto main() -> int
     //
     // It is possible to choose from a set of accelerators:
     // - AccCpuThreads
-    // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
     // - AccOmp5

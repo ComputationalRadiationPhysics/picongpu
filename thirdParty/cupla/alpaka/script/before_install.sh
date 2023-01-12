@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
+# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -42,7 +42,6 @@ export ALPAKA_CI_INSTALL_ATOMIC="OFF"
 # If the variable is not set, the backend will most probably be used by default so we install Boost.Atomic
 if [ "${alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE-ON}" == "ON" ] ||
     [ "${alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE-ON}" == "ON" ] ||
-    [ "${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE-ON}" == "ON" ] ||
     [ "${alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE-ON}" == "ON" ] ||
     [ "${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE-ON}" == "ON" ] ||
     [ "${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE-ON}" == "ON" ]
@@ -86,41 +85,6 @@ export ALPAKA_CI_INSTALL_OMP="OFF"
 if [ "$ALPAKA_CI_OS_NAME" = "macOS"  ]
 then
     export ALPAKA_CI_INSTALL_OMP="ON"
-fi
-
-#-------------------------------------------------------------------------------
-# Fibers
-export ALPAKA_CI_INSTALL_FIBERS="OFF"
-if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE+x}" ]
-then
-    if [ "${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" = "ON" ]
-    then
-        export ALPAKA_CI_INSTALL_FIBERS="ON"
-    fi
-else
-    # If the variable is not set, the backend will most probably be used by default so we install it.
-    export ALPAKA_CI_INSTALL_FIBERS="ON"
-fi
-
-
-# GCC-5.5 has broken avx512vlintrin.h in Release mode with NVCC 9.X
-#   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=76731
-#   https://github.com/tensorflow/tensorflow/issues/10220
-if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON"  ]
-then
-    if [[ "${CXX}" == "g++"* ]]
-    then
-        if (( "${ALPAKA_CI_GCC_VER_MAJOR}" == 5 ))
-        then
-            if [ "${CMAKE_CUDA_COMPILER}" == "nvcc" ]
-            then
-                if [ "${CMAKE_BUILD_TYPE}" == "Release" ]
-                then
-                    export CMAKE_BUILD_TYPE=Debug
-                fi
-            fi
-        fi
-    fi
 fi
 
 # nvcc does not recognize GCC-9 builtins from avx512fintrin.h in Release

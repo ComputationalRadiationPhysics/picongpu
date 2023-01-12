@@ -37,7 +37,6 @@
 #    include <alpaka/math/MathStdLib.hpp>
 #    include <alpaka/mem/fence/MemFenceOmp5.hpp>
 #    include <alpaka/rand/RandDefault.hpp>
-#    include <alpaka/time/TimeOmp.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
@@ -49,6 +48,7 @@
 #    include <alpaka/pltf/Traits.hpp>
 
 // Implementation details.
+#    include <alpaka/acc/Tag.hpp>
 #    include <alpaka/core/ClipCast.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/dev/DevOmp5.hpp>
@@ -128,7 +128,6 @@ namespace alpaka
                                    // fallback
         , public MemFenceOmp5
         , public rand::RandDefault
-        , public TimeOmp
         , public warp::WarpSingleThread
         , public concepts::Implements<ConceptAcc, AccOmp5<TDim, TIdx>>
     {
@@ -140,6 +139,11 @@ namespace alpaka
         // Partial specialization with the correct TDim and TIdx is not allowed.
         template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
         friend class ::alpaka::TaskKernelOmp5;
+
+        AccOmp5(AccOmp5 const&) = delete;
+        AccOmp5(AccOmp5&&) = delete;
+        auto operator=(AccOmp5 const&) -> AccOmp5& = delete;
+        auto operator=(AccOmp5&&) -> AccOmp5& = delete;
 
     private:
         AccOmp5(
@@ -165,7 +169,6 @@ namespace alpaka
             , BlockSyncBarrierOmp()
             , MemFenceOmp5()
             , rand::RandDefault()
-            , TimeOmp()
         {
         }
     };
@@ -280,6 +283,18 @@ namespace alpaka
         struct IdxType<AccOmp5<TDim, TIdx>>
         {
             using type = TIdx;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct AccToTag<alpaka::AccOmp5<TDim, TIdx>>
+        {
+            using type = alpaka::TagOmp5;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct TagToAcc<alpaka::TagOmp5, TDim, TIdx>
+        {
+            using type = alpaka::AccOmp5<TDim, TIdx>;
         };
     } // namespace trait
 } // namespace alpaka

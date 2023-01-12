@@ -380,7 +380,14 @@ namespace alpaka::test
             ALPAKA_FN_HOST static auto isSupported(DevCudaRt const& dev) -> bool
             {
                 int result = 0;
-                cuDeviceGetAttribute(&result, CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS, dev.getNativeHandle());
+                cuDeviceGetAttribute(
+                    &result,
+#    if CUDA_VERSION >= 12000
+                    CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS_V1,
+#    else
+                    CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS,
+#    endif
+                    dev.getNativeHandle());
                 return result != 0;
             }
         };

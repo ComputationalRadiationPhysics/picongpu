@@ -2,7 +2,7 @@
 
 #              Copyright Catch2 Authors
 # Distributed under the Boost Software License, Version 1.0.
-#   (See accompanying file LICENSE_1_0.txt or copy at
+#   (See accompanying file LICENSE.txt or copy at
 #        https://www.boost.org/LICENSE_1_0.txt)
 
 # SPDX-License-Identifier: BSL-1.0
@@ -28,7 +28,7 @@ if len(sys.argv) != 3:
 
 bin_path = os.path.abspath(sys.argv[1])
 output_dir = os.path.abspath(sys.argv[2])
-xml_out_path = os.path.join(output_dir, "bazel-out.xml")
+xml_out_path = os.path.join(output_dir, '{}.xml'.format(os.path.basename(bin_path)))
 
 # Ensure no file exists from previous test runs
 if os.path.isfile(xml_out_path):
@@ -57,10 +57,10 @@ except subprocess.SubprocessError as ex:
         test_passing = False
         stdout = ex.stdout
     else:
-        print('Could not run "{}"'.format(args))
+        print('Could not run "{}"'.format(bin_path))
         print("Return code: {}".format(ex.returncode))
         print("stdout: {}".format(ex.stdout))
-        print("stderr: {}".format(ex.stdout))
+        print("stderr: {}".format(ex.stderr))
         raise
 
 # Check for valid XML output

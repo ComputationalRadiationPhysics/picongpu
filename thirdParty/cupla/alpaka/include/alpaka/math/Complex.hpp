@@ -290,7 +290,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator==(Complex<T> const& lhs, Complex<T> const& rhs)
     {
         return math::floatEqualExactNoWarning(lhs.real(), rhs.real())
-            && math::floatEqualExactNoWarning(lhs.imag(), rhs.imag());
+               && math::floatEqualExactNoWarning(lhs.imag(), rhs.imag());
     }
 
     //! Equality of a complex and a real number
@@ -298,7 +298,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator==(Complex<T> const& lhs, T const& rhs)
     {
         return math::floatEqualExactNoWarning(lhs.real(), rhs)
-            && math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
+               && math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
     }
 
     //! Equality of a real and a complex number
@@ -306,7 +306,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator==(T const& lhs, Complex<T> const& rhs)
     {
         return math::floatEqualExactNoWarning(lhs, rhs.real())
-            && math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
+               && math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
     }
 
     //! Inequality of two complex numbers.
@@ -323,7 +323,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator!=(Complex<T> const& lhs, T const& rhs)
     {
         return !math::floatEqualExactNoWarning(lhs.real(), rhs)
-            || !math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
+               || !math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
     }
 
     //! Inequality of a real and a complex number
@@ -331,7 +331,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator!=(T const& lhs, Complex<T> const& rhs)
     {
         return !math::floatEqualExactNoWarning(lhs, rhs.real())
-            || !math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
+               || !math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
     }
 
     //! @}

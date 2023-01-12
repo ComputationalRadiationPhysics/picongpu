@@ -29,7 +29,7 @@ namespace alpaka::meta
         {
             ALPAKA_NO_HOST_ACC_WARNING
             template<typename TIndex, typename TExtentVec, typename TFnObj>
-            ALPAKA_FN_HOST_ACC static auto ndLoop(const TIndex& idx, TExtentVec const& /* extent */, TFnObj const& f)
+            ALPAKA_FN_HOST_ACC static auto ndLoop(TIndex const& idx, TExtentVec const& /* extent */, TFnObj const& f)
                 -> void
             {
                 f(idx);

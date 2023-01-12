@@ -25,7 +25,6 @@
 #    include <alpaka/math/MathStdLib.hpp>
 #    include <alpaka/mem/fence/MemFenceCpuSerial.hpp>
 #    include <alpaka/rand/RandStdLib.hpp>
-#    include <alpaka/time/TimeStdLib.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
@@ -37,6 +36,7 @@
 #    include <alpaka/pltf/Traits.hpp>
 
 // Implementation details.
+#    include <alpaka/acc/Tag.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 
@@ -71,7 +71,6 @@ namespace alpaka
         public IntrinsicCpu,
         public MemFenceCpuSerial,
         public rand::RandStdLib,
-        public TimeStdLib,
         public warp::WarpSingleThread,
         public concepts::Implements<ConceptAcc, AccCpuSerial<TDim, TIdx>>
     {
@@ -83,6 +82,11 @@ namespace alpaka
         // Partial specialization with the correct TDim and TIdx is not allowed.
         template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
         friend class ::alpaka::TaskKernelCpuSerial;
+
+        AccCpuSerial(AccCpuSerial const&) = delete;
+        AccCpuSerial(AccCpuSerial&&) = delete;
+        auto operator=(AccCpuSerial const&) -> AccCpuSerial& = delete;
+        auto operator=(AccCpuSerial&&) -> AccCpuSerial& = delete;
 
     private:
         template<typename TWorkDiv>
@@ -101,7 +105,6 @@ namespace alpaka
             , BlockSyncNoOp()
             , MemFenceCpuSerial()
             , rand::RandStdLib()
-            , TimeStdLib()
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -195,6 +198,18 @@ namespace alpaka
         struct IdxType<AccCpuSerial<TDim, TIdx>>
         {
             using type = TIdx;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct AccToTag<alpaka::AccCpuSerial<TDim, TIdx>>
+        {
+            using type = alpaka::TagCpuSerial;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct TagToAcc<alpaka::TagCpuSerial, TDim, TIdx>
+        {
+            using type = alpaka::AccCpuSerial<TDim, TIdx>;
         };
     } // namespace trait
 } // namespace alpaka

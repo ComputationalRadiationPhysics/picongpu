@@ -1,7 +1,7 @@
 
 //              Copyright Catch2 Authors
 // Distributed under the Boost Software License, Version 1.0.
-//   (See accompanying file LICENSE_1_0.txt or copy at
+//   (See accompanying file LICENSE.txt or copy at
 //        https://www.boost.org/LICENSE_1_0.txt)
 
 // SPDX-License-Identifier: BSL-1.0
@@ -115,7 +115,7 @@ namespace Catch {
                 double z1 = normal_quantile((1. - confidence_level) / 2.);
 
                 auto cumn = [n]( double x ) -> long {
-                    return std::lround( normal_cdf( x ) * n );
+                    return std::lround( normal_cdf( x ) * static_cast<double>(n) );
                 };
                 auto a = [bias, accel](double b) { return bias + b / (1. - accel * b); };
                 double b1 = bias + z1;

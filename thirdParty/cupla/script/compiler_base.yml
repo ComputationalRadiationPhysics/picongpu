@@ -7,7 +7,7 @@
                   alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE"
                   # alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE
   script:
-    - source script/run_test.sh
+    - source ${CI_PROJECT_DIR}/script/run_test.sh
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
     - x86_64
@@ -21,7 +21,7 @@
                   # alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE=ON
                   # alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON
   script:
-      - source script/run_test.sh
+      - source ${CI_PROJECT_DIR}/script/run_test.sh
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
     - x86_64
@@ -35,7 +35,7 @@
     - nvidia-smi
     - nvcc --version
   script:
-      - source script/run_test.sh
+      - source ${CI_PROJECT_DIR}/script/run_test.sh
   tags:
     - cuda
     - intel
@@ -51,7 +51,7 @@
     - nvidia-smi
     - nvcc --version
   script:
-      - source script/run_test.sh
+      - source ${CI_PROJECT_DIR}/script/run_test.sh
   tags:
     - cuda
     - intel
@@ -61,13 +61,12 @@
     GIT_SUBMODULE_STRATEGY: normal
     CUPLA_CXX: "hipcc"
     ALPAKA_ACCS: "alpaka_ACC_GPU_HIP_ENABLE"
-    # architecture of the Vega 64
-    CUPLA_CMAKE_ARGS: "-DGPU_TARGETS=gfx900"
   before_script:
+    - ${CI_PROJECT_DIR}/script/install_hip.sh
     - rocm-smi
     - hipcc --version
   script:
-    - source script/run_test.sh
+    - source ${CI_PROJECT_DIR}/script/run_test.sh
   tags:
     - amd
     - rocm

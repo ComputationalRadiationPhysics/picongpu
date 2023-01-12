@@ -180,7 +180,7 @@ namespace alpaka::trait
     {
         static auto getWarpSizes(experimental::DevGenericSycl<TPltf> const& dev) -> std::vector<std::size_t>
         {
-            const auto device = dev.getNativeHandle().first;
+            auto const device = dev.getNativeHandle().first;
             return device.template get_info<sycl::info::device::sub_group_sizes>();
         }
     };

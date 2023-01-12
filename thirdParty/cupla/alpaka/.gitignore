@@ -45,3 +45,9 @@ out
 # clangd files
 .cache/
 compile_commands.json
+
+# python chache
+__pycache__
+
+# default name of the job_generator.py output
+jobs.yml

@@ -101,24 +101,6 @@ This is called oversubscription.
 Those threads can be bound to the correct cores and by relying on the operating system thread scheduler, they are preemptively multitasked while sharing a single cache and thereby avoiding false-sharing.
 However, this is not always beneficial because the cost of thread changes by the kernel-mode scheduler should not be underestimated.
 
-Fibers
-++++++
-
-To remove the overhead of the kernel mode scheduler as well as to enable the usage of deterministic thread context-switches, fibers can be used.
-A fiber is a user-space thread with cooperative context-switches and extends the concept of coroutines.
-A coroutine is basically a function that can be suspended and resumed but does not necessarily have a stack.
-In contrast, functions within most programming languages represent subroutines and not coroutines because they can neither be suspended in the mid of execution nor resumed exactly at the place they were suspended without losing values on the functions local stack.
-
-Multiple fibers can be executed within one operating system thread, which allows to simulate multiple threads per block without kernel-mode multithreading.
-This was not possible without fibers because only coroutines allow the kernel functions to be suspended at synchronization points and resumed when all fibers reached it.
-Each time an operating system thread executing a function would wait for an other thread or a resource, an equivalent fiber just switches to the next fiber within the executing host thread.
-Due to the context changes happening at user-level, the cost is much lower.
-Additionally, fiber context changes are deterministic and it is even possible to implement an user-level scheduler.
-An advantage of a user level scheduler over the operating system thread scheduler is the possibility to optimally utilize the caches by taking into account the memory access pattern of the algorithm.
-Furthermore, fibers reduce the number of locks and busy waits within a block because only one fiber is active per operating system thread at a time.
-
-There are multiple C++ Standards Committee Papers (N3858, N3985, N4134) discussing the inclusion of fibers, awaitable functions and similar concepts into C++.
-
 GPUs (CUDA/HIP)
 ```````````````
 

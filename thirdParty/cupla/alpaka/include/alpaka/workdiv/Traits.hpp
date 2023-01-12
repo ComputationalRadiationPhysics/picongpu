@@ -51,7 +51,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(TWorkDiv const& workDiv)
             {
                 return alpaka::getWorkDiv<origin::Grid, unit::Blocks>(workDiv)
-                    * alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv);
+                       * alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv);
             }
         };
         //! The work div grid element extent trait specialization.
@@ -62,7 +62,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(TWorkDiv const& workDiv)
             {
                 return alpaka::getWorkDiv<origin::Grid, unit::Threads>(workDiv)
-                    * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
+                       * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
             }
         };
         //! The work div block element extent trait specialization.
@@ -73,7 +73,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(TWorkDiv const& workDiv)
             {
                 return alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv)
-                    * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
+                       * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
             }
         };
     } // namespace trait

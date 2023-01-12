@@ -35,8 +35,8 @@ namespace alpaka
         {
         }
 
-        BlockSharedMemDynOmp5BuiltIn(const BlockSharedMemDynOmp5BuiltIn&) = delete;
-        auto operator=(const BlockSharedMemDynOmp5BuiltIn&) -> BlockSharedMemDynOmp5BuiltIn& = delete;
+        BlockSharedMemDynOmp5BuiltIn(BlockSharedMemDynOmp5BuiltIn const&) = delete;
+        auto operator=(BlockSharedMemDynOmp5BuiltIn const&) -> BlockSharedMemDynOmp5BuiltIn& = delete;
         BlockSharedMemDynOmp5BuiltIn(BlockSharedMemDynOmp5BuiltIn&&) = delete;
         auto operator=(BlockSharedMemDynOmp5BuiltIn&&) -> BlockSharedMemDynOmp5BuiltIn& = delete;
 

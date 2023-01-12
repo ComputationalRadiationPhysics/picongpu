@@ -17,7 +17,10 @@
 class BlockSyncTestKernel
 {
 public:
-    static const std::uint8_t gridThreadExtentPerDim = 4u;
+    static constexpr std::uint8_t gridThreadExtentPerDim()
+    {
+        return 4u;
+    }
 
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
@@ -75,7 +78,7 @@ TEMPLATE_LIST_TEST_CASE("synchronize", "[blockSync]", alpaka::test::TestAccs)
     using Idx = alpaka::Idx<Acc>;
 
     alpaka::test::KernelExecutionFixture<Acc> fixture(
-        alpaka::Vec<Dim, Idx>::all(static_cast<Idx>(BlockSyncTestKernel::gridThreadExtentPerDim)));
+        alpaka::Vec<Dim, Idx>::all(static_cast<Idx>(BlockSyncTestKernel::gridThreadExtentPerDim())));
 
     BlockSyncTestKernel kernel;
 

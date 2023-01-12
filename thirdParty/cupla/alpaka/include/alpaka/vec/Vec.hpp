@@ -98,6 +98,20 @@ namespace alpaka
         //! Value constructor.
         //! This constructor is only available if the number of parameters matches the vector idx.
         ALPAKA_NO_HOST_ACC_WARNING
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(11, 3, 0)                                              \
+    && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 4, 0)
+        // This constructor tries to avoid SFINAE, which crashes nvcc 11.3. We also need to have a first
+        // argument, so an unconstrained ctor with forwarding references does not hijack the compiler provided
+        // copy-ctor.
+        template<typename... TArgs>
+        ALPAKA_FN_HOST_ACC constexpr Vec(TVal arg0, TArgs&&... args)
+            : m_data{std::move(arg0), static_cast<TVal>(std::forward<TArgs>(args))...}
+        {
+            static_assert(
+                1 + sizeof...(TArgs) == TDim::value && (std::is_convertible_v<std::decay_t<TArgs>, TVal> && ...),
+                "Wrong number of arguments to Vec constructor or types are not convertible to TVal.");
+        }
+#else
         template<
             typename... TArgs,
             typename = std::enable_if_t<
@@ -105,6 +119,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC constexpr Vec(TArgs&&... args) : m_data{static_cast<TVal>(std::forward<TArgs>(args))...}
         {
         }
+#endif
 
         //! \brief Single value constructor.
         //!
@@ -138,7 +153,7 @@ namespace alpaka
             return m_data;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto begin() const -> const TVal*
+        ALPAKA_FN_HOST_ACC constexpr auto begin() const -> TVal const*
         {
             return m_data;
         }
@@ -148,7 +163,7 @@ namespace alpaka
             return m_data + TDim::value;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto end() const -> const TVal*
+        ALPAKA_FN_HOST_ACC constexpr auto end() const -> TVal const*
         {
             return m_data + TDim::value;
         }
@@ -435,6 +450,45 @@ namespace alpaka
         // Zero sized arrays are not allowed, therefore zero-dimensional vectors have one member.
         TVal m_data[TDim::value == 0u ? 1u : TDim::value];
     };
+
+    template<typename TFirstIndex, typename... TRestIndices>
+    Vec(TFirstIndex&&, TRestIndices&&...) -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
+
+    //! \return The element-wise minimum of one or more vectors.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<
+        typename TDim,
+        typename TVal,
+        typename... Vecs,
+        typename = std::enable_if_t<(std::is_same_v<Vec<TDim, TVal>, Vecs> && ...)>>
+    ALPAKA_FN_HOST_ACC constexpr auto elementwise_min(Vec<TDim, TVal> const& p, Vecs const&... qs) -> Vec<TDim, TVal>
+    {
+        Vec<TDim, TVal> r;
+        if constexpr(TDim::value > 0)
+        {
+            for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                r[i] = std::min({p[i], qs[i]...});
+        }
+        return r;
+    }
+
+    //! \return The element-wise maximum of one or more vectors.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<
+        typename TDim,
+        typename TVal,
+        typename... Vecs,
+        typename = std::enable_if_t<(std::is_same_v<Vec<TDim, TVal>, Vecs> && ...)>>
+    ALPAKA_FN_HOST_ACC constexpr auto elementwise_max(Vec<TDim, TVal> const& p, Vecs const&... qs) -> Vec<TDim, TVal>
+    {
+        Vec<TDim, TVal> r;
+        if constexpr(TDim::value > 0)
+        {
+            for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                r[i] = std::max({p[i], qs[i]...});
+        }
+        return r;
+    }
 
     namespace trait
     {
