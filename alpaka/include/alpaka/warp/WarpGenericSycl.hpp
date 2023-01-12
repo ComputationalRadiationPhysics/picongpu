@@ -39,7 +39,7 @@ namespace alpaka::warp::trait
     {
         static auto getSize(experimental::warp::WarpGenericSycl<TDim> const& warp) -> std::int32_t
         {
-            const auto sub_group = warp.m_item.get_sub_group();
+            auto const sub_group = warp.m_item.get_sub_group();
             // SYCL sub-groups are always 1D
             return static_cast<std::int32_t>(sub_group.get_local_linear_range());
         }
@@ -52,7 +52,7 @@ namespace alpaka::warp::trait
         {
             // SYCL has no way of querying this. Since sub-group functions have to be executed in convergent code
             // regions anyway we return the full mask.
-            const auto sub_group = warp.m_item.get_sub_group();
+            auto const sub_group = warp.m_item.get_sub_group();
             return sycl::ext::oneapi::group_ballot(sub_group, true);
         }
     };
@@ -62,7 +62,7 @@ namespace alpaka::warp::trait
     {
         static auto all(experimental::warp::WarpGenericSycl<TDim> const& warp, std::int32_t predicate) -> std::int32_t
         {
-            const auto sub_group = warp.m_item.get_sub_group();
+            auto const sub_group = warp.m_item.get_sub_group();
             return static_cast<std::int32_t>(sycl::all_of_group(sub_group, static_cast<bool>(predicate)));
         }
     };
@@ -72,7 +72,7 @@ namespace alpaka::warp::trait
     {
         static auto any(experimental::warp::WarpGenericSycl<TDim> const& warp, std::int32_t predicate) -> std::int32_t
         {
-            const auto sub_group = warp.m_item.get_sub_group();
+            auto const sub_group = warp.m_item.get_sub_group();
             return static_cast<std::int32_t>(sycl::any_of_group(sub_group, static_cast<bool>(predicate)));
         }
     };
@@ -82,7 +82,7 @@ namespace alpaka::warp::trait
     {
         static auto ballot(experimental::warp::WarpGenericSycl<TDim> const& warp, std::int32_t predicate)
         {
-            const auto sub_group = warp.m_item.get_sub_group();
+            auto const sub_group = warp.m_item.get_sub_group();
             return sycl::ext::oneapi::group_ballot(sub_group, static_cast<bool>(predicate));
         }
     };
@@ -103,16 +103,16 @@ namespace alpaka::warp::trait
                Example: If we assume a sub-group size of 32 and a width of 16 we will receive two subdivisions:
                The first starts at sub-group index 0 and the second at sub-group index 16. For srcLane = 4 the
                first subdivision will access the value at sub-group index 4 and the second at sub-group index 20. */
-            const auto actual_group = warp.m_item.get_sub_group();
-            const auto actual_item_id = actual_group.get_local_linear_id();
+            auto const actual_group = warp.m_item.get_sub_group();
+            auto const actual_item_id = actual_group.get_local_linear_id();
 
-            const auto assumed_group_id = actual_item_id / width;
-            const auto assumed_item_id = actual_item_id % width;
+            auto const assumed_group_id = actual_item_id / width;
+            auto const assumed_item_id = actual_item_id % width;
 
-            const auto assumed_src_id = static_cast<std::size_t>(srcLane % width);
-            const auto actual_src_id = assumed_src_id + assumed_group_id * width;
+            auto const assumed_src_id = static_cast<std::size_t>(srcLane % width);
+            auto const actual_src_id = assumed_src_id + assumed_group_id * width;
 
-            const auto src = sycl::id<1>{actual_src_id};
+            auto const src = sycl::id<1>{actual_src_id};
 
             return sycl::select_from_group(actual_group, value, src);
         }

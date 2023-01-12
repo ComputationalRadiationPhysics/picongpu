@@ -79,8 +79,8 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getIdx(TIdx const& idx, TWorkDiv const& workDiv)
             {
                 return alpaka::getIdx<origin::Grid, unit::Blocks>(idx, workDiv)
-                    * getWorkDiv<origin::Block, unit::Threads>(workDiv)
-                    + alpaka::getIdx<origin::Block, unit::Threads>(idx, workDiv);
+                           * getWorkDiv<origin::Block, unit::Threads>(workDiv)
+                       + alpaka::getIdx<origin::Block, unit::Threads>(idx, workDiv);
             }
         };
     } // namespace trait

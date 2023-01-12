@@ -77,12 +77,12 @@ struct ReduceKernel
     {
         auto& sdata(alpaka::declareSharedVar<cheapArray<T, TBlockSize>, __COUNTER__>(acc));
 
-        const auto blockIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0]));
-        const auto threadIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0]));
-        const auto gridDimension(static_cast<uint32_t>(alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0]));
+        auto const blockIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0]));
+        auto const threadIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0]));
+        auto const gridDimension(static_cast<uint32_t>(alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0]));
 
         // equivalent to blockIndex * TBlockSize + threadIndex
-        const auto linearizedIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
+        auto const linearizedIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
 
         typename GetIterator<T, TElem, TAcc>::Iterator it(acc, source, linearizedIndex, gridDimension * TBlockSize, n);
 
@@ -128,9 +128,9 @@ struct ReduceKernel
         {
             bool cond = threadIndex < currentBlockSizeUp // only first half of block
                                                          // is working
-                && (threadIndex + currentBlockSizeUp) < TBlockSize // index for second half must be in bounds
-                && (blockIndex * TBlockSize + threadIndex + currentBlockSizeUp) < n
-                && threadIndex < n; // if elem in second half has been initialized before
+                        && (threadIndex + currentBlockSizeUp) < TBlockSize // index for second half must be in bounds
+                        && (blockIndex * TBlockSize + threadIndex + currentBlockSizeUp) < n
+                        && threadIndex < n; // if elem in second half has been initialized before
 
             if(cond)
                 sdata[threadIndex] = func(sdata[threadIndex], sdata[threadIndex + currentBlockSizeUp]);

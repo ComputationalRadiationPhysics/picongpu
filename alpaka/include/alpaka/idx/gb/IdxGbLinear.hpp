@@ -25,7 +25,7 @@ namespace alpaka
         class IdxGbLinear : public concepts::Implements<ConceptIdxGb, IdxGbLinear<TDim, TIdx>>
         {
         public:
-            IdxGbLinear(const TIdx& teamOffset = static_cast<TIdx>(0u)) : m_gridBlockIdx(teamOffset)
+            IdxGbLinear(TIdx const& teamOffset = static_cast<TIdx>(0u)) : m_gridBlockIdx(teamOffset)
             {
             }
 

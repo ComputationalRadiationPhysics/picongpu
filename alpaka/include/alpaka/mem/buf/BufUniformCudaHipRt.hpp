@@ -274,7 +274,7 @@ namespace alpaka
 
                 auto const& dev = getDev(queue);
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
-                void* memPtr;
+                void* memPtr = nullptr;
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::mallocAsync(
                     &memPtr,
                     static_cast<std::size_t>(width) * sizeof(TElem),
@@ -316,7 +316,7 @@ namespace alpaka
 
                 // Allocate CUDA/HIP page-locked memory on the host, mapped into the CUDA/HIP address space and
                 // accessible to all CUDA/HIP devices.
-                TElem* memPtr;
+                TElem* memPtr = nullptr;
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::hostMalloc(
                     reinterpret_cast<void**>(&memPtr),
                     sizeof(TElem) * static_cast<std::size_t>(getExtentProduct(extent)),

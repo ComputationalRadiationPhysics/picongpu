@@ -65,7 +65,7 @@ namespace alpaka
     && !defined(TPR30645)
                 for(std::size_t a(0u); a < lastIdx - 1; ++a)
                 {
-                    const auto r = a + 1; // NVHPC does sometimes not understand, that loops which do not start at zero
+                    auto const r = a + 1; // NVHPC does sometimes not understand, that loops which do not start at zero
                                           // can have zero iterations
 #else
                 for(std::size_t r(1u); r < lastIdx; ++r)

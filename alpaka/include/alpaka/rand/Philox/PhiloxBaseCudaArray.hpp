@@ -51,9 +51,8 @@ namespace alpaka::rand::engine
     /** Philox backend using array-like interface to CUDA uintN types for the storage of Key and Counter
      *
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
-     * @tparam TImpl engine type implementation (CRTP)
      */
-    template<typename TParams, typename TImpl>
+    template<typename TParams>
     class PhiloxBaseCudaArray
     {
         static_assert(TParams::counterSize == 4, "GPU Philox implemented only for counters of width == 4");

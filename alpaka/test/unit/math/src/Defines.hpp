@@ -50,7 +50,7 @@ namespace alpaka
 
                     T arg[arity_nr]; // represents arg0, arg1, ...
 
-                    friend auto operator<<(std::ostream& os, const ArgsItem& argsItem) -> std::ostream&
+                    friend auto operator<<(std::ostream& os, ArgsItem const& argsItem) -> std::ostream&
                     {
                         os.precision(17);
                         os << "[ ";
@@ -105,10 +105,10 @@ namespace alpaka
                 {
                     // the machine epsilon has to be scaled to the magnitude of the values used
                     // and multiplied by the desired precision in ULPs (units in the last place)
-                    return alpaka::math::abs(acc, x - y)
-                        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
-                        // unless the result is subnormal
-                        || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
+                    return alpaka::math::abs(acc, x - y) <= std::numeric_limits<FP>::epsilon()
+                                                                * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
+                           // unless the result is subnormal
+                           || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
                 }
 
                 //! Version for alpaka::Complex

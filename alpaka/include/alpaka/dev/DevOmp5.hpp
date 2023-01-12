@@ -96,7 +96,7 @@ namespace alpaka
             }
 
         private:
-            const int m_iDevice;
+            int const m_iDevice;
 
             std::map<void*, std::pair<void*, std::size_t>> m_staticMemMap;
         };

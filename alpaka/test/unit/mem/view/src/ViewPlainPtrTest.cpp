@@ -154,33 +154,48 @@ TEMPLATE_LIST_TEST_CASE("viewPlainPtrOperatorTest", "[memView]", alpaka::test::T
     alpaka::test::testViewPlainPtrOperators<TestType, float>();
 }
 
-TEST_CASE("createView", "[memView]")
+TEMPLATE_TEST_CASE("createView", "[memView]", (std::array<float, 4>), std::vector<float>)
 {
     using Dev = alpaka::DevCpu;
-    const auto dev = alpaka::getDevByIdx<alpaka::PltfCpu>(0u);
+    auto const dev = alpaka::getDevByIdx<alpaka::PltfCpu>(0u);
 
-    std::array<float, 4> a{{1, 2, 3, 4}};
+    TestType a{1, 2, 3, 4};
 
     // pointer overload
-    STATIC_REQUIRE(std::is_same_v<
-                   decltype(alpaka::createView(dev, a.data(), 4)),
-                   alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, int>>);
+    {
+        auto view = alpaka::createView(dev, a.data(), 4);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, int>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtent<0>(view) == 4);
+    }
+
+    // container and size overload
+    {
+        auto view = alpaka::createView(dev, a, 4L);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, long>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtent<0>(view) == 4);
+    }
 
     // container overload
-    STATIC_REQUIRE(std::is_same_v<
-                   decltype(alpaka::createView(dev, a, 4L)),
-                   alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, long>>);
+    {
+        auto view = alpaka::createView(dev, a);
+        STATIC_REQUIRE(
+            std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, std::size_t>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtent<0>(view) == 4);
+    }
 
     alpaka::test::DefaultQueue<Dev> queue(dev);
-    std::array<float, 4> b;
+    decltype(a) b{0, 0, 0, 0};
 
-    // using as temporaries to memcpy
-    alpaka::memcpy(queue, alpaka::createView(dev, b, 4), alpaka::createView(dev, a, 4));
+    // test as temporaries to memcpy
+    alpaka::memcpy(queue, alpaka::createView(dev, b, std::size_t{4}), alpaka::createView(dev, a));
     alpaka::wait(queue);
     CHECK(a == b);
 
-    // using as temporaries to memset
-    alpaka::memset(queue, alpaka::createView(dev, a, 4), 0);
+    // test as temporaries to memset
+    alpaka::memset(queue, alpaka::createView(dev, a), 0);
     alpaka::wait(queue);
-    CHECK(a == std::array<float, 4>{});
+    CHECK(a == decltype(a){0, 0, 0, 0});
 }

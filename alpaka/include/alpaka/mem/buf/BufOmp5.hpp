@@ -95,12 +95,12 @@ namespace alpaka
         {
             return *m_spBufImpl;
         }
-        auto operator*() const -> const detail::BufOmp5Impl<TElem, TDim, TIdx>&
+        auto operator*() const -> detail::BufOmp5Impl<TElem, TDim, TIdx> const&
         {
             return *m_spBufImpl;
         }
 
-        inline auto extentElements() const -> const Vec<TDim, TIdx>&
+        inline auto extentElements() const -> Vec<TDim, TIdx> const&
         {
             return m_spBufImpl->m_extentElements;
         }

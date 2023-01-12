@@ -84,7 +84,7 @@ namespace alpaka::rand
             {
                 constexpr BitsT limit = static_cast<BitsT>(1) << std::numeric_limits<T>::digits;
                 const BitsT b = UniformUint<BitsT>()(engine);
-                const auto ret = static_cast<T>(b & (limit - 1)) / limit;
+                auto const ret = static_cast<T>(b & (limit - 1)) / limit;
                 return ret;
             }
         };
@@ -106,13 +106,13 @@ namespace alpaka::rand
         {
             static_assert(std::is_floating_point_v<T>, "Return type of NormalReal must be floating point.");
 
-            const Acc* m_acc;
+            Acc const* m_acc;
             T m_cache = std::numeric_limits<T>::quiet_NaN();
 
         public:
             /*! \warning Retains a reference to \p acc, thus must not outlive it.
              */
-            ALPAKA_FN_HOST_ACC constexpr NormalReal(const Acc& acc) : m_acc(&acc)
+            ALPAKA_FN_HOST_ACC constexpr NormalReal(Acc const& acc) : m_acc(&acc)
             {
             }
 
@@ -124,11 +124,11 @@ namespace alpaka::rand
             // b = a;
             // assert(a(e) != b(e)); // because of two engine invocations
 
-            ALPAKA_FN_HOST_ACC constexpr NormalReal(const NormalReal& other) : m_acc(other.m_acc)
+            ALPAKA_FN_HOST_ACC constexpr NormalReal(NormalReal const& other) : m_acc(other.m_acc)
             {
             }
 
-            ALPAKA_FN_HOST_ACC constexpr auto operator=(const NormalReal& other) -> NormalReal&
+            ALPAKA_FN_HOST_ACC constexpr auto operator=(NormalReal const& other) -> NormalReal&
             {
                 m_acc = other.m_acc;
                 return *this;

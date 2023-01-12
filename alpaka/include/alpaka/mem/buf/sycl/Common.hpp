@@ -26,7 +26,7 @@ namespace alpaka::experimental::detail
     {
         constexpr auto dim = Dim<TExtent>::value;
 
-        const auto width = getWidth(ext) * multiplier;
+        auto const width = getWidth(ext) * multiplier;
 
         if constexpr(dim == 1)
             return sycl::range<1>{width};

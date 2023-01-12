@@ -10,7 +10,7 @@
 
 if(BUILD_TESTING)
     if(alpaka_USE_INTERNAL_CATCH2)
-        message(STATUS "Catch2: Using INTERNAL version 3.0.1")
+        message(STATUS "Catch2: Using INTERNAL version 3.2.1")
         # Force Catch2's CMake to pick up the variables we set below
         set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -26,8 +26,16 @@ if(BUILD_TESTING)
         # still appears in NVHPC 20.7
         add_compile_definitions($<$<CXX_COMPILER_ID:PGI>:__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1>)
         add_subdirectory(catch2)
+
+        # hide Catch2 cmake variables by default in cmake gui
+        get_cmake_property(variables VARIABLES)
+        foreach (var ${variables})
+            if (var MATCHES "^CATCH_")
+                mark_as_advanced(${var})
+            endif()
+        endforeach()
     else()
-        find_package(Catch2 3.0.1 CONFIG REQUIRED)
+        find_package(Catch2 3.2.1 CONFIG REQUIRED)
         message(STATUS "Catch2: Found version ${Catch2_VERSION}")
     endif()
 endif()

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2022 Benjamin Worpitz, René Widera, Axel Huebl, Bernhard Manfred Gruber, Andrea Bocci
+# Copyright 2022 Benjamin Worpitz, René Widera, Axel Huebl, Bernhard Manfred Gruber, Andrea Bocci, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -22,7 +22,6 @@ fi
 : "${CMAKE_BUILD_TYPE?'CMAKE_BUILD_TYPE must be specified'}"
 : "${CXX?'CXX must be specified'}"
 : "${CC?'CC must be specified'}"
-: "${ALPAKA_CI_INSTALL_FIBERS?'ALPAKA_CI_INSTALL_FIBERS must be specified'}"
 : "${ALPAKA_CI_INSTALL_ATOMIC?'ALPAKA_CI_INSTALL_ATOMIC must be specified'}"
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
@@ -95,7 +94,7 @@ else
 fi
 
 # Only build boost if we need some of the non-header-only libraries
-if [ "${ALPAKA_CI_INSTALL_FIBERS}" == "ON" ] || [ "${ALPAKA_CI_INSTALL_ATOMIC}" == "ON" ]
+if [ "${ALPAKA_CI_INSTALL_ATOMIC}" == "ON" ]
 then
     # Prepare the library destination directory.
     mkdir -p "${ALPAKA_CI_BOOST_LIB_DIR}"
@@ -129,7 +128,7 @@ then
 
     if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
     then
-        ALPAKA_BOOST_B2+=" define=_CRT_NONSTDC_NO_DEPRECATE define=_CRT_SECURE_NO_DEPRECATE define=_SCL_SECURE_NO_DEPRECAT define=BOOST_USE_WINFIBERS define=_ENABLE_EXTENDED_ALIGNED_STORAGE"
+        ALPAKA_BOOST_B2+=" define=_CRT_NONSTDC_NO_DEPRECATE define=_CRT_SECURE_NO_DEPRECATE define=_SCL_SECURE_NO_DEPRECAT define=_ENABLE_EXTENDED_ALIGNED_STORAGE"
     fi
 
     if [ "${CMAKE_BUILD_TYPE}" == "Debug" ]
@@ -149,7 +148,7 @@ then
     then
         ALPAKA_BOOST_B2_CXXFLAGS+=" -std=c++17"
     fi
-    ALPAKA_BOOST_B2+=" --with-fiber --with-context --with-thread --with-atomic --with-system --with-chrono --with-date_time"
+    ALPAKA_BOOST_B2+=" --with-atomic"
 
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
     then

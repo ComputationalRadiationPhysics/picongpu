@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
+# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -67,10 +67,7 @@ then
     : ${ALPAKA_CI_CL_VER?"ALPAKA_CI_CL_VER must be specified"}
 
     # Select the generator
-    if [ "$ALPAKA_CI_CL_VER" = "2017" ]
-    then
-        ALPAKA_CI_CMAKE_GENERATOR="Visual Studio 15 2017"
-    elif [ "$ALPAKA_CI_CL_VER" = "2019" ]
+    if [ "$ALPAKA_CI_CL_VER" = "2019" ]
     then
         ALPAKA_CI_CMAKE_GENERATOR="Visual Studio 16 2019"
     elif [ "$ALPAKA_CI_CL_VER" = "2022" ]
@@ -89,7 +86,7 @@ cd build/
     -Dalpaka_BUILD_EXAMPLES=ON -DBUILD_TESTING=ON \
     "$(env2cmake BOOST_ROOT)" -DBOOST_LIBRARYDIR="${ALPAKA_CI_BOOST_LIB_DIR}/lib" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF -DBoost_ARCHITECTURE="-x64" \
     "$(env2cmake CMAKE_BUILD_TYPE)" "$(env2cmake CMAKE_CXX_FLAGS)" "$(env2cmake CMAKE_C_COMPILER)" "$(env2cmake CMAKE_CXX_COMPILER)" "$(env2cmake CMAKE_EXE_LINKER_FLAGS)" "$(env2cmake CMAKE_CXX_EXTENSIONS)"\
-    "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)" \
+    "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE)" \
     "$(env2cmake alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE)" \
     "$(env2cmake alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)" \
     "$(env2cmake alpaka_ACC_ANY_BT_OMP5_ENABLE)" "$(env2cmake alpaka_ACC_ANY_BT_OACC_ENABLE)" \

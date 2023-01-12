@@ -26,7 +26,7 @@ namespace alpaka
 
     //! Checks if the given thread handle is a handle for the executing thread.
     template<typename TThread>
-    ALPAKA_FN_HOST auto isThisThread(const TThread& thread) -> bool
+    ALPAKA_FN_HOST auto isThisThread(TThread const& thread) -> bool
     {
         return trait::IsThisThread<TThread>::isThisThread(thread);
     }
@@ -37,7 +37,7 @@ namespace alpaka
         template<>
         struct IsThisThread<std::thread>
         {
-            ALPAKA_FN_HOST static auto isThisThread(const std::thread& thread) -> bool
+            ALPAKA_FN_HOST static auto isThisThread(std::thread const& thread) -> bool
             {
                 return std::this_thread::get_id() == thread.get_id();
             }

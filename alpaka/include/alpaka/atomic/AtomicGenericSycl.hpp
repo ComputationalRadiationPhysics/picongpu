@@ -191,7 +191,7 @@ namespace alpaka::trait
             do
             {
                 assumed = old_val;
-                const auto new_val = eval(old_val);
+                auto const new_val = eval(old_val);
                 old_val = ref.compare_exchange_strong(assumed, new_val);
             } while(assumed != old_val);
 

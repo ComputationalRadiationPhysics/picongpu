@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -46,13 +46,6 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccCpuThreadsIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
-        template<typename TDim, typename TIdx>
-        using AccCpuFibersIfAvailableElseInt = AccCpuFibers<TDim, TIdx>;
-#else
-        template<typename TDim, typename TIdx>
-        using AccCpuFibersIfAvailableElseInt = int;
-#endif
 #if defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
         template<typename TDim, typename TIdx>
         using AccCpuTbbIfAvailableElseInt = AccCpuTbbBlocks<TDim, TIdx>;
@@ -75,6 +68,7 @@ namespace alpaka::test
         using AccCpuOmp2ThreadsIfAvailableElseInt = int;
 #endif
 #if defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) && !defined(TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION)                         \
+    && !(BOOST_COMP_PGI && (defined TEST_UNIT_FENCE))                                                                 \
     && !(                                                                                                             \
         BOOST_COMP_GNUC                                                                                               \
         && (((BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(11, 0, 0)) /* tests excluded because of GCC10 Oacc / Omp5 target \
@@ -96,7 +90,7 @@ namespace alpaka::test
 #if defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED) && !(defined(TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION))                       \
     && !(                                                                                                             \
         defined(TEST_UNIT_TIME) /*no clock in OpenACC*/                                                               \
-        || defined(TEST_UNIT_BLOCK_SYNC) /*TODO: maybe atomics not working*/)                                         \
+        || defined(TEST_UNIT_FENCE) /*no mem fence in OpenACC*/)                                                      \
     && !(                                                                                                             \
         BOOST_COMP_GNUC                                                                                               \
         && (((BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(11, 0, 0)) /* tests excluded because of GCC10 Oacc / Omp5 target \
@@ -166,7 +160,6 @@ namespace alpaka::test
         using EnabledAccsElseInt = std::tuple<
             AccCpuSerialIfAvailableElseInt<TDim, TIdx>,
             AccCpuThreadsIfAvailableElseInt<TDim, TIdx>,
-            AccCpuFibersIfAvailableElseInt<TDim, TIdx>,
             AccCpuTbbIfAvailableElseInt<TDim, TIdx>,
             AccCpuOmp2BlocksIfAvailableElseInt<TDim, TIdx>,
             AccCpuOmp2ThreadsIfAvailableElseInt<TDim, TIdx>,

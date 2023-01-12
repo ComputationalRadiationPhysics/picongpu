@@ -24,7 +24,6 @@
 #    include <alpaka/math/MathUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/mem/fence/MemFenceUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/rand/RandUniformCudaHipRand.hpp>
-#    include <alpaka/time/TimeUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/warp/WarpUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/workdiv/WorkDivUniformCudaHipBuiltIn.hpp>
 
@@ -55,7 +54,7 @@ namespace alpaka
         typename TApi,
         typename TDim,
         typename TIdx>
-    class AccGpuUniformCudaHipRt :
+    class AccGpuUniformCudaHipRt final :
         public WorkDivUniformCudaHipBuiltIn<TDim, TIdx>,
         public gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>,
         public bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>,
@@ -71,7 +70,6 @@ namespace alpaka
         public IntrinsicUniformCudaHipBuiltIn,
         public MemFenceUniformCudaHipBuiltIn,
         public rand::RandUniformCudaHipRand<TApi>,
-        public TimeUniformCudaHipBuiltIn,
         public warp::WarpUniformCudaHipBuiltIn,
         public concepts::Implements<ConceptAcc, AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
     {
@@ -80,6 +78,11 @@ namespace alpaka
             "Index type is not supported, consider using int or a larger type.");
 
     public:
+        AccGpuUniformCudaHipRt(AccGpuUniformCudaHipRt const&) = delete;
+        AccGpuUniformCudaHipRt(AccGpuUniformCudaHipRt&&) = delete;
+        auto operator=(AccGpuUniformCudaHipRt const&) -> AccGpuUniformCudaHipRt& = delete;
+        auto operator=(AccGpuUniformCudaHipRt&&) -> AccGpuUniformCudaHipRt& = delete;
+
         ALPAKA_FN_HOST_ACC AccGpuUniformCudaHipRt(Vec<TDim, TIdx> const& threadElemExtent)
             : WorkDivUniformCudaHipBuiltIn<TDim, TIdx>(threadElemExtent)
             , gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>()
@@ -95,7 +98,6 @@ namespace alpaka
             , BlockSyncUniformCudaHipBuiltIn()
             , MemFenceUniformCudaHipBuiltIn()
             , rand::RandUniformCudaHipRand<TApi>()
-            , TimeUniformCudaHipBuiltIn()
         {
         }
     };
@@ -224,7 +226,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return std::string("AccGpu") + TApi::name + "Rt<" + std::to_string(TDim::value) + ","
-                    + core::demangled<TIdx> + ">";
+                       + core::demangled<TIdx> + ">";
             }
         };
 

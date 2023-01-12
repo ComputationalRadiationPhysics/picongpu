@@ -138,9 +138,8 @@ namespace alpaka
 
     //! \return The pitch in bytes. This is the distance in bytes between two consecutive elements in the given
     //! dimension.
-    ALPAKA_NO_HOST_ACC_WARNING
     template<std::size_t Tidx, typename TView>
-    ALPAKA_FN_HOST_ACC auto getPitchBytes(TView const& view) -> Idx<TView>
+    ALPAKA_FN_HOST auto getPitchBytes(TView const& view) -> Idx<TView>
     {
         return trait::GetPitchBytes<DimInt<Tidx>, TView>::getPitchBytes(view);
     }
@@ -358,9 +357,8 @@ namespace alpaka
         template<std::size_t Tidx>
         struct CreatePitchBytes
         {
-            ALPAKA_NO_HOST_ACC_WARNING
             template<typename TView>
-            ALPAKA_FN_HOST_ACC static auto create(TView const& view) -> Idx<TView>
+            ALPAKA_FN_HOST static auto create(TView const& view) -> Idx<TView>
             {
                 return getPitchBytes<Tidx>(view);
             }
@@ -451,7 +449,7 @@ namespace alpaka
     template<typename TDev, typename TContainer>
     auto createView(TDev const& dev, TContainer& con)
     {
-        return createView(dev, std::data(con), getExtent(con));
+        return createView(dev, std::data(con), getExtentVec(con));
     }
 
     //! Creates a view to a contiguous container of device-accessible memory.

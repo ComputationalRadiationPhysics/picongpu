@@ -65,6 +65,11 @@ namespace alpaka::experimental
         , public warp::WarpGenericSycl<TDim>
     {
     public:
+        AccGenericSycl(AccGenericSycl const&) = delete;
+        AccGenericSycl(AccGenericSycl&&) = delete;
+        auto operator=(AccGenericSycl const&) -> AccGenericSycl& = delete;
+        auto operator=(AccGenericSycl&&) -> AccGenericSycl& = delete;
+
 #    ifdef ALPAKA_SYCL_IOSTREAM_ENABLED
         AccGenericSycl(
             Vec<TDim, TIdx> const& threadElemExtent,

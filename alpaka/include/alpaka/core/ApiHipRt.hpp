@@ -189,7 +189,7 @@ namespace alpaka
             return errorUnknown;
         }
 
-        static inline Error_t funcGetAttributes(FuncAttributes_t* attr, const void* func)
+        static inline Error_t funcGetAttributes(FuncAttributes_t* attr, void const* func)
         {
             return ::hipFuncGetAttributes(attr, func);
         }
@@ -197,7 +197,7 @@ namespace alpaka
         template<typename T>
         static inline Error_t funcGetAttributes(FuncAttributes_t* attr, T* func)
         {
-            return ::hipFuncGetAttributes(attr, reinterpret_cast<const void*>(func));
+            return ::hipFuncGetAttributes(attr, reinterpret_cast<void const*>(func));
         }
 
         static inline Error_t getDeviceCount(int* count)
@@ -210,12 +210,12 @@ namespace alpaka
             return ::hipGetDeviceProperties(prop, device);
         }
 
-        static inline const char* getErrorName(Error_t error)
+        static inline char const* getErrorName(Error_t error)
         {
             return ::hipGetErrorName(error);
         }
 
-        static inline const char* getErrorString(Error_t error)
+        static inline char const* getErrorString(Error_t error)
         {
             return ::hipGetErrorString(error);
         }
@@ -225,7 +225,7 @@ namespace alpaka
             return ::hipGetLastError();
         }
 
-        static inline Error_t getSymbolAddress(void** devPtr, const void* symbol)
+        static inline Error_t getSymbolAddress(void** devPtr, void const* symbol)
         {
             return ::hipGetSymbolAddress(devPtr, symbol);
         }
@@ -293,7 +293,7 @@ namespace alpaka
             return ::hipMemGetInfo(free, total);
         }
 
-        static inline Error_t memcpy(void* dst, const void* src, size_t count, MemcpyKind_t kind)
+        static inline Error_t memcpy(void* dst, void const* src, size_t count, MemcpyKind_t kind)
         {
             return ::hipMemcpy(dst, src, count, kind);
         }
@@ -301,7 +301,7 @@ namespace alpaka
         static inline Error_t memcpy2DAsync(
             void* dst,
             size_t dpitch,
-            const void* src,
+            void const* src,
             size_t spitch,
             size_t width,
             size_t height,
@@ -311,12 +311,12 @@ namespace alpaka
             return ::hipMemcpy2DAsync(dst, dpitch, src, spitch, width, height, kind, stream);
         }
 
-        static inline Error_t memcpy3DAsync(const Memcpy3DParms_t* p, Stream_t stream)
+        static inline Error_t memcpy3DAsync(Memcpy3DParms_t const* p, Stream_t stream)
         {
             return ::hipMemcpy3DAsync(p, stream);
         }
 
-        static inline Error_t memcpyAsync(void* dst, const void* src, size_t count, MemcpyKind_t kind, Stream_t stream)
+        static inline Error_t memcpyAsync(void* dst, void const* src, size_t count, MemcpyKind_t kind, Stream_t stream)
         {
             return ::hipMemcpyAsync(dst, src, count, kind, stream);
         }

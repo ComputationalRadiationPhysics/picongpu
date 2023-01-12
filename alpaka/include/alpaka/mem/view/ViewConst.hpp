@@ -31,11 +31,11 @@ namespace alpaka
             "This is not implemented"); // It might even be dangerous for ViewConst to store a reference to the wrapped
                                         // view, as this decouples the wrapped view's lifetime.
 
-        ALPAKA_FN_HOST_ACC ViewConst(const TView& view) : m_view(view)
+        ALPAKA_FN_HOST ViewConst(TView const& view) : m_view(view)
         {
         }
 
-        ALPAKA_FN_HOST_ACC ViewConst(TView&& view) : m_view(std::move(view))
+        ALPAKA_FN_HOST ViewConst(TView&& view) : m_view(std::move(view))
         {
         }
 
@@ -76,7 +76,7 @@ namespace alpaka
         template<typename I, typename TView>
         struct GetExtent<I, ViewConst<TView>>
         {
-            ALPAKA_FN_HOST_ACC static auto getExtent(ViewConst<TView> const& view)
+            ALPAKA_FN_HOST static auto getExtent(ViewConst<TView> const& view)
             {
                 return alpaka::getExtent<I::value>(view.m_view);
             }
@@ -88,7 +88,7 @@ namespace alpaka
             using TElem = typename ElemType<TView>::type;
 
             // const qualify the element type of the inner view
-            ALPAKA_FN_HOST_ACC static auto getPtrNative(ViewConst<TView> const& view) -> TElem const*
+            ALPAKA_FN_HOST static auto getPtrNative(ViewConst<TView> const& view) -> TElem const*
             {
                 return alpaka::getPtrNative(view.m_view);
             }
@@ -97,7 +97,7 @@ namespace alpaka
         template<typename I, typename TView>
         struct GetPitchBytes<I, ViewConst<TView>>
         {
-            ALPAKA_FN_HOST_ACC static auto getPitchBytes(ViewConst<TView> const& view)
+            ALPAKA_FN_HOST static auto getPitchBytes(ViewConst<TView> const& view)
             {
                 return alpaka::getPitchBytes<I::value>(view.m_view);
             }
@@ -106,7 +106,7 @@ namespace alpaka
         template<typename I, typename TView>
         struct GetOffset<I, ViewConst<TView>>
         {
-            ALPAKA_FN_HOST_ACC static auto getOffset(ViewConst<TView> const& view)
+            ALPAKA_FN_HOST static auto getOffset(ViewConst<TView> const& view)
             {
                 return alpaka::getOffset<I::value>(view.m_view);
             }

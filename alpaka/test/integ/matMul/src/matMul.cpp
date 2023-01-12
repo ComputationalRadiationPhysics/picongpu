@@ -104,7 +104,7 @@ public:
             for(TIndex k3(0); k3 < blockThreadExtentVal; ++k3)
             {
                 dotProduct += pBlockSharedA[blockThreadIdxY * blockThreadExtentX + k3]
-                    * pBlockSharedB[k3 * blockThreadExtentY + blockThreadIdxX];
+                              * pBlockSharedB[k3 * blockThreadExtentY + blockThreadIdxX];
             }
 
             // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and

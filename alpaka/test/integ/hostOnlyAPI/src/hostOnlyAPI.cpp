@@ -61,16 +61,16 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
                                            << alpaka::getExtentProduct(h_buffer2) << " element(s)");
 
     // host-side memset
-    const int value1 = 42;
-    const int expected1 = memset_value<int>(value1);
+    int const value1 = 42;
+    int const expected1 = memset_value<int>(value1);
     INFO("host-side memset");
     alpaka::memset(hostQueue, h_buffer1, value1);
     alpaka::wait(hostQueue);
     CHECK(expected1 == *alpaka::getPtrNative(h_buffer1));
 
     // host-side async memset
-    const int value2 = 99;
-    const int expected2 = memset_value<int>(value2);
+    int const value2 = 99;
+    int const expected2 = memset_value<int>(value2);
     INFO("host-side async memset");
     alpaka::memset(hostQueue, h_buffer2, value2);
     alpaka::wait(hostQueue);

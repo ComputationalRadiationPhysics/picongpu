@@ -58,7 +58,7 @@ namespace alpaka::experimental
         struct BuildAccessor
         {
             template<typename... TAccessModes, typename TMemoryObjectForwardRef>
-            ALPAKA_FN_HOST_ACC static auto buildAccessor(TMemoryObjectForwardRef&&)
+            ALPAKA_FN_HOST static auto buildAccessor(TMemoryObjectForwardRef&&)
             {
                 static_assert(
                     meta::DependentFalseType<TMemoryObject>::value,
@@ -104,7 +104,7 @@ namespace alpaka::experimental
         typename... TAccessModes,
         typename TMemoryObject,
         typename = std::enable_if_t<!internal::IsAccessor<std::decay_t<TMemoryObject>>::value>>
-    ALPAKA_FN_HOST_ACC auto accessWith(TMemoryObject&& memoryObject)
+    ALPAKA_FN_HOST auto accessWith(TMemoryObject&& memoryObject)
     {
         return trait::BuildAccessor<std::decay_t<TMemoryObject>>::template buildAccessor<TAccessModes...>(
             memoryObject);
@@ -119,8 +119,8 @@ namespace alpaka::experimental
         typename TBufferIdx,
         std::size_t TDim,
         typename... TPrevAccessModes>
-    ALPAKA_FN_HOST_ACC auto accessWith(
-        const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, std::tuple<TPrevAccessModes...>>& acc)
+    ALPAKA_FN_HOST auto accessWith(
+        Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, std::tuple<TPrevAccessModes...>> const& acc)
     {
         static_assert(
             meta::Contains<std::tuple<TPrevAccessModes...>, TNewAccessMode>::value,
@@ -131,28 +131,28 @@ namespace alpaka::experimental
     //! Constrains an existing accessor to the specified access modes.
     // constraining accessor to the same access mode again just passes through
     template<typename TNewAccessMode, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
-    ALPAKA_FN_HOST_ACC auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode>& acc)
+    ALPAKA_FN_HOST auto accessWith(Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode> const& acc)
     {
         return acc;
     }
 
     //! Creates a read-write accessor for the given memory object (view, buffer, ...) or accessor.
     template<typename TMemoryObjectOrAccessor>
-    ALPAKA_FN_HOST_ACC auto access(TMemoryObjectOrAccessor&& viewOrAccessor)
+    ALPAKA_FN_HOST auto access(TMemoryObjectOrAccessor&& viewOrAccessor)
     {
         return accessWith<ReadWriteAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }
 
     //! Creates a read-only accessor for the given memory object (view, buffer, ...) or accessor.
     template<typename TMemoryObjectOrAccessor>
-    ALPAKA_FN_HOST_ACC auto readAccess(TMemoryObjectOrAccessor&& viewOrAccessor)
+    ALPAKA_FN_HOST auto readAccess(TMemoryObjectOrAccessor&& viewOrAccessor)
     {
         return accessWith<ReadAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }
 
     //! Creates a write-only accessor for the given memory object (view, buffer, ...) or accessor.
     template<typename TMemoryObjectOrAccessor>
-    ALPAKA_FN_HOST_ACC auto writeAccess(TMemoryObjectOrAccessor&& viewOrAccessor)
+    ALPAKA_FN_HOST auto writeAccess(TMemoryObjectOrAccessor&& viewOrAccessor)
     {
         return accessWith<WriteAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }

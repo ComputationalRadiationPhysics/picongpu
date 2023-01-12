@@ -93,15 +93,15 @@ namespace alpaka::experimental
             // Assign placeholder accessors to this command group
             detail::require(cgh, m_args);
 
-            const auto work_groups = WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
-            const auto group_items = WorkDivMembers<TDim, TIdx>::m_blockThreadExtent;
-            const auto item_elements = WorkDivMembers<TDim, TIdx>::m_threadElemExtent;
+            auto const work_groups = WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
+            auto const group_items = WorkDivMembers<TDim, TIdx>::m_blockThreadExtent;
+            auto const item_elements = WorkDivMembers<TDim, TIdx>::m_threadElemExtent;
 
-            const auto global_size = get_global_size(work_groups, group_items);
-            const auto local_size = get_local_size(group_items);
+            auto const global_size = get_global_size(work_groups, group_items);
+            auto const local_size = get_local_size(group_items);
 
             // allocate dynamic shared memory -- needs at least 1 byte to make the Xilinx Runtime happy
-            const auto dyn_shared_mem_bytes = std::max(
+            auto const dyn_shared_mem_bytes = std::max(
                 1ul,
                 core::apply(
                     [&](std::decay_t<TArgs> const&... args) {
@@ -178,7 +178,7 @@ namespace alpaka::experimental
         static constexpr auto is_sycl_kernel = true;
 
     private:
-        auto get_global_size(const Vec<TDim, TIdx>& work_groups, const Vec<TDim, TIdx>& group_items) const
+        auto get_global_size(Vec<TDim, TIdx> const& work_groups, Vec<TDim, TIdx> const& group_items) const
         {
             if constexpr(TDim::value == 1)
                 return sycl::range<1>{static_cast<std::size_t>(work_groups[0] * group_items[0])};
@@ -193,7 +193,7 @@ namespace alpaka::experimental
                     static_cast<std::size_t>(work_groups[0] * group_items[0])};
         }
 
-        auto get_local_size(const Vec<TDim, TIdx>& group_items) const
+        auto get_local_size(Vec<TDim, TIdx> const& group_items) const
         {
             if constexpr(TDim::value == 1)
                 return sycl::range<1>{static_cast<std::size_t>(group_items[0])};

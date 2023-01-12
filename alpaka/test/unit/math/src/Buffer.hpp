@@ -63,7 +63,7 @@ namespace alpaka
                     Buffer() = delete;
 
                     // Constructor needs to initialize all Buffer.
-                    Buffer(const DevAcc& devAcc)
+                    Buffer(DevAcc const& devAcc)
                         : devHost{alpaka::getDevByIdx<PltfHost>(0u)}
                         , hostBuffer{alpaka::allocMappedBufIfSupported<PltfAcc, TData, Idx>(devHost, Tcapacity)}
                         , devBuffer{alpaka::allocBuf<TData, Idx>(devAcc, Tcapacity)}
@@ -99,7 +99,7 @@ namespace alpaka
                     }
 
                     ALPAKA_FN_HOST
-                    friend auto operator<<(std::ostream& os, const Buffer& buffer) -> std::ostream&
+                    friend auto operator<<(std::ostream& os, Buffer const& buffer) -> std::ostream&
                     {
                         os << "capacity: " << capacity << "\n";
                         for(size_t i = 0; i < capacity; ++i)
