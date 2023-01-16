@@ -88,7 +88,7 @@ namespace alpaka::experimental::detail
                 old_end,
                 [](sycl::event ev) {
                     return ev.get_info<sycl::info::event::command_execution_status>()
-                        == sycl::info::event_command_status::complete;
+                           == sycl::info::event_command_status::complete;
                 });
 
             m_dependencies.erase(new_end, old_end);
@@ -106,7 +106,7 @@ namespace alpaka::experimental::detail
         {
             std::shared_lock<std::shared_mutex> lock{m_mutex};
             return m_last_event.get_info<sycl::info::event::command_execution_status>()
-                == sycl::info::event_command_status::complete;
+                   == sycl::info::event_command_status::complete;
         }
 
         auto wait() -> void

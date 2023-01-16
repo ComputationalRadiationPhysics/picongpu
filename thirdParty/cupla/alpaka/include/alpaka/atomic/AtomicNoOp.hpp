@@ -13,14 +13,14 @@
 
 namespace alpaka
 {
-    //! The CPU fibers accelerator atomic ops.
+    //! The NoOp atomic ops.
     class AtomicNoOp
     {
     };
 
     namespace trait
     {
-        //! The CPU fibers accelerator atomic operation.
+        //! The NoOp atomic operation.
         template<typename TOp, typename T, typename THierarchy>
         struct AtomicOp<TOp, AtomicNoOp, T, THierarchy>
         {

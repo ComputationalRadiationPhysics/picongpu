@@ -1,5 +1,5 @@
 # nvcc + g++
-linux_nvcc-11.2_gcc-7_debug:
+linux_nvcc-11.2_gcc-7_debug_compile_only:
   extends: .base_cuda_gcc_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
@@ -9,9 +9,8 @@ linux_nvcc-11.2_gcc-7_debug:
     ALPAKA_BOOST_VERSION: 1.75.0
     ALPAKA_CI_CMAKE_VER: 3.20.6
     CMAKE_CUDA_ARCHITECTURES: "61;80"
-  stage: stageCompile0
 
-linux_nvcc-11.2_gcc-8_release:
+linux_nvcc-11.2_gcc-8_release_compile_only:
   extends: .base_cuda_gcc_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
@@ -19,7 +18,6 @@ linux_nvcc-11.2_gcc-8_release:
     ALPAKA_CI_GCC_VER: 8
     ALPAKA_BOOST_VERSION: 1.76.0
     ALPAKA_CI_CMAKE_VER: 3.18.6
-  stage: stageCompile1
 
 linux_nvcc-11.2_gcc-9_release:
   extends: .base_cuda_gcc
@@ -29,12 +27,11 @@ linux_nvcc-11.2_gcc-9_release:
     ALPAKA_CI_GCC_VER: 9
     ALPAKA_BOOST_VERSION: 1.74.0
     ALPAKA_CI_CMAKE_VER: 3.19.8
-  stage: stageRun1
 
 # gcc 10 not included because of an GCC 10.3 bug: https://github.com/alpaka-group/alpaka/issues/1297
 
 # nvcc + clang
-linux_nvcc-11.2_clang-8_release:
+linux_nvcc-11.2_clang-8_release_compile_only:
   extends: .base_cuda_clang_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
@@ -43,9 +40,8 @@ linux_nvcc-11.2_clang-8_release:
     ALPAKA_BOOST_VERSION: 1.74.0
     ALPAKA_CI_CMAKE_VER: 3.20.6
     CMAKE_CUDA_COMPILER: nvcc
-  stage: stageCompile0
 
-linux_nvcc-11.2_clang-9_debug:
+linux_nvcc-11.2_clang-9_debug_compile_only:
   extends: .base_cuda_clang_compile_only
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
@@ -55,7 +51,6 @@ linux_nvcc-11.2_clang-9_debug:
     ALPAKA_BOOST_VERSION: 1.77.0
     ALPAKA_CI_CMAKE_VER: 3.20.6
     CMAKE_CUDA_COMPILER: nvcc
-  stage: stageCompile1
 
 linux_nvcc-11.2_clang-10_release:
   extends: .base_cuda_clang
@@ -66,4 +61,17 @@ linux_nvcc-11.2_clang-10_release:
     ALPAKA_BOOST_VERSION: 1.75.0
     ALPAKA_CI_CMAKE_VER: 3.19.8
     CMAKE_CUDA_COMPILER: nvcc
-  stage: stageRun1
+
+# clang++ as CUDA compiler
+linux_clang-14_cuda-11.2_debug_compile_only:
+  extends: .base_cuda_clang_compile_only
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.2"
+    ALPAKA_CI_CLANG_VER: 14
+    CMAKE_BUILD_TYPE: Debug
+    ALPAKA_BOOST_VERSION: 1.79.0
+    ALPAKA_CI_CMAKE_VER: 3.23.2
+    alpaka_ACC_GPU_CUDA_ENABLE: "ON"
+    CMAKE_CUDA_COMPILER: clang++
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "OFF"

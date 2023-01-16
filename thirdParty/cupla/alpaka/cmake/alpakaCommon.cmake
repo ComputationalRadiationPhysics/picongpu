@@ -76,7 +76,6 @@ endif()
 
 option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "Enable the serial CPU back-end" OFF)
 option(alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE "Enable the threads CPU block thread back-end" OFF)
-option(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE "Enable the fibers CPU block thread back-end" OFF)
 option(alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE "Enable the TBB CPU grid block back-end" OFF)
 option(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block back-end" OFF)
 option(alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread back-end" OFF)
@@ -93,7 +92,6 @@ if((alpaka_ACC_GPU_CUDA_ONLY_MODE OR alpaka_ACC_GPU_HIP_ONLY_MODE)
    AND
     (alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
     alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE OR
-    alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE OR
     alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE OR
     alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR
     alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR
@@ -183,15 +181,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     message(WARNING "The Intel Classic compiler (icpc) is no longer supported. Please upgrade to the Intel LLVM compiler (ipcx)!")
 endif()
 
-if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE AND (alpaka_ACC_GPU_CUDA_ENABLE OR alpaka_ACC_GPU_HIP_ENABLE))
-    message(FATAL_ERROR "Fibers and CUDA or HIP back-end can not be enabled both at the same time.")
-endif()
-
 #-------------------------------------------------------------------------------
 # Compiler settings.
 
 if(MSVC)
-    # CUDA\v9.2\include\crt/host_runtime.h(265): warning C4505: '__cudaUnregisterBinaryUtil': unreferenced local function has been removed
+    # warning C4505: '__cudaUnregisterBinaryUtil': unreferenced local function has been removed
     if(alpaka_ACC_GPU_CUDA_ONLY_MODE)
         target_compile_options(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4505>)
     endif()
@@ -226,13 +220,12 @@ if(${alpaka_DEBUG} GREATER 1)
 endif()
 
 find_package(Boost ${_alpaka_BOOST_MIN_VER} REQUIRED
-             OPTIONAL_COMPONENTS atomic fiber)
+             OPTIONAL_COMPONENTS atomic)
 
 target_link_libraries(alpaka INTERFACE Boost::headers)
 
 if(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE OR
-   alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE OR
    alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
@@ -266,12 +259,6 @@ if(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
     endif()
 endif()
 
-if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-    if(NOT Boost_FIBER_FOUND)
-        message(FATAL_ERROR "Optional alpaka dependency Boost.Fiber could not be found!")
-    endif()
-endif()
-
 if(${alpaka_DEBUG} GREATER 1)
     message(STATUS "Boost in:")
     cmake_print_variables(BOOST_ROOT)
@@ -299,8 +286,6 @@ if(${alpaka_DEBUG} GREATER 1)
     cmake_print_variables(Boost_INCLUDE_DIRS)
     cmake_print_variables(Boost_LIBRARY_DIRS)
     cmake_print_variables(Boost_LIBRARIES)
-    cmake_print_variables(Boost_FIBER_FOUND)
-    cmake_print_variables(Boost_FIBER_LIBRARY)
     cmake_print_variables(Boost_CONTEXT_FOUND)
     cmake_print_variables(Boost_CONTEXT_LIBRARY)
     cmake_print_variables(Boost_SYSTEM_FOUND)
@@ -422,10 +407,6 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
 
         enable_language(CUDA)
         find_package(CUDAToolkit REQUIRED)
-
-        if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-            message(FATAL_ERROR "CUDA cannot be used together with Boost.Fiber!")
-        endif()
 
         target_compile_features(alpaka INTERFACE cuda_std_${alpaka_CXX_STANDARD})
 
@@ -779,11 +760,6 @@ endif()
 if(alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED")
     message(STATUS alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
-endif()
-if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-    target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED")
-    target_link_libraries(alpaka INTERFACE Boost::fiber)
-    message(STATUS alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
 endif()
 if(alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED")

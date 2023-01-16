@@ -5,7 +5,7 @@ The *alpaka* library defines and implements an abstract interface for the *hiera
 This model exploits task- and data-parallelism as well as memory hierarchies at all levels of current multi-core architectures.
 This allows to achieve performance portability across various types of accelerators by ignoring specific unsupported levels and utilizing only the ones supported on a specific accelerator.
 All hardware types (multi- and many-core CPUs, GPUs and other accelerators) are treated and can be programmed in the same way.
-The *alpaka* library provides back-ends for *CUDA*, *OpenMP*, *Boost.Fiber* and other methods.
+The *alpaka* library provides back-ends for *CUDA*, *OpenMP*, *HIP* and other methods.
 The policy-based C++ template interface provided allows for straightforward user-defined extension of the library to support other accelerators.
 
 The library name *alpaka* is an acronym standing for **A**\ bstraction **L**\ ibrary for **Pa**\ rallel **K**\ ernel **A**\ cceleration.

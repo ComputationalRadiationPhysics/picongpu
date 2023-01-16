@@ -121,6 +121,13 @@ namespace alpaka
                     alpaka::math::acos,
                     Range::OneNeighbourhood)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpAcosh,
+                    Arity::Unary,
+                    std::acosh,
+                    alpaka::math::acosh,
+                    Range::PositiveOnly)
+
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpArg, Arity::Unary, std::arg, alpaka::math::arg, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
@@ -130,13 +137,29 @@ namespace alpaka
                     alpaka::math::asin,
                     Range::OneNeighbourhood)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpAsinh,
+                    Arity::Unary,
+                    std::asinh,
+                    alpaka::math::asinh,
+                    Range::Unrestricted)
+
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpAtan, Arity::Unary, std::atan, alpaka::math::atan, Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpAtanh,
+                    Arity::Unary,
+                    std::atanh,
+                    alpaka::math::atanh,
+                    Range::OneNeighbourhood)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpCbrt, Arity::Unary, std::cbrt, alpaka::math::cbrt, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpCeil, Arity::Unary, std::ceil, alpaka::math::ceil, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpCos, Arity::Unary, std::cos, alpaka::math::cos, Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpCosh, Arity::Unary, std::cosh, alpaka::math::cosh, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpErf, Arity::Unary, std::erf, alpaka::math::erf, Range::Unrestricted)
 
@@ -168,6 +191,8 @@ namespace alpaka
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpSin, Arity::Unary, std::sin, alpaka::math::sin, Range::Unrestricted)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpSinh, Arity::Unary, std::sinh, alpaka::math::sinh, Range::Unrestricted)
+
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpSqrt,
                     Arity::Unary,
@@ -176,6 +201,8 @@ namespace alpaka
                     Range::PositiveAndZero)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpTan, Arity::Unary, std::tan, alpaka::math::tan, Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpTanh, Arity::Unary, std::tanh, alpaka::math::tanh, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpTrunc,
@@ -251,12 +278,16 @@ namespace alpaka
                 using UnaryFunctorsReal = std::tuple<
                     OpAbs,
                     OpAcos,
+                    OpAcosh,
                     OpArg,
                     OpAsin,
+                    OpAsinh,
                     OpAtan,
+                    OpAtanh,
                     OpCbrt,
                     OpCeil,
                     OpCos,
+                    OpCosh,
                     OpErf,
                     OpExp,
                     OpFloor,
@@ -264,8 +295,10 @@ namespace alpaka
                     OpRound,
                     OpRsqrt,
                     OpSin,
+                    OpSinh,
                     OpSqrt,
                     OpTan,
+                    OpTanh,
                     OpTrunc,
                     OpIsnan,
                     OpIsinf,
@@ -324,17 +357,23 @@ namespace alpaka
                 using UnaryFunctorsComplex = std::tuple<
                     OpAbs,
                     OpAcos,
+                    OpAcosh,
                     OpArg,
                     OpAsin,
+                    OpAsinh,
                     OpAtan,
+                    OpAtanh,
                     OpConj,
                     OpCos,
+                    OpCosh,
                     OpExp,
                     OpLog,
                     OpRsqrt,
                     OpSin,
+                    OpSinh,
                     OpSqrt,
-                    OpTan>;
+                    OpTan,
+                    OpTanh>;
 
             } // namespace math
         } // namespace unit

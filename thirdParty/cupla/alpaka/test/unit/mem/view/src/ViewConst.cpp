@@ -23,7 +23,7 @@ namespace alpaka::test
     template<typename TAcc, typename TQualifiedView, typename TDev, typename TQueue, typename TDim, typename TIdx>
     void testViewConst(
         TQualifiedView& view,
-        const TDev& dev,
+        TDev const& dev,
         TQueue& queue,
         alpaka::Vec<TDim, TIdx> const& extents,
         alpaka::Vec<TDim, TIdx> const& offsets)

@@ -12,6 +12,7 @@
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_ONEAPI_FPGA)
 
 #    include <alpaka/acc/AccGenericSycl.hpp>
+#    include <alpaka/acc/Tag.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/core/DemangleTypeNames.hpp>
 #    include <alpaka/core/Sycl.hpp>
@@ -34,7 +35,7 @@ namespace alpaka::experimental
     //!
     //! This accelerator allows parallel kernel execution on a oneAPI-capable Intel FPGA target device.
     template<typename TDim, typename TIdx>
-    class AccFpgaSyclIntel
+    class AccFpgaSyclIntel final
         : public AccGenericSycl<TDim, TIdx>
         , public concepts::Implements<ConceptAcc, AccFpgaSyclIntel<TDim, TIdx>>
     {
@@ -80,6 +81,18 @@ namespace alpaka::trait
     struct PltfType<experimental::AccFpgaSyclIntel<TDim, TIdx>>
     {
         using type = experimental::PltfFpgaSyclIntel;
+    };
+
+    template<typename TDim, typename TIdx>
+    struct AccToTag<alpaka::experimental::AccFpgaSyclIntel<TDim, TIdx>>
+    {
+        using type = alpaka::TagFpgaSyclIntel;
+    };
+
+    template<typename TDim, typename TIdx>
+    struct TagToAcc<alpaka::TagFpgaSyclIntel, TDim, TIdx>
+    {
+        using type = alpaka::experimental::AccFpgaSyclIntel<TDim, TIdx>;
     };
 } // namespace alpaka::trait
 

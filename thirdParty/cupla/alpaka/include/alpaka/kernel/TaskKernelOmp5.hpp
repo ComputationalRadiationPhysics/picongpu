@@ -61,7 +61,7 @@ namespace alpaka
         }
 
         //! Executes the kernel function object.
-        ALPAKA_FN_HOST auto operator()(const DevOmp5& dev) const -> void
+        ALPAKA_FN_HOST auto operator()(DevOmp5 const& dev) const -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -135,7 +135,7 @@ namespace alpaka
             // `When an if(scalar-expression) evaluates to false, the structured block is executed on the host.`
             auto argsD = m_args;
             auto kernelFnObj = m_kernelFnObj;
-            const auto iDevice = dev.getNativeHandle();
+            auto const iDevice = dev.getNativeHandle();
 #    pragma omp target device(iDevice)
             {
 #    pragma omp teams distribute num_teams(teamCount) // thread_limit(blockThreadCount)

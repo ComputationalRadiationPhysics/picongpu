@@ -190,9 +190,9 @@ TEMPLATE_LIST_TEST_CASE("FenceTest", "[fence]", TestAccs)
     const alpaka::Vec<Dim, Idx> two = {2};
     alpaka::test::KernelExecutionFixture<Acc> fixtureSingleElement{WorkDiv{one, one, one}};
     alpaka::test::KernelExecutionFixture<Acc> fixtureTwoBlocks{WorkDiv{two, one, one}};
-    alpaka::test::KernelExecutionFixture<Acc> fixtureTwoElements = isSingleThreaded<Acc>
-        ? alpaka::test::KernelExecutionFixture<Acc>{WorkDiv{one, one, two}}
-        : alpaka::test::KernelExecutionFixture<Acc>{WorkDiv{one, two, one}};
+    alpaka::test::KernelExecutionFixture<Acc> fixtureTwoElements
+        = isSingleThreaded<Acc> ? alpaka::test::KernelExecutionFixture<Acc>{WorkDiv{one, one, two}}
+                                : alpaka::test::KernelExecutionFixture<Acc>{WorkDiv{one, two, one}};
 
     auto const host = alpaka::getDevByIdx<alpaka::PltfCpu>(0u);
     auto const dev = alpaka::getDevByIdx<Pltf>(0u);

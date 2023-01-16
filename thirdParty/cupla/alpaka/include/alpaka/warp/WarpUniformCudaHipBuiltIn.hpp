@@ -56,14 +56,7 @@ namespace alpaka::warp
 #        endif
             {
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                // Workaround for clang + CUDA 9.2 which uses the wrong PTX ISA,
-                // discussion in https://github.com/alpaka-group/alpaka/pull/1003
-                // Can't use __activemask(), so emulate with __ballot_sync()
-#            if BOOST_COMP_CLANG_CUDA && BOOST_LANG_CUDA == BOOST_VERSION_NUMBER(9, 2, 0)
-                return __ballot_sync(0xffffffff, 1);
-#            else
                 return __activemask();
-#            endif
 #        else
                 // No HIP intrinsic for it, emulate via ballot
                 return __ballot(1);

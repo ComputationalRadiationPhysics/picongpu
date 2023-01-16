@@ -63,6 +63,7 @@ MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
+AlignOperands: Align
 PenaltyBreakAssignment: 2
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
@@ -72,6 +73,7 @@ PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
+QualifierAlignment: Right
 ReflowComments: true
 SortIncludes: true
 SortUsingDeclarations: true
@@ -115,7 +117,4 @@ IncludeCategories:
   - Regex: '<([A-Za-z0-9.\/-_])+>'
     Priority: 3
 
-# Future options - not supported in clang-format 12
-# 
-# OperandAlignmentStyle: Align
 ...

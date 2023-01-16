@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
+# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -72,10 +72,6 @@ if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE=${alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE}")
 fi
-if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE+x}" ]
-then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}")
-fi
 if [ ! -z "${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE}")
@@ -137,7 +133,6 @@ then
 fi
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_TBB=${ALPAKA_CI_INSTALL_TBB}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_OMP=${ALPAKA_CI_INSTALL_OMP}")
-ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_FIBERS=${ALPAKA_CI_INSTALL_FIBERS}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_ATOMIC=${ALPAKA_CI_INSTALL_ATOMIC}")
 
 # runtime only options

@@ -150,49 +150,8 @@ are:
 
 > `WithinRel` matcher was introduced in Catch2 2.10.0
 
-
-`WithinAbs` creates a matcher that accepts floating point numbers whose
-difference with `target` is less than the `margin`.
-
-`WithinULP` creates a matcher that accepts floating point numbers that
-are no more than `maxUlpDiff`
-[ULPs](https://en.wikipedia.org/wiki/Unit_in_the_last_place)
-away from the `target` value. The short version of what this means
-is that there is no more than `maxUlpDiff - 1` representeable floating
-point numbers between the argument for matching and the `target` value.
-
-**Important**: The WithinULP matcher requires the platform to use the
-[IEEE-754](https://en.wikipedia.org/wiki/IEEE_754) representation for
-floating point numbers.
-
-
-`WithinRel` creates a matcher that accepts floating point numbers that
-are _approximately equal_ with the `target` with tolerance of `eps.`
-Specifically, it matches if
-`|arg - target| <= eps * max(|arg|, |target|)` holds. If you do not
-specify `eps`, `std::numeric_limits<FloatingPoint>::epsilon * 100`
-is used as the default.
-
-
-In practice, you will often want to combine multiple of these matchers,
-together for an assertion, because all 3 options have edge cases where
-they behave differently than you would expect. As an example, under
-the `WithinRel` matcher, a `0.` only ever matches a `0.` (or `-0.`),
-regardless of the relative tolerance specified. Thus, if you want to
-handle numbers that are "close enough to 0 to be 0", you have to combine
-it with the `WithinAbs` matcher.
-
-For example, to check that our computation matches known good value
-within 0.1%, or is close enough (no different to 5 decimal places)
-to zero, we would write this assertion:
-```cpp
-    REQUIRE_THAT( computation(input),
-        Catch::Matchers::WithinRel(expected, 0.001)
-     || Catch::Matchers::WithinAbs(0, 0.000001) );
-```
-
-
-> floating point matchers live in `catch2/matchers/catch_matchers_floating.hpp`
+For more details, read [the docs on comparing floating point
+numbers](comparing-floating-point-numbers.md#floating-point-matchers).
 
 
 ### Miscellaneous matchers
@@ -224,7 +183,7 @@ The other miscellaneous matcher utility is exception matching.
 
 #### Matching exceptions
 
-Catch2 provides an utility macro for asserting that an expression
+Catch2 provides a utility macro for asserting that an expression
 throws exception of specific type, and that the exception has desired
 properties. The macro is `REQUIRE_THROWS_MATCHES(expr, ExceptionType, Matcher)`.
 
@@ -258,6 +217,12 @@ definitions to handle generic range-like types. These are:
 * `SizeIs(Matcher size_matcher)`
 * `Contains(T&& target_element, Comparator = std::equal_to<>{})`
 * `Contains(Matcher element_matcher)`
+* `AllMatch(Matcher element_matcher)`
+* `NoneMatch(Matcher element_matcher)`
+* `AnyMatch(Matcher element_matcher)`
+* `AllTrue()`
+* `NoneTrue()`
+* `AnyTrue()`
 
 `IsEmpty` should be self-explanatory. It successfully matches objects
 that are empty according to either `std::empty`, or ADL-found `empty`
@@ -275,6 +240,14 @@ the target element. The other variant is constructed from a matcher,
 in which case a range is accepted if any of its elements is accepted
 by the provided matcher.
 
+`AllMatch`, `NoneMatch`, and `AnyMatch` match ranges for which either
+all, none, or any of the contained elements matches the given matcher,
+respectively.
+
+`AllTrue`, `NoneTrue`, and `AnyTrue` match ranges for which either
+all, none, or any of the contained elements are `true`, respectively.
+It works for ranges of `bool`s and ranges of elements (explicitly)
+convertible to `bool`.
 
 ## Writing custom matchers (old style)
 
@@ -354,7 +327,7 @@ style matchers arbitrarily.
 
 To create a new-style matcher, you have to create your own type that
 derives from `Catch::Matchers::MatcherGenericBase`. Your type has to
-also provide two methods, `bool match( ... ) const` and overriden
+also provide two methods, `bool match( ... ) const` and overridden
 `std::string describe() const`.
 
 Unlike with old-style matchers, there are no requirements on how

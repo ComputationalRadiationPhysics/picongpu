@@ -97,12 +97,12 @@ namespace alpaka
         {
             return *m_spBufImpl;
         }
-        const oacc::detail::BufOaccImpl<TElem, TDim, TIdx>& operator*() const
+        oacc::detail::BufOaccImpl<TElem, TDim, TIdx> const& operator*() const
         {
             return *m_spBufImpl;
         }
 
-        const Vec<TDim, TIdx>& extentElements() const
+        Vec<TDim, TIdx> const& extentElements() const
         {
             return m_spBufImpl->m_extentElements;
         }

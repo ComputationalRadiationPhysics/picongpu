@@ -104,7 +104,7 @@ TEMPLATE_LIST_TEST_CASE("shfl", "[warp]", alpaka::test::TestAccs)
     auto const warpExtents = alpaka::getWarpSizes(dev);
     for(auto const warpExtent : warpExtents)
     {
-        const auto scalar = Dim::value == 0 || warpExtent == 1;
+        auto const scalar = Dim::value == 0 || warpExtent == 1;
         if(scalar)
         {
             alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));

@@ -86,8 +86,8 @@ namespace alpaka
             template<typename TOp>
             ALPAKA_FN_HOST static auto masterOpBlockThreads(CtxBlockOacc<TDim, TIdx> const& acc, TOp&& op) -> void
             {
-                const auto slot = (acc.m_generation & 1) << 1;
-                const int workerNum = static_cast<int>(getWorkDiv<Block, Threads>(acc).prod());
+                auto const slot = (acc.m_generation & 1) << 1;
+                int const workerNum = static_cast<int>(getWorkDiv<Block, Threads>(acc).prod());
                 int sum;
                 // Workaround to use an array in an atomic capture rather than
                 // using the data member m_syncCounter array directly.
@@ -104,7 +104,7 @@ namespace alpaka
                 if(sum == workerNum)
                 {
                     ++acc.m_generation;
-                    const int nextSlot = (acc.m_generation & 1) << 1;
+                    int const nextSlot = (acc.m_generation & 1) << 1;
                     m_syncCounter[nextSlot] = 0;
                     m_syncCounter[nextSlot + 1] = 0;
                     op();

@@ -1,4 +1,4 @@
-/* Copyright 2020 Jonas Schenke, Bernhard Manfred Gruber
+/* Copyright 2022 Jonas Schenke, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -51,7 +51,7 @@ struct GetIterator
     using Iterator = IteratorCpu<TAcc, T, TBuf>;
 };
 
-// Note: Boost Fibers, OpenMP 2 Threads and TBB Blocks accelerators aren't implented
+// Note: OpenMP 2 Threads and TBB Blocks accelerators aren't implented
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
 //! OpenMP 2 Blocks defines

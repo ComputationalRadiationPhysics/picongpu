@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
+# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -39,12 +39,7 @@ then
     fi
 
     # Set the correct CUDA downloads
-    if [ "${ALPAKA_CI_CUDA_VERSION}" == "9.2" ]
-    then
-        ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-ubuntu1604
-        ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_9.2.148-1_amd64.deb
-        ALPAKA_CUDA_PKG_FILE_PATH=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/${ALPAKA_CUDA_PKG_FILE_NAME}
-    elif [ "${ALPAKA_CI_CUDA_VERSION}" == "10.0" ]
+    if [ "${ALPAKA_CI_CUDA_VERSION}" == "10.0" ]
     then
         ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-ubuntu1804-10-0-local
         ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"-10.0.130-410.48_1.0-1_amd64
@@ -95,7 +90,7 @@ then
         ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_11.6.1-510.47.03-1_amd64.deb
         ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/11.6.1/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
     else
-        echo CUDA versions other than 9.2, 10.0, 10.1, 10.2, 11.0, 11.1, 11.2, 11.3, 11.4, 11.5 and 11.6 are not currently supported on linux!
+        echo CUDA versions other than 10.0, 10.1, 10.2, 11.0, 11.1, 11.2, 11.3, 11.4, 11.5 and 11.6 are not currently supported on linux!
     fi
     if [ -z "$(ls -A ${ALPAKA_CI_CUDA_DIR})" ]
     then
@@ -118,14 +113,6 @@ then
     sudo ln -s /usr/local/cuda-"${ALPAKA_CI_CUDA_VERSION}" /usr/local/cuda
     export PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
     export LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:$LD_LIBRARY_PATH
-
-    # Install driver for runtime execution.
-    if [ -n "${GITLAB_CI+x}" ]
-    then
-        latestDriverPackage=$(sudo apt search nvidia-compute-utils 2>/dev/null| grep ^nvidia | sort | tail -n 1 | cut -d"/" -f1)
-        sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install $latestDriverPackage
-        export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
-    fi
 
     if [ "${CMAKE_CUDA_COMPILER}" == "clang++" ]
     then

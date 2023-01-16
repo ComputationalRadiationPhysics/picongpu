@@ -72,7 +72,8 @@ All tag names beginning with non-alphanumeric characters are reserved by Catch. 
 
 * `[@<alias>]` - tag aliases all begin with `@` (see below).
 
-* `[!benchmark]` - this test case is actually a benchmark. This is an experimental feature, and currently has no documentation. If you want to try it out, look at `projects/SelfTest/Benchmark.tests.cpp` for details.
+* `[!benchmark]` - this test case is actually a benchmark. Currently this only serves to hide the test case by default, to avoid the execution time costs.
+
 
 ## Tag aliases
 
@@ -153,7 +154,7 @@ Scenario : vector can be sized and resized
   Then   : The size changes
 ```
 
-See also [runnable example on godbolt](https://godbolt.org/z/e5vPPM),
+See also [runnable example on godbolt](https://godbolt.org/z/eY5a64r99),
 with a more complicated (and failing) example.
 
 > `AND_GIVEN` was [introduced](https://github.com/catchorg/Catch2/issues/1360) in Catch2 2.4.0.

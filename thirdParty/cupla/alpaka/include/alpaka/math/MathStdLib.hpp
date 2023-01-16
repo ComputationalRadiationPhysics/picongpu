@@ -25,6 +25,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library acos, implementation covered by the general template.
+    class AcoshStdLib : public concepts::Implements<ConceptMathAcosh, AcoshStdLib>
+    {
+    };
+
     //! The standard library arg, implementation covered by the general template.
     class ArgStdLib : public concepts::Implements<ConceptMathArg, ArgStdLib>
     {
@@ -35,8 +40,18 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library asinh, implementation covered by the general template.
+    class AsinhStdLib : public concepts::Implements<ConceptMathAsinh, AsinhStdLib>
+    {
+    };
+
     //! The standard library atan, implementation covered by the general template.
     class AtanStdLib : public concepts::Implements<ConceptMathAtan, AtanStdLib>
+    {
+    };
+
+    //! The standard library atanh, implementation covered by the general template.
+    class AtanhStdLib : public concepts::Implements<ConceptMathAtanh, AtanhStdLib>
     {
     };
 
@@ -62,6 +77,11 @@ namespace alpaka::math
 
     //! The standard library cos, implementation covered by the general template.
     class CosStdLib : public concepts::Implements<ConceptMathCos, CosStdLib>
+    {
+    };
+
+    //! The standard library cosh, implementation covered by the general template.
+    class CoshStdLib : public concepts::Implements<ConceptMathCosh, CoshStdLib>
     {
     };
 
@@ -140,6 +160,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library sinh, implementation covered by the general template.
+    class SinhStdLib : public concepts::Implements<ConceptMathSinh, SinhStdLib>
+    {
+    };
+
     //! The standard library sincos, implementation covered by the general template.
     class SinCosStdLib : public concepts::Implements<ConceptMathSinCos, SinCosStdLib>
     {
@@ -155,6 +180,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library tanh, implementation covered by the general template.
+    class TanhStdLib : public concepts::Implements<ConceptMathTanh, TanhStdLib>
+    {
+    };
+
     //! The standard library trunc, implementation covered by the general template.
     class TruncStdLib : public concepts::Implements<ConceptMathTrunc, TruncStdLib>
     {
@@ -164,14 +194,18 @@ namespace alpaka::math
     class MathStdLib
         : public AbsStdLib
         , public AcosStdLib
+        , public AcoshStdLib
         , public ArgStdLib
         , public AsinStdLib
+        , public AsinhStdLib
         , public AtanStdLib
+        , public AtanhStdLib
         , public Atan2StdLib
         , public CbrtStdLib
         , public CeilStdLib
         , public ConjStdLib
         , public CosStdLib
+        , public CoshStdLib
         , public ErfStdLib
         , public ExpStdLib
         , public FloorStdLib
@@ -184,9 +218,11 @@ namespace alpaka::math
         , public RoundStdLib
         , public RsqrtStdLib
         , public SinStdLib
+        , public SinhStdLib
         , public SinCosStdLib
         , public SqrtStdLib
         , public TanStdLib
+        , public TanhStdLib
         , public TruncStdLib
         , public IsnanStdLib
         , public IsinfStdLib

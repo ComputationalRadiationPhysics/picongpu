@@ -297,7 +297,7 @@ TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)
         auto v = alpaka::createView(devHost, &value, extent);
         alpaka::memcpy(queue, buf, v);
     };
-    auto read = [&](const auto& buf)
+    auto read = [&](auto const& buf)
     {
         Elem value{};
         auto v = alpaka::createView(devHost, &value, extent);

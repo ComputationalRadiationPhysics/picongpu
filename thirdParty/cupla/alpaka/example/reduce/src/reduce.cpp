@@ -1,4 +1,4 @@
-/* Copyright 2020 Benjamin Worpitz, Jonas Schenke, Matthias Werner, Bernhard Manfred Gruber
+/* Copyright 2022 Benjamin Worpitz, Jonas Schenke, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -123,7 +123,7 @@ auto reduce(
 auto main() -> int
 {
     // select device and problem size
-    const int dev = 0;
+    int const dev = 0;
     uint64_t n = 1 << 28;
 
     using T = uint32_t;

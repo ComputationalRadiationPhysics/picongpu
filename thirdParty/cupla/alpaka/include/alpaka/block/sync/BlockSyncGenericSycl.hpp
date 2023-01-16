@@ -49,10 +49,10 @@ namespace alpaka::trait
         static auto syncBlockThreadsPredicate(experimental::BlockSyncGenericSycl<TDim> const& blockSync, int predicate)
             -> int
         {
-            const auto group = blockSync.my_item.get_group();
+            auto const group = blockSync.my_item.get_group();
             blockSync.my_item.barrier();
 
-            const auto counter = (predicate != 0) ? 1 : 0;
+            auto const counter = (predicate != 0) ? 1 : 0;
             return sycl::reduce_over_group(group, counter, sycl::plus<>{});
         }
     };
@@ -63,7 +63,7 @@ namespace alpaka::trait
         static auto syncBlockThreadsPredicate(experimental::BlockSyncGenericSycl<TDim> const& blockSync, int predicate)
             -> int
         {
-            const auto group = blockSync.my_item.get_group();
+            auto const group = blockSync.my_item.get_group();
             blockSync.my_item.barrier();
 
             return static_cast<int>(sycl::all_of_group(group, static_cast<bool>(predicate)));
@@ -76,7 +76,7 @@ namespace alpaka::trait
         static auto syncBlockThreadsPredicate(experimental::BlockSyncGenericSycl<TDim> const& blockSync, int predicate)
             -> int
         {
-            const auto group = blockSync.my_item.get_group();
+            auto const group = blockSync.my_item.get_group();
             blockSync.my_item.barrier();
 
             return static_cast<int>(sycl::any_of_group(group, static_cast<bool>(predicate)));

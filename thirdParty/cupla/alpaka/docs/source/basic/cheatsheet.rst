@@ -45,7 +45,6 @@ Define accelerator type (CUDA, OpenMP,etc.)
 	AccCpuOmp4,
 	AccCpuTbbBlocks,
 	AccCpuThreads,
-	AccCpuFibers,
 	AccCpuSerial
 
 

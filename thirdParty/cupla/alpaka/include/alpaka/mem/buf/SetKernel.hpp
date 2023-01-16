@@ -46,8 +46,10 @@ namespace alpaka
             auto const idxThreadFirstElem = getIdxThreadFirstElem(acc, gridThreadIdx, threadElemExtent);
             auto idx = mapIdxPitchBytes<1u, Dim<TAcc>::value>(idxThreadFirstElem, pitch)[0];
             constexpr auto lastDim = Dim<TAcc>::value - 1;
-            const auto lastIdx = idx
-                + std::min(threadElemExtent[lastDim], static_cast<Idx>(extent[lastDim] - idxThreadFirstElem[lastDim]));
+            auto const lastIdx = idx
+                                 + std::min(
+                                     threadElemExtent[lastDim],
+                                     static_cast<Idx>(extent[lastDim] - idxThreadFirstElem[lastDim]));
 
             if((idxThreadFirstElem < extent).foldrAll(std::logical_and<bool>()))
             {

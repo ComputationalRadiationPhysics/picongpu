@@ -57,11 +57,11 @@ struct KernelWithConstexprStaticMemberOmpScheduleChunkSize : KernelWithConstexpr
 template<alpaka::omp::Schedule::Kind TKind>
 struct KernelWithStaticMemberOmpScheduleChunkSize : KernelWithMemberOmpScheduleKind<TKind>
 {
-    static const int ompScheduleChunkSize;
+    static int const ompScheduleChunkSize;
 };
 // In this case, the member has to be defined externally
 template<alpaka::omp::Schedule::Kind TKind>
-const int KernelWithStaticMemberOmpScheduleChunkSize<TKind>::ompScheduleChunkSize = 2;
+int const KernelWithStaticMemberOmpScheduleChunkSize<TKind>::ompScheduleChunkSize = 2;
 
 // Kernel that sets the schedule chunk size via non-constexpr non-static ompScheduleChunkSize in addition to schedule
 // kind.

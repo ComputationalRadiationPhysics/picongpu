@@ -102,7 +102,7 @@ namespace alpaka::trait
             using ExtIdx = Idx<TExtent>;
             using Dim0 = DimInt<0u>;
             using Acc = AccOmp5<Dim0, ExtIdx>;
-            auto kernel = [] ALPAKA_FN_ACC(const Acc&, std::uint8_t b, std::uint8_t* mem)
+            auto kernel = [] ALPAKA_FN_ACC(Acc const&, std::uint8_t b, std::uint8_t* mem)
             {
                 // for zero dimensional views, we just set the bytes of a single element
                 for(auto i = 0u; i < sizeof(Elem<TView>); i++)

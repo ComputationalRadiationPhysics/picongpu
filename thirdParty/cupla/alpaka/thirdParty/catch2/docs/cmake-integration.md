@@ -5,6 +5,7 @@
 [CMake targets](#cmake-targets)<br>
 [Automatic test registration](#automatic-test-registration)<br>
 [CMake project options](#cmake-project-options)<br>
+[`CATCH_CONFIG_*` customization options in CMake](#catch_config_-customization-options-in-cmake)<br>
 [Installing Catch2 from git repository](#installing-catch2-from-git-repository)<br>
 [Installing Catch2 from vcpkg](#installing-catch2-from-vcpkg)<br>
 
@@ -50,7 +51,7 @@ Include(FetchContent)
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v3.0.0-preview3
+  GIT_TAG        v3.0.1 # or a later release
 )
 
 FetchContent_MakeAvailable(Catch2)
@@ -62,17 +63,19 @@ target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 ## Automatic test registration
 
-Catch2's repository also contains two CMake scripts that help users
+Catch2's repository also contains three CMake scripts that help users
 with automatically registering their `TEST_CASE`s with CTest. They
 can be found in the `extras` folder, and are
 
 1) `Catch.cmake` (and its dependency `CatchAddTests.cmake`)
 2) `ParseAndAddCatchTests.cmake` (deprecated)
+3) `CatchShardTests.cmake` (and its dependency `CatchShardTestsImpl.cmake`)
 
 If Catch2 has been installed in system, both of these can be used after
 doing `find_package(Catch2 REQUIRED)`. Otherwise you need to add them
 to your CMake module path.
 
+<a id="catch_discover_tests"></a>
 ### `Catch.cmake` and `CatchAddTests.cmake`
 
 `Catch.cmake` provides function `catch_discover_tests` to get tests from
@@ -109,7 +112,7 @@ catch_discover_tests()
 ```
 
 #### Customization
-`catch_discover_tests` can be given several extra argumets:
+`catch_discover_tests` can be given several extra arguments:
 ```cmake
 catch_discover_tests(target
                      [TEST_SPEC arg1...]
@@ -256,6 +259,49 @@ unset(OptionalCatchTestLauncher)
 ParseAndAddCatchTests(bar)
 ```
 
+
+### `CatchShardTests.cmake`
+
+> `CatchShardTests.cmake` was introduced in Catch2 3.1.0.
+
+`CatchShardTests.cmake` provides a function
+`catch_add_sharded_tests(TEST_BINARY)` that splits tests from `TEST_BINARY`
+into multiple shards. The tests in each shard and their order is randomized,
+and the seed changes every invocation of CTest.
+
+Currently there are 3 customization points for this script:
+
+ * SHARD_COUNT - number of shards to split target's tests into
+ * REPORTER    - reporter spec to use for tests
+ * TEST_SPEC   - test spec used for filtering tests
+
+Example usage:
+
+```
+include(CatchShardTests)
+
+catch_add_sharded_tests(foo-tests
+  SHARD_COUNT 4
+  REPORTER "xml::out=-"
+  TEST_SPEC "A"
+)
+
+catch_add_sharded_tests(tests
+  SHARD_COUNT 8
+  REPORTER "xml::out=-"
+  TEST_SPEC "B"
+)
+```
+
+This registers total of 12 CTest tests (4 + 8 shards) to run shards
+from `foo-tests` test binary, filtered by a test spec.
+
+_Note that this script is currently a proof-of-concept for reseeding
+shards per CTest run, and thus does not support (nor does it currently
+aim to support) all customization points from
+[`catch_discover_tests`](#catch_discover_tests)._
+
+
 ## CMake project options
 
 Catch2's CMake project also provides some options for other projects
@@ -291,6 +337,31 @@ to the compilation. Defaults to `ON`.
 * `CATCH_BUILD_SURROGATES` -- When `ON`, each header in Catch2 will be
 compiled separately to ensure that they are self-sufficient.
 Defaults to `OFF`.
+
+
+## `CATCH_CONFIG_*` customization options in CMake
+
+> CMake support for `CATCH_CONFIG_*` options was introduced in Catch2 3.0.1
+
+Due to the new separate compilation model, all the options from the
+[Compile-time configuration docs](configuration.md#top) can also be set
+through Catch2's CMake. To set them, define the option you want as `ON`,
+e.g. `-DCATCH_CONFIG_NOSTDOUT=ON`.
+
+Note that setting the option to `OFF` doesn't disable it. To force disable
+an option, you need to set the `_NO_` form of it to `ON`, e.g.
+`-DCATCH_CONFIG_NO_COLOUR_WIN32=ON`.
+
+
+To summarize the configuration option behaviour with an example:
+
+| `-DCATCH_CONFIG_COLOUR_WIN32` | `-DCATCH_CONFIG_NO_COLOUR_WIN32` |      Result |
+|-------------------------------|----------------------------------|-------------|
+|                          `ON` |                             `ON` |       error |
+|                          `ON` |                            `OFF` |    force-on |
+|                         `OFF` |                             `ON` |   force-off |
+|                         `OFF` |                            `OFF` | auto-detect |
+
 
 
 ## Installing Catch2 from git repository

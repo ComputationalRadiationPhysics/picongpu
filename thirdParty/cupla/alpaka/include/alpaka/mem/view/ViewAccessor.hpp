@@ -97,7 +97,7 @@ namespace alpaka::experimental
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, 1, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(Accessor<TElem*, TElem, TBufferIdx, 1, TOtherAccessModes> const& other)
             : p(other.p)
             , extents(other.extents)
         {
@@ -139,7 +139,7 @@ namespace alpaka::experimental
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, TDim, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(Accessor<TElem*, TElem, TBufferIdx, TDim, TOtherAccessModes> const& other)
             : p(other.p)
             , pitchesInBytes(other.pitchesInBytes)
             , extents(other.extents)
@@ -157,7 +157,7 @@ namespace alpaka::experimental
             auto bp = internal::asBytePtr(p);
             for(std::size_t i = 0u; i < TDim; i++)
             {
-                const auto pitch = i < TDim - 1 ? pitchesInBytes[i] : static_cast<TBufferIdx>(sizeof(TElem));
+                auto const pitch = i < TDim - 1 ? pitchesInBytes[i] : static_cast<TBufferIdx>(sizeof(TElem));
                 bp += index[i] * pitch;
             }
             return *reinterpret_cast<TElem*>(bp);
@@ -221,13 +221,12 @@ namespace alpaka::experimental
                 using type = std::tuple<TAccessMode1, TAccessMode2, TAccessModes...>;
             };
 
-            ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename... TAccessModes,
                 typename TViewForwardRef,
                 std::size_t... TPitchIs,
                 std::size_t... TExtentIs>
-            ALPAKA_FN_HOST_ACC auto buildViewAccessor(
+            ALPAKA_FN_HOST auto buildViewAccessor(
                 TViewForwardRef&& view,
                 std::index_sequence<TPitchIs...>,
                 std::index_sequence<TExtentIs...>)
@@ -239,12 +238,12 @@ namespace alpaka::experimental
                 using Elem = Elem<TView>;
                 auto p = getPtrNative(view);
                 static_assert(
-                    std::is_same_v<decltype(p), const Elem*> || std::is_same_v<decltype(p), Elem*>,
+                    std::is_same_v<decltype(p), Elem const*> || std::is_same_v<decltype(p), Elem*>,
                     "We assume that getPtrNative() returns a raw pointer to the view's elements");
                 static_assert(
                     !std::is_same_v<
                         decltype(p),
-                        const Elem*> || std::is_same_v<std::tuple<TAccessModes...>, std::tuple<ReadAccess>>,
+                        Elem const*> || std::is_same_v<std::tuple<TAccessModes...>, std::tuple<ReadAccess>>,
                     "When getPtrNative() returns a const raw pointer, the access mode must be ReadAccess");
                 using AccessModeList = typename BuildAccessModeList<TAccessModes...>::type;
                 return Accessor<Elem*, Elem, TBufferIdx, dim, AccessModeList>{
@@ -259,7 +258,7 @@ namespace alpaka::experimental
         struct BuildAccessor<TView, std::enable_if_t<internal::IsView<TView>::value>>
         {
             template<typename... TAccessModes, typename TViewForwardRef>
-            ALPAKA_FN_HOST_ACC static auto buildAccessor(TViewForwardRef&& view)
+            ALPAKA_FN_HOST static auto buildAccessor(TViewForwardRef&& view)
             {
                 using Dim = Dim<std::decay_t<TView>>;
                 return internal::buildViewAccessor<TAccessModes...>(

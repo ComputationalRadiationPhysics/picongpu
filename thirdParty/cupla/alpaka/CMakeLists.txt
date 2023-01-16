@@ -81,10 +81,17 @@ set(_alpaka_INCLUDE_DIRECTORY "${_alpaka_ROOT_DIR}/include")
 set(_alpaka_SUFFIXED_INCLUDE_DIR "${_alpaka_INCLUDE_DIRECTORY}/alpaka")
 
 # the sequential accelerator is required for the tests and examples
-if(NOT DEFINED alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE AND (alpaka_BUILD_EXAMPLES OR BUILD_TESTING))
-  option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "enable alpaka serial accelerator" ON)
+if(alpaka_BUILD_EXAMPLES OR BUILD_TESTING)
+  if (NOT (alpaka_ACC_GPU_CUDA_ONLY_MODE OR alpaka_ACC_GPU_HIP_ONLY_MODE))
+    if (NOT DEFINED alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)
+      option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "enable alpaka serial accelerator" ON)
+    elseif(NOT alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)
+      set(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE ON CACHE BOOL "enable alpaka serial accelerator" FORCE)
+    endif()
+  else() #CUDA or HIP-only mode
+    message(WARNING "CUDA/HIP-only mode enabled: not enabling alpaka serial accelerator (required for examples and tests)")
+  endif()
 endif()
-
 include(${_alpaka_ROOT_DIR}/cmake/alpakaCommon.cmake)
 
 # Add all the source and include files in all recursive subdirectories and group them accordingly.

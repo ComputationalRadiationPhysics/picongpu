@@ -1,7 +1,7 @@
 
 //              Copyright Catch2 Authors
 // Distributed under the Boost Software License, Version 1.0.
-//   (See accompanying file LICENSE_1_0.txt or copy at
+//   (See accompanying file LICENSE.txt or copy at
 //        https://www.boost.org/LICENSE_1_0.txt)
 
 // SPDX-License-Identifier: BSL-1.0
@@ -500,6 +500,11 @@ namespace Catch {
         // before running the tests themselves, or the binary can crash
         // without failed test being reported.
         FatalConditionHandlerGuard _(&m_fatalConditionhandler);
+        // We keep having issue where some compilers warn about an unused
+        // variable, even though the type has non-trivial constructor and
+        // destructor. This is annoying and ugly, but it makes them stfu.
+        (void)_;
+
         m_activeTestCase->invoke();
     }
 

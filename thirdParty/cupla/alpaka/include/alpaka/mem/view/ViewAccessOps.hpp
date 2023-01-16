@@ -101,7 +101,7 @@ namespace alpaka::internal
             auto ptr = reinterpret_cast<uintptr_t>(data());
             if constexpr(TDim > 0)
             {
-                const auto pitchesInBytes = getPitchBytesVec(*static_cast<TView const*>(this));
+                auto const pitchesInBytes = getPitchBytesVec(*static_cast<TView const*>(this));
                 for(std::size_t i = 0u; i < TDim; i++)
                 {
                     const Idx pitch = i + 1 < TDim ? pitchesInBytes[i + 1] : static_cast<Idx>(sizeof(value_type));
