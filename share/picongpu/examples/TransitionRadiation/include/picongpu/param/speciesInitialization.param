@@ -41,7 +41,7 @@ namespace picongpu
          */
         using InitPipeline = pmacc::mp_list<
             CreateDensity<densityProfiles::GaussianCloud, startPosition::Random, PIC_Electrons>,
-            Manipulate<manipulators::AssignYDriftNegative, PIC_Electrons>>;
+            Manipulate<manipulators::AssignXYDrift, PIC_Electrons>>;
 
     } // namespace particles
 } // namespace picongpu

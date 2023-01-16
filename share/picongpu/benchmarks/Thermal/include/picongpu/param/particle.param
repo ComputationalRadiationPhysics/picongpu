@@ -1,5 +1,5 @@
-/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch
+/* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -16,6 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
  */
 
 #pragma once
@@ -36,38 +44,51 @@ namespace picongpu
     {
         namespace startPosition
         {
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
             struct RandomParameterXppc
             {
-                /** Count of particles per cell at initial state
-                 *  unit: none
+                /** Maximum number of macro-particles per cell during density profile evaluation.
+                 *
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
                 static constexpr uint32_t numParticlesPerCell = PARAM_PPC;
             };
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
             using Random = RandomImpl<RandomParameterXppc>;
 
         } // namespace startPosition
 
         /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
-         *  unit: none
-         */
+         *
+         *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
 
-        /** During unit normalization, we assume this is a typical
-         *  number of particles per cell for normalization of weighted
-         *  particle attributes.
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
          */
         constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameterXppc::numParticlesPerCell;
 
         namespace manipulators
         {
+            /** Define initial particle temperature. */
             struct TemperatureParam
             {
-                /* Initial temperature
+                /** Initial temperature
                  *  unit: keV
                  */
                 static constexpr float_64 temperature = 17.5 * 510.998950; // most probable E_kin = 5 mc^2
             };
+            /** Definition of manipulator assigning a temperature
+             *  using parameters from struct TemperatureParam.
+             */
             using AddTemperature = unary::Temperature<TemperatureParam>;
 
         } // namespace manipulators

@@ -1,5 +1,5 @@
 /* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch, Mika Soren Voss
+ *                     Richard Pausch, Klaus Steiniger, Mika Soren Voss
  *
  * This file is part of PIConGPU.
  *
@@ -18,6 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
 #pragma once
 
 #include "picongpu/particles/filter/filter.def"
@@ -30,71 +38,95 @@
 #    define PARAM_GAMMA 1.021
 #endif
 
+
 namespace picongpu
 {
     namespace particles
     {
         namespace startPosition
         {
-            struct QuietParam25ppc
+            /** Define target number for marco-particles per cell along a direction.
+             * To be used in Quiet start position functor.
+             *
+             * Here, five macro-particles per cell along x, five macro-particle per cell along y, and
+             * one macro-particle per cell along z.
+             *
+             * Vector is automatically reduced to two dimensions for 2D (x,y) simulations.
+             */
+            struct QuietParam
             {
-                /** Count of particles per cell per direction at initial state
-                 *  unit: none
-                 */
-                using numParticlesPerDimension = typename mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type;
+                /** Count of macro-particles per cell per direction at initial state
+                 *
+                 *  unit: none */
+                using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type;
             };
-            using Quiet25ppc = QuietImpl<QuietParam25ppc>;
+            /** Definition of Quiet start position functor that positions macro-particles regularly on the grid.
+             * No random number generator used.
+             */
+            using Quiet = QuietImpl<QuietParam>;
 
         } // namespace startPosition
 
         /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
-         *  unit: none
-         */
+         *
+         *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
 
-        /** During unit normalization, we assume this is a typical
-         *  number of particles per cell for normalization of weighted
-         *  particle attributes.
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
          */
         constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
-            = mCT::volume<startPosition::QuietParam25ppc::numParticlesPerDimension>::type::value;
+            = mCT::volume<startPosition::QuietParam::numParticlesPerDimension>::type::value;
 
         namespace manipulators
         {
+            /** Define initial particle drift direction vector.
+             *  This vector is used in struct DriftParamPositive.
+             */
             CONST_VECTOR(float_X, 3, DriftParamPositive_direction, 1.0, 0.0, 0.0);
+
+            /** Define Lorentz factor of initial particle drift along +X. */
             struct DriftParamPositive
             {
-                /** Initial particle drift velocity for electrons and ions
-                 *  Examples:
-                 *    - No drift is equal to 1.0
-                 *  unit: none
-                 */
                 static constexpr float_64 gamma = PARAM_GAMMA;
                 const DriftParamPositive_direction_t direction;
             };
+            /** Definition of manipulator that assigns a drift in +X
+             *  using parameters from struct DriftParamPositive.
+             */
             using AssignXDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
 
+
+            /** Define initial particle drift direction vector.
+             *  This vector is used in struct DriftParamNegative.
+             */
             CONST_VECTOR(float_X, 3, DriftParamNegative_direction, -1.0, 0.0, 0.0);
+
+            /** Define Lorentz factor of initial particle drift along -X. */
             struct DriftParamNegative
             {
-                /** Initial particle drift velocity for electrons and ions
-                 *  Examples:
-                 *    - No drift is equal to 1.0
-                 *  unit: none
-                 */
                 static constexpr float_64 gamma = PARAM_GAMMA;
                 const DriftParamNegative_direction_t direction;
             };
+            /** Definition of manipulator that assigns a drift in -X
+             *  using parameters from struct DriftParamNegative.
+             */
             using AssignXDriftNegative = unary::Drift<DriftParamNegative, pmacc::math::operation::Assign>;
 
+
+            /** Define initial particle temperature. */
             struct TemperatureParam
             {
-                /* Initial temperature
+                /** Initial temperature
                  *  unit: keV
                  */
                 static constexpr float_64 temperature = 0.0005;
             };
+            /** Definition of manipulator assigning a temperature
+             *  using parameters from struct TemperatureParam.
+             */
             using AddTemperature = unary::Temperature<TemperatureParam>;
 
         } // namespace manipulators

@@ -1,5 +1,5 @@
 /* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch
+ *                     Richard Pausch, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -42,17 +42,15 @@ namespace picongpu
         /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
          *
-         *  unit: none
-         *
-         * here we essentially allow any weighting since it has no real meaning in 2D3V
-         */
+         *  unit: none */
         constexpr float_X MIN_WEIGHTING = 0.0000001;
 
         namespace manipulators
         {
-            // ionize ions once by removing one bound electron
+            /** Define initial ion charge to once ionized*/
             struct OnceIonizedImpl
             {
+                /** Ionize ions once by removing one bound electron */
                 template<typename T_Particle>
                 DINLINE void operator()(T_Particle& particle)
                 {
@@ -60,11 +58,15 @@ namespace picongpu
                     particle[boundElectrons_] = protonNumber - 1.0_X;
                 }
             };
+            /** Definition of manipulator that sets the ionization state of an ion macro-particle
+             * according properties defined in struct OnceIonizedImpl.
+             */
             using OnceIonized = generic::Free<OnceIonizedImpl>;
 
-            //! ionize ions twice
+            /** Define initial ion charge to twice ionized*/
             struct TwiceIonizedImpl
             {
+                /** Ionize ions twice by removing two bound electrons */
                 template<typename T_Particle>
                 DINLINE void operator()(T_Particle& particle)
                 {
@@ -72,56 +74,78 @@ namespace picongpu
                     particle[boundElectrons_] = protonNumber - 2._X;
                 }
             };
-
-            //! definition of TwiceIonizedImpl manipulator
+            /** Definition of manipulator that sets the ionization state of an ion macro-particle
+             * according properties defined in struct TwiceIonizedImpl.
+             */
             using TwiceIonized = generic::Free<TwiceIonizedImpl>;
 
-            //! changes the in-cell position of each particle of a species
+
+            /** Definition of manipulator that changes the in-cell position of each particle of a species. */
             using RandomPosition = unary::RandomPosition;
-
         } // namespace manipulators
-
 
         namespace startPosition
         {
-            struct RandomParameter6ppc
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
+            struct RandomParameter
             {
-                /** Count of particles per cell at initial state
+                /** Maximum number of macro-particles per cell during density profile evaluation.
                  *
-                 *  unit: none
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
                 static constexpr uint32_t numParticlesPerCell = 6u;
             };
-            using Random6ppc = RandomImpl<RandomParameter6ppc>;
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
+            using Random = RandomImpl<RandomParameter>;
 
-            // probe particles sit directly in lower corner of the cell
+
+            /** Define initial in-cell particle position used as parameter in OnePosition functor.
+             *
+             * Here, macro-particles sit directly in lower corner of the cell.
+             *
+             * This defines the type InCellOffset_t
+             * where every instance of this type has the preset values defined here.
+             */
             CONST_VECTOR(
                 float_X,
                 3,
                 InCellOffset,
-                // each x, y, z in-cell position component in range [0.0, 1.0)
+                /* each x, y, z in-cell position component in range [0.0, 1.0) */
                 0.0,
                 0.0,
                 0.0);
             struct OnePositionParameter
             {
-                /** Count of particles per cell at initial state
+                /** Maximum number of macro-particles per cell during density profile evaluation.
                  *
-                 *  unit: none
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
                 static constexpr uint32_t numParticlesPerCell = 1u;
 
                 const InCellOffset_t inCellOffset;
             };
+            /** Definition of OnePosition start position functor that
+             * places macro-particles at the initial in-cell position defined above.
+             */
             using OnePosition = OnePositionImpl<OnePositionParameter>;
 
         } // namespace startPosition
 
-        /** During unit normalization, we assume this is a typical
-         *  number of particles per cell for normalization of weighted
-         *  particle attributes.
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
          */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter6ppc::numParticlesPerCell;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
 
     } // namespace particles
 } // namespace picongpu

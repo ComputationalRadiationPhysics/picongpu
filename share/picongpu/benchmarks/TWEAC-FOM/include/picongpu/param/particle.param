@@ -1,5 +1,5 @@
-/* Copyright 2013-2019 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch
+/* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -31,8 +31,8 @@
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/startPosition/functors.def"
-#include "pmacc/math/operation.hpp"
 
+#include <pmacc/math/operation.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
 
@@ -46,53 +46,67 @@ namespace picongpu
          *  unit: none */
         constexpr float_X MIN_WEIGHTING = 0.001;
 
-        /** Number of maximum particles per cell during density profile evaluation.
-         *
-         * Determines the weighting of a macro particle and with it, the number of
-         * particles "sampling" dynamics in phase space.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 25u;
-
-
         namespace startPosition
         {
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
             struct RandomParameter
             {
-                /** Count of particles per cell at initial state
+                /** Maximum number of macro-particles per cell during density profile evaluation.
                  *
-                 *  unit: none */
-                static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 25u;
             };
-            /** definition of random particle start */
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
             using Random = RandomImpl<RandomParameter>;
 
         } // namespace startPosition
 
         namespace manipulators
         {
-            CONST_VECTOR(float_X, 3, DriftParamPositive_direction, 0.0, 1.0, 0.0);
-            struct DriftParamPositive
-            {
-                /** Initial particle drift velocity for electrons and ions
-                 *  Examples:
-                 *    - No drift is equal to 1.0
-                 *  unit: none
-                 */
-                static constexpr float_64 gamma = 1.21;
-                const DriftParamPositive_direction_t direction;
-            };
-            using AssignYDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
+            /** Define initial particle drift direction vector.
+             *  This vector is used in struct DriftParam.
+             */
+            CONST_VECTOR(float_X, 3, DriftParamYPositive_direction, 0.0, 1.0, 0.0);
 
+            /** Define Lorentz factor of initial particle drift. */
+            struct DriftParamYPositive
+            {
+                static constexpr float_64 gamma = 1.21;
+                const DriftParamYPositive_direction_t direction;
+            };
+            /** Definition of manipulator that assigns a drift in Y
+             *  using parameters from struct DriftParamYPositive.
+             */
+            using AssignYDriftPositive = unary::Drift<DriftParamYPositive, pmacc::math::operation::Assign>;
+
+
+            /** Define initial particle temperature. */
             struct TemperatureParam
             {
-                /* Initial temperature
+                /** Initial temperature
                  *  unit: keV
                  */
                 static constexpr float_64 temperature = 0.0005;
             };
+            /** Definition of manipulator assigning a temperature
+             *  using parameters from struct TemperatureParam.
+             */
             using AddTemperature = unary::Temperature<TemperatureParam>;
 
         } // namespace manipulators
 
+
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
     } // namespace particles
 } // namespace picongpu
