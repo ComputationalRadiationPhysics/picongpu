@@ -22,14 +22,8 @@
 #include "common/txtFileHandling.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 
-#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
-#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
-#include <pmacc/cuSTL/container/HostBuffer.hpp>
-#include <pmacc/cuSTL/cursor/NestedCursor.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/math/vector/Float.hpp>
@@ -74,13 +68,12 @@ namespace picongpu
 
         Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
 
-        pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
-        using namespace pmacc::math;
-        Size_t<simDim> gpuDim = (Size_t<simDim>) con.getGpuNodes();
-        zone::SphericZone<simDim> zone_allGPUs(gpuDim);
-        this->allGPU_reduce = AllGPU_reduce(new pmacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
+        constexpr uint32_t reductionMainMemSize = 1024u;
+        globalReduce = std::make_unique<algorithms::GlobalReduce>(reductionMainMemSize);
+        // all MPI ranks will participate
+        globalReduce->participate(true);
 
-        if(this->allGPU_reduce->root())
+        if(globalReduce->hasResult(mpiReduceMethod))
         {
             this->output_file.open(this->filename.c_str(), std::ios_base::app);
             this->output_file << "#timestep max-charge-deviation unit[As]" << std::endl;
@@ -92,7 +85,7 @@ namespace picongpu
         if(this->notifyPeriod.empty())
             return;
 
-        if(!this->allGPU_reduce->root())
+        if(!globalReduce->hasResult(mpiReduceMethod))
             return;
 
         restoreTxtFile(this->output_file, this->filename, restartStep, restartDirectory);
@@ -103,7 +96,7 @@ namespace picongpu
         if(this->notifyPeriod.empty())
             return;
 
-        if(!this->allGPU_reduce->root())
+        if(!globalReduce->hasResult(mpiReduceMethod))
             return;
 
         checkpointTxtFile(this->output_file, this->filename, currentStep, checkpointDirectory);
@@ -136,9 +129,9 @@ namespace picongpu
                 const ValueType reciWidth = float_X(1.0) / cellSize.x();
                 const ValueType reciHeight = float_X(1.0) / cellSize.y();
                 const ValueType reciDepth = float_X(1.0) / cellSize.z();
-                return ((*field).x() - (*field(-1, 0, 0)).x()) * reciWidth
-                    + ((*field).y() - (*field(0, -1, 0)).y()) * reciHeight
-                    + ((*field).z() - (*field(0, 0, -1)).z()) * reciDepth;
+                return ((*field).x() - field(DataSpace<DIM3>(-1, 0, 0)).x()) * reciWidth
+                    + ((*field).y() - field(DataSpace<DIM3>(0, -1, 0)).y()) * reciHeight
+                    + ((*field).z() - field(DataSpace<DIM3>(0, 0, -1)).z()) * reciDepth;
             }
         };
 
@@ -152,8 +145,8 @@ namespace picongpu
             {
                 const ValueType reciWidth = float_X(1.0) / cellSize.x();
                 const ValueType reciHeight = float_X(1.0) / cellSize.y();
-                return ((*field).x() - (*field(-1, 0)).x()) * reciWidth
-                    + ((*field).y() - (*field(0, -1)).y()) * reciHeight;
+                return ((*field).x() - (field(DataSpace<DIM2>(-1, 0))).x()) * reciWidth
+                    + ((*field).y() - (field(DataSpace<DIM2>(0, -1))).y()) * reciHeight;
             }
         };
 
@@ -179,19 +172,6 @@ namespace picongpu
                 fieldTmp->computeValue<area, ChargeDensitySolver>(*speciesTmp, currentStep);
             }
         };
-
-        struct CalculateAndAssignChargeDeviation
-        {
-            template<typename T_Rho, typename T_FieldE, typename T_Worker>
-            HDINLINE void operator()(const T_Worker& worker, T_Rho& rho, const T_FieldE& fieldECursor) const
-            {
-                typedef Div<simDim, typename FieldTmp::ValueType> MyDiv;
-
-                /* rho := | div E * eps_0 - rho | */
-                rho.x() = math::abs((MyDiv{}(fieldECursor) *EPS0 - rho).x());
-            }
-        };
-
     } // namespace detail
 
     void ChargeConservation::notify(uint32_t currentStep)
@@ -223,45 +203,56 @@ namespace picongpu
         EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(fieldTmpEvent);
 
-        /* cast PMacc Buffer to cuSTL Buffer */
-        auto fieldTmp_coreBorder = fieldTmp->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-            this->cellDescription->getGuardingSuperCells() * BlockDim::toRT(),
-            this->cellDescription->getGuardingSuperCells() * -BlockDim::toRT());
+        auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
 
-        /* cast PMacc Buffer to cuSTL Buffer */
-        auto fieldE_coreBorder = dc.get<FieldE>(FieldE::getName(), true)
-                                     ->getGridBuffer()
-                                     .getDeviceBuffer()
-                                     .cartBuffer()
-                                     .view(
-                                         this->cellDescription->getGuardingSuperCells() * BlockDim::toRT(),
-                                         this->cellDescription->getGuardingSuperCells() * -BlockDim::toRT());
+        auto const chargeDeviation = [] ALPAKA_FN_ACC(auto const& worker, auto mapper, auto rohBox, auto fieldEBox)
+        {
+            DataSpace<simDim> const superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const supercellCellIdx = superCellIdx * SuperCellSize::toRT();
+            constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-        /* run calculation: fieldTmp = | div E * eps_0 - rho | */
-        typedef picongpu::detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
-        algorithm::kernel::Foreach<BlockDim>()(
-            fieldTmp_coreBorder.zone(),
-            fieldTmp_coreBorder.origin(),
-            cursor::make_NestedCursor(fieldE_coreBorder.origin()),
-            ::picongpu::detail::CalculateAndAssignChargeDeviation());
+            lockstep::makeForEach<cellsPerSupercell>(worker)(
+                [&](uint32_t const linearIdx)
+                {
+                    // cell index within the superCell
+                    DataSpace<simDim> const inSupercellCellIdx
+                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                    auto globalCellIdx = supercellCellIdx + inSupercellCellIdx;
 
-        /* reduce charge derivation (fieldTmp) to get the maximum value */
-        typename FieldTmp::ValueType maxChargeDiff = algorithm::kernel::Reduce()(
-            fieldTmp_coreBorder.origin(),
-            fieldTmp_coreBorder.zone(),
-            pmacc::math::operation::Max{});
+                    auto div = picongpu::detail::Div<simDim, typename FieldTmp::ValueType>{};
 
-        /* reduce again across mpi cluster */
-        container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);
-        *maxChargeDiff_host.origin() = maxChargeDiff;
-        container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_cluster(1);
-        (*this->allGPU_reduce)(maxChargeDiff_cluster, maxChargeDiff_host, pmacc::math::operation::Max{});
+                    /* rho := | div E * eps_0 - rho | */
+                    rohBox(globalCellIdx).x()
+                        = math::abs(div(fieldEBox.shift(globalCellIdx)) * EPS0 - rohBox(globalCellIdx).x());
+                });
+        };
 
-        if(!this->allGPU_reduce->root())
-            return;
+        auto const mapper = makeAreaMapper<CORE + BORDER>(*this->cellDescription);
+        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+        PMACC_LOCKSTEP_KERNEL(chargeDeviation, workerCfg)
+        (mapper.getGridDim())(
+            mapper,
+            fieldTmp->getGridBuffer().getDeviceBuffer().getDataBox(),
+            fieldE->getGridBuffer().getDeviceBuffer().getDataBox());
 
-        this->output_file << currentStep << " " << (*maxChargeDiff_cluster.origin() * CELL_VOLUME).x() << " "
-                          << UNIT_CHARGE << std::endl;
+        // find global max error
+        auto memLayoutRoh = fieldTmp->getGridLayout();
+        int localSizeRoh = memLayoutRoh.getDataSpaceWithoutGuarding().productOfComponents();
+
+        using D1Box = DataBoxDim1Access<typename FieldTmp::DataBoxType>;
+        // ignore guards and operate on CORE+BORDER only
+        D1Box d1access(
+            fieldTmp->getGridBuffer().getDeviceBuffer().getDataBox().shift(memLayoutRoh.getGuard()),
+            memLayoutRoh.getDataSpaceWithoutGuarding());
+
+        auto maxChargeDiff = (*globalReduce)(pmacc::math::operation::Max(), d1access, localSizeRoh, mpiReduceMethod);
+
+        if(globalReduce->hasResult(mpiReduceMethod))
+        {
+            this->output_file << currentStep << " " << (maxChargeDiff * CELL_VOLUME).x() << " " << UNIT_CHARGE
+                              << std::endl;
+        }
     }
 
 } // namespace picongpu

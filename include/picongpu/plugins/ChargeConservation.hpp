@@ -24,7 +24,7 @@
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
+#include <pmacc/algorithms/GlobalReduce.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -56,8 +56,8 @@ namespace picongpu
         MappingDesc* cellDescription;
         std::ofstream output_file;
 
-        using AllGPU_reduce = std::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>>;
-        AllGPU_reduce allGPU_reduce;
+        std::unique_ptr<algorithms::GlobalReduce> globalReduce;
+        ::pmacc::mpi::reduceMethods::Reduce mpiReduceMethod;
 
         HINLINE void restart(uint32_t restartStep, const std::string restartDirectory) override;
         HINLINE void checkpoint(uint32_t currentStep, const std::string checkpointDirectory) override;
