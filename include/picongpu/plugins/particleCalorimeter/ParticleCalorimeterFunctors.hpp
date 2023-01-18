@@ -32,10 +32,10 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    template<typename CalorimeterCur>
+    template<typename T_CalorimeterDataBox>
     struct CalorimeterFunctor
     {
-        CalorimeterCur calorimeterCur;
+        T_CalorimeterDataBox m_calorimeterBox;
 
         const float_X maxYaw;
         const float_X maxPitch;
@@ -64,8 +64,7 @@ namespace picongpu
             const float3_X calorimeterFrameVecX,
             const float3_X calorimeterFrameVecY,
             const float3_X calorimeterFrameVecZ)
-            : calorimeterCur(nullptr, pmacc::math::Size_t<DIM2>::create(0))
-            , maxYaw(maxYaw)
+            : maxYaw(maxYaw)
             , maxPitch(maxPitch)
             , numBinsYaw(numBinsYaw)
             , numBinsPitch(numBinsPitch)
@@ -81,9 +80,9 @@ namespace picongpu
 
         HDINLINE CalorimeterFunctor(const CalorimeterFunctor&) = default;
 
-        HINLINE void setCalorimeterCursor(const CalorimeterCur& calorimeterCur)
+        HINLINE void setCalorimeterData(const T_CalorimeterDataBox& calorimeterBox)
         {
-            this->calorimeterCur = calorimeterCur;
+            this->m_calorimeterBox = calorimeterBox;
         }
 
         template<typename T_Particle, typename T_Worker>
@@ -148,7 +147,7 @@ namespace picongpu
 
                 cupla::atomicAdd(
                     worker.getAcc(),
-                    &(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
+                    &this->m_calorimeterBox(DataSpace<DIM3>(yawBin, pitchBin, energyBin)),
                     energy * normedWeighting,
                     ::alpaka::hierarchy::Threads{});
             }
