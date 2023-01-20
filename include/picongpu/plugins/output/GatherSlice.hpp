@@ -121,7 +121,7 @@ namespace picongpu
             MessageHeader* fakeHeader = MessageHeader::create();
             *fakeHeader = header;
 
-            auto* recvHeader = new char[MessageHeader::bytes * numRanks];
+            auto recvHeader = std::vector<char>(MessageHeader::bytes * numRanks);
 
             if(fullData.empty() && mpiRank == masterRank)
                 fullData.resize(sizeof(ValueType) * header.sim.size.productOfComponents());
@@ -133,7 +133,7 @@ namespace picongpu
                 fakeHeader,
                 MessageHeader::bytes,
                 MPI_CHAR,
-                recvHeader,
+                recvHeader.data(),
                 MessageHeader::bytes,
                 MPI_CHAR,
                 masterRank,
@@ -144,7 +144,7 @@ namespace picongpu
             int offset = 0;
             for(int i = 0; i < numRanks; ++i)
             {
-                auto* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
+                auto* head = (MessageHeader*) (recvHeader.data() + MessageHeader::bytes * i);
                 counts[i] = head->node.maxSize.productOfComponents() * sizeof(ValueType);
                 displs[i] = offset;
                 offset += counts[i];
@@ -180,7 +180,7 @@ namespace picongpu
 
                 for(int i = 0; i < numRanks; ++i)
                 {
-                    auto* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
+                    auto* head = (MessageHeader*) (recvHeader.data() + MessageHeader::bytes * i);
 
                     log<picLog::DOMAINS>("part image with offset %1%byte=%2%elements | size %3%  | offset %4%")
                         % displs[i] % (displs[i] / sizeof(ValueType)) % head->node.maxSize.toString()
@@ -196,7 +196,6 @@ namespace picongpu
                 fullData.clear();
             }
 
-            delete[] recvHeader;
             MessageHeader::destroy(fakeHeader);
 
             return dstBox;

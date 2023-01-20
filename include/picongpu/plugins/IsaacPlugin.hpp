@@ -408,7 +408,7 @@ namespace picongpu
 #    endif
 #endif
                 >;
-            VisualizationType* visualization = nullptr;
+            std::unique_ptr<VisualizationType> visualization;
 
             static_assert(std::is_trivially_copyable<std::decay_t<VectorFieldSourceList>>::value);
 
@@ -718,7 +718,7 @@ namespace picongpu
                         particleSize[i] = subGrid.getLocalDomain().size[i] / SuperCellSize::toRT()[i];
                         position[i] = subGrid.getLocalDomain().offset[i];
                     }
-                    visualization = new VisualizationType(
+                    visualization = std::make_unique<VisualizationType>(
                         cupla::manager::Device<cupla::AccHost>::get().current(),
                         cupla::manager::Device<cupla::AccDev>::get().current(),
                         cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(),
@@ -858,8 +858,7 @@ namespace picongpu
             {
                 if(!notifyPeriod.empty())
                 {
-                    delete visualization;
-                    visualization = nullptr;
+                    visualization.reset(nullptr);
                     if(rank == 0)
                         log<picLog::INPUT_OUTPUT>("ISAAC finished");
                 }
