@@ -31,9 +31,6 @@
 #include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
@@ -334,43 +331,29 @@ namespace picongpu
             // avoid deadlock for following, blocking MPI operations
             __getTransactionEvent().waitForFinished();
 
+
             for(int planePos = 0; planePos <= (int) gpuDim[r_element]; ++planePos)
             {
-                /* my plane means: the offset for the transversal plane to my r_element
-                 * should be zero
-                 */
-                pmacc::math::Int<simDim> longOffset(pmacc::math::Int<simDim>::create(0));
-                longOffset[r_element] = planePos;
-
-                zone::SphericZone<simDim> zoneTransversalPlane(sizeTransversalPlane, longOffset);
-
-                /* Am I the lowest GPU in my plane? */
-                bool isGroupRoot = false;
+                auto mpiReduce = std::make_unique<mpi::MPIReduce>();
                 bool isInGroup = (gpuPos[r_element] == planePos);
+
+                mpiReduce->participate(isInGroup);
                 if(isInGroup)
                 {
-                    pmacc::math::Int<simDim> inPlaneGPU(gpuPos);
-                    inPlaneGPU[r_element] = 0;
-                    if(inPlaneGPU == pmacc::math::Int<simDim>::create(0))
-                        isGroupRoot = true;
+                    this->isPlaneReduceRoot = mpiReduce->hasResult(::pmacc::mpi::reduceMethods::Reduce{});
+                    this->planeReduce = std::move(mpiReduce);
                 }
-                auto* createReduce = new algorithm::mpi::Reduce<simDim>(zoneTransversalPlane, isGroupRoot);
-                if(isInGroup)
-                {
-                    planeReduce = createReduce;
-                    isPlaneReduceRoot = isGroupRoot;
-                }
-                else
-                    delete createReduce;
             }
 
-            /* Create communicator with ranks of each plane reduce root */
+            /* Create MPI communicator for openPMD IO with ranks of each plane reduce root */
             {
                 /* Array with root ranks of the planeReduce operations */
                 std::vector<int> planeReduceRootRanks(gc.getGlobalSize(), -1);
                 /* Am I one of the planeReduce root ranks? my global rank : -1 */
                 int myRootRank = gc.getGlobalRank() * isPlaneReduceRoot - (!isPlaneReduceRoot);
 
+                // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                __getTransactionEvent().waitForFinished();
                 MPI_Group world_group, new_group;
                 MPI_CHECK(MPI_Allgather(
                     &myRootRank,
@@ -492,7 +475,7 @@ namespace picongpu
             // to calculate the absolute position of the particles
             DataSpace<simDim> localSize(m_cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            const int subGridY = subGrid.getGlobalDomain().size.y();
+            const int globalDomainSizeY = subGrid.getGlobalDomain().size.y();
             auto movingWindow = MovingWindow::getInstance().getWindow(currentStep);
             DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
 
@@ -504,7 +487,7 @@ namespace picongpu
                 gSumMomPos->getDeviceBuffer().getDataBox(),
                 gCount_e->getDeviceBuffer().getDataBox(),
                 globalOffset,
-                subGridY,
+                globalDomainSizeY,
                 mapper,
                 std::placeholders::_1);
 
@@ -519,46 +502,57 @@ namespace picongpu
             gSumMomPos->deviceToHost();
             gCount_e->deviceToHost();
 
-            container::HostBuffer<float_64, DIM1> reducedSumMom2(subGrid.getLocalDomain().size.y());
-            container::HostBuffer<float_64, DIM1> reducedSumPos2(subGrid.getLocalDomain().size.y());
-            container::HostBuffer<float_64, DIM1> reducedSumMomPos(subGrid.getLocalDomain().size.y());
-            container::HostBuffer<float_64, DIM1> reducedCount_e(subGrid.getLocalDomain().size.y());
-            reducedSumMom2.assign(0.0);
-            reducedSumPos2.assign(0.0);
-            reducedSumMomPos.assign(0.0);
-            reducedCount_e.assign(0.0);
+            auto localDomSizeY = subGrid.getGlobalDomain().size.y();
+
+            pmacc::HostBufferIntern<float_64, DIM1> reducedSumMom2(localDomSizeY);
+            pmacc::HostBufferIntern<float_64, DIM1> reducedSumPos2(localDomSizeY);
+            pmacc::HostBufferIntern<float_64, DIM1> reducedSumMomPos(localDomSizeY);
+            pmacc::HostBufferIntern<float_64, DIM1> reducedCount_e(localDomSizeY);
+            reducedSumMom2.setValue(0.0);
+            reducedSumPos2.setValue(0.0);
+            reducedSumMomPos.setValue(0.0);
+            reducedCount_e.setValue(0.0);
 
             // add gSum values from all GPUs using MPI
-            planeReduce->template operator()(/* parameters: dest, source */
-                                             reducedSumMom2,
-                                             gSumMom2->getHostBuffer().cartBuffer(),
-                                             /* the functors return value will be written to dst */
-                                             pmacc::algorithm::functor::Add());
-            planeReduce->template operator()(/* parameters: dest, source */
-                                             reducedSumPos2,
-                                             gSumPos2->getHostBuffer().cartBuffer(),
-                                             /* the functors return value will be written to dst */
-                                             pmacc::algorithm::functor::Add());
-            planeReduce->template operator()(/* parameters: dest, source */
-                                             reducedSumMomPos,
-                                             gSumMomPos->getHostBuffer().cartBuffer(),
-                                             /* the functors return value will be written to dst */
-                                             pmacc::algorithm::functor::Add());
-            planeReduce->template operator()(/* parameters: dest, source */
-                                             reducedCount_e,
-                                             gCount_e->getHostBuffer().cartBuffer(),
-                                             /* the functors return value will be written to dst */
-                                             pmacc::algorithm::functor::Add());
+            (*planeReduce)(
+                pmacc::math::operation::Add(),
+                reducedSumMom2.getBasePointer(),
+                gSumMom2->getHostBuffer().getBasePointer(),
+                reducedSumMom2.getCurrentSize(),
+                mpi::reduceMethods::Reduce());
+
+            (*planeReduce)(
+                pmacc::math::operation::Add(),
+                reducedSumPos2.getBasePointer(),
+                gSumPos2->getHostBuffer().getBasePointer(),
+                reducedSumPos2.getCurrentSize(),
+                mpi::reduceMethods::Reduce());
+
+            (*planeReduce)(
+                pmacc::math::operation::Add(),
+                reducedSumMomPos.getBasePointer(),
+                gSumMomPos->getHostBuffer().getBasePointer(),
+                reducedSumMomPos.getCurrentSize(),
+                mpi::reduceMethods::Reduce());
+
+            (*planeReduce)(
+                pmacc::math::operation::Add(),
+                reducedCount_e.getBasePointer(),
+                gCount_e->getHostBuffer().getBasePointer(),
+                reducedCount_e.getCurrentSize(),
+                mpi::reduceMethods::Reduce());
+
 
             /** all non-reduce-root processes are done now */
             if(!isPlaneReduceRoot)
                 return;
 
+
             // gather to file writer
-            container::HostBuffer<float_64, DIM1> globalSumMom2(subGrid.getGlobalDomain().size.y());
-            container::HostBuffer<float_64, DIM1> globalSumPos2(subGrid.getGlobalDomain().size.y());
-            container::HostBuffer<float_64, DIM1> globalSumMomPos(subGrid.getGlobalDomain().size.y());
-            container::HostBuffer<float_64, DIM1> globalCount_e(subGrid.getGlobalDomain().size.y());
+            pmacc::HostBufferIntern<float_64, DIM1> globalSumMom2(globalDomainSizeY);
+            pmacc::HostBufferIntern<float_64, DIM1> globalSumPos2(globalDomainSizeY);
+            pmacc::HostBufferIntern<float_64, DIM1> globalSumMomPos(globalDomainSizeY);
+            pmacc::HostBufferIntern<float_64, DIM1> globalCount_e(globalDomainSizeY);
 
             // gather y offsets, so we can store our gathered data in the right order
             int gatherSize = -1;
@@ -571,44 +565,53 @@ namespace picongpu
             MPI_CHECK(MPI_Gather(&y_off, 1, MPI_INT, y_offsets.data(), 1, MPI_INT, 0, commGather));
             MPI_CHECK(MPI_Gather(&y_siz, 1, MPI_INT, y_sizes.data(), 1, MPI_INT, 0, commGather));
 
+            int mpiGlobalSizeY = std::accumulate(y_sizes.begin(), y_sizes.end(), 0);
 
-            std::vector<int> recvcounts(gatherSize, 1);
+            if(writeToFile)
+            {
+                PMACC_VERIFY_MSG(
+                    mpiGlobalSizeY == globalDomainSizeY,
+                    std::string(
+                        "Number of elements calculated with MPI_Gather and global domain size in Y-direction must "
+                        "be equal. ")
+                        + std::to_string(mpiGlobalSizeY) + " != " + std::to_string(globalDomainSizeY));
+            }
 
             MPI_CHECK(MPI_Gatherv(
-                reducedSumMom2.getDataPointer(),
-                subGrid.getLocalDomain().size.y(),
+                reducedSumMom2.getBasePointer(),
+                localDomSizeY,
                 MPI_DOUBLE,
-                globalSumMom2.getDataPointer(),
+                globalSumMom2.getBasePointer(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
                 0,
                 commGather));
             MPI_CHECK(MPI_Gatherv(
-                reducedSumPos2.getDataPointer(),
-                subGrid.getLocalDomain().size.y(),
+                reducedSumPos2.getBasePointer(),
+                localDomSizeY,
                 MPI_DOUBLE,
-                globalSumPos2.getDataPointer(),
+                globalSumPos2.getBasePointer(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
                 0,
                 commGather));
             MPI_CHECK(MPI_Gatherv(
-                reducedSumMomPos.getDataPointer(),
-                subGrid.getLocalDomain().size.y(),
+                reducedSumMomPos.getBasePointer(),
+                localDomSizeY,
                 MPI_DOUBLE,
-                globalSumMomPos.getDataPointer(),
+                globalSumMomPos.getBasePointer(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
                 0,
                 commGather));
             MPI_CHECK(MPI_Gatherv(
-                reducedCount_e.getDataPointer(),
-                subGrid.getLocalDomain().size.y(),
+                reducedCount_e.getBasePointer(),
+                localDomSizeY,
                 MPI_DOUBLE,
-                globalCount_e.getDataPointer(),
+                globalCount_e.getBasePointer(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
@@ -643,12 +646,12 @@ namespace picongpu
 
                     for(int i = startWindow_y; i < endWindow_y; i++)
                     {
-                        numElec_all += static_cast<long double>(globalCount_e.getDataPointer()[i]);
-                        ux2_all += static_cast<long double>(globalSumMom2.getDataPointer()[i]) * UNIT_MASS * UNIT_MASS
+                        numElec_all += static_cast<long double>(globalCount_e.getBasePointer()[i]);
+                        ux2_all += static_cast<long double>(globalSumMom2.getBasePointer()[i]) * UNIT_MASS * UNIT_MASS
                             / (SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
                         pos2_SI_all
-                            += static_cast<long double>(globalSumPos2.getDataPointer()[i]) * UNIT_LENGTH * UNIT_LENGTH;
-                        xux_all += static_cast<long double>(globalSumMomPos.getDataPointer()[i]) * UNIT_MASS
+                            += static_cast<long double>(globalSumPos2.getBasePointer()[i]) * UNIT_LENGTH * UNIT_LENGTH;
+                        xux_all += static_cast<long double>(globalSumMomPos.getBasePointer()[i]) * UNIT_MASS
                             * UNIT_LENGTH / SI::ELECTRON_MASS_SI;
                     }
                     /* the scaling with normalized weighting (weighting /
@@ -671,19 +674,19 @@ namespace picongpu
 
                     for(int i = startWindow_y; i < endWindow_y; i += 10)
                     {
-                        float_64 numElec = globalCount_e.getDataPointer()[i];
+                        float_64 numElec = globalCount_e.getBasePointer()[i];
                         float_64 mom2_SI
-                            = globalSumMom2.getDataPointer()[i] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
-                        float_64 pos2_SI = globalSumPos2.getDataPointer()[i] * UNIT_LENGTH * UNIT_LENGTH;
+                            = globalSumMom2.getBasePointer()[i] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
+                        float_64 pos2_SI = globalSumPos2.getBasePointer()[i] * UNIT_LENGTH * UNIT_LENGTH;
                         float_64 mompos_SI
-                            = globalSumMomPos.getDataPointer()[i] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
+                            = globalSumMomPos.getBasePointer()[i] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
                         for(int j = i + 1; j < i + 10 && j < endWindow_y; j++)
                         {
-                            numElec += globalCount_e.getDataPointer()[j];
+                            numElec += globalCount_e.getBasePointer()[j];
                             mom2_SI
-                                += globalSumMom2.getDataPointer()[j] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
-                            pos2_SI += globalSumPos2.getDataPointer()[j] * UNIT_LENGTH * UNIT_LENGTH;
-                            mompos_SI += globalSumMomPos.getDataPointer()[j] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
+                                += globalSumMom2.getBasePointer()[j] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
+                            pos2_SI += globalSumPos2.getBasePointer()[j] * UNIT_LENGTH * UNIT_LENGTH;
+                            mompos_SI += globalSumMomPos.getBasePointer()[j] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
                         }
                         float_64 ux2
                             = mom2_SI / (UNIT_SPEED * UNIT_SPEED * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
@@ -731,7 +734,7 @@ namespace picongpu
         bool fisttimestep = true;
 
         /** reduce functor to a single host per plane */
-        pmacc::algorithm::mpi::Reduce<simDim>* planeReduce = nullptr;
+        std::unique_ptr<pmacc::mpi::MPIReduce> planeReduce;
         bool isPlaneReduceRoot = false;
 
         /** MPI communicator that contains the root ranks of the \p planeReduce
