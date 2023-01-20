@@ -237,7 +237,8 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       !TBG_dstPath/input/bin/picongpu       \
         --mpiDirect                         \
         !TBG_author                         \
-        !TBG_programParams                  &
+        !TBG_programParams                  \
+        > ../pic.out 2> ../pic.err          &
 
     wait
 else
