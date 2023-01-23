@@ -110,9 +110,6 @@ namespace picongpu
                 std::string folderTransRad;
                 std::string filenamePrefix;
 
-                float3_X* detectorPositions = nullptr;
-                float_X* detectorFrequencies = nullptr;
-
                 bool isMaster = false;
                 uint32_t currentStep = 0;
 
@@ -252,23 +249,6 @@ namespace picongpu
                         if(isMaster)
                         {
                             theTransRad.resize(elementsTransitionRadiation());
-                            /* save detector position / observation direction */
-                            detectorPositions = new float3_X[transitionRadiation::parameters::nObserver];
-                            for(uint32_t detectorIndex = 0; detectorIndex < transitionRadiation::parameters::nObserver;
-                                ++detectorIndex)
-                            {
-                                detectorPositions[detectorIndex]
-                                    = transitionRadiation::observationDirection(detectorIndex);
-                            }
-
-                            /* save detector frequencies */
-                            detectorFrequencies = new float_X[transitionRadiation::frequencies::nOmega];
-                            for(uint32_t detectorIndex = 0; detectorIndex < transitionRadiation::frequencies::nOmega;
-                                ++detectorIndex)
-                            {
-                                detectorFrequencies[detectorIndex] = freqFkt.get(detectorIndex);
-                            }
-
                             for(unsigned int i = 0; i < elementsTransitionRadiation(); ++i)
                             {
                                 theTransRad[i] = 0;
