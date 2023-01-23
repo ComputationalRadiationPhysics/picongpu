@@ -79,9 +79,9 @@ namespace picongpu
     struct DefaultExchangeMemCfg
     {
         // Memory used for a direction for a simulation performed with 32bit precision.
-        static constexpr uint32_t BYTES_EXCHANGE_X = 2 * 1024 * 1024; // 2 MiB
-        static constexpr uint32_t BYTES_EXCHANGE_Y = 6 * 1024 * 1024; // 6 MiB
-        static constexpr uint32_t BYTES_EXCHANGE_Z = 2 * 1024 * 1024; // 2 MiB
+        static constexpr uint32_t BYTES_EXCHANGE_X = 1 * 1024 * 1024; // 1 MiB
+        static constexpr uint32_t BYTES_EXCHANGE_Y = 1 * 1024 * 1024; // 1 MiB
+        static constexpr uint32_t BYTES_EXCHANGE_Z = 1 * 1024 * 1024; // 1 MiB
         static constexpr uint32_t BYTES_EDGES = 64 * 1024; // 64 kiB
         static constexpr uint32_t BYTES_CORNER = 16 * 1024; // 16 kiB
 
@@ -92,13 +92,13 @@ namespace picongpu
          * reference size. The exchange size will be scaled only up and not down. Zero means that there is no reference
          * domain size, exchanges will not be scaled.
          */
-        using REF_LOCAL_DOM_SIZE = mCT::Int<0, 0, 0>;
+        using REF_LOCAL_DOM_SIZE = mCT::Int<128, 128, 12>;
         /** Scaling rate per direction.
          *
          * 1.0 means it scales linear with the ratio between the local domain size at runtime and the reference local
          * domain size.
          */
-        const std::array<float_X, 3> DIR_SCALING_FACTOR = {{0.0, 0.0, 0.0}};
+        const std::array<float_X, 3> DIR_SCALING_FACTOR = {{1.0, 1.0, 1.0}};
     };
 
     /** number of scalar fields that are reserved as temporary fields */
