@@ -33,6 +33,7 @@
 #SBATCH --mem-per-gpu=!TBG_memPerDevice
 #SBATCH --ntasks-per-gpu=1
 #SBATCH --gpu-bind=closest
+#SBATCH --core-spec=8
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --chdir=!TBG_dstPath
@@ -58,7 +59,9 @@
 
 # number of CPU cores to block per GPU
 # we have 8 CPU cores per GPU (64cores/8gpus ~ 8cores)
-.TBG_coresPerGPU=8
+# but one core (= core 0) is reserved for system processes
+# accordign to OLCF docs
+.TBG_coresPerGPU=7
 
 # Assign one OpenMP thread per available core per GPU (=task)
 export OMP_NUM_THREADS=!TBG_coresPerGPU
