@@ -138,6 +138,13 @@ namespace picongpu
                     return T_Params::name;
                 }
 
+                /** A filter is deterministic if the filter outcome is equal between evaluations. If so, set this
+                 * variable to true, otherwise to false.
+                 *
+                 * Example: A filter were results depend on a random number generator must return false.
+                 */
+                static constexpr bool isDeterministic = true;
+
                 DataSpace<simDim> localDomainOffset;
                 DataSpace<simDim> globalDomainSize;
             };

@@ -48,6 +48,8 @@ namespace picongpu
                  *           return result;
                  *       }
                  *       static constexpr char const * name = "eachParticleAboveMiddleOfTheCell";
+                 *
+                 *       static constexpr bool isDeterministic = true;
                  *   };
                  *
                  *   using EachParticleAboveMiddleOfTheCell = generic::Free<
