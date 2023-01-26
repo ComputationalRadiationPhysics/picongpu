@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/types.hpp"
 
@@ -166,11 +165,6 @@ namespace pmacc
         HDINLINE ReducedType operator[](const int idx) const
         {
             return ReducedType((TYPE*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch);
-        }
-
-        HDINLINE pmacc::cursor::BufferCursor<TYPE, DIM3> toCursor() const
-        {
-            return {(TYPE*) this->fixedPointer, ::pmacc::math::Size_t<2>(pitch, pitch2D)};
         }
 
     protected:

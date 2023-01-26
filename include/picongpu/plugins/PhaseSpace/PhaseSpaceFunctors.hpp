@@ -150,10 +150,6 @@ namespace picongpu
         HDINLINE FunctorBlock& operator=(const FunctorBlock&) = default;
 
         /** Called for the first cell of each block #-of-cells-in-block times
-         *
-         * @param indexBlockOffset cell index in global memory, describes where
-         *                         the current block starts, including guard cells
-         *                         @see cuSTL/algorithm/kernel/Foreach.hpp
          */
         template<typename T_Worker, typename T_Mapping>
         DINLINE void operator()(const T_Worker& worker, T_Mapping const& mapper) const

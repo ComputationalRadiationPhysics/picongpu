@@ -26,8 +26,6 @@
 #include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/types.hpp"
 
-#include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
-
 namespace pmacc
 {
     namespace detail
@@ -110,12 +108,6 @@ namespace pmacc
             Int<sizeof(T_TYPE) * T_Vector::x::value, sizeof(T_TYPE) * T_Vector::x::value * T_Vector::y::value>;
         using CursorPitch
             = std::conditional_t<Dim == 1, CursorPitch1d, std::conditional_t<Dim == 2, CursorPitch2d, CursorPitch3d>>;
-
-        HDINLINE
-        cursor::CT::BufferCursor<T_TYPE, CursorPitch> toCursor() const
-        {
-            return {const_cast<T_TYPE*>(this->fixedPointer)};
-        }
 
         /** create a shared memory box
          *
