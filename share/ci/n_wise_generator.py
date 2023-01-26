@@ -7,6 +7,7 @@ from allpairspy import AllPairs
 import argparse
 import sys
 import math
+import random
 
 parser = argparse.ArgumentParser(description='Generate tesing pairs')
 parser.add_argument('-n', dest='n_pairs', default=1, action="store",
@@ -247,6 +248,12 @@ for i in range(rounds):
         AllPairs(parameters,
                  filter_func=is_valid_combination, n=n_pairs)):
         job_list.append(value)
+
+# set seed to be deterministic in each CI run
+random.seed(42)
+# Shuffle the job list to avoid that too many jobs, testing the
+# same backend, run at the same time.
+random.shuffle(job_list)
 
 num_jobs = len(job_list)
 num_jobs_per_stage = int(args.num_jobs_per_stage)
