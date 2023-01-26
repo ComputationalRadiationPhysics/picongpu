@@ -63,18 +63,46 @@ pull-request-validation:
 #                    "examples" starts one gitlab job per directory in `examples/*`
 #                    "examples/" compile all directories in `examples/*` within one gitlab job
 #                    "examples/KelvinHelmholtz" compile all cases within one gitlab job
-picongpu-generate-reduced-matrix:
+picongpu-generate-reduced-matrix_examples:
   variables:
-    PIC_INPUTS: "examples tests benchmarks"
+    PIC_INPUTS: "examples"
     TEST_TUPLE_NUM_ELEM: 1
   extends: ".base_generate-reduced-matrix"
 
-picongpu-compile-reduced-matrix:
+picongpu-compile-reduced-matrix_examples:
   stage: test
   trigger:
     include:
       - artifact: compile.yml
-        job: picongpu-generate-reduced-matrix
+        job: picongpu-generate-reduced-matrix_examples
+    strategy: depend
+
+picongpu-generate-reduced-matrix_tests:
+  variables:
+    PIC_INPUTS: "tests"
+    TEST_TUPLE_NUM_ELEM: 1
+  extends: ".base_generate-reduced-matrix"
+
+picongpu-compile-reduced-matrix_tests:
+  stage: test
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: picongpu-generate-reduced-matrix_tests
+    strategy: depend
+
+picongpu-generate-reduced-matrix_benchmarks:
+  variables:
+    PIC_INPUTS: "benchmarks"
+    TEST_TUPLE_NUM_ELEM: 1
+  extends: ".base_generate-reduced-matrix"
+
+picongpu-compile-reduced-matrix_benchmarks:
+  stage: test
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: picongpu-generate-reduced-matrix_benchmarks
     strategy: depend
 
 pmacc-generate-reduced-matrix:
