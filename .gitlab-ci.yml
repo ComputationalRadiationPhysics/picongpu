@@ -2,8 +2,7 @@
 stages:
   - validate
   - generate
-  - test_picongpu
-  - test_pmacc
+  - test
 
 variables:
   CONTAINER_TAG: "3.0"
@@ -71,7 +70,7 @@ picongpu-generate-reduced-matrix:
   extends: ".base_generate-reduced-matrix"
 
 picongpu-compile-reduced-matrix:
-  stage: test_picongpu
+  stage: test
   trigger:
     include:
       - artifact: compile.yml
@@ -85,7 +84,7 @@ pmacc-generate-reduced-matrix:
   extends: ".base_generate-reduced-matrix"
 
 pmacc-compile-reduced-matrix:
-  stage: test_pmacc
+  stage: test
   trigger:
     include:
       - artifact: compile.yml
