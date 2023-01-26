@@ -21,8 +21,6 @@
 
 #pragma once
 
-
-#include "pmacc/cuSTL/container/HostBuffer.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 
@@ -31,45 +29,6 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     class HostBuffer;
 
-    namespace detail
-    {
-        template<class TYPE>
-        container::HostBuffer<TYPE, 1u> make_CartBuffer(HostBuffer<TYPE, 1u>& hb)
-        {
-            // pass data pointer without deletion policy
-            return container::HostBuffer<TYPE, 1u>(
-                std::shared_ptr<TYPE>((TYPE*) hb.getBasePointer(), [](auto const*) {}),
-                hb.getDataSpace(),
-                false);
-        }
-
-        template<class TYPE>
-        container::HostBuffer<TYPE, 2u> make_CartBuffer(HostBuffer<TYPE, 2u>& hb)
-        {
-            math::Size_t<2u - 1u> pitch;
-            pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
-            // pass data pointer without deletion policy
-            return container::HostBuffer<TYPE, 2u>(
-                std::shared_ptr<TYPE>((TYPE*) hb.getBasePointer(), [](auto const*) {}),
-                hb.getDataSpace(),
-                false,
-                pitch);
-        }
-
-        template<class TYPE>
-        container::HostBuffer<TYPE, 3u> make_CartBuffer(HostBuffer<TYPE, 3u>& hb)
-        {
-            math::Size_t<3u - 1u> pitch;
-            pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
-            pitch[1] = pitch[0] * hb.getPhysicalMemorySize()[1];
-            // pass data pointer without deletion policy
-            return container::HostBuffer<TYPE, 3u>(
-                std::shared_ptr<TYPE>((TYPE*) hb.getBasePointer(), [](auto const*) {}),
-                hb.getDataSpace(),
-                false,
-                pitch);
-        }
-    } // namespace detail
     class EventTask;
 
     template<class TYPE, unsigned DIM>
@@ -110,18 +69,6 @@ namespace pmacc
          * Destructor.
          */
         ~HostBuffer() override = default;
-        ;
-
-        /**
-         * Conversion to cuSTL HostBuffer.
-         *
-         * Returns a cuSTL HostBuffer with reference to the same data.
-         */
-        HINLINE
-        container::HostBuffer<TYPE, DIM> cartBuffer()
-        {
-            return detail::make_CartBuffer(*this);
-        }
 
     protected:
         /** Constructor.

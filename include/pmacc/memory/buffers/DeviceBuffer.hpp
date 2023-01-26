@@ -22,9 +22,6 @@
 
 #pragma once
 
-
-#include "pmacc/cuSTL/container/DeviceBuffer.hpp"
-#include "pmacc/cuSTL/container/view/View.hpp"
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
@@ -71,31 +68,6 @@ namespace pmacc
          * Destructor.
          */
         ~DeviceBuffer() override = default;
-        ;
-
-        HINLINE
-        container::CartBuffer<
-            TYPE,
-            DIM,
-            allocator::DeviceMemAllocator<TYPE, DIM>,
-            copier::D2DCopier<DIM>,
-            assigner::DeviceMemAssigner<>>
-        cartBuffer() const
-        {
-            cuplaPitchedPtr cuplaData = this->getCudaPitched();
-            math::Size_t<DIM - 1> pitch;
-            if constexpr(DIM >= 2)
-                pitch[0] = cuplaData.pitch;
-            if constexpr(DIM == 3)
-                pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
-            // pass data pointer without deletion policy
-            container::DeviceBuffer<TYPE, DIM> result(
-                std::shared_ptr<TYPE>((TYPE*) cuplaData.ptr, [](auto const*) {}),
-                this->getDataSpace(),
-                false,
-                pitch);
-            return result;
-        }
 
         /**
          * Returns offset of elements in every dimension.
