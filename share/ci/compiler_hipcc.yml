@@ -11,6 +11,8 @@
     PIC_CMAKE_ARGS: "-DMPI_CXX_WORKS=ON -DMPI_CXX_VERSION=0"
     # ISAAC is not working with HIP
     DISABLE_ISAAC: "yes"
+    # CI_GPU_ARCH architecture of the hosted GPU is provided by the CI
+    GPU_TARGETS: ${CI_GPU_ARCH}
   script:
     - export PATH="$PATH:/opt/rocm/llvm/bin/"
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/rocrand/lib/"

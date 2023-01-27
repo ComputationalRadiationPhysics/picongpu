@@ -21,7 +21,7 @@ else
     echo "No GPU device selected because environment variable CI_GPUS is not set."
 fi
 
-if [[ "$PIC_BACKEND" =~ "hip.*" ]] ; then
+if [[ "$PIC_BACKEND" =~ hip.* ]] ; then
     if [ -z "$CI_GPU_ARCH" ] ; then
         # In case the CI runner is not providing a GPU architecture e.g. a CPU runner set the architecture
         # to Radeon VII or MI50/60.
