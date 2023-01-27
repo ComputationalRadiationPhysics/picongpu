@@ -71,6 +71,8 @@ Laser plasma electron acceleration
  - PhD thesis on experimental aspects of LWFA with STII [Couperus2018]_,
  - PhD thesis on theoretical ascpects of self-focusing during LWFA with STII [Pausch2019]_
  - Hybrid laser-driven/beam-driven plasms acceleration [Kurz2021]_
+ - Acceleration in carbon nanotubes [Perera2020]_
+ - TeV/m catapult acceleration in graphene layers [Bontoiu2023]_
 
 Laser plasma ion acceleration
 """""""""""""""""""""""""""""
@@ -258,27 +260,27 @@ List of PIConGPU references in chronological order
 
 .. [Garten2015]
         Garten, M.,
-	*Modellierung und Validierung von Feldionisation in parallelen Particle-in-Cell-Codes*,
-	Master Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2015),
-	https://doi.org/10.5281/zenodo.202500
+        *Modellierung und Validierung von Feldionisation in parallelen Particle-in-Cell-Codes*,
+        Master Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2015),
+        https://doi.org/10.5281/zenodo.202500
 
 .. [Burau2016]
         Burau, H.,
-	*Entwicklung und Überprüfung eines Photonenmodells für die Abstrahlung durch hochenergetische Elektronen*,
-	Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2016),
-	https://doi.org/10.5281/zenodo.192116
+        *Entwicklung und Überprüfung eines Photonenmodells für die Abstrahlung durch hochenergetische Elektronen*,
+        Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2016),
+        https://doi.org/10.5281/zenodo.192116
 
 .. [Matthes2016]
         Matthes, A.,
-	*In-Situ Visualisierung und Streaming von Plasmasimulationsdaten*,
-	Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Informatiker" (2016),
-	https://doi.org/10.5281/zenodo.55329
+        *In-Situ Visualisierung und Streaming von Plasmasimulationsdaten*,
+        Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Informatiker" (2016),
+        https://doi.org/10.5281/zenodo.55329
 
 .. [Matthes2016b]
         Matthes, A., Huebl, A., Widera, R., Grottel, S., Gumhold, S., Bussmann, M.,
-	*In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC*,
-	Supercomputing Frontiers and Innovations, [S.l.], v. 3, n. 4, p. 30-48, oct. 2016,
-	https://doi.org/10.14529/jsfi160403
+        *In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC*,
+        Supercomputing Frontiers and Innovations, [S.l.], v. 3, n. 4, p. 30-48, oct. 2016,
+        https://doi.org/10.14529/jsfi160403
 
 .. [Pausch2017]
        Pausch, R., Bussmann, M., Huebl, A., Schramm, U., Steiniger, K., Widera, R. and Debus, A.,
@@ -294,15 +296,15 @@ List of PIConGPU references in chronological order
 
 .. [Huebl2017]
         Huebl, A. et al.,
-	*On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective*,
-	ISC High Performance Workshops 2017, LNCS 10524, pp. 15-29 (2017),
-	https://doi.org/10.1007/978-3-319-67630-2_2
+        *On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective*,
+        ISC High Performance Workshops 2017, LNCS 10524, pp. 15-29 (2017),
+        https://doi.org/10.1007/978-3-319-67630-2_2
 
 .. [Obst2017]
         Obst, L., Göde, S., Rehwald, M. et al.,
-	*Efficient laser-driven proton acceleration from cylindrical and planar cryogenic hydrogen jets*,
-	Sci Rep 7, 10248 (2017),
-	https://doi.org/10.1038/s41598-017-10589-3
+        *Efficient laser-driven proton acceleration from cylindrical and planar cryogenic hydrogen jets*,
+        Sci Rep 7, 10248 (2017),
+        https://doi.org/10.1038/s41598-017-10589-3
 
 .. [Pausch2018]
        Pausch, R., Debus, A., Huebl, A. at al.,
@@ -312,27 +314,27 @@ List of PIConGPU references in chronological order
 
 .. [Couperus2018]
         Couperus, J. P.,
-	*Optimal beam loading in a nanocoulomb-class laser wakefield accelerator*,
-	PhD Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2018),
-	https://doi.org/10.5281/zenodo.1463710
+        *Optimal beam loading in a nanocoulomb-class laser wakefield accelerator*,
+        PhD Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2018),
+        https://doi.org/10.5281/zenodo.1463710
 
 .. [Meyer2018]
         Meyer, F.,
-	*Entwicklung eines Partikelvisualisierers für In-Situ-Simulationen*,
-	Bachelor Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2018),
-	https://doi.org/10.5281/zenodo.1423296
+        *Entwicklung eines Partikelvisualisierers für In-Situ-Simulationen*,
+        Bachelor Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2018),
+        https://doi.org/10.5281/zenodo.1423296
 
 .. [Hilz2018]
         Hilz, P, et al.,
-	*Isolated proton bunch acceleration by a petawatt laser pulse*,
-	Nature Communications, 9(1), 423 (2018),
-	https://doi.org/10.1038/s41467-017-02663-1
+        *Isolated proton bunch acceleration by a petawatt laser pulse*,
+        Nature Communications, 9(1), 423 (2018),
+        https://doi.org/10.1038/s41467-017-02663-1
 
 .. [Obst-Huebl2018]
         Obst-Huebl, L., Ziegler, T., Brack, FE. et al.,
-	*All-optical structuring of laser-driven proton beam profiles*,
-	Nat Commun 9, 5292 (2018),
-	https://doi.org/10.1038/s41467-018-07756-z
+        *All-optical structuring of laser-driven proton beam profiles*,
+        Nat Commun 9, 5292 (2018),
+        https://doi.org/10.1038/s41467-018-07756-z
 
 .. [Rudat2019]
        Rudat, S.,
@@ -388,17 +390,29 @@ List of PIConGPU references in chronological order
        Plasma Phys. Control. Fusion 62 124003 (2020),
        https://doi.org/0.1088/1361-6587/abbe33
 
+.. [Perera2020]
+       Perera, A. et al.,
+       *Towards ultra-high gradient particle acceleration in carbon nanotubes*,
+       Journal of Physics: Conference Series 1596 012028 (2020),
+       https://doi.org/10.1088/1742-6596/1596/1/012028
+
 .. [Kurz2021]
         Kurz, T. et al.,
-	*Demonstration of a compact plasma accelerator powered by laser-accelerated electron beams*,
-	Nature Communications volume 12, Article number: 2895 (2021),
-	https://doi.org/10.1038/s41467-021-23000-7
+        *Demonstration of a compact plasma accelerator powered by laser-accelerated electron beams*,
+        Nature Communications volume 12, Article number: 2895 (2021),
+        https://doi.org/10.1038/s41467-021-23000-7
 
 .. [Koehler2021]
         Koehler, A., Pausch, R., Bussmann, M., et al.,
-	*Restoring betatron phase coherence in a beam-loaded laser-wakefield accelerator*,
-	Phys. Rev. Accel. Beams 24, 091302 – 20 September 2021,
+        *Restoring betatron phase coherence in a beam-loaded laser-wakefield accelerator*,
+        Phys. Rev. Accel. Beams 24, 091302 – 20 September 2021,
 	https://doi.org/10.1103/PhysRevAccelBeams.24.091302
+
+.. [Bontoiu2023]
+        Bontoiu, C., et al.,
+	*TeV/m catapult acceleration of electrons in graphene layers*,
+	Scientific Reports volume 13, Article number: 1330 (2023),
+	https://doi.org/10.1038/s41598-023-28617-w
 
 List of other references in chronological order
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
