@@ -131,7 +131,7 @@ namespace picongpu
                 int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot - (!this->isPlaneReduceRoot);
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 MPI_Group world_group, new_group;
                 MPI_CHECK(
                     MPI_Allgather(&myRootRank, 1, MPI_INT, planeReduceRootRanks.data(), 1, MPI_INT, MPI_COMM_WORLD));
@@ -161,7 +161,7 @@ namespace picongpu
         if(commFileWriter != MPI_COMM_NULL)
         {
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&commFileWriter));
         }
     }
@@ -214,7 +214,7 @@ namespace picongpu
 
         auto hReducedBuffer = HostBufferIntern<float_PS, 2>(this->dBuffer->getDeviceBuffer().getDataSpace());
 
-        __getTransactionEvent().waitForFinished();
+        eventSystem::getTransactionEvent().waitForFinished();
 
         /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
          * to "lowest" node in range
@@ -229,7 +229,7 @@ namespace picongpu
             bufferExtent.productOfComponents(),
             mpi::reduceMethods::Reduce());
 
-        __getTransactionEvent().waitForFinished();
+        eventSystem::getTransactionEvent().waitForFinished();
 
         /** all non-reduce-root processes are done now */
         if(!this->isPlaneReduceRoot)

@@ -97,7 +97,7 @@ namespace picongpu
                     auto const rank = uint64_t{gridController.getScalarPosition()};
                     std::vector<uint64_t> localSizes(2 * numRanks, 0u);
                     uint64_t localSizeInfo[2] = {static_cast<uint64_t>(elementCount), rank};
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     MPI_CHECK(MPI_Allgather(
                         localSizeInfo,
                         2,
@@ -147,7 +147,7 @@ namespace picongpu
 
                     // avoid deadlock between not finished pmacc tasks and mpi calls
                     // in openPMD backends
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
 
                     /*
                      * @todo float_X should be some kind of gridBuffer's
@@ -184,7 +184,7 @@ namespace picongpu
 
                 field.hostToDevice();
 
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
 
                 log<picLog::INPUT_OUTPUT>("openPMD: Read from domain: offset=%1% size=%2%") % domain_offset
                     % local_domain_size;

@@ -200,8 +200,8 @@ namespace picongpu
         computeChargeDensity(fieldTmp.get(), currentStep);
 
         /* add results of all species that are still in GUARD to next GPUs BORDER */
-        EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
-        __setTransactionEvent(fieldTmpEvent);
+        EventTask fieldTmpEvent = fieldTmp->asyncCommunication(eventSystem::getTransactionEvent());
+        eventSystem::setTransactionEvent(fieldTmpEvent);
 
         auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
 

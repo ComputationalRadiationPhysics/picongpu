@@ -25,7 +25,6 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/algorithms/reverseBits.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/kernel/atomic.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 

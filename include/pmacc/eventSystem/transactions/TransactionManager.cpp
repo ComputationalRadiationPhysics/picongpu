@@ -22,7 +22,7 @@
 
 #include "pmacc/eventSystem/transactions/TransactionManager.hpp"
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/Environment.def"
 
 #include <iostream>
 
@@ -42,11 +42,11 @@ namespace pmacc
 
     TransactionManager::TransactionManager()
     {
-        startTransaction(EventTask());
-    }
+        PMACC_ASSERT_MSG(
+            detail::EnvironmentContext::getInstance().isDeviceSelected(),
+            "No device selected you must call Environment< DIM >::initDevices(...) before this method.");
 
-    TransactionManager::TransactionManager(const TransactionManager&)
-    {
+        startTransaction(EventTask());
     }
 
     void TransactionManager::startTransaction(EventTask serialEvent)
@@ -94,12 +94,6 @@ namespace pmacc
             throw std::runtime_error("Calling getTransactionEvent on empty transaction stack is not allowed");
 
         return transactions.top().getTransactionEvent();
-    }
-
-    TransactionManager& TransactionManager::getInstance()
-    {
-        static TransactionManager instance;
-        return instance;
     }
 
 } // namespace pmacc

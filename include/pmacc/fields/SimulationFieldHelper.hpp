@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/mappings/kernel/MappingDescription.hpp"
 
 #include <cstdint>

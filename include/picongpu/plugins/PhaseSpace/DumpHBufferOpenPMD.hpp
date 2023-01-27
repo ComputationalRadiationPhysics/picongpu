@@ -208,7 +208,7 @@ namespace picongpu
             dataset.setPosition(std::vector<float>{0.5, 0.5});
 
             // avoid deadlock between not finished pmacc tasks and mpi calls in openPMD
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
 
             /** close file ****************************************************/
             iteration.close();

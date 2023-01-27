@@ -60,7 +60,6 @@
 
 #include <pmacc/assert.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/functor/Call.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
@@ -485,10 +484,10 @@ namespace picongpu
             auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
 
             // generate valid GUARDS (overwrite)
-            EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(eRfieldE);
-            EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(eRfieldB);
+            EventTask eRfieldE = fieldE->asyncCommunication(eventSystem::getTransactionEvent());
+            eventSystem::setTransactionEvent(eRfieldE);
+            EventTask eRfieldB = fieldB->asyncCommunication(eventSystem::getTransactionEvent());
+            eventSystem::setTransactionEvent(eRfieldB);
 
             return step;
         }
@@ -511,7 +510,7 @@ namespace picongpu
             ParticlePush{}(currentStep, commEvent);
             fieldBackground.subtract(currentStep);
             myFieldSolver->update_beforeCurrent(currentStep);
-            __setTransactionEvent(commEvent);
+            eventSystem::setTransactionEvent(commEvent);
             atomicPhysics->runSolver(currentStep);
             CurrentBackground{*cellDescription}(currentStep);
             CurrentDeposition{}(currentStep);

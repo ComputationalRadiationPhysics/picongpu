@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/lockstep.hpp"
 #include "pmacc/lockstep/lockstep.hpp"

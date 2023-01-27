@@ -63,7 +63,7 @@ namespace pmacc
     EventStream* StreamTask::getEventStream()
     {
         if(stream == nullptr)
-            stream = __getEventStream(TASK_DEVICE);
+            stream = eventSystem::getEventStream(TASK_DEVICE);
         return stream;
     }
 
@@ -77,7 +77,7 @@ namespace pmacc
     cuplaStream_t StreamTask::getCudaStream()
     {
         if(stream == nullptr)
-            stream = Environment<>::get().TransactionManager().getEventStream(TASK_DEVICE);
+            stream = eventSystem::getEventStream(TASK_DEVICE);
         return stream->getCudaStream();
     }
 

@@ -232,14 +232,14 @@ namespace pmacc
             auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 
             auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
-            __startTransaction(__getTransactionEvent());
+            eventSystem::startTransaction(eventSystem::getTransactionEvent());
             do
             {
                 PMACC_LOCKSTEP_KERNEL(KernelShiftParticles{}, workerCfg)
                 (mapper.getGridDim())(pBox, mapper, numSupercellsWithGuards, onlyProcessMustShiftSupercells);
             } while(mapper.next());
 
-            __setTransactionEvent(__endTransaction());
+            eventSystem::setTransactionEvent(eventSystem::endTransaction());
         }
     };
 

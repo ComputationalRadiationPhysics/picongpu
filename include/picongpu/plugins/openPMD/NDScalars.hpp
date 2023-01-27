@@ -171,7 +171,7 @@ namespace picongpu
                     count.push_back(1);
                 }
 
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
 
                 log<picLog::INPUT_OUTPUT>("openPMD: Schedule read scalar %1%)") % datasetName;
 

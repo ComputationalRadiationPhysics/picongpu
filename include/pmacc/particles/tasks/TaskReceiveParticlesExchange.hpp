@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/assert.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
 namespace pmacc
@@ -41,7 +40,7 @@ namespace pmacc
         TaskReceiveParticlesExchange(ParBase& parBase, uint32_t exchange)
             : parBase(parBase)
             , state(Constructor)
-            , initDependency(__getTransactionEvent())
+            , initDependency(eventSystem::getTransactionEvent())
             , exchange(exchange)
             , maxSize(parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getMaxParticlesCount())
             , lastSize(0)
@@ -64,15 +63,15 @@ namespace pmacc
                 break;
             case WaitForReceive:
 
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
                 {
                     state = InitInsert;
                     // bash is finished
-                    __startTransaction();
+                    eventSystem::startTransaction();
                     lastSize
                         = parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getHostParticlesCurrentSize();
                     parBase.insertParticles(exchange);
-                    tmpEvent = __endTransaction();
+                    tmpEvent = eventSystem::endTransaction();
                     initDependency = tmpEvent;
                     state = WaitForInsert;
                 }
@@ -81,7 +80,7 @@ namespace pmacc
             case InitInsert:
                 break;
             case WaitForInsert:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
                 {
                     state = Wait;
                     PMACC_ASSERT(lastSize <= maxSize);

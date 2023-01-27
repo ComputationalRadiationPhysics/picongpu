@@ -23,7 +23,6 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/memory/buffers/ExchangeIntern.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/memory/dataTypes/Mask.hpp"
@@ -464,8 +463,8 @@ namespace pmacc
          */
         EventTask communication()
         {
-            EventTask ev = this->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(ev);
+            EventTask ev = this->asyncCommunication(eventSystem::getTransactionEvent());
+            eventSystem::setTransactionEvent(ev);
             return ev;
         }
 
@@ -494,9 +493,9 @@ namespace pmacc
         {
             if(hasSendExchange(sendEx))
             {
-                __startTransaction(serialEvent + sendEvents[sendEx]);
+                eventSystem::startTransaction(serialEvent + sendEvents[sendEx]);
                 sendEvents[sendEx] = sendExchanges[sendEx]->startSend();
-                __endTransaction();
+                eventSystem::endTransaction();
                 return sendEvents[sendEx];
             }
             return EventTask();
@@ -506,10 +505,10 @@ namespace pmacc
         {
             if(hasReceiveExchange(recvEx))
             {
-                __startTransaction(serialEvent + receiveEvents[recvEx]);
+                eventSystem::startTransaction(serialEvent + receiveEvents[recvEx]);
                 receiveEvents[recvEx] = receiveExchanges[recvEx]->startReceive();
 
-                __endTransaction();
+                eventSystem::endTransaction();
                 return receiveEvents[recvEx];
             }
             return EventTask();

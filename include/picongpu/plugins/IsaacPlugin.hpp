@@ -89,7 +89,7 @@ namespace picongpu
                     /* avoid deadlock between not finished pmacc tasks and potential blocking operations
                      * within ISAAC
                      */
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                 }
             }
 
@@ -150,8 +150,8 @@ namespace picongpu
                             1u);
                     // wait for unfinished asynchronous communication
                     if(event.has_value())
-                        __setTransactionEvent(*event);
-                    __getTransactionEvent().waitForFinished();
+                        eventSystem::setTransactionEvent(*event);
+                    eventSystem::getTransactionEvent().waitForFinished();
 
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
                     typename FieldTmp::DataBoxType dataBox = fieldTmp->getDeviceDataBox();
@@ -206,7 +206,7 @@ namespace picongpu
                     /* avoid deadlock between not finished pmacc tasks and potential blocking operations
                      * within ISAAC
                      */
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                 }
             }
 
@@ -510,7 +510,7 @@ namespace picongpu
                 if(recording)
                 {
                     // guarantee for benchmarking run that all simulation related mpi communication is finished
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                 }
                 simulationTime = getTicksUs() - lastNotify;
                 step++;

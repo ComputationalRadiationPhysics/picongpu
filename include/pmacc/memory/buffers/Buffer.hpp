@@ -160,7 +160,7 @@ namespace pmacc
          */
         virtual size_t getCurrentSize()
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             return *current_size;
         }
 
@@ -169,7 +169,7 @@ namespace pmacc
          */
         virtual void setCurrentSize(const size_t newsize)
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             PMACC_ASSERT(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
             *current_size = newsize;
         }

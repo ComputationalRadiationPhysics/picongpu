@@ -329,7 +329,7 @@ namespace picongpu
             sizeTransversalPlane[r_element] = 1;
 
             // avoid deadlock for following, blocking MPI operations
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
 
 
             for(int planePos = 0; planePos <= (int) gpuDim[r_element]; ++planePos)
@@ -353,7 +353,7 @@ namespace picongpu
                 int myRootRank = gc.getGlobalRank() * isPlaneReduceRoot - (!isPlaneReduceRoot);
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 MPI_Group world_group, new_group;
                 MPI_CHECK(MPI_Allgather(
                     &myRootRank,

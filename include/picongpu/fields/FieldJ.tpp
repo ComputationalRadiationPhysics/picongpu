@@ -156,13 +156,13 @@ namespace picongpu
     EventTask FieldJ::asyncCommunication(EventTask serialEvent)
     {
         EventTask ret;
-        __startTransaction(serialEvent);
+        eventSystem::startTransaction(serialEvent);
         FieldFactory::getInstance().createTaskFieldReceiveAndInsert(*this);
-        ret = __endTransaction();
+        ret = eventSystem::endTransaction();
 
-        __startTransaction(serialEvent);
+        eventSystem::startTransaction(serialEvent);
         FieldFactory::getInstance().createTaskFieldSend(*this);
-        ret += __endTransaction();
+        ret += eventSystem::endTransaction();
 
         if(fieldJrecv != nullptr)
         {

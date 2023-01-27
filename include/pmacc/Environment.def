@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/eventSystem/transactions/TransactionManager.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
@@ -31,6 +32,101 @@ namespace pmacc
     namespace detail
     {
         struct Environment;
+
+        /** collect state variables of the environment context
+         *
+         * This class handle the initialization and finalize of the
+         * MPI context and the selection of the GPU.
+         */
+        class EnvironmentContext
+        {
+            friend Environment;
+
+            friend pmacc::Environment<DIM1>;
+            friend pmacc::Environment<DIM2>;
+            friend pmacc::Environment<DIM3>;
+            friend pmacc::TransactionManager;
+
+            EnvironmentContext() = default;
+
+            /** initialization state of MPI */
+            bool m_isMpiInitialized{false};
+
+            /** state if a computing device is selected */
+            bool m_isDeviceSelected{false};
+
+            /** state if the SubGrid is defined */
+            bool m_isSubGridDefined{false};
+
+            /** state shows if MPI direct is activated */
+            bool m_isMpiDirectEnabled{false};
+
+            /** get the singleton EnvironmentContext
+             *
+             * @return instance of EnvironmentContext
+             */
+            static EnvironmentContext& getInstance()
+            {
+                static EnvironmentContext instance;
+                return instance;
+            }
+
+            /** state of the MPI context
+             *
+             * @return true if MPI is initialized else false
+             */
+            bool isMpiInitialized()
+            {
+                return m_isMpiInitialized;
+            }
+
+            /** is a computing device selected
+             *
+             * @return true if device is selected else false
+             */
+            bool isDeviceSelected()
+            {
+                return m_isDeviceSelected;
+            }
+
+            /** is the SubGrid defined
+             *
+             * @return true if SubGrid is defined, else false
+             */
+            bool isSubGridDefined()
+            {
+                return m_isSubGridDefined;
+            }
+
+            /** initialize the environment
+             *
+             * After this call it is allowed to use MPI.
+             */
+            HINLINE void init();
+
+            /** cleanup the environment */
+            HINLINE void finalize();
+
+            /** select a computing device
+             *
+             * After this call it is allowed to use the computing device.
+             *
+             * @param deviceNumber number of the device
+             */
+            HINLINE void setDevice(int deviceNumber);
+
+            //! activate MPI direct usage
+            void enableMpiDirect()
+            {
+                m_isMpiDirectEnabled = true;
+            }
+
+            //! query if MPI direct support is activated
+            bool isMpiDirectEnabled() const
+            {
+                return m_isMpiDirectEnabled;
+            }
+        };
 
     } // namespace detail
 } // namespace pmacc

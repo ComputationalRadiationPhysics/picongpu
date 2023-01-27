@@ -145,7 +145,7 @@ namespace picongpu
                         CreateFieldTmpOperation_t<SrcSpecies, particleToGrid::derivedAttributes::Density>::Solver;
                     density->template computeValue<CORE + BORDER, DensitySolver>(*srcSpecies, currentStep);
 
-                    EventTask densityEvent = density->asyncCommunication(__getTransactionEvent());
+                    EventTask densityEvent = density->asyncCommunication(eventSystem::getTransactionEvent());
                     densityEvent += density->asyncCommunicationGather(densityEvent);
 
                     /* load species without copying the particle data to the host */
@@ -160,11 +160,11 @@ namespace picongpu
                         DestSpecies,
                         particleToGrid::derivedAttributes::EnergyDensityCutoff<CutoffMaxEnergy>>::Solver;
                     eneKinDens->template computeValue<CORE + BORDER, EnergyDensitySolver>(*destSpecies, currentStep);
-                    EventTask eneKinEvent = eneKinDens->asyncCommunication(__getTransactionEvent());
+                    EventTask eneKinEvent = eneKinDens->asyncCommunication(eventSystem::getTransactionEvent());
                     eneKinEvent += eneKinDens->asyncCommunicationGather(eneKinEvent);
 
                     /* contributions from neighboring GPUs to our border area */
-                    __setTransactionEvent(densityEvent + eneKinEvent);
+                    eventSystem::setTransactionEvent(densityEvent + eneKinEvent);
 
                     /* initialize device-side density- and energy density field databox pointers */
                     rhoBox = density->getDeviceDataBox();

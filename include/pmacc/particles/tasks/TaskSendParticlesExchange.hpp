@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/assert.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/type/Exchange.hpp"
 
 namespace pmacc
@@ -41,7 +40,7 @@ namespace pmacc
             : parBase(parBase)
             , state(Constructor)
             , lastSendEvent(EventTask())
-            , initDependency(__getTransactionEvent())
+            , initDependency(eventSystem::getTransactionEvent())
             , exchange(exchange)
             , maxSize(parBase.getParticlesBuffer().getSendExchangeStack(exchange).getMaxParticlesCount())
             , lastSize(0)
@@ -52,9 +51,9 @@ namespace pmacc
         void init() override
         {
             state = Init;
-            __startTransaction(initDependency);
+            eventSystem::startTransaction(initDependency);
             parBase.copyGuardToExchange(exchange);
-            tmpEvent = __endTransaction();
+            tmpEvent = eventSystem::endTransaction();
             state = WaitForBash;
         }
 
@@ -66,17 +65,19 @@ namespace pmacc
                 break;
             case WaitForBash:
 
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId())
-                   && nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId())
+                   && nullptr == Manager::getInstance().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                 {
                     state = InitSend;
                     // bash is finished
-                    __startTransaction();
+                    eventSystem::startTransaction();
                     lastSize
                         = parBase.getParticlesBuffer().getSendExchangeStack(exchange).getDeviceParticlesCurrentSize();
-                    lastSendEvent = parBase.getParticlesBuffer().asyncSendParticles(__getTransactionEvent(), exchange);
+                    lastSendEvent = parBase.getParticlesBuffer().asyncSendParticles(
+                        eventSystem::getTransactionEvent(),
+                        exchange);
                     initDependency = lastSendEvent;
-                    __endTransaction();
+                    eventSystem::endTransaction();
                     state = WaitForSend;
                 }
 
@@ -84,7 +85,7 @@ namespace pmacc
             case InitSend:
                 break;
             case WaitForSend:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
                 {
                     PMACC_ASSERT(lastSize <= maxSize);
                     // check for next bash round
@@ -98,7 +99,7 @@ namespace pmacc
                 }
                 break;
             case WaitForSendEnd:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                 {
                     state = Finished;
                     return true;

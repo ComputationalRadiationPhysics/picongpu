@@ -264,13 +264,13 @@ namespace picongpu
                 void copyRadiationDeviceToHost()
                 {
                     incTransRad->deviceToHost();
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     cohTransRadPara->deviceToHost();
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     cohTransRadPerp->deviceToHost();
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     numParticles->deviceToHost();
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                 }
 
                 /** Amount of transition radiation values

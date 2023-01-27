@@ -91,6 +91,14 @@ namespace pmacc
 
         std::size_t getCount();
 
+        Manager(const Manager& cc) = delete;
+
+        static Manager& getInstance()
+        {
+            static Manager instance;
+            return instance;
+        }
+
     private:
         friend struct detail::Environment;
 
@@ -99,16 +107,7 @@ namespace pmacc
         ITask* getActiveITaskIfNotFinished(id_t taskId) const;
 
         Manager() = default;
-
-        Manager(const Manager& cc) = default;
-
         ~Manager() override;
-
-        static Manager& getInstance()
-        {
-            static Manager instance;
-            return instance;
-        }
 
         TaskMap tasks;
         TaskMap passiveTasks;

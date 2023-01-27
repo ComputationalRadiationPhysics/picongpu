@@ -153,7 +153,7 @@ namespace picongpu
                  *
                  * @todo remove this workaround
                  */
-                __startOperation(ITask::TASK_HOST);
+                eventSystem::startOperation(ITask::TASK_HOST);
 
 #endif
                 concatListOfFrames(
@@ -217,7 +217,7 @@ namespace picongpu
                     rp.particleFilter);
                 counterBuffer.deviceToHost();
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) copy particle to host: %1%") % name;
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 log<picLog::INPUT_OUTPUT>("openPMD:  all events are finished: %1%") % name;
 
                 PMACC_VERIFY((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == rp.myNumParticles);
@@ -383,7 +383,7 @@ namespace picongpu
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking
                 // collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 MPI_CHECK(MPI_Allgather(
                     &myNumParticles,
                     1,

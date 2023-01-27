@@ -38,41 +38,24 @@ namespace pmacc
          * Constructor.
          * Creates the cuplaStream_t object.
          */
-        EventStream()
-        {
-            CUDA_CHECK(cuplaStreamCreate(&stream));
-        }
+        EventStream();
 
         /**
          * Destructor.
          * Waits for the stream to finish and destroys it.
          */
-        virtual ~EventStream()
-        {
-            // wait for all kernels in stream to finish
-            CUDA_CHECK_NO_EXCEPT(cuplaStreamSynchronize(stream));
-            CUDA_CHECK_NO_EXCEPT(cuplaStreamDestroy(stream));
-        }
+        virtual ~EventStream();
 
         /**
          * Returns the cuplaStream_t object associated with this EventStream.
          * @return the internal cupla stream object
          */
-        cuplaStream_t getCudaStream() const
-        {
-            return stream;
-        }
+        cuplaStream_t getCudaStream() const;
 
-        void waitOn(const CudaEventHandle& ev)
-        {
-            if(this->stream != ev.getStream())
-            {
-                CUDA_CHECK(cuplaStreamWaitEvent(this->getCudaStream(), *ev, 0));
-            }
-        }
+        void waitOn(const CudaEventHandle& ev);
 
     private:
-        cuplaStream_t stream{nullptr};
+        cuplaStream_t stream = nullptr;
     };
 
 } // namespace pmacc

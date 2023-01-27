@@ -57,7 +57,7 @@ namespace picongpu
                  * One should call
                  * @code{c++}
                  *  if (returnedPointer != nullPtr)
-                 *      __setTransactionEvent(*returnedPointer);
+                 *      eventSystem::setTransactionEvent(*returnedPointer);
                  *     @endcode
                  * after calling this functor.
                  * Moving this outside of this functor allows for doing it just before the field values are needed and
@@ -90,7 +90,7 @@ namespace picongpu
                     fieldTmp.template computeValue<AREA, Solver, T_Filter>(*speciesTmp, currentStep);
                     // Particles can contribute to cells in GUARD (due to their shape) this values need to be
                     //  added to the neighbouring GPU BOARDERs.
-                    return fieldTmp.asyncCommunication(__getTransactionEvent());
+                    return fieldTmp.asyncCommunication(eventSystem::getTransactionEvent());
                 }
             };
 
@@ -122,16 +122,16 @@ namespace picongpu
                      * added to the neighbouring GPU BORDERs.
                      * Start adding field contribution from the GUARD to the adjacent GPUs while the second attribute
                      * is computed. */
-                    EventTask fieldTmpEvent1 = fieldTmp1.asyncCommunication(__getTransactionEvent());
+                    EventTask fieldTmpEvent1 = fieldTmp1.asyncCommunication(eventSystem::getTransactionEvent());
                     // Derive the second attribute from the particle data
                     fieldTmp2->template computeValue<AREA, typename CombinedSolver::ModifierAttributeSolver, T_Filter>(
                         *speciesTmp,
                         currentStep);
-                    EventTask fieldTmpEvent2 = fieldTmp2->asyncCommunication(__getTransactionEvent());
+                    EventTask fieldTmpEvent2 = fieldTmp2->asyncCommunication(eventSystem::getTransactionEvent());
 
                     // Wait for the communication between the GPUs to finish.
-                    __setTransactionEvent(fieldTmpEvent1);
-                    __setTransactionEvent(fieldTmpEvent2);
+                    eventSystem::setTransactionEvent(fieldTmpEvent1);
+                    eventSystem::setTransactionEvent(fieldTmpEvent2);
 
                     // Modify the 1st field by the values in the 2nd field according to the ModifyingOperation.
                     fieldTmp1.template modifyByField<AREA, typename CombinedSolver::ModifyingOperation>(*fieldTmp2);

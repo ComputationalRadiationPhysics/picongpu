@@ -98,7 +98,7 @@ namespace picongpu
                                 extraSlotNr);
                         // wait for unfinished asynchronous communication
                         if(event.has_value())
-                            __setTransactionEvent(*event);
+                            eventSystem::setTransactionEvent(*event);
                         fieldTmp1.template modifyByField<CORE + BORDER, T_Op>(fieldTmp2);
                     }
                 };
@@ -156,7 +156,7 @@ namespace picongpu
                         extraSlot);
                     // wait for unfinished asynchronous communication
                     if(event.has_value())
-                        __setTransactionEvent(*event);
+                        eventSystem::setTransactionEvent(*event);
 
                     if constexpr(!bmpl::empty<RemainingFilteredSpecies>::value)
                     {

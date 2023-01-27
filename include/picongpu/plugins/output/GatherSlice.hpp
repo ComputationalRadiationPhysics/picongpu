@@ -70,7 +70,7 @@ namespace picongpu
                 mpiRank = -1;
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, &gatherRanks[0], 1, MPI_INT, MPI_COMM_WORLD));
 
             for(int i = 0; i < countRanks; ++i)
@@ -83,7 +83,7 @@ namespace picongpu
             }
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_Group group = MPI_GROUP_NULL;
             MPI_Group newgroup = MPI_GROUP_NULL;
             MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
@@ -128,7 +128,7 @@ namespace picongpu
 
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Gather(
                 fakeHeader,
                 MessageHeader::bytes,
@@ -153,7 +153,7 @@ namespace picongpu
             const size_t elementsCount = header.node.maxSize.productOfComponents() * sizeof(ValueType);
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Gatherv(
                 (char*) (data.getPointer()),
                 elementsCount,
@@ -228,7 +228,7 @@ namespace picongpu
             if(isMPICommInitialized)
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 MPI_CHECK(MPI_Comm_free(&comm));
             }
             isMPICommInitialized = false;

@@ -100,7 +100,7 @@ namespace pmacc
 
         ~DeviceBufferIntern() override
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
 
             if(sizeOnDevice)
             {
@@ -116,7 +116,7 @@ namespace pmacc
         {
             this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
 
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             if(!preserveData)
             {
                 // Using Array is a workaround for types without default constructor
@@ -129,14 +129,14 @@ namespace pmacc
 
         DataBoxType getDataBox() override
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             return DataBoxType(PitchedBox<TYPE, DIM>((TYPE*) data.ptr, this->getPhysicalMemorySize(), data.pitch))
                 .shift(offset);
         }
 
         TYPE* getPointer() override
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
 
             if constexpr(DIM == DIM1)
             {
@@ -165,7 +165,7 @@ namespace pmacc
 
         size_t* getCurrentSizeOnDevicePointer() override
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             if(!sizeOnDevice)
             {
                 throw std::runtime_error("Buffer has no size on device!, currentSize is only stored on host side.");
@@ -175,13 +175,13 @@ namespace pmacc
 
         size_t* getCurrentSizeHostSidePointer() override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
 
         TYPE* getBasePointer() override
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             return (TYPE*) data.ptr;
         }
 
@@ -192,9 +192,9 @@ namespace pmacc
         {
             if(sizeOnDevice)
             {
-                __startTransaction(__getTransactionEvent());
+                eventSystem::startTransaction(eventSystem::getTransactionEvent());
                 Environment<>::get().Factory().createTaskGetCurrentSizeFromDevice(*this);
-                __endTransaction().waitForFinished();
+                eventSystem::endTransaction().waitForFinished();
             }
 
             return DeviceBuffer<TYPE, DIM>::getCurrentSize();
@@ -224,7 +224,7 @@ namespace pmacc
 
         const cuplaPitchedPtr getCudaPitched() const override
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             return data;
         }
 
@@ -243,7 +243,7 @@ namespace pmacc
          */
         void createData()
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             data.ptr = nullptr;
             data.pitch = 1;
             data.xsize = this->getDataSpace()[0] * sizeof(TYPE);
@@ -279,7 +279,7 @@ namespace pmacc
          */
         void createFakeData()
         {
-            __startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_DEVICE);
             data.ptr = nullptr;
             data.pitch = 1;
             data.xsize = this->getDataSpace()[0] * sizeof(TYPE);
@@ -306,7 +306,7 @@ namespace pmacc
 
         void createSizeOnDevice(bool sizeOnDevice)
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             sizeOnDevicePtr = nullptr;
 
             if(sizeOnDevice)
@@ -340,7 +340,7 @@ namespace pmacc
         auto result = std::make_unique<DeviceBufferIntern<TYPE, DIM>>(source.getDataSpace());
         result->copyFrom(source);
         // Wait for copy to finish, so that the resulting object is safe to use after return
-        __getTransactionEvent().waitForFinished();
+        eventSystem::getTransactionEvent().waitForFinished();
         return result;
     }
 

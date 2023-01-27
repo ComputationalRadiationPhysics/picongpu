@@ -21,7 +21,8 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+
+#include "pmacc/eventSystem/events/kernelEvents.hpp"
 #include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/lockstep/WorkerCfg.hpp"
 #include "pmacc/types.hpp"

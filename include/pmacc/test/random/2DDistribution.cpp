@@ -178,10 +178,7 @@ namespace pmacc
                     /* we need to pass a stream to avoid that we record the event in
                      * an empty or wrong stream
                      */
-                    pmacc::Environment<>::get()
-                        .TransactionManager()
-                        .getEventStream(pmacc::ITask::TASK_DEVICE)
-                        ->getCudaStream()));
+                    pmacc::eventSystem::getEventStream(pmacc::ITask::TASK_DEVICE)->getCudaStream()));
 
                 auto workerCfg = lockstep::makeWorkerCfg<blockSize>();
 
@@ -193,10 +190,7 @@ namespace pmacc
                     /* we need to pass a stream to avoid that we record the event in
                      * an empty or wrong stream
                      */
-                    pmacc::Environment<>::get()
-                        .TransactionManager()
-                        .getEventStream(pmacc::ITask::TASK_DEVICE)
-                        ->getCudaStream()));
+                    pmacc::eventSystem::getEventStream(pmacc::ITask::TASK_DEVICE)->getCudaStream()));
                 CUDA_CHECK(cuplaEventSynchronize(stop));
                 float milliseconds = 0;
                 CUDA_CHECK(cuplaEventElapsedTime(&milliseconds, start, stop));

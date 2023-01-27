@@ -102,7 +102,7 @@ namespace pmacc
                     mpiRank = -1;
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, &reduceRank[0], 1, MPI_INT, MPI_COMM_WORLD));
 
                 for(int i = 0; i < countRanks; ++i)

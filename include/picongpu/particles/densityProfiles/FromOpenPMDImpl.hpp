@@ -183,7 +183,7 @@ namespace picongpu
 
                     // Copy host data to the device
                     fieldBuffer.hostToDevice();
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                 }
 
                 //! Get file name to load density from

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
@@ -37,7 +37,7 @@ namespace pmacc
         TaskFieldSendExchange(Field& buffer, uint32_t exchange)
             : m_buffer(buffer)
             , m_state(Constructor)
-            , m_initDependency(__getTransactionEvent())
+            , m_initDependency(eventSystem::getTransactionEvent())
             , m_exchange(exchange)
         {
         }
@@ -45,9 +45,9 @@ namespace pmacc
         void init() override
         {
             m_state = Init;
-            __startTransaction(m_initDependency);
+            eventSystem::startTransaction(m_initDependency);
             m_buffer.bashField(m_exchange);
-            m_initDependency = __endTransaction();
+            m_initDependency = eventSystem::endTransaction();
             m_state = WaitForBash;
         }
 
@@ -59,7 +59,7 @@ namespace pmacc
                 break;
             case WaitForBash:
 
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(m_initDependency.getTaskId()))
                 {
                     m_state = InitSend;
                     m_sendEvent = m_buffer.getGridBuffer().asyncSend(EventTask(), m_exchange);
@@ -71,7 +71,7 @@ namespace pmacc
             case InitSend:
                 break;
             case WaitForSendEnd:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(m_sendEvent.getTaskId()))
                 {
                     m_state = Finished;
                     return true;

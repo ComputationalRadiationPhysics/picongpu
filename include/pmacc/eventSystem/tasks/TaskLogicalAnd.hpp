@@ -23,7 +23,8 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+
+#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
@@ -70,7 +71,7 @@ namespace pmacc
             {
                 task1 = 0;
 
-                ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(task2);
+                ITask* task = Manager::getInstance().getITaskIfNotFinished(task2);
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
@@ -87,7 +88,7 @@ namespace pmacc
             {
                 task2 = 0;
 
-                ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(task1);
+                ITask* task = Manager::getInstance().getITaskIfNotFinished(task1);
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();

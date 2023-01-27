@@ -61,7 +61,7 @@ namespace pmacc
          */
         virtual size_t* getCurrentSizePointer()
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
 

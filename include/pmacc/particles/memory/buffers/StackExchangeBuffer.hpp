@@ -111,25 +111,25 @@ namespace pmacc
         void setCurrentSize(const size_t size)
         {
             // do host and device setCurrentSize parallel
-            EventTask split = __getTransactionEvent();
+            EventTask split = eventSystem::getTransactionEvent();
             EventTask e1;
 
             if(!Environment<>::get().isMpiDirectEnabled())
             {
-                __startTransaction(split);
+                eventSystem::startTransaction(split);
                 stackIndexer.getHostBuffer().setCurrentSize(size);
                 stack.getHostBuffer().setCurrentSize(size);
-                e1 = __endTransaction();
+                e1 = eventSystem::endTransaction();
             }
 
-            __startTransaction(split);
+            eventSystem::startTransaction(split);
             stackIndexer.getDeviceBuffer().setCurrentSize(size);
-            EventTask e2 = __endTransaction();
-            __startTransaction(split);
+            EventTask e2 = eventSystem::endTransaction();
+            eventSystem::startTransaction(split);
             stack.getDeviceBuffer().setCurrentSize(size);
-            EventTask e3 = __endTransaction();
+            EventTask e3 = eventSystem::endTransaction();
 
-            __setTransactionEvent(e1 + e2 + e3);
+            eventSystem::setTransactionEvent(e1 + e2 + e3);
         }
 
         size_t getHostCurrentSize()
