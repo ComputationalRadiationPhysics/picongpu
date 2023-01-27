@@ -86,8 +86,6 @@ namespace picongpu
 
                     using RngGenerator = picongpu::particles::functor::misc::Rng<T_Distribution>;
 
-                    using RngType = typename RngGenerator::RandomGen;
-
                     using Functor = functor::User<T_Functor>;
                     using Distribution = T_Distribution;
 
@@ -110,11 +108,13 @@ namespace picongpu
                      */
                     template<typename T_Worker>
                     HDINLINE auto operator()(T_Worker const& worker, DataSpace<simDim> const& localSupercellOffset)
-                        const -> acc::FreeRng<Functor, RngType>
+                        const
                     {
-                        RngType const rng = (*static_cast<RngGenerator const*>(this))(worker, localSupercellOffset);
+                        auto const rng = (*static_cast<RngGenerator const*>(this))(worker, localSupercellOffset);
 
-                        return acc::FreeRng<Functor, RngType>(*static_cast<Functor const*>(this), rng);
+                        return acc::FreeRng<Functor, ALPAKA_DECAY_T(decltype(rng))>(
+                            *static_cast<Functor const*>(this),
+                            rng);
                     }
 
                     static HINLINE std::string getName()
