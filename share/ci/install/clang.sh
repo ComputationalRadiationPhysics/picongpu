@@ -12,7 +12,7 @@ echo "Clang-version: $clang_version"
 
 if ! agc-manager -e clang@${clang_version}; then
     apt install -y clang-${clang_version}
-    if [[ "$PIC_BACKEND" =~ "omp2b.*" ]] ; then
+    if [[ "$PIC_BACKEND" =~ omp2b.* ]] ; then
         apt install -y libomp-${clang_version}-dev
     fi
 else
