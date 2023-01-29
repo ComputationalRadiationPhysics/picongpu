@@ -122,6 +122,7 @@ PIConGPU command line option          description
 ===================================== ====================================================================================================================================================
 ``--openPMD.period``                  Period after which simulation data should be stored on disk.
 ``--openPMD.source``                  Select data sources and filters to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
+                                      Only deterministic filters will be shown.
 ``--openPMD.range``                   Define a contiguous range of cells per dimension to dump. Each dimension is separated by a comma.
                                       A range is defined as ``[BEGIN:END)`` where out of range indices will be clipped.
                                       A single value e.g. ``10,:,:`` for a dimension will only dump a slice.

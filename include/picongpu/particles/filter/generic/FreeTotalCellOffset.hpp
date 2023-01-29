@@ -130,6 +130,13 @@ namespace picongpu
                         // we provide the name from the param class
                         return Functor::name;
                     }
+
+                    /** A filter is deterministic if the filter outcome is equal between evaluations. If so, set this
+                     * variable to true, otherwise to false.
+                     *
+                     * Example: A filter were results depend on a random number generator must return false.
+                     */
+                    static constexpr bool isDeterministic = Functor::isDeterministic;
                 };
 
             } // namespace generic

@@ -58,6 +58,8 @@ namespace picongpu
                  *           return result;
                  *       }
                  *       static constexpr char const * name = "eachParticleInXCell5";
+                 *
+                 *       static constexpr bool isDeterministic = true;
                  *   };
                  *
                  *   using EachParticleInXCell5 = generic::FreeTotalCellOffset<

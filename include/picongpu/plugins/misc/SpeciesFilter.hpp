@@ -24,6 +24,8 @@
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
+#include <boost/mpl/and.hpp>
+#include <boost/mpl/bool.hpp>
 
 namespace picongpu
 {
@@ -83,9 +85,11 @@ namespace picongpu
                 template<typename T_SpeciesFilter>
                 struct IsEligible
                 {
-                    using type = typename particles::traits::SpeciesEligibleForSolver<
-                        typename T_SpeciesFilter::Species,
-                        typename T_SpeciesFilter::Filter>::type;
+                    using type = boost::mpl::and_<
+                        typename particles::traits::SpeciesEligibleForSolver<
+                            typename T_SpeciesFilter::Species,
+                            typename T_SpeciesFilter::Filter>::type,
+                        boost::mpl::bool_<T_SpeciesFilter::Filter::isDeterministic>>;
                 };
             } // namespace speciesFilter
 

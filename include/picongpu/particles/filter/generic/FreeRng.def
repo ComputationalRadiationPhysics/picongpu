@@ -57,6 +57,8 @@ namespace picongpu
                  *           return result;
                  *       }
                  *       static constexpr char const * name = "eachSecondParticle";
+                 *
+                 *       static constexpr bool isDeterministic = false;
                  *   };
                  *
                  *   using EachSecondParticle = generic::FreeRng<
