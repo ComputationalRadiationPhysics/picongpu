@@ -44,9 +44,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/memory/buffers/DeviceBuffer.hpp>
-#include <pmacc/memory/buffers/DeviceBufferIntern.hpp>
 #include <pmacc/memory/buffers/HostBuffer.hpp>
-#include <pmacc/memory/buffers/HostBufferIntern.hpp>
 
 
 namespace pmacc
@@ -104,6 +102,6 @@ using MyPMaccFixture = pmacc::test::PMaccFixture<TEST_DIM>;
 
 static MyPMaccFixture fixture;
 
-#include "HostBufferIntern/copyFrom.hpp"
-#include "HostBufferIntern/reset.hpp"
-#include "HostBufferIntern/setValue.hpp"
+#include "HostBuffer/copyFrom.hpp"
+#include "HostBuffer/reset.hpp"
+#include "HostBuffer/setValue.hpp"

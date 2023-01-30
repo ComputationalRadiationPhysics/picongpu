@@ -58,7 +58,7 @@ namespace picongpu
          */
         template<typename T_Type, uint32_t T_bufDim>
         void operator()(
-            HostBufferIntern<T_Type, T_bufDim>& hBuffer,
+            HostBuffer<T_Type, T_bufDim>& hBuffer,
             const AxisDescription axis_element,
             const std::pair<float_X, float_X> axis_p_range,
             const float_64 pRange_unit,

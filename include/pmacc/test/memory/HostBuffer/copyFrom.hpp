@@ -30,7 +30,7 @@ namespace pmacc
     {
         namespace memory
         {
-            namespace HostBufferIntern
+            namespace HostBuffer
             {
                 /**
                  * Checks if data is copied correctly from device to
@@ -50,31 +50,28 @@ namespace pmacc
 
                         for(unsigned i = 0; i < nElementsPerDim.size(); ++i)
                         {
-                            ::pmacc::DataSpace<T_Dim::value> const dataSpace
-                                = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
-                            ::pmacc::HostBuffer<Data, T_Dim::value>* hostBufferIntern
-                                = new ::pmacc::HostBufferIntern<Data, T_Dim::value>(dataSpace);
-                            ::pmacc::DeviceBuffer<Data, T_Dim::value>* deviceBufferIntern
-                                = new ::pmacc::DeviceBufferIntern<Data, T_Dim::value>(dataSpace);
+                            auto const dataSpace = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+                            auto* hostBuffer = new ::pmacc::HostBuffer<Data, T_Dim::value>(dataSpace);
+                            auto* deviceBuffer = new ::pmacc::DeviceBuffer<Data, T_Dim::value>(dataSpace);
 
-                            hostBufferIntern->reset();
+                            hostBuffer->reset();
 
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                hostBufferIntern->getPointer()[i] = static_cast<Data>(i);
+                                hostBuffer->getPointer()[i] = static_cast<Data>(i);
                             }
 
-                            deviceBufferIntern->copyFrom(*hostBufferIntern);
-                            hostBufferIntern->reset();
-                            hostBufferIntern->copyFrom(*deviceBufferIntern);
+                            deviceBuffer->copyFrom(*hostBuffer);
+                            hostBuffer->reset();
+                            hostBuffer->copyFrom(*deviceBuffer);
 
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                REQUIRE(hostBufferIntern->getPointer()[i] == static_cast<Data>(i));
+                                REQUIRE(hostBuffer->getPointer()[i] == static_cast<Data>(i));
                             }
 
-                            delete hostBufferIntern;
-                            delete deviceBufferIntern;
+                            delete hostBuffer;
+                            delete deviceBuffer;
                         }
                     }
 
@@ -86,13 +83,13 @@ namespace pmacc
                     }
                 };
 
-            } // namespace HostBufferIntern
+            } // namespace HostBuffer
         } // namespace memory
     } // namespace test
 } // namespace pmacc
 
-TEST_CASE("HostBufferIntern::copyFrom", "[copyFrom]")
+TEST_CASE("HostBuffer::copyFrom", "[copyFrom]")
 {
-    using namespace pmacc::test::memory::HostBufferIntern;
+    using namespace pmacc::test::memory::HostBuffer;
     ::boost::mpl::for_each<Dims>(CopyFromTest());
 }

@@ -212,7 +212,7 @@ namespace picongpu
         this->dBuffer->deviceToHost();
         auto bufferExtent = this->dBuffer->getDeviceBuffer().getDataSpace();
 
-        auto hReducedBuffer = HostBufferIntern<float_PS, 2>(this->dBuffer->getDeviceBuffer().getDataSpace());
+        auto hReducedBuffer = HostBuffer<float_PS, 2>(this->dBuffer->getDeviceBuffer().getDataSpace());
 
         eventSystem::getTransactionEvent().waitForFinished();
 

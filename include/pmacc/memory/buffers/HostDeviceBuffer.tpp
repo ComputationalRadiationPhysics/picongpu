@@ -29,8 +29,8 @@ namespace pmacc
     template<typename T_Type, unsigned T_dim>
     HostDeviceBuffer<T_Type, T_dim>::HostDeviceBuffer(const DataSpace<T_dim>& size, bool sizeOnDevice)
     {
-        hostBuffer = std::make_unique<HostBufferIntern<T_Type, T_dim>>(size);
-        deviceBuffer = std::make_unique<DeviceBufferIntern<T_Type, T_dim>>(size, sizeOnDevice);
+        hostBuffer = std::make_unique<HostBuffer<T_Type, T_dim>>(size);
+        deviceBuffer = std::make_unique<DeviceBuffer<T_Type, T_dim>>(size, sizeOnDevice);
     }
 
     template<typename T_Type, unsigned T_dim>
@@ -39,7 +39,7 @@ namespace pmacc
         const DataSpace<T_dim>& size,
         bool sizeOnDevice)
     {
-        hostBuffer = std::make_unique<HostBufferIntern<T_Type, T_dim>>(size);
+        hostBuffer = std::make_unique<HostBuffer<T_Type, T_dim>>(size);
         deviceBuffer = std::make_unique<DeviceBufferType>(otherDeviceBuffer, size, DataSpace<T_dim>(), sizeOnDevice);
     }
 

@@ -1,4 +1,5 @@
-/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,14 +22,16 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/eventSystem/eventSystem.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 
 namespace pmacc
 {
-    template<class TYPE, unsigned DIM>
-    class HostBuffer;
-
     class EventTask;
 
     template<class TYPE, unsigned DIM>
@@ -37,8 +40,7 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     class Buffer;
 
-    /**
-     * Interface for a DIM-dimensional Buffer of type TYPE on the host
+    /** DIM-dimensional Buffer of type TYPE on the host
      *
      * @tparam TYPE datatype for buffer data
      * @tparam DIM dimension of the buffer
@@ -47,41 +49,129 @@ namespace pmacc
     class HostBuffer : public Buffer<TYPE, DIM>
     {
     public:
-        /**
-         * Copies the data from the given DeviceBuffer to this HostBuffer.
+        using DataBoxType = typename Buffer<TYPE, DIM>::DataBoxType;
+
+        /** constructor
          *
-         * @param other DeviceBuffer to copy data from
+         * @param size extent for each dimension (in elements)
          */
-        virtual void copyFrom(DeviceBuffer<TYPE, DIM>& other) = 0;
+        HostBuffer(DataSpace<DIM> size) : Buffer<TYPE, DIM>(size, size), pointer(nullptr), ownPointer(true)
+        {
+            CUDA_CHECK(cuplaMallocHost((void**) &pointer, size.productOfComponents() * sizeof(TYPE)));
+            reset(false);
+        }
+
+        HostBuffer(HostBuffer& source, DataSpace<DIM> size, DataSpace<DIM> offset = DataSpace<DIM>())
+            : Buffer<TYPE, DIM>(size, source.getPhysicalMemorySize())
+            , pointer(nullptr)
+            , ownPointer(false)
+        {
+            pointer = &(source.getDataBox()(offset)); /*fix me, this is a bad way*/
+            reset(true);
+        }
+
+        /**
+         * destructor
+         */
+        ~HostBuffer() override
+        {
+            eventSystem::startOperation(ITask::TASK_HOST);
+
+            if(pointer && ownPointer)
+            {
+                CUDA_CHECK_NO_EXCEPT(cuplaFreeHost(pointer));
+            }
+        }
 
         /**
          * Returns the current size pointer.
          *
          * @return pointer to current size
          */
-        virtual size_t* getCurrentSizePointer()
+        size_t* getCurrentSizePointer()
         {
             eventSystem::startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
 
-        /**
-         * Destructor.
+        /*! Get pointer of memory
+         * @return pointer to memory
          */
-        ~HostBuffer() override = default;
-
-    protected:
-        /** Constructor.
-         *
-         * @param size extent for each dimension (in elements)
-         *             if the buffer is a view to an existing buffer the size
-         *             can be less than `physicalMemorySize`
-         * @param physicalMemorySize size of the physical memory (in elements)
-         */
-        HostBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize)
-            : Buffer<TYPE, DIM>(size, physicalMemorySize)
+        TYPE* getBasePointer() override
         {
+            eventSystem::startOperation(ITask::TASK_HOST);
+            return pointer;
         }
+
+        TYPE* getPointer() override
+        {
+            eventSystem::startOperation(ITask::TASK_HOST);
+            return pointer;
+        }
+
+        /**
+         * Copies the data from the given DeviceBuffer to this HostBuffer.
+         *
+         * @param other DeviceBuffer to copy data from
+         */
+        void copyFrom(DeviceBuffer<TYPE, DIM>& other)
+        {
+            PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+            Environment<>::get().Factory().createTaskCopyDeviceToHost(other, *this);
+        }
+
+        void reset(bool preserveData = true) override
+        {
+            eventSystem::startOperation(ITask::TASK_HOST);
+            this->setCurrentSize(this->getDataSpace().productOfComponents());
+            if(!preserveData)
+            {
+                /* if it is a pointer out of other memory we can not assume that
+                 * that the physical memory is contiguous
+                 */
+                if(ownPointer)
+                    memset(
+                        reinterpret_cast<void*>(pointer),
+                        0,
+                        this->getDataSpace().productOfComponents() * sizeof(TYPE));
+                else
+                {
+                    // Using Array is a workaround for types without default constructor
+                    memory::Array<TYPE, 1> tmp;
+                    memset(reinterpret_cast<void*>(tmp.data()), 0, sizeof(tmp));
+                    // use first element to avoid issue because Array is aligned (sizeof can be larger than component
+                    // type)
+                    setValue(tmp[0]);
+                }
+            }
+        }
+
+        void setValue(const TYPE& value) override
+        {
+            eventSystem::startOperation(ITask::TASK_HOST);
+            auto current_size = static_cast<int64_t>(this->getCurrentSize());
+            auto memBox = getDataBox();
+            using D1Box = DataBoxDim1Access<DataBoxType>;
+            D1Box d1Box(memBox, this->getDataSpace());
+#pragma omp parallel for
+            for(int64_t i = 0; i < current_size; i++)
+            {
+                d1Box[i] = value;
+            }
+        }
+
+        DataBoxType getDataBox() override
+        {
+            eventSystem::startOperation(ITask::TASK_HOST);
+            return DataBoxType(PitchedBox<TYPE, DIM>(
+                pointer,
+                this->getPhysicalMemorySize(),
+                this->getPhysicalMemorySize()[0] * sizeof(TYPE)));
+        }
+
+    private:
+        TYPE* pointer;
+        bool ownPointer;
     };
 
 } // namespace pmacc
