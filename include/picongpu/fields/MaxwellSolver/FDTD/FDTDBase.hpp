@@ -109,7 +109,7 @@ namespace picongpu
                         auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
                         // update B by half timeStep, so step for E_inc = currentStep
                         incidentFieldSolver.updateBHalf(currentStep);
-                        EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
+                        EventTask eRfieldB = fieldB->asyncCommunication(eventSystem::getTransactionEvent());
 
                         updateE<CORE>(currentStep);
                         /* Incident field solver update does not use exchanged B, so does not have to wait for it.
@@ -118,7 +118,7 @@ namespace picongpu
                          * In units of DELTA_T that is equal to currentStep + 0.5 * timeStep / DELTA_T
                          */
                         incidentFieldSolver.updateE(currentStep + 0.5_X * timeStep / DELTA_T);
-                        __setTransactionEvent(eRfieldB);
+                        eventSystem::setTransactionEvent(eRfieldB);
                         updateE<BORDER>(currentStep);
                     }
 
@@ -169,11 +169,11 @@ namespace picongpu
                          */
                         incidentFieldSolver.updateBHalf(currentStep + timeStep / DELTA_T);
 
-                        EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
+                        EventTask eRfieldE = fieldE->asyncCommunication(eventSystem::getTransactionEvent());
 
                         // First and second halves of B update are explained inside updateBeforeCurrent()
                         updateBFirstHalf<CORE>(currentStep);
-                        __setTransactionEvent(eRfieldE);
+                        eventSystem::setTransactionEvent(eRfieldE);
                         updateBFirstHalf<BORDER>(currentStep);
 
                         if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
@@ -182,8 +182,8 @@ namespace picongpu
                             exponentialImpl.run(currentStep, fieldB->getDeviceDataBox());
                         }
 
-                        EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
-                        __setTransactionEvent(eRfieldB);
+                        EventTask eRfieldB = fieldB->asyncCommunication(eventSystem::getTransactionEvent());
+                        eventSystem::setTransactionEvent(eRfieldB);
                     }
 
                 private:

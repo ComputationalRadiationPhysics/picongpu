@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
@@ -135,7 +134,7 @@ namespace pmacc
                     REQUIRE(IdProvider::getNewIdHost() == state.nextId);
                     // Generate the same IDs on the device
                     HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-                    constexpr uint32_t numWorkers = traits::GetNumWorkers<numIdsPerBlock>::value;
+
                     auto workerCfg = lockstep::makeWorkerCfg<numIdsPerBlock>();
                     PMACC_LOCKSTEP_KERNEL(GenerateIds<numIdsPerBlock, IdProvider>{}, workerCfg)
                     (numBlocks)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);

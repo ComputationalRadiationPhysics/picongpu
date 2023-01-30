@@ -48,13 +48,13 @@ namespace pmacc
             EventTask operator()(T_Particles& par, EventTask event) const
             {
                 EventTask ret;
-                __startTransaction(event);
+                eventSystem::startTransaction(event);
                 Environment<>::get().ParticleFactory().createTaskParticlesReceive(par);
-                ret = __endTransaction();
+                ret = eventSystem::endTransaction();
 
-                __startTransaction(event);
+                eventSystem::startTransaction(event);
                 Environment<>::get().ParticleFactory().createTaskParticlesSend(par);
-                ret += __endTransaction();
+                ret += eventSystem::endTransaction();
                 return ret;
             }
         };

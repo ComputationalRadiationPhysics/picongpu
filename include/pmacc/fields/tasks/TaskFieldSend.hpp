@@ -22,7 +22,6 @@
 #pragma once
 
 
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
@@ -44,15 +43,15 @@ namespace pmacc
         void init() override
         {
             m_state = Init;
-            EventTask serialEvent = __getTransactionEvent();
+            EventTask serialEvent = eventSystem::getTransactionEvent();
 
             for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
                 if(m_buffer.getGridBuffer().hasSendExchange(i))
                 {
-                    __startTransaction(serialEvent);
+                    eventSystem::startTransaction(serialEvent);
                     FieldFactory::getInstance().createTaskFieldSendExchange(m_buffer, i);
-                    tmpEvent += __endTransaction();
+                    tmpEvent += eventSystem::endTransaction();
                 }
             }
             m_state = WaitForSend;
@@ -65,7 +64,7 @@ namespace pmacc
             case Init:
                 break;
             case WaitForSend:
-                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+                return nullptr == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
             default:
                 return false;
             }

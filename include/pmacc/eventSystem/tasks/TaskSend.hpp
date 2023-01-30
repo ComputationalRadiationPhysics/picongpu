@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
 
 namespace pmacc
@@ -68,7 +67,7 @@ namespace pmacc
                     /* Wait to be sure that all device work is finished before MPI is triggered.
                      * MPI will not wait for work in our device streams
                      */
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     state = ReadyForMPISend;
                 }
                 else
@@ -87,9 +86,9 @@ namespace pmacc
                 break;
             case ReadyForMPISend:
                 state = SendDone;
-                __startTransaction();
+                eventSystem::startTransaction();
                 Environment<>::get().Factory().createTaskSendMPI(exchange, this);
-                __endTransaction();
+                eventSystem::endTransaction();
                 break;
             case SendDone:
                 break;

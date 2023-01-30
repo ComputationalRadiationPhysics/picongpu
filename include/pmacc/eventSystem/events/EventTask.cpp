@@ -22,7 +22,7 @@
 #include "pmacc/eventSystem/events/EventTask.hpp"
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/TaskLogicalAnd.hpp"
 
@@ -34,7 +34,7 @@ namespace pmacc
 
     std::string EventTask::toString()
     {
-        ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(taskId);
+        ITask* task = Manager::getInstance().getITaskIfNotFinished(taskId);
         if(task != nullptr)
             return task->toString();
 
@@ -43,7 +43,7 @@ namespace pmacc
 
     bool EventTask::isFinished()
     {
-        return (Environment<>::get().Manager().getITaskIfNotFinished(taskId) == nullptr);
+        return (Manager::getInstance().getITaskIfNotFinished(taskId) == nullptr);
     }
 
     id_t EventTask::getTaskId() const
@@ -53,7 +53,7 @@ namespace pmacc
 
     void EventTask::waitForFinished() const
     {
-        Environment<>::get().Manager().waitForFinished(taskId);
+        Manager::getInstance().waitForFinished(taskId);
     }
 
     EventTask EventTask::operator+(const EventTask& other)
@@ -66,7 +66,7 @@ namespace pmacc
     {
         // If one of the two tasks is already finished, the other task is returned.
         // Otherwise, a TaskLogicalAnd is created and added to the Manager's queue.
-        Manager& manager = Environment<>::get().Manager();
+        Manager& manager = Manager::getInstance();
 
         if(this->taskId == other.taskId)
             return *this;

@@ -32,7 +32,7 @@ namespace pmacc
         canBeChecked = true;
         this->activate();
 
-        Environment<>::get().Manager().addTask(this);
-        __setTransactionEvent(EventTask(this->getId()));
+        Manager::getInstance().addTask(this);
+        eventSystem::setTransactionEvent(EventTask(this->getId()));
     }
 } // namespace pmacc

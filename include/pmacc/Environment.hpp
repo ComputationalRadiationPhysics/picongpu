@@ -27,9 +27,10 @@
 #include "pmacc/communication/manager_common.hpp"
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/device/MemoryInfo.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/eventSystem.hpp"
 #include "pmacc/eventSystem/events/EventPool.hpp"
 #include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
@@ -59,102 +60,6 @@ namespace pmacc
 {
     namespace detail
     {
-        /** collect state variables of the environment context
-         *
-         * This class handle the initialization and finalize of the
-         * MPI context and the selection of the GPU.
-         */
-        class EnvironmentContext
-        {
-            friend Environment;
-
-            friend pmacc::Environment<DIM1>;
-            friend pmacc::Environment<DIM2>;
-            friend pmacc::Environment<DIM3>;
-
-            EnvironmentContext()
-
-                = default;
-
-            /** initialization state of MPI */
-            bool m_isMpiInitialized{false};
-
-            /** state if a computing device is selected */
-            bool m_isDeviceSelected{false};
-
-            /** state if the SubGrid is defined */
-            bool m_isSubGridDefined{false};
-
-            /** state shows if MPI direct is activated */
-            bool m_isMpiDirectEnabled{false};
-
-            /** get the singleton EnvironmentContext
-             *
-             * @return instance of EnvironmentContext
-             */
-            static EnvironmentContext& getInstance()
-            {
-                static EnvironmentContext instance;
-                return instance;
-            }
-
-            /** state of the MPI context
-             *
-             * @return true if MPI is initialized else false
-             */
-            bool isMpiInitialized()
-            {
-                return m_isMpiInitialized;
-            }
-
-            /** is a computing device selected
-             *
-             * @return true if device is selected else false
-             */
-            bool isDeviceSelected()
-            {
-                return m_isDeviceSelected;
-            }
-
-            /** is the SubGrid defined
-             *
-             * @return true if SubGrid is defined, else false
-             */
-            bool isSubGridDefined()
-            {
-                return m_isSubGridDefined;
-            }
-
-            /** initialize the environment
-             *
-             * After this call it is allowed to use MPI.
-             */
-            HINLINE void init();
-
-            /** cleanup the environment */
-            HINLINE void finalize();
-
-            /** select a computing device
-             *
-             * After this call it is allowed to use the computing device.
-             *
-             * @param deviceNumber number of the device
-             */
-            HINLINE void setDevice(int deviceNumber);
-
-            //! activate MPI direct usage
-            void enableMpiDirect()
-            {
-                m_isMpiDirectEnabled = true;
-            }
-
-            //! query if MPI direct support is activated
-            bool isMpiDirectEnabled() const
-            {
-                return m_isMpiDirectEnabled;
-            }
-        };
-
         /** PMacc environment
          *
          * Get access to all PMacc singleton classes those not depend on a dimension.
@@ -179,27 +84,6 @@ namespace pmacc
                     EnvironmentContext::getInstance().isDeviceSelected(),
                     "Environment< DIM >::initDevices() must be called before this method!");
                 return StreamController::getInstance();
-            }
-
-            /** get the singleton Manager
-             *
-             * @return instance of Manager
-             */
-            pmacc::Manager& Manager()
-            {
-                return Manager::getInstance();
-            }
-
-            /** get the singleton TransactionManager
-             *
-             * @return instance of TransactionManager
-             */
-            pmacc::TransactionManager& TransactionManager() const
-            {
-                PMACC_ASSERT_MSG(
-                    EnvironmentContext::getInstance().isDeviceSelected(),
-                    "Environment< DIM >::initDevices() must be called before this method!");
-                return TransactionManager::getInstance();
             }
 
             /** get the singleton EnvironmentController
@@ -375,8 +259,6 @@ namespace pmacc
 
             MemoryInfo();
 
-            TransactionManager();
-
             SimulationDescription();
         }
 
@@ -461,7 +343,7 @@ namespace pmacc
         {
             if(m_isMpiInitialized)
             {
-                pmacc::Environment<>::get().Manager().waitForAllTasks();
+                eventSystem::waitForAllTasks();
                 // Required by scorep for flushing the buffers
                 cuplaDeviceSynchronize();
                 m_isMpiInitialized = false;
@@ -619,36 +501,6 @@ namespace pmacc
 
 /* No namespace for macro defines */
 
-/** start a dependency chain */
-#define __startTransaction(...) (pmacc::Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
-
-/** end a opened dependency chain */
-#define __endTransaction() (pmacc::Environment<>::get().TransactionManager().endTransaction())
-
-/** mark the begin of an operation
- *
- * depended on the opType this method is blocking
- *
- * @param opType place were the operation is running
- *               possible places are: `ITask::TASK_DEVICE`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
- */
-#define __startOperation(opType) (pmacc::Environment<>::get().TransactionManager().startOperation(opType))
-
-/** get a `EventStream` that must be used for cuda calls
- *
- * depended on the opType this method is blocking
- *
- * @param opType place were the operation is running
- *               possible places are: `ITask::TASK_DEVICE`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
- */
-#define __getEventStream(opType) (pmacc::Environment<>::get().TransactionManager().getEventStream(opType))
-
-/** get the event of the current transaction */
-#define __getTransactionEvent() (pmacc::Environment<>::get().TransactionManager().getTransactionEvent())
-
-/** set a event to the current transaction */
-#define __setTransactionEvent(event) (pmacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
-
-#include "pmacc/eventSystem/EventSystem.tpp"
 #include "pmacc/eventSystem/events/CudaEvent.hpp"
+#include "pmacc/eventSystem/tasks/Factory.tpp"
 #include "pmacc/particles/tasks/ParticleFactory.tpp"

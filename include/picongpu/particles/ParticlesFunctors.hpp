@@ -141,11 +141,11 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto species = dc.get<SpeciesType>(FrameType::getName(), true);
 
-                __startTransaction(eventInt);
+                eventSystem::startTransaction(eventInt);
                 species->update(currentStep);
                 // No need to wait here
                 species->applyBoundary(currentStep);
-                EventTask ev = __endTransaction();
+                EventTask ev = eventSystem::endTransaction();
                 updateEvent.push_back(ev);
             }
         };

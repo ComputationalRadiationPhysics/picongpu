@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
@@ -46,15 +46,15 @@ namespace pmacc
         void init() override
         {
             m_state = Init;
-            EventTask serialEvent = __getTransactionEvent();
+            EventTask serialEvent = eventSystem::getTransactionEvent();
 
             for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
                 if(m_buffer.getGridBuffer().hasReceiveExchange(i))
                 {
-                    __startTransaction(serialEvent);
+                    eventSystem::startTransaction(serialEvent);
                     FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(m_buffer, i);
-                    m_tmpEvent += __endTransaction();
+                    m_tmpEvent += eventSystem::endTransaction();
                 }
             }
             m_state = WaitForReceived;
@@ -67,14 +67,14 @@ namespace pmacc
             case Init:
                 break;
             case WaitForReceived:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
                 {
                     m_state = Insert;
                 }
                 break;
             case Insert:
                 m_state = Wait;
-                __startTransaction();
+                eventSystem::startTransaction();
                 for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
                 {
                     if(m_buffer.getGridBuffer().hasReceiveExchange(i))
@@ -82,13 +82,13 @@ namespace pmacc
                         m_buffer.insertField(i);
                     }
                 }
-                m_tmpEvent = __endTransaction();
+                m_tmpEvent = eventSystem::endTransaction();
                 m_state = WaitInsertFinished;
                 break;
             case Wait:
                 break;
             case WaitInsertFinished:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
                 {
                     m_state = Finish;
                     return true;

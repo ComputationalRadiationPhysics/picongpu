@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/fields/SimulationFieldHelper.hpp"
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/mappings/kernel/ExchangeMapping.hpp"

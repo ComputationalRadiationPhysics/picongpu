@@ -96,7 +96,7 @@ namespace picongpu
                     {
                         // avoid deadlock between not finished pmacc tasks and mpi
                         // calls in openPMD
-                        __getTransactionEvent().waitForFinished();
+                        eventSystem::getTransactionEvent().waitForFinished();
                         rc.loadChunk<ComponentType>(
                             loadBfr,
                             ::openPMD::Offset{particlesOffset},

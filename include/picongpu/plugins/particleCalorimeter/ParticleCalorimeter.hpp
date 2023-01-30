@@ -193,7 +193,7 @@ namespace picongpu
             }
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Bcast(
                 hBufLeftParsCalorimeter.getPointer(),
                 hBufLeftParsCalorimeter.getCurrentSize() * sizeof(float_X),

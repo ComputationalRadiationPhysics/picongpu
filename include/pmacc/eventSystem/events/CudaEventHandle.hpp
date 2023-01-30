@@ -33,7 +33,7 @@ namespace pmacc
     {
     private:
         /** pointer to the CudaEvent */
-        CudaEvent* event{nullptr};
+        CudaEvent* event = nullptr;
 
     public:
         /** create invalid handle  */
@@ -43,16 +43,9 @@ namespace pmacc
          *
          * @param evPointer pointer to a CudaEvent
          */
-        CudaEventHandle(CudaEvent* const evPointer) : event(evPointer)
-        {
-            event->registerHandle();
-        }
+        CudaEventHandle(CudaEvent* const evPointer);
 
-        CudaEventHandle(const CudaEventHandle& other)
-        {
-            /* register and release handle is done by the assign operator */
-            *this = other;
-        }
+        CudaEventHandle(const CudaEventHandle& other);
 
         /** assign an event handle
          *
@@ -61,66 +54,35 @@ namespace pmacc
          * @param other event handle
          * @return this handle
          */
-        CudaEventHandle& operator=(const CudaEventHandle& other)
-        {
-            /* check if an old event is overwritten */
-            if(event)
-                event->releaseHandle();
-            event = other.event;
-            /* check that new event pointer is not nullptr */
-            if(event)
-                event->registerHandle();
-            return *this;
-        }
+        CudaEventHandle& operator=(const CudaEventHandle& other);
 
         /** Destructor */
-        ~CudaEventHandle()
-        {
-            if(event)
-                event->releaseHandle();
-            event = nullptr;
-        }
+        ~CudaEventHandle();
 
         /**
          * get native cupla event
          *
          * @return native cupla event
          */
-        cuplaEvent_t operator*() const
-        {
-            assert(event);
-            return **event;
-        }
+        cuplaEvent_t operator*() const;
 
         /** check whether the event is finished
          *
          * @return true if event is finished else false
          */
-        bool isFinished()
-        {
-            PMACC_ASSERT(event);
-            return event->isFinished();
-        }
+        bool isFinished();
 
 
         /** get stream in which this event is recorded
          *
          * @return native cupla stream
          */
-        cuplaStream_t getStream() const
-        {
-            PMACC_ASSERT(event);
-            return event->getStream();
-        }
+        cuplaStream_t getStream() const;
 
         /** record event in a device stream
          *
          * @param stream native cupla stream
          */
-        void recordEvent(cuplaStream_t stream)
-        {
-            PMACC_ASSERT(event);
-            event->recordEvent(stream);
-        }
+        void recordEvent(cuplaStream_t stream);
     };
 } // namespace pmacc

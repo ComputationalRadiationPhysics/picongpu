@@ -24,7 +24,6 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/traits/GetNComponents.hpp"
 #include "pmacc/types.hpp"
 

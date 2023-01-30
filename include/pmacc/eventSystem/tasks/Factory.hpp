@@ -24,6 +24,7 @@
 
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/types.hpp"
 
 #include <string>
@@ -38,8 +39,6 @@ namespace pmacc
 
     template<class TYPE, unsigned DIM>
     class Exchange;
-
-    class TaskKernel;
 
     /**
      * Singleton Factory-pattern class for creation of several types of EventTasks.

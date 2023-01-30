@@ -23,7 +23,7 @@
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
 
-#    include "pmacc/eventSystem/EventSystem.hpp"
+#    include "pmacc/eventSystem/eventSystem.hpp"
 #    include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
 #    include "pmacc/types.hpp"
 
@@ -81,8 +81,8 @@ namespace pmacc
             this->hostBufferOffset = static_cast<int64_t>(reinterpret_cast<char*>(deviceHeapInfo.p) - hostPtr);
         }
         /* add event system hints */
-        __startOperation(ITask::TASK_DEVICE);
-        __startOperation(ITask::TASK_HOST);
+        eventSystem::startOperation(ITask::TASK_DEVICE);
+        eventSystem::startOperation(ITask::TASK_HOST);
         CUDA_CHECK(cuplaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cuplaMemcpyDeviceToHost));
     }
 

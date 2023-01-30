@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
@@ -37,7 +37,7 @@ namespace pmacc
         TaskFieldReceiveAndInsertExchange(Field& buffer, uint32_t exchange)
             : m_buffer(buffer)
             , m_state(Constructor)
-            , initDependency(__getTransactionEvent())
+            , initDependency(eventSystem::getTransactionEvent())
             , m_exchange(exchange)
         {
         }
@@ -56,7 +56,7 @@ namespace pmacc
             case Init:
                 break;
             case WaitForReceive:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(initDependency.getTaskId()))
                 {
                     m_state = Finished;
                     return true;

@@ -101,7 +101,7 @@ namespace gol
                 mpiRank = -1;
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, &gatherRanks[0], 1, MPI_INT, MPI_COMM_WORLD));
 
             for(int i = 0; i < countRanks; ++i)
@@ -114,7 +114,7 @@ namespace gol
             }
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_Group group;
             MPI_Group newgroup;
             MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
@@ -150,7 +150,7 @@ namespace gol
                 fullData = (char*) new ValueType[header.nodeSize.productOfComponents() * numRanks];
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Gather(
                 fakeHeader,
                 sizeof(MessageHeader),

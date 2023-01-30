@@ -144,7 +144,7 @@ namespace pmacc
                 }
 
                 reduceBuffer->deviceToHost();
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 return *((Type*) (reduceBuffer->getHostBuffer().getBasePointer()));
             }
 

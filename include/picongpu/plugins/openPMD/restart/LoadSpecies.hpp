@@ -103,7 +103,7 @@ namespace picongpu
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
 
                 auto numRanks = gc.getGlobalSize();
 

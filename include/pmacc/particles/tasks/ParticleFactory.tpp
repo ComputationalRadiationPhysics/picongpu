@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/particles/tasks/ParticleFactory.hpp"
 #include "pmacc/particles/tasks/TaskParticlesReceive.hpp"
 #include "pmacc/particles/tasks/TaskParticlesSend.hpp"

@@ -25,6 +25,7 @@
 #include "pmacc/communication/CommunicatorMPI.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/eventSystem/eventSystem.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
 
@@ -166,7 +167,7 @@ namespace pmacc
         bool slide()
         {
             /* wait that all tasks are finished */
-            Environment<DIM>::get().Manager().waitForAllTasks(); //
+            eventSystem::waitForAllTasks();
 
             bool result = comm.slide();
 

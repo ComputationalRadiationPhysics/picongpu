@@ -74,8 +74,7 @@ namespace gol
              *  affects: cudaMalloc,cudaKernelLaunch,                             *
              * -Then the CUDA Stream Controller is activated and one stream is    *
              *  added. It's basically a List of cudaStreams. Used to parallelize  *
-             *  Memory transfers and calculations.                                *
-             * -Initialize TransactionManager                                     */
+             *  Memory transfers and calculations.                                */
             Environment<DIM2>::get().initDevices(devices, periodic);
 
             /* Now we have allocated every node to a grid position in the GC. We  *
@@ -202,7 +201,7 @@ namespace gol
     private:
         void oneStep(uint32_t currentStep, Buffer* read, Buffer* write)
         {
-            auto splitEvent = __getTransactionEvent();
+            auto splitEvent = eventSystem::getTransactionEvent();
             /* GridBuffer 'read' will use 'splitEvent' to schedule transaction    *
              * tasks from the Borders of the neighboring areas to the Guards of   *
              * this local Area added by 'addExchange'. All transactions in        *
@@ -213,7 +212,7 @@ namespace gol
             auto send = read->asyncCommunication(splitEvent);
             evo.run<CORE>(read->getDeviceBuffer().getDataBox(), write->getDeviceBuffer().getDataBox());
             /* Join communication with worker tasks, Now all next tasks run sequential */
-            __setTransactionEvent(send);
+            eventSystem::setTransactionEvent(send);
             /* Calculate Borders */
             evo.run<BORDER>(read->getDeviceBuffer().getDataBox(), write->getDeviceBuffer().getDataBox());
             write->deviceToHost();

@@ -26,6 +26,7 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
@@ -100,7 +101,7 @@ namespace pmacc
             CUDA_CHECK(cuplaGetLastError());
 
             // avoid deadlock between not finished PMacc tasks and MPI_Barrier
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
 
             GridController<DIM>& gc = Environment<DIM>::get().GridController();
             /* can be spared for better scalings, but allows to spare the
@@ -121,7 +122,7 @@ namespace pmacc
             CUDA_CHECK(cuplaGetLastError());
 
             /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
-            __getTransactionEvent().waitForFinished();
+            eventSystem::getTransactionEvent().waitForFinished();
 
             /* \todo in an ideal world with MPI-3, this would be an
              * MPI_Ibarrier call and this function would return a MPI_Request
@@ -261,7 +262,7 @@ namespace pmacc
             }
 
             // simulatation end
-            Environment<>::get().Manager().waitForAllTasks();
+            eventSystem::waitForAllTasks();
 
             tSimCalculation.toggleEnd();
 
@@ -381,7 +382,7 @@ namespace pmacc
         if(currentStep != 0u && handleSignalAtStep == currentStep)
         {
             // Wait for MPI without blocking the event system.
-            Environment<>::get().Manager().waitFor(
+            Manager::getInstance().waitFor(
                 [&signalMPI = signalMPI]() -> bool
                 {
                     // wait until we know the largest time step in the simulation

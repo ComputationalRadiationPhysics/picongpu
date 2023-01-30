@@ -23,7 +23,7 @@
 #pragma once
 
 #include "pmacc/Environment.def"
-#include "pmacc/eventSystem/EventSystem.hpp"
+
 
 namespace pmacc
 {

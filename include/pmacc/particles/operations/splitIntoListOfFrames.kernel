@@ -311,7 +311,7 @@ namespace pmacc
                 counterBuffer.deviceToHost();
                 log(logLvl, "wait for last processed chunk: %1%") % T_SrcFrame::getName();
 
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
 
                 log(logLvl, "used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
 

@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
@@ -227,8 +228,8 @@ namespace pmacc
         EventTask event(task.getId());
 
         task.init();
-        Environment<>::get().Manager().addTask(&task);
-        Environment<>::get().TransactionManager().setTransactionEvent(event);
+        Manager::getInstance().addTask(&task);
+        eventSystem::setTransactionEvent(event);
 
         return event;
     }

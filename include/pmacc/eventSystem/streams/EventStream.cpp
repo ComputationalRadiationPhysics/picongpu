@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2022 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -19,12 +19,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "pmacc/eventSystem/streams/EventStream.hpp"
 
-#include "pmacc/eventSystem/Manager.hpp"
-#include "pmacc/eventSystem/events/EventNotify.hpp"
-#include "pmacc/eventSystem/events/EventTask.hpp"
-#include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
-#include "pmacc/eventSystem/transactions/Transaction.hpp"
-#include "pmacc/eventSystem/transactions/TransactionManager.hpp"
+namespace pmacc
+{
+    EventStream::EventStream()
+    {
+        CUDA_CHECK(cuplaStreamCreate(&stream));
+    }
+
+    EventStream::~EventStream()
+    {
+        // wait for all kernels in stream to finish
+        CUDA_CHECK_NO_EXCEPT(cuplaStreamSynchronize(stream));
+        CUDA_CHECK_NO_EXCEPT(cuplaStreamDestroy(stream));
+    }
+
+    cuplaStream_t EventStream::getCudaStream() const
+    {
+        return stream;
+    }
+
+    void EventStream::waitOn(const CudaEventHandle& ev)
+    {
+        if(this->stream != ev.getStream())
+        {
+            CUDA_CHECK(cuplaStreamWaitEvent(this->getCudaStream(), *ev, 0));
+        }
+    }
+} // namespace pmacc

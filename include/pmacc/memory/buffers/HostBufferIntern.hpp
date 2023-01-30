@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/assert.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
@@ -64,7 +63,7 @@ namespace pmacc
          */
         ~HostBufferIntern() override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
 
             if(pointer && ownPointer)
             {
@@ -77,13 +76,13 @@ namespace pmacc
          */
         TYPE* getBasePointer() override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             return pointer;
         }
 
         TYPE* getPointer() override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             return pointer;
         }
 
@@ -95,7 +94,7 @@ namespace pmacc
 
         void reset(bool preserveData = true) override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             this->setCurrentSize(this->getDataSpace().productOfComponents());
             if(!preserveData)
             {
@@ -121,7 +120,7 @@ namespace pmacc
 
         void setValue(const TYPE& value) override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             auto current_size = static_cast<int64_t>(this->getCurrentSize());
             auto memBox = getDataBox();
             using D1Box = DataBoxDim1Access<DataBoxType>;
@@ -135,7 +134,7 @@ namespace pmacc
 
         DataBoxType getDataBox() override
         {
-            __startOperation(ITask::TASK_HOST);
+            eventSystem::startOperation(ITask::TASK_HOST);
             return DataBoxType(PitchedBox<TYPE, DIM>(
                 pointer,
                 this->getPhysicalMemorySize(),

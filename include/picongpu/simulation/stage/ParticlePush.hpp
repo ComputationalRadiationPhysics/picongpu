@@ -44,11 +44,11 @@ namespace picongpu
                  */
                 void operator()(uint32_t const step, pmacc::EventTask& commEvent) const
                 {
-                    pmacc::EventTask initEvent = __getTransactionEvent();
+                    pmacc::EventTask initEvent = eventSystem::getTransactionEvent();
                     pmacc::EventTask updateEvent;
                     particles::PushAllSpecies pushAllSpecies;
                     pushAllSpecies(step, initEvent, updateEvent, commEvent);
-                    __setTransactionEvent(updateEvent);
+                    eventSystem::setTransactionEvent(updateEvent);
                 }
             };
 

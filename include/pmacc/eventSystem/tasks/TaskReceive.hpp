@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
 
@@ -48,7 +47,7 @@ namespace pmacc
                 /* Wait to be sure that all device work is finished before MPI is triggered.
                  * MPI will not wait for work in our device streams
                  */
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
             }
             Environment<>::get().Factory().createTaskReceiveMPI(exchange, this);
         }
@@ -61,7 +60,7 @@ namespace pmacc
                 break;
             case RunCopy:
                 state = WaitForFinish;
-                __startTransaction();
+                eventSystem::startTransaction();
 
                 /* If MPI direct is enabled
                  *   - we do not have any host representation of an exchange
@@ -95,7 +94,7 @@ namespace pmacc
                         /* We can not be notified from setCurrentSize() therefore
                          * we need to wait that the current event is finished.
                          */
-                        setSizeEvent = __getTransactionEvent();
+                        setSizeEvent = eventSystem::getTransactionEvent();
                         state = WaitForSetSize;
                     }
                     else
@@ -108,11 +107,11 @@ namespace pmacc
                     }
                 }
 
-                __endTransaction();
+                eventSystem::endTransaction();
                 break;
             case WaitForSetSize:
                 // this code is only passed if gpu direct is enabled
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(setSizeEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(setSizeEvent.getTaskId()))
                 {
                     state = Finish;
                     return true;

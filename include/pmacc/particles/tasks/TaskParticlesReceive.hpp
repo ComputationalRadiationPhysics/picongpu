@@ -23,7 +23,8 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/tasks/MPITask.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
 namespace pmacc
@@ -50,14 +51,14 @@ namespace pmacc
         void init() override
         {
             state = Init;
-            EventTask serialEvent = __getTransactionEvent();
+            EventTask serialEvent = eventSystem::getTransactionEvent();
             HandleExchanged handleExchanged;
             HandleNotExchanged handleNotExchanged;
 
             for(int i = 1; i < Exchanges; ++i)
             {
                 /* Start new transaction */
-                __startTransaction(serialEvent);
+                eventSystem::startTransaction(serialEvent);
 
                 /* Handle particles */
                 if(parBase.getParticlesBuffer().hasReceiveExchange(i))
@@ -66,7 +67,7 @@ namespace pmacc
                     handleNotExchanged.handleIncoming(parBase, i);
 
                 /* End transaction */
-                tmpEvent += __endTransaction();
+                tmpEvent += eventSystem::endTransaction();
             }
 
             state = WaitForReceived;
@@ -79,20 +80,20 @@ namespace pmacc
             case Init:
                 break;
             case WaitForReceived:
-                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                if(nullptr == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     state = CallFillGaps;
                 break;
             case CallFillGaps:
                 state = WaitForFillGaps;
-                __startTransaction();
+                eventSystem::startTransaction();
                 parBase.fillBorderGaps();
-                tmpEvent = __endTransaction();
+                tmpEvent = eventSystem::endTransaction();
                 state = Finish;
                 break;
             case WaitForFillGaps:
                 break;
             case Finish:
-                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+                return nullptr == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
             default:
                 return false;
             }

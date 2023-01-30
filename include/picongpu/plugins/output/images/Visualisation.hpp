@@ -842,7 +842,7 @@ namespace picongpu
             header->update(*cellDescription, window, m_transpose, currentStep);
 
 
-            __getTransactionEvent().waitForFinished(); // wait for copy picture
+            eventSystem::getTransactionEvent().waitForFinished(); // wait for copy picture
 
             DataSpace<DIM2> size = img->getGridLayout().getDataSpace();
 

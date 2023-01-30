@@ -48,7 +48,7 @@ namespace pmacc
     {
         if(operation == ITask::TASK_DEVICE)
         {
-            Manager& manager = Environment<>::get().Manager();
+            Manager& manager = Manager::getInstance();
 
             ITask* baseTask = manager.getITaskIfNotFinished(this->baseEvent.getTaskId());
             if(baseTask != nullptr)
@@ -65,7 +65,7 @@ namespace pmacc
 
     EventStream* Transaction::getEventStream(ITask::TaskType)
     {
-        Manager& manager = Environment<>::get().Manager();
+        Manager& manager = Manager::getInstance();
         ITask* baseTask = manager.getITaskIfNotFinished(this->baseEvent.getTaskId());
 
         if(baseTask != nullptr)

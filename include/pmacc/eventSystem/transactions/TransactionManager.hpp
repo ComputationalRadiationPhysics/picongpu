@@ -21,19 +21,14 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/events/EventTask.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/transactions/Transaction.hpp"
 
 #include <stack>
 
 namespace pmacc
 {
-    // forward declaration
-    template<unsigned DIM>
-    class Environment;
-
-    class EventStream;
-
     /**
      * Manages the task/event synchronization system using task 'transactions'.
      * Transactions are grouped on a stack.
@@ -85,14 +80,16 @@ namespace pmacc
 
         EventStream* getEventStream(ITask::TaskType op);
 
+        static TransactionManager& getInstance()
+        {
+            static TransactionManager instance;
+            return instance;
+        }
+
+        TransactionManager(const TransactionManager& cc) = delete;
+
     private:
-        friend struct detail::Environment;
-
         TransactionManager();
-
-        TransactionManager(const TransactionManager& cc);
-
-        static TransactionManager& getInstance();
 
         std::stack<Transaction> transactions;
     };

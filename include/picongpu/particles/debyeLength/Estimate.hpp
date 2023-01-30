@@ -70,7 +70,7 @@ namespace picongpu
                 hostDeviceBuffer.deviceToHost();
 
                 // Copy is asynchronous, need to wait for it to finish
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 return hostBox(0);
             }
 

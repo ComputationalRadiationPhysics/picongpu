@@ -435,7 +435,7 @@ namespace picongpu
                 void copyRadiationDeviceToHost()
                 {
                     radiation->deviceToHost();
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
 
                     auto dbox = radiation->getHostBuffer().getDataBox();
                     int numAmp = elements_amplitude();

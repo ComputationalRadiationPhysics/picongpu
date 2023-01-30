@@ -29,7 +29,6 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/SuperCellDescription.hpp>
-#include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
@@ -220,13 +219,13 @@ namespace picongpu
     EventTask FieldTmp::asyncCommunication(EventTask serialEvent)
     {
         EventTask ret;
-        __startTransaction(serialEvent + m_gatherEv + m_scatterEv);
+        eventSystem::startTransaction(serialEvent + m_gatherEv + m_scatterEv);
         FieldFactory::getInstance().createTaskFieldReceiveAndInsert(*this);
-        ret = __endTransaction();
+        ret = eventSystem::endTransaction();
 
-        __startTransaction(serialEvent + m_gatherEv + m_scatterEv);
+        eventSystem::startTransaction(serialEvent + m_gatherEv + m_scatterEv);
         FieldFactory::getInstance().createTaskFieldSend(*this);
-        ret += __endTransaction();
+        ret += eventSystem::endTransaction();
         m_scatterEv = ret;
         return ret;
     }

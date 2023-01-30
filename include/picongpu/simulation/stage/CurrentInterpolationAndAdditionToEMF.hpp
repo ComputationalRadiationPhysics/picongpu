@@ -107,7 +107,7 @@ namespace picongpu
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
-                        auto eRecvCurrent = fieldJ.asyncCommunication(__getTransactionEvent());
+                        auto eRecvCurrent = fieldJ.asyncCommunication(eventSystem::getTransactionEvent());
                         auto& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
                         auto const currentRecvLower = interpolation.getLowerMargin();
                         auto const currentRecvUpper = interpolation.getUpperMargin();
@@ -119,7 +119,7 @@ namespace picongpu
                            && currentRecvUpper == DataSpace<simDim>::create(0))
                         {
                             fieldSolver.addCurrent<type::CORE>();
-                            __setTransactionEvent(eRecvCurrent);
+                            eventSystem::setTransactionEvent(eRecvCurrent);
                             fieldSolver.addCurrent<type::BORDER>();
                         }
                         else
@@ -131,7 +131,7 @@ namespace picongpu
                              * to BORDER (send) and then updates the GUARD (receive)
                              * \todo split the last `receive` part in a separate method to
                              *       allow already a computation of CORE */
-                            __setTransactionEvent(eRecvCurrent);
+                            eventSystem::setTransactionEvent(eRecvCurrent);
                             fieldSolver.addCurrent<type::CORE + type::BORDER>();
                         }
                     }

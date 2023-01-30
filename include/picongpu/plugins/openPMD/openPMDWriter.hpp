@@ -140,7 +140,7 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD: open file: %1%") % fullName;
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 openPMDSeries = std::make_unique<::openPMD::Series>(
                     fullName,
                     at,
@@ -467,7 +467,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             if(!jsonMatcher)
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 jsonMatcher = AbstractJsonMatcher::construct(jsonString, communicator);
             }
 
@@ -647,7 +647,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             1u);
                     // wait for unfinished asynchronous communication
                     if(event.has_value())
-                        __setTransactionEvent(*event);
+                        eventSystem::setTransactionEvent(*event);
                     /* copy data to host that we can write same to disk*/
                     fieldTmp->getGridBuffer().deviceToHost();
                     /*## finish update field ##*/
@@ -848,7 +848,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking
                 // collectives
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 mThreadParams.communicator = MPI_COMM_NULL;
                 MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.communicator)));
 
@@ -923,7 +923,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {
                     // avoid deadlock between not finished pmacc tasks and mpi
                     // blocking collectives
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&(mThreadParams.communicator)));
                 }
             }
@@ -935,7 +935,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // class Checkpoint
                 assert(m_help->selfRegister);
 
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
 
                 mThreadParams.initFromConfig(*m_help, m_id, outputDirectory);
 
@@ -978,7 +978,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // class Checkpoint
                 assert(!m_help->selfRegister);
 
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 /* if file name is relative, prepend with common directory */
 
                 mThreadParams.isCheckpoint = true;
@@ -1135,7 +1135,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
 
                 // Finalize the openPMD Series by calling its destructor
                 mThreadParams.closeSeries();
@@ -1358,7 +1358,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     auto const rank = uint64_t{gridController.getScalarPosition()};
                     std::vector<uint64_t> localSizes(2u * numRanks, 0u);
                     uint64_t localSizeInfo[2] = {recordLocalSizeDims[0], rank};
-                    __getTransactionEvent().waitForFinished();
+                    eventSystem::getTransactionEvent().waitForFinished();
                     MPI_CHECK(MPI_Allgather(
                         localSizeInfo,
                         2,
@@ -1611,7 +1611,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
-                __getTransactionEvent().waitForFinished();
+                eventSystem::getTransactionEvent().waitForFinished();
                 mThreadParams.openPMDSeries->writeIterations()[mThreadParams.currentStep].close();
 
                 return;
