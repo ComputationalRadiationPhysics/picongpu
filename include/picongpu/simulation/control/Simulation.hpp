@@ -116,11 +116,7 @@ namespace picongpu
         void pluginRegisterHelp(po::options_description& desc) override
         {
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
-            currentInterpolationAndAdditionToEMF.registerHelp(desc);
-            fieldAbsorber.registerHelp(desc);
-            fieldBackground.registerHelp(desc);
-            particleBoundaries.registerHelp(desc);
-            runtimeDensityFile.registerHelp(desc);
+
             // clang-format off
             desc.add_options()(
                 "versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(),
@@ -153,6 +149,12 @@ namespace picongpu
                 ("numRanksPerDevice,r", po::value<uint32_t>(&numRanksPerDevice)->default_value(1u),
                  "set the number of MPI ranks using a single device together");
             // clang-format on
+
+            currentInterpolationAndAdditionToEMF.registerHelp(desc);
+            fieldAbsorber.registerHelp(desc);
+            fieldBackground.registerHelp(desc);
+            particleBoundaries.registerHelp(desc);
+            runtimeDensityFile.registerHelp(desc);
         }
 
         std::string pluginGetName() const override
@@ -166,26 +168,28 @@ namespace picongpu
             while(periodic.size() < 3)
                 periodic.push_back(0);
 
+
+            PMACC_VERIFY_MSG(
+                devices.size() >= 2 && devices.size() <= 3,
+                "Invalid number of devices.\nuse [-d dx=1 dy=1 dz=1]");
+
             // check on correct number of devices. fill with default value 1 for missing dimensions
-            if(devices.size() > 3)
-            {
-                std::cerr << "Invalid number of devices.\nuse [-d dx=1 dy=1 dz=1]" << std::endl;
-            }
-            else
-                while(devices.size() < 3)
-                    devices.push_back(1);
+            while(devices.size() < 3)
+                devices.push_back(1);
+
             // check for request of > 1 device in z for a 2d simulation, this is probably a user's mistake
             if((simDim == 2) && (devices[2] > 1))
                 std::cerr
                     << "Warning: " << devices[2] << " devices requested for z in a 2d simulation, this parameter "
                     << "will be reset to 1. Number of MPI ranks must be equal to the number of devices in x * y\n";
 
+
+            PMACC_VERIFY_MSG(
+                gridSize.size() >= 2 && gridSize.size() <= 3,
+                "Invalid or missing grid size.\nuse -g width height [depth=1]");
+
             // check on correct grid size. fill with default grid size value 1 for missing 3. dimension
-            if(gridSize.size() < 2 || gridSize.size() > 3)
-            {
-                std::cerr << "Invalid or missing grid size.\nuse -g width height [depth=1]" << std::endl;
-            }
-            else if(gridSize.size() == 2)
+            if(gridSize.size() == 2)
                 gridSize.push_back(1);
 
             if(slidingWindow && devices[1] == 1)
@@ -217,6 +221,10 @@ namespace picongpu
                     void(getSoftwareVersions(std::cout));
                 }
             }
+
+            PMACC_VERIFY_MSG(
+                gridDistribution.size() <= 3,
+                "Too many grid distribution directions given. A maximum of three directions are supported.");
 
             // calculate the number of local grid cells and
             // the local cell offset to the global box
