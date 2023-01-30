@@ -60,11 +60,23 @@ namespace picongpu
                          */
                         static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION after
+                         * TIME_DELAY_SI
                          *
                          *  unit: none
                          */
                         static constexpr float_64 PULSE_INIT = 20.0;
+
+                        /** Time delay
+                         * For e.g. probe pulses, that enter the simulation volume later in time.
+                         * The peak of the laser pulse intensity from the Gauss envelope enters the simulation at
+                         * TIME_DELAY_SI + PULSE_INIT * PULSE_LENGTH_SI / 2
+                         *
+                         * unit: time
+                         *
+                         * @attention TIME_DELAY_SI is optional, default value is 0
+                         */
+                        static constexpr float_64 TIME_DELAY_SI = 0.0;
 
                         /** Laguerre mode parameters
                          *
