@@ -110,14 +110,13 @@ namespace picongpu
                         // update B by half timeStep, so step for E_inc = currentStep
                         incidentFieldSolver.updateBHalf(currentStep);
                         EventTask eRfieldB = fieldB->asyncCommunication(eventSystem::getTransactionEvent());
-
-                        updateE<CORE>(currentStep);
                         /* Incident field solver update does not use exchanged B, so does not have to wait for it.
                          * Update E by timeStep, to time = currentStep * DELTA_T + timeStep.
                          * It uses values of B_inc at time = currentStep * DELTA_T + 0.5 * timeStep.
                          * In units of DELTA_T that is equal to currentStep + 0.5 * timeStep / DELTA_T
                          */
                         incidentFieldSolver.updateE(currentStep + 0.5_X * timeStep / DELTA_T);
+                        updateE<CORE>(currentStep);
                         eventSystem::setTransactionEvent(eRfieldB);
                         updateE<BORDER>(currentStep);
                     }
