@@ -778,26 +778,98 @@ namespace picongpu
                     openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
                     /* end required openPMD global attributes */
 
-                    // begin: write amplitude data
-                    ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
-
-                    mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
-                    mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
-                    mesh_amp.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
-                    mesh_amp.setGridGlobalOffset(std::vector<double>{0.0, 0.0, 0.0});
-                    mesh_amp.setGridUnitSI(1.0);
-                    mesh_amp.setAxisLabels(
-                        std::vector<std::string>{"detector direction index", "detector frequency index", "None"});
-                    mesh_amp.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
-                        {::openPMD::UnitDimension::L, 2.0},
-                        {::openPMD::UnitDimension::M, 1.0},
-                        {::openPMD::UnitDimension::T, -1.0}});
-
-                    /* get the radiation amplitude unit */
-                    Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-                    const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
-
+                    // begin: write per-rank amplitude data
                     {
+                        ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes["amplitude_distributed"];
+
+                        mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                        mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                        mesh_amp.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
+                        mesh_amp.setGridGlobalOffset(std::vector<double>{0.0, 0.0, 0.0});
+                        mesh_amp.setGridUnitSI(1.0);
+                        mesh_amp.setAxisLabels(
+                            std::vector<std::string>{"MPI", "detector direction index", "detector frequency index"});
+                        mesh_amp.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                            {::openPMD::UnitDimension::L, 2.0},
+                            {::openPMD::UnitDimension::M, 1.0},
+                            {::openPMD::UnitDimension::T, -1.0}});
+
+                        /* get the radiation amplitude unit */
+                        Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+                        const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
+
+                        // buffer for data re-arangement
+                        const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
+                        std::vector<float_64> fallbackBuffer;
+
+                        // reshape abstract MeshRecordComponent
+                        ::openPMD::Datatype datatype_amp = ::openPMD::determineDatatype<float_64>();
+                        auto communicator = Environment<simDim>::get().GridController().getCommunicator();
+                        ::openPMD::Extent total_extent_amp
+                            = {size_t(communicator.getSize()), parameters::N_observer, radiation_frequencies::N_omega};
+                        ::openPMD::Offset local_offset_amp = {size_t(communicator.getRank()), 0, 0};
+                        ::openPMD::Extent local_extent_amp
+                            = {1, parameters::N_observer, radiation_frequencies::N_omega};
+
+                        auto srcBuffer = radiation->getHostBuffer().getBasePointer();
+
+                        for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents; ++ampIndex)
+                        {
+                            std::string dir = dataLabels(ampIndex);
+                            mesh_amp[dir].setUnitSI(factor);
+                            mesh_amp[dir].setPosition(std::vector<double>{0.0, 0.0, 0.0});
+                            ::openPMD::Dataset dataset_amp = ::openPMD::Dataset(datatype_amp, total_extent_amp);
+                            mesh_amp[dir].resetDataset(dataset_amp);
+
+                            // ask openPMD to create a buffer for us
+                            // in some backends (ADIOS2), this allows avoiding memcopies
+                            auto span
+                                = ::picongpu::openPMD::storeChunkSpan<double>(
+                                      mesh_amp[dir],
+                                      local_offset_amp,
+                                      local_extent_amp,
+                                      [&fallbackBuffer](size_t numElements)
+                                      {
+                                          // if there is no special backend support for creating buffers,
+                                          // use the fallback buffer
+                                          fallbackBuffer.resize(numElements);
+                                          return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {}};
+                                      })
+                                      .currentBuffer();
+
+                            // select data
+                            for(uint32_t copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+                            {
+                                span[copyIndex] = reinterpret_cast<picongpu::float_64*>(
+                                    srcBuffer)[ampIndex + Amplitude::numComponents * copyIndex];
+                            }
+                            // flush data now
+                            // this allows us to reuse the fallbackBuffer in the next iteration
+                            openPMDdataFile.flush();
+                        }
+                    }
+                    // end: write per-rank amplitude data
+
+                    // begin: write amplitude data
+                    {
+                        ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
+
+                        mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                        mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                        mesh_amp.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
+                        mesh_amp.setGridGlobalOffset(std::vector<double>{0.0, 0.0, 0.0});
+                        mesh_amp.setGridUnitSI(1.0);
+                        mesh_amp.setAxisLabels(
+                            std::vector<std::string>{"detector direction index", "detector frequency index", "None"});
+                        mesh_amp.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                            {::openPMD::UnitDimension::L, 2.0},
+                            {::openPMD::UnitDimension::M, 1.0},
+                            {::openPMD::UnitDimension::T, -1.0}});
+
+                        /* get the radiation amplitude unit */
+                        Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+                        const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
+
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
                         std::vector<float_64> fallbackBuffer;
