@@ -44,6 +44,7 @@
 #include <pmacc/traits/HasIdentifier.hpp>
 
 #include <algorithm> // std::any
+#include <complex>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -800,10 +801,10 @@ namespace picongpu
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
-                        std::vector<float_64> fallbackBuffer;
+                        std::vector<std::complex<float_64>> fallbackBuffer;
 
                         // reshape abstract MeshRecordComponent
-                        ::openPMD::Datatype datatype_amp = ::openPMD::determineDatatype<float_64>();
+                        ::openPMD::Datatype datatype_amp = ::openPMD::determineDatatype<std::complex<float_64>>();
                         auto communicator = Environment<simDim>::get().GridController().getCommunicator();
                         ::openPMD::Extent total_extent_amp
                             = {size_t(communicator.getSize()), parameters::N_observer, radiation_frequencies::N_omega};
@@ -813,9 +814,10 @@ namespace picongpu
 
                         auto srcBuffer = radiation->getHostBuffer().getBasePointer();
 
-                        for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents; ++ampIndex)
+                        for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents / 2; ++ampIndex)
                         {
-                            std::string dir = dataLabels(ampIndex);
+                            constexpr char const* labels[] = {"x", "y", "z"};
+                            std::string dir = labels[ampIndex];
                             mesh_amp[dir].setUnitSI(factor);
                             mesh_amp[dir].setPosition(std::vector<double>{0.0, 0.0, 0.0});
                             ::openPMD::Dataset dataset_amp = ::openPMD::Dataset(datatype_amp, total_extent_amp);
@@ -824,7 +826,7 @@ namespace picongpu
                             // ask openPMD to create a buffer for us
                             // in some backends (ADIOS2), this allows avoiding memcopies
                             auto span
-                                = ::picongpu::openPMD::storeChunkSpan<double>(
+                                = ::picongpu::openPMD::storeChunkSpan<std::complex<double>>(
                                       mesh_amp[dir],
                                       local_offset_amp,
                                       local_extent_amp,
@@ -833,15 +835,18 @@ namespace picongpu
                                           // if there is no special backend support for creating buffers,
                                           // use the fallback buffer
                                           fallbackBuffer.resize(numElements);
-                                          return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {}};
+                                          return std::shared_ptr<std::complex<float_64>>{fallbackBuffer.data(), [](auto const*) {}};
                                       })
                                       .currentBuffer();
 
-                            // select data
+                            // std::complex has guarantees on array-oriented access, so let's use this to make our
+                            // lives easer
+                            auto const* srcBuffer_reinterpreted
+                                = reinterpret_cast<std::complex<picongpu::float_64>*>(srcBuffer);
                             for(uint32_t copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
                             {
-                                span[copyIndex] = reinterpret_cast<picongpu::float_64*>(
-                                    srcBuffer)[ampIndex + Amplitude::numComponents * copyIndex];
+                                span[copyIndex]
+                                    = srcBuffer_reinterpreted[ampIndex + (Amplitude::numComponents / 2) * copyIndex];
                             }
                             // flush data now
                             // this allows us to reuse the fallbackBuffer in the next iteration
