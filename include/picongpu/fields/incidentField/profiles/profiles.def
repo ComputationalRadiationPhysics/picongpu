@@ -27,4 +27,5 @@
 #include "picongpu/fields/incidentField/profiles/PlaneWave.def"
 #include "picongpu/fields/incidentField/profiles/Polynom.def"
 #include "picongpu/fields/incidentField/profiles/PulseFrontTilt.def"
+#include "picongpu/fields/incidentField/profiles/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/Wavepacket.def"

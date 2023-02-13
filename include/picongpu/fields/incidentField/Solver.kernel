@@ -432,6 +432,8 @@ namespace picongpu
                      *
                      * The kernel must be called for all grid values that need an update.
                      *
+                     * The kernel is working on the index interval [beginGridIdx,endGridIdx)
+                     *
                      * @tparam T_Worker lockstep worker type
                      * @tparam T_UpdateFunctor update functor type
                      *
