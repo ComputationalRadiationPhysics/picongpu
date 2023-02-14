@@ -1,21 +1,38 @@
 {
     "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.laser.GaussianLaser",
+    "description": "Specification of a (super-)gaussian laser pulse, optionally with higher laguerre modes",
     "type": "object",
     "properties": {
         "wave_length_si": {
             "type": "number",
+            "description": "wavelength of laser [m]",
             "exclusiveMinimum": 0
         },
         "waist_si": {
             "type": "number",
+            "description": "Waist of the Gaussian pulse at focus [m]",
             "exclusiveMinimum": 0
         },
         "pulse_length_si": {
             "type": "number",
+            "description": "sigma of std. gauss for intensity (E^2) [s]",
             "exclusiveMinimum": 0
         },
         "focus_pos_si": {
-            "type": "number"
+            "description": "position of focus in total coordinate system, [m]",
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+                "type": "object",
+                "required": ["component"],
+                "unevaluatedProperties": false,
+                "properties": {
+                    "component": {
+                        "type": "number"
+                    }
+                }
+            }
         },
         "phase": {
             "type": "number",
@@ -27,16 +44,45 @@
             "exclusiveMinimum": 0
         },
         "pulse_init": {
+            "description": " The laser pulse will be initialized pulse_init times of the pulse_length_si",
             "type": "number",
             "exclusiveMinimum": 0
         },
-        "init_plane_y": {
-            "type": "integer",
-            "minimum": 0
+        "propagation_direction": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+                "type": "object",
+                "required": ["component"],
+                "unevaluatedProperties": false,
+                "properties": {
+                    "component": {
+                        "type": "number"
+                    }
+                }
+            }
         },
         "polarization_type": {
+            "description": "type of polarization, not direction!",
             "type": "string",
-            "pattern": "^(LINEAR_X|LINEAR_Z|CIRCULAR)$"
+            "pattern": "^(Linear|Circular)$"
+        },
+        "polarization_direction":{
+            "description": "Unit E polarization direction",
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+                "type": "object",
+                "required": ["component"],
+                "unevaluatedProperties": false,
+                "properties": {
+                    "component": {
+                        "type": "number"
+                    }
+                }
+            }
         },
         "laguerre_modes": {
             "type": "array",
@@ -63,12 +109,38 @@
                     "single_laguerre_phase": {
                         "type": "number"
                     }
-                }   
+                }
             }
         },
         "modenumber": {
             "type": "integer",
             "minimum": 0
+        },
+        "huygens_surface_positions":{
+            "description": "position of the huygens surface relative from domain boundaries",
+            "type": "object",
+            "required": ["row_x", "row_y", "row_z"],
+            "unevaluatedProperties": false,
+            "properties": {
+                "row_x": {
+                    "$anchor": "row_hygens_surface",
+                    "type": "object",
+                    "required": ["negative", "positive"],
+                    "unevaluatedProperties": false,
+                    "properties": {
+                        "negative": {
+                            "type": "integer"
+                        },
+                        "positive": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "row_y":{ "$ref":"#row_hygens_surface"
+                },
+                "row_z":{ "$ref":"#row_hygens_surface"
+                }
+            }
         }
     },
     "required": [
@@ -79,11 +151,13 @@
         "phase",
         "E0_si",
         "pulse_init",
-        "init_plane_y",
+        "propagation_direction",
         "polarization_type",
+        "polarization_direction",
         "laguerre_modes",
         "laguerre_phases",
-        "modenumber"
+        "modenumber",
+        "huygens_surface_positions"
     ],
     "unevaluatedProperties": false
 }

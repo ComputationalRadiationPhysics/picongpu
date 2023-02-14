@@ -39,7 +39,7 @@ class TestDistribution(unittest.TestCase):
                                          initial_distribution=distribution)
         self.sim.add_species(species_hydrogen, random_layout)
         runner = Runner(self.sim)
-        runner.generate()
+        runner.generate(printDirToConsole=True)
         runner.build()
 
     def test_uniform(self):

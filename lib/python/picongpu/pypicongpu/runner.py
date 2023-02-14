@@ -355,10 +355,14 @@ class Runner():
                 "tbg -s bash -c etc/picongpu/N.cfg -t "
                 "etc/picongpu/bash/mpiexec.tpl".split(" ") + [self.run_dir])
 
-    def generate(self):
+    def generate(self, printDirToConsole = False):
         """
         generate the picongpu-compatible input files
         """
+
+        if printDirToConsole:
+            print(" [" + str(self.setup_dir) + "]")
+
         assert not path.isdir(self.setup_dir),\
             "setup directory must not exist before generation -- "\
             "did you call generate() already?"
