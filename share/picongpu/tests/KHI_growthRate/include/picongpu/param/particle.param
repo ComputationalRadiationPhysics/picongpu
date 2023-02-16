@@ -45,6 +45,15 @@ namespace picongpu
             };
             using Quiet25ppc = QuietImpl<QuietParam25ppc>;
 
+            struct RandomParameter25ppc
+            {
+                /** Count of particles per cell at initial state
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 25u;
+            };
+            using Random25ppc = RandomImpl<RandomParameter25ppc>;
+
         } // namespace startPosition
 
         /** a particle with a weighting below MIN_WEIGHTING will not
