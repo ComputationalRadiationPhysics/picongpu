@@ -115,7 +115,7 @@ namespace picongpu
                     auto particleCreatorCtx = lockstep::makeVar<T_ParticleCreator>(forEachParticle);
 
                     forEachParticle(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, auto& particleCreator)
                         {
                             // cell index within the superCell
                             DataSpace<simDim> const cellIdx
@@ -125,11 +125,12 @@ namespace picongpu
                             pmacc::math::Int<simDim> const localCellIndex = simDomainSupercellCellOffset + cellIdx;
 
                             // create a copy of the functor for each virtual worker
-                            particleCreatorCtx[idx] = particleCreator;
+                            particleCreator = particleCreator;
 
                             // init particle creator functor for each virtual worker
-                            particleCreatorCtx[idx].init(worker, supercellCellOffset, localCellIndex);
-                        });
+                            particleCreator.init(worker, supercellCellOffset, localCellIndex);
+                        },
+                        particleCreatorCtx);
 
                     /* Declare counter in shared memory that will later tell the current fill level or
                      * occupation of the newly created target frames.
@@ -167,15 +168,16 @@ namespace picongpu
                     while(sourceFrame.isValid())
                     {
                         forEachParticle(
-                            [&](lockstep::Idx const idx)
+                            [&](uint32_t const idx, auto& particleCreator, uint32_t& numNewParticles)
                             {
                                 auto const isParticle = static_cast<bool>(sourceFrame[idx][multiMask_]);
-                                numNewParticlesCtx[idx] = 0u;
+                                numNewParticles = 0u;
                                 if(isParticle)
                                     /* ask the particle creator functor how many new particles to create. */
-                                    numNewParticlesCtx[idx]
-                                        = particleCreatorCtx[idx].numNewParticles(worker, *sourceFrame, idx);
-                            });
+                                    numNewParticles = particleCreator.numNewParticles(worker, *sourceFrame, idx);
+                            },
+                            particleCreatorCtx,
+                            numNewParticlesCtx);
 
                         worker.sync();
 
@@ -212,14 +214,16 @@ namespace picongpu
                              * value as targetParId in the new frame
                              */
                             forEachParticle(
-                                [&](lockstep::Idx const idx)
+                                [&](uint32_t const idx, uint32_t const numNewParticles, int& targetParId)
                                 {
-                                    if(numNewParticlesCtx[idx] > 0u)
-                                        targetParIdCtx[idx] = kernel::atomicAllInc(
+                                    if(numNewParticles > 0u)
+                                        targetParId = kernel::atomicAllInc(
                                             worker,
                                             &newFrameFillLvl,
                                             ::alpaka::hierarchy::Threads{});
-                                });
+                                },
+                                numNewParticlesCtx,
+                                targetParIdCtx);
 
                             worker.sync();
 
@@ -254,27 +258,33 @@ namespace picongpu
                              * - internal particle creation counter is decremented by 1
                              */
                             forEachParticle(
-                                [&](lockstep::Idx const idx)
+                                [&](uint32_t const idx,
+                                    int& targetParId,
+                                    uint32_t& numNewParticles,
+                                    auto& particleCreator)
                                 {
                                     uint32_t targetFrameIdx = 0;
-                                    if(targetParIdCtx[idx] >= maxParticlesInFrame)
+                                    if(targetParId >= maxParticlesInFrame)
                                     {
                                         targetFrameIdx = 1;
-                                        targetParIdCtx[idx] -= maxParticlesInFrame;
+                                        targetParId -= maxParticlesInFrame;
                                     }
-                                    if(0 <= targetParIdCtx[idx])
+                                    if(0 <= targetParId)
                                     {
                                         // each virtual worker makes the attributes of its source particle accessible
                                         auto sourceParticle = sourceFrame[idx];
                                         // each virtual worker initializes a target particle if one should be created
-                                        auto targetParticle = targetFrames[targetFrameIdx][targetParIdCtx[idx]];
+                                        auto targetParticle = targetFrames[targetFrameIdx][targetParId];
 
                                         // create a target particle in the new target particle frame:
-                                        particleCreatorCtx[idx](worker, sourceParticle, targetParticle);
+                                        particleCreator(worker, sourceParticle, targetParticle);
 
-                                        numNewParticlesCtx[idx] -= 1;
+                                        numNewParticles -= 1;
                                     }
-                                });
+                                },
+                                targetParIdCtx,
+                                numNewParticlesCtx,
+                                particleCreatorCtx);
 
                             worker.sync();
 

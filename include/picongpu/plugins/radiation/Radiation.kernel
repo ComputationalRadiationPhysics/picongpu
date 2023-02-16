@@ -195,12 +195,12 @@ namespace picongpu
                                 auto forEachParticleInFrame = forEachFrameInSupercell.lockstepForEach();
 
                                 forEachParticleInFrame(
-                                    [&](lockstep::Idx const linearIdx)
+                                    [&](uint32_t const linearIdx, auto& frame)
                                     {
                                         /* modulo is required if the kernel is started with more workers than particle
                                          * in a supercell
                                          */
-                                        auto par = frameCtx[linearIdx][linearIdx % frameSize];
+                                        auto par = frame[linearIdx % frameSize];
                                         /* Not all particle slots in a frame representing an exiting particle.
                                          * Process only real particles and ignore gaps in a frame.
                                          */
@@ -341,7 +341,8 @@ namespace picongpu
 
                                             } // END: if a particle needs to be considered
                                         } // END: check if particle is accelerated
-                                    });
+                                    },
+                                    frameCtx);
 
                                 worker.sync(); // wait till every worker has loaded its particle data
 

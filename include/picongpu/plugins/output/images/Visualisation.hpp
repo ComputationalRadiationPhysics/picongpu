@@ -451,7 +451,7 @@ namespace picongpu
             worker.sync();
 
             forEachCell(
-                [&](lockstep::Idx const idx)
+                [&](uint32_t const idx, bool& isImageThread)
                 {
                     // cell index within the superCell
                     DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
@@ -465,9 +465,10 @@ namespace picongpu
                     {
                         // atomic avoids: WAW Error in cuda-memcheck racecheck
                         kernel::atomicAllExch(worker, &superCellParticipate, 1, ::alpaka::hierarchy::Threads{});
-                        isImageThreadCtx[idx] = true;
+                        isImageThread = true;
                     }
-                });
+                },
+                isImageThreadCtx);
 
             worker.sync();
 
@@ -487,18 +488,19 @@ namespace picongpu
                 SuperCellSize::toRT()[transpose.x()] * sizeof(float_X)));
 
             forEachCell(
-                [&](lockstep::Idx const idx)
+                [&](uint32_t const idx, bool const isImageThread)
                 {
                     /* cell index within the superCell */
                     DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
 
                     DataSpace<DIM2> const localCell(cellIdx[transpose.x()], cellIdx[transpose.y()]);
 
-                    if(isImageThreadCtx[idx])
+                    if(isImageThread)
                     {
                         counter(localCell) = float_X(0.0);
                     }
-                });
+                },
+                isImageThreadCtx);
 
             // wait that shared memory  is set to zero
             worker.sync();
@@ -538,9 +540,9 @@ namespace picongpu
             worker.sync();
 
             forEachCell(
-                [&](lockstep::Idx const idx)
+                [&](uint32_t const idx, bool const isImageThread)
                 {
-                    if(isImageThreadCtx[idx])
+                    if(isImageThread)
                     {
                         // cell index within the superCell
                         DataSpace<simDim> const cellIdx
@@ -576,7 +578,8 @@ namespace picongpu
                                 image(imageCell)[d] = float_X(1.0);
                         }
                     }
-                });
+                },
+                isImageThreadCtx);
         }
     };
 

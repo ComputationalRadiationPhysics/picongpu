@@ -132,7 +132,7 @@ namespace picongpu
 
             // initialize the position functor for each cell in the supercell
             auto positionFunctorCtx = forEachCellInSuperCell(
-                [&](lockstep::Idx const idx)
+                [&](uint32_t const idx, uint32_t& numParsPerCell)
                 {
                     /* cell index within the superCell */
                     DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
@@ -151,10 +151,10 @@ namespace picongpu
                     auto posFunctor = positionFunctor(forEachCellInSuperCell.getWorker(), localSuperCellOffset);
 
                     if(realParticlesPerCell > 0.0_X)
-                        numParsPerCellCtx[idx]
+                        numParsPerCell
                             = posFunctor.template numberOfMacroParticles<ParticleType>(realParticlesPerCell);
 
-                    if(numParsPerCellCtx[idx] > 0)
+                    if(numParsPerCell > 0)
                         kernel::atomicAllExch(
                             worker,
                             &finished,
@@ -162,7 +162,8 @@ namespace picongpu
                             ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
 
                     return posFunctor;
-                });
+                },
+                numParsPerCellCtx);
 
             worker.sync();
 
@@ -187,9 +188,9 @@ namespace picongpu
                 worker.sync();
 
                 forEachParticle(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx, uint32_t& numParsPerCell, auto& positionFunctor)
                     {
-                        if(numParsPerCellCtx[idx] > 0u)
+                        if(numParsPerCell > 0u)
                         {
                             auto particle = frame[idx];
 
@@ -210,17 +211,19 @@ namespace picongpu
                             particle[multiMask_] = 1;
                             particle[localCellIdx_] = idx;
                             // initialize position and weighting
-                            positionFunctorCtx[idx](worker, particle);
+                            positionFunctor(worker, particle);
 
-                            numParsPerCellCtx[idx]--;
-                            if(numParsPerCellCtx[idx] > 0)
+                            numParsPerCell--;
+                            if(numParsPerCell > 0)
                                 kernel::atomicAllExch(
                                     worker,
                                     &finished,
                                     0,
                                     ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
                         }
-                    });
+                    },
+                    numParsPerCellCtx,
+                    positionFunctorCtx);
 
                 worker.sync();
 

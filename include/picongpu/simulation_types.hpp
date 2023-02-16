@@ -47,7 +47,13 @@ namespace picongpu
     }
 
     namespace math = cupla::device::math;
-    using namespace pmacc::algorithms::precisionCast;
+    /** g++ 9 creates compile issues when pulling definitions into picongpu namepsace via 'using namespace
+     * pmacc::algorithms::precisionCast;' therefore we pull the class and function separate
+     */
+    using pmacc::algorithms::precisionCast::precisionCast;
+    template<typename CastToType, typename Type>
+    using TypeCast = pmacc::algorithms::precisionCast::TypeCast<CastToType, Type>;
+
     using namespace pmacc::algorithms::promoteType;
     using namespace pmacc::traits;
     using namespace picongpu::traits;

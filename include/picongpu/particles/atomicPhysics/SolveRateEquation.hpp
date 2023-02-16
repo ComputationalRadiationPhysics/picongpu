@@ -783,7 +783,7 @@ namespace picongpu
                         onlyMaster([&]() { allIonsProcessed = false; });
 
                         // create one instance of timeRemaining for each virtual worker and init with pic time step
-                        auto timeRemaining_SI
+                        auto timeRemainingCtx_SI
                             = lockstep::makeVar<float_X>(forEachParticleSlotInFrame, timePerAtomicPhyiscsSubStep);
 
                         while(!allIonsProcessed)
@@ -791,9 +791,9 @@ namespace picongpu
                             onlyMaster([&]() { allIonsProcessed = true; });
 
                             forEachParticleSlotInFrame(
-                                [&](lockstep::Idx const idx)
+                                [&](uint32_t const idx, float_X& timeRemaining_SI)
                                 {
-                                    if((idx < particlesInSuperCell) && (timeRemaining_SI[idx] > 0._X))
+                                    if((idx < particlesInSuperCell) && (timeRemaining_SI > 0._X))
                                     {
                                         auto particle = frame[idx];
 
@@ -802,16 +802,17 @@ namespace picongpu
                                             generatorInt,
                                             generatorFloat,
                                             particle,
-                                            timeRemaining_SI[idx],
+                                            timeRemaining_SI,
                                             atomicDataBox,
                                             histogram);
 
-                                        if(timeRemaining_SI[idx] > 0._X)
+                                        if(timeRemaining_SI > 0._X)
                                         {
                                             allIonsProcessed = false;
                                         }
                                     }
-                                });
+                                },
+                                timeRemainingCtx_SI);
 
                             worker.sync();
 
