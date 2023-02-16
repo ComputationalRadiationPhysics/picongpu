@@ -40,15 +40,14 @@ namespace picongpu
          * the functors are called in order (from first to last functor)
          */
         using InitPipeline = bmpl::vector<
-            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet25ppc, PIC_Electrons>,
-            Derive<PIC_Electrons, PIC_Ions>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Random25ppc, PIC_Electrons>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Random25ppc, PIC_Ions>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::LowerQuarterYPosition>,
             Manipulate<manipulators::AssignXDriftNegative, PIC_Ions, filter::MiddleHalfYPosition>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::UpperQuarterYPosition>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::LowerQuarterYPosition>,
             Manipulate<manipulators::AssignXDriftNegative, PIC_Electrons, filter::MiddleHalfYPosition>,
-            Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::UpperQuarterYPosition>,
-            Manipulate<manipulators::AddTemperature, PIC_Electrons>>;
+            Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::UpperQuarterYPosition>>;
 
     } // namespace particles
 } // namespace picongpu

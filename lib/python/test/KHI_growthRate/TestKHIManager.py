@@ -377,7 +377,7 @@ class TestKHIManager:
 
         # calculate the growthrate
         keys = list(self.__khiData.getGrowthRate())
-        cut = 0  # Auxiliary variable to slice the data
+        cut = 28  # Auxiliary variable to slice the data
 
         for key in keys:
 
@@ -391,7 +391,7 @@ class TestKHIManager:
                     cut = argrelextrema(value, np.less)[0][0]
 
                 self.__khiData.setGrowthRateByKey(key, value)
-
+        print(cut)
         # cut the field data and the growth rate
         if cut != 0:
 

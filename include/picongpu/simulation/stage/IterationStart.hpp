@@ -44,8 +44,11 @@ namespace picongpu
                  */
                 void operator()(uint32_t const step) const
                 {
-                    meta::ForEach<IterationStartPipeline, pmacc::functor::Call<bmpl::_1>> callFunctors;
-                    callFunctors(step);
+                    if(step == 500)
+                    {
+                        meta::ForEach<IterationStartPipeline, pmacc::functor::Call<bmpl::_1>> callFunctors;
+                        callFunctors(step);
+                    }
                 }
             };
 
