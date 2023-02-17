@@ -264,15 +264,8 @@ namespace picongpu
      * @tparam T_Pusher pusher type
      * @tparam T_isComposite if the pusher is composite
      */
-    template<typename T_Pusher, bool T_isComposite = particles::pusher::IsComposite<T_Pusher>::value>
-    struct PushLauncher;
-
-    /** Launcher of the particle push for non-composite pushers
-     *
-     * @tparam T_Pusher pusher type
-     */
     template<typename T_Pusher>
-    struct PushLauncher<T_Pusher, false>
+    struct PushLauncher
     {
         /** Launch the pusher for all particles of a species
          *
@@ -282,35 +275,22 @@ namespace picongpu
         template<typename T_Particles>
         void operator()(T_Particles&& particles, uint32_t const currentStep) const
         {
-            particles.template push<T_Pusher>(currentStep);
-        }
-    };
-
-    /** Launcher of the particle push for composite pushers
-     *
-     * @tparam T_Pusher pusher type
-     */
-    template<typename T_CompositePusher>
-    struct PushLauncher<T_CompositePusher, true>
-    {
-        /** Launch the pusher for all particles of a species
-         *
-         * @tparam T_Particles particles type
-         * @param currentStep current time iteration
-         */
-        template<typename T_Particles>
-        void operator()(T_Particles&& particles, uint32_t const currentStep) const
-        {
-            /* Here we check for the active pusher and only call PushLauncher for
-             * that one. Note that we still instantiate both templates, but this
-             * should be fine as both pushers are eventually getting used (otherwise
-             * using the composite does not make sense).
-             */
-            auto activePusherIdx = T_CompositePusher::activePusherIdx(currentStep);
-            if(activePusherIdx == 1)
-                PushLauncher<typename T_CompositePusher::FirstPusher>{}(particles, currentStep);
-            else if(activePusherIdx == 2)
-                PushLauncher<typename T_CompositePusher::SecondPusher>{}(particles, currentStep);
+            constexpr bool isCompositePusher = particles::pusher::IsComposite<T_Pusher>::value;
+            if constexpr(isCompositePusher)
+            {
+                /* Here we check for the active pusher and only call PushLauncher for
+                 * that one. Note that we still instantiate both templates, but this
+                 * should be fine as both pushers are eventually getting used (otherwise
+                 * using the composite does not make sense).
+                 */
+                auto activePusherIdx = T_Pusher::activePusherIdx(currentStep);
+                if(activePusherIdx == 1)
+                    PushLauncher<typename T_Pusher::FirstPusher>{}(particles, currentStep);
+                else if(activePusherIdx == 2)
+                    PushLauncher<typename T_Pusher::SecondPusher>{}(particles, currentStep);
+            }
+            else
+                particles.template push<T_Pusher>(currentStep);
         }
     };
 
