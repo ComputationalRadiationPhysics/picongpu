@@ -35,62 +35,6 @@ namespace picongpu
     {
         namespace attribute
         {
-            namespace detail
-            {
-                /** Calculate the real charge of a particle
-                 *
-                 * use attribute `boundElectrons` and the proton number from
-                 * flag `atomicNumbers` to calculate the charge
-                 *
-                 * @tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
-                 * due to bound electrons
-                 */
-                template<bool T_HasBoundElectrons>
-                struct LoadBoundElectrons
-                {
-                    /** Functor implementation
-                     *
-                     * @tparam T_Particle particle type
-                     * @param weighting the particle's weighting
-                     * @param particle particle reference
-                     */
-                    template<typename T_Particle>
-                    HDINLINE float_X operator()(const float_X weighting, const T_Particle& particle)
-                    {
-                        using HasAtomicNumbers = typename pmacc::traits::HasFlag<T_Particle, atomicNumbers<>>::type;
-                        PMACC_CASSERT_MSG_TYPE(
-                            Having_boundElectrons_particle_attribute_requires_atomicNumbers_flag,
-                            T_Particle,
-                            HasAtomicNumbers::value);
-                        const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-
-                        /* note: ELECTRON_CHARGE is negative and the second term is also negative
-                         */
-                        return ELECTRON_CHARGE * (particle[boundElectrons_] - protonNumber) * weighting;
-                    }
-                };
-
-                /**  Calculate the real charge of a particle
-                 *
-                 * This is the fallback implementation if no `boundElectrons` are available for a particle
-                 */
-                template<>
-                struct LoadBoundElectrons<false>
-                {
-                    /** Functor implementation
-                     *
-                     * @tparam T_Particle particle type
-                     * @param weighting the particle's weighting
-                     * @param particle particle reference
-                     */
-                    template<typename T_Particle>
-                    HDINLINE float_X operator()(const float_X weighting, const T_Particle&)
-                    {
-                        return frame::getCharge<typename T_Particle::FrameType>() * weighting;
-                    }
-                };
-            } // namespace detail
-
             /** get the charge of a macro particle
              *
              * This function trait considers the `boundElectrons` attribute if it is set
@@ -103,8 +47,23 @@ namespace picongpu
             HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
             {
                 using ParticleType = T_Particle;
-                using hasBoundElectrons = typename pmacc::traits::HasIdentifier<ParticleType, boundElectrons>::type;
-                return detail::LoadBoundElectrons<hasBoundElectrons::value>()(weighting, particle);
+                constexpr bool hasBoundElectrons
+                    = pmacc::traits::HasIdentifier<ParticleType, boundElectrons>::type::value;
+                if constexpr(hasBoundElectrons)
+                {
+                    using HasAtomicNumbers = typename pmacc::traits::HasFlag<T_Particle, atomicNumbers<>>::type;
+                    PMACC_CASSERT_MSG_TYPE(
+                        Having_boundElectrons_particle_attribute_requires_atomicNumbers_flag,
+                        T_Particle,
+                        HasAtomicNumbers::value);
+                    const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+
+                    /* note: ELECTRON_CHARGE is negative and the second term is also negative
+                     */
+                    return ELECTRON_CHARGE * (particle[boundElectrons_] - protonNumber) * weighting;
+                }
+                else
+                    return frame::getCharge<typename T_Particle::FrameType>() * weighting;
             }
 
         } // namespace attribute
