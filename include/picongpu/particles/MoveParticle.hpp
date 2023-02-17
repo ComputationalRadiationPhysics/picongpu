@@ -31,14 +31,14 @@ namespace picongpu
     {
         /** move the particle to the new position
          *
-         * in case the new postion is outside of the cell we adjust
+         * in case the new position is outside of the cell we adjust
          * the cell index and the multiMask of the particle.
          *
          * @tparam T_Particle particle type
          * @param particle particle handle
          * @param newPos new position relative to the current cell, in units of cells
-         * newPos must be [-1, 2)
-         * @return whether the particle has left the orignal cell
+         * newPos must be [-1.0, 2.0)
+         * @return whether the particle has left the original cell
          */
         template<typename T_Particle>
         HDINLINE bool moveParticle(T_Particle& particle, floatD_X newPos)
@@ -46,42 +46,35 @@ namespace picongpu
             using TVec = MappingDesc::SuperCellSize;
 
 
-            floatD_X pos = newPos;
+            /* ATTENTION we must handle float rounding errors
+             * pos in range [-1.0;2.0)
+             *
+             * If pos is negative and very near to 0 (e.g. pos < -1e-8)
+             * and we move pos with pos+=1.0 back to normal in cell position
+             * we get a rounding error and pos is assigned to 1. This breaks
+             * our in cell definition range [0,1)
+             *
+             * We remove 0.5 from position and later add back after we adjusted the new position depending on the
+             * direction the particle is leaving the cell.
+             * The floating point precision is equal for -0.5 and 0.5.
+             */
+            floatD_X pos = newPos - 0.5_X;
 
             DataSpace<simDim> dir;
+
             for(uint32_t i = 0; i < simDim; ++i)
             {
-                /* ATTENTION we must handle float rounding errors
-                 * pos in range [-1;2)
-                 *
-                 * If pos is negative and very near to 0 (e.g. pos < -1e-8)
-                 * and we move pos with pos+=1.0 back to normal in cell postion
-                 * we get a rounding error and pos is assigned to 1. This breaks
-                 * our in cell definition range [0,1)
-                 *
-                 * if pos negativ moveDir is set to -1
-                 * if pos positive and >1 moveDir is set to +1
-                 * 0 (zero) if particle stays in cell
-                 */
-                float_X moveDir = math::floor(pos[i]);
-                /* shift pos back to cell range [0;1)*/
+                // pos in range [-1.5;1.5)
+                float_X moveDir = 0.0_X;
+
+                // compiler will use here the ternary operator if necessary
+                if(pos[i] < -0.5_X)
+                    moveDir = -1.0_X;
+                if(pos[i] >= 0.5_X)
+                    moveDir = 1.0_X;
+
                 pos[i] -= moveDir;
-                /* check for rounding errors and correct them
-                 * if position now is 1 we have a rounding error
-                 *
-                 * We correct moveDir that we not have left the cell
-                 */
-                const float_X valueCorrector = math::floor(pos[i]);
-                /* One has also to correct moveDir for the following reason:
-                 * Imagine a new particle moves to -1e-20, leaving the cell to the left,
-                 * setting moveDir to -1.
-                 * The new in-cell position will be -1e-20 + 1.0,
-                 * which can flip to 1.0 (wrong value).
-                 * We move the particle back to the old cell at position 0.0 and
-                 * moveDir has to be corrected back, too (add +1 again).*/
-                moveDir += valueCorrector;
-                /* If we have corrected moveDir we must set pos to 0 */
-                particle[position_][i] = pos[i] - valueCorrector;
+                particle[position_][i] = pos[i] + 0.5_X;
                 dir[i] = precisionCast<int>(moveDir);
             }
 

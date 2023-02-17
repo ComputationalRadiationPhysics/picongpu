@@ -100,7 +100,6 @@ namespace picongpu
              * The following calls seperate the vector interpolation into
              * independent scalar interpolations.
              */
-            using Supports = typename pmacc::math::CT::make_Int<simDim, supp>::type;
             using ResultType = typename T_FieldDataBox::ValueType;
 
             ResultType result;
@@ -110,7 +109,7 @@ namespace picongpu
                 // work on a copy to shift the field for each loop round separate
                 auto shiftedField = field;
                 floatD_X particlePosShifted = particlePos;
-                ShiftCoordinateSystem<Supports>()(shiftedField, particlePosShifted, fieldPos[i]);
+                ShiftCoordinateSystem<supp>()(shiftedField, particlePosShifted, fieldPos[i]);
 
                 auto accessFunctor = [&](DataSpace<simDim> const& idx) constexpr
                 {

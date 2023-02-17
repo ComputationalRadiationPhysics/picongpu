@@ -30,53 +30,19 @@
 
 namespace picongpu
 {
-    /** calculate offset to move coordinate system in an easy to use system
-     *
-     * There are two cases:
-     *  - system with even shape and odd shape
-     *  - for more see documentation of the implementation
-     */
-    template<bool T_isEvenShape>
-    struct GetOffsetToStaticShapeSystem;
-
-    template<typename T_Component, typename T_Supports>
-    struct AssignToDim
-    {
-        template<typename T_DataBox, typename T_Vector, typename T_FieldType>
-        HDINLINE void operator()(T_DataBox& dataBox, T_Vector& pos, const T_FieldType& fieldPos)
-        {
-            const uint32_t dim = T_Vector::dim;
-            using ValueType = typename T_Vector::type;
-
-            using Supports = T_Supports;
-            using Component = T_Component;
-
-            const uint32_t component = Component::x::value;
-            const uint32_t support = Supports::template at<component>::type::value;
-            const bool isEven = (support % 2) == 0;
-
-
-            const ValueType v_pos = pos[component] - fieldPos[component];
-            DataSpace<dim> intShift;
-            intShift[component] = GetOffsetToStaticShapeSystem<isEven>()(v_pos);
-            dataBox = dataBox.shift(intShift);
-            pos[component] = v_pos - ValueType(intShift[component]);
-        }
-    };
-
     /** shift to new coordinate system
      *
-     * @tparam T_supports CT::Vector with support
+     * @tparam T_supports support of the particle shape
      */
-    template<typename T_supports>
+    template<uint32_t T_supports>
     struct ShiftCoordinateSystem
     {
         /** shift to new coordinate system
          *
          * shift DataBox and vector to new coordinate system
          * @param[in,out] dataBox DataBox pointing to the particle located cell
-         * @param[in,out] vector short vector with coordinates in old system
-         *                        - defined for [0.0;1.0) per dimension
+         * @param[in,out] pos position of the particle
+         *                    - defined for [0.0;1.0) per dimension
          * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
          *
          * After this coordinate shift vector has well defined ranges per dimension,
@@ -86,49 +52,31 @@ namespace picongpu
          * - Odd Support: vector is always [-0.5;0.5)
          */
         template<typename T_DataBox, typename T_Vector, typename T_FieldType>
-        HDINLINE void operator()(T_DataBox& dataBox, T_Vector& vector, const T_FieldType& fieldPos)
+        HDINLINE void operator()(T_DataBox& dataBox, T_Vector& pos, const T_FieldType& fieldPos)
         {
-            constexpr uint32_t dim = T_DataBox::Dim;
+            constexpr uint32_t dim = T_Vector::dim;
+            using ValueType = typename T_Vector::type;
+            constexpr uint32_t support = T_supports;
+            constexpr bool isEven = (support % 2) == 0;
 
-            using Size = boost::mpl::vector1<boost::mpl::range_c<uint32_t, 0, dim>>;
-            using CombiTypes = typename AllCombinations<Size>::type;
-
-            meta::ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports>> shift;
-            shift(dataBox, vector, fieldPos);
-        }
-    };
-
-
-    /** Offset calculation for even support
-     *
-     * @param pos position of the particle relative to the grid
-     *            - defined for [-0.5;1.0)
-     * @return offset for the old system ( new system = old_system - offset)
-     */
-    template<>
-    struct GetOffsetToStaticShapeSystem<true>
-    {
-        template<typename T_Type>
-        HDINLINE int operator()(const T_Type& pos)
-        {
-            return pmacc::math::float2int_rd(pos);
-        }
-    };
-
-
-    /** Offset calculation for odd support
-     *
-     * @param pos position of the particle relative to the grid
-     *            - defined for [-0.5;1.0)
-     * @return offset for the old system ( new system = old_system - offset)
-     */
-    template<>
-    struct GetOffsetToStaticShapeSystem<false>
-    {
-        template<typename T_Type>
-        HDINLINE int operator()(const T_Type& pos)
-        {
-            return pos >= T_Type(0.5) ? 1 : 0;
+            DataSpace<dim> intShift;
+            PMACC_UNROLL(dim)
+            for(uint32_t d = 0; d < dim; ++d)
+            {
+                const ValueType v_pos = pos[d] - fieldPos[d] - ValueType{0.5};
+                if constexpr(isEven)
+                {
+                    // pos range [-1.0;0.5)
+                    intShift[d] = v_pos >= ValueType{-0.5} ? 0 : -1;
+                }
+                else
+                {
+                    // pos range [-1.0;0.5)
+                    intShift[d] = v_pos >= ValueType{0.0} ? 1 : 0;
+                }
+                pos[d] = v_pos - ValueType(intShift[d]) + ValueType{0.5};
+            }
+            dataBox = dataBox.shift(intShift);
         }
     };
 
