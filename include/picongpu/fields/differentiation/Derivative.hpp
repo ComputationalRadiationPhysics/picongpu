@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
+/* Copyright 2013-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -30,51 +30,48 @@
 #include <cstdint>
 
 
-namespace picongpu
+namespace picongpu::fields::differentiation
 {
-    namespace fields
+    /** Interface of field derivative functors created by makeDerivativeFunctor()
+     *
+     * In addition to operator(), the functor must be copyable and assignable.
+     */
+    struct DerivativeFunctorConcept
     {
-        namespace differentiation
-        {
-            /** Interface of field derivative functors created by makeDerivativeFunctor()
-             *
-             * In addition to operator(), the functor must be copyable and assignable.
-             */
-            struct DerivativeFunctorConcept
-            {
-                /** Return derivative value at the given point
-                 *
-                 * @tparam T_DataBox data box type with field data
-                 * @param data position in the data box to compute derivative at
-                 */
-                template<typename T_DataBox>
-                HDINLINE typename T_DataBox::ValueType operator()(T_DataBox const& data) const;
-            };
+        /** Return derivative value at the given point
+         *
+         * @tparam T_DataBox data box type with field data
+         * @param data position in the data box to compute derivative at
+         */
+        template<typename T_DataBox>
+        HDINLINE typename T_DataBox::ValueType operator()(T_DataBox const& data) const;
+    };
 
-            /** Type of derivative functor for the given derivative tag and direction
-             *
-             * Derivative tag defines the scheme and is used for configuration, while
-             * the functor actually computes the derivatives along the given direction.
-             *
-             * @tparam T_Derivative derivative tag, defines the finite-difference scheme
-             * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
-             */
-            template<typename T_Derivative, uint32_t T_direction>
-            using DerivativeFunctor = typename traits::DerivativeFunctor<T_Derivative, T_direction>::type;
+    /** Type of derivative functor for the given derivative tag and direction
+     *
+     * Derivative tag defines the scheme and is used for configuration, while
+     * the functor actually computes the derivatives along the given direction.
+     *
+     * @tparam T_Derivative derivative tag, defines the finite-difference scheme
+     * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
+     */
+    template<typename T_Derivative, uint32_t T_direction>
+    using DerivativeFunctor = typename traits::DerivativeFunctor<T_Derivative, T_direction>::type;
 
-            /** Create a functor to compute field derivative along the given direction
-             *
-             * In case T_direction is >= simDim, returns the zero derivative functor
-             *
-             * @tparam T_Derivative derivative tag, defines the finite-difference scheme
-             * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
-             */
-            template<typename T_Derivative, uint32_t T_direction>
-            HDINLINE auto makeDerivativeFunctor()
-            {
-                return traits::MakeDerivativeFunctor<T_Derivative, T_direction>{}();
-            }
-
-        } // namespace differentiation
-    } // namespace fields
-} // namespace picongpu
+    /** Create a functor to compute field derivative along the given direction
+     *
+     * In case T_direction is >= simDim, returns the zero derivative functor
+     *
+     * @tparam T_Derivative derivative tag, defines the finite-difference scheme
+     * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
+     */
+    template<typename T_Derivative, uint32_t T_direction>
+    HDINLINE auto makeDerivativeFunctor()
+    {
+        constexpr bool isSpatialDimension = T_direction < simDim;
+        if constexpr(isSpatialDimension)
+            return DerivativeFunctor<T_Derivative, T_direction>{};
+        else
+            return DerivativeFunctor<Zero, T_direction>{};
+    }
+} // namespace picongpu::fields::differentiation
