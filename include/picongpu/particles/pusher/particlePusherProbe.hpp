@@ -22,7 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/math/operation.hpp>
-#include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>
 
@@ -65,12 +64,10 @@ namespace picongpu
                 const auto eField = functorEField(pos);
 
                 // update probe field if particle contains required attributes
-                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value>(
-                    [&bField, &valueFunctor](auto&& par) { valueFunctor(par[probeB_], bField); },
-                    particle);
-                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value>(
-                    [&eField, &valueFunctor](auto&& par) { valueFunctor(par[probeE_], eField); },
-                    particle);
+                if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value)
+                    valueFunctor(particle[probeB_], bField);
+                if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value)
+                    valueFunctor(particle[probeE_], eField);
 
                 ActualPush actualPush;
                 // remove probe attribute from the particle, this data is already recorded and should not be recorded
@@ -106,13 +103,11 @@ namespace picongpu
             {
                 T_ValueFunctor valueFunctor;
                 const auto bField = functorBField(pos);
-                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value>(
-                    [&bField, &valueFunctor](auto&& par) { valueFunctor(par[probeB_], bField); },
-                    particle);
+                if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value)
+                    valueFunctor(particle[probeB_], bField);
                 const auto eField = functorEField(pos);
-                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value>(
-                    [&eField, &valueFunctor](auto&& par) { valueFunctor(par[probeE_], eField); },
-                    particle);
+                if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value)
+                    valueFunctor(particle[probeE_], eField);
             }
 
             static pmacc::traits::StringProperty getStringProperties()
