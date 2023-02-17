@@ -91,7 +91,7 @@ namespace picongpu
                     int iStart;
                     int iEnd;
                     constexpr bool isSupportEven = (supp % 2 == 0);
-                    RelayPoint<isSupportEven>()(iStart, iEnd, line.m_pos0[d], line.m_pos1[d]);
+                    relayPoint<isSupportEven>(iStart, iEnd, line.m_pos0[d], line.m_pos1[d]);
                     gridShift[d] = iStart < iEnd ? iStart : iEnd; // integer min function
                     bitpacking::set(
                         status[d],
