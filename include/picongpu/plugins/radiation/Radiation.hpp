@@ -150,6 +150,7 @@ namespace picongpu
                     = openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
                 std::string openPMDCheckpointConfig = "{}";
+                bool writeDistributedAmplitudes = false;
 
             public:
                 Radiation()
@@ -242,7 +243,10 @@ namespace picongpu
                         "JSON/TOML configuration for initializing openPMD.")(
                         (pluginPrefix + ".openPMDCheckpointConfig").c_str(),
                         po::value<std::string>(&openPMDCheckpointConfig)->default_value("{}"),
-                        "JSON/TOML configuration for initializing openPMD checkpointing.");
+                        "JSON/TOML configuration for initializing openPMD checkpointing.")(
+                        (pluginPrefix + ".distributedAmplitude").c_str(),
+                        po::value<bool>(&writeDistributedAmplitudes)->default_value(false),
+                        "Additionally output distributed amplitudes per MPI rank.");
                 }
 
 
@@ -780,8 +784,9 @@ namespace picongpu
                     /* end required openPMD global attributes */
 
                     // begin: write per-rank amplitude data
+                    if(writeDistributedAmplitudes)
                     {
-                        ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes["amplitude_distributed"];
+                        ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes["Amplitude_distributed"];
 
                         mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
                         mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
@@ -825,19 +830,20 @@ namespace picongpu
 
                             // ask openPMD to create a buffer for us
                             // in some backends (ADIOS2), this allows avoiding memcopies
-                            auto span
-                                = ::picongpu::openPMD::storeChunkSpan<std::complex<double>>(
-                                      mesh_amp[dir],
-                                      local_offset_amp,
-                                      local_extent_amp,
-                                      [&fallbackBuffer](size_t numElements)
-                                      {
-                                          // if there is no special backend support for creating buffers,
-                                          // use the fallback buffer
-                                          fallbackBuffer.resize(numElements);
-                                          return std::shared_ptr<std::complex<float_64>>{fallbackBuffer.data(), [](auto const*) {}};
-                                      })
-                                      .currentBuffer();
+                            auto span = ::picongpu::openPMD::storeChunkSpan<std::complex<double>>(
+                                            mesh_amp[dir],
+                                            local_offset_amp,
+                                            local_extent_amp,
+                                            [&fallbackBuffer](size_t numElements)
+                                            {
+                                                // if there is no special backend support for creating buffers,
+                                                // use the fallback buffer
+                                                fallbackBuffer.resize(numElements);
+                                                return std::shared_ptr<std::complex<float_64>>{
+                                                    fallbackBuffer.data(),
+                                                    [](auto const*) {}};
+                                            })
+                                            .currentBuffer();
 
                             // std::complex has guarantees on array-oriented access, so let's use this to make our
                             // lives easer
@@ -962,17 +968,18 @@ namespace picongpu
                                 // in some backends (ADIOS2), this allows avoiding memcopies
                                 auto span
                                     = ::picongpu::openPMD::storeChunkSpan<double>(
-                                        mesh_n[dir],
-                                        offset_n,
-                                        extent_n,
-                                        [&fallbackBuffer](size_t numElements)
-                                        {
-                                            // if there is no special backend support for creating buffers,
-                                            // use the fallback buffer
-                                            fallbackBuffer.resize(numElements);
-                                            return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {}};
-                                        })
-                                        .currentBuffer();
+                                          mesh_n[dir],
+                                          offset_n,
+                                          extent_n,
+                                          [&fallbackBuffer](size_t numElements)
+                                          {
+                                              // if there is no special backend support for creating buffers,
+                                              // use the fallback buffer
+                                              fallbackBuffer.resize(numElements);
+                                              return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {
+                                                                               }};
+                                          })
+                                          .currentBuffer();
 
                                 // select data
                                 for(uint32_t copyIndex = 0u; copyIndex < parameters::N_observer; ++copyIndex)
@@ -1022,10 +1029,10 @@ namespace picongpu
                         // write actual data
                         ::openPMD::Offset offset_omega = {0, 0, 0};
                         /*
-                        * Here, we don't use storeChunkSpan, since detectorFrequencies
-                        * is created and filled upon activation of the plugin,
-                        * so it survives beyond the writing of a single dataset.
-                        */
+                         * Here, we don't use storeChunkSpan, since detectorFrequencies
+                         * is created and filled upon activation of the plugin,
+                         * so it survives beyond the writing of a single dataset.
+                         */
                         omega_mrc.storeChunk(detectorFrequencies, offset_omega, extent_omega);
                     }
                     // end: write frequencies
