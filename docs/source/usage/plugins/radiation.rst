@@ -314,21 +314,27 @@ Output
 
 Depending on the command line options used, there are different output files.
 
-======================================== ========================================================================================================================
-Command line flag                        Output description
-======================================== ========================================================================================================================
-``--<species>_radiation.totalRadiation`` Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
-                                         Each row gives data for one observation direction (same order as specified in the ``observer.py``).
-                                         The values for each frequency are separated by *tabs* and have the same order as specified in ``radiation.param``.
-                                         The spectral intensity is stored in the units :math:`\mathrm{[Js]}`.
-``--<species>_radiation.lastRadiation``  has the same format as the output of *totalRadiation*.
-                                         The spectral intensity is only summed over the last radiation ``dump`` period.
-``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU.
-                                         Because each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
-*radiationOpenPMD*                       In the folder  ``radiationOpenPMD``, openPMD files (currently hdf5) for each radiation dump and species are stored.
-                                         These are complex amplitudes in units used by *PIConGPU*.
-                                         These are for restart purposes and for more complex data analysis.
-======================================== ========================================================================================================================
+============================================== ========================================================================================================================
+Command line flag                              Output description
+============================================== ========================================================================================================================
+``--<species>_radiation.totalRadiation``       Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
+                                               Each row gives data for one observation direction (same order as specified in the ``observer.py``).
+                                               The values for each frequency are separated by *tabs* and have the same order as specified in ``radiation.param``.
+                                               The spectral intensity is stored in the units :math:`\mathrm{[Js]}`.
+``--<species>_radiation.lastRadiation``        has the same format as the output of *totalRadiation*.
+                                               The spectral intensity is only summed over the last radiation ``dump`` period.
+``--<species>_radiation.radPerGPU``            Same output as *totalRadiation* but only summed over each GPU.
+                                               Because each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
+``--<species>_radiation.distributedAmplitude`` By default, the amplitudes are summed up over the MPI ranks.
+                                               Some analyses require the raw distributed output of amplitudes without prior summation.
+                                               Activating this flag will make the Radiation plugin additionally output the amplitudes before summation.
+                                               The first dimension in the dataset output corresponds with the parallel distribution of MPI workers.
+                                               Note that instead of separate datasets for the imaginary and real parts, this output is formatted as datasets of complex
+                                               number types.
+*radiationOpenPMD*                             In the folder  ``radiationOpenPMD``, openPMD files (currently hdf5) for each radiation dump and species are stored.
+                                               These are complex amplitudes in units used by *PIConGPU*.
+                                               These are for restart purposes and for more complex data analysis.
+============================================== ========================================================================================================================
 
 
 Text-based output
@@ -412,6 +418,24 @@ Dataset  Description                                           Dimensions
    This inconsistency will be fixed in the future.
    Until this inconstincy is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units.
 
+**Amplitude_distributed (Group, opt-in):**
+
+======== ========================================== ============================================
+Dataset  Description                                Dimensions
+======== ========================================== ============================================
+``x``    x-component of the complex amplitude       (``MPI ranks``, ``N_observer``, ``N_omega``)
+``y``    y-component of the complex amplitude       (``MPI ranks``, ``N_observer``, ``N_omega``)
+``z``    z-component of the complex amplitude       (``MPI ranks``, ``N_observer``, ``N_omega``)
+======== ========================================== ============================================
+
+.. note::
+
+   Please be aware, that despite the fact, that the SI-unit of each amplitude entry is :math:`\mathrm{[\sqrt{Js}]}`, the stored ``unitSI`` attribute returns :math:`\mathrm{[Js]}`.
+   This inconsistency will be fixed in the future.
+   Until this inconstincy is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units.
+
+   Additionally, the representation of complex numbers differs from that in the summed Amplitude output.
+   This inconsistency will be fixed by changing the output format of the summed Amplitudes.
 
 **DetectorDirection (Group):**
 
@@ -559,4 +583,4 @@ References
        *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*,
        PhD Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
        https://doi.org/10.5281/zenodo.3616045
-   
+
