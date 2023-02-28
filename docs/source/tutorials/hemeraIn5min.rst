@@ -51,6 +51,8 @@ Use :command:`git` to obtain the source and use the current ``dev`` branch and p
 
 .. note::
    If you get the error ``git: command not found`` load git by invoking ``module load git`` and try again.
+   Attention: the example uses the ``dev`` branch instead of the latest stable release ``master``.
+   Due to driver changes on hemera the master branch modules configuration is outdated.
 
 Setup
 -----
