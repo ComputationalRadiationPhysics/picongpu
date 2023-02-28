@@ -8,11 +8,11 @@ The extent of the tests tries to balance multiple factors:
 
 -  more tests means more work (and more maintenance down the road)
 -  fewer test mean more errors go unnoticed
--  more important/fragile components should be tested more rigerously
+-  more important/fragile components should be tested more rigorously
    (“important” here means “could create a lot trouble down the road if
    it does not work as specified”)
 -  some type of checks require a lot of code (which needs to be
-   maintaned), others do not
+   maintained), others do not
 
 How these factors are traded against each other is layed out for each
 module below.
@@ -62,6 +62,17 @@ accessed with their class name, and optional method name:
 
    python -m quick TestElement
    python -m quick TestElement.test_periodic_table_names
+
+.. note:
+
+    All compile test runs create setup directories at /tmp/<userName>. Please make sure that
+    they are removed afterwards, thank you.
+
+.. note:
+
+    The path to each generated compile test picongpu output is printed to console.
+    If you encounter a failing compiling test, go to that directory and run a pic-build by
+    hand to get a standard picongpu compile output for debugging.
 
 .. note::
 

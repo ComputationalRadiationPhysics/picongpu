@@ -49,14 +49,17 @@ class TestSimulation(unittest.TestCase):
         self.laser.wavelength = 1.2
         self.laser.waist = 3.4
         self.laser.duration = 5.6
-        self.laser.focus_pos = 7.8
+        self.laser.focus_pos = [0, 7.8, 0]
+        self.laser.centroid_position = [0, 0, 0]
         self.laser.phase = 2.9
         self.laser.E0 = 9.0
         self.laser.pulse_init = 1.3
-        self.laser.init_plane_y = 1
-        self.laser.polarization_type = GaussianLaser.PolarizationType.LINEAR_X
+        self.laser.propagation_direction = [0, 1, 0]
+        self.laser.polarization_type = GaussianLaser.PolarizationType.LINEAR
+        self.laser.polarization_direction = [0, 0, 1]
         self.laser.laguerre_modes = [1.2, 2.4]
         self.laser.laguerre_phases = [2.4, 3.4]
+        self.laser.huygens_surface_positions = [[1, -1], [1, -1], [1, -1]]
 
     def test_basic(self):
         s = self.s

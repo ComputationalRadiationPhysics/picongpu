@@ -120,7 +120,7 @@ class TestRunner(unittest.TestCase):
         # but: injecting a generated (but not built) dir
         # from another runner works
         other_runner = Runner(self.sim)
-        other_runner.generate()
+        other_runner.generate(printDirToConsole=True)
 
         r.setup_dir = other_runner.setup_dir
         assert os.path.isdir(r.setup_dir)
