@@ -60,7 +60,6 @@ namespace picongpu
 #endif
         shape<UsedParticleShape>,
         interpolation<UsedField2Particle>,
-        current<UsedParticleCurrentSolver>,
         massRatio<MassRatioElectrons>,
         chargeRatio<ChargeRatioElectrons>>;
 
