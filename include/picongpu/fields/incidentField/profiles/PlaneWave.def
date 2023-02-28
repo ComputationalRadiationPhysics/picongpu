@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
+#include "picongpu/fields/incidentField/profiles/Traits.hpp"
 
 
 namespace picongpu
@@ -59,6 +60,12 @@ namespace picongpu
                  */
                 template<typename T_Params = defaults::PlaneWaveParam>
                 struct PlaneWave;
+
+                template<typename T_Params>
+                struct MakePeriodicTransversalHuygensSurfaceContiguous<PlaneWave<T_Params>>
+                {
+                    static constexpr bool value = true;
+                };
             } // namespace profiles
         } // namespace incidentField
     } // namespace fields

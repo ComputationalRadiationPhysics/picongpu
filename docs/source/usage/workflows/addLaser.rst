@@ -54,6 +54,7 @@ It is a combination of profile and particular plane that together will produce a
 For pre-set profiles a proper orientation of the wave will be provided by internal implementation.
 With the ``Free`` profile, it is on a user to provide functors to calculate incident fields and ensure the orientation for the boundaries it is applied to (however, it does not have to work for all boundaries, only the ones in question).
 Please refer to :ref:`the detailed description <model-TFSF>` for setting up ``Free`` profile, also for the case when only one of the external fields is known in explicit form.
+For a laser profile with non zero field amplitudes on the transversal borders of the profile e.g. defined by the profile ``Free`` without a transversal envelop the trait ``MakePeriodicTransversalHuygensSurfaceContiguous`` must be specialized and returning true to handle field periodic boundaries correctly.
 
 Incident field is compatible to all field solvers, however using field solvers other than Yee requires a larger offset of the generating surface from absorber depending on the stencil width along the boundary axis.
 As a rule of thumb, this extra requirement is (order of FDTD solver / 2 - 1) cells.

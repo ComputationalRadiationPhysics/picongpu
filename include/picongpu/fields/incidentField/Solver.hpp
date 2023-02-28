@@ -181,6 +181,8 @@ namespace picongpu
                  *
                  * @param parameters parameters
                  * @param curlCoefficient coefficient in front of the curl(incidentField) in the Maxwell's equations
+                 * @param transversalContiguousHuygensSurface true if the is allowed to be stretched to support
+                 *                                            periodic boundary condition, else false
                  */
                 template<
                     typename T_UpdatedField,
@@ -188,7 +190,10 @@ namespace picongpu
                     typename T_CurlIncidentField,
                     typename T_FunctorIncidentField,
                     uint32_t T_axis>
-                inline void updateField(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
+                inline void updateField(
+                    Parameters<T_axis> const& parameters,
+                    float_X const curlCoefficient,
+                    bool transversalContiguousHuygensSurface)
                 {
                     /* Whether the field values we are updating are in the total- or scattered-field region:
                      * total field when x component is not on the x cell border,
@@ -213,6 +218,49 @@ namespace picongpu
                     auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName(), true);
                     using Functor
                         = UpdateFunctor<decltype(dataBox), T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
+                    auto functor = Functor{
+                        parameters.sourceTimeIteration,
+                        parameters.direction,
+                        curlCoefficient,
+                        incidentField.getUnit()};
+                    functor.updatedField = dataBox;
+                    functor.isUpdatedFieldTotal = isUpdatedFieldTotal;
+
+                    // Convert to the local domain indices
+                    auto const& subGrid = Environment<simDim>::get().SubGrid();
+
+                    // Set local domain information
+                    auto& gridController = pmacc::Environment<simDim>::get().GridController();
+                    auto const localDomainIdx = gridController.getPosition();
+                    auto const numLocalDomains = gridController.getGpuNodes();
+
+                    const DataSpace<DIM3> periodic
+                        = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+
+                    for(uint32_t d = 0u; d < DIM3; ++d)
+                    {
+                        bool isLaserAxisDirection = d == T_axis;
+
+                        if(transversalContiguousHuygensSurface && periodic[d] == 1 && !isLaserAxisDirection)
+                        {
+                            /* Extend the Huygens surface begin and end boundaries to all cells in the periodic
+                             * direction. If the laser direction is periodic do not move Huyhens surface to zero and
+                             * outer simulation domain else the user laser definition will silently adjusted.
+                             */
+                            beginUserIdx[d] = 0;
+                            endUserIdx[d] = subGrid.getGlobalDomain().offset[d] + subGrid.getGlobalDomain().size[d];
+                            functor.isLastLocalDomain[d] = false;
+                        }
+                        else
+                        {
+                            /* for non periodic directions we need to handle special cases for the last cell of the
+                             * direction on the outer surface in the kernel.
+                             * see: https://github.com/ComputationalRadiationPhysics/picongpu/pull/4298
+                             */
+                            functor.isLastLocalDomain[d] = (localDomainIdx[d] == numLocalDomains[d] - 1);
+                        }
+                    }
+
                     constexpr int margin = Functor::margin;
                     constexpr int sizeAlongAxis = 2 * margin - 1;
 
@@ -228,7 +276,6 @@ namespace picongpu
                     }
 
                     // Convert to the local domain indices
-                    auto const& subGrid = Environment<simDim>::get().SubGrid();
                     auto const globalDomainOffset = subGrid.getGlobalDomain().offset;
                     auto const localDomain = subGrid.getLocalDomain();
                     auto const totalCellOffset = globalDomainOffset + localDomain.offset;
@@ -267,14 +314,8 @@ namespace picongpu
                     auto beginGridIdx = beginLocalUserIdx + numGuardCells;
                     auto endGridIdx = endLocalUserIdx + numGuardCells;
 
-                    // Indexing is done, now prepare the update functor
-                    auto functor = Functor{
-                        parameters.sourceTimeIteration,
-                        parameters.direction,
-                        curlCoefficient,
-                        incidentField.getUnit()};
-                    functor.updatedField = dataBox;
-                    functor.isUpdatedFieldTotal = isUpdatedFieldTotal;
+                    // Indexing is done, now go on with preparing the update functor
+
                     /* Shift between local grid idx and fractional total cell idx that a user functor needs:
                      * total cell idx = local grid idx + functor.gridIdxShift.
                      */
@@ -294,13 +335,6 @@ namespace picongpu
                     auto incidentFieldPositions = traits::FieldPosition<cellType::Yee, T_IncidentField>{}();
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
                     functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
-
-                    // Set local domain information
-                    auto& gridController = pmacc::Environment<simDim>::get().GridController();
-                    auto const localDomainIdx = gridController.getPosition();
-                    auto const numLocalDomains = gridController.getGpuNodes();
-                    for(uint32_t d = 0; d < simDim; d++)
-                        functor.isLastLocalDomain[d] = (localDomainIdx[d] == numLocalDomains[d] - 1);
 
                     // Check that incidentField can be applied
                     checkRequirements(functor, beginLocalUserIdx);
@@ -331,11 +365,15 @@ namespace picongpu
                 struct CallUpdateField
                 {
                     template<uint32_t T_axis>
-                    void operator()(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
+                    void operator()(
+                        Parameters<T_axis> const& parameters,
+                        float_X const curlCoefficient,
+                        bool transversalContiguousHuygensSurface)
                     {
                         updateField<T_UpdatedField, T_IncidentField, T_Curl, T_FunctorIncidentField>(
                             parameters,
-                            curlCoefficient);
+                            curlCoefficient,
+                            transversalContiguousHuygensSurface);
                     }
                 };
 
@@ -355,7 +393,10 @@ namespace picongpu
                 struct CallUpdateField<T_UpdatedField, T_IncidentField, T_Curl, ZeroFunctor>
                 {
                     template<uint32_t T_axis>
-                    void operator()(Parameters<T_axis> const& /* parameters */, float_X const /* curlCoefficient */)
+                    void operator()(
+                        Parameters<T_axis> const& /* parameters */,
+                        float_X const /* curlCoefficient */,
+                        bool /*transversalContiguousHuygensSurface*/)
                     {
                     }
                 };
@@ -372,9 +413,12 @@ namespace picongpu
                      * @tparam T_Parameters parameters type
                      *
                      * @param parameters parameters
+                     * @param transversalContiguousHuygensSurface true if the is allowed to be
+                     *                                            stretched to support periodic boundary condition,
+                     *                                            else false
                      */
                     template<typename T_Parameters>
-                    void operator()(T_Parameters const& parameters)
+                    void operator()(T_Parameters const& parameters, bool transversalContiguousHuygensSurface)
                     {
                         /* The update is structurally
                          * E(t + timeIncrement) = E(t) + timeIncrement * c2 * curl(B(t + timeIncrement/2))
@@ -386,7 +430,8 @@ namespace picongpu
                         using Curl = traits::GetCurlB<Solver>::type;
                         CallUpdateField<UpdatedField, IncidentField, Curl, T_FunctorIncidentB>{}(
                             parameters,
-                            curlCoefficient);
+                            curlCoefficient,
+                            transversalContiguousHuygensSurface);
                     }
                 };
 
@@ -402,9 +447,11 @@ namespace picongpu
                      * @tparam T_Parameters parameters type
                      *
                      * @param parameters parameters
+                     * @param transversalContiguousHuygensSurface true if the is allowed to be stretched to support
+                     *                                            periodic boundary condition, else false
                      */
                     template<typename T_Parameters>
-                    void operator()(T_Parameters const& parameters)
+                    void operator()(T_Parameters const& parameters, bool transversalContiguousHuygensSurface)
                     {
                         /* The update is structurally
                          * B(t + timeIncrement) = B(t) - timeIncrement * curl(E(t + timeIncrement/2))
@@ -415,7 +462,8 @@ namespace picongpu
                         using Curl = traits::GetCurlE<Solver>::type;
                         CallUpdateField<UpdatedField, IncidentField, Curl, T_FunctorIncidentE>{}(
                             parameters,
-                            curlCoefficient);
+                            curlCoefficient,
+                            transversalContiguousHuygensSurface);
                     }
                 };
 
@@ -610,7 +658,9 @@ namespace picongpu
                     {
                         using Functor = detail::FunctorIncidentB<T_Profile>;
                         using Update = typename detail::UpdateE<Functor>;
-                        Update{}(parameters);
+                        constexpr bool extendTransversalHuygensSurface
+                            = profiles::makePeriodicTransversalHuygensSurfaceContiguous<T_Profile>;
+                        Update{}(parameters, extendTransversalHuygensSurface);
                     }
                 };
 
@@ -657,7 +707,9 @@ namespace picongpu
                     {
                         using Functor = detail::FunctorIncidentE<T_Profile>;
                         using Update = typename detail::UpdateB<Functor>;
-                        Update{}(parameters);
+                        constexpr bool extendTransversalHuygensSurface
+                            = profiles::makePeriodicTransversalHuygensSurfaceContiguous<T_Profile>;
+                        Update{}(parameters, extendTransversalHuygensSurface);
                     }
                 };
 
