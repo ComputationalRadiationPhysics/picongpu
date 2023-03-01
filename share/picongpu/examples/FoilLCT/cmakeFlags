@@ -30,7 +30,7 @@
 #   - increase by 1, no gaps
 
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=ExpRampWithPrepulse;-DPARAM_IONIZATIONCURRENT=EnergyConservation'"
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=ExpRampWithPrepulseBeam;-DPARAM_IONIZATIONCURRENT=EnergyConservation'"
 
 ################################################################################
 # execution
