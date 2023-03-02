@@ -33,6 +33,7 @@
 #include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "picongpu/plugins/output/images/Visualisation.hpp"
+#include "picongpu/plugins/shadowgraphy/Shadowgraphy.hpp"
 #include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
 
 #include <pmacc/assert.hpp>
@@ -137,7 +138,8 @@ namespace picongpu
         /* define stand alone plugins */
         using StandAlonePlugins = bmpl::vector<
             Checkpoint,
-            EnergyFields
+            EnergyFields,
+            plugins::shadowgraphy::Shadowgraphy
 
 #if(ENABLE_OPENPMD == 1)
             ,

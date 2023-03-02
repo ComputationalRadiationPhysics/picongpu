@@ -43,6 +43,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{FFTW3_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
@@ -453,6 +454,50 @@ endif()
 PIC_dependency_set_status(ISAAC ${ISAAC_FOUND})
 
 ################################################################################
+# Find FFTW3
+################################################################################
+
+# look at https://stackoverflow.com/questions/44277114/how-to-use-fftw-library-in-cmake for the PkgConfig-things
+
+PIC_dependency(FFTW3 "FFT library for shadowgraphy plugin" AUTO)
+
+if(PIC_SEARCH_FFTW3)
+    # find PkgConfig installation for FFTW3
+    find_package(PkgConfig)
+
+    if(PkgConfig_FOUND)
+        #set(LIBS ${LIBS} PkgConfig::PkgConfig)
+        pkg_check_modules(FFTW3 fftw3 IMPORTED_TARGET)
+        #message(STATUS "Oy")
+        message(STATUS "Found FFTW3: ${FFTW3_LIBRARY_DIRS}")
+        add_definitions(-DPIC_ENABLE_FFTW3=1)
+    else(PkgConfig_FOUND)
+        message(STATUS "Could NOT find PkgConfig for fftw- "
+                       "set Pkgconfig_DIR or check your CMAKE_PREFIX_PATH")
+    endif(PkgConfig_FOUND)
+endif(PIC_SEARCH_FFTW3)
+
+#if(TARGET PkgConfig::FFTW3)
+#    message(STATUS "theuiqtae 1")
+#    message(STATUS ${FFTW3_DIR})
+#    message(STATUS ${FFTW3_ROOT})
+#    message(STATUS ${FFTW3_LIBRARY_DIRS})
+#    message(STATUS ${PkgConfig_LIBRARY_DIRS})
+#else(TARGET PkgConfig::FFTW3)
+#    message(STATUS "utisnaoe tinae 2")
+#endif(TARGET PkgConfig::FFTW3)
+
+PIC_dependency_set_status(FFTW3 ${FFTW3_FOUND})
+
+#find_package(PkgConfig)
+#pkg_search_module(FFTW3 fftw3 IMPORTED_TARGET)
+
+#if(TARGET PkgConfig::FFTW3)
+#    target_link_libraries(picongpu PRIVATE PkgConfig::FFTW3)
+#    target_compile_definitions(picongpu PUBLIC "-DHAVE_FFTW3=1")
+#endif()
+
+################################################################################
 # PIConGPU Workarounds
 ################################################################################
 
@@ -515,6 +560,19 @@ cupla_add_executable(picongpu
 
 target_link_libraries(picongpu PUBLIC ${LIBS} ${HOST_LIBS} picongpu-hostonly)
 target_link_libraries(picongpu PRIVATE pmacc::pmacc)
+
+#PIC_dependency(FFTW3 "FFT library for shadowgraphy plugin" AUTO)
+if(PIC_HAVE_FFTW3)
+    target_link_libraries(picongpu PRIVATE PkgConfig::FFTW3)
+    target_compile_definitions(picongpu PUBLIC "-DHAVE_FFTW3=1")
+    # add_definitions(-DPIC_ENABLE_FFTW3=1)
+endif(PIC_HAVE_FFTW3)
+#    message(STATUS "Could NOT find FFTW3 with PkgConfig")
+#endif(PIC_HAVE_FFTW3)
+#if(TARGET PkgConfig::FFTW3)
+#    target_link_libraries(picongpu PRIVATE PkgConfig::FFTW3)
+#    target_compile_definitions(picongpu PUBLIC "-DHAVE_FFTW3=1")
+#endif()
 
 if(PIC_HAVE_openPMD)
     # Including <nlohmann/json.hpp> will throw loads of warnings. Quiet them.
