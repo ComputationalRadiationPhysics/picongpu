@@ -24,11 +24,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/radiation/GetRadiationMask.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/amplitude.hpp"
 #include "picongpu/plugins/radiation/calc_amplitude.hpp"
 #include "picongpu/plugins/radiation/check_consistency.hpp"
+#include "picongpu/plugins/radiation/getRadiationMask.hpp"
 #include "picongpu/plugins/radiation/nyquist_low_pass.hpp"
 #include "picongpu/plugins/radiation/particle.hpp"
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
