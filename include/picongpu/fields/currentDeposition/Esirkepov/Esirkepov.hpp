@@ -26,7 +26,7 @@
 #include "picongpu/fields/currentDeposition/Esirkepov/TrajectoryAssignmentShapeFunction.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/bitPacking.hpp"
 #include "picongpu/fields/currentDeposition/PermutatedFieldValueAccess.hpp"
-#include "picongpu/fields/currentDeposition/RelayPoint.hpp"
+#include "picongpu/fields/currentDeposition/relayPoint.hpp"
 
 #include <pmacc/types.hpp>
 
@@ -89,7 +89,7 @@ namespace picongpu
                     int iStart;
                     int iEnd;
                     constexpr bool isSupportEven = (supp % 2 == 0);
-                    RelayPoint<isSupportEven>()(iStart, iEnd, line.m_pos0[d], line.m_pos1[d]);
+                    relayPoint<isSupportEven>(iStart, iEnd, line.m_pos0[d], line.m_pos1[d]);
                     gridShift[d] = iStart < iEnd ? iStart : iEnd; // integer min function
                     bitpacking::set(
                         status[d],

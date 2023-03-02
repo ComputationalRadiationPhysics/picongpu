@@ -22,7 +22,7 @@
 #include "picongpu/fields/currentDeposition/EmZ/DepositCurrent.hpp"
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
-#include "picongpu/fields/currentDeposition/RelayPoint.hpp"
+#include "picongpu/fields/currentDeposition/relayPoint.hpp"
 
 #include <pmacc/meta/InvokeIf.hpp>
 
@@ -84,13 +84,14 @@ namespace picongpu
 
                 // Grid shifts for the start and end positions
                 DataSpace<simDim> shiftStart, shiftEnd;
-                floatD_X relayPoint;
+                floatD_X relayPointPosition;
 
                 /* calculate the relay point for the trajectory splitting */
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
                     constexpr bool isSupportEven = (supp % 2 == 0);
-                    relayPoint[d] = RelayPoint<isSupportEven>()(shiftStart[d], shiftEnd[d], posStart[d], posEnd[d]);
+                    relayPointPosition[d]
+                        = relayPoint<isSupportEven>(shiftStart[d], shiftEnd[d], posStart[d], posEnd[d]);
                 }
 
                 Line<floatD_X> line;
@@ -103,7 +104,7 @@ namespace picongpu
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
                     line.m_pos0[d] = posStart[d] - shiftStart[d];
-                    line.m_pos1[d] = relayPoint[d] - shiftStart[d];
+                    line.m_pos1[d] = relayPointPosition[d] - shiftStart[d];
                 }
 
                 deposit(worker, dataBoxJ.shift(shiftStart), line, chargeDensity);
@@ -117,7 +118,7 @@ namespace picongpu
                     {
                         /* switched start and end point */
                         line.m_pos1[d] = posEnd[d] - shiftEnd[d];
-                        line.m_pos0[d] = relayPoint[d] - shiftEnd[d];
+                        line.m_pos0[d] = relayPointPosition[d] - shiftEnd[d];
                     }
                     deposit(worker, dataBoxJ.shift(shiftEnd), line, chargeDensity);
                 }
