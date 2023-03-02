@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/memory/Array.hpp"
+#include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
 #include <limits>

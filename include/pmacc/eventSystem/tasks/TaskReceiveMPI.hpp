@@ -26,7 +26,6 @@
 #include "pmacc/communication/ICommunicator.hpp"
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/memory/buffers/Buffer.hpp"
 
 #include <memory>
 
@@ -47,7 +46,7 @@ namespace pmacc
 
         void init() override
         {
-            Buffer<TYPE, DIM>* dst = exchange->getCommunicationBuffer();
+            auto* dst = exchange->getCommunicationBuffer();
 
             this->request = Environment<DIM>::get().EnvironmentController().getCommunicator().startReceive(
                 exchange->getExchangeType(),

@@ -22,7 +22,4 @@
 
 #pragma once
 
-#include "pmacc/lockstep/ForEach.hpp"
-#include "pmacc/lockstep/Idx.hpp"
-#include "pmacc/lockstep/Variable.hpp"
-#include "pmacc/lockstep/Worker.hpp"
+#include "pmacc/lockstep/lockstep.hpp"

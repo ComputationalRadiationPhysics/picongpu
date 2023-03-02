@@ -23,6 +23,8 @@
 
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/lockstep/Worker.hpp"
+#include "pmacc/particles/Identifier.hpp"
+#include "pmacc/particles/operations/Deselect.hpp"
 #include "pmacc/types.hpp"
 
 #include "pmacc/math/vector/compile-time/Vector.hpp"

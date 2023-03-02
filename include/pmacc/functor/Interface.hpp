@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/lockstep/Worker.hpp"
+#include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/core/ignore_unused.hpp>

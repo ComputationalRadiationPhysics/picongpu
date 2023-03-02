@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
 #include "pmacc/types.hpp"
 
 #include <string>

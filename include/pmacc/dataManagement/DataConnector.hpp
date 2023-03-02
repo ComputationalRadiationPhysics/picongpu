@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
 #include "pmacc/assert.hpp"
 #include "pmacc/dataManagement/AbstractInitialiser.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"

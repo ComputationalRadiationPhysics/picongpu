@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 #include <cstdint>
 
 namespace pmacc

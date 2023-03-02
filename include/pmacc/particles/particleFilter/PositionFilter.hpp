@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/particles/Identifier.hpp"
 #include "pmacc/particles/frame_types.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/types.hpp"

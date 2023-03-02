@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
 #include "pmacc/debug/VerboseLog.hpp"
 #include "pmacc/eventSystem/events/CudaEvent.hpp"
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"

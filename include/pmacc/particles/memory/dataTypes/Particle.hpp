@@ -50,8 +50,6 @@
 
 namespace pmacc
 {
-    namespace pmath = pmacc::math;
-
     /** A single particle of a @see Frame
      *
      * A instance of this Particle is a representation ("pointer") to the memory

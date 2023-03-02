@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include "pmacc/attribute/FunctionSpecifier.hpp"
+
+#include <cstdint>
 
 
 namespace pmacc
 {
-    namespace pmath = pmacc::math;
-
     template<typename T_Type, typename T_size>
     class StaticArray
     {

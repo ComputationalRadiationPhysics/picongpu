@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund
+/* Copyright 2022 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,31 +21,27 @@
 
 #pragma once
 
-#include <cstdint>
 
-namespace pmacc
+#include <string>
+
+
+namespace pmacc::exec::detail
 {
-    namespace particles
+    /** Kernel with dynamic shared memory
+     *
+     * This implements the possibility to define dynamic shared memory without
+     * specializing the needed alpaka trait BlockSharedMemDynSizeBytes for each kernel with shared memory.
+     * The trait BlockSharedMemDynSizeBytes is defined by PMacc for all types of KernelWithDynSharedMem.
+     */
+    template<typename T_Kernel>
+    struct KernelWithDynSharedMem : public T_Kernel
     {
-        namespace policies
+        size_t const m_dynSharedMemBytes;
+
+        KernelWithDynSharedMem(T_Kernel const& kernel, size_t const& dynSharedMemBytes)
+            : T_Kernel(kernel)
+            , m_dynSharedMemBytes(dynSharedMemBytes)
         {
-            /**
-             * Policy for HandleGuardParticles that removes all particles from guard cells
-             */
-            struct DeleteParticles
-            {
-                template<class T_Particles>
-                void handleOutgoing(T_Particles& par, int32_t direction) const
-                {
-                    par.deleteGuardParticles(direction);
-                }
-
-                template<class T_Particles>
-                void handleIncoming(T_Particles& par, int32_t direction) const
-                {
-                }
-            };
-
-        } // namespace policies
-    } // namespace particles
-} // namespace pmacc
+        }
+    };
+} // namespace pmacc::exec::detail

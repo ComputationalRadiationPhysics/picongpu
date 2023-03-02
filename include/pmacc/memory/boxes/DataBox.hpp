@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 
 namespace pmacc

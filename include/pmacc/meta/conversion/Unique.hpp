@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/meta/conversion/MakeSeq.hpp"
 #include "pmacc/meta/conversion/ToSeq.hpp"
 
 #include <boost/mpl/empty.hpp>

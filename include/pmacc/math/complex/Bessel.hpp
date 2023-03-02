@@ -59,6 +59,7 @@
 
 #pragma once
 
+#include "pmacc/math/ConstVector.hpp"
 #include "pmacc/types.hpp"
 
 

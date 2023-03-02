@@ -22,9 +22,9 @@
 #pragma once
 
 #include "Selection.hpp"
+#include "pmacc/Environment.def"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
 
 namespace pmacc
 {

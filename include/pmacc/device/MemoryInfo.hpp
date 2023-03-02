@@ -22,7 +22,10 @@
 #pragma once
 
 
+#include "pmacc/Environment.def"
 #include "pmacc/types.hpp"
+
+#include <pmacc/communication/manager_common.hpp>
 
 #include <cstring> // memset
 

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/mappings/kernel/ExchangeMapping.hpp"
 #include "pmacc/mappings/kernel/MappingDescription.hpp"
 #include "pmacc/math/Vector.hpp"

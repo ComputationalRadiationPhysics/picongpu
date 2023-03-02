@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/Environment.hpp"
 #include "pmacc/communication/manager_common.hpp"
 #include "pmacc/types.hpp"
 
