@@ -136,18 +136,13 @@ namespace picongpu
         using StandAlonePlugins = bmpl::vector<
             Checkpoint,
             EnergyFields,
-            ChargeConservation
+            ChargeConservation,
+            SumCurrents
 
 #if(ENABLE_OPENPMD == 1)
             ,
             plugins::multi::Master<openPMD::openPMDWriter>
 #endif
-
-#if(PMACC_CUDA_ENABLED == 1)
-            ,
-            SumCurrents
-#endif
-
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
             ,
             isaacP::IsaacPlugin
