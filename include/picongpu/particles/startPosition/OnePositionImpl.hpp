@@ -29,83 +29,51 @@
 #include <boost/mpl/integral_c.hpp>
 
 
-namespace picongpu
+namespace picongpu::particles::startPosition::acc
 {
-    namespace particles
+    template<typename T_ParamClass>
+    struct OnePositionImpl
     {
-        namespace startPosition
+        /** set in-cell position and weighting
+         *
+         * @tparam T_Particle pmacc::Particle, particle type
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+         *
+         * @param particle particle to be manipulated
+         * @param ... unused particles
+         */
+        template<typename T_Particle, typename... T_Args>
+        HDINLINE void operator()(T_Particle& particle, T_Args&&...)
         {
-            namespace acc
-            {
-                namespace detail
-                {
-                    template<bool T_hasWeighting>
-                    struct SetWeighting
-                    {
-                        template<typename T_Particle>
-                        HDINLINE void operator()(T_Particle& particle, float_X const weighting)
-                        {
-                            particle[weighting_] = weighting;
-                        }
-                    };
+            particle[position_] = T_ParamClass{}.inCellOffset.template shrink<simDim>();
 
-                    template<>
-                    struct SetWeighting<false>
-                    {
-                        template<typename T_Particle>
-                        HDINLINE void operator()(T_Particle&, float_X const)
-                        {
-                        }
-                    };
+            // set the weighting attribute if the particle species has it
+            bool const hasWeighting
+                = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
+            if constexpr(hasWeighting)
+                particle[weighting_] = m_weighting;
+        }
 
-                } // namespace detail
+        template<typename T_Particle>
+        HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
+        {
+            bool const hasWeighting
+                = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
 
-                template<typename T_ParamClass>
-                struct OnePositionImpl
-                {
-                    /** set in-cell position and weighting
-                     *
-                     * @tparam T_Particle pmacc::Particle, particle type
-                     * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-                     *
-                     * @param particle particle to be manipulated
-                     * @param ... unused particles
-                     */
-                    template<typename T_Particle, typename... T_Args>
-                    HDINLINE void operator()(T_Particle& particle, T_Args&&...)
-                    {
-                        particle[position_] = T_ParamClass{}.inCellOffset.template shrink<simDim>();
+            // note: m_weighting member might stay uninitialized!
+            uint32_t result(T_ParamClass::numParticlesPerCell);
 
-                        // set the weighting attribute if the particle species has it
-                        bool const hasWeighting
-                            = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
-                        detail::SetWeighting<hasWeighting> setWeighting;
-                        setWeighting(particle, m_weighting);
-                    }
+            if(hasWeighting)
+                result = startPosition::detail::WeightMacroParticles{}(
+                    realParticlesPerCell,
+                    T_ParamClass::numParticlesPerCell,
+                    m_weighting);
 
-                    template<typename T_Particle>
-                    HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
-                    {
-                        bool const hasWeighting
-                            = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
+            return result;
+        }
 
-                        // note: m_weighting member might stay uninitialized!
-                        uint32_t result(T_ParamClass::numParticlesPerCell);
+    private:
+        float_X m_weighting;
+    };
 
-                        if(hasWeighting)
-                            result = startPosition::detail::WeightMacroParticles{}(
-                                realParticlesPerCell,
-                                T_ParamClass::numParticlesPerCell,
-                                m_weighting);
-
-                        return result;
-                    }
-
-                private:
-                    float_X m_weighting;
-                };
-
-            } // namespace acc
-        } // namespace startPosition
-    } // namespace particles
-} // namespace picongpu
+} // namespace picongpu::particles::startPosition::acc
