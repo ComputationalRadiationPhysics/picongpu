@@ -237,7 +237,7 @@ namespace picongpu
                     const DataSpace<DIM3> periodic
                         = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
 
-                    for(uint32_t d = 0u; d < DIM3; ++d)
+                    for(uint32_t d = 0u; d < simDim; ++d)
                     {
                         bool isLaserAxisDirection = d == T_axis;
 
