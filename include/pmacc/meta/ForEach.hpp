@@ -32,116 +32,100 @@
 #include <utility>
 
 
-namespace pmacc
+namespace pmacc::meta
 {
-    namespace meta
+    namespace detail
     {
-        namespace detail
-        {
-            /** call the functor were itBegin points to
-             *
-             *  @tparam itBegin iterator to an element in a mpl sequence
-             *  @tparam itEnd iterator to the end of a mpl sequence
-             *  @tparam isEnd true if itBegin == itEnd, else false
-             */
-            template<typename itBegin, typename itEnd, bool isEnd = std::is_same_v<itBegin, itEnd>>
-            struct CallFunctorOfIterator
-            {
-                using nextIt = typename boost::mpl::next<itBegin>::type;
-                using Functor = typename boost::mpl::deref<itBegin>::type;
-                using NextCall = CallFunctorOfIterator<nextIt, itEnd>;
-
-                PMACC_NO_NVCC_HDWARNING
-                template<typename... T_Types>
-                HDINLINE void operator()(T_Types&&... ts) const
-                {
-                    Functor()(std::forward<T_Types>(ts)...);
-                    NextCall()(ts...);
-                }
-
-                PMACC_NO_NVCC_HDWARNING
-                template<typename... T_Types>
-                HDINLINE void operator()(T_Types&&... ts)
-                {
-                    Functor()(std::forward<T_Types>(ts)...);
-                    NextCall()(ts...);
-                }
-            };
-
-            /** Recursion end of ForEach */
-            template<typename itBegin, typename itEnd>
-            struct CallFunctorOfIterator<itBegin, itEnd, true>
-            {
-                PMACC_NO_NVCC_HDWARNING
-                template<typename... T_Types>
-                HDINLINE void operator()(T_Types&&...) const
-                {
-                }
-
-                PMACC_NO_NVCC_HDWARNING
-                template<typename... T_Types>
-                HDINLINE void operator()(T_Types&&...)
-                {
-                }
-            };
-
-        } // namespace detail
-
-        /** Compile-Time for each for Boost::MPL Type Lists
+        /** call the functor were itBegin points to
          *
-         *  @tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
-         *  @tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
-         *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
-         *          The maximum number of parameters for the operator() is limited by
-         *          PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
-         *  @tparam T_Accessor An unary lambda operation
-         *
-         * Example:
-         *      MPLSeq = boost::mpl::vector<int,float>
-         *      Functor = any unary lambda functor
-         *      Accessor = lambda operation identity
-         *
-         *      definition: F(X) means boost::apply<F,X>
-         *
-         *      call:   ForEach<MPLSeq,Functor,Accessor>()(42);
-         *      unrolled code: Functor(Accessor(int))(42);
-         *                     Functor(Accessor(float))(42);
+         *  @tparam itBegin iterator to an element in a mpl sequence
+         *  @tparam itEnd iterator to the end of a mpl sequence
          */
-        template<typename T_MPLSeq, typename T_Functor, typename T_Accessor = meta::accessors::Identity<>>
-        struct ForEach
+        template<typename itBegin, typename itEnd>
+        struct CallFunctorOfIterator
         {
-            template<typename X>
-            struct ReplacePlaceholder : bmpl::apply1<T_Functor, typename bmpl::apply1<T_Accessor, X>::type>
-            {
-            };
-
-            using SolvedFunctors = typename bmpl::transform<T_MPLSeq, ReplacePlaceholder<bmpl::_1>>::type;
-
-            using begin = typename boost::mpl::begin<SolvedFunctors>::type;
-            using end = typename boost::mpl::end<SolvedFunctors>::type;
-
-
-            using NextCall = detail::CallFunctorOfIterator<begin, end>;
-
-            /* this functor does nothing */
-            using Functor = detail::CallFunctorOfIterator<end, end>;
+            using Functor = typename boost::mpl::deref<itBegin>::type;
 
             PMACC_NO_NVCC_HDWARNING
             template<typename... T_Types>
             HDINLINE void operator()(T_Types&&... ts) const
             {
-                Functor()(std::forward<T_Types>(ts)...);
-                NextCall()(ts...);
+                if constexpr(!std::is_same_v<itBegin, itEnd>)
+                {
+                    Functor()(std::forward<T_Types>(ts)...);
+                    using NextCall = CallFunctorOfIterator<typename boost::mpl::next<itBegin>::type, itEnd>;
+                    NextCall()(ts...);
+                }
             }
 
             PMACC_NO_NVCC_HDWARNING
             template<typename... T_Types>
             HDINLINE void operator()(T_Types&&... ts)
             {
-                Functor()(std::forward<T_Types>(ts)...);
-                NextCall()(ts...);
+                if constexpr(!std::is_same_v<itBegin, itEnd>)
+                {
+                    Functor()(std::forward<T_Types>(ts)...);
+                    using NextCall = CallFunctorOfIterator<typename boost::mpl::next<itBegin>::type, itEnd>;
+                    NextCall()(ts...);
+                }
             }
         };
+    } // namespace detail
 
-    } // namespace meta
-} // namespace pmacc
+    /** Compile-Time for each for Boost::MPL Type Lists
+     *
+     *  @tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
+     *  @tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
+     *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
+     *          The maximum number of parameters for the operator() is limited by
+     *          PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
+     *  @tparam T_Accessor An unary lambda operation
+     *
+     * Example:
+     *      MPLSeq = boost::mpl::vector<int,float>
+     *      Functor = any unary lambda functor
+     *      Accessor = lambda operation identity
+     *
+     *      definition: F(X) means boost::apply<F,X>
+     *
+     *      call:   ForEach<MPLSeq,Functor,Accessor>()(42);
+     *      unrolled code: Functor(Accessor(int))(42);
+     *                     Functor(Accessor(float))(42);
+     */
+    template<typename T_MPLSeq, typename T_Functor, typename T_Accessor = meta::accessors::Identity<>>
+    struct ForEach
+    {
+        template<typename X>
+        struct ReplacePlaceholder : bmpl::apply1<T_Functor, typename bmpl::apply1<T_Accessor, X>::type>
+        {
+        };
+
+        using SolvedFunctors = typename bmpl::transform<T_MPLSeq, ReplacePlaceholder<bmpl::_1>>::type;
+
+        using begin = typename boost::mpl::begin<SolvedFunctors>::type;
+        using end = typename boost::mpl::end<SolvedFunctors>::type;
+
+
+        using NextCall = detail::CallFunctorOfIterator<begin, end>;
+
+        /* this functor does nothing */
+        using Functor = detail::CallFunctorOfIterator<end, end>;
+
+        PMACC_NO_NVCC_HDWARNING
+        template<typename... T_Types>
+        HDINLINE void operator()(T_Types&&... ts) const
+        {
+            Functor()(std::forward<T_Types>(ts)...);
+            NextCall()(ts...);
+        }
+
+        PMACC_NO_NVCC_HDWARNING
+        template<typename... T_Types>
+        HDINLINE void operator()(T_Types&&... ts)
+        {
+            Functor()(std::forward<T_Types>(ts)...);
+            NextCall()(ts...);
+        }
+    };
+
+} // namespace pmacc::meta
