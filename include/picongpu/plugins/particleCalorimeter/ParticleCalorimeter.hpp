@@ -68,8 +68,8 @@ namespace picongpu
     template<class ParticlesType>
     class ParticleCalorimeter : public plugins::multi::IInstance
     {
-        using DBufCalorimeter = pmacc::DeviceBufferIntern<float_X, DIM3>;
-        using HBufCalorimeter = pmacc::HostBufferIntern<float_X, DIM3>;
+        using DBufCalorimeter = pmacc::DeviceBuffer<float_X, DIM3>;
+        using HBufCalorimeter = pmacc::HostBuffer<float_X, DIM3>;
 
     public:
         using MyCalorimeterFunctor = CalorimeterFunctor<typename DBufCalorimeter::DataBoxType>;

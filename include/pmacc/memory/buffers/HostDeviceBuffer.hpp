@@ -22,9 +22,7 @@
 #pragma once
 
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
-#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
 #include "pmacc/memory/buffers/HostBuffer.hpp"
-#include "pmacc/memory/buffers/HostBufferIntern.hpp"
 #include "pmacc/types.hpp"
 
 #include <memory>
@@ -37,8 +35,8 @@ namespace pmacc
     template<typename T_Type, unsigned T_dim>
     class HostDeviceBuffer
     {
-        using HostBufferType = HostBufferIntern<T_Type, T_dim>;
-        using DeviceBufferType = DeviceBufferIntern<T_Type, T_dim>;
+        using HostBufferType = HostBuffer<T_Type, T_dim>;
+        using DeviceBufferType = DeviceBuffer<T_Type, T_dim>;
 
     public:
         using ValueType = T_Type;

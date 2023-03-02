@@ -23,7 +23,7 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/memory/buffers/ExchangeIntern.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/memory/dataTypes/Mask.hpp"
 
@@ -230,7 +230,7 @@ namespace pmacc
                     }
 
                     maxExchange = std::max(maxExchange, ex + 1u);
-                    sendExchanges[ex] = std::make_unique<ExchangeIntern<BORDERTYPE, DIM>>(
+                    sendExchanges[ex] = std::make_unique<Exchange<BORDERTYPE, DIM>>(
                         this->getDeviceBuffer(),
                         gridLayout,
                         guardingCells,
@@ -240,7 +240,7 @@ namespace pmacc
                         sizeOnDeviceSend);
                     ExchangeType recvex = Mask::getMirroredExchangeType(ex);
                     maxExchange = std::max(maxExchange, recvex + 1u);
-                    receiveExchanges[recvex] = std::make_unique<ExchangeIntern<BORDERTYPE, DIM>>(
+                    receiveExchanges[recvex] = std::make_unique<Exchange<BORDERTYPE, DIM>>(
                         this->getDeviceBuffer(),
                         gridLayout,
                         guardingCells,
@@ -341,7 +341,7 @@ namespace pmacc
 
                         // GridLayout<DIM> memoryLayout(size);
                         maxExchange = std::max(maxExchange, ex + 1u);
-                        sendExchanges[ex] = std::make_unique<ExchangeIntern<BORDERTYPE, DIM>>(
+                        sendExchanges[ex] = std::make_unique<Exchange<BORDERTYPE, DIM>>(
                             /*memoryLayout*/ dataSpace,
                             ex,
                             uniqCommunicationTag,
@@ -349,7 +349,7 @@ namespace pmacc
 
                         ExchangeType recvex = Mask::getMirroredExchangeType(ex);
                         maxExchange = std::max(maxExchange, recvex + 1u);
-                        receiveExchanges[recvex] = std::make_unique<ExchangeIntern<BORDERTYPE, DIM>>(
+                        receiveExchanges[recvex] = std::make_unique<Exchange<BORDERTYPE, DIM>>(
                             /*memoryLayout*/ dataSpace,
                             recvex,
                             uniqCommunicationTag,
@@ -547,8 +547,8 @@ namespace pmacc
         Mask sendMask;
         Mask receiveMask;
 
-        std::unique_ptr<ExchangeIntern<BORDERTYPE, DIM>> sendExchanges[27];
-        std::unique_ptr<ExchangeIntern<BORDERTYPE, DIM>> receiveExchanges[27];
+        std::unique_ptr<Exchange<BORDERTYPE, DIM>> sendExchanges[27];
+        std::unique_ptr<Exchange<BORDERTYPE, DIM>> receiveExchanges[27];
         EventTask receiveEvents[27];
         EventTask sendEvents[27];
 

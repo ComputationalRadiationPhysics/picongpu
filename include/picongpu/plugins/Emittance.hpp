@@ -504,10 +504,10 @@ namespace picongpu
 
             auto localDomSizeY = subGrid.getGlobalDomain().size.y();
 
-            pmacc::HostBufferIntern<float_64, DIM1> reducedSumMom2(localDomSizeY);
-            pmacc::HostBufferIntern<float_64, DIM1> reducedSumPos2(localDomSizeY);
-            pmacc::HostBufferIntern<float_64, DIM1> reducedSumMomPos(localDomSizeY);
-            pmacc::HostBufferIntern<float_64, DIM1> reducedCount_e(localDomSizeY);
+            pmacc::HostBuffer<float_64, DIM1> reducedSumMom2(localDomSizeY);
+            pmacc::HostBuffer<float_64, DIM1> reducedSumPos2(localDomSizeY);
+            pmacc::HostBuffer<float_64, DIM1> reducedSumMomPos(localDomSizeY);
+            pmacc::HostBuffer<float_64, DIM1> reducedCount_e(localDomSizeY);
             reducedSumMom2.setValue(0.0);
             reducedSumPos2.setValue(0.0);
             reducedSumMomPos.setValue(0.0);
@@ -549,10 +549,10 @@ namespace picongpu
 
 
             // gather to file writer
-            pmacc::HostBufferIntern<float_64, DIM1> globalSumMom2(globalDomainSizeY);
-            pmacc::HostBufferIntern<float_64, DIM1> globalSumPos2(globalDomainSizeY);
-            pmacc::HostBufferIntern<float_64, DIM1> globalSumMomPos(globalDomainSizeY);
-            pmacc::HostBufferIntern<float_64, DIM1> globalCount_e(globalDomainSizeY);
+            pmacc::HostBuffer<float_64, DIM1> globalSumMom2(globalDomainSizeY);
+            pmacc::HostBuffer<float_64, DIM1> globalSumPos2(globalDomainSizeY);
+            pmacc::HostBuffer<float_64, DIM1> globalSumMomPos(globalDomainSizeY);
+            pmacc::HostBuffer<float_64, DIM1> globalCount_e(globalDomainSizeY);
 
             // gather y offsets, so we can store our gathered data in the right order
             int gatherSize = -1;

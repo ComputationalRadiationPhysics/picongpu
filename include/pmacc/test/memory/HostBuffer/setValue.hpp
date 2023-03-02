@@ -30,12 +30,12 @@ namespace pmacc
     {
         namespace memory
         {
-            namespace HostBufferIntern
+            namespace HostBuffer
             {
                 /**
-                 * Checks if the HostBufferIntern is reseted correctly to zero.
+                 * Checks if the HostBuffer is set to a constant value.
                  */
-                struct ResetTest
+                struct setValueTest
                 {
                     template<typename T_Dim>
                     void exec(T_Dim)
@@ -47,17 +47,18 @@ namespace pmacc
 
                         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
 
-                        for(unsigned i = 0; i < nElementsPerDim.size(); ++i)
+                        for(size_t i = 0; i < nElementsPerDim.size(); ++i)
                         {
-                            ::pmacc::DataSpace<T_Dim::value> const dataSpace
-                                = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
-                            ::pmacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
+                            auto const dataSpace = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+                            ::pmacc::HostBuffer<Data, T_Dim::value> hostBuffer(dataSpace);
 
-                            hostBufferIntern.reset();
+                            const Data value = 255;
+                            hostBuffer.setValue(value);
 
-                            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
+                            auto ptr = hostBuffer.getPointer();
+                            for(size_t j = 0; j < static_cast<size_t>(dataSpace.productOfComponents()); ++j)
                             {
-                                REQUIRE(hostBufferIntern.getPointer()[i] == 0);
+                                REQUIRE(ptr[j] == value);
                             }
                         }
                     }
@@ -70,13 +71,13 @@ namespace pmacc
                     }
                 };
 
-            } // namespace HostBufferIntern
+            } // namespace HostBuffer
         } // namespace memory
     } // namespace test
 } // namespace pmacc
 
-TEST_CASE("HostBufferIntern::reset", "[reset]")
+TEST_CASE("HostBuffer::setValue", "[setValue]")
 {
-    using namespace pmacc::test::memory::HostBufferIntern;
-    ::boost::mpl::for_each<Dims>(ResetTest());
+    using namespace pmacc::test::memory::HostBuffer;
+    ::boost::mpl::for_each<Dims>(setValueTest());
 }
