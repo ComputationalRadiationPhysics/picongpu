@@ -49,11 +49,9 @@
 #    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #endif
 
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/plugins/ChargeConservation.hpp"
-#    if(ENABLE_OPENPMD == 1)
-#        include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
-#    endif
+#include "picongpu/plugins/ChargeConservation.hpp"
+#if(ENABLE_OPENPMD == 1)
+#    include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #endif
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
@@ -137,7 +135,8 @@ namespace picongpu
         /* define stand alone plugins */
         using StandAlonePlugins = bmpl::vector<
             Checkpoint,
-            EnergyFields
+            EnergyFields,
+            ChargeConservation
 
 #if(ENABLE_OPENPMD == 1)
             ,
@@ -146,8 +145,7 @@ namespace picongpu
 
 #if(PMACC_CUDA_ENABLED == 1)
             ,
-            SumCurrents,
-            ChargeConservation
+            SumCurrents
 #endif
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
@@ -175,11 +173,9 @@ namespace picongpu
             plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>,
             plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1>>
 #endif
-#if(PMACC_CUDA_ENABLED == 1)
-#    if(ENABLE_OPENPMD == 1)
+#if(ENABLE_OPENPMD == 1)
             ,
             PerSuperCell<bmpl::_1>
-#    endif
 #endif
             >;
 
