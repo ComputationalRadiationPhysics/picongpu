@@ -52,7 +52,7 @@ class TestSimulation(unittest.TestCase):
         sim.init_manager = pypicongpu.species.InitManager()
 
         runner = pypicongpu.Runner(sim)
-        runner.generate()
+        runner.generate(printDirToConsole=True)
         runner.build()
         runner.run()
 

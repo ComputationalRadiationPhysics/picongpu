@@ -1,0 +1,207 @@
+/* Copyright 2020-2023 Sergei Bastrakov, Rene Widera, Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file incidentField.param
+ *
+ * Configure incident field profile and offset of the Huygens surface for each boundary.
+ *
+ * Available profiles:
+ *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ * in focus. That is, SD, AD, GDD, and TOD, respectively.
+ *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
+ *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
+ *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::None                  : no incident field
+ *  - profiles::PlaneWave<>           : plane wave profile with given parameters
+ *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
+ * parameters
+ *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
+ * parameters
+ *
+ * All profiles but `Free<>` and `None` are parametrized with a profile-specific structure.
+ * Their interfaces are defined in the corresponding `.def` files inside directory
+ * picongpu/fields/incidentField/profiles/. Note that all these parameter structures inherit common base structures
+ * from `BaseParam.def`. Thus, a user-provided structure must also define all members according to the base struct.
+ *
+ * In the end, this file needs to define `XMin`, `XMax`, `YMin`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. Each of them could be a single profile or a
+ * typelist of profiles created with `MakeSeq_t`. In case a typelist is used, the resulting field is a sum of
+ * effects of all profiles in the list. This file also has to define constexpr array `POSITION` that controls
+ * positioning of the generating surface relative to total domain. For example:
+ *
+ * @code{.cpp}
+ * using XMin = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
+ * using XMax = profiles::None;
+ * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
+ * using YMax = profiles::None;
+ * using ZMin = profiles::Polynom<UserPolynomParams>;
+ * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ *
+ * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
+ * @endcode
+ */
+
+#pragma once
+
+#include "picongpu/fields/incidentField/profiles/profiles.def"
+
+namespace picongpu::fields::incidentField
+{
+    {{#laser}}
+    /** Base structure for parameters of all lasers
+     *
+     * The particular used parameter structures do not have to inherit this, but must define same members
+     * with same meaning.
+     */
+    struct PyPIConGPULaserBaseParam
+    {
+        static constexpr float_64 WAVE_LENGTH_SI = {{{wave_length_si}}}; // m
+        static constexpr float_64 AMPLITUDE_SI = {{{E0_si}}}; // V/m
+        static constexpr float_64 PULSE_LENGTH_SI = {{{pulse_length_si}}}; // s (1 sigma)
+        static constexpr float_X LASER_PHASE = {{{phase}}}; // unitless
+
+        static constexpr float_64 propagation_direction[3u] = {
+                {{#propagation_direction}}
+                {{{component}}}{{^_last}},{{/_last}}
+                {{/propagation_direction}}
+            };
+        static constexpr float_64 DIRECTION_X = propagation_direction[0];
+        static constexpr float_64 DIRECTION_Y = propagation_direction[1];
+        static constexpr float_64 DIRECTION_Z = propagation_direction[2];
+
+        static constexpr float_64 focus_position[3u] = {
+                {{#focus_pos_si}}
+                {{{component}}}{{^_last}},{{/_last}}
+                {{/focus_pos_si}}
+            };
+        static constexpr float_64 FOCUS_POSITION_X_SI = focus_position[0];
+        static constexpr float_64 FOCUS_POSITION_Y_SI = focus_position[1];
+        static constexpr float_64 FOCUS_POSITION_Z_SI = focus_position[2];
+
+        static constexpr PolarisationType Polarisation = PolarisationType::{{{polarization_type}}};
+
+        static constexpr float_64 polarisation_direction[3u] = {
+                {{#polarization_direction}}
+                {{{component}}}{{^_last}},{{/_last}}
+                {{/polarization_direction}}
+            };
+        static constexpr float_64 POLARISATION_DIRECTION_X = polarisation_direction[0];
+        static constexpr float_64 POLARISATION_DIRECTION_Y = polarisation_direction[1];
+        static constexpr float_64 POLARISATION_DIRECTION_Z = polarisation_direction[2];
+    };
+
+    namespace PyPIConGPUGaussianBeam
+    {
+                //! Use only the 0th Laguerremode for a standard Gaussian
+                static constexpr uint32_t MODENUMBER = {{{modenumber}}};
+                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 
+                {{#laguerre_modes}}
+                {{{single_laguerre_mode}}}{{^_last}},{{/_last}}
+                {{/laguerre_modes}}
+                );
+                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES,
+                {{#laguerre_phases}}
+                {{{single_laguerre_phase}}}{{^_last}},{{/_last}}
+                {{/laguerre_phases}}
+                );
+    } // namespace PyPIConGPUGaussianBeam
+
+    struct PyPIConGPUGaussianBeamParam : public PyPIConGPULaserBaseParam
+    {
+        /** Beam waist: distance from the axis where the pulse intensity (E^2)
+         *              decreases to its 1/e^2-th part,
+         *              at the focus position of the laser
+         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+         *                             [   1.17741    ]
+         *
+         * unit: meter
+         */
+        static constexpr float_64 W0_SI = {{{waist_si}}};
+
+        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+         *
+         *  unit: none
+         */
+        static constexpr float_64 PULSE_INIT = {{{pulse_init}}};
+
+        /** Laguerre mode parameters
+         *
+         * @{
+         */
+        using LAGUERREMODES_t = PyPIConGPUGaussianBeam::LAGUERREMODES_t;
+        using LAGUERREPHASES_t = PyPIConGPUGaussianBeam::LAGUERREPHASES_t;
+        static constexpr uint32_t MODENUMBER = PyPIConGPUGaussianBeam::MODENUMBER;
+        /** @} */
+    };
+
+    /** Position in cells of the Huygens surface relative to start of the total domain
+     *
+     * The position is set as an offset, in cells, counted from the start of the total domain.
+     * For the max boundaries, negative position values are allowed.
+     * These negative values are treated as position at (global_domain_size[d] + POSITION[d][1]).
+     * It is also possible to specify the position explicitly as a positive number.
+     * Then it is on a user to make sure the position is correctly calculated wrt the grid size.
+     *
+     * Except moving window simulations, the position must be inside the global domain.
+     * The distance between the Huygens surface and each global domain boundary must be at least
+     * absorber_thickness + (FDTD_spatial_order / 2 - 1). However beware of setting position = direction *
+     * (absorber_thickness + const), as then changing absorber parameters will affect laser positioning.
+     * When all used profiles are None, the check for POSITION validity is skipped.
+     *
+     * For moving window simulations, POSITION for the YMax side can be located outside the initially
+     * simulated volume. In this case, parts of the generation surface outside of the currently simulated
+     * volume is are treated as if they had zero incident field and it is user's responsibility to apply a
+     * source matching such a case.
+     */
+    constexpr int32_t POSITION[3][2] = {
+        {{#huygens_surface_positions}}
+        {{#row_x}}
+            { {{{negative}}}, {{{positive}}} },
+        {{/row_x}}
+        {{#row_y}}
+            { {{{negative}}}, {{{positive}}} },
+        {{/row_y}}
+        {{#row_z}}
+            { {{{negative}}}, {{{positive}}} }
+        {{/row_z}}
+        {{/huygens_surface_positions}}
+    };
+
+    /**@{*/
+    //! Incident field profile types along each boundary, these 6 types (or aliases) are required.
+    using YMin = profiles::GaussianBeam<PyPIConGPUGaussianBeamParam>;
+    {{/laser}}
+    {{^laser}}
+    // no laser defined case
+    constexpr int32_t POSITION[3][2] = {
+                {16, -16}, // x direction [negative, positive]
+                {16, -16}, // y direction [negative, positive]
+                {16, -16} // z direction [negative, positive]
+    };
+
+    using YMin = profiles::None;
+    {{/laser}}
+    using XMin = profiles::None;
+    using XMax = profiles::None;
+    using YMax = profiles::None;
+    using ZMin = profiles::None;
+    using ZMax = profiles::None;
+    /**@}*/
+} // namespace picongpu::fields::incidentField

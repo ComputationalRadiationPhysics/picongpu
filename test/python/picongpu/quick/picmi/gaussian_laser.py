@@ -1,6 +1,6 @@
 """
 This file is part of the PIConGPU.
-Copyright 2021-2022 PIConGPU contributors
+Copyright 2021-2023 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Richard Pausch
 License: GPLv3+
 """
@@ -19,76 +19,63 @@ class TestPicmiGaussianLaser(unittest.TestCase):
             wavelength=1,
             waist=2,
             duration=3,
-            focal_position=[.5, 4, .5],
-            centroid_position=[.5, 0, .5],
-            E0=5,
             propagation_direction=[0, 1, 0],
             polarization_direction=[0, 0, 1],
+            focal_position=[5, 4, 5],
+            centroid_position=[0, 0, 0],
+            E0=5,
             picongpu_laguerre_modes=[2.0, 3.0],
-            picongpu_laguerre_phases=[4.0, 5.0])
+            picongpu_laguerre_phases=[4.0, 5.0],
+            picongpu_phase=-2,
+            picongpu_huygens_surface_positions=[[1, -1], [1, -1], [1, -1]])
 
         pypic_laser = picmi_laser.get_as_pypicongpu()
         # translated
         self.assertEqual(1, pypic_laser.wavelength)
         self.assertEqual(2, pypic_laser.waist)
         self.assertEqual(3, pypic_laser.duration)
-        self.assertEqual(4, pypic_laser.focus_pos)
+        self.assertEqual([0, 1, 0], pypic_laser.propagation_direction)
+        self.assertEqual([0, 0, 1], pypic_laser.polarization_direction)
+        self.assertEqual([5, 4, 5], pypic_laser.focus_pos)
+        # centroid is not a picongpu input
         self.assertEqual(5, pypic_laser.E0)
         self.assertEqual(
-            pypicongpu.laser.GaussianLaser.PolarizationType.LINEAR_Z,
+            pypicongpu.laser.GaussianLaser.PolarizationType.LINEAR,
             pypic_laser.polarization_type)
         self.assertEqual([2.0, 3.0], pypic_laser.laguerre_modes)
         self.assertEqual([4.0, 5.0], pypic_laser.laguerre_phases)
+        self.assertEqual(-2, pypic_laser.phase)
+        self.assertEqual([
+            [1, -1], [1, -1], [1, -1]], pypic_laser.huygens_surface_positions)
 
-        # defaults
-        self.assertEqual(0, pypic_laser.phase)
+        # computed values
         self.assertEqual(15, pypic_laser.pulse_init)
-        self.assertEqual(0, pypic_laser.init_plane_y)
+
+    def test_scalar_values_negative(self):
+        """waist, duration and wavelelngth must be > 0"""
+        with self.assertRaises(ValueError):
+            picmi.GaussianLaser(-1, -2, -3,
+                                focal_position=[0, 0, 0],
+                                centroid_position=[0, -1, 0],
+                                propagation_direction=[0, 1, 0],
+                                polarization_direction=[1, 0, 0],
+                                E0=1)
 
     def test_values_focal_pos(self):
         """only y of focal pos can be varied"""
         # x, z checked against centroid pos
 
-        # difference in x
+        # all ok (difference in x)
         picmi_laser = picmi.GaussianLaser(
             1, 2, 3,
-            focal_position=[0, 7, .5],
+            focal_position=[1, 2, -5],
             centroid_position=[.5, 0, .5],
             propagation_direction=[0, 1, 0],
             polarization_direction=[1, 0, 0],
             E0=1)
-        with self.assertRaisesRegex(Exception, ".*foc(us|al).*[xX].*"):
-            picmi_laser.get_as_pypicongpu()
-
-        # difference in z
-        picmi_laser = picmi.GaussianLaser(
-            1, 2, 3,
-            focal_position=[.5, 2, 500],
-            centroid_position=[.5, 0, .5],
-            propagation_direction=[0, 1, 0],
-            polarization_direction=[1, 0, 0],
-            E0=1)
-        with self.assertRaisesRegex(Exception, ".*foc(us|al).*[zZ].*"):
-            picmi_laser.get_as_pypicongpu()
-
-        # all ok (difference in y)
-        picmi_laser = picmi.GaussianLaser(
-            1, 2, 3,
-            focal_position=[.5, -5, .5],
-            centroid_position=[.5, 0, .5],
-            propagation_direction=[0, 1, 0],
-            polarization_direction=[1, 0, 0],
-            E0=1)
-        self.assertEqual(-5, picmi_laser.get_as_pypicongpu().focus_pos)
-
-        picmi_laser = picmi.GaussianLaser(
-            1, 2, 3,
-            focal_position=[.5, 0, .5],
-            centroid_position=[.5, 0, .5],
-            propagation_direction=[0, 1, 0],
-            polarization_direction=[1, 0, 0],
-            E0=1)
-        self.assertEqual(0, picmi_laser.get_as_pypicongpu().focus_pos)
+        self.assertEqual(1, picmi_laser.get_as_pypicongpu().focus_pos[0])
+        self.assertEqual(2, picmi_laser.get_as_pypicongpu().focus_pos[1])
+        self.assertEqual(-5, picmi_laser.get_as_pypicongpu().focus_pos[2])
 
     def test_values_propagation_direction(self):
         """only propagation in y+ permitted"""
@@ -97,9 +84,10 @@ class TestPicmiGaussianLaser(unittest.TestCase):
             [0, 0, 1],
             [1, 0, 0],
             [sqrt(2), sqrt(2), 0],
+            [1, 0, -1],
             [0, 0, 0],
             [0, -1, 0],
-        ]
+            ]
 
         for invalid_propagation_vector in invalid_propagation_vectors:
             picmi_laser = picmi.GaussianLaser(
@@ -112,21 +100,21 @@ class TestPicmiGaussianLaser(unittest.TestCase):
             with self.assertRaisesRegex(Exception, ".*propagation.*"):
                 picmi_laser.get_as_pypicongpu()
 
-        # positive y direction works
+        # positive direction works
         picmi_laser = picmi.GaussianLaser(
             1, 2, 3,
             focal_position=[.5, 0, .5],
             centroid_position=[.5, 0, .5],
-            propagation_direction=[0, 1, 0],
+            propagation_direction=[1/sqrt(3), 1/sqrt(3), 1/sqrt(3)],
             polarization_direction=[1, 0, 0],
             E0=1)
 
-    def test_values_polarization(self):
-        """only polarization x & z permitted"""
+    def test_values_polarization_direction(self):
+        """polarization_vector must be normalized"""
         invalid_polarizations = [
             [0, 0, 0],
             [1, 1, 1],
-            [0, 1, 0],
+            [1, 0, -1],
             [sqrt(2), sqrt(2), 0],
         ]
 
@@ -142,29 +130,20 @@ class TestPicmiGaussianLaser(unittest.TestCase):
                 picmi_laser.get_as_pypicongpu()
 
         # valid examples:
-        picmi_laser = picmi.GaussianLaser(
-            1, 2, 3,
-            focal_position=[0, 0, 0],
-            centroid_position=[0, 0, 0],
-            propagation_direction=[0, 1, 0],
-            polarization_direction=[1, 0, 0],
-            E0=1)
-        pypic_laser = picmi_laser.get_as_pypicongpu()
-        self.assertEqual(
-            pypicongpu.laser.GaussianLaser.PolarizationType.LINEAR_X,
-            pypic_laser.polarization_type)
+        valid_polarization_vectors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
-        picmi_laser = picmi.GaussianLaser(
-            1, 2, 3,
-            focal_position=[0, 0, 0],
-            centroid_position=[0, 0, 0],
-            propagation_direction=[0, 1, 0],
-            polarization_direction=[0, 0, 1],
-            E0=1)
-        pypic_laser = picmi_laser.get_as_pypicongpu()
-        self.assertEqual(
-            pypicongpu.laser.GaussianLaser.PolarizationType.LINEAR_Z,
-            pypic_laser.polarization_type)
+        for valid_polarization_vector in valid_polarization_vectors:
+            picmi_laser = picmi.GaussianLaser(
+                1, 2, 3,
+                focal_position=[0, 0, 0],
+                centroid_position=[0, 0, 0],
+                propagation_direction=[0, 1, 0],
+                polarization_direction=valid_polarization_vector,
+                E0=1)
+            pypic_laser = picmi_laser.get_as_pypicongpu()
+            self.assertEqual(
+                valid_polarization_vector,
+                pypic_laser.polarization_direction)
 
     def test_minimal(self):
         """mimimal possible initialization"""
@@ -178,8 +157,8 @@ class TestPicmiGaussianLaser(unittest.TestCase):
         pypic_laser = picmi_laser.get_as_pypicongpu()
         self.assertNotEqual({}, pypic_laser.get_rendering_context())
 
-    def test_values_centroid_position_y_is_zero(self):
-        """centroid position must have y=0"""
+    def test_values_centroid_position_y_smaller_equal_zero(self):
+        """centroid position must have y<=0"""
 
         with self.assertRaisesRegex(Exception, ".*centroid.*[yY].*(zero|0).*"):
             picmi.GaussianLaser(1, 2, 3,
@@ -193,7 +172,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
         self.assertNotEqual({},
                             picmi.GaussianLaser(
                                 1, 2, 3,
-                                centroid_position=[12, 0, 7],
+                                centroid_position=[12, -3, 7],
                                 focal_position=[12, 0, 7],
                                 propagation_direction=[0, 1, 0],
                                 polarization_direction=[1, 0, 0],
@@ -260,6 +239,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
                 duration=3,
                 focal_position=[0, 0, 0],
                 centroid_position=[0, 0, 0],
+                polarization_direction=[1, 0, 0],
                 E0=5,
                 propagation_direction=[0, 1, 0],
                 picongpu_laguerre_modes=[1.0, 2.0],
@@ -272,6 +252,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
                 duration=3,
                 focal_position=[0, 0, 0],
                 centroid_position=[0, 0, 0],
+                polarization_direction=[1, 0, 0],
                 E0=5,
                 propagation_direction=[0, 1, 0],
                 picongpu_laguerre_phases=[1.0, 2.0])
@@ -281,7 +262,7 @@ class TestPicmiGaussianLaser(unittest.TestCase):
         # on its own, any centroid poisition with y=0 is permitted
         picmi_laser = picmi.GaussianLaser(
             1, 2, 3,
-            centroid_position=[8.5, 0, 21],
+            centroid_position=[8.5, -3, 21],
             focal_position=[8.5, 2, 21],
             propagation_direction=[0, 1, 0],
             polarization_direction=[0, 0, 1],
@@ -307,36 +288,3 @@ class TestPicmiGaussianLaser(unittest.TestCase):
         # translates without issue:
         self.assertNotEqual(
             {}, sim_valid.get_as_pypicongpu().get_rendering_context())
-
-        # invalid grid-laser combination throws error
-        bounds_and_centroids_invalid = [
-            ([42, 192, 2], [21, 192, 2]),
-            ([42, 192, 2], [42, 192, 1]),
-            ([42, 192, 2], [1, 2, 2]),
-        ]
-
-        for bounds, centroid in bounds_and_centroids_invalid:
-            grid_invalid = picmi.Cartesian3DGrid(
-                number_of_cells=[128, 512, 64],
-                lower_bound=[0, 0, 0],
-                upper_bound=bounds,
-                lower_boundary_conditions=["periodic", "periodic", "open"],
-                upper_boundary_conditions=["periodic", "periodic", "open"])
-            solver_invalid = picmi.ElectromagneticSolver(method="Yee",
-                                                         grid=grid_invalid)
-            sim_invalid = picmi.Simulation(time_step_size=1,
-                                           max_steps=2,
-                                           solver=solver_invalid)
-            laser_invalid = picmi.GaussianLaser(
-                1, 2, 3,
-                centroid_position=centroid,
-                focal_position=centroid,
-                propagation_direction=[0, 1, 0],
-                polarization_direction=[0, 0, 1],
-                E0=1)
-            sim_invalid.add_laser(laser_invalid, None)
-
-            # centroid not in x & z center -> raise
-            with self.assertRaisesRegex(Exception,
-                                        ".*[Ll]aser.*cent(er|roid).*"):
-                sim_invalid.get_as_pypicongpu()

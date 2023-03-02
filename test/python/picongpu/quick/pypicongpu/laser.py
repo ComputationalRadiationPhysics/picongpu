@@ -1,6 +1,6 @@
 """
 This file is part of the PIConGPU.
-Copyright 2021-2022 PIConGPU contributors
+Copyright 2021-2023 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus
 License: GPLv3+
 """
@@ -9,6 +9,10 @@ from picongpu.pypicongpu.laser import GaussianLaser
 
 import unittest
 import logging
+import copy
+
+""" @file we only test for types here, test for values errors is done in the
+   custom picmi-objects"""
 
 
 class TestGaussianLaser(unittest.TestCase):
@@ -17,14 +21,16 @@ class TestGaussianLaser(unittest.TestCase):
         self.laser.wavelength = 1.2
         self.laser.waist = 3.4
         self.laser.duration = 5.6
-        self.laser.focus_pos = 7.8
+        self.laser.focus_pos = [0, 7.8, 0]
         self.laser.phase = 2.9
         self.laser.E0 = 9.0
         self.laser.pulse_init = 1.3
-        self.laser.init_plane_y = 1
-        self.laser.polarization_type = GaussianLaser.PolarizationType.LINEAR_X
+        self.laser.propagation_direction = [0., 1., 0.]
+        self.laser.polarization_type = GaussianLaser.PolarizationType.LINEAR
+        self.laser.polarization_direction = [0., 1., 0.]
         self.laser.laguerre_modes = [1.0]
         self.laser.laguerre_phases = [0.0]
+        self.laser.huygens_surface_positions = [[1, -1], [1, -1], [1, -1]]
 
     def test_types(self):
         """invalid types are rejected"""
@@ -37,44 +43,69 @@ class TestGaussianLaser(unittest.TestCase):
             with self.assertRaises(TypeError):
                 laser.duration = not_float
             with self.assertRaises(TypeError):
-                laser.focus_pos = not_float
-            with self.assertRaises(TypeError):
                 laser.phase = not_float
             with self.assertRaises(TypeError):
                 laser.E0 = not_float
             with self.assertRaises(TypeError):
                 laser.pulse_init = not_float
 
-        for not_int in [None, [], {}, "1", 1.3]:
+        for not_position_vector in [1, 1., None, ["string"]]:
             with self.assertRaises(TypeError):
-                laser.init_plane_y = not_int
+                laser.focus_pos = not_position_vector
 
         for not_polarization_type in [1, 1.3, None, "", []]:
             with self.assertRaises(TypeError):
                 laser.polarization_type = not_polarization_type
+
+        for not_direction_vector in [1, 1.3, None, "", ["string"]]:
+            with self.assertRaises(TypeError):
+                laser.polarization_direction = not_direction_vector
+            with self.assertRaises(TypeError):
+                laser.propagation_direction = not_direction_vector
 
         for invalid_list in [None, 1.2, "1.2", ["string"]]:
             with self.assertRaises(TypeError):
                 laser.laguerre_modes = invalid_list
             with self.assertRaises(TypeError):
                 laser.laguerre_phases = invalid_list
+            with self.assertRaises(TypeError):
+                laser.polarization_direction = invalid_list
+            with self.assertRaises(TypeError):
+                laser.propagation_direction = invalid_list
+            with self.assertRaises(TypeError):
+                laser.huygens_surface_positions = invalid_list
 
     def test_polarization_type(self):
         """polarization type enum sanity checks"""
-        lin_x = GaussianLaser.PolarizationType.LINEAR_X
-        lin_z = GaussianLaser.PolarizationType.LINEAR_Z
+        lin = GaussianLaser.PolarizationType.LINEAR
         circular = GaussianLaser.PolarizationType.CIRCULAR
 
-        self.assertNotEqual(lin_x, lin_z)
-        self.assertNotEqual(lin_z, circular)
-        self.assertNotEqual(circular, lin_x)
+        self.assertNotEqual(lin, circular)
 
-        self.assertNotEqual(lin_x.get_cpp_str(), lin_z.get_cpp_str())
-        self.assertNotEqual(lin_z.get_cpp_str(), circular.get_cpp_str())
-        self.assertNotEqual(circular.get_cpp_str(), lin_x.get_cpp_str())
+        self.assertNotEqual(lin.get_cpp_str(), circular.get_cpp_str())
 
-        for polarization_type in [lin_x, lin_z, circular]:
+        for polarization_type in [lin, circular]:
             self.assertEqual(str, type(polarization_type.get_cpp_str()))
+
+    def test_invalid_huygens_surface_description_types(self):
+        """Huygens surfaces must be described as
+           [[x_min:int, x_max:int], [y_min:int,y_max:int],
+           [z_min:int, z_max:int]]"""
+        laser = self.laser
+
+        invalid_elements = [None, [], [1.2, 3.4]]
+        valid_rump = [[5, 6], [7, 8]]
+
+        invalid_descriptions = []
+        for invalid_element in invalid_elements:
+            for pos in range(3):
+                base = copy.deepcopy(valid_rump)
+                base.insert(pos, invalid_element)
+                invalid_descriptions.append(base)
+
+        for invalid_description in invalid_descriptions:
+            with self.assertRaises(TypeError):
+                laser.huygens_surface_positions(invalid_description)
 
     def test_invalid_laguerre_modes_empty(self):
         """laguerre modes must be set non-empty"""
@@ -127,14 +158,36 @@ class TestGaussianLaser(unittest.TestCase):
         self.assertEqual(context["wave_length_si"], self.laser.wavelength)
         self.assertEqual(context["waist_si"], self.laser.waist)
         self.assertEqual(context["pulse_length_si"], self.laser.duration)
-        self.assertEqual(context["focus_pos_si"], self.laser.focus_pos)
+        self.assertEqual(context["focus_pos_si"], [
+            {"component": self.laser.focus_pos[0]},
+            {"component": self.laser.focus_pos[1]},
+            {"component": self.laser.focus_pos[2]}])
         self.assertEqual(context["phase"], self.laser.phase)
+        self.assertEqual(context["E0_si"], self.laser.E0)
+        self.assertEqual(context["pulse_init"], self.laser.pulse_init)
+        self.assertEqual(context["propagation_direction"], [
+            {"component": self.laser.propagation_direction[0]},
+            {"component": self.laser.propagation_direction[1]},
+            {"component": self.laser.propagation_direction[2]}])
         self.assertEqual(context["polarization_type"],
                          self.laser.polarization_type.get_cpp_str())
-        self.assertEqual(context["pulse_init"], self.laser.pulse_init)
-        self.assertEqual(context["init_plane_y"], self.laser.init_plane_y)
+        self.assertEqual(context["polarization_direction"], [
+            {"component": self.laser.polarization_direction[0]},
+            {"component": self.laser.polarization_direction[1]},
+            {"component": self.laser.polarization_direction[2]}])
         self.assertEqual(context["laguerre_modes"],
                          [{"single_laguerre_mode": 1.0}])
         self.assertEqual(context["laguerre_phases"],
                          [{"single_laguerre_phase": 0.0}])
         self.assertEqual(context["modenumber"], 0)
+        self.assertEqual(context["huygens_surface_positions"], {
+            "row_x": {
+                "negative": self.laser.huygens_surface_positions[0][0],
+                "positive": self.laser.huygens_surface_positions[0][1]},
+            "row_y": {
+                "negative": self.laser.huygens_surface_positions[1][0],
+                "positive": self.laser.huygens_surface_positions[1][1]},
+            "row_z": {
+                "negative": self.laser.huygens_surface_positions[2][0],
+                "positive": self.laser.huygens_surface_positions[2][1]},
+            })
