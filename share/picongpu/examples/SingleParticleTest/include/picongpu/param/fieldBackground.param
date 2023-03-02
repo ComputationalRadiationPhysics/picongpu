@@ -49,7 +49,7 @@ namespace picongpu
         ) const
         {
             /* specify your E-Field in V/m and convert to PIConGPU units */
-            return float3_X(0.0, 0.0, -10.0e6 / m_unitField[1]);
+            return float3_X(0.0, 0.0, -10.0e6 / m_unitField[2]);
         }
     };
 
@@ -78,7 +78,7 @@ namespace picongpu
         ) const
         {
             /* specify your B-Field in T and convert to PIConGPU units */
-            return float3_X(0.0, 0.0, 50.0 / m_unitField[1]);
+            return float3_X(0.0, 0.0, 50.0 / m_unitField[2]);
         }
     };
 
