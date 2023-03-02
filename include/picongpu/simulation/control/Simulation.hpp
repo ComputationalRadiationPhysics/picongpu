@@ -66,7 +66,6 @@
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/meta/ForEach.hpp>
-#include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/IdProvider.hpp>

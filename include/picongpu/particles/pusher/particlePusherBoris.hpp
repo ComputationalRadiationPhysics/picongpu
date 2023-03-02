@@ -24,7 +24,6 @@
 #include "picongpu/traits/attribute/GetCharge.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
-#include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>
 
 namespace picongpu
@@ -59,12 +58,10 @@ namespace picongpu
                 const auto eField = functorEField(pos);
 
                 // update probe field if particle contains required attributes
-                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value>(
-                    [&bField](auto&& par) { par[probeB_] = bField; },
-                    particle);
-                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value>(
-                    [&eField](auto&& par) { par[probeE_] = eField; },
-                    particle);
+                if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value)
+                    particle[probeB_] = bField;
+                if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value)
+                    particle[probeE_] = eField;
 
                 const float_X QoM = charge / mass;
 

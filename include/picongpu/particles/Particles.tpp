@@ -37,7 +37,6 @@
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/HasFlag.hpp>
@@ -202,15 +201,14 @@ namespace picongpu
         , m_datasetID(datasetID)
     {
         constexpr bool particleHasShape = pmacc::traits::HasIdentifier<FrameType, shape<>>::type::value;
-        pmacc::meta::invokeIf<particleHasShape>(
-            []()
-            {
-                constexpr auto particleAssignmentShapeSupport = GetShape<Particles>::type::ChargeAssignment::support;
-                static_assert(
-                    particleAssignmentShapeSupport > 0,
-                    "A particle shape must have a support larger than zero. Please use a higher order shape. If you "
-                    "need a pointwise particle use NGP shape.");
-            });
+        if constexpr(particleHasShape)
+        {
+            constexpr auto particleAssignmentShapeSupport = GetShape<Particles>::type::ChargeAssignment::support;
+            static_assert(
+                particleAssignmentShapeSupport > 0,
+                "A particle shape must have a support larger than zero. Please use a higher order shape. If you "
+                "need a pointwise particle use NGP shape.");
+        }
 
         size_t sizeOfExchanges = 0u;
 
@@ -330,9 +328,8 @@ namespace picongpu
         /* We have to templatize lambda parameter to defer its instantiation.
          * Otherwise it would have been instantiated for all species, not just supported ones.
          */
-        pmacc::meta::invokeIf<HasMomentum::value>(
-            [currentStep](auto thisInstance) { particles::boundary::apply(*thisInstance, currentStep); },
-            this);
+        if constexpr(HasMomentum::value)
+            particles::boundary::apply(*this, currentStep);
     }
 
     /** Do the particle push stage using the given pusher

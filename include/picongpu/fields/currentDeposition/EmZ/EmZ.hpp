@@ -24,9 +24,6 @@
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/relayPoint.hpp"
 
-#include <pmacc/meta/InvokeIf.hpp>
-
-
 namespace picongpu
 {
     namespace currentSolver
@@ -126,41 +123,33 @@ namespace picongpu
                 /* 2d case requires special handling of Jz as explained in #3889.
                  * Pass dataBoxJ as auto&& to defer evaluation for 3d case.
                  */
-                pmacc::meta::invokeIf<simDim == 2>(
-                    [&, this](auto&& dataBoxJ)
+                if constexpr(simDim == 2)
+                {
+                    /* For Jz we consider the whole movement on a step.
+                     * Note that this movement is not necessarily on support.
+                     * A naive implementation would be to extend the bounds in x, y by 1 in both sides, and use
+                     * general assignment function. To optimize it, we redefine shiftEnd as component-wise minimum
+                     * between old shiftEnd and shiftStart. We calculate everything relative to the new shiftEnd.
+                     * Since it is the minimum in both x and y, the same begin value can be used. Thus, the bounds
+                     * only have to be extended by 1 in the max side, not both. Still, the general assignment
+                     * function has to be used.
+                     */
+                    for(uint32_t d = 0; d < simDim; ++d)
                     {
-                        /* For Jz we consider the whole movement on a step.
-                         * Note that this movement is not necessarily on support.
-                         * A naive implementation would be to extend the bounds in x, y by 1 in both sides, and use
-                         * general assignment function. To optimize it, we redefine shiftEnd as component-wise minimum
-                         * between old shiftEnd and shiftStart. We calculate everything relative to the new shiftEnd.
-                         * Since it is the minimum in both x and y, the same begin value can be used. Thus, the bounds
-                         * only have to be extended by 1 in the max side, not both. Still, the general assignment
-                         * function has to be used.
-                         */
-                        for(uint32_t d = 0; d < simDim; ++d)
-                        {
-                            shiftEnd[d] = math::min(shiftStart[d], shiftEnd[d]);
-                            line.m_pos0[d] = posStart[d] - shiftEnd[d];
-                            line.m_pos1[d] = posEnd[d] - shiftEnd[d];
-                        }
-                        /* Have to use DIM2, otherwise 3d case wouldn't compile due to
-                         * no computeCurrentZ() method.
-                         * In this case it is parsed even though the invokeIf condition is false and dataBoxJ is passed
-                         * as auto&&.
-                         * As we are generally not on support, use T_ParticleShape::ChargeAssignment and not
-                         * ParticleAssign.
-                         */
-                        emz::DepositCurrent<
-                            T_Strategy,
-                            typename T_ParticleShape::ChargeAssignment,
-                            begin,
-                            end + 1,
-                            DIM2>
-                            depositZ;
-                        depositZ.computeCurrentZ(worker, dataBoxJ.shift(shiftEnd), line, velocity.z() * chargeDensity);
-                    },
-                    dataBoxJ);
+                        shiftEnd[d] = math::min(shiftStart[d], shiftEnd[d]);
+                        line.m_pos0[d] = posStart[d] - shiftEnd[d];
+                        line.m_pos1[d] = posEnd[d] - shiftEnd[d];
+                    }
+                    /* Have to use DIM2, otherwise 3d case wouldn't compile due to
+                     * no computeCurrentZ() method.
+                     * In this case it is parsed even though the if condition is false and dataBoxJ.
+                     * As we are generally not on support, use T_ParticleShape::ChargeAssignment and not
+                     * ParticleAssign.
+                     */
+                    emz::DepositCurrent<T_Strategy, typename T_ParticleShape::ChargeAssignment, begin, end + 1, DIM2>
+                        depositZ;
+                    depositZ.computeCurrentZ(worker, dataBoxJ.shift(shiftEnd), line, velocity.z() * chargeDensity);
+                }
             }
 
             static pmacc::traits::StringProperty getStringProperties()
