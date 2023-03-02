@@ -31,8 +31,8 @@
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
 #include "picongpu/plugins/radiation/Radiation.kernel"
+#include "picongpu/plugins/radiation/executeParticleFilter.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
