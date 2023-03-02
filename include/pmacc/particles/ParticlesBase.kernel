@@ -109,29 +109,33 @@ namespace pmacc
 
                 // count particles in last frame
                 forEachParticle(
-                    [&](lockstep::Idx const idx)
+                    [&](bool isParticle)
                     {
-                        if(isParticleCtx[idx])
+                        if(isParticle)
                             kernel::atomicAllInc(worker, &numParticles, ::alpaka::hierarchy::Threads{});
-                    });
+                    },
+                    isParticleCtx);
 
                 worker.sync();
 
                 forEachParticle(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx, bool const isParticle)
                     {
-                        if(idx < numParticles && isParticleCtx[idx] == false)
+                        if(idx < numParticles && isParticle == false)
                         {
                             int const localGapIdx
                                 = kernel::atomicAllInc(worker, &numGaps, ::alpaka::hierarchy::Threads{});
                             gapIndices_sh[localGapIdx] = idx;
                         }
-                    });
+                    },
+                    isParticleCtx);
+
                 worker.sync();
+
                 forEachParticle(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx, bool const isParticle)
                     {
-                        if(idx >= numParticles && isParticleCtx[idx])
+                        if(idx >= numParticles && isParticle)
                         {
                             // any particle search a gap
                             int const srcGapIdx
@@ -148,7 +152,8 @@ namespace pmacc
                             assign(parDest, parSrc);
                             parSrc[multiMask_] = 0; // delete old particle
                         }
-                    });
+                    },
+                    isParticleCtx);
             }
             lockstep::makeMaster(worker)(
                 [&]()
@@ -238,7 +243,7 @@ namespace pmacc
 
                 // find gaps in firstFrame
                 auto localGapIdxCtx = forEachParticle(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx)
                     {
                         int gapIdx = INV_LOC_IDX;
                         if(firstFrame[idx][multiMask_] == 0)
@@ -269,11 +274,11 @@ namespace pmacc
 
                     // copy particles from lastFrame to the gaps in firstFrame
                     forEachParticle(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, int const localGapIdx)
                         {
-                            if(localGapIdxCtx[idx] < numParticles)
+                            if(localGapIdx < numParticles)
                             {
-                                int const parIdx = particleIndices_sh[localGapIdxCtx[idx]];
+                                int const parIdx = particleIndices_sh[localGapIdx];
                                 auto parDestFull = firstFrame[idx];
                                 // enable particle
                                 parDestFull[multiMask_] = 1;
@@ -285,7 +290,8 @@ namespace pmacc
                                 assign(parDest, parSrc);
                                 parSrc[multiMask_] = 0;
                             }
-                        });
+                        },
+                        localGapIdxCtx);
 
                     worker.sync();
 
@@ -429,16 +435,15 @@ namespace pmacc
              * each master thread (one master per direction) will load it
              */
             forEachExchange(
-                [&](lockstep::Idx const idx)
+                [&](uint32_t const linearIdx, int32_t& newParticleInFrame)
                 {
-                    uint32_t const linearIdx = idx;
                     destFramesCounter[linearIdx] = 0u;
                     destFrames[linearIdx] = FramePtr();
                     destFrames[linearIdx + numExchanges] = FramePtr();
                     /* neighborSuperCellIdx should not be stored in a context variable.
                      * Using a context variable results into 16bit reads.
                      */
-                    auto const neighborSuperCellIdx = superCellIdx + Mask::getRelativeDirections<dim>(idx + 1);
+                    auto const neighborSuperCellIdx = superCellIdx + Mask::getRelativeDirections<dim>(linearIdx + 1);
                     if(isValidSupercellIdx(T_Idx{neighborSuperCellIdx}, numSupercellsWithGuard))
                     {
                         /* load last frame of neighboring supercell */
@@ -450,13 +455,14 @@ namespace pmacc
                             // do not use the neighbor's last frame if it is full
                             if(particlesInFrame < frameSize)
                             {
-                                newParticleInFrameCtx[idx] = -particlesInFrame;
+                                newParticleInFrame = -particlesInFrame;
                                 destFrames[linearIdx] = tmpFrame;
                                 destFramesCounter[linearIdx] = particlesInFrame;
                             }
                         }
                     }
-                });
+                },
+                newParticleInFrameCtx);
 
             worker.sync();
 
@@ -470,7 +476,7 @@ namespace pmacc
                         = lockstep::makeVar<lcellId_t>(forEachParticleInFrame, lcellId_t(INV_LOC_IDX));
 
                     auto directionCtx = forEachParticleInFrame(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, lcellId_t& destParticleIdx, auto const frameIter)
                         {
                             /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
                              * -2 is no particle
@@ -478,23 +484,25 @@ namespace pmacc
                              * >=0 particle moves in a certain direction
                              *     (@see ExchangeType in types.h)
                              */
-                            int direction = frameIterCtx[idx][idx % frameSize][multiMask_] - 2;
+                            int direction = frameIter[idx % frameSize][multiMask_] - 2;
                             if(direction >= 0)
                             {
-                                destParticleIdxCtx[idx] = cupla::atomicAdd(
+                                destParticleIdx = cupla::atomicAdd(
                                     lockstepWorker.getAcc(),
                                     &(destFramesCounter[direction]),
                                     1u,
                                     ::alpaka::hierarchy::Threads{});
                             }
                             return direction;
-                        });
+                        },
+                        destParticleIdxCtx,
+                        frameIterCtx);
+
                     lockstepWorker.sync();
 
                     forEachExchange(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const linearIdx)
                         {
-                            uint32_t const linearIdx = idx;
                             /* If the master thread (responsible for a certain direction) did not
                              * obtain a `low frame` from the neighboring super cell before the loop,
                              * it will create one now.
@@ -532,7 +540,7 @@ namespace pmacc
                     lockstepWorker.sync();
 
                     forEachParticleInFrame(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, auto& direction, auto& destParticleIdx, auto& frameIter)
                         {
                             /* All threads with a valid index in the neighbor's frame, valid index
                              * range is [0, frameSize * 2-1], will copy their particle to the new
@@ -541,48 +549,51 @@ namespace pmacc
                              * The default value for indexes (in the destination frame) is
                              * above this range (INV_LOC_IDX) for all particles that are not shifted.
                              */
-                            if(destParticleIdxCtx[idx] < frameSize * 2)
+                            if(destParticleIdx < frameSize * 2)
                             {
-                                if(destParticleIdxCtx[idx] >= frameSize)
+                                if(destParticleIdx >= frameSize)
                                 {
                                     /* use `high frame` */
-                                    directionCtx[idx] += numExchanges;
-                                    destParticleIdxCtx[idx] -= frameSize;
+                                    direction += numExchanges;
+                                    destParticleIdx -= frameSize;
                                 }
-                                auto dstParticle = destFrames[directionCtx[idx]][destParticleIdxCtx[idx]];
-                                auto srcParticle = frameIterCtx[idx][idx % frameSize];
+                                auto dstParticle = destFrames[direction][destParticleIdx];
+                                auto srcParticle = frameIter[idx % frameSize];
                                 dstParticle[multiMask_] = 1;
                                 srcParticle[multiMask_] = 0;
                                 auto dstFilteredParticle = particles::operations::deselect<multiMask>(dstParticle);
                                 particles::operations::assign(dstFilteredParticle, srcParticle);
                             }
-                        });
+                        },
+                        directionCtx,
+                        destParticleIdxCtx,
+                        frameIterCtx);
                     lockstepWorker.sync();
 
                     forEachExchange(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const linearIdx, auto& newParticleInFrame)
                         {
-                            uint32_t const linearIdx = idx;
                             /* if the `low frame` is full, each master thread
                              * uses the `high frame` (is invalid, if still empty) as the next
                              * `low frame` for the following iteration of the loop
                              */
                             if(destFramesCounter[linearIdx] >= frameSize)
                             {
-                                newParticleInFrameCtx[idx] += frameSize;
+                                newParticleInFrame += frameSize;
                                 destFramesCounter[linearIdx] -= frameSize;
                                 destFrames[linearIdx] = destFrames[linearIdx + numExchanges];
                                 destFrames[linearIdx + numExchanges] = FramePtr();
                             }
-                        });
+                        },
+                        newParticleInFrameCtx);
                     lockstepWorker.sync();
                 });
 
             forEachExchange(
-                [&](lockstep::Idx const idx)
+                [&](uint32_t const idx, auto& newParticleInFrame)
                 {
-                    newParticleInFrameCtx[idx] += destFramesCounter[idx];
-                    if(newParticleInFrameCtx[idx] > 0)
+                    newParticleInFrame += destFramesCounter[idx];
+                    if(newParticleInFrame > 0)
                     {
                         /* neighborSuperCellIdx should not be stored in a context variable.
                          * Using a context variable results into 16bit reads.
@@ -596,10 +607,11 @@ namespace pmacc
                              * current used supercell.
                              */
                             auto& superCell = pb.getSuperCell(neighborSuperCellIdx);
-                            superCell.setNumParticles(superCell.getNumParticles() + newParticleInFrameCtx[idx]);
+                            superCell.setNumParticles(superCell.getNumParticles() + newParticleInFrame);
                         }
                     }
-                });
+                },
+                newParticleInFrameCtx);
 
             // fill all gaps in the frame list of the supercell
             KernelFillGaps{}(worker, pb, mapper);
@@ -798,17 +810,17 @@ namespace pmacc
                     worker.sync();
 
                     forEachParticle(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, auto const exchangeGapIdx)
                         {
-                            if(exchangeGapIdxCtx[idx] != lcellId_t(INV_LOC_IDX)
-                               && exchangeGapIdxCtx[idx] < exchangeChunk.getSize())
+                            if(exchangeGapIdx != lcellId_t(INV_LOC_IDX) && exchangeGapIdx < exchangeChunk.getSize())
                             {
-                                auto parDest = exchangeChunk[exchangeGapIdxCtx[idx]][0];
+                                auto parDest = exchangeChunk[exchangeGapIdx][0];
                                 auto parSrc = frame[idx];
                                 assign(parDest, parSrc);
                                 parSrc[multiMask_] = 0;
                             }
-                        });
+                        },
+                        exchangeGapIdxCtx);
                     worker.sync();
                 }
 
@@ -875,16 +887,16 @@ namespace pmacc
             auto compressedSuperCellIdxCtx = lockstep::makeVar<DataSpace<dim - 1>>(onlyMaster);
 
             onlyMaster(
-                [&](lockstep::Idx const idx)
+                [&](auto& compressedSuperCellIdx)
                 {
-                    exchangeChunk
-                        = exchangeBox.get(cupla::blockIdx(worker.getAcc()).x, compressedSuperCellIdxCtx[idx]);
+                    exchangeChunk = exchangeBox.get(cupla::blockIdx(worker.getAcc()).x, compressedSuperCellIdx);
                     elementCount = exchangeChunk.getSize();
                     if(elementCount > 0u)
                     {
                         frame = pb.getEmptyFrame(worker);
                     }
-                });
+                },
+                compressedSuperCellIdxCtx);
 
             worker.sync();
 
@@ -911,7 +923,7 @@ namespace pmacc
             worker.sync();
 
             onlyMaster(
-                [&](lockstep::Idx const idx)
+                [&](auto const compressedSuperCellIdx)
                 {
                     if(elementCount > 0u)
                     {
@@ -919,14 +931,15 @@ namespace pmacc
                         //! @todo: offset == simulation border should be passed to this func instead of being created
                         //! here
                         DataSpace<dim> dstSuperCell = DataSpaceOperations<dim - 1>::extend(
-                            compressedSuperCellIdxCtx[idx],
+                            compressedSuperCellIdx,
                             mapper.getExchangeType(),
                             mapper.getGridSuperCells(),
                             mapper.getGuardingSuperCells());
 
                         pb.setAsLastFrame(worker, frame, dstSuperCell);
                     }
-                });
+                },
+                compressedSuperCellIdxCtx);
         }
     };
 

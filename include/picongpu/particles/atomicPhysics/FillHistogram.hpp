@@ -70,7 +70,7 @@ namespace picongpu
                 {
                     // parallel loop over all particles in the frame
                     forEachParticleSlotInFrame(
-                        [&](lockstep::Idx const linearIdx)
+                        [&](uint32_t const linearIdx)
                         {
                             if(linearIdx < particlesInSuperCell)
                             {

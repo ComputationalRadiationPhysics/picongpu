@@ -86,7 +86,7 @@ namespace picongpu
                     typename T_Worker,
                     typename T_DeviceHeapHandle,
                     typename T_RngHandle,
-                    typename T_CollisionFunctor,
+                    typename T_SrcCollisionFunctor,
                     typename T_Filter,
                     typename T_SumCoulombLogBox,
                     typename T_SumSParamBox,
@@ -97,7 +97,7 @@ namespace picongpu
                     T_Mapping const mapper,
                     T_DeviceHeapHandle deviceHeapHandle,
                     T_RngHandle rngHandle,
-                    T_CollisionFunctor const collisionFunctor,
+                    T_SrcCollisionFunctor const srcCollisionFunctor,
                     T_Filter filter,
                     T_SumCoulombLogBox sumCoulombLogBox,
                     T_SumSParamBox sumSParamBox,
@@ -159,52 +159,45 @@ namespace picongpu
                     forEachFrameElem([&](uint32_t const linearIdx)
                                      { parCellList[linearIdx].shuffle(worker, rngHandle); });
 
-                    auto collisionFunctorCtx = lockstep::makeVar<decltype(collisionFunctor(
-                        worker,
-                        alpaka::core::declval<DataSpace<simDim> const>(),
-                        alpaka::core::declval<float_X const>(),
-                        alpaka::core::declval<float_X const>(),
-                        alpaka::core::declval<uint32_t const>()))>(forEachFrameElem);
-
-                    forEachFrameElem(
-                        [&](lockstep::Idx const idx)
+                    auto collisionFunctorCtx = forEachFrameElem(
+                        [&](uint32_t const idx)
                         {
                             uint32_t const sizeAll = parCellList[idx].size;
-                            if(sizeAll < 2u)
-                                return;
                             // skip particle offset counter
                             uint32_t* listAll = parCellList[idx].ptrToIndicies;
                             uint32_t potentialPartners = sizeAll - 1u + sizeAll % 2u;
-                            collisionFunctorCtx[idx] = collisionFunctor(
+                            auto collisionFunctor = srcCollisionFunctor(
                                 worker,
                                 localSuperCellOffset,
                                 densityArray[idx],
                                 densityArray[idx],
                                 potentialPartners);
-                            if constexpr(useScreeningLength)
+                            if(sizeAll >= 2u)
                             {
-                                auto const shifted
-                                    = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
-                                auto const idxInSuperCell
-                                    = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
-                                collisionFunctorCtx[idx].coulombLogFunctor.screeningLengthSquared_m
-                                    = shifted(idxInSuperCell)[0];
-                            }
-                            for(uint32_t i = 0; i < sizeAll; i += 2)
-                            {
-                                auto parEven = detail::getParticle(pb, firstFrame, listAll[i]);
-                                auto parOdd = detail::getParticle(pb, firstFrame, listAll[(i + 1) % sizeAll]);
-                                // In Higginson 2020 eq. (31) s has an additional 1/2 factor for
-                                // intraCollisions (compare with 29 and use m_aa = 1/2 m_a). Bu this seams to be a typo
-                                // smilei doesn't include this extra factor. It was applied here in the previous
-                                // version, via the duplication correction.
+                                if constexpr(useScreeningLength)
+                                {
+                                    auto const shifted
+                                        = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
+                                    auto const idxInSuperCell
+                                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                                    collisionFunctor.coulombLogFunctor.screeningLengthSquared_m
+                                        = shifted(idxInSuperCell)[0];
+                                }
+                                for(uint32_t i = 0; i < sizeAll; i += 2)
+                                {
+                                    auto parEven = detail::getParticle(pb, firstFrame, listAll[i]);
+                                    auto parOdd = detail::getParticle(pb, firstFrame, listAll[(i + 1) % sizeAll]);
+                                    // In Higginson 2020 eq. (31) s has an additional 1/2 factor for
+                                    // intraCollisions (compare with 29 and use m_aa = 1/2 m_a). Bu this seams to be a
+                                    // typo smilei doesn't include this extra factor. It was applied here in the
+                                    // previous version, via the duplication correction.
 
-                                collisionFunctorCtx[idx].duplicationCorrection = duplicationCorrection(i, sizeAll);
-                                (collisionFunctorCtx[idx])(
-                                    detail::makeCollisionContext(worker, rngHandle),
-                                    parEven,
-                                    parOdd);
+                                    collisionFunctor.duplicationCorrection = duplicationCorrection(i, sizeAll);
+                                    collisionFunctor(detail::makeCollisionContext(worker, rngHandle), parEven, parOdd);
+                                }
                             }
+
+                            return collisionFunctor;
                         });
 
                     worker.sync();
@@ -227,20 +220,20 @@ namespace picongpu
                             });
                         worker.sync();
                         forEachFrameElem(
-                            [&](lockstep::Idx const idx)
+                            [&](uint32_t const idx, auto const& collisionFunctor)
                             {
-                                auto timesUsed = static_cast<uint64_t>(collisionFunctorCtx[idx].timesUsed);
+                                auto timesUsed = static_cast<uint64_t>(collisionFunctor.timesUsed);
                                 if(timesUsed > 0u)
                                 {
                                     cupla::atomicAdd(
                                         worker.getAcc(),
                                         &sumCoulombLogBlock,
-                                        static_cast<float_X>(collisionFunctorCtx[idx].sumCoulombLog),
+                                        static_cast<float_X>(collisionFunctor.sumCoulombLog),
                                         ::alpaka::hierarchy::Threads{});
                                     cupla::atomicAdd(
                                         worker.getAcc(),
                                         &sumSParamBlock,
-                                        static_cast<float_X>(collisionFunctorCtx[idx].sumSParam),
+                                        static_cast<float_X>(collisionFunctor.sumSParam),
                                         ::alpaka::hierarchy::Threads{});
                                     cupla::atomicAdd(
                                         worker.getAcc(),
@@ -248,7 +241,8 @@ namespace picongpu
                                         timesUsed,
                                         ::alpaka::hierarchy::Threads{});
                                 }
-                            });
+                            },
+                            collisionFunctorCtx);
 
                         worker.sync();
 

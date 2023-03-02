@@ -19,7 +19,9 @@ Code which is implemented by the *lockstep programming model* is free of any dep
 To simplify the implementation, each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA).
 Each *worker* :math:`i` can be executed as :math:`N_i` *virtual workers* (:math:`1:N_i`).
 
-Functors passed into lockstep routines can have three different parameter signatures.
+Functors passed into lockstep routines can have three different base parameter signatures.
+Additionally each case can be extended by an arbitrary number parameters to get access to context variables.
+Context variables must be passed along with the functor to the lockstep forEach algorithm.
 
 * No parameter, if the work is not requiring the linear index within a domain: ``[&](){ }``
 
@@ -80,6 +82,14 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
     // variable will be uninitialized
     auto vIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame);
     forEachParticleSlotInFrame(
+        [&](uint32_t const idx, auto& vIndex)
+        {
+            vIndex = idx;
+        },
+        vIdx
+    );
+    // is equal to
+    forEachParticleSlotInFrame(
         [&](lockstep::Idx const idx)
         {
             vIdx[idx] = idx;
@@ -105,7 +115,7 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
     constexpr uint32_t frameSize = 256;
     auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vIdx = forEachParticleSlotInFrame(
-        [](lockstep::Idx const idx) -> int32_t
+        [](uint32_t const idx) -> int32_t
         {
             return idx;
         }
@@ -122,11 +132,15 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
         }
     );
 
+    // To avoid convusion between read-only and read-write input variables we suggest using
+    // const for read only variables.
     forEachExample(
-        [&](lockstep::Idx const idx)
+        [&](lockstep::Idx const idx, int32_t const oldIndex, int32_t const vIndex)
         {
-            printf("nothing changed: %u == %u - 256 == %u\n", oldVIdx[idx], vIdx[idx], idx);
-        }
+            printf("nothing changed: %u == %u - 256 == %u\n", oldIndex, vIndex, idx);
+        },
+        oldVIdx,
+        vIdx
     );
 
 
@@ -153,7 +167,7 @@ Collective Loop
         forEachParticleSlotInFrame(
            [&](uint32_t const linearIdx)
            {
-               // independent work based on the linear index only
+               // independent work based on the linear index only, e.g. shared memory access
            }
        );
     }
@@ -171,13 +185,14 @@ Non-Collective Loop
     auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
     auto vWorkerIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 0);
     forEachParticleSlotInFrame(
-        [&](auto const idx)
+        [&](auto const idx, int32_t& vWorker)
         {
             // assign the linear index to the virtual worker context variable
-            vWorkerIdx[idx] = idx;
+            vWorker = idx;
             for(int i = 0; i < 100; i++)
-                vWorkerIdx[idx]++;
-        }
+                vWorker++;
+        },
+        vWorkerIdx
     );
 
 

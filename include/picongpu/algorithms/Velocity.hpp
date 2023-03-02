@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 namespace picongpu
 {
     using namespace pmacc;

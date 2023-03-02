@@ -146,17 +146,18 @@ namespace pmacc
                         [&](uint32_t const linearIdx) -> uint32_t { return blockIndex * T_blockSize + linearIdx; });
 
                     auto isActiveCtx = forEachBlockElem(
-                        [&](lockstep::Idx const idx) -> bool { return linearReduceThreadIdxCtx[idx] < bufferSize; });
+                        [&](auto linearReduceThreadIdx) -> bool { return linearReduceThreadIdx < bufferSize; },
+                        linearReduceThreadIdxCtx);
 
                     forEachBlockElem(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, bool isActive, uint32_t linearReduceThreadIdx)
                         {
-                            if(isActiveCtx[idx])
+                            if(isActive)
                             {
                                 /*fill shared mem*/
-                                Type r_value = srcBuffer[linearReduceThreadIdxCtx[idx]];
+                                Type r_value = srcBuffer[linearReduceThreadIdx];
                                 /*reduce not read global memory to shared*/
-                                uint32_t i = linearReduceThreadIdxCtx[idx] + numReduceThreads;
+                                uint32_t i = linearReduceThreadIdx + numReduceThreads;
                                 while(i < bufferSize)
                                 {
                                     func(worker, r_value, srcBuffer[i]);
@@ -164,7 +165,9 @@ namespace pmacc
                                 }
                                 sharedMem[idx] = r_value;
                             }
-                        });
+                        },
+                        isActiveCtx,
+                        linearReduceThreadIdxCtx);
 
                     worker.sync();
                     /*now reduce shared memory*/
@@ -182,14 +185,15 @@ namespace pmacc
                         chunk_count = (chunk_count + 1u) / 2u;
 
                         forEachBlockElem(
-                            [&](lockstep::Idx const idx)
+                            [&](uint32_t const linearIdx, bool& isActive, uint32_t linearReduceThreadIdx)
                             {
-                                uint32_t const linearIdx = idx;
-                                isActiveCtx[idx] = (linearReduceThreadIdxCtx[idx] < bufferSize)
+                                isActive = (linearReduceThreadIdx < bufferSize)
                                     && !(linearIdx != 0u && linearIdx >= active_threads);
-                                if(isActiveCtx[idx])
+                                if(isActive)
                                     func(worker, sharedMem[linearIdx], sharedMem[linearIdx + chunk_count]);
-                            });
+                            },
+                            isActiveCtx,
+                            linearReduceThreadIdxCtx);
                         worker.sync();
                     }
                 }

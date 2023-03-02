@@ -21,8 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/algorithms/Gamma.def"
-
 
 namespace picongpu
 {
@@ -30,8 +28,6 @@ namespace picongpu
     template<typename T_MomType, typename T_MassType>
     HDINLINE T_PrecisionType Gamma<T_PrecisionType>::operator()(T_MomType const& mom, T_MassType const mass) const
     {
-        using namespace pmacc;
-
         valueType const fMom2 = pmacc::math::abs2(precisionCast<valueType>(mom));
         constexpr valueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 

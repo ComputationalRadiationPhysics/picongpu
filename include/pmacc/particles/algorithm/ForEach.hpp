@@ -185,18 +185,18 @@ namespace pmacc::particles::algorithm
                     return;
 
                 // Information used to know if a particle within a frame is active without checking the multiMask.
-                auto frameConditionData = T_Order::createCtx(forEachParticleInFrame);
+                auto frameConditionDataCtx = T_Order::createCtx(forEachParticleInFrame);
 
                 // get starting frame
                 auto framePtrCtx = forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx, auto& frameConditionData)
                     {
                         auto frame = T_Order::getFirst(m_particlesBox, m_superCellIdx);
 
                         if constexpr(std::is_same_v<Reverse, T_Order>)
                         {
                             if(frame.isValid())
-                                frameConditionData[idx] = superCell.getSizeLastFrame();
+                                frameConditionData = superCell.getSizeLastFrame();
                         }
 
                         /* Same as frameDistance, variable is required to workaround an nvcc compiler bug.
@@ -212,10 +212,11 @@ namespace pmacc::particles::algorithm
                                 frame = T_Order::next(m_particlesBox, frame);
                             }
                             if constexpr(std::is_same_v<Reverse, T_Order>)
-                                frameConditionData[idx] = skipFrames != 0 ? frameSize : frameConditionData[idx];
+                                frameConditionData = skipFrames != 0 ? frameSize : frameConditionData;
                         }
                         return frame;
-                    });
+                    },
+                    frameConditionDataCtx);
 
                 bool hasMoreWork = true;
                 // iterate over all frames in the supercell
@@ -225,36 +226,38 @@ namespace pmacc::particles::algorithm
                     {
                         // loop over all particles in the frame
                         forEachParticleInFrame(
-                            [&](lockstep::Idx const linearIdx)
+                            [&](uint32_t const linearIdx, auto const& framePtr, auto const frameConditionData)
                             {
                                 auto const particleIdx = linearIdx % frameSize;
 
-                                auto particle = framePtrCtx[linearIdx][particleIdx];
+                                auto particle = framePtr[particleIdx];
                                 if constexpr(std::is_same_v<Reverse, T_Order>)
                                 {
-                                    bool const isParticle = particleIdx < frameConditionData[linearIdx];
+                                    bool const isParticle = particleIdx < frameConditionData;
                                     if(!isParticle)
                                         particle.setHandleInvalid();
                                 }
                                 else if constexpr(std::is_same_v<Forward, T_Order>)
                                 {
-                                    uint32_t const parIdxInSupercell = frameConditionData[linearIdx] + linearIdx;
+                                    uint32_t const parIdxInSupercell = frameConditionData + linearIdx;
                                     bool const isParticle = parIdxInSupercell < numParticlesInSupercell;
                                     if(!isParticle)
                                         particle.setHandleInvalid();
                                 }
 
 
-                                PMACC_CASSERT_MSG(
-                                    __unaryParticleFunctor_must_return_void,
-                                    std::is_void_v<decltype(unaryFunctor(worker, particle))>);
+                                constexpr bool functorReturnsVoid
+                                    = std::is_void_v<decltype(unaryFunctor(worker, particle))>;
+                                PMACC_CASSERT_MSG(__unaryParticleFunctor_must_return_void, functorReturnsVoid);
                                 if(particle.isHandleValid())
                                 {
                                     auto particleFunctor
                                         = detail::makeParticleFunctorInterface(std::forward<T_Functor>(unaryFunctor));
                                     particleFunctor(worker, particle);
                                 }
-                            });
+                            },
+                            framePtrCtx,
+                            frameConditionDataCtx);
                     }
                     else if constexpr(std::is_same_v<T_AccessTag, detail::CallFrameFunctor>)
                     {
@@ -266,19 +269,21 @@ namespace pmacc::particles::algorithm
 
                     // get next frame
                     forEachParticleInFrame(
-                        [&](lockstep::Idx const idx)
+                        [&](uint32_t const idx, auto& framePtr, auto& frameConditionData)
                         {
                             if constexpr(std::is_same_v<Reverse, T_Order>)
-                                frameConditionData[idx] = frameSize;
+                                frameConditionData = frameSize;
                             else if constexpr(std::is_same_v<Forward, T_Order>)
-                                frameConditionData[idx] += frameSize * frameDistance;
+                                frameConditionData += frameSize * frameDistance;
 
                             for(uint32_t i = 0; i < frameDistance; ++i)
-                                if(framePtrCtx[idx].isValid())
-                                    framePtrCtx[idx] = T_Order::next(m_particlesBox, framePtrCtx[idx]);
+                                if(framePtr.isValid())
+                                    framePtr = T_Order::next(m_particlesBox, framePtr);
 
-                            hasMoreWork = hasMoreWork || framePtrCtx[idx].isValid();
-                        });
+                            hasMoreWork = hasMoreWork || framePtr.isValid();
+                        },
+                        framePtrCtx,
+                        frameConditionDataCtx);
 
                 } while(hasMoreWork);
             }

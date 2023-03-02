@@ -100,7 +100,7 @@ namespace picongpu
                     typename T_Worker,
                     typename T_DeviceHeapHandle,
                     typename T_RngHandle,
-                    typename T_CollisionFunctor,
+                    typename T_SrcCollisionFunctor,
                     typename T_Filter0,
                     typename T_Filter1,
                     typename T_SumCoulombLogBox,
@@ -113,7 +113,7 @@ namespace picongpu
                     T_Mapping const mapper,
                     T_DeviceHeapHandle deviceHeapHandle,
                     T_RngHandle rngHandle,
-                    T_CollisionFunctor const collisionFunctor,
+                    T_SrcCollisionFunctor const srcCollisionFunctor,
                     T_Filter0 filter0,
                     T_Filter1 filter1,
                     T_SumCoulombLogBox sumCoulombLogBox,
@@ -201,23 +201,15 @@ namespace picongpu
                             (*longParList).shuffle(worker, rngHandle);
                         });
 
-                    auto collisionFunctorCtx = lockstep::makeVar<decltype(collisionFunctor(
-                        worker,
-                        alpaka::core::declval<DataSpace<simDim> const>(),
-                        alpaka::core::declval<float_X const>(),
-                        alpaka::core::declval<float_X const>(),
-                        alpaka::core::declval<uint32_t const>()))>(forEachFrameElem);
-
-                    forEachFrameElem(
-                        [&](lockstep::Idx const idx)
+                    auto collisionFunctorCtx = forEachFrameElem(
+                        [&](uint32_t const linearIdx)
                         {
-                            uint32_t const linearIdx = idx;
                             if(parCellList0[linearIdx].size >= parCellList1[linearIdx].size)
                             {
-                                inCellCollisions(
+                                return inCellCollisions(
                                     worker,
                                     rngHandle,
-                                    collisionFunctor,
+                                    srcCollisionFunctor,
                                     localSuperCellOffset,
                                     superCellIdx,
                                     densityArray0[linearIdx],
@@ -230,30 +222,26 @@ namespace picongpu
                                     pb1,
                                     firstFrame0,
                                     firstFrame1,
-                                    collisionFunctorCtx,
-                                    idx);
+                                    linearIdx);
                             }
-                            else
-                            {
-                                inCellCollisions(
-                                    worker,
-                                    rngHandle,
-                                    collisionFunctor,
-                                    localSuperCellOffset,
-                                    superCellIdx,
-                                    densityArray1[linearIdx],
-                                    densityArray0[linearIdx],
-                                    parCellList1[linearIdx].ptrToIndicies,
-                                    parCellList0[linearIdx].ptrToIndicies,
-                                    parCellList1[linearIdx].size,
-                                    parCellList0[linearIdx].size,
-                                    pb1,
-                                    pb0,
-                                    firstFrame1,
-                                    firstFrame0,
-                                    collisionFunctorCtx,
-                                    idx);
-                            }
+
+                            return inCellCollisions(
+                                worker,
+                                rngHandle,
+                                srcCollisionFunctor,
+                                localSuperCellOffset,
+                                superCellIdx,
+                                densityArray1[linearIdx],
+                                densityArray0[linearIdx],
+                                parCellList1[linearIdx].ptrToIndicies,
+                                parCellList0[linearIdx].ptrToIndicies,
+                                parCellList1[linearIdx].size,
+                                parCellList0[linearIdx].size,
+                                pb1,
+                                pb0,
+                                firstFrame1,
+                                firstFrame0,
+                                linearIdx);
                         });
 
                     worker.sync();
@@ -281,28 +269,30 @@ namespace picongpu
                             });
                         worker.sync();
                         forEachFrameElem(
-                            [&](lockstep::Idx const idx)
+                            [&](uint32_t idx, auto const& collisionFunctor)
                             {
-                                const auto timesUsed = static_cast<uint64_t>(collisionFunctorCtx[idx].timesUsed);
+                                const auto timesUsed = static_cast<uint64_t>(collisionFunctor.timesUsed);
                                 if(timesUsed > 0u)
                                 {
                                     cupla::atomicAdd(
                                         worker.getAcc(),
                                         &sumCoulombLogBlock,
-                                        static_cast<float_X>(collisionFunctorCtx[idx].sumCoulombLog),
+                                        static_cast<float_X>(collisionFunctor.sumCoulombLog),
                                         ::alpaka::hierarchy::Threads{});
                                     cupla::atomicAdd(
                                         worker.getAcc(),
                                         &sumSParamBlock,
-                                        static_cast<float_X>(collisionFunctorCtx[idx].sumSParam),
+                                        static_cast<float_X>(collisionFunctor.sumSParam),
                                         ::alpaka::hierarchy::Threads{});
                                     cupla::atomicAdd(
+
                                         worker.getAcc(),
                                         &timesCollidedBlock,
                                         timesUsed,
                                         ::alpaka::hierarchy::Threads{});
                                 }
-                            });
+                            },
+                            collisionFunctorCtx);
 
                         worker.sync();
 
@@ -332,7 +322,7 @@ namespace picongpu
                 template<
                     typename T_Worker,
                     typename T_RngHandle,
-                    typename T_CollisionFunctor,
+                    typename T_SrcCollisionFunctor,
                     typename T_ListLong,
                     typename T_ListShort,
                     typename T_SizeLong,
@@ -340,12 +330,11 @@ namespace picongpu
                     typename T_PBoxLong,
                     typename T_PBoxShort,
                     typename T_FrameLong,
-                    typename T_FrameShort,
-                    typename T_CollisionFunctorCtx>
-                DINLINE void inCellCollisions(
+                    typename T_FrameShort>
+                DINLINE decltype(auto) inCellCollisions(
                     T_Worker const& worker,
                     T_RngHandle& rngHandle,
-                    T_CollisionFunctor const& collisionFunctor,
+                    T_SrcCollisionFunctor const& srcCollisionFunctor,
                     DataSpace<simDim> const& localSuperCellOffset,
                     DataSpace<simDim> const& superCellIdx,
                     float_X const& densityLong,
@@ -358,32 +347,29 @@ namespace picongpu
                     T_PBoxShort const& pBoxShort,
                     T_FrameLong const& frameLong,
                     T_FrameShort const& frameShort,
-                    T_CollisionFunctorCtx& collisionFunctorCtx,
-                    lockstep::Idx idx
-
-                ) const
+                    [[maybe_unused]] uint32_t linearCellIdx) const
                 {
-                    collisionFunctorCtx[idx]
-                        = collisionFunctor(worker, localSuperCellOffset, densityLong, densityShort, sizeLong);
-
+                    auto destCollisionFunctor
+                        = srcCollisionFunctor(worker, localSuperCellOffset, densityLong, densityShort, sizeLong);
 
                     if constexpr(useScreeningLength)
                     {
                         auto const shifted = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
-                        auto const idxInSuperCell = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
-                        collisionFunctorCtx[idx].coulombLogFunctor.screeningLengthSquared_m
-                            = shifted(idxInSuperCell)[0];
+                        auto const idxInSuperCell
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearCellIdx);
+                        destCollisionFunctor.coulombLogFunctor.screeningLengthSquared_m = shifted(idxInSuperCell)[0];
                     }
 
-                    if(sizeShort == 0u)
-                        return;
-                    for(uint32_t i = 0; i < sizeLong; ++i)
-                    {
-                        auto parLong = detail::getParticle(pBoxLong, frameLong, listLong[i]);
-                        auto parShort = detail::getParticle(pBoxShort, frameShort, listShort[i % sizeShort]);
-                        collisionFunctorCtx[idx].duplicationCorrection = duplicationCorrection(i, sizeShort, sizeLong);
-                        (collisionFunctorCtx[idx])(detail::makeCollisionContext(worker, rngHandle), parLong, parShort);
-                    }
+                    if(sizeShort != 0u)
+                        for(uint32_t i = 0; i < sizeLong; ++i)
+                        {
+                            auto parLong = detail::getParticle(pBoxLong, frameLong, listLong[i]);
+                            auto parShort = detail::getParticle(pBoxShort, frameShort, listShort[i % sizeShort]);
+                            destCollisionFunctor.duplicationCorrection = duplicationCorrection(i, sizeShort, sizeLong);
+                            destCollisionFunctor(detail::makeCollisionContext(worker, rngHandle), parLong, parShort);
+                        }
+
+                    return destCollisionFunctor;
                 }
             };
 

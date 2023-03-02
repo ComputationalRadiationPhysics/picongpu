@@ -122,16 +122,17 @@ namespace picongpu
             while(srcFramePtr.isValid())
             {
                 forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx, int& storageOffset)
                     {
                         auto parSrc = (srcFramePtr[idx]);
-                        storageOffsetCtx[idx] = -1;
+                        storageOffset = -1;
                         // count particle in frame
                         if(parSrc[multiMask_] == 1 && filter(parSrc))
                             if(accParFilter(worker, parSrc))
-                                storageOffsetCtx[idx]
+                                storageOffset
                                     = kernel::atomicAllInc(worker, &localCounter, ::alpaka::hierarchy::Threads{});
-                    });
+                    },
+                    storageOffsetCtx);
                 worker.sync();
 
                 onlyMaster(
@@ -145,11 +146,11 @@ namespace picongpu
                 worker.sync();
 
                 forEachParticleInFrame(
-                    [&](lockstep::Idx const idx)
+                    [&](uint32_t const idx, int const storageOffset)
                     {
-                        if(storageOffsetCtx[idx] != -1)
+                        if(storageOffset != -1)
                         {
-                            auto parDest = destFrame[globalOffset + storageOffsetCtx[idx]];
+                            auto parDest = destFrame[globalOffset + storageOffset];
                             auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
                             auto parSrc = (srcFramePtr[idx]);
                             assign(parDestNoDomainIdx, parSrc);
@@ -158,7 +159,8 @@ namespace picongpu
                                 DataSpaceOperations<simDim>::template map<SuperCellSize>(parSrc[localCellIdx_]));
                             parDest[domainCellIdxIdentifier] = domainOffset + localSuperCellCellOffset + localCell;
                         }
-                    });
+                    },
+                    storageOffsetCtx);
 
                 worker.sync();
 

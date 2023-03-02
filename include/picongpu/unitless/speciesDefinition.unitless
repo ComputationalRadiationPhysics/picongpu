@@ -29,6 +29,9 @@
 #include "picongpu/traits/frame/GetCharge.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 
+#include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/Resolve.hpp>
+
 
 namespace picongpu
 {
@@ -44,8 +47,8 @@ namespace picongpu
             template<typename T_Frame>
             HDINLINE float_X getMass()
             {
-                using MassRatioValue =
-                    typename pmacc::traits::Resolve<typename GetFlagType<T_Frame, massRatio<>>::type>::type;
+                using MassRatioValue = typename pmacc::traits::Resolve<
+                    typename pmacc::traits::GetFlagType<T_Frame, massRatio<>>::type>::type;
 
                 return BASE_MASS * MassRatioValue::getValue();
             }
@@ -59,8 +62,8 @@ namespace picongpu
             template<typename T_Frame>
             HDINLINE float_X getCharge()
             {
-                using ChargeRatioValue =
-                    typename pmacc::traits::Resolve<typename GetFlagType<T_Frame, chargeRatio<>>::type>::type;
+                using ChargeRatioValue = typename pmacc::traits::Resolve<
+                    typename pmacc::traits::GetFlagType<T_Frame, chargeRatio<>>::type>::type;
 
                 return BASE_CHARGE * ChargeRatioValue::getValue();
             }

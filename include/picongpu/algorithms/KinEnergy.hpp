@@ -23,7 +23,6 @@
 
 #include "picongpu/algorithms/Gamma.hpp"
 
-
 namespace picongpu
 {
     using namespace pmacc;

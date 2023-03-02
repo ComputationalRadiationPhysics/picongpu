@@ -129,14 +129,16 @@ namespace pmacc
                         auto hasValidParticleCtx = lockstep::makeVar<bool>(forEachParticle);
 
                         forEachParticle(
-                            [&](lockstep::Idx const idx)
+                            [&](uint32_t const idx, int& srcParticleIdx, bool& hasValidParticle)
                             {
                                 destFramePtr[idx] = DestFramePtr{};
                                 sharedLinearSuperCellIds[idx] = -1;
 
-                                srcParticleIdxCtx[idx] = sharedSrcParticleOffset + idx;
-                                hasValidParticleCtx[idx] = srcParticleIdxCtx[idx] < maxParticles;
-                            });
+                                srcParticleIdx = sharedSrcParticleOffset + idx;
+                                hasValidParticle = srcParticleIdx < maxParticles;
+                            },
+                            srcParticleIdxCtx,
+                            hasValidParticleCtx);
 
                         worker.sync();
 
@@ -147,41 +149,48 @@ namespace pmacc
 
                         // supercell index of the particle relative to the origin of the local domain
                         auto particlesSuperCellCtx = forEachParticle(
-                            [&](lockstep::Idx const idx) -> DataSpace<numDims>
+                            [&](uint32_t const idx,
+                                bool const hasValidParticle,
+                                auto& lCellIdx,
+                                int const srcParticleIdx,
+                                int& linearParticlesSuperCell) -> DataSpace<numDims>
                             {
                                 DataSpace<numDims> particlesSuperCellIdx;
-                                if(hasValidParticleCtx[idx])
+                                if(hasValidParticle)
                                 {
                                     // offset of the particle relative to the origin of the local domain
                                     DataSpace<numDims> const particleCellOffset
-                                        = srcFrame[srcParticleIdxCtx[idx]][domainCellIdxIdentifier]
-                                        - cellOffsetToTotalDomain;
+                                        = srcFrame[srcParticleIdx][domainCellIdxIdentifier] - cellOffsetToTotalDomain;
                                     particlesSuperCellIdx = particleCellOffset / SuperCellSize::toRT();
-                                    linearParticlesSuperCellCtx[idx]
+                                    linearParticlesSuperCell
                                         = DataSpaceOperations<numDims>::map(numSuperCells, particlesSuperCellIdx);
-                                    sharedLinearSuperCellIds[idx] = linearParticlesSuperCellCtx[idx];
+                                    sharedLinearSuperCellIds[idx] = linearParticlesSuperCell;
                                     DataSpace<numDims> const localCellIdx(
                                         particleCellOffset - particlesSuperCellIdx * SuperCellSize::toRT());
-                                    lCellIdxCtx[idx]
-                                        = DataSpaceOperations<numDims>::template map<SuperCellSize>(localCellIdx);
+                                    lCellIdx = DataSpaceOperations<numDims>::template map<SuperCellSize>(localCellIdx);
                                 }
                                 return particlesSuperCellIdx;
-                            });
+                            },
+                            hasValidParticleCtx,
+                            lCellIdxCtx,
+                            srcParticleIdxCtx,
+                            linearParticlesSuperCellCtx);
 
                         worker.sync();
 
                         auto masterVirtualThreadIdxCtx = forEachParticle(
-                            [&](lockstep::Idx const idx) -> int
+                            [&](uint32_t const idx,
+                                bool const hasValidParticle,
+                                int const linearParticlesSuperCell,
+                                auto const& particlesSuperCell) -> int
                             {
                                 int vThreadMasterIdx = static_cast<int>(idx) - 1;
-                                if(hasValidParticleCtx[idx])
+                                if(hasValidParticle)
                                 {
-                                    // auto& vThreadMasterIdx = masterVirtualThreadIdxCtx[idx];
                                     /* search master thread index */
                                     while(vThreadMasterIdx >= 0)
                                     {
-                                        if(linearParticlesSuperCellCtx[idx]
-                                           != sharedLinearSuperCellIds[vThreadMasterIdx])
+                                        if(linearParticlesSuperCell != sharedLinearSuperCellIds[vThreadMasterIdx])
                                             break;
 
                                         --vThreadMasterIdx;
@@ -198,25 +207,32 @@ namespace pmacc
                                         destBox.setAsFirstFrame(
                                             worker,
                                             tmpFrame,
-                                            particlesSuperCellCtx[idx] + cellDesc.getGuardingSuperCells());
+                                            particlesSuperCell + cellDesc.getGuardingSuperCells());
                                     }
                                 }
                                 return vThreadMasterIdx;
-                            });
+                            },
+                            hasValidParticleCtx,
+                            linearParticlesSuperCellCtx,
+                            particlesSuperCellCtx);
 
                         worker.sync();
 
                         forEachParticle(
-                            [&](lockstep::Idx const idx)
+                            [&](uint32_t const idx,
+                                bool const hasValidParticle,
+                                auto const masterVirtualThreadIdx,
+                                int const srcParticleIdx,
+                                auto const lCellIdx)
                             {
-                                if(hasValidParticleCtx[idx])
+                                if(hasValidParticle)
                                 {
                                     /* copy attributes and activate particle*/
-                                    auto parDest = destFramePtr[masterVirtualThreadIdxCtx[idx]][idx];
+                                    auto parDest = destFramePtr[masterVirtualThreadIdx][idx];
                                     auto parDestDeselect = deselect<bmpl::vector2<localCellIdx, multiMask>>(parDest);
 
-                                    assign(parDestDeselect, srcFrame[srcParticleIdxCtx[idx]]);
-                                    parDest[localCellIdx_] = lCellIdxCtx[idx];
+                                    assign(parDestDeselect, srcFrame[srcParticleIdx]);
+                                    parDest[localCellIdx_] = lCellIdx;
                                     parDest[multiMask_] = 1;
                                     /* counter[1] -> number of loaded particles
                                      * this counter is evaluated on host side
@@ -224,7 +240,11 @@ namespace pmacc
                                      * file)*/
                                     kernel::atomicAllInc(worker, &(counter[1]), ::alpaka::hierarchy::Blocks{});
                                 }
-                            });
+                            },
+                            hasValidParticleCtx,
+                            masterVirtualThreadIdxCtx,
+                            srcParticleIdxCtx,
+                            lCellIdxCtx);
                     }
                 };
             } // namespace detail
