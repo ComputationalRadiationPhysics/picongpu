@@ -98,54 +98,77 @@ namespace picongpu
                      */
                     void operator()()
                     {
-                        for(uint32_t d = 0; d < simDim; d++)
+                        static bool validateUserInputs = true;
+                        if(validateUserInputs)
                         {
-                            auto const errorString
-                                = std::string{"for species '" + prefix + "' and axis " + std::to_string(d)};
-                            int32_t offset = offsets()[d];
-                            if(offset < 0)
-                                throw std::runtime_error(
-                                    "Negative boundary offset " + errorString + " is not supported");
-                            T_Species::boundaryDescription()[d].offset = offset;
-                            float_X temperature = temperatures()[d];
-                            if(temperature < 0.0_X)
-                                throw std::runtime_error(
-                                    "Negative boundary temperature " + errorString + " is not supported");
-                            T_Species::boundaryDescription()[d].temperature = temperature;
+                            validateUserInputs = false;
+                            PMACC_VERIFY_MSG(
+                                kindNames().size() <= 3,
+                                std::string("Invalid number of particle boundary kinds for species '") + prefix
+                                    + "'.");
+                            PMACC_VERIFY_MSG(
+                                offsets().size() <= 3,
+                                std::string("Invalid number of particle boundary offsets for species '") + prefix
+                                    + "'.");
+                            PMACC_VERIFY_MSG(
+                                temperatures().size() <= 3,
+                                std::string("Invalid number of particle boundary temperatures for species '") + prefix
+                                    + "'.");
 
-                            auto const kindName = kindNames()[d];
-                            if(kindName == "reflecting")
+                            for(uint32_t d = 0; d < simDim; d++)
                             {
-                                if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                                auto const errorString
+                                    = std::string{"for species '" + prefix + "' and axis " + std::to_string(d)};
+                                int32_t offset = offsets()[d];
+                                if(offset < 0)
                                     throw std::runtime_error(
-                                        "Boundary kind " + errorString + " is not compatible with --periodic value");
-                                T_Species::boundaryDescription()[d].kind = particles::boundary::Kind::Reflecting;
-                            }
-                            if(kindName == "thermal")
-                            {
-                                if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                                        "Negative boundary offset " + errorString + " is not supported");
+                                T_Species::boundaryDescription()[d].offset = offset;
+                                float_X temperature = temperatures()[d];
+                                if(temperature < 0.0_X)
                                     throw std::runtime_error(
-                                        "Boundary kind " + errorString + " is not compatible with --thermal value");
-                                T_Species::boundaryDescription()[d].kind = particles::boundary::Kind::Thermal;
-                            }
-                            if(kindName == "periodic")
-                            {
-                                // For now it must match the default-set boundary kind
-                                if(T_Species::boundaryDescription()[d].kind != particles::boundary::Kind::Periodic)
+                                        "Negative boundary temperature " + errorString + " is not supported");
+                                T_Species::boundaryDescription()[d].temperature = temperature;
+
+                                auto const kindName = kindNames()[d];
+                                if(kindName == "reflecting")
+                                {
+                                    if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                                        throw std::runtime_error(
+                                            "Boundary kind " + errorString
+                                            + " is not compatible with --periodic value");
+                                    T_Species::boundaryDescription()[d].kind = particles::boundary::Kind::Reflecting;
+                                }
+                                if(kindName == "thermal")
+                                {
+                                    if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                                        throw std::runtime_error(
+                                            "Boundary kind " + errorString
+                                            + " is not compatible with --thermal value");
+                                    T_Species::boundaryDescription()[d].kind = particles::boundary::Kind::Thermal;
+                                }
+                                if(kindName == "periodic")
+                                {
+                                    // For now it must match the default-set boundary kind
+                                    if(T_Species::boundaryDescription()[d].kind != particles::boundary::Kind::Periodic)
+                                        throw std::runtime_error(
+                                            "Boundary kind " + errorString
+                                            + " is not compatible with --periodic value");
+                                }
+                                if(kindName == "absorbing")
+                                {
+                                    // For now it must match the default-set boundary kind
+                                    if(T_Species::boundaryDescription()[d].kind
+                                       != particles::boundary::Kind::Absorbing)
+                                        throw std::runtime_error(
+                                            "Boundary kind " + errorString
+                                            + " is not compatible with --periodic value");
+                                }
+                                if((T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                                   && (offset != 0))
                                     throw std::runtime_error(
-                                        "Boundary kind " + errorString + " is not compatible with --periodic value");
+                                        "Periodic boundary kind " + errorString + " must have 0 boundaryOffset");
                             }
-                            if(kindName == "absorbing")
-                            {
-                                // For now it must match the default-set boundary kind
-                                if(T_Species::boundaryDescription()[d].kind != particles::boundary::Kind::Absorbing)
-                                    throw std::runtime_error(
-                                        "Boundary kind " + errorString + " is not compatible with --periodic value");
-                            }
-                            if((T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
-                               && (offset != 0))
-                                throw std::runtime_error(
-                                    "Periodic boundary kind " + errorString + " must have 0 boundaryOffset");
                         }
                     }
 
