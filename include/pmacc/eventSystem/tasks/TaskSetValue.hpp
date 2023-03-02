@@ -35,48 +35,6 @@
 
 namespace pmacc
 {
-    namespace taskSetValueHelper
-    {
-        /** define access operation for non-pointer types
-         */
-        template<typename T_Type, bool isPointer>
-        struct Value
-        {
-            using type = const T_Type;
-
-            HDINLINE type& operator()(type& v) const
-            {
-                return v;
-            }
-        };
-
-        /** define access operation for pointer types
-         *
-         * access first element of a pointer
-         */
-        template<typename T_Type>
-        struct Value<T_Type, true>
-        {
-            typedef const T_Type PtrType;
-            using type = const typename std::remove_pointer_t<PtrType>;
-
-            HDINLINE type& operator()(PtrType v) const
-            {
-                return *v;
-            }
-        };
-
-        /** Get access to a value from a pointer or reference with the same method
-         */
-        template<typename T_Type>
-        HDINLINE typename Value<T_Type, std::is_pointer_v<T_Type>>::type& getValue(T_Type& value)
-        {
-            typedef Value<T_Type, std::is_pointer_v<T_Type>> Functor;
-            return Functor()(value);
-        }
-
-    } // namespace taskSetValueHelper
-
     /** set a value to all elements of a box
      *
      * @tparam T_xChunkSize number of elements in x direction to prepare with one cupla block
@@ -123,7 +81,13 @@ namespace pmacc
 
                     SizeVecType const idx(blockSize * blockIndex + virtualWorkerIdx);
                     if(idx.x() < size.x())
-                        memBox(idx) = taskSetValueHelper::getValue(value);
+                    {
+                        constexpr bool isPointer = std::is_pointer_v<T_ValueType>;
+                        if constexpr(isPointer)
+                            memBox(idx) = *value;
+                        else
+                            memBox(idx) = value;
+                    }
                 });
         }
     };
