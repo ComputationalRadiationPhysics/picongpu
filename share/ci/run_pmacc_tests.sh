@@ -85,11 +85,6 @@ get_backend_flags()
 # build an run tests
 ###################################################
 
-# use one build directory for all build configurations
-cd $HOME
-mkdir buildPMaccCI
-cd buildPMaccCI
-
 export code_DIR=$CI_PROJECT_DIR
 
 PMACC_PARALLEL_BUILDS=$(nproc)
@@ -135,6 +130,19 @@ echo -e "/////////////////////////////////////////////////// \033[0m \n\n"
 export OMPI_MCA_btl_base_warn_component_unused=0
 export LD_LIBRARY_PATH=/opt/boost/${BOOST_VERSION}/lib:$LD_LIBRARY_PATH
 
+# compile header include consistency check
+# use one build directory for all build configurations
+cd $HOME
+mkdir buildPMaccHeaderCI
+cd buildPMaccHeaderCI
+cmake $CMAKE_ARGS $code_DIR/test/pmaccHeaderCheck
+make -j $(nproc)
+
+# compile and run catch2 tests
+# use one build directory for all build configurations
+cd $HOME
+mkdir buildPMaccCI
+cd buildPMaccCI
 cmake $CMAKE_ARGS $code_DIR/include/pmacc
 make
 
