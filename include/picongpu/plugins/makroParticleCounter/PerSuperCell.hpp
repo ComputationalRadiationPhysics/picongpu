@@ -106,7 +106,6 @@ namespace picongpu
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef GridBuffer<size_t, simDim> GridBufferType;
 
-        MappingDesc* cellDescription;
         std::string notifyPeriod;
         std::string m_filenameExtension = openPMD::getDefaultExtension();
         std::string m_filenameInfix = "_%06T";
@@ -114,13 +113,14 @@ namespace picongpu
         std::string pluginName;
         std::string pluginPrefix;
         std::string foldername;
+        MappingDesc* cellDescription;
+
         mpi::MPIReduce reduce;
 
         std::unique_ptr<GridBufferType> localResult;
 
         // @todo upon switching to C++17, use std::option instead
         std::unique_ptr<::openPMD::Series> m_Series;
-        // set attributes for datacollector files
 
         ::openPMD::Offset m_offset;
         ::openPMD::Extent m_extent;
