@@ -71,6 +71,9 @@ get_backend_flags()
         result+=" -Dalpaka_ACC_GPU_HIP_ENABLE=ON -Dalpaka_ACC_GPU_HIP_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DGPU_TARGETS=\"${backend_cfg[1]}\""
+        else
+            # If no architecture is given build for Radeon VII or MI50/60.
+            result+=" -DGPU_TARGETS=gfx906"
         fi
     else
         echo "unsupported backend given '$1'" >&2
@@ -110,13 +113,10 @@ else
     echo "No GPU device selected because environment variable CI_GPUS is not set."
 fi
 
-if [[ "$PIC_BACKEND" =~ hip.* ]] ; then
-    if [ -z "$CI_GPU_ARCH" ] ; then
-        # In case the CI runner is not providing a GPU architecture e.g. a CPU runner set the architecture
-        # to Radeon VII or MI50/60.
-        export GPU_TARGETS="gfx906"
+if [[ "$PIC_BACKEND" =~ hip.* ]] || [[ "$PIC_BACKEND" =~ cuda.* ]] ; then
+    if [ -n "$CI_GPU_ARCH" ] ; then
+        export PIC_BACKEND="${PIC_BACKEND}:${CI_GPU_ARCH}"
     fi
-    export CMAKE_ARGS="$CMAKE_ARGS -DGPU_TARGETS=$GPU_TARGETS"
 fi
 
 alpaka_backend=$(get_backend_flags ${PIC_BACKEND})
