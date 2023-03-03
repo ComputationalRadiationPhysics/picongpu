@@ -70,23 +70,23 @@ namespace pmacc
             };
 
 
-            template<int dim, int val>
+            template<uint32_t dim, int val>
             struct make_Int;
 
             template<int val>
-            struct make_Int<1, val>
+            struct make_Int<1u, val>
             {
                 using type = Int<val>;
             };
 
             template<int val>
-            struct make_Int<2, val>
+            struct make_Int<2u, val>
             {
                 using type = Int<val, val>;
             };
 
             template<int val>
-            struct make_Int<3, val>
+            struct make_Int<3u, val>
             {
                 using type = Int<val, val, val>;
             };

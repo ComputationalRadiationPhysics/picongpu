@@ -50,7 +50,7 @@ namespace pmacc
                 template<
                     typename T_Worker,
                     typename T_Type,
-                    int T_dim,
+                    uint32_t T_dim,
                     typename T_DstAccessor,
                     typename T_DstNavigator,
                     typename T_DstStorage,
@@ -62,7 +62,7 @@ namespace pmacc
                     pmacc::math::Vector<T_Type, T_dim, T_DstAccessor, T_DstNavigator, T_DstStorage>& dst,
                     pmacc::math::Vector<T_Type, T_dim, T_SrcAccessor, T_SrcNavigator, T_SrcStorage> const& src) const
                 {
-                    for(int i = 0; i < T_dim; ++i)
+                    for(uint32_t i = 0; i < T_dim; ++i)
                         atomicOpNoRet<T_AlpakaOperation>(worker, &dst[i], src[i], T_AlpakaHierarchy{});
                 }
             };

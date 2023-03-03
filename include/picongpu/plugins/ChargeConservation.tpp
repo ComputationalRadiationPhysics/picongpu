@@ -115,7 +115,7 @@ namespace picongpu
          *
          * NOTE: This functor uses a Yee-cell stencil.
          */
-        template<int dim, typename ValueType>
+        template<uint32_t dim, typename ValueType>
         struct Div;
 
         template<typename ValueType>

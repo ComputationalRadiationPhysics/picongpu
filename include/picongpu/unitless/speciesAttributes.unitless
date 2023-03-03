@@ -600,7 +600,7 @@ namespace picongpu
             {
                 // dataType is actual Type of this Object
                 using DataType = typename T_Type::type;
-                constexpr int dim = DataType::dim;
+                constexpr uint32_t dim = DataType::dim;
                 return std::vector<double>(dim, 1.0);
             }
         };

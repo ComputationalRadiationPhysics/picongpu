@@ -76,7 +76,7 @@ namespace pmacc
 
                     // number of cells in a superCell
                     constexpr uint32_t numCells = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    PMACC_CONSTEXPR_CAPTURE int dim = T_Mapping::Dim;
+                    PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
 
                     DataSpace<dim> const blockCell(
                         mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())))
@@ -160,7 +160,7 @@ namespace pmacc
 
                     using SuperCellSize = T_SuperCellSize;
 
-                    constexpr int dim = T_SuperCellSize::dim;
+                    constexpr uint32_t dim = T_SuperCellSize::dim;
 
                     using MappingDesc = MappingDescription<dim, SuperCellSize>;
 

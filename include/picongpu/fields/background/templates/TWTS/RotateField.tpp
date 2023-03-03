@@ -37,9 +37,9 @@ namespace picongpu
                 struct RotateField;
 
                 template<typename T_Type, typename T_AngleType>
-                struct RotateField<pmacc::math::Vector<T_Type, 3>, T_AngleType>
+                struct RotateField<pmacc::math::Vector<T_Type, 3u>, T_AngleType>
                 {
-                    using result = pmacc::math::Vector<T_Type, 3>;
+                    using result = pmacc::math::Vector<T_Type, 3u>;
                     using AngleType = T_AngleType;
                     HDINLINE result operator()(const result& fieldPosVector, const AngleType phi) const
                     {
@@ -60,9 +60,9 @@ namespace picongpu
                 };
 
                 template<typename T_Type, typename T_AngleType>
-                struct RotateField<pmacc::math::Vector<T_Type, 2>, T_AngleType>
+                struct RotateField<pmacc::math::Vector<T_Type, 2u>, T_AngleType>
                 {
-                    using result = pmacc::math::Vector<T_Type, 2>;
+                    using result = pmacc::math::Vector<T_Type, 2u>;
                     using AngleType = T_AngleType;
                     HDINLINE result operator()(const result& fieldPosVector, const AngleType phi) const
                     {

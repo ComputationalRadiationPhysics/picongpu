@@ -40,15 +40,15 @@ namespace pmacc
             template<
                 typename T_Axes,
                 typename T_Type,
-                int T_Dim,
+                uint32_t T_dim,
                 typename T_Accessor,
                 typename T_Navigator,
                 typename T_Storage>
-            struct TwistComponents<T_Axes, math::Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>>
+            struct TwistComponents<T_Axes, math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>>
             {
                 using type = math::Vector<
                     T_Type,
-                    T_Dim,
+                    T_dim,
                     T_Accessor,
                     math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes>>,
                     T_Storage>&;

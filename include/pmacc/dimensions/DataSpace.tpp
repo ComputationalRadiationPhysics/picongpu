@@ -33,17 +33,17 @@ namespace pmacc
 {
     namespace traits
     {
-        template<unsigned DIM>
-        struct GetComponentsType<DataSpace<DIM>, false>
+        template<unsigned T_dim>
+        struct GetComponentsType<DataSpace<T_dim>, false>
         {
-            using type = typename DataSpace<DIM>::type;
+            using type = typename DataSpace<T_dim>::type;
         };
 
         /** Trait for float_X */
-        template<unsigned DIM>
-        struct GetNComponents<DataSpace<DIM>, false>
+        template<unsigned T_dim>
+        struct GetNComponents<DataSpace<T_dim>, false>
         {
-            static constexpr uint32_t value = DIM;
+            static constexpr uint32_t value = T_dim;
         };
 
     } // namespace traits
