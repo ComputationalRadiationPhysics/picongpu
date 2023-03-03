@@ -48,19 +48,18 @@ namespace picongpu::currentSolver
     DINLINE float_X relayPoint(int& i_1, int& i_2, const float_X x_1, const float_X x_2)
     {
         using namespace pmacc;
-        if constexpr(isEvenSupport)
+        constexpr bool value = isEvenSupport;
+        if constexpr(value)
         {
             i_1 = math::floor(x_1);
             i_2 = math::floor(x_2);
 
             return i_1 == i_2 ? x_2 : math::max(i_1, i_2);
         }
-        else
-        {
-            i_1 = pmacc::math::float2int_rd(x_1 + float_X(0.5));
-            i_2 = pmacc::math::float2int_rd(x_2 + float_X(0.5));
 
-            return i_1 == i_2 ? x_2 : float_X(i_1 + i_2) / float_X(2.0);
-        }
+        i_1 = pmacc::math::float2int_rd(x_1 + float_X(0.5));
+        i_2 = pmacc::math::float2int_rd(x_2 + float_X(0.5));
+
+        return i_1 == i_2 ? x_2 : float_X(i_1 + i_2) / float_X(2.0);
     }
 } // namespace picongpu::currentSolver

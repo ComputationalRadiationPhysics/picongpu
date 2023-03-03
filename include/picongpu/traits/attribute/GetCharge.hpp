@@ -62,8 +62,8 @@ namespace picongpu
                      */
                     return ELECTRON_CHARGE * (particle[boundElectrons_] - protonNumber) * weighting;
                 }
-                else
-                    return frame::getCharge<typename T_Particle::FrameType>() * weighting;
+
+                return frame::getCharge<typename T_Particle::FrameType>() * weighting;
             }
 
         } // namespace attribute
