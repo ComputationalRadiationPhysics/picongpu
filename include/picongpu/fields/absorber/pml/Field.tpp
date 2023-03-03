@@ -124,7 +124,12 @@ namespace picongpu
                     // Note: since this should compile for 2d, .z( ) can't be used
                     using detail::makeIdx;
                     int layerIdx = 0;
-                    if constexpr(simDim == 3)
+
+                    // Define standard values of Layer z-origin and negative z-size for 2D simulations.
+                    auto positiveBeginZ = 0;
+                    auto negativeSizeZ = 0;
+
+                    if constexpr(simDim == DIM3)
                     {
                         auto const negativeZLayer
                             = Layer{makeIdx(0, 0, 0), makeIdx(gridSize[0], gridSize[1], negativeSize[2])};
@@ -132,24 +137,26 @@ namespace picongpu
                         auto const positiveZLayer
                             = Layer{makeIdx(0, 0, positiveBegin[2]), makeIdx(gridSize[0], gridSize[1], gridSize[2])};
                         layers[layerIdx++] = positiveZLayer;
+
+                        positiveBeginZ = positiveBegin[2];
+                        negativeSizeZ = negativeSize[2];
                     }
 
-                    auto const negativeYLayer = Layer{
-                        makeIdx(0, 0, negativeSize[2]),
-                        makeIdx(gridSize[0], negativeSize[1], positiveBegin[2])};
+                    auto const negativeYLayer
+                        = Layer{makeIdx(0, 0, negativeSizeZ), makeIdx(gridSize[0], negativeSize[1], positiveBeginZ)};
                     layers[layerIdx++] = negativeYLayer;
                     auto const positiveYLayer = Layer{
-                        makeIdx(0, positiveBegin[1], negativeSize[2]),
-                        makeIdx(gridSize[0], gridSize[1], positiveBegin[2])};
+                        makeIdx(0, positiveBegin[1], negativeSizeZ),
+                        makeIdx(gridSize[0], gridSize[1], positiveBeginZ)};
                     layers[layerIdx++] = positiveYLayer;
 
                     auto const negativeXLayer = Layer{
-                        makeIdx(0, negativeSize[1], negativeSize[2]),
-                        makeIdx(negativeSize[0], positiveBegin[1], positiveBegin[2])};
+                        makeIdx(0, negativeSize[1], negativeSizeZ),
+                        makeIdx(negativeSize[0], positiveBegin[1], positiveBeginZ)};
                     layers[layerIdx++] = negativeXLayer;
                     auto const positiveXLayer = Layer{
-                        makeIdx(positiveBegin[0], negativeSize[1], negativeSize[2]),
-                        makeIdx(gridSize[0], positiveBegin[1], positiveBegin[2])};
+                        makeIdx(positiveBegin[0], negativeSize[1], negativeSizeZ),
+                        makeIdx(gridSize[0], positiveBegin[1], positiveBeginZ)};
                     layers[layerIdx++] = positiveXLayer;
                 }
 
