@@ -238,7 +238,7 @@ namespace pmacc
          *
          * @param size count of elements per dimension
          */
-        void setCurrentSize(const size_t size)
+        void setCurrentSize(const size_t size) override
         {
             Buffer<TYPE, DIM>::setCurrentSize(size);
 
