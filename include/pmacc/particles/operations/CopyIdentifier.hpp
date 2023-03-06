@@ -21,15 +21,10 @@
 
 #pragma once
 
-#include "pmacc/particles/Identifier.hpp"
-#include "pmacc/traits/HasIdentifier.hpp"
-#include "pmacc/types.hpp"
+#include "pmacc/attribute/FunctionSpecifier.hpp"
 
 namespace pmacc
 {
-    namespace pmath = pmacc::math;
-
-
     template<typename T_Key>
     struct CopyIdentifier
     {

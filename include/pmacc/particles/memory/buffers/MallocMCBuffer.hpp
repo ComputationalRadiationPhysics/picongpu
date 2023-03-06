@@ -24,6 +24,7 @@
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)

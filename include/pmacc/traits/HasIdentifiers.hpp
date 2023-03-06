@@ -46,10 +46,13 @@ namespace pmacc
         template<typename T_Object, typename T_SeqKeys>
         struct HasIdentifiers
         {
-            using SeqHasIdentifiers = typename bmpl::transform<T_SeqKeys, HasIdentifier<T_Object, bmpl::_1>>::type;
+            using SeqHasIdentifiers =
+                typename boost::mpl::transform<T_SeqKeys, HasIdentifier<T_Object, boost::mpl::_1>>::type;
 
-            using type =
-                typename bmpl::accumulate<SeqHasIdentifiers, bmpl::bool_<true>, bmpl::and_<bmpl::_1, bmpl::_2>>::type;
+            using type = typename boost::mpl::accumulate<
+                SeqHasIdentifiers,
+                boost::mpl::bool_<true>,
+                boost::mpl::and_<boost::mpl::_1, boost::mpl::_2>>::type;
         };
 
         template<typename T_Object, typename T_SeqKeys>

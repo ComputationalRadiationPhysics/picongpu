@@ -25,7 +25,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/lockstep.hpp"
-#include "pmacc/lockstep/lockstep.hpp"
+#include "pmacc/lockstep/WorkerCfg.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"

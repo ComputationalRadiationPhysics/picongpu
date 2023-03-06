@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/identifier/alias.hpp"
 #include "pmacc/meta/conversion/TypeToPair.hpp"
 #include "pmacc/types.hpp"
 

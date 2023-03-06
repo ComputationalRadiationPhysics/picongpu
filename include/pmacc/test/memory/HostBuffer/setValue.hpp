@@ -22,7 +22,8 @@
 #pragma once
 
 /* #includes in "test/memoryUT.cu" */
-
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
 
 namespace pmacc
 {

@@ -27,12 +27,12 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstdint>
 #include <iostream>
 #include <regex>
 #include <string>
 #include <vector>
-
 
 namespace pmacc
 {
@@ -45,7 +45,7 @@ namespace pmacc
              * @param str string to check
              * @return true if str contains only digits else false
              */
-            HINLINE bool is_number(std::string const& str)
+            inline bool is_number(std::string const& str)
             {
                 return std::all_of(str.begin(), str.end(), ::isdigit);
             }
@@ -63,7 +63,7 @@ namespace pmacc
          *
          * @param str Comma separated list of slices. Empty slices will be skipped.
          */
-        HINLINE std::vector<Slice> toTimeSlice(std::string const& str)
+        inline std::vector<Slice> toTimeSlice(std::string const& str)
         {
             std::vector<Slice> result;
             auto const seqOfSlices = misc::splitString(str, ",");
@@ -117,7 +117,7 @@ namespace pmacc
          *
          * @param str Comma separated list of slices. Empty slices will be skipped.
          */
-        HINLINE std::vector<Slice> toRangeSlice(std::string const& str)
+        inline std::vector<Slice> toRangeSlice(std::string const& str)
         {
             std::vector<Slice> result;
             auto const seqOfSlices = misc::splitString(str, ",");

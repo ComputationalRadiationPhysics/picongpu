@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/Environment.hpp"
 #include "pmacc/assert.hpp"
 #include "pmacc/communication/manager_common.hpp"
 #include "pmacc/mpi/GetMPI_Op.hpp"

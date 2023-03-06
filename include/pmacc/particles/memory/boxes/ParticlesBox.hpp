@@ -26,7 +26,9 @@
 #    include <mallocMC/mallocMC.hpp>
 #endif
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/boxes/PitchedBox.hpp"
+#include "pmacc/particles/Identifier.hpp"
 #include "pmacc/particles/frame_types.hpp"
 #include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
 #include "pmacc/particles/memory/dataTypes/SuperCell.hpp"

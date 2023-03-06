@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/math/Vector.hpp"
+#include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/accumulate.hpp>

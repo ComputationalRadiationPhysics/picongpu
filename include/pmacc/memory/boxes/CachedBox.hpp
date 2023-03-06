@@ -26,6 +26,7 @@
 #include "pmacc/memory/boxes/SharedBox.hpp"
 #include "pmacc/types.hpp"
 
+
 namespace pmacc
 {
     namespace CachedBox

@@ -25,6 +25,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <mpi.h>
+
 const int GridManagerRank = 0;
 
 enum

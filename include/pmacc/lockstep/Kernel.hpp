@@ -23,10 +23,12 @@
 
 
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
+#include "pmacc/exec/KernelLauncher.hpp"
+#include "pmacc/exec/KernelMetaData.hpp"
+#include "pmacc/exec/KernelWithDynSharedMem.hpp"
 #include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/lockstep/WorkerCfg.hpp"
 #include "pmacc/types.hpp"
-
 
 namespace pmacc::lockstep
 {

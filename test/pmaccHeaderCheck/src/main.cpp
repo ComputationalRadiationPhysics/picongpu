@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund
+/* Copyright 2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -19,33 +19,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <catch2/catch.hpp>
 
-#include <cstdint>
-
-namespace pmacc
+TEST_CASE("headerCheckMain", "[headerCheck]")
 {
-    namespace particles
-    {
-        namespace policies
-        {
-            /**
-             * Policy for HandleGuardParticles that removes all particles from guard cells
-             */
-            struct DeleteParticles
-            {
-                template<class T_Particles>
-                void handleOutgoing(T_Particles& par, int32_t direction) const
-                {
-                    par.deleteGuardParticles(direction);
-                }
-
-                template<class T_Particles>
-                void handleIncoming(T_Particles& par, int32_t direction) const
-                {
-                }
-            };
-
-        } // namespace policies
-    } // namespace particles
-} // namespace pmacc
+    REQUIRE(true);
+}

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/eventSystem/events/EventTask.hpp"
+
 namespace pmacc
 {
     namespace communication

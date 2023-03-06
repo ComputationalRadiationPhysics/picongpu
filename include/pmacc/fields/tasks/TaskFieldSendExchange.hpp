@@ -22,11 +22,11 @@
 #pragma once
 
 
+#include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
 #include "pmacc/fields/tasks/FieldFactory.hpp"
-
 
 namespace pmacc
 {

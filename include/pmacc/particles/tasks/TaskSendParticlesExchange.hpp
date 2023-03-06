@@ -22,7 +22,10 @@
 
 #pragma once
 
+#include "pmacc/Environment.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/tasks/MPITask.hpp"
 #include "pmacc/type/Exchange.hpp"
 
 namespace pmacc

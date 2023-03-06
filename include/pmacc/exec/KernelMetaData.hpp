@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund
+/* Copyright 2022 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,31 +21,36 @@
 
 #pragma once
 
-#include <cstdint>
+#include "pmacc/types.hpp"
 
-namespace pmacc
+#include <string>
+
+
+namespace pmacc::exec::detail
 {
-    namespace particles
+    //! Meta data of a device kernel
+    class KernelMetaData
     {
-        namespace policies
+        //! file name
+        std::string const m_file;
+        //! line number
+        size_t const m_line;
+
+    public:
+        KernelMetaData(std::string const& file, size_t const line) : m_file(file), m_line(line)
         {
-            /**
-             * Policy for HandleGuardParticles that removes all particles from guard cells
-             */
-            struct DeleteParticles
-            {
-                template<class T_Particles>
-                void handleOutgoing(T_Particles& par, int32_t direction) const
-                {
-                    par.deleteGuardParticles(direction);
-                }
+        }
 
-                template<class T_Particles>
-                void handleIncoming(T_Particles& par, int32_t direction) const
-                {
-                }
-            };
+        //! file name from where the kernel is called
+        std::string getFile() const
+        {
+            return m_file;
+        }
 
-        } // namespace policies
-    } // namespace particles
-} // namespace pmacc
+        //! line number in the file where the kernel is called
+        size_t getLine() const
+        {
+            return m_line;
+        }
+    };
+} // namespace pmacc::exec::detail

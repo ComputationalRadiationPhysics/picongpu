@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/mpi/MPI_StructAsArray.hpp"
 #include "pmacc/types.hpp"
 
@@ -36,7 +37,7 @@ namespace pmacc
         } // namespace def
 
         template<typename Type>
-        pmacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
+        HINLINE pmacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
         {
             return def::GetMPI_StructAsArray<Type>()();
         }

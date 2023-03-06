@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund
+/* Copyright 2022 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,31 +21,16 @@
 
 #pragma once
 
-#include <cstdint>
 
-namespace pmacc
+namespace pmacc::exec::detail
 {
-    namespace particles
-    {
-        namespace policies
-        {
-            /**
-             * Policy for HandleGuardParticles that removes all particles from guard cells
-             */
-            struct DeleteParticles
-            {
-                template<class T_Particles>
-                void handleOutgoing(T_Particles& par, int32_t direction) const
-                {
-                    par.deleteGuardParticles(direction);
-                }
-
-                template<class T_Particles>
-                void handleIncoming(T_Particles& par, int32_t direction) const
-                {
-                }
-            };
-
-        } // namespace policies
-    } // namespace particles
-} // namespace pmacc
+    /** Object to launch the kernel functor on the device.
+     *
+     * This objects contains the kernel functor, kernel meta information and the launch parameters.
+     * Object is used to enqueue the kernel with user arguments on the device.
+     *
+     * @tparam T_Kernel pmacc Kernel object
+     */
+    template<typename T_Kernel>
+    struct KernelLauncher;
+} // namespace pmacc::exec::detail

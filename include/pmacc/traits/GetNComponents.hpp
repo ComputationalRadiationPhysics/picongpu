@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/static_assert.hpp"
+
 #include <cstdint>
 #include <type_traits>
 

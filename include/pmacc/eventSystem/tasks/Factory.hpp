@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
+#include "pmacc/eventSystem/events/EventTask.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/TaskKernel.hpp"

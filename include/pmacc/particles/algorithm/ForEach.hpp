@@ -29,6 +29,7 @@
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/particles/algorithm/detail/ForEach.hpp"
 #include "pmacc/particles/frame_types.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <cstdint>
 #include <type_traits>

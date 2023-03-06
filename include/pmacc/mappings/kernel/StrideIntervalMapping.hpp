@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/mappings/kernel/MapperConcept.hpp"
 #include "pmacc/types.hpp"
 

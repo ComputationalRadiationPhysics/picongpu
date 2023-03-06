@@ -83,5 +83,3 @@ namespace pmacc
     };
 
 } // namespace pmacc
-
-#include "pmacc/fields/tasks/FieldFactory.tpp"

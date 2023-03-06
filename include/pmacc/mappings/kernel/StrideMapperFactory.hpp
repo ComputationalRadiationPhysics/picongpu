@@ -25,6 +25,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/mappings/kernel/IntervalMapping.hpp"
 #include "pmacc/mappings/kernel/StrideIntervalMapping.hpp"
 #include "pmacc/mappings/kernel/StrideMapping.hpp"
 #include "pmacc/types.hpp"

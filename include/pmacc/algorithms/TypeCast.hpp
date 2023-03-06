@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/attribute/FunctionSpecifier.hpp"
+
 namespace pmacc
 {
     namespace algorithms
