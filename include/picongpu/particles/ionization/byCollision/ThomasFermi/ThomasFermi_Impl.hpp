@@ -126,15 +126,15 @@ namespace picongpu
                         _please_allocate_at_least_two_FieldTmp_slots_in_memory_param,
                         (fieldTmpNumSlots >= 2) && (sizeof(T_IonizationAlgorithm) != 0));
                     /* initialize pointers on host-side density-/energy density field databoxes */
-                    auto density = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
-                    auto eneKinDens = dc.get<FieldTmp>(FieldTmp::getUniqueId(1), true);
+                    auto density = dc.get<FieldTmp>(FieldTmp::getUniqueId(0));
+                    auto eneKinDens = dc.get<FieldTmp>(FieldTmp::getUniqueId(1));
 
                     /* reset density and kinetic energy values to zero */
                     density->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.));
                     eneKinDens->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.));
 
                     /* load species without copying the particle data to the host */
-                    auto srcSpecies = dc.get<SrcSpecies>(SrcSpecies::FrameType::getName(), true);
+                    auto srcSpecies = dc.get<SrcSpecies>(SrcSpecies::FrameType::getName());
 
                     /** Calculate weighted ion density
                      *
@@ -149,7 +149,7 @@ namespace picongpu
                     densityEvent += density->asyncCommunicationGather(densityEvent);
 
                     /* load species without copying the particle data to the host */
-                    auto destSpecies = dc.get<DestSpecies>(DestSpecies::FrameType::getName(), true);
+                    auto destSpecies = dc.get<DestSpecies>(DestSpecies::FrameType::getName());
 
                     /** Calculate energy density of the electron species with maximum energy cutoff
                      *

@@ -67,8 +67,8 @@ namespace picongpu::fields::maxwellSolver
             float_X coeff) const
         {
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-            auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
+            auto fieldE = dc.get<FieldE>(FieldE::getName());
+            auto fieldB = dc.get<FieldB>(FieldB::getName());
             auto const mapper = makeAreaMapper<T_area>(cellDescription);
             auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
             PMACC_LOCKSTEP_KERNEL(KernelAddCurrentDensity{}, workerCfg)

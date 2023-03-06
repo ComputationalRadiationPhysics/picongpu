@@ -90,7 +90,8 @@ namespace picongpu
         {
             /* DataConnector copies data to host */
             DataConnector& dc = Environment<>::get().DataConnector();
-            dc.get<SpeciesType>(SpeciesType::FrameType::getName());
+            auto dataSet = dc.get<SpeciesType>(SpeciesType::FrameType::getName());
+            dataSet->synchronize();
         }
     };
 

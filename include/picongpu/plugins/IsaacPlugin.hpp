@@ -81,7 +81,7 @@ namespace picongpu
                 if(enabled)
                 {
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
-                    auto pField = dc.get<FieldType>(FieldType::getName(), true);
+                    auto pField = dc.get<FieldType>(FieldType::getName());
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
 
                     typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
@@ -142,7 +142,7 @@ namespace picongpu
                         _please_allocate_at_least_one_FieldTmp_slot_in_memory_param_or_two_when_using_combined_attributes,
                         fieldTmpNumSlots >= 1u + requiredExtraSlots);
 
-                    auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
+                    auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0));
                     auto event = particles::particleToGrid::
                         ComputeFieldValue<CORE + BORDER, FrameSolver, ParticleType, ParticleFilter>()(
                             *fieldTmp,
@@ -198,7 +198,7 @@ namespace picongpu
                 if(enabled)
                 {
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
-                    auto pField = dc.get<FieldType>(FieldType::getName(), true);
+                    auto pField = dc.get<FieldType>(FieldType::getName());
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
 
                     typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
@@ -325,7 +325,7 @@ namespace picongpu
                 if(enabled)
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+                    auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
                     pb[0] = particles->getDeviceParticlesBox();
 
                     guarding = GuardSize::toRT();

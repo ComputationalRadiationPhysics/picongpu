@@ -199,7 +199,7 @@ namespace picongpu
 
             DataConnector& dc = Environment<>::get().DataConnector();
 
-            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
             /*############ count particles #######################################*/
             using SuperCellSize = MappingDesc::SuperCellSize;

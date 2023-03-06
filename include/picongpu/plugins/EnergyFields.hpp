@@ -187,8 +187,8 @@ namespace picongpu
         {
             DataConnector& dc = Environment<>::get().DataConnector();
 
-            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-            auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
+            auto fieldE = dc.get<FieldE>(FieldE::getName());
+            auto fieldB = dc.get<FieldB>(FieldB::getName());
 
             /* idx == 0 -> fieldB
              * idx == 1 -> fieldE

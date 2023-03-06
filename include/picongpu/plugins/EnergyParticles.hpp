@@ -346,7 +346,7 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
 
             // use data connector to get particle data
-            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
             // initialize global energies with zero
             gEnergy->getDeviceBuffer().setValue(0.0);

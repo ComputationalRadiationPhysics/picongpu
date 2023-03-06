@@ -487,8 +487,8 @@ namespace picongpu
             }
 
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-            auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
+            auto fieldE = dc.get<FieldE>(FieldE::getName());
+            auto fieldB = dc.get<FieldB>(FieldB::getName());
 
             // generate valid GUARDS (overwrite)
             EventTask eRfieldE = fieldE->asyncCommunication(eventSystem::getTransactionEvent());
@@ -742,7 +742,7 @@ namespace picongpu
                 if(fieldExists)
                 {
                     using FieldHelper = SimulationFieldHelper<MappingDesc>;
-                    auto field = std::dynamic_pointer_cast<FieldHelper>(dc.get<ISimulationData>(name, true));
+                    auto field = std::dynamic_pointer_cast<FieldHelper>(dc.get<ISimulationData>(name));
                     if(field)
                         field->reset(currentStep);
                 }

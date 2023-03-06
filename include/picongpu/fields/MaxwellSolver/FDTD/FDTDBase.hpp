@@ -78,8 +78,8 @@ namespace picongpu
                         absorberImpl(fields::absorber::AbsorberImpl::getImpl(cellDescription))
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        fieldE = dc.get<FieldE>(FieldE::getName(), true);
-                        fieldB = dc.get<FieldB>(FieldB::getName(), true);
+                        fieldE = dc.get<FieldE>(FieldE::getName());
+                        fieldB = dc.get<FieldB>(FieldB::getName());
                     }
 
                 protected:

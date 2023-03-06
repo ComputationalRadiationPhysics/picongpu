@@ -213,7 +213,7 @@ namespace picongpu
                     return;
 
                 /* load field without copying data to host */
-                auto field = dc.get<T_Field>(T_Field::getName(), true);
+                auto field = dc.get<T_Field>(T_Field::getName());
 
                 /* load from openPMD */
                 bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;

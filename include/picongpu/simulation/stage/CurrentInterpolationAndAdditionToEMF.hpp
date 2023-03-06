@@ -106,7 +106,7 @@ namespace picongpu
                     if(existsParticleCurrent)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
                         auto eRecvCurrent = fieldJ.asyncCommunication(eventSystem::getTransactionEvent());
                         auto& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
                         auto const currentRecvLower = interpolation.getLowerMargin();

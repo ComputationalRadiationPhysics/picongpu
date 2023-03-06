@@ -162,7 +162,7 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
 
                 /* load species without copying the particle data to the host */
-                auto speciesTmp = dc.get<SpeciesType>(SpeciesType::FrameType::getName(), true);
+                auto speciesTmp = dc.get<SpeciesType>(SpeciesType::FrameType::getName());
 
                 /* run algorithm */
                 using ChargeDensitySolver = typename particles::particleToGrid::CreateFieldTmpOperation_t<
@@ -182,7 +182,7 @@ namespace picongpu
 
         /* load FieldTmp without copy data to host */
         PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
-        auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
+        auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0));
         /* reset density values to zero */
         fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
@@ -203,7 +203,7 @@ namespace picongpu
         EventTask fieldTmpEvent = fieldTmp->asyncCommunication(eventSystem::getTransactionEvent());
         eventSystem::setTransactionEvent(fieldTmpEvent);
 
-        auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+        auto fieldE = dc.get<FieldE>(FieldE::getName());
 
         auto const chargeDeviation = [] ALPAKA_FN_ACC(auto const& worker, auto mapper, auto rohBox, auto fieldEBox)
         {

@@ -120,7 +120,7 @@ namespace picongpu
                     if(existsCurrent)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
                         auto const& gridBuffer = fieldJ.getGridBuffer();
                         previousJ = pmacc::makeDeepCopy(gridBuffer.getDeviceBuffer());
                     }
@@ -158,7 +158,7 @@ namespace picongpu
 
                     // J values in the middle of the current PIC time iteration
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
 
                     /* Initialize previousJ if necessary so that we can process everything uniformly.
                      * The condition can only be true at the very first time step or just after a restart.

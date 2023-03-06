@@ -336,10 +336,10 @@ namespace picongpu
                     DataConnector& dc = Environment<>::get().DataConnector();
 
                     // ions
-                    auto& ions = *dc.get<IonSpecies>(IonFrameType::getName(), true);
+                    auto& ions = *dc.get<IonSpecies>(IonFrameType::getName());
 
                     // electrons
-                    auto& electrons = *dc.get<ElectronSpecies>(ElectronFrameType::getName(), true);
+                    auto& electrons = *dc.get<ElectronSpecies>(ElectronFrameType::getName());
 
                     // area to apply kernel to
                     AreaMapping<

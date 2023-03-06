@@ -21,10 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/dataManagement/AbstractInitialiser.hpp>
-//#include <pmacc/dataManagement/DataConnector.hpp>
-
 #include <pmacc/Environment.hpp>
+#include <pmacc/dataManagement/AbstractInitialiser.hpp>
 
 namespace picongpu
 {

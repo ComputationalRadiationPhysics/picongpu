@@ -160,7 +160,7 @@ namespace picongpu
             const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
 
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
             // enforce that the filter interface is fulfilled
             particles::filter::IUnary<particles::filter::All> parFilter{currentStep};

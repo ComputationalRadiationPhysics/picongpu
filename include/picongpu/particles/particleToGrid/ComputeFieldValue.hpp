@@ -83,7 +83,7 @@ namespace picongpu
                     using Solver = ComputeGridValuePerFrame<T...>;
                     DataConnector& dc = Environment<>::get().DataConnector();
                     /*load particle without copy particle data to host*/
-                    auto speciesTmp = dc.get<T_Species>(T_Species::FrameType::getName(), true);
+                    auto speciesTmp = dc.get<T_Species>(T_Species::FrameType::getName());
 
                     fieldTmp.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType::create(0.0));
                     /*run algorithm*/
@@ -107,9 +107,9 @@ namespace picongpu
 
                     DataConnector& dc = Environment<>::get().DataConnector();
                     // Get the second tmp field for the second function argument.
-                    auto fieldTmp2 = dc.get<FieldTmp>(FieldTmp::getUniqueId(extraSlotNr), true);
+                    auto fieldTmp2 = dc.get<FieldTmp>(FieldTmp::getUniqueId(extraSlotNr));
                     // Load particles without copy particle data to host.
-                    auto speciesTmp = dc.get<T_Species>(T_Species::FrameType::getName(), true);
+                    auto speciesTmp = dc.get<T_Species>(T_Species::FrameType::getName());
                     // initialize both fields with zero
                     fieldTmp1.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType::create(0.0));
                     fieldTmp2->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType::create(0.0));

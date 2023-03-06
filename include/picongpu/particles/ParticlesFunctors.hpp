@@ -57,7 +57,7 @@ namespace picongpu
             void operator()()
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto species = dc.get<SpeciesType>(FrameType::getName());
                 species = nullptr;
             }
         };
@@ -117,7 +117,7 @@ namespace picongpu
             HINLINE void operator()(const uint32_t currentStep)
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto species = dc.get<SpeciesType>(FrameType::getName());
                 species->reset(currentStep);
             }
         };
@@ -139,7 +139,7 @@ namespace picongpu
                 const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto species = dc.get<SpeciesType>(FrameType::getName());
 
                 eventSystem::startTransaction(eventInt);
                 species->update(currentStep);
@@ -165,7 +165,7 @@ namespace picongpu
             HINLINE void operator()(const uint32_t currentStep) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto species = dc.get<SpeciesType>(FrameType::getName());
                 boundary::removeOuterParticles(*species, currentStep);
             }
         };
@@ -186,7 +186,7 @@ namespace picongpu
             HINLINE void operator()(T_EventList& updateEventList, T_EventList& commEventList) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto species = dc.get<SpeciesType>(FrameType::getName());
 
                 EventTask updateEvent(*(updateEventList.begin()));
 
@@ -285,9 +285,9 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
 
                 // alias for pointer on source species
-                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
                 // alias for pointer on destination species
-                auto electronsPtr = dc.get<DestSpecies>(DestFrameType::getName(), true);
+                auto electronsPtr = dc.get<DestSpecies>(DestFrameType::getName());
 
                 SelectIonizer selectIonizer(currentStep);
 

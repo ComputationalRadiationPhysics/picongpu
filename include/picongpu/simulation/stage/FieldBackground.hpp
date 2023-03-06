@@ -77,7 +77,7 @@ namespace picongpu
                         {
                             // Allocate a duplicate field buffer and copy the values
                             DataConnector& dc = Environment<>::get().DataConnector();
-                            auto field = dc.get<Field>(Field::getName(), true);
+                            auto field = dc.get<Field>(Field::getName());
                             auto const& gridBuffer = field->getGridBuffer();
                             duplicateBuffer = pmacc::makeDeepCopy(gridBuffer.getDeviceBuffer());
                         }
@@ -92,7 +92,7 @@ namespace picongpu
                         if(!isEnabled)
                             return;
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& field = *dc.get<Field>(Field::getName(), true);
+                        auto& field = *dc.get<Field>(Field::getName());
                         // Always add to the field, conditionally make a copy of the old values first
                         if(useDuplicateField)
                         {
@@ -112,7 +112,7 @@ namespace picongpu
                         if(!isEnabled)
                             return;
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& field = *dc.get<Field>(Field::getName(), true);
+                        auto& field = *dc.get<Field>(Field::getName());
                         /* Either restore from the pre-made copy or subtract.
                          * Note that here it is not sufficient to check for useDuplicateField as it
                          * is not necessarily up-to-date, e.g. right after loading from a checkpoint.

@@ -89,7 +89,7 @@ namespace pmacc
         typename RNGProvider<T_dim, T_RNGMethod>::Handle RNGProvider<T_dim, T_RNGMethod>::createHandle(
             const std::string& id)
         {
-            auto provider = Environment<>::get().DataConnector().get<RNGProvider>(id, true);
+            auto provider = Environment<>::get().DataConnector().get<RNGProvider>(id);
             Handle result(provider->getDeviceDataBox());
             return result;
         }

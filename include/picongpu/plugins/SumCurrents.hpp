@@ -158,7 +158,7 @@ namespace picongpu
         float3_X getSumCurrents()
         {
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto fieldJ = dc.get<FieldJ>(FieldJ::getName(), true);
+            auto fieldJ = dc.get<FieldJ>(FieldJ::getName());
 
             sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
             auto block = MappingDesc::SuperCellSize::toRT();

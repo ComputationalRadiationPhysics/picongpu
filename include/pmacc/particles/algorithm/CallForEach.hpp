@@ -62,7 +62,7 @@ namespace pmacc
                     using UnaryFunctor = pmacc::functor::Interface<typename T_FunctorOperator::type, 1u, void>;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto species = dc.get<Species>(FrameType::getName(), true);
+                    auto species = dc.get<Species>(FrameType::getName());
                     forEach<T_area>(*species, UnaryFunctor(currentStep));
                 }
 
@@ -84,7 +84,7 @@ namespace pmacc
                     using UnaryFunctor = pmacc::functor::Interface<typename T_FunctorOperator::type, 1u, void>;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto species = dc.get<Species>(FrameType::getName(), true);
+                    auto species = dc.get<Species>(FrameType::getName());
                     forEach(*species, UnaryFunctor(currentStep), areaMapperFactory);
                 }
             };

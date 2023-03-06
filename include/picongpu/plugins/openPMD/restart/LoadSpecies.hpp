@@ -99,7 +99,7 @@ namespace picongpu
                     = subGrid.getLocalDomain().offset + subGrid.getGlobalDomain().offset;
 
                 /* load particle without copying particle data to host */
-                auto speciesTmp = dc.get<ThisSpecies>(FrameType::getName(), true);
+                auto speciesTmp = dc.get<ThisSpecies>(FrameType::getName());
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD

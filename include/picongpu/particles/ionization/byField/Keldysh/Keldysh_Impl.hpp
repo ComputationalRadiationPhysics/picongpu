@@ -111,9 +111,9 @@ namespace picongpu
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
                     /* initialize pointers on host-side E-(B-)field and current density databoxes */
-                    auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-                    auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
-                    auto fieldJ = dc.get<FieldJ>(FieldJ::getName(), true);
+                    auto fieldE = dc.get<FieldE>(FieldE::getName());
+                    auto fieldB = dc.get<FieldB>(FieldB::getName());
+                    auto fieldJ = dc.get<FieldJ>(FieldJ::getName());
                     /* initialize device-side E-(B-)field and current density databoxes */
                     eBox = fieldE->getDeviceDataBox();
                     bBox = fieldB->getDeviceDataBox();
