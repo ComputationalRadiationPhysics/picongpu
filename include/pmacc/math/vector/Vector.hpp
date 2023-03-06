@@ -26,7 +26,6 @@
 #include "pmacc/math/vector/accessor/StandardAccessor.hpp"
 #include "pmacc/math/vector/navigator/StandardNavigator.hpp"
 #include "pmacc/memory/Array.hpp"
-#include "pmacc/result_of_Functor.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
@@ -775,16 +774,6 @@ namespace pmacc
         HDINLINE T_Vector basisVector();
 
     } // namespace math
-
-    namespace result_of
-    {
-        template<typename TVector>
-        struct Functor<math::Abs, TVector>
-        {
-            using type = typename TVector::type;
-        };
-
-    } // namespace result_of
 } // namespace pmacc
 
 namespace std

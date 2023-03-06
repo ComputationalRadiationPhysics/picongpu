@@ -24,26 +24,6 @@
 
 #include <type_traits>
 
-
-// forward declaration
-namespace picongpu
-{
-    struct AssignedTrilinearInterpolation;
-} // namespace picongpu
-
-namespace pmacc
-{
-    namespace result_of
-    {
-        template<typename T_Cursor>
-        struct Functor<picongpu::AssignedTrilinearInterpolation, T_Cursor>
-        {
-            using type = typename T_Cursor::ValueType;
-        };
-
-    } // namespace result_of
-} // namespace pmacc
-
 namespace picongpu
 {
     struct AssignedTrilinearInterpolation

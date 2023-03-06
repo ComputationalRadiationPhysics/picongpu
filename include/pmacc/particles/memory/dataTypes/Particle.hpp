@@ -44,7 +44,6 @@
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/mpl/remove_if.hpp>
-#include <boost/utility/result_of.hpp>
 
 #include <type_traits>
 
