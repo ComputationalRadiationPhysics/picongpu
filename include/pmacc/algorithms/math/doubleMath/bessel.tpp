@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/math/special_functions/bessel.hpp>
+#include <cmath>
 
 
 namespace pmacc
@@ -42,7 +42,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::cyl_bessel_i0(x);
 #else
-                    return boost::math::cyl_bessel_i(0, x);
+                    return std::cyl_bessel_i(0, x);
 #endif
                 }
             };
@@ -57,7 +57,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::cyl_bessel_i1(x);
 #else
-                    return boost::math::cyl_bessel_i(1, x);
+                    return std::cyl_bessel_i(1, x);
 #endif
                 }
             };
@@ -72,7 +72,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::j0(x);
 #else
-                    return boost::math::cyl_bessel_j(0, x);
+                    return std::cyl_bessel_j(0, x);
 #endif
                 }
             };
@@ -87,7 +87,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::j1(x);
 #else
-                    return boost::math::cyl_bessel_j(1, x);
+                    return std::cyl_bessel_j(1, x);
 #endif
                 }
             };
@@ -102,7 +102,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::jn(n, x);
 #else
-                    return boost::math::cyl_bessel_j(n, x);
+                    return std::cyl_bessel_j(n, x);
 #endif
                 }
             };
@@ -117,7 +117,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::y0(x);
 #else
-                    return boost::math::cyl_neumann(0, x);
+                    return std::cyl_neumann(0, x);
 #endif
                 }
             };
@@ -132,7 +132,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::y1(x);
 #else
-                    return boost::math::cyl_neumann(1, x);
+                    return std::cyl_neumann(1, x);
 #endif
                 }
             };
@@ -147,7 +147,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
                     return ::yn(n, x);
 #else
-                    return boost::math::cyl_neumann(n, x);
+                    return std::cyl_neumann(n, x);
 #endif
                 }
             };
