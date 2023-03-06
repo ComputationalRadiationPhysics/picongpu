@@ -188,10 +188,6 @@ namespace picongpu
                     private:
                         HDINLINE float_X getEnvelope(float_X const runTime) const
                         {
-                            /* workaround for clang 5 linker issues
-                             * `undefined reference to
-                             * `picongpu::fields::laserProfiles::ExpRampWithPrepulseParam::INT_RATIO_POINT_1'`
-                             */
                             constexpr auto int_ratio_prepule = Unitless::INT_RATIO_PREPULSE;
                             constexpr auto int_ratio_point_1 = Unitless::INT_RATIO_POINT_1;
                             constexpr auto int_ratio_point_2 = Unitless::INT_RATIO_POINT_2;
