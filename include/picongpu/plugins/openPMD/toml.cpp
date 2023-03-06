@@ -28,10 +28,8 @@
 
 #    include <pmacc/communication/manager_common.hpp>
 
-// @todo Use std library function upon switching to C++17
-#    include <boost/filesystem.hpp> // boost::filesystem::exists
-
 #    include <chrono>
+#    include <filesystem>
 #    include <sstream>
 #    include <thread> // std::this_thread::sleep_for
 #    include <utility> // std::forward
@@ -230,7 +228,7 @@ namespace
 
             char const* argsv[] = {path.c_str()};
             ChronoDuration waitedFor = 0s;
-            while(!boost::filesystem::exists(path))
+            while(!std::filesystem::exists(path))
             {
                 picongpu::toml::writeLog("openPMD: Still waiting for TOML file:\n\t%1%", 1, argsv);
                 if(waitedFor > timeout)

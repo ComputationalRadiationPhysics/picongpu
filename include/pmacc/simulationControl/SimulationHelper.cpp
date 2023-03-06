@@ -34,11 +34,10 @@
 #include "pmacc/simulationControl/signal.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/filesystem.hpp>
-
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -450,7 +449,7 @@ namespace pmacc
         const std::string checkpointMasterFile
             = this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
 
-        if(!boost::filesystem::exists(checkpointMasterFile))
+        if(!std::filesystem::exists(checkpointMasterFile))
             return checkpoints;
 
         std::ifstream file(checkpointMasterFile.c_str());

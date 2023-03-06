@@ -19,14 +19,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/mappings/simulation/Filesystem.hpp"
+#if __cplusplus < 201703L
+#    error "C++17 is required"
+#endif
 
-#include <pmacc/boost_workaround.hpp>
+#include "pmacc/mappings/simulation/Filesystem.hpp"
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace pmacc
 {
@@ -34,14 +36,17 @@ namespace pmacc
     void Filesystem<DIM>::createDirectory(const std::string dir) const
     {
         /* does not throw if the directory exists or has been created */
-        bfs::create_directories(dir);
+        std::filesystem::create_directories(dir);
     }
 
     template<unsigned DIM>
     void Filesystem<DIM>::setDirectoryPermissions(const std::string dir) const
     {
+        using namespace std::filesystem;
         /* set permissions */
-        bfs::permissions(dir, bfs::owner_all | bfs::group_read | bfs::group_exe | bfs::others_read | bfs::others_exe);
+        permissions(
+            dir,
+            perms::owner_all | perms::group_read | perms::group_exec | perms::others_read | perms::others_exec);
     }
 
     template<unsigned DIM>
@@ -62,7 +67,7 @@ namespace pmacc
     template<unsigned DIM>
     std::string Filesystem<DIM>::basename(const std::string pathFilename) const
     {
-        return bfs::path(pathFilename).filename().string();
+        return std::filesystem::path(pathFilename).filename().string();
     }
 
     // Explicit template instantiation to provide symbols for usage together with PMacc
