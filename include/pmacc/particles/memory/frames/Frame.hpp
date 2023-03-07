@@ -38,7 +38,6 @@
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/map.hpp>
-#include <boost/utility/result_of.hpp>
 
 namespace pmacc
 {

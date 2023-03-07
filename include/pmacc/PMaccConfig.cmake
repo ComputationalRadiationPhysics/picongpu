@@ -298,12 +298,6 @@ else()
     target_link_libraries(pmacc PUBLIC ${Boost_LIBRARIES})
 endif()
 
-# Boost 1.55 added support for a define that makes result_of look for
-# the result<> template and falls back to decltype if none is found. This is
-# great for the transition from the "wrong" usage to the "correct" one as
-message(STATUS "Boost: result_of with TR1 style and decltype fallback")
-target_compile_definitions(pmacc PUBLIC "-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK")
-
 # We do not use std::auto_ptr and keeping this enabled in Boost causes a
 # warning with NVCC+GCC and is unnecessary time spend in compile time
 # (note that std::auto_ptr is deprecated in C++11 and removed in C++17)

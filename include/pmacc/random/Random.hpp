@@ -24,8 +24,6 @@
 #include "pmacc/random/RNGState.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/utility/result_of.hpp>
-
 namespace pmacc
 {
     namespace random
