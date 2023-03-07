@@ -50,7 +50,7 @@ namespace picongpu
                     {
                         constexpr uint32_t slot = screeningLengthSlot;
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto field = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot), true);
+                        auto field = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot));
                         screeningLengthSquared = field->getGridBuffer().getDeviceBuffer().getDataBox();
                     }
                 }
@@ -309,7 +309,7 @@ namespace picongpu
                     using CollisionFunctor = T_CollisionFunctor;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto species = dc.get<Species>(FrameType::getName(), true);
+                    auto species = dc.get<Species>(FrameType::getName());
 
                     auto const mapper = makeAreaMapper<CORE + BORDER>(species->getCellDescription());
 

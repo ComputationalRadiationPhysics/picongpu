@@ -56,7 +56,7 @@ namespace picongpu
                     {
                         constexpr uint32_t slot = screeningLengthSlot;
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto field = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot), true);
+                        auto field = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot));
                         screeningLengthSquared = (field->getGridBuffer().getDeviceBuffer().getDataBox());
                     }
                 }
@@ -410,8 +410,8 @@ namespace picongpu
 
                     // Access particle data:
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto species0 = dc.get<Species0>(FrameType0::getName(), true);
-                    auto species1 = dc.get<Species1>(FrameType1::getName(), true);
+                    auto species0 = dc.get<Species0>(FrameType0::getName());
+                    auto species1 = dc.get<Species1>(FrameType1::getName());
 
                     // Use mapping information from the first species:
                     auto const mapper = makeAreaMapper<CORE + BORDER>(species0->getCellDescription());

@@ -545,6 +545,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
                         return;
                     auto field = dc.get<T_Field>(T_Field::getName());
+                    field->synchronize();
                     bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
 
                     const traits::FieldPosition<fields::CellType, T_Field> fieldPos;
@@ -638,7 +639,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     PMACC_CASSERT_MSG(
                         _please_allocate_at_least_one_or_two_when_using_combined_attributes_FieldTmp_in_memory_param,
                         fieldTmpNumSlots >= 1u + requiredExtraSlots);
-                    auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
+                    auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0));
                     // compute field values
                     auto event
                         = particles::particleToGrid::ComputeFieldValue<CORE + BORDER, Solver, Species, Filter>()(
@@ -1194,7 +1195,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     DataConnector& dc = Environment<>::get().DataConnector();
 
                     /* synchronizes the MallocMCBuffer to the host side */
-                    dc.get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
+                    auto mallocMCBuffer = dc.get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
+                    mallocMCBuffer->synchronize();
+
 
                     /* here we are copying all species to the host side since we
                      * can not say at this point if this time step will need all of

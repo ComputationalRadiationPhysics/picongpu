@@ -426,7 +426,7 @@ namespace picongpu
             gBins->getDeviceBuffer().setValue(0);
 
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
             /* convert energy values from keV to PIConGPU units */
             float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;

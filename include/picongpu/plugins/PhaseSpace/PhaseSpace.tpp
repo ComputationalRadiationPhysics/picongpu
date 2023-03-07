@@ -172,7 +172,7 @@ namespace picongpu
     {
         /* register particle species observer */
         DataConnector& dc = Environment<>::get().DataConnector();
-        auto particles = dc.get<Species>(Species::FrameType::getName(), true);
+        auto particles = dc.get<Species>(Species::FrameType::getName());
 
         StartBlockFunctor<r_dir> startBlockFunctor(
             particles->getDeviceParticlesBox(),

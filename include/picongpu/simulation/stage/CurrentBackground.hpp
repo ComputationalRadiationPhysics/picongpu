@@ -62,7 +62,7 @@ namespace picongpu
                     {
                         using namespace pmacc;
                         DataConnector& dc = Environment<>::get().DataConnector();
-                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
                         using CurrentBackground = cellwiseOperation::CellwiseOperation<type::CORE + type::BORDER>;
                         CurrentBackground currentBackground(cellDescription);
                         currentBackground(

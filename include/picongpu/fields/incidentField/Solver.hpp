@@ -213,9 +213,9 @@ namespace picongpu
 
                     // Prepare update functor type
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName(), true);
+                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName());
                     auto dataBox = updatedField.getDeviceDataBox();
-                    auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName(), true);
+                    auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName());
                     using Functor
                         = UpdateFunctor<decltype(dataBox), T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
                     auto functor = Functor{

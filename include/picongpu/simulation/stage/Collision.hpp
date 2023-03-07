@@ -174,7 +174,7 @@ namespace picongpu
                         using SpeciesSeq = picongpu::particles::collision::CollisionScreeningSpecies;
                         constexpr uint32_t slot = picongpu::particles::collision::screeningLengthSlot;
                         // get a FieldTmp for storring the result
-                        auto screeningLengthSquared = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot), true);
+                        auto screeningLengthSquared = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot));
                         // The inverse of the Debye length squared is the sum over ScreeningInvSquared of each
                         // species. Calculate it using the fold algorithm:
                         particles::particleToGrid::FoldDeriveFields<
@@ -189,7 +189,7 @@ namespace picongpu
                         // The Debye length is bound to be greater than the mean inter-atomic distance of the most
                         // dense species ( this definition of the lower cut-off comes from [Perez 2012]).
                         // To find this cut-off we need to find the highest density:
-                        auto maxDensity = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot + 1u), true);
+                        auto maxDensity = dc.get<FieldTmp>(FieldTmp::getUniqueId(slot + 1u));
                         particles::particleToGrid::FoldDeriveFields<
                             CORE + BORDER,
                             SpeciesSeq,

@@ -79,7 +79,7 @@ namespace picongpu
                 void addCurrent()
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
                     // Coefficient in front of J in Ampere's law
                     constexpr float_X coeff = -(1.0_X / EPS0) * DELTA_T;
                     this->template addCurrentImpl<T_area>(fieldJ.getDeviceDataBox(), coeff);

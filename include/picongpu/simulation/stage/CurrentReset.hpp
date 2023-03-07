@@ -46,7 +46,7 @@ namespace picongpu
                 {
                     using namespace pmacc;
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
                     FieldJ::ValueType zeroJ(FieldJ::ValueType::create(0._X));
                     fieldJ.assign(zeroJ);
                 }

@@ -52,7 +52,7 @@ namespace picongpu
             {
                 using Frame = typename T_ElectronSpecies::FrameType;
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto& electrons = *(dc.get<T_ElectronSpecies>(Frame::getName(), true));
+                auto& electrons = *(dc.get<T_ElectronSpecies>(Frame::getName()));
 
                 auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(cellDescription);
 

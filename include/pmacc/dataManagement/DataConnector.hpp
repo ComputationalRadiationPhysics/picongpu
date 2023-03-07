@@ -99,19 +99,14 @@ namespace pmacc
         /** Returns shared pointer to managed data.
          *
          * Reference to data in Dataset with identifier id and type TYPE is returned.
-         * If the Dataset status in invalid, it is automatically synchronized.
          * Increments the reference counter to the dataset specified by id.
          *
          * @tparam TYPE if of the data to load
          * @param id id of the Dataset to load from
-         * @param noSync indicates that no synchronization should be performed, regardless of dataset status
          * @return returns a reference to the data of type TYPE
          */
         template<class TYPE>
-        std::shared_ptr<TYPE> get(
-            SimulationDataId id,
-            bool noSync = false // @todo invert!
-        )
+        std::shared_ptr<TYPE> get(SimulationDataId id)
         {
             auto it = findId(id);
 
@@ -119,12 +114,6 @@ namespace pmacc
                 throw std::runtime_error(getExceptionStringForID("Invalid dataset ID", id));
 
             log<ggLog::MEMORY>("DataConnector: sharing access to '%1%' (%2% uses)") % id % (it->use_count());
-
-            if(!noSync)
-            {
-                (*it)->synchronize();
-            }
-
             return std::static_pointer_cast<TYPE>(*it);
         }
 

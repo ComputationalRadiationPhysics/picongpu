@@ -110,7 +110,7 @@ namespace picongpu
                 {
                     auto& dc = Environment<>::get().DataConnector();
                     PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
-                    auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
+                    auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0));
                     auto& fieldBuffer = fieldTmp->getGridBuffer();
                     // Set all values to the default values, the values present in the file will be overwritten
                     fieldBuffer.getHostBuffer().setValue(ParamClass::defaultDensity);

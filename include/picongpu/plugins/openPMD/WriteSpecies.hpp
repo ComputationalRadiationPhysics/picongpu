@@ -138,7 +138,7 @@ namespace picongpu
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
                 auto mallocMCBuffer
-                    = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName(), true);
+                    = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
                 auto particlesBox = rp.speciesTmp->getHostParticlesBox(mallocMCBuffer->getOffset());
 #else
                 /* This separate code path is only a workaround until
@@ -329,7 +329,7 @@ namespace picongpu
                 uint64_t mpiSize = gc.getGlobalSize();
                 uint64_t mpiRank = gc.getGlobalRank();
                 /* load particle without copy particle data to host */
-                auto speciesTmp = dc.get<ThisSpecies>(ThisSpecies::FrameType::getName(), true);
+                auto speciesTmp = dc.get<ThisSpecies>(ThisSpecies::FrameType::getName());
                 const std::string speciesGroup(T_Species::getName());
 
                 ::openPMD::Series& series = *params->openPMDSeries;

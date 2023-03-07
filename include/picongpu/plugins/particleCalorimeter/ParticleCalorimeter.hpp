@@ -557,7 +557,7 @@ namespace picongpu
 
             /* create kernel functor instance */
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
             auto const mapper = makeAreaMapper<CORE + BORDER>(*this->m_cellDescription);
             auto const grid = mapper.getGridDim();
@@ -612,7 +612,7 @@ namespace picongpu
             this->calorimeterFunctor->setCalorimeterData(this->dBufLeftParsCalorimeter->getDataBox());
 
             DataConnector& dc = Environment<>::get().DataConnector();
-            auto particles = dc.get<ParticlesType>(speciesName, true);
+            auto particles = dc.get<ParticlesType>(speciesName);
 
             auto mapperFactory = particles::boundary::getMapperFactory(*particles, direction);
             auto const mapper = mapperFactory(*this->m_cellDescription);

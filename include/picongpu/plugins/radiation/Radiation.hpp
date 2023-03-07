@@ -1086,7 +1086,7 @@ namespace picongpu
                     this->currentStep = currentStep;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+                    auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
                     /* execute the particle filter */
                     radiation::executeParticleFilter(particles, currentStep);

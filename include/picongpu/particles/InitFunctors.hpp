@@ -108,7 +108,7 @@ namespace picongpu
             HINLINE void operator()(const uint32_t currentStep)
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto speciesPtr = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto speciesPtr = dc.get<SpeciesType>(FrameType::getName());
 
                 DensityFunctor densityFunctor(currentStep);
                 PositionFunctor positionFunctor(currentStep);
@@ -165,8 +165,8 @@ namespace picongpu
             HINLINE void operator()(const uint32_t currentStep)
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto speciesPtr = dc.get<DestSpeciesType>(DestFrameType::getName(), true);
-                auto srcSpeciesPtr = dc.get<SrcSpeciesType>(SrcFrameType::getName(), true);
+                auto speciesPtr = dc.get<DestSpeciesType>(DestFrameType::getName());
+                auto srcSpeciesPtr = dc.get<SrcSpeciesType>(SrcFrameType::getName());
 
                 FilteredManipulator filteredManipulator(currentStep);
                 SrcFilterInterfaced srcFilter(currentStep);
@@ -219,7 +219,7 @@ namespace picongpu
             HINLINE void operator()(const uint32_t currentStep)
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
-                auto speciesPtr = dc.get<SpeciesType>(FrameType::getName(), true);
+                auto speciesPtr = dc.get<SpeciesType>(FrameType::getName());
                 speciesPtr->fillAllGaps();
             }
         };

@@ -459,7 +459,7 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
 
             // use data connector to get particle data
-            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
             gSumMom2->getDeviceBuffer().setValue(0.0);
             gSumPos2->getDeviceBuffer().setValue(0.0);

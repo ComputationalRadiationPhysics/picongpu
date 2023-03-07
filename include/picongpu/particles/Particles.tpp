@@ -340,8 +340,8 @@ namespace picongpu
         using FrameSolver = PushParticlePerFrame<T_Pusher, MappingDesc::SuperCellSize, InterpolationScheme>;
 
         DataConnector& dc = Environment<>::get().DataConnector();
-        auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-        auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
+        auto fieldE = dc.get<FieldE>(FieldE::getName());
+        auto fieldB = dc.get<FieldB>(FieldB::getName());
 
         /* Adjust interpolation area in particle pusher to allow sub-stepping pushes.
          * Here were provide an actual pusher and use its actual margins

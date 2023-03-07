@@ -754,10 +754,10 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
             // Data does not need to be synchronized as visualization is
             // done at the device.
-            auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
-            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-            auto fieldJ = dc.get<FieldJ>(FieldJ::getName(), true);
-            auto particles = dc.get<ParticlesType>(particleTag, true);
+            auto fieldB = dc.get<FieldB>(FieldB::getName());
+            auto fieldE = dc.get<FieldE>(FieldE::getName());
+            auto fieldJ = dc.get<FieldJ>(FieldJ::getName());
+            auto particles = dc.get<ParticlesType>(particleTag);
 
             /* wait that shared buffers can accessed without conflicts */
             m_output.join();

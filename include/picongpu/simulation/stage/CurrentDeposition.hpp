@@ -50,7 +50,7 @@ namespace picongpu
 
                     HINLINE void operator()(const uint32_t currentStep, FieldJ& fieldJ, pmacc::DataConnector& dc) const
                     {
-                        auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                        auto species = dc.get<SpeciesType>(FrameType::getName());
                         fieldJ.computeCurrent<T_Area::value, SpeciesType>(*species, currentStep);
                     }
                 };
@@ -69,7 +69,7 @@ namespace picongpu
                 {
                     using namespace pmacc;
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
                     using SpeciesWithCurrentSolver =
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
                     meta::ForEach<

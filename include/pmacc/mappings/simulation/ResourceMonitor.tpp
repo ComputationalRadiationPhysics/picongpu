@@ -44,7 +44,7 @@ namespace pmacc
 
             uint64_cu totalNumParticles = 0;
             totalNumParticles = pmacc::CountParticles::countOnDevice<CORE + BORDER>(
-                *dc.get<T_Species>(T_Species::FrameType::getName(), true),
+                *dc.get<T_Species>(T_Species::FrameType::getName()),
                 cellDescription,
                 DataSpace<T_DIM::value>(),
                 localSize,

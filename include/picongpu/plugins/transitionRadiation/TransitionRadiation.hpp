@@ -459,7 +459,7 @@ namespace picongpu
                 void calculateTransitionRadiation(uint32_t currentStep)
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto particles = dc.get<T_ParticlesType>(T_ParticlesType::FrameType::getName(), true);
+                    auto particles = dc.get<T_ParticlesType>(T_ParticlesType::FrameType::getName());
 
                     /* execute the particle filter */
                     transitionRadiation::executeParticleFilter(particles, currentStep);

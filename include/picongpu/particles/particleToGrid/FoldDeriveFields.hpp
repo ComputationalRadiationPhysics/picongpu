@@ -160,7 +160,7 @@ namespace picongpu
 
                     if constexpr(!bmpl::empty<RemainingFilteredSpecies>::value)
                     {
-                        auto fieldTmp2 = dc.get<FieldTmp>(FieldTmp::getUniqueId(extraSlot), true);
+                        auto fieldTmp2 = dc.get<FieldTmp>(FieldTmp::getUniqueId(extraSlot));
                         pmacc::meta::ForEach<
                             RemainingFilteredSpecies,
                             detail::OpWithNextField<T_Op, bmpl::_1, T_DerivedAttribute>>{}(
