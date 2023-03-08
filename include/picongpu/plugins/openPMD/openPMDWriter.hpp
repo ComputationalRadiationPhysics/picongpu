@@ -520,7 +520,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
             private:
                 using ValueType = typename T_Field::ValueType;
-                using ComponentType = typename GetComponentsType<ValueType>::type;
+                using ComponentType =
+                    typename pmacc::traits::GetComponentsType<ValueType>::type; // FIXME(bgruber): pmacc::traits::
+                                                                                // needed because of nvcc 11.0 bug
                 using UnitType = typename T_Field::UnitValueType;
 
             public:
@@ -603,7 +605,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                  * `using ComponentType = typename GetComponentsType<ValueType>`
                  * more info: https://github.com/ComputationalRadiationPhysics/picongpu/pull/4006
                  */
-                using GetComponentsTypeValueType = GetComponentsType<ValueType>;
+                using GetComponentsTypeValueType
+                    = pmacc::traits::GetComponentsType<ValueType>; // FIXME(bgruber): pmacc::traits:: needed for
+                                                                   // nvcc 11.0
                 using ComponentType = typename GetComponentsTypeValueType::type;
 
                 /** Get the unit for the result from the solver*/

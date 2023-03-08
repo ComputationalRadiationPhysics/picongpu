@@ -45,25 +45,28 @@ namespace pmacc
     struct GetKeyFromAlias
     {
     private:
+        // FIXME(bgruber): all the boost::mp11:: qualifications inside this class work around nvcc 11.0 not finding the
+        // mp_* templates
+
         using KeyNotFoundPolicy = T_KeyNotFoundPolicy;
         /*create a map where Key is a undeclared alias and value is real type*/
         using AliasMap = typename SeqToMap<T_MPLSeq, TypeToAliasPair<boost::mpl::_1>>::type;
         /*create a map where Key and value is real type*/
         using KeyMap = typename SeqToMap<T_MPLSeq, TypeToPair<boost::mpl::_1>>::type;
         /*combine both maps*/
-        using FullMap = mp_fold<AliasMap, KeyMap, mp_map_insert>;
+        using FullMap = boost::mp11::mp_fold<AliasMap, KeyMap, boost::mp11::mp_map_insert>;
         /* search for given key,
          * - we get the real type if key found
          * - else we get boost::mpl::void_
          */
-        using MapType = mp_map_find<FullMap, T_Key>;
+        using MapType = boost::mp11::mp_map_find<FullMap, T_Key>;
 
     public:
         /* Check for KeyNotFound and calculate final type. (Uses lazy evaluation) */
-        using type = typename mp_if<
+        using type = typename boost::mp11::mp_if<
             std::is_same<MapType, void>,
             boost::mpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Key>,
-            mp_defer<mp_second, MapType>>::type;
+            boost::mp11::mp_defer<boost::mp11::mp_second, MapType>>::type;
     };
 
 } // namespace pmacc

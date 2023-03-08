@@ -34,7 +34,8 @@ namespace pmacc
     struct RemoveFromSeq
     {
         template<typename T_Value>
-        using hasId = mp_contains<T_MPLSeqObjectsToRemove, T_Value>;
+        using hasId = boost::mp11::mp_contains<T_MPLSeqObjectsToRemove, T_Value>; // FIXME(bgruber): boost::mp11::
+                                                                                  // needed for nvcc 11.0
 
         using type = mp_remove_if<T_MPLSeqSrc, hasId>;
     };

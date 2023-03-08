@@ -132,7 +132,8 @@ namespace pmacc
              */
             using SolvedAliasName = typename GetKeyFromAlias<ValueTypeSeq, T_IdentifierName>::type;
 
-            using type = mp_contains<ValueTypeSeq, SolvedAliasName>;
+            using type = boost::mp11::mp_contains<ValueTypeSeq, SolvedAliasName>; // FIXME(bgruber): boost::mp11::
+                                                                                  // needed because of nvcc 11.0 bug
         };
 
         template<typename T_IdentifierName, typename T_CreatePairOperator, typename T_ParticleDescription>
