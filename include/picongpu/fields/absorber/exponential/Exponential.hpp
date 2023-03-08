@@ -23,7 +23,6 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/absorber/exponential/Exponential.kernel"
-#include "picongpu/fields/laserProfiles/profiles.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/lockstep/lockstep.hpp>
@@ -68,7 +67,6 @@ namespace picongpu
                     template<class BoxedMemory>
                     void run(float_X currentStep, BoxedMemory deviceBox)
                     {
-                        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                         for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
                         {
                             /* only call for planes: left right top bottom back front*/
@@ -93,23 +91,6 @@ namespace picongpu
                                 if(thickness == 0)
                                     continue; /*if the absorber has no thickness we check the next side*/
 
-                                /* allow to enable the absorber on the top side if the laser
-                                 * initialization plane in y direction is *not* in cell zero
-                                 */
-                                if(fields::laserProfiles::Selected::initPlaneY == 0)
-                                {
-                                    /* disable the absorber on top side if
-                                     *      no slide was performed and
-                                     *      laser init time is not over
-                                     */
-                                    if(numSlides == 0
-                                       && ((currentStep * DELTA_T) <= fields::laserProfiles::Selected::INIT_TIME))
-                                    {
-                                        /* disable absorber on top side */
-                                        if(i == TOP)
-                                            continue;
-                                    }
-                                }
 
                                 /* if sliding window is active we disable absorber on bottom side*/
                                 if(MovingWindow::getInstance().isSlidingWindowActive(

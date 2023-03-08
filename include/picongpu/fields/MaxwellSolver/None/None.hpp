@@ -22,7 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
-#include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -49,7 +48,6 @@ namespace picongpu
 
                 None(MappingDesc)
                 {
-                    LaserChecker<None>{}();
                 }
 
                 void update_beforeCurrent(uint32_t)

@@ -8,7 +8,6 @@ Adding Laser
 There are several alternative ways of adding an incoming laser (or any source of electromagnetic field) to a PIConGPU simulation:
 
 #. selecting incident field profiles for respective boundaries in :ref:`incidentField.param <usage-params-core>`
-#. selecting a laser profile in :ref:`laser.param <usage-params-core>`
 #. using field or current background in :ref:`fieldBackground.param <usage-params-core>`
 
 These ways operate independently of one another, each has its features and limitations.
@@ -61,18 +60,3 @@ As a rule of thumb, this extra requirement is (order of FDTD solver / 2 - 1) cel
 Additionally, the current implementation requires the generation surface to be located sufficiently far away from local domain boundaries.
 The same rule of a thumb can be used, with offsets being at least that many cells away from domain boundaries.
 Validity of the provided offsets with respect to both conditions is checked at run time.
-
-Laser
-"""""
-
-Laser profiles are still supported, but deprecated.
-Consider switching to the incident field counterpart of your laser profile as ``YMin`` source.
-The transition should be straightforward, please refer to the previous section for differences from incident field.
-
-Beware that the laser is fully accurate only for the standard Yee field solver.
-For other field solver types, a user should evaluate the inaccuracies introduced.
-
-The functioning of the laser (the second way) is covered in more detail in the following class:
-
-.. doxygenclass:: picongpu::fields::laserProfiles::acc::BaseFunctor
-   :project: PIConGPU

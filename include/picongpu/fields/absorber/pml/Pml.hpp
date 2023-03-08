@@ -138,7 +138,6 @@ namespace picongpu
                          * at a border we set the corresponding thickness to 0.
                          */
                         auto& movingWindow = MovingWindow::getInstance();
-                        auto const numSlides = movingWindow.getSlideCounter(static_cast<uint32_t>(currentStep));
                         auto const numExchanges = NumberOfExchanges<simDim>::value;
                         auto const communicationMask
                             = Environment<simDim>::get().GridController().getCommunicationMask();
@@ -165,15 +164,6 @@ namespace picongpu
                             bool hasNeighbour = communicationMask.isSet(exchange);
                             if(hasNeighbour)
                                 localThickness(axis, direction) = 0;
-
-                            // Disable PML during laser initialization
-                            if(fields::laserProfiles::Selected::initPlaneY == 0)
-                            {
-                                bool isLaserInitializationOver
-                                    = (currentStep * DELTA_T) >= fields::laserProfiles::Selected::INIT_TIME;
-                                if(numSlides == 0 && !isLaserInitializationOver && exchange == TOP)
-                                    localThickness(axis, direction) = 0;
-                            }
 
                             // Disable PML at the far side of the moving window
                             if(movingWindow.isSlidingWindowActive(static_cast<uint32_t>(currentStep))

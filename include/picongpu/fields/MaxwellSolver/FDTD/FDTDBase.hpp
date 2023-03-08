@@ -25,7 +25,6 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/LaserPhysics.hpp"
 #include "picongpu/fields/MaxwellSolver/AddCurrentDensity.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.kernel"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
@@ -157,8 +156,6 @@ namespace picongpu
                             auto& exponentialImpl = absorberImpl.asExponentialImpl();
                             exponentialImpl.run(currentStep, fieldE->getDeviceDataBox());
                         }
-                        if(LaserPhysics::isEnabled())
-                            LaserPhysics{}(currentStep);
 
                         // Incident field solver update does not use exchanged E, so does not have to wait for it
                         auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};

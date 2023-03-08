@@ -23,13 +23,11 @@
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/LaserPhysics.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelationSolver.hpp"
 #include "picongpu/fields/MaxwellSolver/traits/IsSubstepping.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/profiles.hpp"
-#include "picongpu/fields/laserProfiles/profiles.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/SimStartInitialiser.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
@@ -150,9 +148,6 @@ namespace picongpu
                                      "   It and does not cover other forms of initialization");
                 logOmegaP();
 
-                if(fields::laserProfiles::Selected::INIT_TIME > float_X(0.0))
-                    log<picLog::PHYSICS>("y-cells per wavelength: %1%")
-                        % (fields::laserProfiles::Selected::WAVE_LENGTH / CELL_HEIGHT);
                 const int localNrOfCells
                     = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
                 log<picLog::PHYSICS>("macro particles per device: %1%")
@@ -231,22 +226,10 @@ namespace picongpu
             }
         };
 
-        //! Print dispersion information for the laser enabled in laser.param
+        //! Print dispersion information for the incident field lasers
         void printDispersionInformation()
         {
             using namespace fields;
-            // Note: fields:: still required for the next line, otherwise LaserPhysics is ambiguous
-            if(fields::LaserPhysics::isEnabled())
-            {
-                auto const omega = pmacc::math::Pi<float_64>::doubleValue
-                    * static_cast<float_64>(SPEED_OF_LIGHT / laserProfiles::Selected::WAVE_LENGTH);
-                // Assume propagation along y as all laser profiles do it
-                auto const direction = float3_64{0.0, 1.0, 0.0};
-                auto const absK = maxwellSolver::DispersionRelationSolver<Solver>{}(omega, direction);
-                // Phase velocity in units of c
-                auto const phaseVelocityC = omega / absK;
-                log<picLog::PHYSICS>("Laser numerical dispersion: v_phase = %1% * c") % phaseVelocityC;
-            }
             using IncidentFieldProfiles = fields::incidentField::UniqueEnabledProfiles;
             meta::ForEach<IncidentFieldProfiles, PrintIncidentFieldDispersion<bmpl::_1>> printIncidentFieldDispersion;
             printIncidentFieldDispersion();

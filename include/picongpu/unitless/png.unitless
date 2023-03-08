@@ -26,35 +26,11 @@
 
 namespace picongpu
 {
-    namespace traits
-    {
-        template<typename>
-        struct is_laser_none : std::false_type
-        {
-        };
-
-        template<typename T>
-        struct is_laser_none<fields::laserProfiles::None<T>> : std::true_type
-        {
-        };
-
-        template<typename>
-        struct is_laser_planewave : std::false_type
-        {
-        };
-
-        template<typename T>
-        struct is_laser_planewave<fields::laserProfiles::PlaneWave<T>> : std::true_type
-        {
-        };
-    } // namespace traits
-      // asserts for wrong user configurations
-      //
-      // setting 1: Laser
+    // asserts for wrong user configurations
+    //
+    // setting 1: Laser
 #if(EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1)
-    PMACC_CASSERT_MSG(
-        You_can_not_scale_your_preview_to_laser_without_using_a_laser___change_png_param,
-        !traits::is_laser_none<fields::laserProfiles::Selected>::value);
+#    error "Laser profiles are not supported anymore, please use incident field lasers."
 #endif
 
     // setting 2: Drifting Plasma
@@ -83,13 +59,6 @@ namespace picongpu
 
     // setting 5: Blow Out
 #if(EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5)
-    // PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_png_param,
-    // (BASE_DENSITY>0.0) );
-    PMACC_CASSERT_MSG(
-        You_can_not_scale_your_preview_to_blowout_without_a_laser___change_png_param,
-        !traits::is_laser_none<fields::laserProfiles::Selected>::value);
-    PMACC_CASSERT_MSG(
-        You_can_not_scale_your_preview_to_blowout_with_a_laser_without_beam_waist___change_png_param,
-        !traits::is_laser_planewave<fields::laserProfiles::Selected>::value);
+#    error "Blow out visualization requires old laser profiles which are not supported anymore."
 #endif
 } // namespace picongpu

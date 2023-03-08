@@ -25,7 +25,6 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.hpp"
-#include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
@@ -56,7 +55,6 @@ namespace picongpu
                  */
                 FDTD(MappingDesc const cellDescription) : Base(cellDescription)
                 {
-                    LaserChecker<FDTD>{}();
                 }
 
                 /** Perform the first part of E and B propagation by a PIC time step.

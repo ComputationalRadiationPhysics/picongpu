@@ -62,14 +62,12 @@ namespace picongpu
 {
     // normalize EM fields to typical laser or plasma quantities
     //-1: Auto:     enable adaptive scaling for each output
-    // 1: Laser:    typical fields calculated out of the laser amplitude
-    // 2: Drift:    outdated
+    // 1: Laser:    [outdated]
+    // 2: Drift:    [outdated]
     // 3: PlWave:   typical fields calculated out of the plasma freq.,
     //              assuming the wave moves approx. with c
     // 4: Thermal:  outdated
-    // 5: BlowOut:  typical fields, assuming that a LWFA in the blowout
-    //              regime causes a bubble with radius of approx. the laser's
-    //              beam waist (use for bubble fields)
+    // 5: BlowOut:  [outdated]
     // 6: Custom:   user-provided normalization factors via visPreview::customNormalizationSI
     // 7: Incident: typical fields calculated out of the incident field amplitude,
     //              uses max amplitude from all enabled incident field profile types ignoring Free
@@ -92,27 +90,6 @@ namespace picongpu
             return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
         }
     };
-
-    template<>
-    struct typicalFields<1>
-    {
-        HDINLINE static float3_X get()
-        {
-#if !(EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1)
-            return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
-#else
-            constexpr auto baseCharge = BASE_CHARGE;
-            const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
-                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
-                / DELTA_T;
-            const float_X tyEField = fields::laserProfiles::Selected::Unitless::AMPLITUDE + FLT_MIN;
-            const float_X tyBField = tyEField * MUE0_EPS0;
-
-            return float3_X(tyBField, tyEField, tyCurrent);
-#endif
-        }
-    };
-
 
     /* outdated drift normalization */
     template<>
@@ -141,26 +118,6 @@ namespace picongpu
     /* outdated ELECTRON_TEMPERATURE normalization */
     template<>
     struct typicalFields<4>;
-
-    template<>
-    struct typicalFields<5>
-    {
-        HDINLINE static float3_X get()
-        {
-#if !(EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5)
-            return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
-#else
-            constexpr auto baseCharge = BASE_CHARGE;
-            const float_X tyEField = fields::laserProfiles::Selected::Unitless::W0 * BASE_DENSITY / 3.0f / EPS0;
-            const float_X tyBField = tyEField * MUE0_EPS0;
-            const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
-                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
-                / DELTA_T;
-
-            return float3_X(tyBField, tyEField, tyCurrent);
-#endif
-        }
-    };
 
     //! Specialization for custom normalization
     template<>

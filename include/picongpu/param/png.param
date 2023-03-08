@@ -38,14 +38,12 @@ namespace picongpu
     {
         // normalize EM fields to typical laser or plasma quantities
         //-1: Auto:     enable adaptive scaling for each output
-        // 1: Laser:    typical fields calculated out of the laser amplitude
+        // 1: Laser:    [outdated]
         // 2: Drift:    [outdated]
         // 3: PlWave:   typical fields calculated out of the plasma freq.,
         //              assuming the wave moves approx. with c
         // 4: Thermal:  [outdated]
-        // 5: BlowOut:  typical fields, assuming that a LWFA in the blowout
-        //              regime causes a bubble with radius of approx. the laser's
-        //              beam waist (use for bubble fields)
+        // 5: BlowOut:  [outdated]
         // 6: Custom:   user-provided normalization factors via customNormalizationSI
         // 7: Incident: typical fields calculated out of the incident field amplitude,
         //              uses max amplitude from all enabled incident field profile types ignoring Free
