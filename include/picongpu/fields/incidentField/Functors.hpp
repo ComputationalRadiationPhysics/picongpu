@@ -29,6 +29,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 
 namespace picongpu
@@ -112,6 +113,49 @@ namespace picongpu
             };
             namespace detail
             {
+                /** SFINAE dedection if the user parameter define the variable FOCUS_ORIGIN_*
+                 *
+                 * This allows that focus origin can be an optional variable a user must only define if needed.
+                 * The default if it is not defined is Origin::Zero
+                 * @{
+                 */
+                template<typename T, typename = void>
+                struct GetOriginX
+                {
+                    static constexpr Origin value = Origin::Zero;
+                };
+
+                template<typename T>
+                struct GetOriginX<T, decltype((void) T::FOCUS_ORIGIN_X, void())>
+                {
+                    static constexpr Origin value = T::FOCUS_ORIGIN_X;
+                };
+
+                template<typename T, typename = void>
+                struct GetOriginY
+                {
+                    static constexpr Origin value = Origin::Zero;
+                };
+
+                template<typename T>
+                struct GetOriginY<T, decltype((void) T::FOCUS_ORIGIN_Y, void())>
+                {
+                    static constexpr Origin value = T::FOCUS_ORIGIN_Y;
+                };
+
+                template<typename T, typename = void>
+                struct GetOriginZ
+                {
+                    static constexpr Origin value = Origin::Zero;
+                };
+
+                template<typename T>
+                struct GetOriginZ<T, decltype((void) T::FOCUS_ORIGIN_Z, void())>
+                {
+                    static constexpr Origin value = T::FOCUS_ORIGIN_Z;
+                };
+                /**@}*/
+
                 /** Base class for calculating incident E functors
                  *
                  * Defines internal coordinate system tied to laser focus position and direction.
@@ -142,6 +186,7 @@ namespace picongpu
                      */
                     HINLINE BaseFunctorE(float_X const currentStep, float3_64 const unitField)
                         : origin(getOrigin())
+                        , focus(getFocus())
                         , currentTimeOrigin(currentStep * DELTA_T)
                         , phaseVelocity(getPhaseVelocity())
                     {
@@ -236,6 +281,8 @@ namespace picongpu
                      */
                     float3_X const origin;
 
+                    float3_X const focus;
+
                     /** Current time for calculating the field at the origin
                      *
                      * Other points will have time shifts relative to it according to their position relative to the
@@ -248,6 +295,30 @@ namespace picongpu
                      * The solver-fitting phase velocity ensures proper coupling wrt time delays.
                      */
                     float_X const phaseVelocity;
+
+                    //! Calculate focus position
+                    HINLINE static float3_X getFocus()
+                    {
+                        auto const& subGrid = Environment<simDim>::get().SubGrid();
+                        auto const globalDomainCells = subGrid.getGlobalDomain().size;
+                        auto result = float3_X(
+                            Unitless::FOCUS_POSITION_X,
+                            Unitless::FOCUS_POSITION_Y,
+                            Unitless::FOCUS_POSITION_Z);
+
+                        if constexpr(GetOriginX<Unitless>::value == Origin::Center)
+                        {
+                            result.x() += static_cast<float_X>(globalDomainCells.x() / 2u) * cellSize.x();
+                        }
+                        if constexpr(GetOriginY<Unitless>::value == Origin::Center)
+                            result.y() += static_cast<float_X>(globalDomainCells.y() / 2u) * cellSize.y();
+
+                        // if condition is guarded against aout of memory access for 2D simulations
+                        if constexpr(GetOriginZ<Unitless>::value == Origin::Center && simDim == DIM3)
+                            result.z() += static_cast<float_X>(globalDomainCells.z() / 2u) * cellSize.z();
+
+                        return result;
+                    }
 
                     //! Calculate origin position
                     HINLINE static float3_X getOrigin()
@@ -265,10 +336,7 @@ namespace picongpu
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
                         auto const globalDomainCells = subGrid.getGlobalDomain().size;
                         auto const direction = getDirection();
-                        auto const focus = float3_X(
-                            Unitless::FOCUS_POSITION_X,
-                            Unitless::FOCUS_POSITION_Y,
-                            Unitless::FOCUS_POSITION_Z);
+                        auto const focus = getFocus();
                         // Value of line parameter p such that origin = line(originP)
                         auto originP = -std::numeric_limits<float_X>::infinity();
                         for(uint32_t axis = 0u; axis < simDim; ++axis)

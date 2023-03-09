@@ -40,6 +40,17 @@ namespace picongpu
                 Circular
             };
 
+
+            /** Coordinate system origin
+             */
+            enum class Origin
+            {
+                //! origin of the total domain
+                Zero,
+                //! the center of the global domain
+                Center
+            };
+
             namespace profiles
             {
                 /** Base structure for parameters of all lasers
@@ -102,7 +113,7 @@ namespace picongpu
                     static constexpr float_64 DIRECTION_Z = 0.0;
                     /** @} */
 
-                    /** Focus position in total coordinate system
+                    /** Focus position relative to FOCUS_ORIGIN_*
                      *
                      * "Non-focused" lasers should have it set at or near the generation surface where the laser enters
                      * the domain. The position does not have to be inside the domain.
@@ -110,6 +121,9 @@ namespace picongpu
                      * The focus position and propagation direction together define the entry point of laser to
                      * the generation surface.
                      * So they also control the laser center at the generation plane, not just a shift inwards.
+                     *
+                     * FOCUS_ORIGIN_X, FOCUS_ORIGIN_Y or FOCUS_ORIGIN_Z is not defined the origin will be Origin::Zero
+                     * (total domain).
                      *
                      * For 2d simulations, z component has no effect and is not required.
                      *
@@ -120,6 +134,19 @@ namespace picongpu
                     static constexpr float_64 FOCUS_POSITION_X_SI = 8.0e-5;
                     static constexpr float_64 FOCUS_POSITION_Y_SI = 5.0e-5;
                     static constexpr float_64 FOCUS_POSITION_Z_SI = 8.0e-5;
+                    /** @} */
+
+                    /** Origin of the laser
+                     *
+                     * possible values:
+                     *   - Origin::Center center of the global coordinate system
+                     *   - Origin::Zero total coordinate origin
+                     *
+                     * @attention FOCUS_ORIGIN_X, FOCUS_ORIGIN_y, FOCUS_ORIGIN_Z are optional
+                     */
+                    static constexpr Origin FOCUS_ORIGIN_X = Origin::Zero;
+                    static constexpr Origin FOCUS_ORIGIN_Y = Origin::Zero;
+                    static constexpr Origin FOCUS_ORIGIN_Z = Origin::Zero;
                     /** @} */
 
                     /** E polarization type
