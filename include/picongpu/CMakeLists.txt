@@ -181,11 +181,9 @@ endif()
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options filesystem
-                                              system serialization)
-if(TARGET Boost::program_options)
-    set(HOST_LIBS ${HOST_LIBS} Boost::boost Boost::program_options
-                     Boost::filesystem Boost::system Boost::serialization)
+find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options)
+if(TARGET Boost::boost)
+    set(HOST_LIBS ${HOST_LIBS} Boost::boost Boost::program_options)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     set(HOST_LIBS ${HOST_LIBS} ${Boost_LIBRARIES})

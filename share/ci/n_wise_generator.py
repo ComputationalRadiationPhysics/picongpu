@@ -84,6 +84,11 @@ def is_valid_combination(row):
         os_name = row[2][0] if n >= 3 else ""
         os_version = get_version(row[2]) if n >= 3 else 0
 
+        # STL of g++ shipped with ubuntu <20.04 does not support full
+        # c++17 standard
+        if os_name == "ubuntu" and is_clang and os_version < 20.04:
+            return False
+
         if is_cuda and os_name == "ubuntu":
             if os_version < 20.04 and v_cuda >= 11.0:
                 return False

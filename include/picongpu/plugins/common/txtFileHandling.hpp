@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <boost/filesystem.hpp>
-
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -28,8 +27,6 @@
 
 namespace picongpu
 {
-    using namespace boost::filesystem;
-
     /** Restore a txt file from the checkpoint dir
      *
      * Restores a txt file from the checkpoint dir and starts appending to it.
@@ -54,11 +51,11 @@ namespace picongpu
         sStep << restartStep;
 
         /* set location of restart file and output file */
-        path src(restartDirectory + std::string("/") + filename + std::string(".") + sStep.str());
-        path dst(filename);
+        std::filesystem::path src(restartDirectory + std::string("/") + filename + std::string(".") + sStep.str());
+        std::filesystem::path dst(filename);
 
         /* check whether restart file exists */
-        if(!boost::filesystem::exists(src))
+        if(!std::filesystem::exists(src))
         {
             /* restart file does not exists */
             log<picLog::INPUT_OUTPUT>("Plugin restart file: %1% was not found. \
@@ -72,7 +69,7 @@ namespace picongpu
             if(outFile.is_open())
                 outFile.close();
 
-            copy_file(src, dst, copy_option::overwrite_if_exists);
+            std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing);
 
             outFile.open(filename.c_str(), std::ofstream::out | std::ostream::app);
             if(!outFile)
@@ -104,10 +101,10 @@ namespace picongpu
         std::stringstream sStep;
         sStep << currentStep;
 
-        path src(filename);
-        path dst(checkpointDirectory + std::string("/") + filename + std::string(".") + sStep.str());
+        std::filesystem::path src(filename);
+        std::filesystem::path dst(checkpointDirectory + std::string("/") + filename + std::string(".") + sStep.str());
 
-        copy_file(src, dst, copy_option::overwrite_if_exists);
+        std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing);
     }
 
 } /* namespace picongpu */

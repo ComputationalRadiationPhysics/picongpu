@@ -64,6 +64,4 @@
 namespace pmacc
 {
     namespace bmpl = boost::mpl;
-    namespace bfs = boost::filesystem;
-
 } // namespace pmacc
