@@ -87,7 +87,7 @@
         } /* namespace pmacc_static_const_vector_host + id  */                                                        \
         /* select host or device namespace depending on __CUDA_ARCH__ compiler flag*/                                 \
         PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id);                                                                \
-        template<typename T_Type, int T_Dim>                                                                          \
+        template<typename T_Type, uint32_t T_dim>                                                                     \
         struct ConstArrayStorage                                                                                      \
         {                                                                                                             \
             PMACC_CASSERT_MSG(                                                                                        \
@@ -95,7 +95,7 @@
                 Dim <= count);                                                                                        \
             static constexpr bool isConst = true;                                                                     \
             typedef T_Type type;                                                                                      \
-            static constexpr int dim = T_Dim;                                                                         \
+            static constexpr uint32_t dim = T_dim;                                                                    \
                                                                                                                       \
             HDINLINE const type& operator[](const int idx) const                                                      \
             {                                                                                                         \

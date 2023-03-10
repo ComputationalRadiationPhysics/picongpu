@@ -147,7 +147,7 @@ namespace picongpu
                     HDINLINE void operator()(
                         pmacc::DataSpace<simDim> const& beginGridIdx,
                         pmacc::DataSpace<simDim> const& updatedGridIdx,
-                        pmacc::math::Vector<bool, 3> const& isLastUpdatedCell) const
+                        pmacc::math::Vector<bool, 3u> const& isLastUpdatedCell) const
                     {
                         // Determine Huygens surface position for the current updatedField value
                         auto huygensSurfaceIdx = updatedGridIdx;
@@ -298,7 +298,7 @@ namespace picongpu
                         int32_t updatedFieldShift,
                         floatD_X const& incidentFieldShift1,
                         floatD_X const& incidentFieldShift2,
-                        pmacc::math::Vector<bool, 3> const& isLastUpdatedCell) const
+                        pmacc::math::Vector<bool, 3u> const& isLastUpdatedCell) const
                     {
                         auto result = float3_X::create(0.0_X);
                         auto incidentIdxShift = float3_X::create(0.0_X);
@@ -468,7 +468,7 @@ namespace picongpu
                                  * this information here.
                                  */
                                 bool isInside = true;
-                                auto isLastUpdatedCell = pmacc::math::Vector<bool, 3>::create(false);
+                                auto isLastUpdatedCell = pmacc::math::Vector<bool, 3u>::create(false);
                                 for(uint32_t d = 0; d < simDim; d++)
                                 {
                                     isInside = isInside && (updatedGridIdx[d] < endGridIdx[d]);

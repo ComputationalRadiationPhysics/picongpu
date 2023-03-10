@@ -30,9 +30,9 @@ namespace picongpu
     {
         using float_X = precisionType;
         /* 32 Bit defines */
-        using float1_X = ::pmacc::math::Vector<float_X, 1>;
-        using float2_X = ::pmacc::math::Vector<float_X, 2>;
-        using float3_X = ::pmacc::math::Vector<float_X, 3>;
+        using float1_X = ::pmacc::math::Vector<float_X, 1u>;
+        using float2_X = ::pmacc::math::Vector<float_X, 2u>;
+        using float3_X = ::pmacc::math::Vector<float_X, 3u>;
         using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
     } // namespace precision32Bit
 
@@ -40,9 +40,9 @@ namespace picongpu
     {
         using float_X = precisionType;
         /* 64 Bit defines */
-        using float1_X = ::pmacc::math::Vector<float_X, 1>;
-        using float2_X = ::pmacc::math::Vector<float_X, 2>;
-        using float3_X = ::pmacc::math::Vector<float_X, 3>;
+        using float1_X = ::pmacc::math::Vector<float_X, 1u>;
+        using float2_X = ::pmacc::math::Vector<float_X, 2u>;
+        using float3_X = ::pmacc::math::Vector<float_X, 3u>;
         using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
     } // namespace precision64Bit
 
@@ -50,9 +50,9 @@ namespace picongpu
     using float_64 = precision64Bit::float_X;
 
     /* variable precision defines */
-    using float1_X = ::pmacc::math::Vector<float_X, 1>;
-    using float2_X = ::pmacc::math::Vector<float_X, 2>;
-    using float3_X = ::pmacc::math::Vector<float_X, 3>;
+    using float1_X = ::pmacc::math::Vector<float_X, 1u>;
+    using float2_X = ::pmacc::math::Vector<float_X, 2u>;
+    using float3_X = ::pmacc::math::Vector<float_X, 3u>;
     using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
     /* 32 Bit defines */
     using float1_32 = precision32Bit::float1_X;

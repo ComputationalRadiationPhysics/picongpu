@@ -40,7 +40,7 @@ namespace pmacc
              * using Orientation_Y = pmacc::math::CT::Int<1,2,0>;
              * using TwistedBlockDim = typename pmacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type;
              */
-            template<typename Vec, typename Axes, int dim = Vec::dim>
+            template<typename Vec, typename Axes, uint32_t dim = Vec::dim>
             struct TwistComponents;
 
             template<typename Vec, typename Axes>

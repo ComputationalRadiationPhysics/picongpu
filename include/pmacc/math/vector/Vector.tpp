@@ -41,19 +41,19 @@ namespace pmacc
 {
     namespace traits
     {
-        template<typename T_DataType, int T_Dim>
-        struct GetComponentsType<pmacc::math::Vector<T_DataType, T_Dim>, false>
+        template<typename T_DataType, uint32_t T_dim>
+        struct GetComponentsType<pmacc::math::Vector<T_DataType, T_dim>, false>
         {
-            using type = typename pmacc::math::Vector<T_DataType, T_Dim>::type;
+            using type = typename pmacc::math::Vector<T_DataType, T_dim>::type;
         };
 
-        template<typename T_DataType, int T_Dim>
-        struct GetNComponents<pmacc::math::Vector<T_DataType, T_Dim>, false>
+        template<typename T_DataType, uint32_t T_dim>
+        struct GetNComponents<pmacc::math::Vector<T_DataType, T_dim>, false>
         {
-            static constexpr uint32_t value = (uint32_t) pmacc::math::Vector<T_DataType, T_Dim>::dim;
+            static constexpr uint32_t value = (uint32_t) pmacc::math::Vector<T_DataType, T_dim>::dim;
         };
 
-        template<typename T_Type, int T_dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
+        template<typename T_Type, uint32_t T_dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
         struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>>
         {
             using Type = math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>;
@@ -90,7 +90,7 @@ namespace pmacc
         };
 
         /*! Specialisation of Dot where base is a vector */
-        template<typename Type, int dim>
+        template<typename Type, uint32_t dim>
         struct Dot<::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim>>
         {
             using myType = ::pmacc::math::Vector<Type, dim>;
@@ -100,14 +100,14 @@ namespace pmacc
             {
                 PMACC_CASSERT(dim > 0);
                 result tmp = a.x() * b.x();
-                for(int i = 1; i < dim; i++)
+                for(uint32_t i = 1; i < dim; i++)
                     tmp += a[i] * b[i];
                 return tmp;
             }
         };
 
         /*specialize abs2 algorithm*/
-        template<typename Type, int dim>
+        template<typename Type, uint32_t dim>
         struct Abs2<::pmacc::math::Vector<Type, dim>>
         {
             using result = typename ::pmacc::math::Vector<Type, dim>::type;
@@ -115,7 +115,7 @@ namespace pmacc
             HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim>& vector)
             {
                 result tmp = pmacc::math::abs2(vector.x());
-                for(int i = 1; i < dim; ++i)
+                for(uint32_t i = 1; i < dim; ++i)
                     tmp += pmacc::math::abs2(vector[i]);
                 return tmp;
             }
@@ -136,7 +136,7 @@ namespace pmacc
  * errors, therefore the alpaka math trait must be used.
  */
 #define PMACC_UNARY_APAKA_MATH_SPECIALIZATION(functionName, alpakaMathTrait)                                          \
-    template<typename T_Ctx, typename T_ScalarType, int T_dim>                                                        \
+    template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim>                                                   \
     struct alpakaMathTrait<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, void>                                   \
     {                                                                                                                 \
         using ResultType = ::pmacc::math::Vector<T_ScalarType, T_dim>;                                                \
@@ -148,7 +148,7 @@ namespace pmacc
             PMACC_CASSERT(T_dim > 0);                                                                                 \
                                                                                                                       \
             ResultType tmp;                                                                                           \
-            for(int i = 0; i < T_dim; ++i)                                                                            \
+            for(uint32_t i = 0; i < T_dim; ++i)                                                                       \
                 tmp[i] = alpaka::math::functionName(mathConcept, vector[i]);                                          \
             return tmp;                                                                                               \
         }                                                                                                             \
@@ -164,7 +164,7 @@ namespace alpaka
              *
              * Create pow separately for every component of the vector.
              */
-            template<typename T_Ctx, typename T_ScalarType, int T_dim>
+            template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim>
             struct Pow<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, T_ScalarType, void>
             {
                 using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
@@ -176,13 +176,13 @@ namespace alpaka
                 {
                     PMACC_CASSERT(T_dim > 0);
                     ResultType tmp;
-                    for(int i = 0; i < T_dim; ++i)
+                    for(uint32_t i = 0; i < T_dim; ++i)
                         tmp[i] = cupla::pow(vector[i], exponent);
                     return tmp;
                 }
             };
 
-            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, int T_dim>
+            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, uint32_t T_dim>
             struct Min<
                 T_Ctx,
                 ::pmacc::math::Vector<T_ScalarType1, T_dim>,
@@ -202,13 +202,13 @@ namespace alpaka
                 {
                     PMACC_CASSERT(T_dim > 0);
                     ResultType tmp;
-                    for(int i = 0; i < T_dim; ++i)
+                    for(uint32_t i = 0; i < T_dim; ++i)
                         tmp[i] = alpaka::math::min(mathConcept, vector1[i], vector2[i]);
                     return tmp;
                 }
             };
 
-            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, int T_dim>
+            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, uint32_t T_dim>
             struct Max<
                 T_Ctx,
                 ::pmacc::math::Vector<T_ScalarType1, T_dim>,
@@ -228,7 +228,7 @@ namespace alpaka
                 {
                     PMACC_CASSERT(T_dim > 0);
                     ResultType tmp;
-                    for(int i = 0; i < T_dim; ++i)
+                    for(uint32_t i = 0; i < T_dim; ++i)
                         tmp[i] = alpaka::math::max(mathConcept, vector1[i], vector2[i]);
                     return tmp;
                 }
@@ -245,7 +245,7 @@ namespace alpaka
              * Returns the length of the vector to fit the old implementation.
              * @todo implement a math function magnitude instead of using abs to get the length of the vector.
              */
-            template<typename T_Ctx, typename T_ScalarType, int T_dim>
+            template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim>
             struct Abs<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, void>
             {
                 using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
@@ -271,7 +271,7 @@ namespace pmacc
     {
         namespace precisionCast
         {
-            template<typename CastToType, int dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
+            template<typename CastToType, uint32_t dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
             struct TypeCast<CastToType, ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>>
             {
                 using result = ::pmacc::math::Vector<CastToType, dim>;
@@ -286,7 +286,7 @@ namespace pmacc
             template<
                 typename CastToType,
                 typename OldType,
-                int dim,
+                uint32_t dim,
                 typename T_Accessor,
                 typename T_Navigator,
                 typename T_Storage>
@@ -311,7 +311,7 @@ namespace pmacc
     {
         namespace promoteType
         {
-            template<typename PromoteToType, typename OldType, int dim>
+            template<typename PromoteToType, typename OldType, uint32_t dim>
             struct promoteType<PromoteToType, ::pmacc::math::Vector<OldType, dim>>
             {
                 using PartType = typename promoteType<OldType, PromoteToType>::type;
@@ -328,7 +328,7 @@ namespace pmacc
     {
         namespace def
         {
-            template<int T_dim>
+            template<uint32_t T_dim>
             struct GetMPI_StructAsArray<::pmacc::math::Vector<float, T_dim>>
             {
                 MPI_StructAsArray operator()() const
@@ -337,7 +337,7 @@ namespace pmacc
                 }
             };
 
-            template<int T_dim, int T_N>
+            template<uint32_t T_dim, int T_N>
             struct GetMPI_StructAsArray<::pmacc::math::Vector<float, T_dim>[T_N]>
             {
                 MPI_StructAsArray operator()() const
@@ -346,7 +346,7 @@ namespace pmacc
                 }
             };
 
-            template<int T_dim>
+            template<uint32_t T_dim>
             struct GetMPI_StructAsArray<::pmacc::math::Vector<double, T_dim>>
             {
                 MPI_StructAsArray operator()() const
@@ -355,7 +355,7 @@ namespace pmacc
                 }
             };
 
-            template<int T_dim, int T_N>
+            template<uint32_t T_dim, int T_N>
             struct GetMPI_StructAsArray<::pmacc::math::Vector<double, T_dim>[T_N]>
             {
                 MPI_StructAsArray operator()() const

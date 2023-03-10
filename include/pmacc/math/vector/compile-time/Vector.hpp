@@ -49,42 +49,42 @@ namespace pmacc
 
             namespace detail
             {
-                template<int dim>
+                template<uint32_t dim>
                 struct VectorFromCT;
 
                 template<>
-                struct VectorFromCT<1>
+                struct VectorFromCT<1u>
                 {
                     template<typename Vec, typename CTVec>
                     HDINLINE void operator()(Vec& vec, CTVec) const
                     {
-                        BOOST_STATIC_ASSERT(Vec::dim == 1);
-                        BOOST_STATIC_ASSERT(CTVec::dim == 1);
+                        BOOST_STATIC_ASSERT(Vec::dim == 1u);
+                        BOOST_STATIC_ASSERT(CTVec::dim == 1u);
                         vec[0] = (typename Vec::type) CTVec::x::value;
                     }
                 };
 
                 template<>
-                struct VectorFromCT<2>
+                struct VectorFromCT<2u>
                 {
                     template<typename Vec, typename CTVec>
                     HDINLINE void operator()(Vec& vec, CTVec) const
                     {
-                        BOOST_STATIC_ASSERT(Vec::dim == 2);
-                        BOOST_STATIC_ASSERT(CTVec::dim == 2);
+                        BOOST_STATIC_ASSERT(Vec::dim == 2u);
+                        BOOST_STATIC_ASSERT(CTVec::dim == 2u);
                         vec[0] = (typename Vec::type) CTVec::x::value;
                         vec[1] = (typename Vec::type) CTVec::y::value;
                     }
                 };
 
                 template<>
-                struct VectorFromCT<3>
+                struct VectorFromCT<3u>
                 {
                     template<typename Vec, typename CTVec>
                     HDINLINE void operator()(Vec& vec, CTVec) const
                     {
-                        BOOST_STATIC_ASSERT(Vec::dim == 3);
-                        BOOST_STATIC_ASSERT(CTVec::dim == 3);
+                        BOOST_STATIC_ASSERT(Vec::dim == 3u);
+                        BOOST_STATIC_ASSERT(CTVec::dim == 3u);
                         vec[0] = (typename Vec::type) CTVec::x::value;
                         vec[1] = (typename Vec::type) CTVec::y::value;
                         vec[2] = (typename Vec::type) CTVec::z::value;
@@ -107,7 +107,7 @@ namespace pmacc
                 template<>
                 struct TypeSelector<mpl::na>
                 {
-                    using type = mpl::int_<0>;
+                    using type = mpl::int_<0u>;
                 };
 
             } // namespace detail
@@ -123,13 +123,13 @@ namespace pmacc
 
                 using mplVector = mpl::vector<x, y, z>;
 
-                template<int element>
+                template<uint32_t element>
                 struct at
                 {
                     using type = typename mpl::at_c<mplVector, element>::type;
                 };
 
-                static constexpr int dim = mpl::size<mplVector>::type::value;
+                static constexpr uint32_t dim = mpl::size<mplVector>::type::value;
 
                 using type = typename detail::TypeSelector<x>::type;
                 using This = Vector<x, y, z>;
@@ -436,7 +436,7 @@ namespace pmacc
              * @tparam T_dim count of components
              * @tparam T_Type type which is assigned to all components
              */
-            template<int T_dim, typename T_Type>
+            template<uint32_t T_dim, typename T_Type>
             struct make_Vector;
 
             template<typename T_Type>
@@ -473,7 +473,7 @@ namespace pmacc
             template<uint32_t T_dim, uint32_t T_direction, typename T_ValueType = int>
             struct make_BasisVector
             {
-                using Zeroes = typename make_Vector<T_dim, bmpl::integral_c<T_ValueType, 0>>::type;
+                using Zeroes = typename make_Vector<T_dim, bmpl::integral_c<T_ValueType, 0u>>::type;
                 using type = typename AssignIfInRange<
                     Zeroes,
                     bmpl::integral_c<size_t, T_direction>,

@@ -165,7 +165,7 @@ namespace picongpu
         if(relDirType == 1u)
         {
             // x, y, z, edge, corner
-            pmacc::math::Vector<uint32_t, 3> requiredMem(
+            pmacc::math::Vector<uint32_t, 3u> requiredMem(
                 ExchangeMemCfg::BYTES_EXCHANGE_X,
                 ExchangeMemCfg::BYTES_EXCHANGE_Y,
                 ExchangeMemCfg::BYTES_EXCHANGE_Z);

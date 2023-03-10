@@ -27,7 +27,7 @@ namespace pmacc
 {
     namespace math
     {
-        template<int dim>
+        template<uint32_t dim>
         using Size_t = Vector<size_t, dim>;
     } // namespace math
 } // namespace pmacc
