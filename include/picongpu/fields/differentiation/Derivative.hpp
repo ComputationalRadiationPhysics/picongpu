@@ -58,9 +58,34 @@ namespace picongpu::fields::differentiation
     template<typename T_Derivative, uint32_t T_direction>
     using DerivativeFunctor = typename traits::DerivativeFunctor<T_Derivative, T_direction>::type;
 
+    namespace detail
+    {
+        //! functor to compute field derivative along the given direction
+        template<typename T_Derivative, uint32_t T_direction, bool T_isSpatialDimension>
+        struct MakeDerivativeFunctor
+        {
+            using type = DerivativeFunctor<T_Derivative, T_direction>;
+        };
+
+        //! defines the zero derivative functor
+        template<typename T_Derivative, uint32_t T_direction>
+        struct MakeDerivativeFunctor<T_Derivative, T_direction, false>
+        {
+            using type = DerivativeFunctor<Zero, T_direction>;
+        };
+
+        // clang-format off
+        //! Create a functor type to compute field derivative along the given direction
+        template<typename T_Derivative, uint32_t T_direction>
+        using MakeDerivativeFunctor_t = typename MakeDerivativeFunctor<
+              T_Derivative,
+              T_direction,
+              T_direction < simDim
+        >::type;
+        // clang-format on
+    } // namespace detail
+
     /** Create a functor to compute field derivative along the given direction
-     *
-     * In case T_direction is >= simDim, returns the zero derivative functor
      *
      * @tparam T_Derivative derivative tag, defines the finite-difference scheme
      * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
@@ -68,10 +93,6 @@ namespace picongpu::fields::differentiation
     template<typename T_Derivative, uint32_t T_direction>
     HDINLINE auto makeDerivativeFunctor()
     {
-        constexpr bool isSpatialDimension = T_direction < simDim;
-        if constexpr(isSpatialDimension)
-            return DerivativeFunctor<T_Derivative, T_direction>{};
-        else
-            return DerivativeFunctor<Zero, T_direction>{};
+        return detail::MakeDerivativeFunctor_t<T_Derivative, T_direction>{};
     }
 } // namespace picongpu::fields::differentiation
