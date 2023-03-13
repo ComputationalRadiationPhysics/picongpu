@@ -74,6 +74,8 @@ export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
 .TBG_tasks_total="$((TBG_tasks + TBG_nodes))"
 
+.TBG_DataTransport=ucx
+
 ## end calculations ##
 
 echo 'Running program...'

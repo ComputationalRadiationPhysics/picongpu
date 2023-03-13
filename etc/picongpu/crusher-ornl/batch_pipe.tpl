@@ -69,6 +69,8 @@
 .TBG_coresPerGPU=7
 .TBG_coresPerPipeInstance=7
 
+.TBG_DataTransport=mpi
+
 # Assign one OpenMP thread per available core per GPU (=task)
 export OMP_NUM_THREADS=!TBG_coresPerGPU
 

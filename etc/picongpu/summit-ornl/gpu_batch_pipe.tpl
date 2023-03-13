@@ -70,6 +70,8 @@
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode - 1 ) / TBG_gpusPerNode))"
 
+.TBG_DataTransport=rdma
+
 ## end calculations ##
 
 echo 'Running program...'
