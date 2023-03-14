@@ -134,7 +134,7 @@ namespace picongpu
             uint32_t T_area = CORE + BORDER>
         inline void manipulate(uint32_t const currentStep)
         {
-            using SpeciesSeq = typename pmacc::ToSeq<T_Species>::type;
+            using SpeciesSeq = pmacc::ToSeq<T_Species>;
             using Functor
                 = Manipulate<T_Manipulator, boost::mpl::_1, T_Filter, std::integral_constant<uint32_t, T_area>>;
             pmacc::meta::ForEach<SpeciesSeq, Functor> forEach;
@@ -155,7 +155,7 @@ namespace picongpu
             typename T_Filter = filter::All>
         inline void manipulate(uint32_t const currentStep, T_AreaMapperFactory const& areaMapperFactory)
         {
-            using SpeciesSeq = typename pmacc::ToSeq<T_Species>::type;
+            using SpeciesSeq = pmacc::ToSeq<T_Species>;
             using Functor = Manipulate<T_Manipulator, boost::mpl::_1, T_Filter>;
             pmacc::meta::ForEach<SpeciesSeq, Functor> forEach;
             forEach(currentStep, areaMapperFactory);

@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "pmacc/meta/SeqToList.hpp"
 #include "pmacc/meta/accessors/Identity.hpp"
 
 #include <boost/mpl/apply.hpp>
@@ -32,7 +31,7 @@ namespace pmacc::meta
 {
     /** Compile-Time for each for Boost::MPL Type Lists
      *
-     *  @tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
+     *  @tparam List An mp_list.
      *  @tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
      *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
      *          The maximum number of parameters for the operator() is limited by
@@ -40,21 +39,19 @@ namespace pmacc::meta
      *  @tparam T_Accessor An unary lambda operation
      *
      * Example:
-     *      MPLSeq = pmacc::mp_list<int,float>
+     *      List = pmacc::mp_list<int,float>
      *      Functor = any unary lambda functor
      *      Accessor = lambda operation identity
      *
      *      definition: F(X) means boost::apply<F,X>
      *
-     *      call:   ForEach<MPLSeq,Functor,Accessor>()(42);
+     *      call:   ForEach<List,Functor,Accessor>()(42);
      *      unrolled code: Functor(Accessor(int))(42);
      *                     Functor(Accessor(float))(42);
      */
-    template<typename T_MPLSeq, typename T_Functor, typename T_Accessor = meta::accessors::Identity<>>
+    template<typename List, typename T_Functor, typename T_Accessor = meta::accessors::Identity<>>
     struct ForEach
     {
-        using List = detail::SeqToList<T_MPLSeq>;
-
         template<typename X>
         using ReplacePlaceholder =
             typename boost::mpl::apply1<T_Functor, typename boost::mpl::apply1<T_Accessor, X>::type>::type;

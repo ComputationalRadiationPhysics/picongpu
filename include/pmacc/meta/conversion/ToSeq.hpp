@@ -21,23 +21,27 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include "pmacc/meta/Mp11.hpp"
 
 namespace pmacc
 {
-    /** cast type to boost mpl vector
-     * @return ::type if T_Type is sequence then identity of T_Type
-     *                else mp_list<T_Type>
+    namespace detail
+    {
+        template<typename T_Type>
+        struct ToSeq
+        {
+            using type = mp_list<T_Type>;
+        };
+
+        template<typename... Ts>
+        struct ToSeq<mp_list<Ts...>>
+        {
+            using type = mp_list<Ts...>;
+        };
+    } // namespace detail
+
+    /** If T_Type is an mp_list, return it. Otherwise wrap it in an mp_list.
      */
     template<typename T_Type>
-    struct ToSeq
-    {
-        using type = mp_list<T_Type>;
-    };
-
-    template<typename... Ts>
-    struct ToSeq<mp_list<Ts...>>
-    {
-        using type = mp_list<Ts...>;
-    };
+    using ToSeq = typename detail::ToSeq<T_Type>::type;
 } // namespace pmacc

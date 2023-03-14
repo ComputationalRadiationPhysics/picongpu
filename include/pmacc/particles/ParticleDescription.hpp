@@ -63,11 +63,11 @@ namespace pmacc
     {
         using Name = T_Name;
         using SuperCellSize = T_SuperCellSize;
-        using ValueTypeSeq = typename ToSeq<T_ValueTypeSeq>::type;
-        using FlagsList = typename ToSeq<T_Flags>::type;
+        using ValueTypeSeq = ToSeq<T_ValueTypeSeq>;
+        using FlagsList = ToSeq<T_Flags>;
         using HandleGuardRegion = T_HandleGuardRegion;
-        using MethodsList = typename ToSeq<T_MethodsList>::type;
-        using FrameExtensionList = typename ToSeq<T_FrameExtensionList>::type;
+        using MethodsList = ToSeq<T_MethodsList>;
+        using FrameExtensionList = ToSeq<T_FrameExtensionList>;
         using ThisType = ParticleDescription<
             Name,
             SuperCellSize,
@@ -100,7 +100,7 @@ namespace pmacc
         using type = ParticleDescription<
             typename OldParticleDescription::Name,
             typename OldParticleDescription::SuperCellSize,
-            typename ToSeq<T_NewValueTypeSeq>::type,
+            ToSeq<T_NewValueTypeSeq>,
             typename OldParticleDescription::FlagsList,
             typename OldParticleDescription::HandleGuardRegion,
             typename OldParticleDescription::MethodsList,
@@ -124,7 +124,7 @@ namespace pmacc
             typename OldParticleDescription::FlagsList,
             typename OldParticleDescription::HandleGuardRegion,
             typename OldParticleDescription::MethodsList,
-            typename ToSeq<T_FrameExtensionSeq>::type>;
+            ToSeq<T_FrameExtensionSeq>>;
     };
 
 } // namespace pmacc

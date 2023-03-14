@@ -212,8 +212,7 @@ namespace picongpu
             // find all valid filter for the current used species
             template<typename T>
             using Op = typename particles::traits::GenerateSolversIfSpeciesEligible<T, ParticlesType>::type;
-            using EligibleFilters =
-                typename MakeSeqFromNestedSeq<pmacc::mp_transform<Op, particles::filter::AllParticleFilters>>::type;
+            using EligibleFilters = pmacc::mp_flatten<pmacc::mp_transform<Op, particles::filter::AllParticleFilters>>;
 
             //! periodicity of computing the particle energy
             plugins::multi::Option<std::string> notifyPeriod = {"period", "enable plugin [for each n-th step]"};

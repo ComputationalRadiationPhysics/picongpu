@@ -70,7 +70,6 @@
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/meta/AllCombinations.hpp>
-#include <pmacc/meta/SeqToList.hpp>
 
 #include <list>
 #include <memory>
