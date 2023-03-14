@@ -45,7 +45,7 @@ namespace picongpu
 
                     float3_X vectorMomentum_Scaled = particle[momentum_]; // unit: internal, scaled
                     float_X momentumSquared
-                        = pmacc::math::abs2(vectorMomentum_Scaled) / (particle[weighting_] * particle[weighting_]);
+                        = pmacc::math::l2norm2(vectorMomentum_Scaled) / (particle[weighting_] * particle[weighting_]);
                     // unit: internal, not scaled
 
                     float_64 momentumSquared_p_SI_rel = c_SI * c_SI

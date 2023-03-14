@@ -221,7 +221,7 @@ namespace picongpu
                                                                    Unitless::FOCUS_POSITION_Y,
                                                                    Unitless::FOCUS_POSITION_Z)
                                 - this->origin;
-                            float_X const focusPos = math::sqrt(pmacc::math::abs2(focusRelativeToOrigin)) - pos[0];
+                            float_X const focusPos = math::sqrt(pmacc::math::l2norm2(focusRelativeToOrigin)) - pos[0];
                             // beam waist at the generation plane so that at focus we will get W0
                             float_X const w = Unitless::W0
                                 * math::sqrt(1.0_X + (focusPos / Unitless::R) * (focusPos / Unitless::R));
@@ -248,7 +248,7 @@ namespace picongpu
 
                             auto planeNoNormal = float3_X::create(1.0_X);
                             planeNoNormal[0] = 0.0_X;
-                            auto const transversalDistanceSquared = pmacc::math::abs2(pos * planeNoNormal);
+                            auto const transversalDistanceSquared = pmacc::math::l2norm2(pos * planeNoNormal);
 
                             // inverse radius of curvature of the beam's  wavefronts
                             auto const R_inv = -focusPos / (Unitless::R * Unitless::R + focusPos * focusPos);

@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2022 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -19,28 +19,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "pmacc/types.hpp"
-
-#include <cmath>
-
 
 namespace pmacc
 {
     namespace math
     {
-        template<>
-        struct Abs2<double>
+        template<typename Type>
+        struct Norm;
+
+        template<typename T1>
+        HDINLINE typename Norm<T1>::result norm(const T1& value)
         {
-            using result = double;
-
-            HDINLINE double operator()(const double& value)
-            {
-                return value * value;
-            }
-        };
-
+            return Norm<T1>()(value);
+        }
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/algorithms/math/doubleMath/norm.tpp"
+#include "pmacc/algorithms/math/floatMath/norm.tpp"

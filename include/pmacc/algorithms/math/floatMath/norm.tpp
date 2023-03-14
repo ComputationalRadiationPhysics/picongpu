@@ -31,7 +31,7 @@ namespace pmacc
     namespace math
     {
         template<>
-        struct Abs2<float>
+        struct Norm<float>
         {
             using result = float;
 
@@ -40,6 +40,5 @@ namespace pmacc
                 return value * value;
             }
         };
-
     } // namespace math
 } // namespace pmacc

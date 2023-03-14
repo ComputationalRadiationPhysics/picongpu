@@ -752,15 +752,6 @@ namespace pmacc
             return result;
         }
 
-        struct Abs
-        {
-            template<typename Type, uint32_t dim>
-            HDINLINE Type operator()(const Vector<Type, dim>& vec)
-            {
-                return cupla::math::abs(vec);
-            }
-        };
-
         /** Get the unit basis vector of the given type along the given direction
          *
          * In case 0 <= T_direction < T_Vector::dim, return the basis vector with value

@@ -72,18 +72,15 @@ namespace pmacc
             }
         };
 
-        /** Specialize abs2() for complex numbers.
-         *
-         * Note: Abs is specialized in alpaka::math below
-         */
+        //! Specialize norm() for complex numbers following the C++ standard
         template<typename T_Type>
-        struct Abs2<alpaka::Complex<T_Type>>
+        struct Norm<alpaka::Complex<T_Type>>
         {
             using result = typename alpaka::Complex<T_Type>::value_type;
 
             HDINLINE result operator()(const alpaka::Complex<T_Type>& other)
             {
-                return pmacc::math::abs2(other.real()) + pmacc::math::abs2(other.imag());
+                return other.real() * other.real() + other.imag() * other.imag();
             }
         };
 

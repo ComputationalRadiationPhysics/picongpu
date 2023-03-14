@@ -128,7 +128,7 @@ namespace picongpu
             std::cout.precision(dbl::digits10);
             if(math::abs(gCurrent.x()) + math::abs(gCurrent.y()) + math::abs(gCurrent.z()) != float_X(0.0))
                 std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [SumCurrents] [" << currentStep << std::scientific
-                          << "] " << realCurrent_SI << " Abs:" << math::abs(realCurrent_SI) << std::endl;
+                          << "] " << realCurrent_SI << " l2norm:" << pmacc::math::l2norm(realCurrent_SI) << std::endl;
         }
 
         void pluginRegisterHelp(po::options_description& desc) override

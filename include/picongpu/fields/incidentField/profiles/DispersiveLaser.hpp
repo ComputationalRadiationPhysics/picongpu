@@ -156,7 +156,7 @@ namespace picongpu
                             // calculate focus position relative to the current point in the propagation direction
                             auto const focusRelativeToOrigin = this->focus - this->origin;
                             // current distance to focus position
-                            float_X const focusPos = math::sqrt(pmacc::math::abs2(focusRelativeToOrigin)) - pos[0];
+                            float_X const focusPos = math::sqrt(pmacc::math::l2norm2(focusRelativeToOrigin)) - pos[0];
                             // beam waist at the generation plane so that at focus we will get W0
                             float_X const waist = Unitless::W0
                                 * math::sqrt(1.0_X + (focusPos / Unitless::R) * (focusPos / Unitless::R));
@@ -209,7 +209,7 @@ namespace picongpu
 
                             // calculate focus position relative to the current point in the propagation direction
                             auto const focusRelativeToOrigin = this->focus - this->origin;
-                            float_X const focusPos = math::sqrt(pmacc::math::abs2(focusRelativeToOrigin)) - pos[0];
+                            float_X const focusPos = math::sqrt(pmacc::math::l2norm2(focusRelativeToOrigin)) - pos[0];
 
                             // Initial frequency dependent complex phase
                             float_X alpha = expandedWaveVectorX(Omega);

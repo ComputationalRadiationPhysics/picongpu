@@ -182,7 +182,7 @@ namespace picongpu
 
                         // (12) in [Perez 2012]
                         float3_COLL finalVec;
-                        float_COLL const pAbs = math::sqrt(pmacc::math::abs2(p));
+                        float_COLL const pAbs = math::sqrt(pmacc::math::l2norm2(p));
                         float_COLL const pPerp = math::sqrt(p.x() * p.x() + p.y() * p.y());
                         // TODO chose a better limit?
                         // limit px->0 py=0. this also covers the pPerp = pAbs = 0 case. An alternative would
@@ -220,7 +220,7 @@ namespace picongpu
                         PMACC_ALIGN(comsVelocity, float3_COLL);
 
                         PMACC_ALIGN(comsMomentum0, float3_COLL);
-                        PMACC_ALIGN(comsMomentum0Abs2, float_COLL);
+                        PMACC_ALIGN(comsMomentum0Norm, float_COLL);
                         PMACC_ALIGN(gammaComs, float_COLL);
                         PMACC_ALIGN(factorA, float_COLL);
                         PMACC_ALIGN(coeff0, float_COLL);
@@ -244,7 +244,7 @@ namespace picongpu
                             , gamma1(picongpu::gamma<float_COLL>(labMomentum1, mass1))
                             , comsVelocity((labMomentum0 + labMomentum1) / (mass0 * gamma0 + mass1 * gamma1))
                         {
-                            float_COLL const comsVelocityAbs2 = pmacc::math::abs2(comsVelocity);
+                            float_COLL const comsVelocityAbs2 = pmacc::math::l2norm2(comsVelocity);
 
                             if(comsVelocityAbs2 != 0.0_COLL)
                             {
@@ -277,7 +277,7 @@ namespace picongpu
                                 coeff1 = mass1 * gamma1;
                                 comsMomentum0 = labMomentum0;
                             }
-                            comsMomentum0Abs2 = pmacc::math::abs2(comsMomentum0);
+                            comsMomentum0Norm = pmacc::math::l2norm2(comsMomentum0);
                         }
                     };
 
@@ -354,9 +354,9 @@ namespace picongpu
                                 / (4.0_COLL * pmacc::math::Pi<float_COLL>::value * EPS0_COLL * EPS0_COLL * c * c * c
                                    * c * v.mass0 * v.gamma0 * v.mass1 * v.gamma1);
                             s12Factor0 *= 1.0_COLL / WEIGHT_NORM_COLL / WEIGHT_NORM_COLL;
-                            float_COLL const s12Factor1 = v.gammaComs * math::sqrt(v.comsMomentum0Abs2)
+                            float_COLL const s12Factor1 = v.gammaComs * math::sqrt(v.comsMomentum0Norm)
                                 / (v.mass0 * v.gamma0 + v.mass1 * v.gamma1);
-                            float_COLL const s12Factor2 = v.coeff0 * v.coeff1 * c * c / v.comsMomentum0Abs2 + 1.0_COLL;
+                            float_COLL const s12Factor2 = v.coeff0 * v.coeff1 * c * c / v.comsMomentum0Norm + 1.0_COLL;
                             // Statistical part from [Higginson 2020],
                             // corresponds to n1*n2/n12 in [Perez 2012]:
                             float_COLL const s12Factor3 = potentialPartners
@@ -368,7 +368,7 @@ namespace picongpu
                             // [Perez 2012] (8)
                             // TODO: should we check for the non-relativistic condition? Which gamma should we look at?
                             float_COLL relativeComsVelocity = calcRelativeComsVelocity(
-                                math::sqrt(v.comsMomentum0Abs2),
+                                math::sqrt(v.comsMomentum0Norm),
                                 v.mass0,
                                 v.mass1,
                                 v.gamma0,
@@ -466,7 +466,7 @@ namespace picongpu
                                && (par1[momentum_] == float3_X{0.0_X, 0.0_X, 0.0_X}))
                                 return;
                             const Variables v{par0, par1};
-                            if(v.comsMomentum0Abs2 == 0.0_COLL)
+                            if(v.comsMomentum0Norm == 0.0_COLL)
                                 return;
                             const float_COLL coulombLog = coulombLogFunctor(v);
                             const float_COLL s12 = normalizedPathLength(v, coulombLog);

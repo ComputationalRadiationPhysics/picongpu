@@ -80,7 +80,7 @@ namespace picongpu
          */
         DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_Current)
         {
-            return pmacc::math::abs2(field_Current);
+            return pmacc::math::l2norm2(field_Current);
         }
 
         DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, const float3_X& field_Current)

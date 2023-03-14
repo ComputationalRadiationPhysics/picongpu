@@ -62,7 +62,7 @@ namespace picongpu
                 /* for x, y, z calculate: x-x0 / sigma_x */
                 const floatD_X r0overSigma = (globalCellPos - center) / sigma;
                 /* get lenghts of r0 over sigma */
-                const float_X exponent = math::abs(r0overSigma);
+                const float_X exponent = pmacc::math::l2norm(r0overSigma);
 
                 /* calculate exp(factor * exponent**power) */
                 const float_X power = ParamClass::gasPower;

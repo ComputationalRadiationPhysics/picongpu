@@ -90,7 +90,7 @@ namespace picongpu
                 // sqrt(AU * (AU + AU)) / (AU/J) / c = sqrt(AU^2)/(AU/J) / c = J/c = kg*m^2/s^2/(m/s)
                 // unit: kg*m/s, SI
 
-                float_X previousMomentumVectorLength = pmacc::math::abs2(electron[momentum_]);
+                float_X previousMomentumVectorLength = pmacc::math::l2norm2(electron[momentum_]);
                 // unit: internal, scaled
 
                 // case: not moving electron

@@ -35,15 +35,15 @@ Let us select particles with momentum vector within a cone with an opening angle
            {
                bool result = false;
                float3_X const mom = particle[ momentum_ ];
-               float_X const absMom = math::abs( mom );
+               float_X const normMom = pmacc::math::l2norm( mom );
 
-               if( absMom > float_X( 0. ) )
+               if( normMom > float_X( 0. ) )
                {
                    /* place detector in y direction, "infinite distance" to target,
                     * and five degree opening angle
                     */
                    constexpr float_X openingAngle = 5.0 * PI / 180.;
-                   float_X const dotP = mom.y() / absMom;
+                   float_X const dotP = mom.y() / normMom;
                    float_X const degForw = math::acos( dotP );
 
                    if( math::abs( degForw ) <= openingAngle * float_X( 0.5 ) )

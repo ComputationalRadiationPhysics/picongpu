@@ -336,7 +336,7 @@ namespace picongpu
                 const float3_X vecUp(0.0, 0.0, -1.0);
                 this->calorimeterFrameVecX = pmacc::math::cross(vecUp, this->calorimeterFrameVecY);
                 /* normalize vector */
-                this->calorimeterFrameVecX /= math::abs(this->calorimeterFrameVecX);
+                this->calorimeterFrameVecX /= pmacc::math::l2norm(this->calorimeterFrameVecX);
             }
             this->calorimeterFrameVecZ = pmacc::math::cross(this->calorimeterFrameVecX, this->calorimeterFrameVecY);
 
