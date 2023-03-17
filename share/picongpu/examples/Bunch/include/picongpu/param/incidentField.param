@@ -135,7 +135,7 @@ namespace picongpu
                 static constexpr float_64 DIRECTION_Z = 0.0;
                 /** @} */
 
-                /** Focus position in total coordinate system
+                /** Focus position relative to FOCUS_ORIGIN_*
                  *
                  * "Non-focused" lasers should have it set at or near the generation surface where the laser enters
                  * the domain. The position does not have to be inside the domain.
@@ -143,6 +143,9 @@ namespace picongpu
                  * The focus position and propagation direction together define the entry point of laser to
                  * the generation surface.
                  * So they also control the laser center at the generation plane, not just a shift inwards.
+                 *
+                 * FOCUS_ORIGIN_X, FOCUS_ORIGIN_Y or FOCUS_ORIGIN_Z is not defined the origin will be Origin::Zero
+                 * (total domain).
                  *
                  * For 2d simulations, z component has no effect and is not required.
                  *
