@@ -27,6 +27,7 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 
@@ -44,41 +45,46 @@ namespace picongpu
 
     struct KernelSumCurrents
     {
-        template<typename Mapping, typename T_Acc>
-        DINLINE void operator()(T_Acc const& acc, J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper) const
+        template<typename Mapping, typename T_Worker>
+        DINLINE void operator()(T_Worker const& worker, J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper) const
         {
             using SuperCellSize = typename Mapping::SuperCellSize;
 
-            PMACC_SMEM(acc, sh_sumJ, float3_X);
+            PMACC_SMEM(worker, sh_sumJ, float3_X);
 
-            const DataSpace<simDim> threadIndex(cupla::threadIdx(acc));
-            const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(threadIndex);
+            const DataSpace<simDim> threadIndex(cupla::threadIdx(worker.getAcc()));
 
-            if(linearThreadIdx == 0)
-            {
-                sh_sumJ = float3_X::create(0.0);
-            }
+            auto onlyMaster = lockstep::makeMaster(worker);
 
-            cupla::__syncthreads(acc);
+            onlyMaster([&]() { sh_sumJ = float3_X::create(0.0); });
 
+            worker.sync();
 
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
-            const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
+            const DataSpace<simDim> superCellIdx(
+                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-            const float3_X myJ = fieldJ(cell);
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+            lockstep::makeForEach<cellsPerSuperCell>(worker)(
+                [&](uint32_t const linearIdx)
+                {
+                    const auto cellIdxInSupercell
+                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                    const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + cellIdxInSupercell);
+                    const float3_X myJ = fieldJ(cell);
+                    cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
+                    cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
+                    cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
+                });
 
-            cupla::atomicAdd(acc, &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
-            cupla::atomicAdd(acc, &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
-            cupla::atomicAdd(acc, &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
+            worker.sync();
 
-            cupla::__syncthreads(acc);
-
-            if(linearThreadIdx == 0)
-            {
-                cupla::atomicAdd(acc, &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
-                cupla::atomicAdd(acc, &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
-                cupla::atomicAdd(acc, &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
-            }
+            onlyMaster(
+                [&]()
+                {
+                    cupla::atomicAdd(worker.getAcc(), &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(worker.getAcc(), &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(worker.getAcc(), &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
+                });
         }
     };
 
@@ -161,12 +167,12 @@ namespace picongpu
             auto fieldJ = dc.get<FieldJ>(FieldJ::getName());
 
             sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
-            auto block = MappingDesc::SuperCellSize::toRT();
 
             auto const mapper = makeAreaMapper<CORE + BORDER>(*cellDescription);
-            PMACC_KERNEL(KernelSumCurrents{})
-            (mapper.getGridDim(),
-             block)(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().getBasePointer(), mapper);
+
+            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            PMACC_LOCKSTEP_KERNEL(KernelSumCurrents{}, workerCfg)
+            (mapper.getGridDim())(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().getBasePointer(), mapper);
 
             sumcurrents->deviceToHost();
             return sumcurrents->getHostBuffer().getDataBox()[0];
