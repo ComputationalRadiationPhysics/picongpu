@@ -99,7 +99,7 @@ namespace picongpu
                 sqrt_HC::float3_X const tau
                     = precisionCast<sqrt_HC::float_X>(float_X(0.5) * bField * charge * deltaT / mass);
 
-                sqrt_HC::float_X const sigma = math::abs(gamma_minus) - pmacc::math::l2norm2(tau);
+                sqrt_HC::float_X const sigma = pmacc::math::norm(gamma_minus) - pmacc::math::l2norm2(tau);
 
                 sqrt_HC::float_X const u_star
                     = pmacc::math::dot(mom_minus, tau) / precisionCast<sqrt_HC::float_X>(mass * SPEED_OF_LIGHT);
@@ -108,8 +108,8 @@ namespace picongpu
                     sqrt_HC::float_X(0.5)
                     * (sigma
                        + math::sqrt(
-                           math::abs(sigma)
-                           + sqrt_HC::float_X(4.0) * (pmacc::math::l2norm2(tau) + math::abs(u_star)))));
+                           pmacc::math::norm(sigma)
+                           + sqrt_HC::float_X(4.0) * (pmacc::math::l2norm2(tau) + pmacc::math::norm(u_star)))));
 
                 sqrt_HC::float3_X const t_vector = tau / gamma_plus;
 
