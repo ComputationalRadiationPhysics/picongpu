@@ -97,6 +97,13 @@ if [ $PMACC_PARALLEL_BUILDS -gt $CI_MAX_PARALLELISM ] ; then
     PMACC_PARALLEL_BUILDS=$CI_MAX_PARALLELISM
 fi
 
+if [[ "$CI_RUNNER_TAGS" =~ .*cpuonly.* ]] ; then
+    # In cases where the compile-only job is executed on a GPU runner but with different kinds of accelerators
+    # we need to reset the variables to avoid compiling for the wrong architecture and accelerator.
+    unset CI_GPUS
+    unset CI_GPU_ARCH
+fi
+
 if [ -n "$CI_GPUS" ] ; then
     # select randomly a device if multiple exists
     # CI_GPUS is provided by the gitlab CI runner
