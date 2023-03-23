@@ -181,26 +181,12 @@ Taurus (TU Dresden)
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
 
-Queue: gpu1 (Nvidia K20x GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/taurus-tud/k20x_picongpu.profile.example
-   :language: bash
-
 Queue: gpu2 (Nvidia K80 GPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/taurus-tud/k80_picongpu.profile.example
    :language: bash
 
-Queue: knl (Intel Xeon Phi - Knights Landing)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For this profile, you additionally need to install your own :ref:`boost <install-dependencies>`.
-
-.. literalinclude:: profiles/taurus-tud/knl_picongpu.profile.example
-   :language: bash
-   
 Queue: ml (NVIDIA V100 GPUs on Power9 nodes)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -218,21 +204,6 @@ For this profile, you additionally need to compile and install everything for th
 .. literalinclude:: profiles/taurus-tud/V100_picongpu.profile.example
    :language: bash
 
-Lawrencium (LBNL)
------------------
-
-**System overview:** `link <http://scs.lbl.gov/Systems>`_
-
-**User guide:** `link <https://sites.google.com/a/lbl.gov/high-performance-computing-services-group/lbnl-supercluster/lawrencium>`_
-
-**Production directory:** ``/global/scratch/$USER/``
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost and PNGwriter <install-dependencies>` manually.
-Additionally, you need to make the ``rsync`` command available as written below.
-
-.. literalinclude:: profiles/lawrencium-lbnl/picongpu.profile.example
-   :language: bash
-
 Cori (NERSC)
 ------------
 
@@ -243,12 +214,6 @@ Cori (NERSC)
 **Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`_).
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-Queue: regular (Intel Xeon Phi - Knights Landing)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/cori-nersc/knl_picongpu.profile.example
-   :language: bash
 
 Queue: dgx (DGX - A100)
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -370,17 +335,6 @@ V100 GPUs (recommended)
 
 .. literalinclude:: profiles/ascent-ornl/gpu_picongpu.profile.example
    :language: bash
-   
-DICC (UM)
----------
-
-**System overview:** `link <https://www.dicc.um.edu.my/>`_
-
-**User guide:** `link <https://confluence.dicc.um.edu.my/display/HPCDOCS/HPC+Documentation>`_
-
-**Production directory:** usually ``/lustre/user/<username>`` (`link <https://confluence.dicc.um.edu.my/display/HPCDOCS/Managing+Storage>`_)
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
 
 Queue: gpu (8 x NVIDIA Tesla k10 GPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
