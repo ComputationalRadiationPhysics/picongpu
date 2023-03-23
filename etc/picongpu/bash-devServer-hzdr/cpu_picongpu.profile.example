@@ -49,6 +49,10 @@ export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="omp2b:skylake-avx512"
 
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash-devServer-hzdr"}
+
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
 export PATH=$PATH:$PICSRC/src/tools/binspa
@@ -57,7 +61,7 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # "tbg" default options #######################################################
 export TBG_SUBMIT="bash"
-export TBG_TPLFILE="etc/picongpu/bash/mpiexec.tpl"
+export TBG_TPLFILE="etc/picongpu/bash-devServer-hzdr/mpiexec.tpl"
 
 # Load autocompletion for PIConGPU commands
 BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash

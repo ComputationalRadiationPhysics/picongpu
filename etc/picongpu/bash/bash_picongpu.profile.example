@@ -26,6 +26,10 @@ export PIC_BACKEND="omp2b:native" # running on cpu
 # https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
 # or the provided profiles of other systems.
 
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}
+
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 

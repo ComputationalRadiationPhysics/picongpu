@@ -44,6 +44,10 @@ export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:70"
 
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/hemera-hzdr"}
+
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
 export PATH=$PATH:$PICSRC/src/tools/bin
