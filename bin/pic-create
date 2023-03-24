@@ -23,11 +23,22 @@ this_dir=$(cd $(dirname $0) && pwd)
 
 # PIConGPU prefix path
 picongpu_prefix=$(cd $this_dir/.. && pwd)
-# files always cloned from defaults, can be overwritten by input set
-default_folder_to_copy="etc/picongpu lib"
-# if we clone an input set we copy from it
+# All files in the folder (no recusion or subfolders) will be copied from PIConGPU source to the input set.
+default_folder_to_copy="etc/picongpu"
+
+# Folder which get recusivly copied from the source input set into the destination input set
 folder_to_clone="etc/picongpu bin include/picongpu lib"
 files_to_copy="cmakeFlags executeOnClone"
+
+if [ -n "$PIC_SYSTEM_TEMPLATE_PATH" ] ; then
+    default_folder_to_copy="$default_folder_to_copy $PIC_SYSTEM_TEMPLATE_PATH"
+else
+    # Fallback to be backward compatible to the old behaviour that all content of picongpu/etc is copied into the
+    # destination input set.
+    # Fallback is only aktive if the environment variable 'PIC_SYSTEM_TEMPLATE_PATH' not exists.
+    # All subfolder will be copied.
+    full_folder_to_copy="etc/picongpu"
+fi
 
 help()
 {
@@ -130,7 +141,7 @@ fi
 
 echo "Cloning from $src_path to $dst_path"
 
-#first copy default parameter
+# first copy from PIConGPU source into the destination input set
 for d in $default_folder_to_copy
 do
     dir_dst="$dst_path/$d"
@@ -138,10 +149,26 @@ do
     if [ ! -d "$dir_dst" ] ; then
         mkdir -p "$dir_dst"
     fi
-    rsync --inplace -r -q -avc --exclude=".*" $dir_src/ $dir_dst
+    rsync --inplace -q -avc --exclude=".*" --exclude="*/" $dir_src/ $dir_dst
 done
 
-#copy all data from src_path if path is not picongpu default param path
+# copy subfolder of PIConGPU source etc/picongpu into the destination input set
+for copy_folder in $full_folder_to_copy
+do
+    dir_to_copy="$picongpu_prefix/$copy_folder"
+    for d in $(ls -w 1 -d "$dir_to_copy/"*/)
+    do
+
+        dir_dst="$dst_path/$copy_folder/$(basename $d)"
+        dir_src="$d"
+        if [ -d "$dir_src" ] ; then
+            mkdir -p "$dir_dst"
+            rsync --inplace -r -q -avc --exclude=".*" "$dir_src" $dir_dst
+        fi
+    done
+done
+
+# copy all data from src_path if path is not picongpu default param path
 if [ "$src_path" != "$picongpu_prefix" ] ; then
     for d in $selected_default_folder_to_copy
     do
@@ -154,14 +181,11 @@ if [ "$src_path" != "$picongpu_prefix" ] ; then
     done
 fi
 
-#copy files
+# copy files from root of the source input set to the destination input set
 for d in $files_to_copy
 do
     file_dst="$dst_path/$d"
     file_src="$src_path/$d"
-    if [ ! -d "$dir_dst" ] ; then
-        mkdir -p "$dir_dst"
-    fi
     if [ -f "$src_path/$d" ] ; then
        rsync --inplace -q -avc --exclude=".*" $file_src $file_dst
     fi
