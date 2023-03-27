@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include <filesystem>
+#include <pmacc/filesystem.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -51,11 +52,11 @@ namespace picongpu
         sStep << restartStep;
 
         /* set location of restart file and output file */
-        std::filesystem::path src(restartDirectory + std::string("/") + filename + std::string(".") + sStep.str());
-        std::filesystem::path dst(filename);
+        stdfs::path src(restartDirectory + std::string("/") + filename + std::string(".") + sStep.str());
+        stdfs::path dst(filename);
 
         /* check whether restart file exists */
-        if(!std::filesystem::exists(src))
+        if(!stdfs::exists(src))
         {
             /* restart file does not exists */
             log<picLog::INPUT_OUTPUT>("Plugin restart file: %1% was not found. \
@@ -69,7 +70,7 @@ namespace picongpu
             if(outFile.is_open())
                 outFile.close();
 
-            std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing);
+            stdfs::copy_file(src, dst, stdfs::copy_options::overwrite_existing);
 
             outFile.open(filename.c_str(), std::ofstream::out | std::ostream::app);
             if(!outFile)
@@ -101,10 +102,10 @@ namespace picongpu
         std::stringstream sStep;
         sStep << currentStep;
 
-        std::filesystem::path src(filename);
-        std::filesystem::path dst(checkpointDirectory + std::string("/") + filename + std::string(".") + sStep.str());
+        stdfs::path src(filename);
+        stdfs::path dst(checkpointDirectory + std::string("/") + filename + std::string(".") + sStep.str());
 
-        std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing);
+        stdfs::copy_file(src, dst, stdfs::copy_options::overwrite_existing);
     }
 
 } /* namespace picongpu */

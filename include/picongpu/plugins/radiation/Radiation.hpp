@@ -36,6 +36,7 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/filesystem.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -44,7 +45,6 @@
 
 #include <algorithm> // std::any
 #include <cstdlib>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -968,7 +968,7 @@ namespace picongpu
                     filename << name << timeStep << "_0_0_0" + extension;
 
                     /* check if restart file exists */
-                    if(!std::filesystem::exists(filename.str()))
+                    if(!stdfs::exists(filename.str()))
                     {
                         log<radLog::SIMULATION_STATE>(
                             "Radiation (%1%): restart file not found (%2%) - start with zero values")

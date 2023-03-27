@@ -26,9 +26,8 @@
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 
 #include "pmacc/Environment.hpp"
+#include "pmacc/filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
-
-#include <filesystem>
 
 namespace pmacc
 {
@@ -36,13 +35,13 @@ namespace pmacc
     void Filesystem<DIM>::createDirectory(const std::string dir) const
     {
         /* does not throw if the directory exists or has been created */
-        std::filesystem::create_directories(dir);
+        stdfs::create_directories(dir);
     }
 
     template<unsigned DIM>
     void Filesystem<DIM>::setDirectoryPermissions(const std::string dir) const
     {
-        using namespace std::filesystem;
+        using namespace stdfs;
         /* set permissions */
         permissions(
             dir,
@@ -67,7 +66,7 @@ namespace pmacc
     template<unsigned DIM>
     std::string Filesystem<DIM>::basename(const std::string pathFilename) const
     {
-        return std::filesystem::path(pathFilename).filename().string();
+        return stdfs::path(pathFilename).filename().string();
     }
 
     // Explicit template instantiation to provide symbols for usage together with PMacc

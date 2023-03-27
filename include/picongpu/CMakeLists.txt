@@ -505,6 +505,9 @@ add_library(picongpu-hostonly
     ${SRCFILES}
 )
 target_link_libraries(picongpu-hostonly PUBLIC ${HOST_LIBS})
+# Some host compiled libraries depend on std::filesystem,
+# compatibility to std::experimental::filesystem is handled in pmacc.
+target_link_libraries(picongpu-hostonly PRIVATE pmacc::filesystem)
 
 cupla_add_executable(picongpu
      ${ACCSRCFILES}

@@ -55,6 +55,7 @@
 #include <pmacc/communication/manager_common.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/filesystem.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -74,8 +75,6 @@
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/vector.hpp>
-
-#include <filesystem>
 
 #include <openPMD/openPMD.hpp>
 
@@ -460,7 +459,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 fileInfix = "";
             }
 
-            fileName = std::filesystem::path(fileName).has_root_path() ? fileName : dir + "/" + fileName;
+            fileName = stdfs::path(fileName).has_root_path() ? fileName : dir + "/" + fileName;
             log<picLog::INPUT_OUTPUT>("openPMD: setting file pattern: %1%%2%.%3%") % fileName % fileInfix
                 % fileExtension;
 
