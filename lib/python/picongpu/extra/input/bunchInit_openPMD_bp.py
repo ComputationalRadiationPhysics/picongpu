@@ -79,11 +79,12 @@ class addParticles2Checkpoint:
         string: string
                 message to post
         """
-        if(self.verbose):
+        if self.verbose:
             print("\t"*self.tabs + string)
 
 
-    def __init__(self, filename_in, filename_out, speciesName='e', verbose=True):
+    def __init__(
+        self, filename_in, filename_out, speciesName='e', verbose=True):
         """
         initialization of manipulation routine
 
@@ -109,33 +110,42 @@ class addParticles2Checkpoint:
         self.filename_out = filename_out
         self.f = io.Series(self.filename_in, io.Access.read_only)
         if int(list(self.f.iterations)[0]) != self.timestep:
-            raise NameError('Not time step zero') # throw error if not time step zero
-        # TODO: maybe raise error, when filename_out already exists to not overwrite it
+            # throw error if not time step zero
+            raise NameError('Not time step zero')
+        # TODO: maybe raise error, when filename_out already exists
+        # to not overwrite it
 
         tmp_handle = self.f.iterations[self.timestep].meshes["E"]
 
         # get cell size per dimension
         # the * unpacks the arguments for x,y,z
-        self.cellSize = vec3D(*(tmp_handle.grid_unit_SI * np.array(tmp_handle.grid_spacing)))
+        self.cellSize = vec3D(*(tmp_handle.grid_unit_SI
+                                * np.array(tmp_handle.grid_spacing)))
 
         # extract number of cells in each dimension
         tmp_mesh = self.f.iterations[self.timestep].meshes["E"]["x"]
 
-        tmp_handle = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["offset"]
+        tmp_handle = self.f.iterations[self.timestep].\
+            particles[self.speciesName].particle_patches["offset"]
         off_x = tmp_handle["x"].load()
         off_y = tmp_handle["y"].load()
         off_z = tmp_handle["z"].load()
 
         # get extent of each GPU in cells (per dimension)
-        tmp_handle = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["extent"]
+        tmp_handle = self.f.iterations[self.timestep].\
+            particles[self.speciesName].particle_patches["extent"]
         ext_x = tmp_handle["x"].load()
         ext_y = tmp_handle["y"].load()
         ext_z = tmp_handle["z"].load()
 
         # get number of particles before each patch
-        tmp_numOff = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR].load()
+        tmp_numOff = self.f.iterations[self.timestep].\
+            particles[self.speciesName].particle_patches["numParticlesOffset"]\
+            [io.Mesh_Record_Component.SCALAR].load()
         # get number of particles in each patch
-        tmp_num = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR].load()
+        tmp_num = self.f.iterations[self.timestep].\
+            particles[self.speciesName].particle_patches["numParticles"]\
+                [io.Mesh_Record_Component.SCALAR].load()
 
         # flush all loads before calculations
         self.f.flush()
@@ -145,7 +155,8 @@ class addParticles2Checkpoint:
         self.N_cells = vec3D(tmp[0], tmp[1], tmp[2]) # cells in each dimension
 
         # extract number of GPUs used in each dimension
-        # use np.unique() to reduce patches offset and len() to get number of GPUs per dimension
+        # use np.unique() to reduce patches offset and len() to get number
+        # of GPUs per dimension
         self.N_gpus = vec3D(len(np.unique(off_x)),
                             len(np.unique(off_y)),
                             len(np.unique(off_z)))
@@ -165,7 +176,7 @@ class addParticles2Checkpoint:
                             ext_z)
 
         self.numParticlesOffset = tmp_numOff
-        
+
         self.numParticles = tmp_num
 
         # raise error if there are particles in the checkpoint
@@ -173,7 +184,8 @@ class addParticles2Checkpoint:
             raise NameError('There are particles in the checkpoint')
 
         # extract momentum unit (attributes don't need flushing)
-        tmp_handle = self.f.iterations[self.timestep].particles[self.speciesName]["momentum"]["x"]
+        tmp_handle = self.f.iterations[self.timestep].\
+            particles[self.speciesName]["momentum"]["x"]
         self.unitMomentum = tmp_handle.unit_SI
 
         self.has_probeE = False
@@ -181,33 +193,45 @@ class addParticles2Checkpoint:
         self.has_id = False
 
         # extract data type for position
-        self.dtype_position = self.f.iterations[self.timestep].particles[self.speciesName]["position"]["x"].dtype
+        self.dtype_position = self.f.iterations[self.timestep].\
+            particles[self.speciesName]["position"]["x"].dtype
 
         # extract data type for positionOffset
-        self.dtype_positionOffset = self.f.iterations[self.timestep].particles[self.speciesName]["positionOffset"]["x"].dtype
+        self.dtype_positionOffset = self.f.iterations[self.timestep].\
+            particles[self.speciesName]["positionOffset"]["x"].dtype
 
         # extract data type for momentum
-        self.dtype_momentum = self.f.iterations[self.timestep].particles[self.speciesName]["momentum"]["x"].dtype
+        self.dtype_momentum = self.f.iterations[self.timestep].\
+            particles[self.speciesName]["momentum"]["x"].dtype
 
-        if "probeE" in self.f.iterations[self.timestep].particles[self.speciesName]:
+        if "probeE" in self.f.iterations[self.timestep].\
+            particles[self.speciesName]:
             self.has_probeE = True
             # type of E-Field
-            self.dtype_probeE = self.f.iterations[self.timestep].particles[self.speciesName]["probeE"]["x"].dtype
+            self.dtype_probeE = self.f.iterations[self.timestep].\
+                particles[self.speciesName]["probeE"]["x"].dtype
         self.print("contains probeE = {}".format(self.has_probeE))
 
-        if "probeB" in self.f.iterations[self.timestep].particles[self.speciesName]:
+        if "probeB" in self.f.iterations[self.timestep].\
+            particles[self.speciesName]:
             self.has_probeB = True
             # type of B-Field
-            self.dtype_probeB = self.f.iterations[self.timestep].particles[self.speciesName]["probeB"]["x"].dtype
+            self.dtype_probeB = self.f.iterations[self.timestep].\
+                particles[self.speciesName]["probeB"]["x"].dtype
         self.print("contains probeB {}".format(self.has_probeB))
 
         # extract data type for weighting
-        self.dtype_weighting = self.f.iterations[self.timestep].particles[self.speciesName]["weighting"][io.Mesh_Record_Component.SCALAR].dtype
+        self.dtype_weighting = self.f.iterations[self.timestep].\
+            particles[self.speciesName]["weighting"]\
+            [io.Mesh_Record_Component.SCALAR].dtype
 
-        if "id" in self.f.iterations[self.timestep].particles[self.speciesName]:
+        if "id" in self.f.iterations[self.timestep].\
+            particles[self.speciesName]:
             self.has_id = True
             # type of particleID
-            self.dtype_id = self.f.iterations[self.timestep].particles[self.speciesName]["id"][io.Mesh_Record_Component.SCALAR].dtype
+            self.dtype_id = self.f.iterations[self.timestep].\
+                particles[self.speciesName]["id"]\
+                [io.Mesh_Record_Component.SCALAR].dtype
         self.print("contains id =  {}".format(self.has_id))
 
         del self.f # close checkpoint file
@@ -228,19 +252,25 @@ class addParticles2Checkpoint:
         self.N_particles_input = len(w) # number of particles to add
 
         # calculate positionOffset (cell location) from given position
-        self.positionOffset = vec3D((pos.x / self.cellSize.x).astype(self.dtype_positionOffset),
-                                    (pos.y / self.cellSize.y).astype(self.dtype_positionOffset),
-                                    (pos.z / self.cellSize.z).astype(self.dtype_positionOffset))
+        self.positionOffset = vec3D(
+            (pos.x / self.cellSize.x).astype(self.dtype_positionOffset),
+            (pos.y / self.cellSize.y).astype(self.dtype_positionOffset),
+            (pos.z / self.cellSize.z).astype(self.dtype_positionOffset))
 
         # calculate (in cell) position from given position
-        self.position = vec3D((np.mod(pos.x, self.cellSize.x)/self.cellSize.x).astype(self.dtype_position),
-                              (np.mod(pos.y, self.cellSize.y)/self.cellSize.y).astype(self.dtype_position),
-                              (np.mod(pos.z, self.cellSize.z)/self.cellSize.z).astype(self.dtype_position))
+        self.position = vec3D(
+            (np.mod(pos.x, self.cellSize.x)/self.cellSize.x).\
+                astype(self.dtype_position),
+            (np.mod(pos.y, self.cellSize.y)/self.cellSize.y).\
+                astype(self.dtype_position),
+            (np.mod(pos.z, self.cellSize.z)/self.cellSize.z).\
+                astype(self.dtype_position))
 
         # calculate momentum in PIC units from given momentum
-        self.momentum = vec3D((mom.x * w / self.unitMomentum).astype(self.dtype_momentum),
-                              (mom.y * w / self.unitMomentum).astype(self.dtype_momentum),
-                              (mom.z * w / self.unitMomentum).astype(self.dtype_momentum))
+        self.momentum = vec3D(
+            (mom.x * w / self.unitMomentum).astype(self.dtype_momentum),
+            (mom.y * w / self.unitMomentum).astype(self.dtype_momentum),
+            (mom.z * w / self.unitMomentum).astype(self.dtype_momentum))
 
         if self.has_probeE:
             # data for witnessed E-Field
@@ -265,21 +295,25 @@ class addParticles2Checkpoint:
         calculate particle patches for given particles
         """
         # create empty patch mask (N_GPUs x N_particles)
-        self.patch_mask = np.empty((self.N_gpus.prod(), self.N_particles_input), dtype=bool)
+        self.patch_mask = np.empty((self.N_gpus.prod(),
+                                    self.N_particles_input), dtype=bool)
 
         # calculate patch  for each GPU
         for i in np.arange(self.N_gpus.prod()):
             # x direction
             a = np.greater_equal(self.positionOffset.x, self.offset.x[i])
-            b = np.less(self.positionOffset.x, self.offset.x[i] + self.extent.x[i])
+            b = np.less(self.positionOffset.x,
+                        self.offset.x[i] + self.extent.x[i])
 
             # y direction
             c = np.greater_equal(self.positionOffset.y, self.offset.y[i])
-            d = np.less(self.positionOffset.y, self.offset.y[i] + self.extent.y[i])
+            d = np.less(self.positionOffset.y,
+                        self.offset.y[i] + self.extent.y[i])
 
             # z direction:
             e = np.greater_equal(self.positionOffset.z, self.offset.z[i])
-            f = np.less(self.positionOffset.z, self.offset.z[i] + self.extent.z[i])
+            f = np.less(self.positionOffset.z,
+                        self.offset.z[i] + self.extent.z[i])
 
             # combine all 3*2 bools to just give true or false for GPU(i)
             tmp1 = np.logical_and( np.logical_and(a,b), np.logical_and(c,d) )
@@ -289,8 +323,10 @@ class addParticles2Checkpoint:
         # determine number of particles in all patches
         self.numParticles = np.sum(self.patch_mask, axis=1, dtype=np.uint)
         # calculate number of particles before the patch
-        self.numParticlesOffset = np.cumsum(self.numParticles, dtype=np.uint) - self.numParticles
-        # fix possible negative value for first patch (if number of particles in first patch != 0)
+        self.numParticlesOffset = np.cumsum(self.numParticles, dtype=np.uint)
+        - self.numParticles
+        # fix possible negative value for first patch (if number of particles
+        # in first patch != 0)
         self.numParticlesOffset[0] = 0
 
 
@@ -302,7 +338,8 @@ class addParticles2Checkpoint:
         self.makePatchMask() # calculate particle patch
         self.N_particles = np.sum(self.numParticles)
 
-        run_pipe = pipe(self.filename_in, self.filename_out, self, verbose=self.verbose)
+        run_pipe = pipe(self.filename_in, self.filename_out, self,
+                        verbose=self.verbose)
         run_pipe.run()
 
 
@@ -346,7 +383,7 @@ class Chunk:
         for k, v in enumerate(self.extent):
             if v > maximum:
                 dimension = k
-        assert (dimension < len(self))
+        assert dimension < len(self)
         # no offset
         assert (self.offset == [0 for _ in range(len(self))])
         offset = [0 for _ in range(len(self))]
@@ -368,8 +405,8 @@ class deferred_load:
 class particle_patch_load:
     """
     A deferred load/store operation for a particle patch.
-    The openPMD particle-patch API requires that users pass a concrete value for
-    storing, even if the actual write operation occurs much later at
+    The openPMD particle-patch API requires that users pass a concrete value 
+    for storing, even if the actual write operation occurs much later at
     series.flush().
     So, unlike other record components, we cannot call .store_chunk() with
     a buffer that has not yet been filled, but must wait until the point where
@@ -403,11 +440,12 @@ class pipe:
         string: string
                 message to post
         """
-        if(self.verbose):
+        if self.verbose:
             print(string)
 
 
-    def __init__(self, infile, outfile, particles=[], inconfig='{}', outconfig='{}', verbose=False):
+    def __init__(self, infile, outfile, particles=[], inconfig='{}',
+                outconfig='{}', verbose=False):
         """
         routine to copy and overwrite data from one checkpoint to another.
         
@@ -515,9 +553,14 @@ class pipe:
                 for patch_load in self.__particle_patches:
                     patch_load.run()
 
-                # overwrite copied shape attribute of mass and charge to match particle count
-                out_iteration.particles[self.particles.speciesName]["mass"].set_attribute("shape", np.uint64(self.particles.N_particles))
-                out_iteration.particles[self.particles.speciesName]["charge"].set_attribute("shape", np.uint64(self.particles.N_particles))
+                # overwrite copied shape attribute of mass and charge to
+                # match particle count
+                out_iteration.particles[self.particles.speciesName]["mass"]\
+                    .set_attribute("shape",
+                                   np.uint64(self.particles.N_particles))
+                out_iteration.particles[self.particles.speciesName]["charge"]\
+                    .set_attribute("shape",
+                                   np.uint64(self.particles.N_particles))
 
                 out_iteration.close()
                 self.__particle_patches.clear()
@@ -564,7 +607,7 @@ class pipe:
                 for container_type in container_types
         ]):
             for key in src:
-                # writes given particle data instead of copying 
+                # writes given particle data instead of copying
                 if key == self.particles.speciesName:
                     self.print("writing new particles data")
                     temp_src = src[self.particles.speciesName]
@@ -575,62 +618,116 @@ class pipe:
 
                     # write own particle data
                     self.print("\twriting positions")
-                    self.write(temp_src["position"]["x"], temp_dest["position"]["x"], self.particles.position.x)
-                    self.write(temp_src["position"]["y"], temp_dest["position"]["y"], self.particles.position.y)
-                    self.write(temp_src["position"]["z"], temp_dest["position"]["z"], self.particles.position.z)
+                    self.write(temp_src["position"]["x"],
+                               temp_dest["position"]["x"],
+                               self.particles.position.x)
+                    self.write(temp_src["position"]["y"],
+                               temp_dest["position"]["y"],
+                               self.particles.position.y)
+                    self.write(temp_src["position"]["z"],
+                               temp_dest["position"]["z"],
+                               self.particles.position.z)
 
                     self.print("\twriting position offsets")
-                    self.write(temp_src["positionOffset"]["x"], temp_dest["positionOffset"]["x"], self.particles.positionOffset.x)
-                    self.write(temp_src["positionOffset"]["y"], temp_dest["positionOffset"]["y"], self.particles.positionOffset.y)
-                    self.write(temp_src["positionOffset"]["z"], temp_dest["positionOffset"]["z"], self.particles.positionOffset.z)
+                    self.write(temp_src["positionOffset"]["x"],
+                               temp_dest["positionOffset"]["x"],
+                               self.particles.positionOffset.x)
+                    self.write(temp_src["positionOffset"]["y"],
+                               temp_dest["positionOffset"]["y"],
+                               self.particles.positionOffset.y)
+                    self.write(temp_src["positionOffset"]["z"],
+                               temp_dest["positionOffset"]["z"],
+                               self.particles.positionOffset.z)
 
                     self.print("\twriting momenta")
-                    self.write(temp_src["momentum"]["x"], temp_dest["momentum"]["x"], self.particles.momentum.x)
-                    self.write(temp_src["momentum"]["y"], temp_dest["momentum"]["y"], self.particles.momentum.y)
-                    self.write(temp_src["momentum"]["z"], temp_dest["momentum"]["z"], self.particles.momentum.z)
+                    self.write(temp_src["momentum"]["x"],
+                               temp_dest["momentum"]["x"],
+                               self.particles.momentum.x)
+                    self.write(temp_src["momentum"]["y"],
+                               temp_dest["momentum"]["y"],
+                               self.particles.momentum.y)
+                    self.write(temp_src["momentum"]["z"],
+                               temp_dest["momentum"]["z"],
+                               self.particles.momentum.z)
 
                     if self.particles.has_probeE:
                         self.print("\twriting probeE")
-                        self.write(temp_src["probeE"]["x"], temp_dest["probeE"]["x"], self.particles.probeE.x)
-                        self.write(temp_src["probeE"]["y"], temp_dest["probeE"]["y"], self.particles.probeE.y)
-                        self.write(temp_src["probeE"]["z"], temp_dest["probeE"]["z"], self.particles.probeE.z)
+                        self.write(temp_src["probeE"]["x"],
+                                   temp_dest["probeE"]["x"],
+                                   self.particles.probeE.x)
+                        self.write(temp_src["probeE"]["y"],
+                                   temp_dest["probeE"]["y"],
+                                   self.particles.probeE.y)
+                        self.write(temp_src["probeE"]["z"],
+                                   temp_dest["probeE"]["z"],
+                                   self.particles.probeE.z)
 
                     if self.particles.has_probeB:
                         self.print("\twriting probeB")
-                        self.write(temp_src["probeB"]["x"], temp_dest["probeB"]["x"], self.particles.probeB.x)
-                        self.write(temp_src["probeB"]["y"], temp_dest["probeB"]["y"], self.particles.probeB.y)
-                        self.write(temp_src["probeB"]["z"], temp_dest["probeB"]["z"], self.particles.probeB.z)
+                        self.write(temp_src["probeB"]["x"],
+                                   temp_dest["probeB"]["x"],
+                                   self.particles.probeB.x)
+                        self.write(temp_src["probeB"]["y"],
+                                   temp_dest["probeB"]["y"],
+                                   self.particles.probeB.y)
+                        self.write(temp_src["probeB"]["z"],
+                                   temp_dest["probeB"]["z"],
+                                   self.particles.probeB.z)
 
                     self.print("\twriting weighting")
-                    self.write(temp_src["weighting"][io.Mesh_Record_Component.SCALAR], temp_dest["weighting"][io.Mesh_Record_Component.SCALAR], self.particles.weighting)
+                    self.write(temp_src["weighting"]\
+                        [io.Mesh_Record_Component.SCALAR],
+                               temp_dest["weighting"]\
+                                [io.Mesh_Record_Component.SCALAR],
+                               self.particles.weighting)
 
                     if self.particles.has_id:
                         self.print("\twriting id")
-                        self.write(temp_src["id"][io.Mesh_Record_Component.SCALAR], temp_dest["id"][io.Mesh_Record_Component.SCALAR], self.particles.id)
+                        self.write(temp_src["id"]\
+                            [io.Mesh_Record_Component.SCALAR],
+                                   temp_dest["id"]\
+                                    [io.Mesh_Record_Component.SCALAR],
+                                   self.particles.id)
 
                     # write own particle patches
                     self.print("\twriting patches")
-                    temp_src = src[self.particles.speciesName].particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
+                    temp_src = src[self.particles.speciesName].\
+                        particle_patches["numParticles"]\
+                        [io.Mesh_Record_Component.SCALAR]
+                    temp_dest = dest[self.particles.speciesName].\
+                        particle_patches["numParticles"]\
+                        [io.Mesh_Record_Component.SCALAR]
 
-                    temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
-                    self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
+                    temp_dest.reset_dataset(io.Dataset(temp_src.dtype,
+                                                       temp_src.shape))
+                    self.__particle_patches.append(particle_patch_load(
+                        self.particles.numParticles, temp_dest))
 
-                    temp_src = src[self.particles.speciesName].particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
+                    temp_src = src[self.particles.speciesName].\
+                        particle_patches["numParticlesOffset"]\
+                        [io.Mesh_Record_Component.SCALAR]
+                    temp_dest = dest[self.particles.speciesName].\
+                        particle_patches["numParticlesOffset"]\
+                        [io.Mesh_Record_Component.SCALAR]
 
-                    temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
-                    self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
+                    temp_dest.reset_dataset(io.Dataset(temp_src.dtype,
+                                                       temp_src.shape))
+                    self.__particle_patches.append(particle_patch_load(
+                        self.particles.numParticles, temp_dest))
 
                     # copy offset and extent from old checkpoint
-                    temp_src = src[self.particles.speciesName].particle_patches["offset"]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["offset"]
+                    temp_src = src[self.particles.speciesName].\
+                        particle_patches["offset"]
+                    temp_dest = dest[self.particles.speciesName].\
+                        particle_patches["offset"]
 
                     for key in temp_src:
                         self.__copy(temp_src[key], temp_dest[key])
 
-                    temp_src = src[self.particles.speciesName].particle_patches["extent"]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["extent"]
+                    temp_src = src[self.particles.speciesName].\
+                        particle_patches["extent"]
+                    temp_dest = dest[self.particles.speciesName].\
+                        particle_patches["extent"]
 
                     for key in temp_src:
                         self.__copy(temp_src[key], temp_dest[key])
@@ -655,7 +752,8 @@ class pipe:
         dest: openPMD layer
                 layer of a openPMD series to copy attributes to
         iterate: Bool
-                if True: iterates over all consecutive layers of the src/dest layer and copies attributes.
+                if True: iterates over all consecutive layers of the src/dest
+                layer and copies attributes.
         """
         attribute_dtypes = src.attribute_dtypes
         # The following attributes are written automatically by openPMD-api
@@ -683,7 +781,8 @@ class pipe:
 
     def write(self, src, dest, data):
         """
-        Writes new data to given record component in dest with data types from src.
+        Writes new data to given record component in dest with data types
+        from src.
 
         Arguments:
         src: openPMD layer
