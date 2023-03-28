@@ -21,7 +21,7 @@ def build_typesafe_property(
         name: typing.Optional[str] = None) -> property:
     if name is None:
         global attr_cnt
-        name = attr_cnt
+        name = str(attr_cnt)
         attr_cnt += 1
     # don't use private prefix '__' to avoid name mangling
     actual_var_name = 'magic_string_private_____{}'.format(name)
