@@ -74,7 +74,7 @@ class addParticles2Checkpoint:
         """
         helper function that prints information depending on the set
         verbose level
-        
+
         Arguments:
         string: string
                 message to post
@@ -111,6 +111,7 @@ class addParticles2Checkpoint:
         if int(list(self.f.iterations)[0]) != self.timestep:
             raise NameError('Not time step zero') # throw error if not time step zero
         # TODO: maybe raise error, when filename_out already exists to not overwrite it
+
         tmp_handle = self.f.iterations[self.timestep].meshes["E"]
 
         # get cell size per dimension
@@ -119,12 +120,12 @@ class addParticles2Checkpoint:
 
         # extract number of cells in each dimension
         tmp_mesh = self.f.iterations[self.timestep].meshes["E"]["x"]
-        
+
         tmp_handle = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["offset"]
         off_x = tmp_handle["x"].load()
         off_y = tmp_handle["y"].load()
         off_z = tmp_handle["z"].load()
-        
+
         # get extent of each GPU in cells (per dimension)
         tmp_handle = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["extent"]
         ext_x = tmp_handle["x"].load()
@@ -135,11 +136,11 @@ class addParticles2Checkpoint:
         tmp_numOff = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR].load()
         # get number of particles in each patch
         tmp_num = self.f.iterations[self.timestep].particles[self.speciesName].particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR].load()
-        
+
         # flush all loads before calculations
         self.f.flush()
-        
-        
+
+
         tmp = np.shape(tmp_mesh)
         self.N_cells = vec3D(tmp[0], tmp[1], tmp[2]) # cells in each dimension
 
@@ -178,7 +179,7 @@ class addParticles2Checkpoint:
         self.has_probeE = False
         self.has_probeB = False
         self.has_id = False
-        
+
         # extract data type for position
         self.dtype_position = self.f.iterations[self.timestep].particles[self.speciesName]["position"]["x"].dtype
 
@@ -225,7 +226,7 @@ class addParticles2Checkpoint:
             macro particle weighting
         """
         self.N_particles_input = len(w) # number of particles to add
-        
+
         # calculate positionOffset (cell location) from given position
         self.positionOffset = vec3D((pos.x / self.cellSize.x).astype(self.dtype_positionOffset),
                                     (pos.y / self.cellSize.y).astype(self.dtype_positionOffset),
@@ -240,12 +241,12 @@ class addParticles2Checkpoint:
         self.momentum = vec3D((mom.x * w / self.unitMomentum).astype(self.dtype_momentum),
                               (mom.y * w / self.unitMomentum).astype(self.dtype_momentum),
                               (mom.z * w / self.unitMomentum).astype(self.dtype_momentum))
-        
+
         if self.has_probeE:
             # data for witnessed E-Field
             temp_zeros = np.zeros(len(w), dtype=self.dtype_probeE)
             self.probeE = vec3D(temp_zeros, temp_zeros, temp_zeros)
-        
+
         if self.has_probeB:
             # data for witnessed B-Field
             temp_zeros = np.zeros(len(w), dtype=self.dtype_probeB)
@@ -253,7 +254,7 @@ class addParticles2Checkpoint:
 
         # copy weighting
         self.weighting = w.copy().astype(self.dtype_weighting)
-        
+
         if self.has_id:
             # give every particle an ID
             self.id = np.arange(len(w), dtype=self.dtype_id)
@@ -314,13 +315,13 @@ class Chunk:
     def __init__(self, offset, extent):
         """
         Inititalization of the slicing class.
-        
+
         Arguments:
         offset: array
                 offsets of each slice
         extent: array
                 extent of each slice
-        
+
         """
         assert (len(offset) == len(extent))
         self.offset = offset
@@ -335,7 +336,7 @@ class Chunk:
         """
         Slice this chunk into a hypercube along the dimension with 
         the largest extent on this hypercube.
-        
+
         Return:
         the 0'th of the sliced chunks.
         """
@@ -447,7 +448,7 @@ class pipe:
                                   self.outconfig)
         print("Opened input and output")
         sys.stdout.flush()
-        
+
         self.__copy(inseries, outseries)
         print("Finished!")
 
@@ -457,7 +458,7 @@ class pipe:
         Copies data from src to dest. May represent any point in the openPMD
         hierarchy, but src and dest must both represent the same layer.
         Writes own data for given particle.
-        
+
         Arguments:
         src: openPMD layer
                 layer of a openPMD series to copy from
@@ -472,15 +473,15 @@ class pipe:
                 and not isinstance(dest, io.Iteration)):
             raise RuntimeError(
                 "Internal error: Trying to copy mismatching types")
-        
+
         # copy attributes of current layer
         self.copy_attributes(src, dest)
-        
+
         container_types = [
             io.Mesh_Container, io.Particle_Container, io.ParticleSpecies,
             io.Record, io.Mesh, io.Particle_Patches, io.Patch_Record
         ]
-        
+
         if isinstance(src, io.Series):
             # main loop: read iterations of src, write to dest
             write_iterations = dest.write_iterations()
@@ -513,11 +514,11 @@ class pipe:
                 in_iteration.close()
                 for patch_load in self.__particle_patches:
                     patch_load.run()
-                
+
                 # overwrite copied shape attribute of mass and charge to match particle count
                 out_iteration.particles[self.particles.speciesName]["mass"].set_attribute("shape", np.uint64(self.particles.N_particles))
                 out_iteration.particles[self.particles.speciesName]["charge"].set_attribute("shape", np.uint64(self.particles.N_particles))
-    
+
                 out_iteration.close()
                 self.__particle_patches.clear()
                 self.loads.clear()
@@ -647,7 +648,7 @@ class pipe:
     def copy_attributes(self, src, dest, iterate=False):
         """
         Copies attributes from src to dest. Optionally iterates over them.
-        
+
         Arguments:
         src: openPMD layer
                 layer of a openPMD series to copy attributes from
@@ -679,25 +680,24 @@ class pipe:
             for key in src:
                 self.copy_attributes(src[key], dest[key], iterate=True)
 
-                
+
     def write(self, src, dest, data):
         """
         Writes new data to given record component in dest with data types from src.
-        
+
         Arguments:
         src: openPMD layer
                 layer of a openPMD series to copy datatypes from
         dest: openPMD layer
                 layer of a openPMD series to copy new data to
         data: array of data which is written to dest.
-                
         """
         shape = (self.particles.N_particles,)
         dtype = src.dtype
-        
+
         dest.reset_dataset(io.Dataset(dtype, shape))
         # write particle data for each patch
         for i in range(self.particles.N_gpus.prod()):
-            dest.store_chunk(array = data[self.particles.patch_mask[i, :]], 
-                             offset=[self.particles.numParticlesOffset[i]], 
+            dest.store_chunk(array=data[self.particles.patch_mask[i, :]],
+                             offset=[self.particles.numParticlesOffset[i]],
                              extent=(self.particles.numParticles[i],))
