@@ -27,6 +27,7 @@
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
@@ -37,7 +38,6 @@
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -449,7 +449,7 @@ namespace pmacc
         const std::string checkpointMasterFile
             = this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
 
-        if(!std::filesystem::exists(checkpointMasterFile))
+        if(!stdfs::exists(checkpointMasterFile))
             return checkpoints;
 
         std::ifstream file(checkpointMasterFile.c_str());
