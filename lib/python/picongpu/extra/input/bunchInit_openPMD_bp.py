@@ -4,9 +4,7 @@ This file is a modified version of the pipe script from the openPMD-api.
 Authors: Richard Pausch, Franz Poeschel, Nico Wrobel
 License: LGPLv3+
 """
-#import argparse
-#import os  # os.path.basename
-import sys  # sys.stderr.write
+import sys
 
 import openpmd_api as io
 import numpy as np
@@ -134,13 +132,15 @@ class addParticles2Checkpoint:
         ext_z = tmp_handle["z"].load()
 
         # get number of particles before each patch
-        tmp_numOff = self.f.iterations[self.timestep].\
-            particles[self.speciesName].particle_patches["numParticlesOffset"]\
-            [io.Mesh_Record_Component.SCALAR].load()
+        tmp_numOff = (
+            self.f.iterations[self.timestep].particles[self.speciesName].
+            particle_patches["numParticlesOffset"]
+            [io.Mesh_Record_Component.SCALAR].load())
         # get number of particles in each patch
-        tmp_num = self.f.iterations[self.timestep].\
-            particles[self.speciesName].particle_patches["numParticles"]\
-            [io.Mesh_Record_Component.SCALAR].load()
+        tmp_num = (
+            self.f.iterations[self.timestep].particles[self.speciesName]
+            .particle_patches["numParticles"]
+            [io.Mesh_Record_Component.SCALAR].load())
 
         # flush all loads before calculations
         self.f.flush()
@@ -187,45 +187,52 @@ class addParticles2Checkpoint:
         self.has_id = False
 
         # extract data type for position
-        self.dtype_position = self.f.iterations[self.timestep].\
-            particles[self.speciesName]["position"]["x"].dtype
+        self.dtype_position = (
+            self.f.iterations[self.timestep].
+            particles[self.speciesName]["position"]["x"].dtype)
 
         # extract data type for positionOffset
-        self.dtype_positionOffset = self.f.iterations[self.timestep].\
-            particles[self.speciesName]["positionOffset"]["x"].dtype
+        self.dtype_positionOffset = (
+            self.f.iterations[self.timestep].
+            particles[self.speciesName]["positionOffset"]["x"].dtype)
 
         # extract data type for momentum
-        self.dtype_momentum = self.f.iterations[self.timestep].\
-            particles[self.speciesName]["momentum"]["x"].dtype
+        self.dtype_momentum = (
+            self.f.iterations[self.timestep].
+            particles[self.speciesName]["momentum"]["x"].dtype)
 
         if "probeE" in self.f.iterations[self.timestep].\
                 particles[self.speciesName]:
             self.has_probeE = True
             # type of E-Field
-            self.dtype_probeE = self.f.iterations[self.timestep].\
-                particles[self.speciesName]["probeE"]["x"].dtype
+            self.dtype_probeE = (
+                self.f.iterations[self.timestep].
+                particles[self.speciesName]["probeE"]["x"].dtype)
         self.print("contains probeE = {}".format(self.has_probeE))
 
         if "probeB" in self.f.iterations[self.timestep].\
                 particles[self.speciesName]:
             self.has_probeB = True
             # type of B-Field
-            self.dtype_probeB = self.f.iterations[self.timestep].\
-                particles[self.speciesName]["probeB"]["x"].dtype
+            self.dtype_probeB = (
+                self.f.iterations[self.timestep].
+                particles[self.speciesName]["probeB"]["x"].dtype)
         self.print("contains probeB {}".format(self.has_probeB))
 
         # extract data type for weighting
-        self.dtype_weighting = self.f.iterations[self.timestep].\
-            particles[self.speciesName]["weighting"]\
-            [io.Mesh_Record_Component.SCALAR].dtype
+        self.dtype_weighting = (
+            self.f.iterations[self.timestep].
+            particles[self.speciesName]["weighting"]
+            [io.Mesh_Record_Component.SCALAR].dtype)
 
         if "id" in self.f.iterations[self.timestep].\
                 particles[self.speciesName]:
             self.has_id = True
             # type of particleID
-            self.dtype_id = self.f.iterations[self.timestep].\
-                particles[self.speciesName]["id"]\
-                [io.Mesh_Record_Component.SCALAR].dtype
+            self.dtype_id = (
+                self.f.iterations[self.timestep].
+                particles[self.speciesName]["id"]
+                [io.Mesh_Record_Component.SCALAR].dtype)
         self.print("contains id =  {}".format(self.has_id))
 
         del self.f  # close checkpoint file
@@ -354,7 +361,6 @@ class Chunk:
         self.offset = offset
         self.extent = extent
 
-
     def __len__(self):
         return len(self.offset)
 
@@ -406,7 +412,6 @@ class particle_patch_load:
         self.data = data
         self.dest = dest
 
-
     def run(self):
         for index, item in enumerate(self.data):
             self.dest.store(index, item)
@@ -421,7 +426,7 @@ class pipe:
         """
         helper function that prints information depending on the set
         verbose level
-        
+
         Arguments:
         string: string
                 message to post
@@ -674,24 +679,24 @@ class pipe:
 
                     # write own particle patches
                     self.print("\twriting patches")
-                    temp_src = src[self.particles.speciesName].\
-                        particle_patches["numParticles"]\
-                        [io.Mesh_Record_Component.SCALAR]
-                    temp_dest = dest[self.particles.speciesName].\
-                        particle_patches["numParticles"]\
-                        [io.Mesh_Record_Component.SCALAR]
+                    temp_src = (src[self.particles.speciesName].
+                                particle_patches["numParticles"]
+                                [io.Mesh_Record_Component.SCALAR])
+                    temp_dest = (dest[self.particles.speciesName].
+                                 particle_patches["numParticles"]
+                                 [io.Mesh_Record_Component.SCALAR])
 
                     temp_dest.reset_dataset(io.Dataset(temp_src.dtype,
                                                        temp_src.shape))
                     self.__particle_patches.append(particle_patch_load(
                         self.particles.numParticles, temp_dest))
 
-                    temp_src = src[self.particles.speciesName].\
-                        particle_patches["numParticlesOffset"]\
-                        [io.Mesh_Record_Component.SCALAR]
-                    temp_dest = dest[self.particles.speciesName].\
-                        particle_patches["numParticlesOffset"]\
-                        [io.Mesh_Record_Component.SCALAR]
+                    temp_src = (src[self.particles.speciesName].
+                                particle_patches["numParticlesOffset"]
+                                [io.Mesh_Record_Component.SCALAR])
+                    temp_dest = (dest[self.particles.speciesName].
+                                 particle_patches["numParticlesOffset"]
+                                 [io.Mesh_Record_Component.SCALAR])
 
                     temp_dest.reset_dataset(io.Dataset(temp_src.dtype,
                                                        temp_src.shape))
