@@ -114,7 +114,7 @@ namespace picongpu
                     {
                         float3_X const mom = particle[momentum_];
                         // compute square of absolute momentum of the particle
-                        float_X const mom2 = pmacc::math::abs2(mom);
+                        float_X const mom2 = pmacc::math::l2norm2(mom);
                         float_X const weighting = particle[weighting_];
                         float_X const mass = attribute::getMass(weighting, particle);
                         float_X const c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;

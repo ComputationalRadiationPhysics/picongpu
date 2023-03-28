@@ -90,16 +90,16 @@ namespace picongpu
                 // sqrt(AU * (AU + AU)) / (AU/J) / c = sqrt(AU^2)/(AU/J) / c = J/c = kg*m^2/s^2/(m/s)
                 // unit: kg*m/s, SI
 
-                float_X previousMomentumVectorLength = pmacc::math::abs2(electron[momentum_]);
+                float_X previousMomentumVectorLength2 = pmacc::math::l2norm2(electron[momentum_]);
                 // unit: internal, scaled
 
                 // case: not moving electron
-                if(previousMomentumVectorLength == 0._X)
-                    previousMomentumVectorLength = 1._X; // no need to resize 0-vector
+                if(previousMomentumVectorLength2 == 0._X)
+                    previousMomentumVectorLength2 = 1._X; // no need to resize 0-vector
 
                 // if previous momentum == 0, discards electron,
                 // @todo select random direction to apply momentum, Brian Marre, 2022
-                electron[momentum_] *= 1 / previousMomentumVectorLength // get unity vector of momentum
+                electron[momentum_] *= 1 / previousMomentumVectorLength2 // get unity vector of momentum
                     * static_cast<float_X>(newPhysicalElectronMomentum
                                            * electron[weighting_] // new momentum scaled and in internal units
                                            / (picongpu::UNIT_MASS * picongpu::UNIT_LENGTH / picongpu::UNIT_TIME));

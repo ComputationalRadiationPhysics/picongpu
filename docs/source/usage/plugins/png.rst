@@ -167,7 +167,7 @@ The data structures used are those available in PIConGPU.
    {
        /* Channel1
         * computes the absolute value squared of the electric current */
-       return math::abs2(field_Current);
+       return pmacc::math::l2norm2(field_Current);
    }
 
    DINLINE float_X preChannel2( float3_X const & field_B, float3_X const & field_E, float3_X const & field_Current )

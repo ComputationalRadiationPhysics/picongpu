@@ -45,7 +45,7 @@ namespace picongpu
                                    * static_cast<float_COLL>(EPS0 * SPEED_OF_LIGHT * SPEED_OF_LIGHT));
                             const float_COLL factor2 = v.gammaComs / (v.mass0 * v.gamma0 + v.mass1 * v.gamma1);
                             const float_COLL factor3
-                                = (v.coeff0 * v.coeff1 / v.comsMomentum0Abs2
+                                = (v.coeff0 * v.coeff1 / v.comsMomentum0Norm2
                                        * static_cast<float_COLL>(SPEED_OF_LIGHT * SPEED_OF_LIGHT)
                                    + 1._COLL);
                             /*
@@ -60,7 +60,7 @@ namespace picongpu
                             // formula in line above eq. (22) in [Perez2012]:
                             const float_COLL minImpactParam = math::max(
                                 static_cast<float_COLL>(HBAR) * pmacc::math::Pi<float_COLL>::doubleValue
-                                    / (2._COLL * math::sqrt(v.comsMomentum0Abs2) / precision::WEIGHT_NORM_COLL),
+                                    / (2._COLL * math::sqrt(v.comsMomentum0Norm2) / precision::WEIGHT_NORM_COLL),
                                 twoRadImpactParam);
 
                             // eq. (23) in [Perez2012]:

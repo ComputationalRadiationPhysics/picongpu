@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Alexander Debus, Brian Marre
+/* Copyright 2013-2022 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -19,16 +19,27 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
-#include "pmacc/algorithms/math/PowerFunction.hpp"
-#include "pmacc/algorithms/math/defines/bessel.hpp"
-#include "pmacc/algorithms/math/defines/cross.hpp"
-#include "pmacc/algorithms/math/defines/dot.hpp"
-#include "pmacc/algorithms/math/defines/exp.hpp"
-#include "pmacc/algorithms/math/defines/floatingPoint.hpp"
-#include "pmacc/algorithms/math/defines/l2norm.hpp"
-#include "pmacc/algorithms/math/defines/modf.hpp"
-#include "pmacc/algorithms/math/defines/norm.hpp"
-#include "pmacc/algorithms/math/defines/pi.hpp"
-#include "pmacc/algorithms/math/defines/trigo.hpp"
+#include "pmacc/types.hpp"
+
+#include <cmath>
+
+
+namespace pmacc
+{
+    namespace math
+    {
+        template<>
+        struct Norm<double>
+        {
+            using result = double;
+
+            HDINLINE double operator()(const double& value)
+            {
+                return value * value;
+            }
+        };
+    } // namespace math
+} // namespace pmacc

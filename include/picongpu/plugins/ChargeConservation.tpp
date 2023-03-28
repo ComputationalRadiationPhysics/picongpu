@@ -224,7 +224,7 @@ namespace picongpu
 
                     /* rho := | div E * eps_0 - rho | */
                     rohBox(globalCellIdx).x()
-                        = math::abs(div(fieldEBox.shift(globalCellIdx)) * EPS0 - rohBox(globalCellIdx).x());
+                        = pmacc::math::l2norm(div(fieldEBox.shift(globalCellIdx)) * EPS0 - rohBox(globalCellIdx).x());
                 });
         };
 

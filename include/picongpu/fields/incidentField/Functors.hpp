@@ -549,7 +549,7 @@ namespace picongpu
                         float3_X internalPosition = this->getInternalCoordinates(totalCellIdx);
                         internalPosition[0] = 0.0_X;
                         auto const w0 = float3_X(1.0_X, Unitless::W0_AXIS_1, Unitless::W0_AXIS_2);
-                        auto const r2 = pmacc::math::abs2(internalPosition / w0);
+                        auto const r2 = pmacc::math::l2norm2(internalPosition / w0);
                         return math::exp(-r2);
                     }
                 };

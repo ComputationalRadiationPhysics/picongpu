@@ -159,7 +159,7 @@ namespace picongpu
                         / (16. * util::cube(pmacc::math::Pi<picongpu::float_64>::value) * picongpu::EPS0
                            * picongpu::SPEED_OF_LIGHT);
 
-                    return factor * (pmacc::math::abs2(amp_x) + pmacc::math::abs2(amp_y) + pmacc::math::abs2(amp_z));
+                    return factor * (pmacc::math::norm(amp_x) + pmacc::math::norm(amp_y) + pmacc::math::norm(amp_z));
                 }
 
 

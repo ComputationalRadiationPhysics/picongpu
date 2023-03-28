@@ -84,7 +84,7 @@ namespace picongpu
 
                         constexpr float_X pi = pmacc::math::Pi<float_X>::value;
                         /* electric field in atomic units - only absolute value */
-                        float_X const eInAU = math::abs(eField) / ATOMIC_UNIT_EFIELD;
+                        float_X const eInAU = pmacc::math::l2norm(eField) / ATOMIC_UNIT_EFIELD;
 
                         /* the charge that attracts the electron that is to be ionized:
                          * equals `protonNumber - #allInnerElectrons`

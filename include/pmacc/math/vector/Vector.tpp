@@ -106,18 +106,33 @@ namespace pmacc
             }
         };
 
-        /*specialize abs2 algorithm*/
+        /** specialize l2norm2 algorithm
+         */
         template<typename Type, uint32_t dim>
-        struct Abs2<::pmacc::math::Vector<Type, dim>>
+        struct L2norm2<::pmacc::math::Vector<Type, dim>>
         {
             using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
             HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim>& vector)
             {
-                result tmp = pmacc::math::abs2(vector.x());
+                result tmp = pmacc::math::norm(vector.x());
                 for(uint32_t i = 1; i < dim; ++i)
-                    tmp += pmacc::math::abs2(vector[i]);
+                    tmp += pmacc::math::norm(vector[i]);
                 return tmp;
+            }
+        };
+
+        /** specialize l2norm algorithm
+         */
+        template<typename Type, uint32_t dim>
+        struct L2norm<::pmacc::math::Vector<Type, dim>>
+        {
+            using result = typename ::pmacc::math::Vector<Type, dim>::type;
+
+            HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim>& vector)
+            {
+                result tmp = pmacc::math::l2norm2(vector);
+                return cupla::math::sqrt(tmp);
             }
         };
 
@@ -240,26 +255,8 @@ namespace alpaka
             // Floor specialization
             PMACC_UNARY_APAKA_MATH_SPECIALIZATION(floor, Floor);
 
-            /* Abs specialization
-             *
-             * Returns the length of the vector to fit the old implementation.
-             * @todo implement a math function magnitude instead of using abs to get the length of the vector.
-             */
-            template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim>
-            struct Abs<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, void>
-            {
-                using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
-
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Vector<T_ScalarType, T_dim> const& vector) -> ResultType
-                {
-                    PMACC_CASSERT(T_dim > 0);
-
-                    ResultType const tmp = pmacc::math::abs2(vector);
-                    return cupla::math::sqrt(tmp);
-                }
-            };
+            // Abs specialization
+            PMACC_UNARY_APAKA_MATH_SPECIALIZATION(abs, Abs);
 
         } // namespace trait
     } // namespace math

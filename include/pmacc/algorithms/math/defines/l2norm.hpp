@@ -28,16 +28,33 @@ namespace pmacc
     namespace math
     {
         template<typename Type>
-        struct Abs2;
+        struct L2norm;
 
+        /** l2norm
+         *
+         * only defined for vectors
+         *
+         * @return sqrt(abs(x)^2 + ...)
+         */
         template<typename T1>
-        HDINLINE typename Abs2<T1>::result abs2(const T1& value)
+        HDINLINE typename L2norm<T1>::result l2norm(const T1& value)
         {
-            return Abs2<T1>()(value);
+            return L2norm<T1>()(value);
         }
 
+        template<typename Type>
+        struct L2norm2;
+
+        /** l2norm2
+         *
+         * only defined for vectors
+         *
+         * @return abs(x)^2 + ...
+         */
+        template<typename T1>
+        HDINLINE typename L2norm2<T1>::result l2norm2(const T1& value)
+        {
+            return L2norm2<T1>()(value);
+        }
     } // namespace math
 } // namespace pmacc
-
-#include "pmacc/algorithms/math/doubleMath/abs.tpp"
-#include "pmacc/algorithms/math/floatMath/abs.tpp"

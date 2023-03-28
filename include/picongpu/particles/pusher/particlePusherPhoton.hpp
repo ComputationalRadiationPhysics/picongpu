@@ -57,8 +57,8 @@ namespace picongpu
                 if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value)
                     particle[probeE_] = eField;
 
-                const float_X mom_abs = math::abs(mom);
-                const MomType vel = mom * (SPEED_OF_LIGHT / mom_abs);
+                const float_X normMom = pmacc::math::l2norm(mom);
+                const MomType vel = mom * (SPEED_OF_LIGHT / normMom);
 
                 for(uint32_t d = 0; d < simDim; ++d)
                 {

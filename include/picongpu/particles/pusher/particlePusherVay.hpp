@@ -88,14 +88,14 @@ namespace picongpu
                 const sqrt_Vay::float_X u_star
                     = pmacc::math::dot(precisionCast<sqrt_Vay::float_X>(momentum_prime), tau)
                     / precisionCast<sqrt_Vay::float_X>(SPEED_OF_LIGHT * mass);
-                const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - pmacc::math::abs2(tau);
+                const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - pmacc::math::l2norm2(tau);
                 const sqrt_Vay::float_X gamma_atPlusHalf = math::sqrt(
                     sqrt_Vay::float_X(0.5)
                     * (sigma
                        + math::sqrt(
-                           sigma * sigma + sqrt_Vay::float_X(4.0) * (pmacc::math::abs2(tau) + u_star * u_star))));
+                           sigma * sigma + sqrt_Vay::float_X(4.0) * (pmacc::math::l2norm2(tau) + u_star * u_star))));
                 const float3_X t(tau * (float_X(1.0) / gamma_atPlusHalf));
-                const float_X s = float_X(1.0) / (float_X(1.0) + pmacc::math::abs2(t));
+                const float_X s = float_X(1.0) / (float_X(1.0) + pmacc::math::l2norm2(t));
                 const MomType momentum_atPlusHalf = s
                     * (momentum_prime + pmacc::math::dot(momentum_prime, t) * t
                        + pmacc::math::cross(momentum_prime, t));

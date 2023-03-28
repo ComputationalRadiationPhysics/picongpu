@@ -61,7 +61,7 @@ namespace picongpu
                 if(globalCellPos.y() < vacuum_y)
                     return float_X(0.0);
 
-                const float_X distance = math::abs(globalCellPos - center);
+                const float_X distance = pmacc::math::l2norm(globalCellPos - center);
 
                 /* "shell": inner radius */
                 if(distance < ri)

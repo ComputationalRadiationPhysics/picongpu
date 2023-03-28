@@ -44,7 +44,7 @@ namespace picongpu
         HDINLINE ValueType operator()(MomType const& mom, MassType const& mass)
         {
             if(mass == MassType(0.0))
-                return SPEED_OF_LIGHT * math::abs(precisionCast<ValueType>(mom));
+                return SPEED_OF_LIGHT * pmacc::math::l2norm(precisionCast<ValueType>(mom));
 
             /* if mass is non-zero then gamma is well defined */
             const ValueType gamma = Gamma<ValueType>()(mom, mass);
@@ -53,7 +53,7 @@ namespace picongpu
 
             if(gamma < GAMMA_THRESH)
             {
-                const ValueType mom2 = pmacc::math::abs2(precisionCast<ValueType>(mom));
+                const ValueType mom2 = pmacc::math::l2norm2(precisionCast<ValueType>(mom));
                 /* non relativistic kinetic energy expression */
                 kinEnergy = mom2 / (ValueType(2.0) * mass);
             }
