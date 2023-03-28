@@ -4,8 +4,8 @@ This file is a modified version of the pipe script from the openPMD-api.
 Authors: Richard Pausch, Franz Poeschel, Nico Wrobel
 License: LGPLv3+
 """
-import argparse
-import os  # os.path.basename
+#import argparse
+#import os  # os.path.basename
 import sys  # sys.stderr.write
 
 import openpmd_api as io
@@ -34,7 +34,6 @@ class vec3D:
         self.y = y
         self.z = z
 
-
     def prod(self):
         """
         product of all 3 components
@@ -43,7 +42,6 @@ class vec3D:
         """
         return self.x * self.y * self.z
 
-
     def print(self):
         """
         helper function to print values to screen
@@ -51,7 +49,6 @@ class vec3D:
         print("x: {}".format(self.x))
         print("y: {}".format(self.y))
         print("z: {}".format(self.z))
-
 
     def __truediv__(self, other):
         """
@@ -65,7 +62,6 @@ class vec3D:
         vec3D( x/other, y/other, z/other )
         """
         return vec3D(self.x / other, self.y / other, self.z / other)
-
 
 
 class addParticles2Checkpoint:
@@ -82,9 +78,8 @@ class addParticles2Checkpoint:
         if self.verbose:
             print("\t"*self.tabs + string)
 
-
     def __init__(
-        self, filename_in, filename_out, speciesName='e', verbose=True):
+            self, filename_in, filename_out, speciesName='e', verbose=True):
         """
         initialization of manipulation routine
 
@@ -95,7 +90,7 @@ class addParticles2Checkpoint:
         filename_in: string
                   path to bp file to copy from (only time step 0 accepted)
         filename_out: string
-                  path to bp file to create         
+                  path to bp file to create
         speciesName: string
                      short name in PIConGPU for the species to manipulate
         verbose: bool
@@ -104,7 +99,7 @@ class addParticles2Checkpoint:
         self.verbose = verbose  # verbose level
         self.tabs = 0  # tab counter for output
 
-        self.timestep = 0 # time step (fixed to 0)
+        self.timestep = 0  # time step (fixed to 0)
         self.speciesName = speciesName
         self.filename_in = filename_in
         self.filename_out = filename_out
@@ -145,14 +140,13 @@ class addParticles2Checkpoint:
         # get number of particles in each patch
         tmp_num = self.f.iterations[self.timestep].\
             particles[self.speciesName].particle_patches["numParticles"]\
-                [io.Mesh_Record_Component.SCALAR].load()
+            [io.Mesh_Record_Component.SCALAR].load()
 
         # flush all loads before calculations
         self.f.flush()
 
-
         tmp = np.shape(tmp_mesh)
-        self.N_cells = vec3D(tmp[0], tmp[1], tmp[2]) # cells in each dimension
+        self.N_cells = vec3D(tmp[0], tmp[1], tmp[2])  # cells in each dimension
 
         # extract number of GPUs used in each dimension
         # use np.unique() to reduce patches offset and len() to get number
@@ -205,7 +199,7 @@ class addParticles2Checkpoint:
             particles[self.speciesName]["momentum"]["x"].dtype
 
         if "probeE" in self.f.iterations[self.timestep].\
-            particles[self.speciesName]:
+                particles[self.speciesName]:
             self.has_probeE = True
             # type of E-Field
             self.dtype_probeE = self.f.iterations[self.timestep].\
@@ -213,7 +207,7 @@ class addParticles2Checkpoint:
         self.print("contains probeE = {}".format(self.has_probeE))
 
         if "probeB" in self.f.iterations[self.timestep].\
-            particles[self.speciesName]:
+                particles[self.speciesName]:
             self.has_probeB = True
             # type of B-Field
             self.dtype_probeB = self.f.iterations[self.timestep].\
@@ -226,7 +220,7 @@ class addParticles2Checkpoint:
             [io.Mesh_Record_Component.SCALAR].dtype
 
         if "id" in self.f.iterations[self.timestep].\
-            particles[self.speciesName]:
+                particles[self.speciesName]:
             self.has_id = True
             # type of particleID
             self.dtype_id = self.f.iterations[self.timestep].\
@@ -234,8 +228,7 @@ class addParticles2Checkpoint:
                 [io.Mesh_Record_Component.SCALAR].dtype
         self.print("contains id =  {}".format(self.has_id))
 
-        del self.f # close checkpoint file
-
+        del self.f  # close checkpoint file
 
     def addParticles(self, pos, mom, w):
         """
@@ -249,7 +242,7 @@ class addParticles2Checkpoint:
         w - float array
             macro particle weighting
         """
-        self.N_particles_input = len(w) # number of particles to add
+        self.N_particles_input = len(w)  # number of particles to add
 
         # calculate positionOffset (cell location) from given position
         self.positionOffset = vec3D(
@@ -259,12 +252,12 @@ class addParticles2Checkpoint:
 
         # calculate (in cell) position from given position
         self.position = vec3D(
-            (np.mod(pos.x, self.cellSize.x)/self.cellSize.x).\
-                astype(self.dtype_position),
-            (np.mod(pos.y, self.cellSize.y)/self.cellSize.y).\
-                astype(self.dtype_position),
-            (np.mod(pos.z, self.cellSize.z)/self.cellSize.z).\
-                astype(self.dtype_position))
+            (np.mod(pos.x, self.cellSize.x)/self.cellSize.x).
+            astype(self.dtype_position),
+            (np.mod(pos.y, self.cellSize.y)/self.cellSize.y).
+            astype(self.dtype_position),
+            (np.mod(pos.z, self.cellSize.z)/self.cellSize.z).
+            astype(self.dtype_position))
 
         # calculate momentum in PIC units from given momentum
         self.momentum = vec3D(
@@ -288,7 +281,6 @@ class addParticles2Checkpoint:
         if self.has_id:
             # give every particle an ID
             self.id = np.arange(len(w), dtype=self.dtype_id)
-
 
     def makePatchMask(self):
         """
@@ -316,8 +308,8 @@ class addParticles2Checkpoint:
                         self.offset.z[i] + self.extent.z[i])
 
             # combine all 3*2 bools to just give true or false for GPU(i)
-            tmp1 = np.logical_and( np.logical_and(a,b), np.logical_and(c,d) )
-            tmp2 = np.logical_and(tmp1 , np.logical_and(e,f) )
+            tmp1 = np.logical_and(np.logical_and(a, b), np.logical_and(c, d))
+            tmp2 = np.logical_and(tmp1, np.logical_and(e, f))
             self.patch_mask[i, :] = tmp2
 
         # determine number of particles in all patches
@@ -329,19 +321,17 @@ class addParticles2Checkpoint:
         # in first patch != 0)
         self.numParticlesOffset[0] = 0
 
-
     def writeParticles(self):
         """
         write all particle data to checkpoint with the help of the pipe class
         """
         self.print("make patch mask")
-        self.makePatchMask() # calculate particle patch
+        self.makePatchMask()  # calculate particle patch
         self.N_particles = np.sum(self.numParticles)
 
         run_pipe = pipe(self.filename_in, self.filename_out, self,
                         verbose=self.verbose)
         run_pipe.run()
-
 
 
 class Chunk:
@@ -368,10 +358,9 @@ class Chunk:
     def __len__(self):
         return len(self.offset)
 
-
     def slice1D(self):
         """
-        Slice this chunk into a hypercube along the dimension with 
+        Slice this chunk into a hypercube along the dimension with
         the largest extent on this hypercube.
 
         Return:
@@ -392,7 +381,6 @@ class Chunk:
         return Chunk(offset, extent)
 
 
-
 class deferred_load:
     def __init__(self, source, dynamicView, offset, extent):
         self.source = source
@@ -401,11 +389,10 @@ class deferred_load:
         self.extent = extent
 
 
-
 class particle_patch_load:
     """
     A deferred load/store operation for a particle patch.
-    The openPMD particle-patch API requires that users pass a concrete value 
+    The openPMD particle-patch API requires that users pass a concrete value
     for storing, even if the actual write operation occurs much later at
     series.flush().
     So, unlike other record components, we cannot call .store_chunk() with
@@ -425,7 +412,6 @@ class particle_patch_load:
             self.dest.store(index, item)
 
 
-
 class pipe:
     """
     Represents the configuration of one "pipe" pass.
@@ -443,12 +429,11 @@ class pipe:
         if self.verbose:
             print(string)
 
-
     def __init__(self, infile, outfile, particles=[], inconfig='{}',
-                outconfig='{}', verbose=False):
+                 outconfig='{}', verbose=False):
         """
         routine to copy and overwrite data from one checkpoint to another.
-        
+
         Arguments:
         infile: string
                 path to the checkpoint to copy from
@@ -459,7 +444,7 @@ class pipe:
         inconfig: string
                 configuration file when opening checkpoint from infile
         outconfig: string
-                configuration file when opening checkpoint from outfile     
+                configuration file when opening checkpoint from outfile
         verbose: bool
                 prints verbose messages to the screen if True
         """
@@ -471,7 +456,6 @@ class pipe:
         self.loads = []
         self.verbose = verbose
 
-
     def run(self):
         """
         starts the copy routine.
@@ -479,17 +463,16 @@ class pipe:
         print("Opening data source")
         sys.stdout.flush()
         inseries = io.Series(self.infile, io.Access.read_only,
-                                 self.inconfig)
+                             self.inconfig)
         print("Opening data sink")
         sys.stdout.flush()
         outseries = io.Series(self.outfile, io.Access.create,
-                                  self.outconfig)
+                              self.outconfig)
         print("Opened input and output")
         sys.stdout.flush()
 
         self.__copy(inseries, outseries)
         print("Finished!")
-
 
     def __copy(self, src, dest, current_path="/data/"):
         """
@@ -675,18 +658,18 @@ class pipe:
                                    self.particles.probeB.z)
 
                     self.print("\twriting weighting")
-                    self.write(temp_src["weighting"]\
-                        [io.Mesh_Record_Component.SCALAR],
-                               temp_dest["weighting"]\
-                                [io.Mesh_Record_Component.SCALAR],
+                    self.write(temp_src["weighting"]
+                               [io.Mesh_Record_Component.SCALAR],
+                               temp_dest["weighting"]
+                               [io.Mesh_Record_Component.SCALAR],
                                self.particles.weighting)
 
                     if self.particles.has_id:
                         self.print("\twriting id")
-                        self.write(temp_src["id"]\
-                            [io.Mesh_Record_Component.SCALAR],
-                                   temp_dest["id"]\
-                                    [io.Mesh_Record_Component.SCALAR],
+                        self.write(temp_src["id"]
+                                   [io.Mesh_Record_Component.SCALAR],
+                                   temp_dest["id"]
+                                   [io.Mesh_Record_Component.SCALAR],
                                    self.particles.id)
 
                     # write own particle patches
@@ -741,7 +724,6 @@ class pipe:
         else:
             raise RuntimeError("Unknown openPMD class: " + str(src))
 
-
     def copy_attributes(self, src, dest, iterate=False):
         """
         Copies attributes from src to dest. Optionally iterates over them.
@@ -777,7 +759,6 @@ class pipe:
         if iterate:
             for key in src:
                 self.copy_attributes(src[key], dest[key], iterate=True)
-
 
     def write(self, src, dest, data):
         """
