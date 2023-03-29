@@ -37,8 +37,6 @@
 #include <pmacc/assert.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
-#include <boost/mpl/find.hpp>
-
 namespace picongpu
 {
     using namespace pmacc;
@@ -100,7 +98,7 @@ namespace picongpu
          * Calculate omega_p for each given species and create a `picLog::PHYSICS`
          * log message
          */
-        template<typename T_Species = bmpl::_1>
+        template<typename T_Species = boost::mpl::_1>
         struct LogOmegaP
         {
             void operator()()
@@ -152,7 +150,7 @@ namespace picongpu
                     = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
                 log<picLog::PHYSICS>("macro particles per device: %1%")
                     % (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
-                       * (bmpl::size<VectorAllSpecies>::type::value));
+                       * (pmacc::mp_size<VectorAllSpecies>::value));
                 log<picLog::PHYSICS>("typical macro particle weighting: %1%")
                     % (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
@@ -231,7 +229,8 @@ namespace picongpu
         {
             using namespace fields;
             using IncidentFieldProfiles = fields::incidentField::UniqueEnabledProfiles;
-            meta::ForEach<IncidentFieldProfiles, PrintIncidentFieldDispersion<bmpl::_1>> printIncidentFieldDispersion;
+            meta::ForEach<IncidentFieldProfiles, PrintIncidentFieldDispersion<boost::mpl::_1>>
+                printIncidentFieldDispersion;
             printIncidentFieldDispersion();
         }
     };

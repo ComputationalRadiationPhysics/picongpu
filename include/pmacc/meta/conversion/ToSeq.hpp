@@ -23,21 +23,21 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/vector.hpp>
-
-
 namespace pmacc
 {
     /** cast type to boost mpl vector
      * @return ::type if T_Type is sequence then identity of T_Type
-     *                else boost::mpl::vector<T_Type>
+     *                else mp_list<T_Type>
      */
     template<typename T_Type>
     struct ToSeq
     {
-        using type = typename bmpl::if_<bmpl::is_sequence<T_Type>, T_Type, bmpl::vector1<T_Type>>::type;
+        using type = mp_list<T_Type>;
     };
 
+    template<typename... Ts>
+    struct ToSeq<mp_list<Ts...>>
+    {
+        using type = mp_list<Ts...>;
+    };
 } // namespace pmacc

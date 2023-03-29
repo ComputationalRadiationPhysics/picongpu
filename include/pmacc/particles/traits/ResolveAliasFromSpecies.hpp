@@ -38,7 +38,7 @@ namespace pmacc
              * Example:
              *
              * \code{.cpp}
-             * typedef bmpl::vector<
+             * typedef mp_list<
              *   particlePusher<UsedParticlePusher>,
              *   shape<UsedParticleShape>,
              *   interpolation<UsedField2Particle>,

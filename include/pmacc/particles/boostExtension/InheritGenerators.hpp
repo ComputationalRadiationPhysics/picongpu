@@ -24,17 +24,6 @@
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin.hpp>
-#include <boost/mpl/deref.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/front.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/pop_back.hpp>
-#include <boost/mpl/pop_front.hpp>
-#include <boost/mpl/vector.hpp>
-
-
 namespace pmacc
 {
     template<class list_>
@@ -52,7 +41,7 @@ namespace pmacc
      *
      * Create a fork and inherit from head and combined classes from Vec
      */
-    template<class Head, class Vec, bool isVectorEmpty = bmpl::empty<Vec>::value>
+    template<class Head, class Vec, bool isVectorEmpty = mp_empty<Vec>::value>
     struct TypelistLinearInherit;
 
     template<class Head, class Vec>
@@ -93,9 +82,7 @@ namespace pmacc
     template<typename vec_>
     struct LinearInherit
     {
-        using type =
-            typename TypelistLinearInherit<typename bmpl::front<vec_>::type, typename bmpl::pop_front<vec_>::type>::
-                type;
+        using type = typename TypelistLinearInherit<mp_front<vec_>, mp_pop_front<vec_>>::type;
     };
 
 } // namespace pmacc

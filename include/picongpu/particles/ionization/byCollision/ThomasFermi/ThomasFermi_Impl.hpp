@@ -50,8 +50,8 @@ namespace picongpu
              *
              * @tparam T_IonizationAlgorithm functor that returns a number of
              *         new free macro electrons to create, range: [0, boundElectrons]
-             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
-             * @tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
+             * @tparam T_DestSpecies type or name as PMACC_CSTRING of the electron species to be created
+             * @tparam T_SrcSpecies type or name as PMACC_CSTRING of the particle species that is ionized
              */
             template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
             struct ThomasFermi_Impl
@@ -293,7 +293,7 @@ namespace picongpu
                      * - boundElectrons: because species other than ions or atoms do not have them
                      * (gets AUTOMATICALLY deselected because electrons do not have this attribute)
                      */
-                    auto targetElectronClone = partOp::deselect<bmpl::vector2<multiMask, momentum>>(childElectron);
+                    auto targetElectronClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(childElectron);
 
                     partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
 

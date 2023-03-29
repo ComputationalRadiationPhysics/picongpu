@@ -37,7 +37,7 @@ namespace picongpu
             /**@{*/
             /** Implementation of actual ionization current
              *
-             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_DestSpecies type or name as PMACC_CSTRING of the electron species to be created
              * @tparam T_Dim dimension of simulation
              */
             template<typename T_DestSpecies, unsigned T_Dim>

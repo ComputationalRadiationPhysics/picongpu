@@ -41,9 +41,6 @@
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/types.hpp>
 
-#include <boost/mpl/contains.hpp>
-#include <boost/mpl/if.hpp>
-
 #include <array>
 #include <memory>
 #include <sstream>
@@ -70,9 +67,9 @@ namespace picongpu
 
     /** particle species
      *
-     * @tparam T_Name name of the species [type boost::mpl::string]
-     * @tparam T_Attributes sequence with attributes [type boost::mpl forward sequence]
-     * @tparam T_Flags sequence with flags e.g. solver [type boost::mpl forward sequence]
+     * @tparam T_Name name of the species [type PMACC_CSTRING]
+     * @tparam T_Attributes sequence with attributes [type boost::mp11 list]
+     * @tparam T_Flags sequence with flags e.g. solver [type boost::mp11 list]
      */
     template<typename T_Name, typename T_Flags, typename T_Attributes>
     class Particles
@@ -82,16 +79,16 @@ namespace picongpu
                   SuperCellSize,
                   T_Attributes,
                   T_Flags,
-                  typename bmpl::if_<
+                  pmacc::mp_if<
                       // check if alias boundaryCondition is defined for the species
-                      bmpl::contains<T_Flags, typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>,
+                      pmacc::mp_contains<T_Flags, typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>,
                       // resolve the alias
                       typename pmacc::traits::Resolve<
                           typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>::type,
                       // fallback if the species has not defined the alias boundaryCondition
                       pmacc::HandleGuardRegion<
                           pmacc::particles::policies::ExchangeParticles,
-                          pmacc::particles::policies::DoNothing>>::type>,
+                          pmacc::particles::policies::DoNothing>>>,
               MappingDesc,
               DeviceHeap>
         , public ISimulationData
@@ -102,15 +99,15 @@ namespace picongpu
             SuperCellSize,
             T_Attributes,
             T_Flags,
-            typename bmpl::if_<
+            pmacc::mp_if<
                 // check if alias boundaryCondition is defined for the species
-                bmpl::contains<T_Flags, typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>,
+                pmacc::mp_contains<T_Flags, typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>,
                 // resolve the alias
                 typename pmacc::traits::Resolve<typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>::type,
                 // fallback if the species has not defined the alias boundaryCondition
                 pmacc::HandleGuardRegion<
                     pmacc::particles::policies::ExchangeParticles,
-                    pmacc::particles::policies::DoNothing>>::type>;
+                    pmacc::particles::policies::DoNothing>>>;
         using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
         using FrameType = typename ParticlesBaseType::FrameType;
         using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;

@@ -21,11 +21,7 @@
 
 #pragma once
 
-#include <boost/mpl/void.hpp>
-
 #include <cstdint>
-
-namespace mpl = boost::mpl;
 
 namespace pmacc
 {
@@ -33,14 +29,14 @@ namespace pmacc
     {
         namespace CT
         {
-            template<typename X = mpl::void_, typename Y = mpl::void_, typename Z = mpl::void_>
+            template<typename X = void, typename Y = void, typename Z = void>
             struct Float
             {
                 using x = X;
                 using y = Y;
                 using z = Z;
 
-                static constexpr uint32_t dim = 3u;
+                static constexpr std::uint32_t dim = 3u;
             };
 
             template<>
@@ -53,7 +49,7 @@ namespace pmacc
             {
                 using x = X;
 
-                static constexpr uint32_t dim = 1u;
+                static constexpr std::uint32_t dim = 1u;
             };
 
             template<typename X, typename Y>
@@ -62,7 +58,7 @@ namespace pmacc
                 using x = X;
                 using y = Y;
 
-                static constexpr uint32_t dim = 2u;
+                static constexpr std::uint32_t dim = 2u;
             };
 
         } // namespace CT

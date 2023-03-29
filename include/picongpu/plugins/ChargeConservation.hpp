@@ -28,10 +28,7 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/and.hpp>
-
 #include <memory>
-
 
 namespace picongpu
 {
@@ -94,7 +91,7 @@ namespace picongpu
                 // and also a charge ratio for a charge density
                 using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, chargeRatio<>>::type;
 
-                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+                using type = pmacc::mp_and<SpeciesHasIdentifiers, SpeciesHasFlags>;
             };
 
         } // namespace traits

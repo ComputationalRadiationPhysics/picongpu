@@ -23,9 +23,6 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
-#include <boost/mpl/and.hpp>
-
-
 namespace picongpu
 {
     namespace particles
@@ -57,7 +54,7 @@ namespace picongpu
                     typename particles::traits::SpeciesEligibleForSolver<T_Species, T_DerivedAttribute>::type;
                 using EligibleForFilter =
                     typename particles::traits::SpeciesEligibleForSolver<T_Species, T_Filter>::type;
-                using type = typename bmpl::and_<EligibleForDerivedAttribute, EligibleForFilter>;
+                using type = pmacc::mp_and<EligibleForDerivedAttribute, EligibleForFilter>;
             };
         } // namespace traits
     } // namespace particles

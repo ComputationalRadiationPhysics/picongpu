@@ -15,13 +15,13 @@ namespace picongpu
          */
         {{! note: this serves to enter the context -- it is NOT a loop }}
         {{#species_initmanager}}
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = boost::mp11::mp_list<
             // note to the editor of this file:
             // For PIConGPU it is not always applicable to split the initialization into these two phases "creation" and "manipulation", because some init pipeline operations mix the two phases.
             // However, in this particular case those phases are clearly separated due to the PyPIConGPU code generation.
             // Hence, consider removing these explicit "phase 1/2" comments when editing the init pipeline by hand.
 
-            
+
             /**********************************/
             /* phase 1: create macroparticles */
             /**********************************/
@@ -62,7 +62,7 @@ namespace picongpu
             {{#operations.set_bound_electrons}}
                 Manipulate<manipulators::pypicongpu::PreIonize_{{{species.typename}}}, {{{species.typename}}}>,
             {{/operations.set_bound_electrons}}
-            
+
 
             // does nothing -- exists to catch trailing comma left by code generation
             pypicongpu::nop>;

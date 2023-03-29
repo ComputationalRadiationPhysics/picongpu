@@ -24,18 +24,7 @@
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/apply.hpp>
-#include <boost/mpl/at.hpp>
 #include <boost/mpl/aux_/na.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/less.hpp>
-#include <boost/mpl/min_max.hpp>
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/times.hpp>
-#include <boost/mpl/vector.hpp>
 
 #include <cstdint>
 
@@ -45,8 +34,6 @@ namespace pmacc
     {
         namespace CT
         {
-            namespace mpl = boost::mpl;
-
             namespace detail
             {
                 template<uint32_t dim>
@@ -91,6 +78,10 @@ namespace pmacc
                     }
                 };
 
+                struct na
+                {
+                };
+
                 template<typename Arg0>
                 struct TypeSelector
                 {
@@ -99,37 +90,35 @@ namespace pmacc
 
                 /** get integral type*/
                 template<typename T, T value>
-                struct TypeSelector<mpl::integral_c<T, value>>
+                struct TypeSelector<std::integral_constant<T, value>>
                 {
                     using type = T;
                 };
 
                 template<>
-                struct TypeSelector<mpl::na>
+                struct TypeSelector<detail::na>
                 {
-                    using type = mpl::int_<0u>;
+                    using type = mp_int<0u>;
                 };
 
             } // namespace detail
 
-            namespace mpl = boost::mpl;
-
-            template<typename Arg0 = mpl::na, typename Arg1 = mpl::na, typename Arg2 = mpl::na>
+            template<typename Arg0 = detail::na, typename Arg1 = detail::na, typename Arg2 = detail::na>
             struct Vector
             {
                 using x = Arg0;
                 using y = Arg1;
                 using z = Arg2;
 
-                using mplVector = mpl::vector<x, y, z>;
+                using mplVector = mp_remove<mp_list<x, y, z>, detail::na>;
 
                 template<uint32_t element>
                 struct at
                 {
-                    using type = typename mpl::at_c<mplVector, element>::type;
+                    using type = mp_at_c<mplVector, element>;
                 };
 
-                static constexpr uint32_t dim = mpl::size<mplVector>::type::value;
+                static constexpr uint32_t dim = mp_size<mplVector>::value;
 
                 using type = typename detail::TypeSelector<x>::type;
                 using This = Vector<x, y, z>;
@@ -162,7 +151,7 @@ namespace pmacc
 
             //________________________OperatorBase____________________________
 
-            template<typename Lhs, typename Rhs, typename T_BinaryOperator>
+            template<typename Lhs, typename Rhs, template<typename...> typename T_BinaryOperator>
             struct applyOperator
             {
                 using type =
@@ -170,10 +159,10 @@ namespace pmacc
                         type;
             };
 
-            template<typename T_TypeA, typename T_TypeB, typename T_BinaryOperator>
+            template<typename T_TypeA, typename T_TypeB, template<typename...> typename T_BinaryOperator>
             struct applyOperator<CT::Vector<T_TypeA>, CT::Vector<T_TypeB>, T_BinaryOperator>
             {
-                using OpResult = typename mpl::apply<T_BinaryOperator, T_TypeA, T_TypeB>::type;
+                using OpResult = T_BinaryOperator<T_TypeA, T_TypeB>;
                 using type = CT::Vector<OpResult>;
             };
 
@@ -182,11 +171,12 @@ namespace pmacc
                 typename T_TypeA1,
                 typename T_TypeB0,
                 typename T_TypeB1,
+                template<typename...>
                 typename T_BinaryOperator>
             struct applyOperator<CT::Vector<T_TypeA0, T_TypeA1>, CT::Vector<T_TypeB0, T_TypeB1>, T_BinaryOperator>
             {
-                using OpResult0 = typename mpl::apply<T_BinaryOperator, T_TypeA0, T_TypeB0>::type;
-                using OpResult1 = typename mpl::apply<T_BinaryOperator, T_TypeA1, T_TypeB1>::type;
+                using OpResult0 = T_BinaryOperator<T_TypeA0, T_TypeB0>;
+                using OpResult1 = T_BinaryOperator<T_TypeA1, T_TypeB1>;
                 using type = CT::Vector<OpResult0, OpResult1>;
             };
 
@@ -197,27 +187,29 @@ namespace pmacc
                 typename T_TypeB0,
                 typename T_TypeB1,
                 typename T_TypeB2,
+                template<typename...>
                 typename T_BinaryOperator>
             struct applyOperator<
                 CT::Vector<T_TypeA0, T_TypeA1, T_TypeA2>,
                 CT::Vector<T_TypeB0, T_TypeB1, T_TypeB2>,
                 T_BinaryOperator>
             {
-                using OpResult0 = typename mpl::apply<T_BinaryOperator, T_TypeA0, T_TypeB0>::type;
-                using OpResult1 = typename mpl::apply<T_BinaryOperator, T_TypeA1, T_TypeB1>::type;
-                using OpResult2 = typename mpl::apply<T_BinaryOperator, T_TypeA2, T_TypeB2>::type;
+                using OpResult0 = T_BinaryOperator<T_TypeA0, T_TypeB0>;
+                using OpResult1 = T_BinaryOperator<T_TypeA1, T_TypeB1>;
+                using OpResult2 = T_BinaryOperator<T_TypeA2, T_TypeB2>;
                 using type = CT::Vector<OpResult0, OpResult1, OpResult2>;
             };
+
+            template<typename A, typename B>
+            using mp_times = std::integral_constant<decltype(A::value * B::value), A::value * B::value>;
 
             //________________________A D D____________________________
 
             template<typename Lhs, typename Rhs>
             struct add
             {
-                using type = typename applyOperator<
-                    typename Lhs::vector_type,
-                    typename Rhs::vector_type,
-                    mpl::plus<mpl::_1, mpl::_2>>::type;
+                using type =
+                    typename applyOperator<typename Lhs::vector_type, typename Rhs::vector_type, mp_plus>::type;
             };
 
             //________________________M U L____________________________
@@ -225,10 +217,8 @@ namespace pmacc
             template<typename Lhs, typename Rhs>
             struct mul
             {
-                using type = typename applyOperator<
-                    typename Lhs::vector_type,
-                    typename Rhs::vector_type,
-                    mpl::times<mpl::_1, mpl::_2>>::type;
+                using type =
+                    typename applyOperator<typename Lhs::vector_type, typename Rhs::vector_type, mp_times>::type;
             };
 
             //________________________M A X____________________________
@@ -243,10 +233,8 @@ namespace pmacc
             template<typename Lhs, typename Rhs = void>
             struct max
             {
-                using type = typename applyOperator<
-                    typename Lhs::vector_type,
-                    typename Rhs::vector_type,
-                    mpl::max<mpl::_1, mpl::_2>>::type;
+                using type =
+                    typename applyOperator<typename Lhs::vector_type, typename Rhs::vector_type, mp_max>::type;
             };
 
 
@@ -258,8 +246,7 @@ namespace pmacc
             template<typename T_Vec>
             struct max<T_Vec, void>
             {
-                using type = typename mpl::
-                    accumulate<typename T_Vec::mplVector, typename T_Vec::x, mpl::max<mpl::_1, mpl::_2>>::type;
+                using type = mp_apply<mp_max, typename T_Vec::mplVector>;
             };
 
             //________________________M I N____________________________
@@ -275,10 +262,8 @@ namespace pmacc
             template<typename Lhs, typename Rhs = void>
             struct min
             {
-                using type = typename applyOperator<
-                    typename Lhs::vector_type,
-                    typename Rhs::vector_type,
-                    mpl::min<mpl::_1, mpl::_2>>::type;
+                using type =
+                    typename applyOperator<typename Lhs::vector_type, typename Rhs::vector_type, mp_min>::type;
             };
 
             /** get element with minimum value
@@ -289,8 +274,7 @@ namespace pmacc
             template<typename T_Vec>
             struct min<T_Vec, void>
             {
-                using type = typename mpl::
-                    accumulate<typename T_Vec::mplVector, typename T_Vec::x, mpl::min<mpl::_1, mpl::_2>>::type;
+                using type = mp_apply<mp_min, typename T_Vec::mplVector>;
             };
 
             //________________________D O T____________________________
@@ -299,8 +283,7 @@ namespace pmacc
             struct dot
             {
                 using MulResult = typename mul<Lhs, Rhs>::type;
-                using type = typename mpl::
-                    accumulate<typename MulResult::mplVector, mpl::int_<0>, mpl::plus<mpl::_1, mpl::_2>>::type;
+                using type = mp_fold<typename MulResult::mplVector, mp_int<0>, mp_plus>;
             };
 
             //________________________V O L U M E____________________________
@@ -308,8 +291,7 @@ namespace pmacc
             template<typename T_Vec>
             struct volume
             {
-                using type = typename mpl::
-                    accumulate<typename T_Vec::mplVector, mpl::int_<1>, mpl::times<mpl::_1, mpl::_2>>::type;
+                using type = mp_fold<typename T_Vec::mplVector, mp_int<1>, mp_times>;
             };
 
             //________________________S H R I N K T O________________________
@@ -336,14 +318,14 @@ namespace pmacc
             struct shrinkTo<T_Vec, DIM2>
             {
                 using Vec = T_Vec;
-                using type = CT::Vector<typename Vec::x, typename Vec::y, mpl::na>;
+                using type = CT::Vector<typename Vec::x, typename Vec::y>;
             };
 
             template<typename T_Vec>
             struct shrinkTo<T_Vec, DIM1>
             {
                 using Vec = T_Vec;
-                using type = CT::Vector<typename Vec::x, mpl::na, mpl::na>;
+                using type = CT::Vector<typename Vec::x>;
             };
 
             //________________________A S S I G N________________________
@@ -353,26 +335,26 @@ namespace pmacc
              * defines a public type as result
              *
              * @tparam T_Vec math::CT::Vector which should be changed
-             * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<anyType,X>)
+             * @tparam T_ComponentPos number of component to changed (type must be std::integral_constant<anyType,X>)
              * @tparam T_Value new value
              */
             template<typename T_Vec, typename T_ComponentPos, typename T_Value>
             struct Assign;
 
             template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
-            struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType, 0>, T_Value>
+            struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, std::integral_constant<T_IntegralType, 0>, T_Value>
             {
                 using type = pmacc::math::CT::Vector<T_Value, T_1, T_2>;
             };
 
             template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
-            struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType, 1>, T_Value>
+            struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, std::integral_constant<T_IntegralType, 1>, T_Value>
             {
                 using type = pmacc::math::CT::Vector<T_0, T_Value, T_2>;
             };
 
             template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
-            struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType, 2>, T_Value>
+            struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, std::integral_constant<T_IntegralType, 2>, T_Value>
             {
                 using type = pmacc::math::CT::Vector<T_0, T_1, T_Value>;
             };
@@ -384,17 +366,14 @@ namespace pmacc
              * defines a public type as result
              *
              * @tparam T_Vec math::CT::Vector which should be changed
-             * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<anyType,X>)
+             * @tparam T_ComponentPos number of component to changed (type must be std::integral_constant<anyType,X>)
              * @tparam T_Value new value
              */
             template<typename T_Vec, typename T_ComponentPos, typename T_Value>
             struct AssignIfInRange
             {
-                using VectorDim = bmpl::integral_c<size_t, T_Vec::dim>;
-                using type = typename bmpl::if_<
-                    bmpl::less<T_ComponentPos, VectorDim>,
-                    typename pmacc::math::CT::Assign<T_Vec, T_ComponentPos, T_Value>::type,
-                    T_Vec>::type;
+                using type = mp_if_c
+                    < T_ComponentPos::value<T_Vec::dim, typename Assign<T_Vec, T_ComponentPos, T_Value>::type, T_Vec>;
             };
 
             //________________________At_c____________________________
@@ -409,7 +388,7 @@ namespace pmacc
             template<typename T_Vec, size_t T_idx>
             struct At_c
             {
-                using type = typename mpl::at_c<typename T_Vec::mplVector, T_idx>::type;
+                using type = mp_at_c<typename T_Vec::mplVector, T_idx>;
             };
 
             //________________________At____________________________
@@ -419,12 +398,12 @@ namespace pmacc
              * defines a public type as result
              *
              * @tparam T_Vec input CT::Vector
-             * @tparam T_Idx integral type index of the component (e.g. boost::mpl::int_<2>)
+             * @tparam T_Idx integral type index of the component (e.g. pmacc::mp_int<2>)
              */
             template<typename T_Vec, typename T_Idx>
             struct At
             {
-                using type = typename mpl::at<typename T_Vec::mplVector, T_Idx>::type;
+                using type = mp_at<typename T_Vec::mplVector, T_Idx>;
             };
 
             //________________________make_Vector___________________
@@ -473,11 +452,11 @@ namespace pmacc
             template<uint32_t T_dim, uint32_t T_direction, typename T_ValueType = int>
             struct make_BasisVector
             {
-                using Zeroes = typename make_Vector<T_dim, bmpl::integral_c<T_ValueType, 0u>>::type;
+                using Zeroes = typename make_Vector<T_dim, std::integral_constant<T_ValueType, 0u>>::type;
                 using type = typename AssignIfInRange<
                     Zeroes,
-                    bmpl::integral_c<size_t, T_direction>,
-                    bmpl::integral_c<T_ValueType, 1>>::type;
+                    std::integral_constant<size_t, T_direction>,
+                    std::integral_constant<T_ValueType, 1>>::type;
             };
 
         } // namespace CT

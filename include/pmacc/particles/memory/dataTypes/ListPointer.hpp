@@ -27,13 +27,13 @@
 
 namespace pmacc
 {
-    template<typename T_Type = bmpl::_1>
+    template<typename T_Type = boost::mpl::_1>
     struct PreviousFramePtr
     {
         PMACC_ALIGN(previousFrame, Pointer<T_Type>);
     };
 
-    template<typename T_Type = bmpl::_1>
+    template<typename T_Type = boost::mpl::_1>
     struct NextFramePtr
     {
         PMACC_ALIGN(nextFrame, Pointer<T_Type>);

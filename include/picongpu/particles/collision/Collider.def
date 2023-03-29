@@ -19,10 +19,7 @@
 
 #pragma once
 
-#include "picongpu/particles/filter/filter.def"
-
-#include <boost/mpl/pair.hpp>
-
+#include <pmacc/meta/Pair.hpp>
 
 namespace picongpu
 {
@@ -36,7 +33,7 @@ namespace picongpu
              * @tparam T_Species1
              */
             template<typename T_Species0, typename T_Species1>
-            using Pair = boost::mpl::pair<T_Species0, T_Species1>;
+            using Pair = pmacc::meta::Pair<T_Species0, T_Species1>;
 
             /* A set of particle filters for a pair of colliding species.
              *
@@ -44,14 +41,14 @@ namespace picongpu
              * @tparam T_Filter1 Filter applied on the 2nd species in a pair.
              */
             template<typename T_Filter0, typename T_Filter1>
-            using FilterPair = boost::mpl::pair<T_Filter0, T_Filter1>;
+            using FilterPair = pmacc::meta::Pair<T_Filter0, T_Filter1>;
 
             /* Sets the same particle filter for both species in a pair.
              *
              * @tparam T_Filter A common particle filter for both colliding species.
              */
             template<typename T_Filter>
-            using OneFilter = boost::mpl::pair<T_Filter, T_Filter>;
+            using OneFilter = pmacc::meta::Pair<T_Filter, T_Filter>;
 
             /* Defines a set of binary collisions with common parameters.
              *

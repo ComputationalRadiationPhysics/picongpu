@@ -27,9 +27,6 @@
 #include "pmacc/particles/policies/DeleteParticles.hpp"
 #include "pmacc/particles/policies/ExchangeParticles.hpp"
 
-#include <boost/mpl/vector.hpp>
-
-
 namespace pmacc
 {
     /** ParticleDescription defines attributes, methods and flags of a particle
@@ -39,7 +36,7 @@ namespace pmacc
      * particle.
      *
      * @tparam T_Name name of described particle (e.g. electron, ion)
-     *                type must be a boost::mpl::string
+     *                type must be a PMACC_CSTRING
      * @tparam T_SuperCellSize compile time size of a super cell
      * @tparam T_ValueTypeSeq sequence or single type with value_identifier, must not have duplicates
      * @tparam T_Flags sequence or single type with identifier to add flags on a frame, must not have duplicates
@@ -47,7 +44,7 @@ namespace pmacc
      *                       (e.g. calculate mass, gamma, ...)
      *                       (e.g. useSolverXY, calcRadiation, ...)
      * @tparam T_FrameExtensionList sequence or single class with frame extensions
-     *                    - extension must be an unary template class that supports bmpl::apply1<>
+     *                    - extension must be an unary template class that supports boost::mpl::apply1<>
      *                    - type of the final frame is applied to each extension class
      *                      (this allows pointers and references to a frame itself)
      *                    - the final frame that uses ParticleDescription inherits from all
@@ -57,11 +54,11 @@ namespace pmacc
         typename T_Name,
         typename T_SuperCellSize,
         typename T_ValueTypeSeq,
-        typename T_Flags = bmpl::vector0<>,
+        typename T_Flags = mp_list<>,
         typename T_HandleGuardRegion
         = HandleGuardRegion<particles::policies::ExchangeParticles, particles::policies::DeleteParticles>,
-        typename T_MethodsList = bmpl::vector0<>,
-        typename T_FrameExtensionList = bmpl::vector0<>>
+        typename T_MethodsList = mp_list<>,
+        typename T_FrameExtensionList = mp_list<>>
     struct ParticleDescription
     {
         using Name = T_Name;

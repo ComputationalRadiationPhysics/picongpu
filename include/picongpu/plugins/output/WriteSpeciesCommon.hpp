@@ -24,9 +24,6 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/pair.hpp>
-
-
 namespace picongpu
 {
     using namespace pmacc;
@@ -129,7 +126,8 @@ namespace picongpu
         template<typename InType>
         struct apply
         {
-            typedef bmpl::pair<InType, pmacc::VectorDataBox<typename pmacc::traits::Resolve<InType>::type::type>> type;
+            using type
+                = pmacc::meta::Pair<InType, pmacc::VectorDataBox<typename pmacc::traits::Resolve<InType>::type::type>>;
         };
     };
 

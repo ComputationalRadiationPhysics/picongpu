@@ -57,7 +57,7 @@ namespace picongpu
 
                 using type = typename pmacc::OperateOnSeq<
                     FoundIonizerList,
-                    bmpl::apply1<bmpl::_1, SpeciesType>,
+                    boost::mpl::apply1<boost::mpl::_1, SpeciesType>,
                     pmacc::meta::accessors::Type<>>::type;
             };
 

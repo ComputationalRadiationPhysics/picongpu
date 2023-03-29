@@ -136,11 +136,11 @@ namespace picongpu
                  */
                 void operator()(FieldTmp& fieldTmp1, uint32_t const& currentStep, uint32_t const& extraSlot) const
                 {
-                    using FilteredSpeciesSeq =
-                        typename bmpl::transform<T_SpeciesSeq, detail::GetSpeciesFilter<bmpl::_1>>::type;
+                    using FilteredSpeciesSeq
+                        = pmacc::mp_transform_q<pmacc::mp_quote_trait<detail::GetSpeciesFilter>, T_SpeciesSeq>;
 
-                    using FirstFilteredSpecies = typename bmpl::at_c<FilteredSpeciesSeq, 0>::type;
-                    using RemainingFilteredSpecies = typename bmpl::pop_front<FilteredSpeciesSeq>::type;
+                    using FirstFilteredSpecies = pmacc::mp_at_c<FilteredSpeciesSeq, 0>;
+                    using RemainingFilteredSpecies = pmacc::mp_pop_front<FilteredSpeciesSeq>;
 
 
                     using DeriveOperation = particles::particleToGrid::
@@ -158,12 +158,12 @@ namespace picongpu
                     if(event.has_value())
                         eventSystem::setTransactionEvent(*event);
 
-                    if constexpr(!bmpl::empty<RemainingFilteredSpecies>::value)
+                    if constexpr(!pmacc::mp_empty<RemainingFilteredSpecies>::value)
                     {
                         auto fieldTmp2 = dc.get<FieldTmp>(FieldTmp::getUniqueId(extraSlot));
                         pmacc::meta::ForEach<
                             RemainingFilteredSpecies,
-                            detail::OpWithNextField<T_Op, bmpl::_1, T_DerivedAttribute>>{}(
+                            detail::OpWithNextField<T_Op, boost::mpl::_1, T_DerivedAttribute>>{}(
                             fieldTmp1,
                             *fieldTmp2,
                             currentStep,

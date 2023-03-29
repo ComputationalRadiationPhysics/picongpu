@@ -22,13 +22,9 @@
 #pragma once
 
 #include "pmacc/meta/GetKeyFromAlias.hpp"
+#include "pmacc/meta/Mp11.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
 #include "pmacc/types.hpp"
-
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
@@ -49,15 +45,12 @@ namespace pmacc
         using MPLSeq = T_MPLSeq;
         using MPLSeqLookup = T_MPLSeqLookup;
         using AliasNotFoundPolicy = T_AliasNotFoundPolicy;
-        using Inserter = bmpl::back_inserter<bmpl::vector<>>;
 
         template<typename T_Identifier>
-        struct GetKeyFromAliasAccessor
-        {
-            using type = typename GetKeyFromAlias<MPLSeqLookup, T_Identifier, AliasNotFoundPolicy>::type;
-        };
+        using GetKeyFromAliasAccessor =
+            typename GetKeyFromAlias<MPLSeqLookup, T_Identifier, AliasNotFoundPolicy>::type;
 
-        using type = typename bmpl::transform<MPLSeq, GetKeyFromAliasAccessor<bmpl::_1>>::type;
+        using type = mp_transform<GetKeyFromAliasAccessor, MPLSeq>;
     };
 
 } // namespace pmacc

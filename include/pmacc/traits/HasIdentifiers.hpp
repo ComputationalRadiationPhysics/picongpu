@@ -21,11 +21,8 @@
 
 #pragma once
 
+#include "pmacc/meta/Mp11.hpp"
 #include "pmacc/traits/HasIdentifier.hpp"
-
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/transform.hpp>
 
 
 namespace pmacc
@@ -35,24 +32,21 @@ namespace pmacc
         /** Checks if an object has all specified identifiers
          *
          * Individual identifiers checks are logically connected via
-         * boost::mpl::and_ .
+         * mp_all_of .
          *
          * @tparam T_Object any object (class or typename)
          * @tparam T_SeqKeys a sequence of identifiers
          *
          * This struct must define
-         * ::type (boost::mpl::bool_<>)
+         * ::type (pmacc::mp_bool_<>)
          */
         template<typename T_Object, typename T_SeqKeys>
         struct HasIdentifiers
         {
-            using SeqHasIdentifiers =
-                typename boost::mpl::transform<T_SeqKeys, HasIdentifier<T_Object, boost::mpl::_1>>::type;
+            template<typename T>
+            using Predicate = typename HasIdentifier<T_Object, T>::type;
 
-            using type = typename boost::mpl::accumulate<
-                SeqHasIdentifiers,
-                boost::mpl::bool_<true>,
-                boost::mpl::and_<boost::mpl::_1, boost::mpl::_2>>::type;
+            using type = pmacc::mp_all_of<T_SeqKeys, Predicate>;
         };
 
         template<typename T_Object, typename T_SeqKeys>

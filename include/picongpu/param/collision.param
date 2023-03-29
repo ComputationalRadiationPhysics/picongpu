@@ -45,7 +45,7 @@ namespace picongpu
              *
              * the functors are called in order (from first to last functor)
              */
-            using CollisionPipeline = bmpl::vector<>;
+            using CollisionPipeline = pmacc::mp_list<>;
 
         } // namespace collision
     } // namespace particles

@@ -39,7 +39,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = pmacc::mp_list<
             CreateDensity<densityProfiles::FlatFoilWithRamp, startPosition::Random6ppc, Hydrogen>,
             /* derive the other two ion species and adjust their weighting to have always all
              * three of macro ions present in a cell, even in cut-off regions of the density profile */

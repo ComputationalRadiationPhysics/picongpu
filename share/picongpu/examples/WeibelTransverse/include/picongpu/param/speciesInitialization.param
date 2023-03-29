@@ -39,7 +39,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = pmacc::mp_list<
             CreateDensity<densityProfiles::Homogenous, startPosition::Quiet4ppc, PIC_Ions>,
             ManipulateDerive<
                 /* make sure in speciesDefinition.param that

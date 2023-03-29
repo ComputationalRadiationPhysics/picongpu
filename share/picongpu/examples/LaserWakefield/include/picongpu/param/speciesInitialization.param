@@ -39,7 +39,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = pmacc::mp_list<
 #if(PARAM_IONIZATION == 0)
             CreateDensity<densityProfiles::Gaussian, startPosition::Random2ppc, PIC_Electrons>
 #    if(PARAM_IONS == 1)

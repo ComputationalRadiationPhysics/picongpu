@@ -261,7 +261,7 @@ namespace picongpu
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
                 //! Whether the simulation has any current sources
                 static constexpr auto existsCurrent
-                    = (bmpl::size<SpeciesWithCurrentSolver>::type::value > 0) || FieldBackgroundJ::activated;
+                    = (pmacc::mp_size<SpeciesWithCurrentSolver>::value > 0) || FieldBackgroundJ::activated;
 
                 /** Whether previousJ is initialized with data of J from previous time step
                  *

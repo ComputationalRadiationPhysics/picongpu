@@ -116,7 +116,7 @@ namespace picongpu
 
             private:
                 //! Functor to process all species
-                meta::ForEach<VectorAllSpecies, detail::RuntimeDensityFileCommandLine<bmpl::_1>> processSpecies;
+                meta::ForEach<VectorAllSpecies, detail::RuntimeDensityFileCommandLine<boost::mpl::_1>> processSpecies;
             };
 
         } // namespace stage

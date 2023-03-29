@@ -75,7 +75,7 @@ namespace picongpu
 #else
             using IntraCollider = Collider<relativistic::RelativisticCollisionConstLog<Params2, true>, Pairs2>;
 #endif
-            using CollisionPipeline = bmpl::vector<IntraCollider, InterCollider>;
+            using CollisionPipeline = pmacc::mp_list<IntraCollider, InterCollider>;
 
         } // namespace collision
     } // namespace particles

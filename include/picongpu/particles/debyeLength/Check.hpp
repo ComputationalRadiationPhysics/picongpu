@@ -97,7 +97,7 @@ namespace picongpu
                 HINLINE std::uint32_t countElectronLikeSpecies()
                 {
                     Counter::value() = 0u;
-                    meta::ForEach<T_SpeciesSeq, ElectonLikeSpeciesCounter<bmpl::_1>> count;
+                    meta::ForEach<T_SpeciesSeq, ElectonLikeSpeciesCounter<boost::mpl::_1>> count;
                     count();
                     return Counter::value();
                 }
@@ -203,7 +203,7 @@ namespace picongpu
                 }
                 else
                 {
-                    meta::ForEach<AllSpeciesWithCurrent, detail::CheckDebyeLength<bmpl::_1>> checkDebyeLength;
+                    meta::ForEach<AllSpeciesWithCurrent, detail::CheckDebyeLength<boost::mpl::_1>> checkDebyeLength;
                     checkDebyeLength(cellDescription, isPrinting);
                 }
             }

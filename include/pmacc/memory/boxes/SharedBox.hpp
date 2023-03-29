@@ -74,8 +74,8 @@ namespace pmacc
         HDINLINE SharedBox(SharedBox const&) = default;
 
         using ReducedType1D = T_TYPE&;
-        using ReducedType2D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value>, T_id>;
-        using ReducedType3D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value, T_Vector::y::value>, T_id>;
+        using ReducedType2D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 1>::type, T_id>;
+        using ReducedType3D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 2>::type, T_id>;
         using ReducedType
             = std::conditional_t<Dim == 1, ReducedType1D, std::conditional_t<Dim == 2, ReducedType2D, ReducedType3D>>;
 
@@ -101,13 +101,6 @@ namespace pmacc
         {
             return fixedPointer;
         }
-
-        using CursorPitch1d = math::CT::Int<>;
-        using CursorPitch2d = math::CT::Int<sizeof(T_TYPE) * T_Vector::x::value>;
-        using CursorPitch3d = math::CT::
-            Int<sizeof(T_TYPE) * T_Vector::x::value, sizeof(T_TYPE) * T_Vector::x::value * T_Vector::y::value>;
-        using CursorPitch
-            = std::conditional_t<Dim == 1, CursorPitch1d, std::conditional_t<Dim == 2, CursorPitch2d, CursorPitch3d>>;
 
         /** create a shared memory box
          *

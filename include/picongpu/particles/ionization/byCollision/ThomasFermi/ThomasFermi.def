@@ -35,7 +35,7 @@ namespace picongpu
              *         cannot be known in list of particle species' flags
              *         @see speciesDefinition.param
              */
-            template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+            template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = boost::mpl::_1>
             struct ThomasFermi_Impl;
 
             /** Thomas-Fermi impact ionization model

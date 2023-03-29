@@ -120,7 +120,7 @@ namespace picongpu
                     typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
                 // needs mass
                 using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, massRatio<>>::type;
-                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+                using type = pmacc::mp_and<SpeciesHasIdentifiers, SpeciesHasFlags>;
             };
         } // namespace traits
     } // namespace particles

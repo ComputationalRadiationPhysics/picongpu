@@ -43,7 +43,6 @@
 
 #include <pmacc/meta/conversion/ToSeq.hpp>
 
-#include <boost/mpl/int.hpp>
 #include <boost/mpl/placeholders.hpp>
 
 #include <vector>
@@ -198,7 +197,7 @@ namespace picongpu
                 using FilteredAttribute = FilteredDerivedAttribute<T_DerivedAttribute, T_Filter>;
 
                 using type = typename traits::GenerateSolversIfSpeciesEligible<
-                    CreateFieldTmpOperation<bmpl::_1, T_DerivedAttribute, T_Filter>,
+                    CreateFieldTmpOperation<boost::mpl::_1, T_DerivedAttribute, T_Filter>,
                     SeqSpecies,
                     FilteredAttribute>::type;
             };

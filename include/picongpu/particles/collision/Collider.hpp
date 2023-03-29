@@ -51,8 +51,8 @@ namespace picongpu
                     {
                         (collision::WithPeer<
                              typename T_Collider::Functor,
-                             typename bmpl::at_c<T_SpeciesPairList, I>::type::first,
-                             typename bmpl::at_c<T_SpeciesPairList, I>::type::second,
+                             typename pmacc::mp_at_c<T_SpeciesPairList, I>::first,
+                             typename pmacc::mp_at_c<T_SpeciesPairList, I>::second,
                              typename T_Collider::FilterPair,
                              colliderId,
                              I>{}(deviceHeap, currentStep),
@@ -67,7 +67,7 @@ namespace picongpu
                 void operator()(std::shared_ptr<DeviceHeap> const& deviceHeap, uint32_t currentStep)
                 {
                     using SpeciesPairList = typename pmacc::ToSeq<typename T_Collider::SpeciesPairs>::type;
-                    constexpr size_t numPairs = bmpl::size<SpeciesPairList>::type::value;
+                    constexpr size_t numPairs = pmacc::mp_size<SpeciesPairList>::value;
                     std::make_index_sequence<numPairs> index{};
                     detail::CallColliderForAPair<SpeciesPairList, T_Collider, colliderId>{}(
                         index,

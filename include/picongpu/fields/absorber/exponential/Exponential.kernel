@@ -25,10 +25,6 @@
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
 
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/range_c.hpp>
-
-
 namespace picongpu
 {
     namespace fields
@@ -41,7 +37,7 @@ namespace picongpu
                 {
                     /** damp each field component at exchange the border
                      *
-                     * @tparam T_Axis, boost::mpl::integral_c axis of the coordinate system
+                     * @tparam T_Axis, std::integral_constant axis of the coordinate system
                      *                 (0 = x, 1 = y, 2 = z)
                      */
                     template<typename T_Axis>
@@ -160,11 +156,7 @@ namespace picongpu
                         DataSpace<simDim> const relExchangeDir
                             = Mask::getRelativeDirections<simDim>(mapper.getExchangeType());
 
-                        /* create a sequence with int values [0;simDim)
-                         * MakeSeq_t allows to use the result of mpl::range_c
-                         * within the PMacc ForEach
-                         */
-                        using SimulationDimensions = MakeSeq_t<boost::mpl::range_c<int, 0, int(simDim)>>;
+                        using SimulationDimensions = pmacc::mp_iota<pmacc::mp_int<simDim>>;
 
                         meta::ForEach<SimulationDimensions, detail::AbsorbInOneDirection<boost::mpl::_1>>
                             absorbInAllDirections;

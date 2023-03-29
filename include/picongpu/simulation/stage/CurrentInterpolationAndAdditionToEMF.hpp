@@ -32,7 +32,6 @@
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
 
-#include <boost/mpl/count.hpp>
 #include <boost/program_options/options_description.hpp>
 
 #include <cstdint>
@@ -101,7 +100,7 @@ namespace picongpu
                     using namespace pmacc;
                     using SpeciesWithCurrentSolver =
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
-                    auto const numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
+                    auto const numSpeciesWithCurrentSolver = pmacc::mp_size<SpeciesWithCurrentSolver>::value;
                     auto const existsParticleCurrent = numSpeciesWithCurrentSolver > 0;
                     if(existsParticleCurrent)
                     {

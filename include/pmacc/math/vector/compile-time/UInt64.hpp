@@ -24,8 +24,6 @@
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/traits/Limits.hpp"
 
-#include <boost/mpl/integral_c.hpp>
-
 #include <cstdint>
 
 #include "pmacc/math/vector/compile-time/Vector.hpp"
@@ -46,32 +44,8 @@ namespace pmacc
              * default parameter is used to distinguish between values given by
              * the user and unset values.
              */
-            template<
-                uint64_t x = traits::limits::Max<uint64_t>::value,
-                uint64_t y = traits::limits::Max<uint64_t>::value,
-                uint64_t z = traits::limits::Max<uint64_t>::value>
-            struct UInt64
-                : public CT::
-                      Vector<mpl::integral_c<uint64_t, x>, mpl::integral_c<uint64_t, y>, mpl::integral_c<uint64_t, z>>
-            {
-            };
-
-            template<>
-            struct UInt64<> : public CT::Vector<>
-            {
-            };
-
-            template<uint64_t x>
-            struct UInt64<x> : public CT::Vector<mpl::integral_c<uint64_t, x>>
-            {
-            };
-
-            template<uint64_t x, uint64_t y>
-            struct UInt64<x, y> : public CT::Vector<mpl::integral_c<uint64_t, x>, mpl::integral_c<uint64_t, y>>
-            {
-            };
-
-
+            template<uint64_t... T_values>
+            using UInt64 = CT::Vector<std::integral_constant<uint64_t, T_values>...>;
         } // namespace CT
     } // namespace math
 } // namespace pmacc

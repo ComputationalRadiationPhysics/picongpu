@@ -42,7 +42,7 @@ namespace picongpu
                 typename T_IonizationAlgorithm,
                 typename T_DestSpecies,
                 typename T_IonizationCurrent,
-                typename T_SrcSpecies = bmpl::_1>
+                typename T_SrcSpecies = boost::mpl::_1>
             struct ADK_Impl;
 
             /** Ammosov-Delone-Krainov tunneling model - linear laser polarization

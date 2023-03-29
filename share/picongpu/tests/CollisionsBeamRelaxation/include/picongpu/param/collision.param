@@ -72,7 +72,7 @@ namespace picongpu
              *
              * the functors are called in order (from first to last functor)
              */
-            using CollisionPipeline = bmpl::vector<
+            using CollisionPipeline = pmacc::mp_list<
                 Collider<ColliderFunctor, MakeSeq_t<Pair<ElectronsMore, IonsMore>>, OneFilter<filter::LowerXPosition>>,
                 Collider<
                     ColliderFunctor,

@@ -40,7 +40,7 @@ namespace picongpu
          * the functors are called in order (from first to last functor).
          * The functors must be default-constructible and take the current time iteration as the only parameter.
          */
-        using InitPipeline = bmpl::vector<>;
+        using InitPipeline = pmacc::mp_list<>;
 
     } // namespace particles
 } // namespace picongpu

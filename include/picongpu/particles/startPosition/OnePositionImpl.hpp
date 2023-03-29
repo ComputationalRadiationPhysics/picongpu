@@ -26,9 +26,6 @@
 
 #include <pmacc/traits/HasIdentifier.hpp>
 
-#include <boost/mpl/integral_c.hpp>
-
-
 namespace picongpu::particles::startPosition::acc
 {
     template<typename T_ParamClass>

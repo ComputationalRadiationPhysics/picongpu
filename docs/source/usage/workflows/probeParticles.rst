@@ -84,7 +84,7 @@ and add it to ``VectorAllSpecies``:
 
 .. code-block:: cpp
 
-   using InitPipeline = bmpl::vector<
+   using InitPipeline = pmacc::mp_list<
        // ... ,
        CreateDensity<
            densityProfiles::ProbeEveryFourthCell,

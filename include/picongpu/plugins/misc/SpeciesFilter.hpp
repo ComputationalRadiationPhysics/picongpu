@@ -80,17 +80,14 @@ namespace picongpu
                 /** evaluate if the filter and species combination is valid
                  *
                  * @tparam T_SpeciesFilter SpeciesFilter, type of the filter and species
-                 * @return ::type boost::mpl::bool_<>, if the species is eligible for the filter
+                 * @return pmacc::mp_bool<>, if the species is eligible for the filter
                  */
                 template<typename T_SpeciesFilter>
-                struct IsEligible
-                {
-                    using type = boost::mpl::and_<
-                        typename particles::traits::SpeciesEligibleForSolver<
-                            typename T_SpeciesFilter::Species,
-                            typename T_SpeciesFilter::Filter>::type,
-                        boost::mpl::bool_<T_SpeciesFilter::Filter::isDeterministic>>;
-                };
+                using IsEligible = std::bool_constant<
+                    particles::traits::SpeciesEligibleForSolver<
+                        typename T_SpeciesFilter::Species,
+                        typename T_SpeciesFilter::Filter>::type::value
+                    && T_SpeciesFilter::Filter::isDeterministic>;
             } // namespace speciesFilter
 
         } // namespace misc

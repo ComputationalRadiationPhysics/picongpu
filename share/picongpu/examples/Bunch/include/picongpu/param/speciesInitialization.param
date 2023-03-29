@@ -39,7 +39,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = pmacc::mp_list<
 #ifdef PARAM_SINGLE_PARTICLE
             CreateDensity<densityProfiles::FreeFormula, startPosition::OnePosition, PIC_Electrons>,
 #else

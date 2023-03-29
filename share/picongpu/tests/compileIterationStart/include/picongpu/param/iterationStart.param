@@ -74,7 +74,7 @@ namespace picongpu
      * Since some particles of PIC_Electrons may be removed, the following FillAllGaps is needed
      * (for PIC_HighGammaElectrons it is done as part of ManipulateDerive<>).
      */
-    using IterationStartPipeline = bmpl::vector<
+    using IterationStartPipeline = pmacc::mp_list<
         particles::ManipulateDerive<MoveIfHighGamma, PIC_Electrons, PIC_HighGammaElectrons>,
         particles::FillAllGaps<PIC_Electrons>>;
 

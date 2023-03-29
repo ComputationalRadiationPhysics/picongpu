@@ -38,15 +38,17 @@ namespace picongpu
          */
         template<
             typename T_Species,
-            typename T_GetLowerMargin = GetLowerMargin<GetPusher<bmpl::_1>>,
-            typename T_GetUpperMargin = GetUpperMargin<GetPusher<bmpl::_1>>>
+            typename T_GetLowerMargin = GetLowerMargin<GetPusher<boost::mpl::_1>>,
+            typename T_GetUpperMargin = GetUpperMargin<GetPusher<boost::mpl::_1>>>
         struct GetMarginPusher
         {
-            using AddLowerMargins = pmacc::math::CT::add<GetLowerMargin<GetInterpolation<bmpl::_1>>, T_GetLowerMargin>;
-            using LowerMargin = typename bmpl::apply<AddLowerMargins, T_Species>::type;
+            using AddLowerMargins
+                = pmacc::math::CT::add<GetLowerMargin<GetInterpolation<boost::mpl::_1>>, T_GetLowerMargin>;
+            using LowerMargin = typename boost::mpl::apply<AddLowerMargins, T_Species>::type;
 
-            using AddUpperMargins = pmacc::math::CT::add<GetUpperMargin<GetInterpolation<bmpl::_1>>, T_GetUpperMargin>;
-            using UpperMargin = typename bmpl::apply<AddUpperMargins, T_Species>::type;
+            using AddUpperMargins
+                = pmacc::math::CT::add<GetUpperMargin<GetInterpolation<boost::mpl::_1>>, T_GetUpperMargin>;
+            using UpperMargin = typename boost::mpl::apply<AddUpperMargins, T_Species>::type;
         };
 
         /** Get lower margin of a pusher for species

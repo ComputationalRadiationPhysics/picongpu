@@ -24,8 +24,6 @@
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/traits/Limits.hpp"
 
-#include <boost/mpl/integral_c.hpp>
-
 #include <cstdint>
 
 #include "pmacc/math/vector/compile-time/Vector.hpp"
@@ -46,29 +44,8 @@ namespace pmacc
              * default parameter is used to distinguish between values given by
              * the user and unset values.
              */
-            template<
-                int x = traits::limits::Max<int>::value,
-                int y = traits::limits::Max<int>::value,
-                int z = traits::limits::Max<int>::value>
-            struct Int : public CT::Vector<mpl::integral_c<int, x>, mpl::integral_c<int, y>, mpl::integral_c<int, z>>
-            {
-            };
-
-            template<>
-            struct Int<> : public CT::Vector<>
-            {
-            };
-
-            template<int x>
-            struct Int<x> : public CT::Vector<mpl::integral_c<int, x>>
-            {
-            };
-
-            template<int x, int y>
-            struct Int<x, y> : public CT::Vector<mpl::integral_c<int, x>, mpl::integral_c<int, y>>
-            {
-            };
-
+            template<int... T_values>
+            using Int = CT::Vector<std::integral_constant<int, T_values>...>;
 
             template<uint32_t dim, int val>
             struct make_Int;

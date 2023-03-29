@@ -81,8 +81,9 @@ namespace picongpu
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, atomicPhysicsSolver<>>::type;
 
                 //! kernel to be called for each species
-                pmacc::meta::ForEach<SpeciesWithAtomicPhysics, particles::atomicPhysics::CallAtomicPhysics<bmpl::_1>>
-                    callAtomicPhysics;
+                pmacc::meta::
+                    ForEach<SpeciesWithAtomicPhysics, particles::atomicPhysics::CallAtomicPhysics<boost::mpl::_1>>
+                        callAtomicPhysics;
 
                 /** Description of cell structure used for PIC-Simulations.
                  *

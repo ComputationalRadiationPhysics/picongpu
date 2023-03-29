@@ -105,8 +105,8 @@ namespace picongpu
                     //! Number of coefficients: T_neighbors along T_axis, 1 along other axes
                     using Size = typename pmacc::math::CT::Assign<
                         pmacc::math::CT::make_Int<3, 1>::type::vector_type,
-                        bmpl::integral_c<int, T_axis>,
-                        bmpl::integral_c<int, T_neighbors>>::type;
+                        std::integral_constant<int, T_axis>,
+                        std::integral_constant<int, T_neighbors>>::type;
 
                     //! Normalized coefficient values, actual coefficient = value[...] / step[T_axis]
                     float_X value[Size::x::value][Size::y::value][Size::z::value];
@@ -189,8 +189,8 @@ namespace picongpu
                     //! Number of coefficients: 2 along T_cherenkovFreeDirection, 1 along other axes
                     using Size = typename pmacc::math::CT::Assign<
                         pmacc::math::CT::make_Int<3, 1>::type::vector_type,
-                        bmpl::integral_c<int, T_cherenkovFreeDirection>,
-                        bmpl::integral_c<int, 2>>::type;
+                        std::integral_constant<int, T_cherenkovFreeDirection>,
+                        std::integral_constant<int, 2>>::type;
 
                     //! Normalized coefficient values, actual coefficient = value[...] / step[T_axis]
                     float_X value[Size::x::value][Size::y::value][Size::z::value];

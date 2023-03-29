@@ -174,6 +174,10 @@ namespace picongpu
         };
     } // namespace detail
 
+    template<typename T>
+    using SpeciesEligibleForChargeConservation =
+        typename particles::traits::SpeciesEligibleForSolver<T, ChargeConservation>::type;
+
     void ChargeConservation::notify(uint32_t currentStep)
     {
         typedef SuperCellSize BlockDim;
@@ -186,16 +190,15 @@ namespace picongpu
         /* reset density values to zero */
         fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
-        using EligibleSpecies = typename bmpl::
-            copy_if<VectorAllSpecies, particles::traits::SpeciesEligibleForSolver<bmpl::_1, ChargeConservation>>::type;
+        using EligibleSpecies = pmacc::mp_filter<SpeciesEligibleForChargeConservation, VectorAllSpecies>;
 
         // todo: log species that are used / ignored in this plugin with INFO
 
         /* calculate and add the charge density values from all species in FieldTmp */
         meta::ForEach<
             EligibleSpecies,
-            picongpu::detail::ComputeChargeDensity<bmpl::_1, bmpl::int_<CORE + BORDER>>,
-            bmpl::_1>
+            picongpu::detail::ComputeChargeDensity<boost::mpl::_1, pmacc::mp_int<CORE + BORDER>>,
+            boost::mpl::_1>
             computeChargeDensity;
         computeChargeDensity(fieldTmp.get(), currentStep);
 

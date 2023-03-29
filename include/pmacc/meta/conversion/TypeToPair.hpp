@@ -21,21 +21,20 @@
 
 #pragma once
 
+#include "pmacc/meta/Pair.hpp"
 #include "pmacc/types.hpp"
-
-#include <boost/mpl/pair.hpp>
 
 namespace pmacc
 {
-    /** create boost mpl pair
+    /** create pmacc::meta::Pair
      *
      * @tparam T_Type any type
-     * @resturn ::type boost mpl pair where first and second is set to T_Type
+     * @resturn ::type pmacc::meta::Pair where first and second is set to T_Type
      */
     template<typename T_Type>
     struct TypeToPair
     {
-        using type = bmpl::pair<T_Type, T_Type>;
+        using type = pmacc::meta::Pair<T_Type, T_Type>;
     };
 
 

@@ -34,11 +34,7 @@
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/plus.hpp>
-
 #include <memory>
-
 
 namespace picongpu
 {
@@ -46,7 +42,7 @@ namespace picongpu
     {
         /** assign nullptr to all attributes of a species
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of the species
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of the species
          */
         template<typename T_SpeciesType>
         struct AssignNull
@@ -64,7 +60,7 @@ namespace picongpu
 
         /** create memory for the given species type
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of the species
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of the species
          */
         template<typename T_SpeciesType>
         struct CreateSpecies
@@ -82,7 +78,7 @@ namespace picongpu
 
         /** write memory statistics to the terminal
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of the species
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of the species
          */
         template<typename T_SpeciesType>
         struct LogMemoryStatisticsForSpecies
@@ -106,7 +102,7 @@ namespace picongpu
 
         /** call method reset for the given species
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of the species to reset
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of the species to reset
          */
         template<typename T_SpeciesType>
         struct CallReset
@@ -126,7 +122,7 @@ namespace picongpu
          *
          * Both operations only affect species with a pusher
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked
          */
         template<typename T_SpeciesType>
         struct PushSpecies
@@ -154,7 +150,7 @@ namespace picongpu
          *
          * Must be called only for species with a pusher
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked
          */
         template<typename T_SpeciesType>
         struct RemoveOuterParticles
@@ -174,7 +170,7 @@ namespace picongpu
          *
          * communication is only triggered for species with a pusher
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked
          */
         template<typename T_SpeciesType>
         struct CommunicateSpecies
@@ -217,7 +213,7 @@ namespace picongpu
                 /* push all species */
                 using VectorSpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<bmpl::_1>> pushSpecies;
+                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<boost::mpl::_1>> pushSpecies;
                 pushSpecies(currentStep, eventInt, updateEventList);
 
                 /* join all push events */
@@ -227,7 +223,8 @@ namespace picongpu
                 }
 
                 /* call communication for all species */
-                meta::ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<bmpl::_1>> communicateSpecies;
+                meta::ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<boost::mpl::_1>>
+                    communicateSpecies;
                 communicateSpecies(updateEventList, commEventList);
 
                 /* join all communication events */
@@ -249,14 +246,14 @@ namespace picongpu
             {
                 using VectorSpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<bmpl::_1>> removeOuterParticles;
+                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<boost::mpl::_1>> removeOuterParticles;
                 removeOuterParticles(currentStep);
             }
         };
 
         /** Call an ionization method upon an ion species
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is going to be ionized
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is going to be ionized
          * with ionization scheme T_SelectIonizer
          */
         template<typename T_SpeciesType, typename T_SelectIonizer>
@@ -304,7 +301,7 @@ namespace picongpu
          *
          * Tests if species can be ionized and calls the kernels to do that
          *
-         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked for ionization
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for ionization
          */
         template<typename T_SpeciesType>
         struct CallIonization
@@ -329,7 +326,8 @@ namespace picongpu
                 using hasIonizers = typename HasFlag<FrameType, ionizers<>>::type;
                 if(hasIonizers::value)
                 {
-                    meta::ForEach<SelectIonizerList, CallIonizationScheme<SpeciesType, bmpl::_1>> particleIonization;
+                    meta::ForEach<SelectIonizerList, CallIonizationScheme<SpeciesType, boost::mpl::_1>>
+                        particleIonization;
                     particleIonization(cellDesc, currentStep);
                 }
             }

@@ -45,8 +45,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/and.hpp>
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -221,9 +219,10 @@ namespace picongpu
             }
 
             // find all valid filter for the current used species
-            using EligibleFilters = typename MakeSeqFromNestedSeq<typename bmpl::transform<
-                particles::filter::AllParticleFilters,
-                particles::traits::GenerateSolversIfSpeciesEligible<bmpl::_1, ParticlesType>>::type>::type;
+            template<typename T>
+            using Op = typename particles::traits::GenerateSolversIfSpeciesEligible<T, ParticlesType>::type;
+            using EligibleFilters =
+                typename MakeSeqFromNestedSeq<pmacc::mp_transform<Op, particles::filter::AllParticleFilters>>::type;
 
             //! periodicity of computing the particle energy
             plugins::multi::Option<std::string> notifyPeriod
@@ -239,7 +238,7 @@ namespace picongpu
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                meta::ForEach<EligibleFilters, plugins::misc::AppendName<bmpl::_1>> getEligibleFilterNames;
+                meta::ForEach<EligibleFilters, plugins::misc::AppendName<boost::mpl::_1>> getEligibleFilterNames;
                 getEligibleFilterNames(allowedFilters);
 
                 concatenatedFilterNames = plugins::misc::concatenateToString(allowedFilters, ", ");
@@ -491,7 +490,7 @@ namespace picongpu
                 mapper,
                 std::placeholders::_1);
 
-            meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<bmpl::_1>>{}(
+            meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
                 m_help->filter.get(m_id),
                 currentStep,
                 binaryKernel);
@@ -763,7 +762,7 @@ namespace picongpu
                 // and also a mass ratio for energy calculation from momentum
                 using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, massRatio<>>::type;
 
-                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+                using type = pmacc::mp_and<SpeciesHasIdentifiers, SpeciesHasFlags>;
             };
         } // namespace traits
     } // namespace particles

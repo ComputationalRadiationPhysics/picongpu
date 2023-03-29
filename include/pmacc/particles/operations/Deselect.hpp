@@ -22,11 +22,6 @@
 #pragma once
 
 #include "pmacc/meta/conversion/ToSeq.hpp"
-#include "pmacc/types.hpp"
-
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {

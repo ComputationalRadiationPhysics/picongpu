@@ -32,12 +32,7 @@
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -65,11 +60,11 @@ namespace picongpu
 
 
             /* delete multiMask and localCellIdx in openPMD particle*/
-            using TypesToDelete = bmpl::vector2<multiMask, localCellIdx>;
+            using TypesToDelete = pmacc::mp_list<multiMask, localCellIdx>;
             using ParticleCleanedAttributeList = typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type;
 
             /* add totalCellIdx for openPMD particle*/
-            using ParticleNewAttributeList = typename MakeSeq<ParticleCleanedAttributeList, totalCellIdx>::type;
+            using ParticleNewAttributeList = MakeSeq_t<ParticleCleanedAttributeList, totalCellIdx>;
 
             using NewParticleDescription =
                 typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type;
@@ -139,11 +134,12 @@ namespace picongpu
                 openPMDFrameType mappedFrame;
                 log<picLog::INPUT_OUTPUT>("openPMD: malloc mapped memory: %1%") % speciesName;
                 /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<bmpl::_1>> mallocMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>> mallocMem;
                 mallocMem(mappedFrame, totalNumParticles);
 
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, LoadParticleAttributesFromOpenPMD<bmpl::_1>>
-                    loadAttributes;
+                meta::
+                    ForEach<typename openPMDFrameType::ValueTypeSeq, LoadParticleAttributesFromOpenPMD<boost::mpl::_1>>
+                        loadAttributes;
                 loadAttributes(params, mappedFrame, particleSpecies, particleOffset, totalNumParticles);
 
                 if(totalNumParticles != 0)
@@ -159,7 +155,7 @@ namespace picongpu
                         picLog::INPUT_OUTPUT());
 
                     /*free host memory*/
-                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<bmpl::_1>> freeMem;
+                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<boost::mpl::_1>> freeMem;
                     freeMem(mappedFrame);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) load species: %1%") % speciesName;

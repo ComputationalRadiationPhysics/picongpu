@@ -25,9 +25,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/if.hpp>
-
-
 namespace picongpu
 {
     namespace traits
@@ -52,7 +49,7 @@ namespace picongpu
             using DensityRatioOfSpecies =
                 typename pmacc::traits::Resolve<typename GetFlagType<FrameType, densityRatio<>>::type>::type;
 
-            using type = typename bmpl::if_<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>::type;
+            using type = pmacc::mp_if<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>;
         };
 
     } // namespace traits

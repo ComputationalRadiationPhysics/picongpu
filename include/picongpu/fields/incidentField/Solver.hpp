@@ -302,8 +302,8 @@ namespace picongpu
                     constexpr int blockSizeAlongAxis = std::min(sizeAlongAxis, supercellSizeAlongAxis);
                     using BlockSize = typename pmacc::math::CT::AssignIfInRange<
                         typename SuperCellSize::vector_type,
-                        bmpl::integral_c<uint32_t, T_axis>,
-                        bmpl::integral_c<int, blockSizeAlongAxis>>::type;
+                        std::integral_constant<uint32_t, T_axis>,
+                        std::integral_constant<int, blockSizeAlongAxis>>::type;
                     auto const superCellSize = SuperCellSize::toRT();
                     auto const gridBlocks
                         = (endLocalUserIdx - beginLocalUserIdx + superCellSize - Index::create(1)) / superCellSize;
@@ -633,10 +633,10 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrement = maxwellSolver::getTimeStep();
-                    meta::ForEach<T_MinProfiles, ApplyUpdateE<bmpl::_1>> applyMinProfiles;
+                    meta::ForEach<T_MinProfiles, ApplyUpdateE<boost::mpl::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<bmpl::_1>> applyMaxProfiles;
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<boost::mpl::_1>> applyMaxProfiles;
                     applyMaxProfiles(parameters);
                 }
 
@@ -682,10 +682,10 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrement = 0.5_X * maxwellSolver::getTimeStep();
-                    meta::ForEach<T_MinProfiles, ApplyUpdateB<bmpl::_1>> applyMinProfiles;
+                    meta::ForEach<T_MinProfiles, ApplyUpdateB<boost::mpl::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<bmpl::_1>> applyMaxProfiles;
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<boost::mpl::_1>> applyMaxProfiles;
                     applyMaxProfiles(parameters);
                 }
 

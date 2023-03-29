@@ -28,8 +28,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/and.hpp>
-
 #include <vector>
 
 namespace picongpu

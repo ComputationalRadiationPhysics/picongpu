@@ -25,9 +25,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/if.hpp>
-
-
 namespace picongpu
 {
     namespace traits
@@ -46,10 +43,10 @@ namespace picongpu
             using FrameType = typename T_Species::FrameType;
             using hasMemCfg = typename HasFlag<FrameType, exchangeMemCfg<>>::type;
 
-            using type = typename bmpl::if_<
+            using type = pmacc::mp_if<
                 hasMemCfg,
                 typename pmacc::traits::Resolve<typename GetFlagType<FrameType, exchangeMemCfg<>>::type>::type,
-                ::picongpu::DefaultExchangeMemCfg>::type;
+                ::picongpu::DefaultExchangeMemCfg>;
         };
 
         //! short hand traits for GetExchangeMemCfg

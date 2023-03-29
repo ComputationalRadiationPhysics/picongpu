@@ -24,10 +24,6 @@
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/placeholders.hpp>
-
-
 namespace pmacc
 {
     namespace particles
@@ -39,22 +35,16 @@ namespace pmacc
              * @tparam T_MPLSeq sequence of particle species
              * @tparam T_Identifier identifier to be filtered
              *
-             * @typedef type boost mpl forward sequence
+             * @typedef type boost mp11 list sequence
              */
             template<typename T_MPLSeq, typename T_Identifier>
             struct FilterByIdentifier
             {
-                using MPLSeq = T_MPLSeq;
-                using Identifier = T_Identifier;
-
                 template<typename T_Species>
-                struct HasIdentifier
-                {
-                    using type =
-                        typename ::pmacc::traits::HasIdentifier<typename T_Species::FrameType, Identifier>::type;
-                };
+                using HasIdentifier =
+                    typename ::pmacc::traits::HasIdentifier<typename T_Species::FrameType, T_Identifier>::type;
 
-                using type = typename bmpl::copy_if<MPLSeq, HasIdentifier<bmpl::_>>::type;
+                using type = mp_copy_if<T_MPLSeq, HasIdentifier>;
             };
 
         } // namespace traits

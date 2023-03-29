@@ -142,7 +142,7 @@ namespace picongpu
                     typename particles::traits::SpeciesEligibleForSolver<T_Species, T_BaseDerivedAttribute>::type;
                 using EligibleForModifierAttribute =
                     typename particles::traits::SpeciesEligibleForSolver<T_Species, T_ModifyingDerivedAttribute>::type;
-                using type = typename bmpl::and_<EligibleForBaseAttribute, EligibleForModifierAttribute>;
+                using type = pmacc::mp_and<EligibleForBaseAttribute, EligibleForModifierAttribute>;
             };
         } // namespace traits
     } // namespace particles

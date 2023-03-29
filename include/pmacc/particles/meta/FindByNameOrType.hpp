@@ -24,14 +24,9 @@
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
 #include "pmacc/traits/GetCTName.hpp"
 
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/front.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/apply.hpp>
 
 #include <type_traits>
-
 
 namespace pmacc
 {
@@ -58,17 +53,18 @@ namespace pmacc
                 template<typename T_Value>
                 struct HasTypeOrName
                 {
-                    using type = bmpl::or_<
-                        std::is_same<T_Identifier, T_Value>,
-                        std::is_same<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>>;
+                    static constexpr bool value
+                        = std::is_same_v<
+                              T_Identifier,
+                              T_Value> || std::is_same_v<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>;
                 };
 
-                using FilteredSeq = typename bmpl::copy_if<T_MPLSeq, HasTypeOrName<bmpl::_1>>::type;
+                using FilteredSeq = mp_copy_if<T_MPLSeq, HasTypeOrName>;
 
-                using type = typename bmpl::if_<
-                    bmpl::empty<FilteredSeq>,
-                    bmpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Identifier>,
-                    bmpl::front<FilteredSeq>>::type::type;
+                using type = typename mp_if<
+                    mp_empty<FilteredSeq>,
+                    boost::mpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Identifier>,
+                    mp_defer<mp_front, FilteredSeq>>::type;
             };
 
             template<

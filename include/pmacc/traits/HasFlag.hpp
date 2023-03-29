@@ -32,7 +32,7 @@ namespace pmacc
          * @tparam T_Key a class which is used as identifier
          *
          * This struct must define
-         * ::type (boost::mpl::bool_<>)
+         * ::type (pmacc::mp_bool_<>)
          */
         template<typename T_Object, typename T_Key>
         struct HasFlag;

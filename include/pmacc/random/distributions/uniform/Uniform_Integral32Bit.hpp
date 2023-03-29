@@ -41,7 +41,7 @@ namespace pmacc
                 class Uniform<
                     T_Type,
                     T_RNGMethod,
-                    typename bmpl::if_c<std::is_integral_v<T_Type> && sizeof(T_Type) <= 4, void, T_Type>::type>
+                    std::conditional_t<std::is_integral_v<T_Type> && sizeof(T_Type) <= 4, void, T_Type>>
                 {
                     using RNGMethod = T_RNGMethod;
                     using StateType = typename RNGMethod::StateType;

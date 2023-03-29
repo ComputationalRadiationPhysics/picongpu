@@ -22,34 +22,12 @@
 
 #pragma once
 
-
 #include "pmacc/meta/conversion/MakeSeqFromNestedSeq.hpp"
-
-#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
-    /** combine all input types to one sequence
-     *
-     * Note: if the input type is a sequence itself, its elements will be unfolded
-     *       and added separately
-     *
-     * @tparam T_Args a boost mpl sequence or single type
-     *
-     * @code
-     * using MyType = typename MakeSeq< A, B >::type
-     * using MyType2 = typename MakeSeq< boost::mpl::vector<A, B>, C >::type
-     * @endcode
-     *
-     */
+    /** short hand definition for @see MakeSeqFromNestedSeq<> */
     template<typename... T_Args>
-    struct MakeSeq
-    {
-        using type = typename MakeSeqFromNestedSeq<bmpl::vector<T_Args...>>::type;
-    };
-
-    /** short hand definition for @see MakeSeq<> */
-    template<typename... T_Args>
-    using MakeSeq_t = typename MakeSeq<T_Args...>::type;
+    using MakeSeq_t = typename MakeSeqFromNestedSeq<mp_list<T_Args...>>::type;
 
 } // namespace pmacc

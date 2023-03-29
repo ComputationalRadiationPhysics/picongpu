@@ -34,10 +34,7 @@
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/contains.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/list.hpp>
-#include <boost/mpl/map.hpp>
+#include <boost/mpl/apply.hpp>
 
 namespace pmacc
 {
@@ -59,12 +56,13 @@ namespace pmacc
 
     template<typename T_CreatePairOperator, typename T_ParticleDescription>
     struct Frame
-        : public InheritLinearly<typename T_ParticleDescription::MethodsList>
-        , protected pmath::MapTuple<
+        : protected pmath::MapTuple<
               typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type>
-        , public InheritLinearly<typename OperateOnSeq<
-              typename T_ParticleDescription::FrameExtensionList,
-              bmpl::apply1<bmpl::_1, Frame<T_CreatePairOperator, T_ParticleDescription>>>::type>
+        , public InheritLinearly<mp_append<
+              typename T_ParticleDescription::MethodsList,
+              typename OperateOnSeq<
+                  typename T_ParticleDescription::FrameExtensionList,
+                  boost::mpl::apply1<boost::mpl::_1, Frame<T_CreatePairOperator, T_ParticleDescription>>>::type>>
     {
         using ParticleDescription = T_ParticleDescription;
         using Name = typename ParticleDescription::Name;
@@ -134,7 +132,8 @@ namespace pmacc
              */
             using SolvedAliasName = typename GetKeyFromAlias<ValueTypeSeq, T_IdentifierName>::type;
 
-            using type = bmpl::contains<ValueTypeSeq, SolvedAliasName>;
+            using type = boost::mp11::mp_contains<ValueTypeSeq, SolvedAliasName>; // FIXME(bgruber): boost::mp11::
+                                                                                  // needed because of nvcc 11.0 bug
         };
 
         template<typename T_IdentifierName, typename T_CreatePairOperator, typename T_ParticleDescription>
@@ -146,7 +145,7 @@ namespace pmacc
             using FlagList = typename FrameType::FlagList;
 
         public:
-            using type = bmpl::contains<FlagList, SolvedAliasName>;
+            using type = mp_contains<FlagList, SolvedAliasName>;
         };
 
         template<typename T_IdentifierName, typename T_CreatePairOperator, typename T_ParticleDescription>
