@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.def"
+#include "picongpu/fields/MaxwellSolver/CKC/CKC.def"
 #include "picongpu/fields/MaxwellSolver/DispersionRelation.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
