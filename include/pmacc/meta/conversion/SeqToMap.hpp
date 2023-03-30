@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "pmacc/meta/SeqToList.hpp"
 #include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
 
@@ -29,23 +28,23 @@
 
 namespace pmacc
 {
-    /** convert boost mp11 list to a map
+    /** convert a list to a map
      *
-     * @tparam T_MPLSeq any boost mp11 list
+     * @tparam T_List an mp_list.
      * @tparam T_UnaryOperator unary operator to translate type from the sequence
      * to a mpl pair
      * @tparam T_Accessor An unary lambda operator which is used before the type
      * from the sequence is passed to T_UnaryOperator
      * @return ::type mpl map
      */
-    template<typename T_MPLSeq, typename T_UnaryOperator, typename T_Accessor = meta::accessors::Identity<>>
+    template<typename T_List, typename T_UnaryOperator, typename T_Accessor = meta::accessors::Identity<>>
     struct SeqToMap
     {
         template<typename X>
         using Op =
             typename boost::mpl::apply1<T_UnaryOperator, typename boost::mpl::apply1<T_Accessor, X>::type>::type;
 
-        using ListOfTuples = mp_transform<Op, meta::detail::SeqToList<T_MPLSeq>>;
+        using ListOfTuples = mp_transform<Op, T_List>;
         using type = mp_fold<ListOfTuples, mp_list<>, mp_map_insert>;
     };
 } // namespace pmacc

@@ -66,7 +66,7 @@ namespace picongpu
             {
                 void operator()(std::shared_ptr<DeviceHeap> const& deviceHeap, uint32_t currentStep)
                 {
-                    using SpeciesPairList = typename pmacc::ToSeq<typename T_Collider::SpeciesPairs>::type;
+                    using SpeciesPairList = pmacc::ToSeq<typename T_Collider::SpeciesPairs>;
                     constexpr size_t numPairs = pmacc::mp_size<SpeciesPairList>::value;
                     std::make_index_sequence<numPairs> index{};
                     detail::CallColliderForAPair<SpeciesPairList, T_Collider, colliderId>{}(

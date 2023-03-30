@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/meta/conversion/ToSeq.hpp"
 
 namespace pmacc
@@ -46,7 +47,7 @@ namespace pmacc
             template<typename T_Exclude, typename T_Object>
             HDINLINE decltype(auto) deselect(T_Object& object)
             {
-                using DeselectSeq = typename ToSeq<T_Exclude>::type;
+                using DeselectSeq = ToSeq<T_Exclude>;
                 using BaseType = detail::Deselect<DeselectSeq, T_Object>;
 
                 return BaseType()(object);

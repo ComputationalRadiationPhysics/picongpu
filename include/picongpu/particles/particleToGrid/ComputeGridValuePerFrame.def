@@ -193,7 +193,7 @@ namespace picongpu
             struct CreateEligible
             {
                 // wrap single arguments to sequence
-                using SeqSpecies = typename pmacc::ToSeq<T_SeqSpecies>::type;
+                using SeqSpecies = pmacc::ToSeq<T_SeqSpecies>;
                 using FilteredAttribute = FilteredDerivedAttribute<T_DerivedAttribute, T_Filter>;
 
                 using type = typename traits::GenerateSolversIfSpeciesEligible<
