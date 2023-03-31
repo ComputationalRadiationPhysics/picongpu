@@ -77,7 +77,7 @@ class addParticles2Checkpoint:
             print("\t"*self.tabs + string)
 
     def __init__(
-            self, filename_in, filename_out, speciesName='e', verbose=True):
+            self, filename_in, filename_out, speciesName='e', verbose=False):
         """
         initialization of manipulation routine
 
@@ -322,8 +322,8 @@ class addParticles2Checkpoint:
         # determine number of particles in all patches
         self.numParticles = np.sum(self.patch_mask, axis=1, dtype=np.uint)
         # calculate number of particles before the patch
-        self.numParticlesOffset = np.cumsum(self.numParticles, dtype=np.uint)
-        - self.numParticles
+        self.numParticlesOffset = (np.cumsum(self.numParticles, dtype=np.uint)
+                                   - self.numParticles)
         # fix possible negative value for first patch (if number of particles
         # in first patch != 0)
         self.numParticlesOffset[0] = 0
@@ -477,7 +477,7 @@ class pipe:
         sys.stdout.flush()
 
         self.__copy(inseries, outseries)
-        print("Finished!")
+        print("\nFinished!")
 
     def __copy(self, src, dest, current_path="/data/"):
         """
