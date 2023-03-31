@@ -70,6 +70,8 @@
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode - 1 ) / TBG_gpusPerNode))"
 
+.TBG_DataTransport=rdma
+
 ## end calculations ##
 
 echo 'Running program...'
@@ -128,7 +130,7 @@ EOL
 
 # export LD_PROFILE_OUTPUT=`pwd`
 # export LD_PROFILE=libadios2_evpath.so
-jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee ../output &
+jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams > ../pic.out 2> ../pic.err &
 
 echo '!TBG_inconfig_pipe' | tee inconfig.json
 echo '!TBG_outconfig_pipe' | tee outconfig.json

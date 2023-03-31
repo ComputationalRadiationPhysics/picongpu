@@ -69,6 +69,8 @@
 .TBG_coresPerGPU=7
 .TBG_coresPerPipeInstance=7
 
+.TBG_DataTransport=mpi
+
 # Assign one OpenMP thread per available core per GPU (=task)
 export OMP_NUM_THREADS=!TBG_coresPerGPU
 
@@ -237,7 +239,8 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       !TBG_dstPath/input/bin/picongpu       \
         --mpiDirect                         \
         !TBG_author                         \
-        !TBG_programParams                  &
+        !TBG_programParams                  \
+        > ../pic.out 2> ../pic.err          &
 
     wait
 else
