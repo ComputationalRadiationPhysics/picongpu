@@ -154,3 +154,17 @@ cmake $CMAKE_ARGS $code_DIR/include/pmacc
 make
 
 ctest -V
+
+# With HIP we run into MPI linker issues, therefore GoL tests are disabled for now
+# clang+cuda is running into compiler ptx errors when code for sm_60 is generated.
+# @todo analyse and fix MPI linker issues
+if ! [[ "$PIC_BACKEND" =~ hip.* || ($CXX_VERSION =~ ^clang && $PIC_BACKEND =~ ^cuda) ]] ; then
+  ## compile and test game of life
+  export GoL_folder=$HOME/buildGoL
+  mkdir -p $GoL_folder
+  cd $GoL_folder
+  cmake $CMAKE_ARGS $code_DIR/share/pmacc/examples/gameOfLife2D
+  make -j $PMACC_PARALLEL_BUILDS
+  # execute on one device
+  ./gameOfLife -d 1 1 -g 64 64  -s 100 -p 1 1
+fi
