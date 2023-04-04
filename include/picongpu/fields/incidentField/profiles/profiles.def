@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "picongpu/fields/incidentField/profiles/DispersiveLaser.def"
+#include "picongpu/fields/incidentField/profiles/DispersivePulse.def"
 #include "picongpu/fields/incidentField/profiles/ExpRampWithPrepulse.def"
 #include "picongpu/fields/incidentField/profiles/Free.def"
-#include "picongpu/fields/incidentField/profiles/GaussianBeam.def"
+#include "picongpu/fields/incidentField/profiles/GaussianPulse.def"
 #include "picongpu/fields/incidentField/profiles/None.def"
 #include "picongpu/fields/incidentField/profiles/PlaneWave.def"
 #include "picongpu/fields/incidentField/profiles/Polynom.def"

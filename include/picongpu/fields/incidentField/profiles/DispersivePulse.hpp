@@ -44,12 +44,12 @@ namespace picongpu
             {
                 namespace detail
                 {
-                    /** Unitless DispersiveLaser parameters
+                    /** Unitless DispersivePulse parameters
                      *
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct DispersiveLaserUnitless : public BaseParamUnitless<T_Params>
+                    struct DispersivePulseUnitless : public BaseParamUnitless<T_Params>
                     {
                         //! User SI parameters
                         using Params = T_Params;
@@ -67,7 +67,7 @@ namespace picongpu
                         // unit: UNIT_TIME
                         // corresponds to period length of DFT
                         static constexpr float_X INIT_TIME
-                            = static_cast<float_X>(Params::PULSE_INIT) * Base::PULSE_LENGTH;
+                            = static_cast<float_X>(Params::PULSE_INIT) * Base::PULSE_DURATION;
 
                         // Dispersion parameters
                         // unit: UNIT_LENGTH * UNIT_TIME
@@ -81,17 +81,17 @@ namespace picongpu
                             = static_cast<float_X>(Params::TOD_SI / UNIT_TIME / UNIT_TIME / UNIT_TIME);
                     };
 
-                    /** DispersiveLaser incident E functor
+                    /** DispersivePulse incident E functor
                      *
                      * @tparam T_Params parameters
                      */
                     template<typename T_Params>
-                    struct DispersiveLaserFunctorIncidentE
-                        : public DispersiveLaserUnitless<T_Params>
+                    struct DispersivePulseFunctorIncidentE
+                        : public DispersivePulseUnitless<T_Params>
                         , public incidentField::detail::BaseFunctorE<T_Params>
                     {
                         //! Unitless parameters type
-                        using Unitless = DispersiveLaserUnitless<T_Params>;
+                        using Unitless = DispersivePulseUnitless<T_Params>;
 
                         //! Base functor type
                         using Base = incidentField::detail::BaseFunctorE<T_Params>;
@@ -102,7 +102,7 @@ namespace picongpu
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
-                        HINLINE DispersiveLaserFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
+                        HINLINE DispersivePulseFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
                             : Base(currentStep, unitField)
                         {
                         }
@@ -173,8 +173,8 @@ namespace picongpu
 
                             // gaussian envelope in frequency domain
                             float_X mag = math::exp(
-                                -(Omega - Unitless::w) * (Omega - Unitless::w) * Unitless::PULSE_LENGTH
-                                * Unitless::PULSE_LENGTH);
+                                -(Omega - Unitless::w) * (Omega - Unitless::w) * Unitless::PULSE_DURATION
+                                * Unitless::PULSE_DURATION);
 
                             // transversal envelope
                             mag *= math::exp(
@@ -196,7 +196,7 @@ namespace picongpu
 
                             // Normalization to Amplitude
                             mag *= math::sqrt(pmacc::math::Pi<float_X>::doubleValue * 0.5_X) * 2.0_X
-                                * Unitless::PULSE_LENGTH * Unitless::AMPLITUDE;
+                                * Unitless::PULSE_DURATION * Unitless::AMPLITUDE;
 
                             // Dividing amplitude by 2 to compensate doubled spectral field strength
                             // resulting from E(-Omega) = E*(Omega), which has to be fulfilled for E(t) to be real
@@ -222,7 +222,7 @@ namespace picongpu
                             float_X center = Unitless::SD * (Omega - Unitless::w)
                                 + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
 
-                            // inverse radius of curvature of the beam's  wavefronts
+                            // inverse radius of curvature of the pulse's wavefronts
                             auto const R_inv = -focusPos
                                 / (Unitless::rayleighLength * Unitless::rayleighLength + focusPos * focusPos);
                             // the Gouy phase shift
@@ -298,9 +298,9 @@ namespace picongpu
 
                             return E_t;
                         } // getValueE
-                    }; // DispersiveLaserFunctorIncidentE
+                    }; // DispersivePulseFunctorIncidentE
 
-                    /** DispersiveLaser incident B functor
+                    /** DispersivePulse incident B functor
                      *
                      * EXPERIMENTAL
                      * Do not use for production! Refactoring required
@@ -308,13 +308,13 @@ namespace picongpu
                      * @tparam T_Params parameters
                      */
                     template<typename T_Params>
-                    struct DispersiveLaserFunctorIncidentB : public DispersiveLaserFunctorIncidentE<T_Params>
+                    struct DispersivePulseFunctorIncidentB : public DispersivePulseFunctorIncidentE<T_Params>
                     {
                         //! E Functor type
-                        using EFunctor = DispersiveLaserFunctorIncidentE<T_Params>;
+                        using EFunctor = DispersivePulseFunctorIncidentE<T_Params>;
 
                         //! Unitless parameters type
-                        using Unitless = DispersiveLaserUnitless<T_Params>;
+                        using Unitless = DispersivePulseUnitless<T_Params>;
 
                         //! Relation between unitField for E and B: E = B * unitConversionBtoE
                         static constexpr float_64 unitConversionBtoE = UNIT_EFIELD / UNIT_BFIELD;
@@ -333,7 +333,7 @@ namespace picongpu
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldB_internal = fieldB_SI / unitField
                          */
-                        HINLINE DispersiveLaserFunctorIncidentB(float_X const currentStep, float3_64 const unitField)
+                        HINLINE DispersivePulseFunctorIncidentB(float_X const currentStep, float3_64 const unitField)
                             : EFunctor(currentStep, unitField * unitConversionBtoE)
                         {
                         }
@@ -492,17 +492,17 @@ namespace picongpu
 
                             return B_t;
                         } // getValueB
-                    }; // DispersiveLaserFunctorIncidentB
+                    }; // DispersivePulseFunctorIncidentB
 
                 } // namespace detail
 
                 template<typename T_Params>
-                struct DispersiveLaser
+                struct DispersivePulse
                 {
                     //! Get text name of the incident field profile
                     static HINLINE std::string getName()
                     {
-                        return "DispersiveLaser";
+                        return "DispersivePulse";
                     }
                 };
 
@@ -515,9 +515,9 @@ namespace picongpu
                  * @tparam T_Params parameters
                  */
                 template<typename T_Params>
-                struct GetFunctorIncidentE<profiles::DispersiveLaser<T_Params>>
+                struct GetFunctorIncidentE<profiles::DispersivePulse<T_Params>>
                 {
-                    using type = profiles::detail::DispersiveLaserFunctorIncidentE<T_Params>;
+                    using type = profiles::detail::DispersivePulseFunctorIncidentE<T_Params>;
                 };
 
                 /** Get type of incident field B functor for the dispersive laser profile type
@@ -525,13 +525,13 @@ namespace picongpu
                  * @tparam T_Params parameters
                  */
                 template<typename T_Params>
-                struct GetFunctorIncidentB<profiles::DispersiveLaser<T_Params>>
+                struct GetFunctorIncidentB<profiles::DispersivePulse<T_Params>>
                 {
                     // EXPERIMENTAL - Do NOT use!
-                    // using type = profiles::detail::DispersiveLaserFunctorIncidentB<T_Params>;
+                    // using type = profiles::detail::DispersivePulseFunctorIncidentB<T_Params>;
 
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::DispersiveLaser<T_Params>>::type>;
+                        typename GetFunctorIncidentE<profiles::DispersivePulse<T_Params>>::type>;
                 };
 
             } // namespace detail

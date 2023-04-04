@@ -78,14 +78,14 @@ namespace picongpu
                         static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5_X * LASER_NOFOCUS_CONSTANT;
 
                         static constexpr float_X INIT_TIME = static_cast<float_X>(
-                            (TIME_PEAKPULSE + Params::RAMP_INIT * Base::PULSE_LENGTH) / UNIT_TIME);
+                            (TIME_PEAKPULSE + Params::RAMP_INIT * Base::PULSE_DURATION) / UNIT_TIME);
 
                         // compile-time checks for physical sanity:
                         static_assert(
                             (TIME_1 < TIME_2) && (TIME_2 < TIME_3) && (TIME_3 < endUpramp),
                             "The times in the parameters TIME_POINT_1/2/3 and the beginning of the plateau (which is "
                             "at "
-                            "TIME_PEAKPULSE - 0.5*RAMP_INIT*PULSE_LENGTH) should be in ascending order");
+                            "TIME_PEAKPULSE - 0.5*RAMP_INIT*PULSE_DURATION) should be in ascending order");
 
                         // some prerequisites for check of intensities (approximate check, because I can't use exp and
                         // log)
@@ -124,12 +124,12 @@ namespace picongpu
                             "anymore - probably some of the parameters are different from what you think!?");
 
                         /* a symmetric pulse will be initialized at generation plane for
-                         * a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
+                         * a time of RAMP_INIT * PULSE_DURATION + LASER_NOFOCUS_CONSTANT = INIT_TIME.
                          * we shift the complete pulse for the half of this time to start with
                          * the front of the laser pulse.
                          */
                         static constexpr float_X time_start_init
-                            = static_cast<float_X>(TIME_1 - (0.5_X * Params::RAMP_INIT * Base::PULSE_LENGTH));
+                            = static_cast<float_X>(TIME_1 - (0.5_X * Params::RAMP_INIT * Base::PULSE_DURATION));
                     };
 
                     /** Exponential ramp with prepulse incident E functor
@@ -252,7 +252,7 @@ namespace picongpu
                          */
                         HDINLINE float_X gauss(float_X const t) const
                         {
-                            auto const exponent = t / Unitless::PULSE_LENGTH;
+                            auto const exponent = t / Unitless::PULSE_DURATION;
                             return math::exp(-0.25_X * exponent * exponent);
                         }
 

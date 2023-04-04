@@ -22,16 +22,16 @@
  * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
- *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ *  - profiles::DispersivePulse<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
  * in focus. That is, SD, AD, GDD, and TOD, respectively.
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
- *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::GaussianPulse<>       : Pulse with Gaussian profile in all three dimensions with given parameters
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
  *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
  * parameters
- *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::PulseFrontTilt<>      : GaussianPulse  with tilted pulse front with given parameters
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
  *
@@ -52,7 +52,7 @@
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
  * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
- * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ * using ZMax = profiles::GaussianPulse<UserGaussianPulseParams>;
  *
  * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
  * @endcode
@@ -86,7 +86,7 @@ namespace picongpu
                 static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
                     = 50.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
 
-                /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and
+                /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_DURATION before and
                  * after the plateau unit: none */
                 static constexpr float_64 RAMP_INIT = 20.6146;
 
@@ -101,14 +101,14 @@ namespace picongpu
                 /** unit: Volt / meter */
                 static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
-                /** Pulse length: sigma of std. gauss for intensity (E^2)
-                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                /** Pulse duration: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_DURATION_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
                  *                                          [    2.354820045     ]
                  *  Info:             FWHM_of_Intensity = FWHM_Illumination
                  *                      = what a experimentalist calls "pulse duration"
                  *  unit: seconds (1 sigma)
                  */
-                static constexpr float_64 PULSE_LENGTH_SI = 2.65e-15;
+                static constexpr float_64 PULSE_DURATION_SI = 2.65e-15;
 
                 /** Laser phase shift (no shift: 0.0)
                  *

@@ -68,7 +68,7 @@ namespace picongpu
 
                         // unit: UNIT_TIME
                         static constexpr float_X INIT_TIME
-                            = Params::PULSE_INIT * Base::PULSE_LENGTH + LASER_NOFOCUS_CONSTANT;
+                            = Params::PULSE_INIT * Base::PULSE_DURATION + LASER_NOFOCUS_CONSTANT;
                         // unit: UNIT_TIME
                         static constexpr float_X endUpramp = -0.5_X * LASER_NOFOCUS_CONSTANT;
                         // unit: UNIT_TIME
@@ -123,19 +123,19 @@ namespace picongpu
                         HDINLINE float_X getLongitudinal(float_X const time, float_X const phaseShift) const
                         {
                             // a symmetric pulse will be initialized at generation position
-                            // a time of PULSE_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
+                            // a time of PULSE_INIT * PULSE_DURATION + LASER_NOFOCUS_CONSTANT = INIT_TIME.
                             // we shift the complete pulse for the half of this time to start with
                             // the front of the laser pulse.
                             auto const mue = 0.5_X * Unitless::INIT_TIME;
                             auto const runTime = static_cast<float_X>(time) - mue;
-                            auto const tau = Unitless::PULSE_LENGTH * math::sqrt(2.0_X);
+                            auto const tau = Unitless::PULSE_DURATION * math::sqrt(2.0_X);
                             auto envelope = Unitless::AMPLITUDE;
                             auto correctionFactor = 0.0_X;
                             if(runTime > Unitless::startDownramp)
                             {
                                 // downramp = end
                                 auto const exponent
-                                    = ((runTime - Unitless::startDownramp) / Unitless::PULSE_LENGTH
+                                    = ((runTime - Unitless::startDownramp) / Unitless::PULSE_DURATION
                                        / math::sqrt(2.0_X));
                                 envelope *= math::exp(-0.5_X * exponent * exponent);
                                 correctionFactor = (runTime - Unitless::startDownramp) / (tau * tau * Unitless::w);
@@ -144,7 +144,7 @@ namespace picongpu
                             {
                                 // upramp = start
                                 auto const exponent
-                                    = ((runTime - Unitless::endUpramp) / Unitless::PULSE_LENGTH / math::sqrt(2.0_X));
+                                    = ((runTime - Unitless::endUpramp) / Unitless::PULSE_DURATION / math::sqrt(2.0_X));
                                 envelope *= math::exp(-0.5_X * exponent * exponent);
                                 correctionFactor = (runTime - Unitless::endUpramp) / (tau * tau * Unitless::w);
                             }

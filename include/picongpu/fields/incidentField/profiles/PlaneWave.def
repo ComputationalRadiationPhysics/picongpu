@@ -39,8 +39,8 @@ namespace picongpu
                          *  unit: seconds */
                         static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15;
 
-                        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and
-                         * after the plateau unit: none */
+                        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_DURATION before
+                         * and after the plateau unit: none */
                         static constexpr float_64 RAMP_INIT = 20.6146;
                     };
                 } // namespace defaults

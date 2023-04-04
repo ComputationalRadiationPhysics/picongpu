@@ -62,7 +62,8 @@ namespace picongpu
                         using Base = BaseTransversalGaussianParamUnitless<T_Params>;
 
                         // unit: UNIT_TIME
-                        static constexpr float_X INIT_TIME = static_cast<float_X>(Params::PULSE_LENGTH_SI / UNIT_TIME);
+                        static constexpr float_X INIT_TIME
+                            = static_cast<float_X>(Params::PULSE_DURATION_SI / UNIT_TIME);
                     };
 
                     /** Polynom incident E functor
@@ -116,7 +117,7 @@ namespace picongpu
                              * the laser amplitude rises  for riseTime and falls for riseTime
                              * making the laser pulse 2*riseTime long
                              */
-                            const float_X riseTime = 0.5_X * Unitless::PULSE_LENGTH;
+                            const float_X riseTime = 0.5_X * Unitless::PULSE_DURATION;
                             const float_X tau = time / riseTime;
                             auto const phase = Unitless::w * (time - riseTime) + Unitless::LASER_PHASE + phaseShift;
                             auto const amplitude = Unitless::AMPLITUDE * polynomial(tau);

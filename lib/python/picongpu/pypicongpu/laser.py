@@ -39,7 +39,7 @@ class GaussianLaser(RenderedObject):
     waist = util.build_typesafe_property(float)
     """beam waist in m"""
     duration = util.build_typesafe_property(float)
-    """length in s (1 sigma)"""
+    """duration in s (1 sigma)"""
     focus_pos = util.build_typesafe_property(typing.List[float])
     """focus position vector in m"""
     phase = util.build_typesafe_property(float)
@@ -77,7 +77,7 @@ class GaussianLaser(RenderedObject):
         return {
             "wave_length_si": self.wavelength,
             "waist_si": self.waist,
-            "pulse_length_si": self.duration,
+            "pulse_duration_si": self.duration,
             "focus_pos_si": list(map(lambda x: {"component": x},
                                      self.focus_pos)),
             "phase": self.phase,

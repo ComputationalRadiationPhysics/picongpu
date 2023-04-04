@@ -66,7 +66,7 @@ namespace picongpu
                             = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME);
                         // unit: UNIT_TIME
                         static constexpr float_X INIT_TIME = static_cast<float_X>(
-                            (Params::RAMP_INIT * Params::PULSE_LENGTH_SI + Params::LASER_NOFOCUS_CONSTANT_SI)
+                            (Params::RAMP_INIT * Params::PULSE_DURATION_SI + Params::LASER_NOFOCUS_CONSTANT_SI)
                             / UNIT_TIME);
                     };
 
@@ -118,8 +118,8 @@ namespace picongpu
                         HDINLINE float_X getLongitudinal(float_X const time, float_X const phaseShift) const
                         {
                             auto envelope = Unitless::AMPLITUDE;
-                            auto const mue = 0.5_X * Unitless::RAMP_INIT * Unitless::PULSE_LENGTH;
-                            auto const tau = Unitless::PULSE_LENGTH * math::sqrt(2.0_X);
+                            auto const mue = 0.5_X * Unitless::RAMP_INIT * Unitless::PULSE_DURATION;
+                            auto const tau = Unitless::PULSE_DURATION * math::sqrt(2.0_X);
                             auto const endUpramp = mue;
                             auto const startDownramp = mue + Unitless::LASER_NOFOCUS_CONSTANT;
                             auto integrationCorrectionFactor = 0.0_X;

@@ -22,16 +22,16 @@
  * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
- *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ *  - profiles::DispersivePulse<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
  * in focus. That is, SD, AD, GDD, and TOD, respectively.
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
- *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::GaussianPulse<>       : Pulse with Gaussian profile in all three dimensions with given parameters
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
  *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
  * parameters
- *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::PulseFrontTilt<>      : GaussianPulse with tilted pulse front with given parameters
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
  *
@@ -52,7 +52,7 @@
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
  * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
- * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ * using ZMax = profiles::GaussianPulse<UserGaussianPulseParams>;
  *
  * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
  * @endcode
@@ -61,18 +61,6 @@
 #pragma once
 
 #include "picongpu/fields/incidentField/profiles/profiles.def"
-
-#ifndef PARAM_A0
-#    define PARAM_A0 8.0
-#endif
-
-#ifndef PARAM_WAVE_LENGTH_SI
-#    define PARAM_WAVE_LENGTH_SI 0.8e-6
-#endif
-
-#ifndef PARAM_PULSE_LENGTH_SI
-#    define PARAM_PULSE_LENGTH_SI 5.e-15
-#endif
 
 namespace picongpu
 {
@@ -96,10 +84,10 @@ namespace picongpu
             };
 
             using AllLaserProfiles = MakeSeq_t<
-                profiles::DispersiveLaser<>,
+                profiles::DispersivePulse<>,
                 profiles::ExpRampWithPrepulse<>,
                 profiles::Free<ZeroField, ZeroField>,
-                profiles::GaussianBeam<>,
+                profiles::GaussianPulse<>,
                 profiles::PlaneWave<>,
                 profiles::Polynom<>,
                 profiles::PulseFrontTilt<>,

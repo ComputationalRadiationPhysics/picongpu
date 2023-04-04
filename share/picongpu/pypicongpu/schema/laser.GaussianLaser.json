@@ -13,7 +13,7 @@
             "description": "Waist of the Gaussian pulse at focus [m]",
             "exclusiveMinimum": 0
         },
-        "pulse_length_si": {
+        "pulse_duration_si": {
             "type": "number",
             "description": "sigma of std. gauss for intensity (E^2) [s]",
             "exclusiveMinimum": 0
@@ -44,7 +44,7 @@
             "exclusiveMinimum": 0
         },
         "pulse_init": {
-            "description": " The laser pulse will be initialized pulse_init times of the pulse_length_si",
+            "description": " The laser pulse will be initialized pulse_init times of the pulse_duration_si",
             "type": "number",
             "exclusiveMinimum": 0
         },
@@ -95,7 +95,7 @@
                     "single_laguerre_mode": {
                         "type": "number"
                     }
-                }   
+                }
             }
         },
         "laguerre_phases": {
@@ -146,7 +146,7 @@
     "required": [
         "wave_length_si",
         "waist_si",
-        "pulse_length_si",
+        "pulse_duration_si",
         "focus_pos_si",
         "phase",
         "E0_si",

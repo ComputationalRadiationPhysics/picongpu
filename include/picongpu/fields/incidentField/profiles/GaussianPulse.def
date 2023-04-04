@@ -33,7 +33,7 @@ namespace picongpu
             {
                 namespace defaults
                 {
-                    namespace gaussianBeam
+                    namespace gaussianPulse
                     {
                         //! Use only the 0th Laguerremode for a standard Gaussian
                         static constexpr uint32_t MODENUMBER = 0;
@@ -46,9 +46,9 @@ namespace picongpu
                         // -0.00896321, -0.0160788); PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES,
                         // 0.0, 1.0344594, -0.9384701, -2.7384883, 0.0016872, 2.4563653, -0.312892, -1.7298303,
                         // -0.8039839, 3.0055385, -0.1503778, -9.6980362, -2.8122287);
-                    } // namespace gaussianBeam
+                    } // namespace gaussianPulse
 
-                    struct GaussianBeamParam : public BaseParam
+                    struct GaussianPulseParam : public BaseParam
                     {
                         /** Beam waist: distance from the axis where the pulse intensity (E^2)
                          *              decreases to its 1/e^2-th part,
@@ -60,7 +60,7 @@ namespace picongpu
                          */
                         static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
                          *
                          *  unit: none
                          */
@@ -70,21 +70,21 @@ namespace picongpu
                          *
                          * @{
                          */
-                        using LAGUERREMODES_t = gaussianBeam::LAGUERREMODES_t;
-                        using LAGUERREPHASES_t = gaussianBeam::LAGUERREPHASES_t;
-                        static constexpr uint32_t MODENUMBER = gaussianBeam::MODENUMBER;
+                        using LAGUERREMODES_t = gaussianPulse::LAGUERREMODES_t;
+                        using LAGUERREPHASES_t = gaussianPulse::LAGUERREPHASES_t;
+                        static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
                         /** @} */
                     };
                 } // namespace defaults
 
-                /** Gaussian Beam laser profile with finite pulse length tag
+                /** GaussianPulse laser profile with finite pulse duration tag
                  *
-                 * @tparam T_Params class parameter to configure the Gaussian Beam profile,
-                 *                  see members of defaults::GaussianBeamParam
+                 * @tparam T_Params class parameter to configure the GaussianPulse profile,
+                 *                  see members of defaults::GaussianPulseParam
                  *                  for required members
                  */
-                template<typename T_Params = defaults::GaussianBeamParam>
-                struct GaussianBeam;
+                template<typename T_Params = defaults::GaussianPulseParam>
+                struct GaussianPulse;
             } // namespace profiles
         } // namespace incidentField
     } // namespace fields

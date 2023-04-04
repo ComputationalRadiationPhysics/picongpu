@@ -83,7 +83,7 @@ namespace picongpu
                             = static_cast<float_X>(T_Params::TILT_AXIS_2_SI * pmacc::math::Pi<float_X>::value / 180.);
                     };
 
-                    /** Unitless gaussian beam parameters
+                    /** Unitless GaussianPulse parameters
                      *
                      * These parameters are shared for tilted and non-tilted Gaussian laser.
                      * The branching in terms of if and how user sets a tilt is encapculated in TiltParam.
@@ -91,7 +91,7 @@ namespace picongpu
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct GaussianBeamUnitless
+                    struct GaussianPulseUnitless
                         : public BaseParamUnitless<T_Params>
                         , public TiltParam<T_Params>
                     {
@@ -105,27 +105,28 @@ namespace picongpu
                         static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
 
                         // rayleigh length in propagation direction
-                        static constexpr float_X R = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
+                        static constexpr float_X rayleighLength
+                            = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
 
                         // unit: UNIT_TIME
                         static constexpr float_X INIT_TIME
-                            = static_cast<float_X>((Params::PULSE_INIT * Params::PULSE_LENGTH_SI) / UNIT_TIME);
+                            = static_cast<float_X>((Params::PULSE_INIT * Params::PULSE_DURATION_SI) / UNIT_TIME);
                     };
 
-                    /** Gaussian beam incident E functor
+                    /** GaussianPulse incident E functor
                      *
-                     * The implementation is shared between a normal Gaussian beam and one with tilted front.
+                     * The implementation is shared between a normal GaussianPulse and one with tilted front.
                      * We always take tilt value from the unitless params and apply the tilt (which can be 0).
                      *
                      * @tparam T_Params parameters
                      */
                     template<typename T_Params>
-                    struct GaussianBeamFunctorIncidentE
-                        : public GaussianBeamUnitless<T_Params>
+                    struct GaussianPulseFunctorIncidentE
+                        : public GaussianPulseUnitless<T_Params>
                         , public incidentField::detail::BaseFunctorE<T_Params>
                     {
                         //! Unitless parameters type
-                        using Unitless = GaussianBeamUnitless<T_Params>;
+                        using Unitless = GaussianPulseUnitless<T_Params>;
 
                         //! Base functor type
                         using Base = incidentField::detail::BaseFunctorE<T_Params>;
@@ -136,7 +137,7 @@ namespace picongpu
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
-                        HINLINE GaussianBeamFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
+                        HINLINE GaussianPulseFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
                             : Base(currentStep, unitField)
                         {
                             // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not
@@ -159,7 +160,7 @@ namespace picongpu
                          * with a_m being complex-valued coefficients: a_m := |a_m| * exp(I Arg(a_m) )
                          * |a_m| are equivalent to the LAGUERREMODES vector entries.
                          * Arg(a_m) are equivalent to the LAGUERREPHASES vector entries.
-                         * The implicit beam properties w0, lambda0, etc... equally apply to all GLM-modes.
+                         * The implicit pulse properties w0, lambda0, etc... equally apply to all GLM-modes.
                          * The on-axis, in-focus field value of the mode decomposition is normalized to unity:
                          * Snorm := 1 / ( Sum_{m=0}^{m_max}GLM(m,0,0) )
                          *
@@ -175,7 +176,7 @@ namespace picongpu
                          * pos[0] is the propagation direction.
                          *
                          * References:
-                         * F. Pampaloni et al. (2004), Gaussian, Hermite-Gaussian, and Laguerre-Gaussian beams: A
+                         * F. Pampaloni et al. (2004), Gaussian, Hermite-Gaussian, and Laguerre-GaussianPulses: A
                          * primer https://arxiv.org/pdf/physics/0410021
                          *
                          * Allen, L. (June 1, 1992). "Orbital angular momentum of light
@@ -221,10 +222,12 @@ namespace picongpu
                             float_X const focusPos = math::sqrt(pmacc::math::l2norm2(focusRelativeToOrigin)) - pos[0];
                             // beam waist at the generation plane so that at focus we will get W0
                             float_X const w = Unitless::W0
-                                * math::sqrt(1.0_X + (focusPos / Unitless::R) * (focusPos / Unitless::R));
+                                * math::sqrt(1.0_X
+                                             + (focusPos / Unitless::rayleighLength)
+                                                 * (focusPos / Unitless::rayleighLength));
 
                             // a symmetric pulse will be initialized at generation plane for
-                            // a time of PULSE_INIT * PULSE_LENGTH = INIT_TIME.
+                            // a time of PULSE_INIT * PULSE_DURATION = INIT_TIME.
                             // we shift the complete pulse for the half of this time to start with
                             // the front of the laser pulse.
                             constexpr auto mue = 0.5_X * Unitless::INIT_TIME;
@@ -247,10 +250,11 @@ namespace picongpu
                             planeNoNormal[0] = 0.0_X;
                             auto const transversalDistanceSquared = pmacc::math::l2norm2(pos * planeNoNormal);
 
-                            // inverse radius of curvature of the beam's  wavefronts
-                            auto const R_inv = -focusPos / (Unitless::R * Unitless::R + focusPos * focusPos);
+                            // inverse radius of curvature of the pulse's wavefronts
+                            auto const R_inv = -focusPos
+                                / (Unitless::rayleighLength * Unitless::rayleighLength + focusPos * focusPos);
                             // the Gouy phase shift
-                            auto xi = math::atan(-focusPos / Unitless::R);
+                            auto xi = math::atan(-focusPos / Unitless::rayleighLength);
                             if(simDim == DIM2)
                                 xi *= 0.5_X;
                             auto etrans = 0.0_X;
@@ -269,7 +273,7 @@ namespace picongpu
                             auto const exponent
                                 = (r - focusPos
                                    - phase / pmacc::math::Pi<float_X>::doubleValue * Unitless::WAVE_LENGTH)
-                                / (SPEED_OF_LIGHT * 2.0_X * Unitless::PULSE_LENGTH);
+                                / (SPEED_OF_LIGHT * 2.0_X * Unitless::PULSE_DURATION);
                             etrans *= math::exp(-exponent * exponent);
                             auto etrans_norm = 0.0_X;
                             for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
@@ -313,7 +317,7 @@ namespace picongpu
                 } // namespace detail
 
                 template<typename T_Params>
-                struct GaussianBeam
+                struct GaussianPulse
                 {
                     //! Get text name of the incident field profile
                     static HINLINE std::string getName()
@@ -321,7 +325,7 @@ namespace picongpu
                         // This template is used for both Gaussian and PulseFrontTilt, distinguish based on tilt value
                         using TiltParam = detail::TiltParam<T_Params>;
                         bool isTilted = (std::abs(TiltParam::TILT_AXIS_1) + std::abs(TiltParam::TILT_AXIS_2) > 0);
-                        return isTilted ? "PulseFrontTilt" : "GaussianBeam";
+                        return isTilted ? "PulseFrontTilt" : "GaussianPulse";
                     }
                 };
 
@@ -329,27 +333,27 @@ namespace picongpu
 
             namespace detail
             {
-                /** Get type of incident field E functor for the gaussian beam profile type
+                /** Get type of incident field E functor for the GaussianPulse profile type
                  *
                  * @tparam T_Params parameters
                  */
                 template<typename T_Params>
-                struct GetFunctorIncidentE<profiles::GaussianBeam<T_Params>>
+                struct GetFunctorIncidentE<profiles::GaussianPulse<T_Params>>
                 {
-                    using type = profiles::detail::GaussianBeamFunctorIncidentE<T_Params>;
+                    using type = profiles::detail::GaussianPulseFunctorIncidentE<T_Params>;
                 };
 
-                /** Get type of incident field B functor for the gaussiam beam profile type
+                /** Get type of incident field B functor for the GaussianPulse profile type
                  *
                  * Rely on SVEA to calculate value of B from E.
                  *
                  * @tparam T_Params parameters
                  */
                 template<typename T_Params>
-                struct GetFunctorIncidentB<profiles::GaussianBeam<T_Params>>
+                struct GetFunctorIncidentB<profiles::GaussianPulse<T_Params>>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::GaussianBeam<T_Params>>::type>;
+                        typename GetFunctorIncidentE<profiles::GaussianPulse<T_Params>>::type>;
                 };
             } // namespace detail
         } // namespace incidentField

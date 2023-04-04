@@ -157,7 +157,7 @@ class TestGaussianLaser(unittest.TestCase):
         context = self.laser.get_rendering_context()
         self.assertEqual(context["wave_length_si"], self.laser.wavelength)
         self.assertEqual(context["waist_si"], self.laser.waist)
-        self.assertEqual(context["pulse_length_si"], self.laser.duration)
+        self.assertEqual(context["pulse_duration_si"], self.laser.duration)
         self.assertEqual(context["focus_pos_si"], [
             {"component": self.laser.focus_pos[0]},
             {"component": self.laser.focus_pos[1]},
