@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2022 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov, Klaus Steinger
+# Copyright 2013-2023 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov, Klaus Steinger
 #
 # This file is part of PIConGPU.
 #
@@ -19,7 +19,7 @@
 #
 
 
-# PIConGPU batch script for crusher's SLURM batch system
+# PIConGPU batch script for frontier's SLURM batch system
 
 #SBATCH --account=!TBG_nameProject
 #SBATCH --partition=!TBG_queue
@@ -28,16 +28,17 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes_adjusted
 #SBATCH --ntasks=!TBG_tasks_adjusted
-#SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem-per-gpu=!TBG_memPerDevice
 #SBATCH --ntasks-per-gpu=1
 #SBATCH --gpu-bind=closest
-#SBATCH --core-spec=8
+#SBATCH --gres=gpu:!TBG_devicesPerNode
+
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --chdir=!TBG_dstPath
 
+#SBATCH --open-mode=append
 #SBATCH -o stdout
 #SBATCH -e stderr
 
@@ -163,4 +164,3 @@ else
     echo "Job stopped because of previous issues."
     echo "Job stopped because of previous issues." >&2
 fi
-

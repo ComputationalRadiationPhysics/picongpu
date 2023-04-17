@@ -1,9 +1,5 @@
 printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
-printf "@ Do not forget to increase the GCD's reserved memory in  @\n" >&2
-printf "@ memory.param by setting                                 @\n" >&2
-printf "@   constexpr size_t reservedGpuMemorySize =              @\n" >&2
-printf "@       uint64_t(2147483648); // 2 GiB                    @\n" >&2
-printf "@ Further, set the initial buffer size in your ADIOS2     @\n" >&2
+printf "@ Set the initial buffer size in your ADIOS2              @\n" >&2
 printf "@ configuration of your job's *.cfg file to 28GiB,        @\n" >&2
 printf "@ and do not use more than this amount of memory per GCD  @\n" >&2
 printf "@ in your setup, or you will see out-of-memory errors.    @\n" >&2
@@ -40,43 +36,46 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 # such as mpi, libfabric and others.
 # The following modules just add to these.
 
-# Compiling with cray compiler wrapper CC
-module load PrgEnv-cray/8.3.3
+module load PrgEnv-cray/8.3.3 # Compiling with cray compiler wrapper CC
 module load craype-accel-amd-gfx90a
-module load rocm/5.1.0
+module load rocm/5.4.3
 
 export MPICH_GPU_SUPPORT_ENABLED=1
-module load cray-mpich/8.1.16
+module load cray-mpich/8.1.23
 
-module load cmake/3.22.2
-module load boost/1.78.0-cxx17
+module load boost/1.79.0-cxx17
 
-## set environment variables required for compiling and linking w/ hipcc
+module load cmake/3.23.2
+module load git
+
+## set environment variables required for compiling and linking
 ##   see (https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#compiling-with-hipcc)
+
+export MPICH_GPU_SUPPORT_ENABLED=1
+
 export CXX=hipcc
 export CXXFLAGS="$CXXFLAGS -I${MPICH_DIR}/include"
-export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa"
+export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a}"
 
 # Other Software ##############################################################
 #
-module load zlib/1.2.11
-module load git/2.35.1
-module load c-blosc/1.21.1 adios2/2.7.1 hdf5/1.12.0 openpmd-api/0.14.4
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OLCF_HDF5_ROOT/lib
-module load libpng/1.6.37 freetype/2.11.0
+module load libpng/1.6.37
+module load freetype/2.11.1
+
+# ATTENTION: blosc2 is used, please check your cfg's and replace blosc with blosc2
+module load openpmd-api/0.14.4
 
 # Self-Build Software #########################################################
 # Optional, not required.
 #
 # needs to be compiled by the user
-export PIC_LIBS=$HOME/lib/crusher
+export PIC_LIBS=$HOME/lib/frontier
 
 # optionally install pngwriter yourself:
 #   https://picongpu.readthedocs.io/en/0.6.0/install/dependencies.html#pngwriter
 # But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
 export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
 export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
 
 # Environment #################################################################
 #
@@ -86,7 +85,7 @@ export PIC_BACKEND="hip:gfx90a"
 
 # Path to the required templates of the system,
 # relative to the PIConGPU source code of the tool bin/pic-create.
-export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/crusher-ornl"}
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/frontier-ornl"}
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
@@ -98,7 +97,7 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - SLURM (sbatch)
 #   - "caar" queue
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="etc/picongpu/crusher-ornl/batch.tpl"
+export TBG_TPLFILE="etc/picongpu/frontier-ornl/batch.tpl"
 
 # allocate an interactive shell for one hour
 #   getNode 2  # allocates two interactive nodes (default: 1)
@@ -108,7 +107,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks=$((numNodes * 8)) --cpus-per-task=8 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks=$((numNodes * 8)) --gres=gpu:$((numNodes * 8)) --cpus-per-task=7 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -124,7 +123,7 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --nodes=1 --ntasks=$(($numGPUs)) --cpus-per-task=8 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
+    srun  --time=1:00:00 --nodes=1 --ntasks=$(($numGPUs)) --gres=gpu:$(($numGPUs)) --cpus-per-task=7 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
