@@ -1,0 +1,136 @@
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
+printf "@ Do not forget to increase the GCD's reserved memory in  @\n" >&2
+printf "@ memory.param by setting                                 @\n" >&2
+printf "@   constexpr size_t reservedGpuMemorySize =              @\n" >&2
+printf "@       uint64_t(2147483648); // 2 GiB                    @\n" >&2
+printf "@ Further, set the initial buffer size in your ADIOS2     @\n" >&2
+printf "@ configuration of your job's *.cfg file to 28GiB,        @\n" >&2
+printf "@ and do not use more than this amount of memory per GCD  @\n" >&2
+printf "@ in your setup, or you will see out-of-memory errors.    @\n" >&2
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
+
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+
+# Project Information ######################################## (edit this line)
+#   - project for allocation and shared directories
+export PROJID=<yourProject>
+
+# Job control
+# Allocate more nodes then required to execute the jobs to be able to handle broken nodes
+# Oversubscribe the nodes allocated by N per thousand required nodes.
+export PIC_NODE_OVERSUBSCRIPTION_PT=2
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="vim"
+
+# General modules #############################################################
+#
+# There are a lot of required modules already loaded when connecting
+# such as mpi, libfabric and others.
+# The following modules just add to these.
+
+# Compiling with cray compiler wrapper CC
+module load PrgEnv-cray/8.3.3
+module load craype-accel-amd-gfx90a
+module load rocm/5.1.0
+
+export MPICH_GPU_SUPPORT_ENABLED=1
+module load cray-mpich/8.1.16
+
+module load cmake/3.22.2
+module load boost/1.78.0-cxx17
+
+## set environment variables required for compiling and linking w/ hipcc
+##   see (https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#compiling-with-hipcc)
+export CXX=hipcc
+export CXXFLAGS="$CXXFLAGS -I${MPICH_DIR}/include"
+export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa"
+
+# Other Software ##############################################################
+#
+module load zlib/1.2.11
+module load git/2.35.1
+module load c-blosc/1.21.1 adios2/2.7.1 hdf5/1.12.0 openpmd-api/0.14.4
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OLCF_HDF5_ROOT/lib
+module load libpng/1.6.37 freetype/2.11.0
+
+# Self-Build Software #########################################################
+# Optional, not required.
+#
+# needs to be compiled by the user
+export PIC_LIBS=$HOME/lib/crusher
+
+# optionally install pngwriter yourself:
+#   https://picongpu.readthedocs.io/en/0.6.0/install/dependencies.html#pngwriter
+# But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
+export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
+export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+
+# Environment #################################################################
+#
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="hip:gfx90a"
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/crusher-ornl"}
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "caar" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/crusher-ornl/batch.tpl"
+
+# allocate an interactive shell for one hour
+#   getNode 2  # allocates two interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks=$((numNodes * 8)) --cpus-per-task=8 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
+}
+
+# allocate an interactive shell for one hour
+#   getDevice 2  # allocates two interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numGPUs=1
+    else
+        if [ "$1" -gt 8 ] ; then
+            echo "The maximal number of devices per node is 8." 1>&2
+            return 1
+        else
+            numGPUs=$1
+        fi
+    fi
+    srun  --time=1:00:00 --nodes=1 --ntasks=$(($numGPUs)) --cpus-per-task=8 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
