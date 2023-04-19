@@ -61,7 +61,8 @@ namespace picongpu
                         static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
 
                         // rayleigh length in propagation direction
-                        static constexpr float_X R = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
+                        static constexpr float_X rayleighLength
+                            = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
 
                         // unit: UNIT_TIME
                         // corresponds to period length of DFT
@@ -159,7 +160,9 @@ namespace picongpu
                             float_X const focusPos = math::sqrt(pmacc::math::l2norm2(focusRelativeToOrigin)) - pos[0];
                             // beam waist at the generation plane so that at focus we will get W0
                             float_X const waist = Unitless::W0
-                                * math::sqrt(1.0_X + (focusPos / Unitless::R) * (focusPos / Unitless::R));
+                                * math::sqrt(1.0_X
+                                             + (focusPos / Unitless::rayleighLength)
+                                                 * (focusPos / Unitless::rayleighLength));
 
                             // Initial frequency dependent complex phase
                             float_X alpha = expandedWaveVectorX(Omega);
@@ -220,9 +223,10 @@ namespace picongpu
                                 + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
 
                             // inverse radius of curvature of the beam's  wavefronts
-                            auto const R_inv = -focusPos / (Unitless::R * Unitless::R + focusPos * focusPos);
+                            auto const R_inv = -focusPos
+                                / (Unitless::rayleighLength * Unitless::rayleighLength + focusPos * focusPos);
                             // the Gouy phase shift
-                            auto const xi = math::atan(-focusPos / Unitless::R);
+                            auto const xi = math::atan(-focusPos / Unitless::rayleighLength);
 
                             // shifting pulse for half of INIT_TIME to start with the front of the laser pulse
                             constexpr auto mue = 0.5_X * Unitless::INIT_TIME;
@@ -241,12 +245,12 @@ namespace picongpu
                             // distinguish between dimensions
                             if constexpr(simDim == DIM2)
                             {
-                                phase += alpha * alpha / 4.0_X * focusPos / Unitless::R;
+                                phase += alpha * alpha / 4.0_X * focusPos / Unitless::rayleighLength;
                                 phase -= 0.5_X * xi;
                             }
                             else if constexpr(simDim == DIM3)
                             {
-                                phase += alpha * alpha / 2.0_X * focusPos / Unitless::R;
+                                phase += alpha * alpha / 2.0_X * focusPos / Unitless::rayleighLength;
                                 phase -= xi;
                             }
                             return phase;
