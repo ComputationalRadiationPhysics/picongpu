@@ -234,21 +234,18 @@ namespace picongpu
                                     * (Omega - Unitless::w)
                                 + phaseShift + Unitless::LASER_PHASE + Omega * timeDelay;
 
+                            phase += ((pos[1] - center) * (pos[1] - center) + (pos[2] - center) * (pos[2] - center))
+                                * Omega * 0.5_X * R_inv / SPEED_OF_LIGHT;
+                            phase -= alpha * (pos[1] + pos[2]) / Unitless::W0;
+
                             // distinguish between dimensions
                             if constexpr(simDim == DIM2)
                             {
-                                phase
-                                    += (pos[1] - center) * (pos[1] - center) * Omega * 0.5_X * R_inv / SPEED_OF_LIGHT;
-                                phase -= alpha * pos[1] / Unitless::W0;
                                 phase += alpha * alpha / 4.0_X * focusPos / Unitless::R;
                                 phase -= 0.5_X * xi;
                             }
                             else if constexpr(simDim == DIM3)
                             {
-                                phase
-                                    += ((pos[1] - center) * (pos[1] - center) + (pos[2] - center) * (pos[2] - center))
-                                    * Omega * 0.5_X * R_inv / SPEED_OF_LIGHT;
-                                phase -= alpha * (pos[1] + pos[2]) / Unitless::W0;
                                 phase += alpha * alpha / 2.0_X * focusPos / Unitless::R;
                                 phase -= xi;
                             }
