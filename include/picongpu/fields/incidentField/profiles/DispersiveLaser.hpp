@@ -1,4 +1,4 @@
-/* Copyright 2022 Fabia Dietrich, Klaus Steiniger
+/* Copyright 2022 Fabia Dietrich, Klaus Steiniger, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -173,20 +173,21 @@ namespace picongpu
                                 -(Omega - Unitless::w) * (Omega - Unitless::w) * Unitless::PULSE_LENGTH
                                 * Unitless::PULSE_LENGTH);
 
+                            // transversal envelope
+                            mag *= math::exp(
+                                -(pos[1] - center) * (pos[1] - center) / waist / waist); // envelope y - direction
+                            mag *= math::exp(
+                                -(pos[2] - center) * (pos[2] - center) / waist / waist); // envelope z - direction
+
                             // distinguish between dimensions
                             if constexpr(simDim == DIM2)
                             {
                                 // pos has just two entries: pos[0] as propagation direction and pos[1] as transversal
                                 // direction
-                                mag *= math::exp(-(pos[1] - center) * (pos[1] - center) / waist / waist);
                                 mag *= math::sqrt(Unitless::W0 / waist);
                             }
                             else if constexpr(simDim == DIM3)
                             {
-                                mag *= math::exp(
-                                    -(pos[1] - center) * (pos[1] - center) / waist / waist); // envelope y - direction
-                                mag *= math::exp(
-                                    -(pos[2] - center) * (pos[2] - center) / waist / waist); // envelope z - direction
                                 mag *= Unitless::W0 / waist;
                             }
 
