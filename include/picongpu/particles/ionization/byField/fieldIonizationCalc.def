@@ -32,8 +32,6 @@ namespace picongpu
     {
         namespace ionization
         {
-            struct AlgorithmNone;
-
             template<bool T_polarizationType>
             struct AlgorithmADK;
 
