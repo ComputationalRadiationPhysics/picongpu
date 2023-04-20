@@ -82,12 +82,11 @@ Boost
   - ``curl -Lo boost_1_74_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz``
   - ``tar -xzf boost_1_74_0.tar.gz``
   - ``cd boost_1_74_0``
-  - ``./bootstrap.sh --with-libraries=atomic,program_options--prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=atomic,program_options --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++17" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
-  - ``export BOOST_ROOT=$HOME/lib/boost``
-  - ``export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH``
+  - ``export CMAKE_PREFIX_PATH=$HOME/lib/boost:$CMAKE_PREFIX_PATH``
 
 git
 """
@@ -176,7 +175,6 @@ libpng
 
   - ``export PNG_ROOT=$HOME/lib/libpng``
   - ``export CMAKE_PREFIX_PATH=$PNG_ROOT:$CMAKE_PREFIX_PATH``
-  - ``export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH``
 
 pngwriter
 """""""""
@@ -194,7 +192,6 @@ pngwriter
 - *environment:* (assumes install from source in ``$HOME/lib/pngwriter``)
 
   - ``export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH``
-  - ``export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH``
 
 openPMD API
 """""""""""
@@ -220,7 +217,6 @@ openPMD API
 - environment:* (assumes install from source in ``$HOME/lib/openPMD-api``)
 
   - ``export CMAKE_PREFIX_PATH="$HOME/lib/openPMD-api:$CMAKE_PREFIX_PATH"``
-  - ``export LD_LIBRARY_PATH="$HOME/lib/openPMD-api/lib64:$HOME/lib/openPMD-api/lib:$LD_LIBRARY_PATH"``
 - If PIConGPU is built with openPMD output enabled, the JSON library
   nlohmann_json will automatically be used, found in the ``thirdParty/``
   directory.
@@ -247,7 +243,6 @@ c-blosc for openPMD API with ADIOS2
 
   - ``export BLOSC_ROOT=$HOME/lib/c-blosc``
   - ``export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH``
-  - ``export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH``
 
 ISAAC
 """""
