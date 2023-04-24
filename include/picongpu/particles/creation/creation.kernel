@@ -115,7 +115,7 @@ namespace picongpu
                     auto particleCreatorCtx = lockstep::makeVar<T_ParticleCreator>(forEachParticle);
 
                     forEachParticle(
-                        [&](uint32_t const idx, auto& particleCreator)
+                        [&](uint32_t const idx, auto& destParticleCreator)
                         {
                             // cell index within the superCell
                             DataSpace<simDim> const cellIdx
@@ -125,10 +125,10 @@ namespace picongpu
                             pmacc::math::Int<simDim> const localCellIndex = simDomainSupercellCellOffset + cellIdx;
 
                             // create a copy of the functor for each virtual worker
-                            particleCreator = particleCreator;
+                            destParticleCreator = particleCreator;
 
                             // init particle creator functor for each virtual worker
-                            particleCreator.init(worker, supercellCellOffset, localCellIndex);
+                            destParticleCreator.init(worker, supercellCellOffset, localCellIndex);
                         },
                         particleCreatorCtx);
 
