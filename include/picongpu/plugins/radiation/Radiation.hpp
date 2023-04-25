@@ -568,7 +568,7 @@ namespace picongpu
 
 
                 /** perform all operations to get data from GPU to master */
-                void collectDataGPUToMaster() //////////////
+                void collectDataGPUToMaster()
                 {
                     // collect data GPU -> CPU -> Master
                     copyRadiationDeviceToHost();
@@ -581,7 +581,7 @@ namespace picongpu
                 void writeAllFiles(const DataSpace<simDim> currentGPUpos)
                 {
                     // write data to files
-                    saveRadPerGPU(currentGPUpos); // hier parallele Ausgabe nei
+                    saveRadPerGPU(currentGPUpos);
                     writeLastRadToText();
                     writeTotalRadToText();
                     writeAmplitudesToOpenPMD();
@@ -601,7 +601,7 @@ namespace picongpu
                  */
                 static const std::string dataLabels(int index)
                 {
-                    const std::string path("Amplitude"); // nur amplitude rausschreiben
+                    const std::string path("Amplitude");
 
                     /* return record name if handed -1 */
                     if(index == -1)
@@ -819,6 +819,12 @@ namespace picongpu
 
                         auto srcBuffer = radiation->getHostBuffer().getBasePointer();
 
+                        /*
+                         * numComponents includes the components of a complex number, e.g. in a 3D simulation,
+                         * numComponents is 6.
+                         * Since the distributed output uses native complex types, we don't want this.
+                         * ---> Amplitude::numComponents / 2
+                         */
                         for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents / 2; ++ampIndex)
                         {
                             constexpr char const* labels[] = {"x", "y", "z"};
