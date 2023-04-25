@@ -48,7 +48,7 @@
 
 ## calculations will be performed by tbg ##
 .TBG_queue=${TBG_partition:-"fwkt_v100"}
-.TBG_account=`if [ $TBG_partition == "casus_low" ] ; then echo "low"; else echo "fwkt_v100"; fi`
+.TBG_account=`if [ $TBG_partition == "casus_low" ] ; then echo "low"; else echo ${TBG_partition:-"fwkt_v100"}; fi`
 # configure if the output file should be appended or overwritten
 .TBG_keepOutputFileOpen=`if [ $TBG_partition == "casus_low" ] ; then echo "SBATCH --open-mode=append"; fi`
 
