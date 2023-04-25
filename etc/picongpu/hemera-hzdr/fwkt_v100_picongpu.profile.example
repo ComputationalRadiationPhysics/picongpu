@@ -70,7 +70,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=6 --gres=gpu:4 --mem=378000 -p fwkt_v100 -A fwkt_v100 --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=6 --gres=gpu:4 --mem=378000 -p $TBG_partition -A $TBG_partition --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -86,7 +86,7 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=6 --gres=gpu:$numGPUs --mem=$((94500 * numGPUs)) -p fwkt_v100 -A fwkt_v100 --pty bash
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=6 --gres=gpu:$numGPUs --mem=$((94500 * numGPUs)) -p $TBG_partition -A $TBG_partition --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
