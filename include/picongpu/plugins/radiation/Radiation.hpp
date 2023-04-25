@@ -492,7 +492,7 @@ namespace picongpu
                     reduce(
                         pmacc::math::operation::Add(),
                         tmp_result.data(),
-                        radiation->getHostBuffer().getBasePointer(), //////////
+                        radiation->getHostBuffer().getBasePointer(),
                         elements_amplitude(),
                         mpi::reduceMethods::Reduce());
                 }
