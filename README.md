@@ -203,8 +203,9 @@ Active Team
 
 - Dr. Sergei Bastrakov*
 - Dr. Alexander Debus
-- Marco Garten*
+- Dr. Marco Garten*
 - Dr. Axel Huebl*
+- Brian Edward Marre
 - Pawel Ordyna 
 - Dr. Richard Pausch*
 - Franz Poeschel
@@ -215,15 +216,16 @@ Active Team
 
 The PIConGPU Team expresses its gratitude to:
 
-Florian Berninger, Heiko Burau, Robert Dietrich, Carlchristian Eckert,
-Wen Fu, Ph.D., Alexander Grund, Sebastian Hahn, Anton Helm, Wolfgang Hoehnig,
+Florian Berninger, Heiko Burau, Fabia Dietrich, Robert Dietrich, Carlchristian Eckert,
+Simeon Ehrig, Wen Fu, Ph.D., Alexander Grund, Sebastian Hahn, Anton Helm, Wolfgang Hoehnig,
 Dr.-Ing. Guido Juckeland, Jeffrey Kelling, Maximilian Knespel, Dr. Remi Lehe,
 Felix Schmitt, Frank Winkler, Benjamin Schneider, Joseph Schuchart, Conrad Schumann,
 Stefan Tietze, Marija Vranic, Ph.D., Benjamin Worpitz, Erik Zenker,
 Sophie Rudat, Sebastian Starke, Alexander Matthes, Kseniia Bastrakova, 
-Brian Edward Marre, Bernhard Manfred Gruber, Jakob Trojok, Anton Lebedev, 
-Felix Meyer, Lennert Sprenger, Manhui Wang, Maxence Thevenet, Ilja Goethel
-and Finn-Ole Carstens.
+Bernhard Manfred Gruber, Jakob Trojok, Anton Lebedev, Nils Prinz,
+Felix Meyer, Lennert Sprenger, Manhui Wang, Maxence Thevenet, Ilja Goethel,
+Finn-Ole Carstens, Mika Soren Voß, Lei Bifeng, Andrei Berceanu, Felix Meyer,
+Lennert Sprenger and Nico Wrobel.
 
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
 way!

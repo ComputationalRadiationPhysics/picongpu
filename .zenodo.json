@@ -6,17 +6,22 @@
       "orcid":"0000-0003-3396-6154"
     },
     {
-      "affiliation":"HZDR",
-      "name":"Bastrakova, Kseniia"
-    },
-    {
-      "name":"Marre, Brian Edward",
-      "affiliation":"HZDR, TU Dresden"
+      "affiliation":"HZDR, TU-Dresden",
+      "name":"Carstens, Finn-Ole"
     },
     {
       "affiliation":"HZDR",
       "name":"Debus, Alexander",
       "orcid":"0000-0002-3844-3697"
+    },
+    {
+      "affiliation":"HZDR, TU Dresden",
+      "name":"Dietrich, Fabia"
+    },
+    {
+      "affiliation":"CASUS, HZDR",
+      "name":"Ehrig, Simeon",
+      "orcid":"000-0002-8218-3116"
     },
     {
       "affiliation":"HZDR, TU Dresden",
@@ -34,10 +39,6 @@
       "orcid":"0000-0003-1943-7141"
     },
     {
-      "name":"Trojok, Jakob",
-      "affiliation":"HZDR, TU Dresden"
-    },
-    {
       "affiliation":"HZDR",
       "name":"Kelling, Jeffrey",
       "orcid":"0000-0003-1761-2591"
@@ -47,12 +48,17 @@
       "name":"Lebedev, Anton"
     },
     {
-      "name":"Meyer, Felix",
-      "affiliation":"HZDR"
+      "name":"Marre, Brian Edward",
+      "affiliation":"HZDR, TU Dresden"
     },
     {
       "name":"Ordyna, Paweł",
       "affiliation":"HZDR, TU Dresden"
+    },
+    {
+      "affiliation":"HZDR",
+      "name":"Pausch, Richard",
+      "orcid":"0000-0001-7990-9564"
     },
     {
       "name":"Poeschel, Franz",
@@ -60,30 +66,22 @@
       "orcid":"0000-0001-7042-5088"
     },
     {
-      "name":"Sprenger, Lennert",
-      "affiliation":"HZDR, TU Dresden"
-    },
-    {
-      "affiliation":"HZDR",
+      "affiliation":"CASUS, HZDR",
       "name":"Steiniger, Klaus",
       "orcid":"0000-0001-8965-1149"
     },
     {
-      "name":"Wang, Manhui",
-      "affiliation":"University of Liverpool"
-    },
-    {
-      "affiliation":"HZDR",
-      "name":"Starke, Sebastian"
-    },
-    {
-      "name":"Thévenet, Maxence",
-      "affiliation":"Desy"
+      "name":"Stephan, Jan",
+      "affiliation":"CASUS, HZDR, TU Dresden",
+      "orcid":"0000-0001-7839-4386"
     },
     {
       "affiliation":"HZDR, TU Dresden",
-      "name":"Pausch, Richard",
-      "orcid":"0000-0001-7990-9564"
+      "name":"Tröpgen, Hannes"
+    },
+    {
+      "affiliation":"HZDR, TU Dresden",
+      "name":"Voß, Mika Soren"
     },
     {
       "affiliation":"HZDR",
@@ -95,6 +93,11 @@
     {
       "affiliation":"LOA",
       "name":"Andriyash, Igor",
+      "type":"Other"
+    },
+    {
+      "affiliation":"HZDR",
+      "name":"Bastrakova, Kseniia",
       "type":"Other"
     },
     {
@@ -116,11 +119,6 @@
       "affiliation":"HZDR, CASUS",
       "name":"Bussmann, Michael",
       "orcid":"0000-0002-8258-3881",
-      "type":"Other"
-    },
-    {
-      "affiliation":"HZDR, TU-Dresden",
-      "name":"Carstens, Finn-Ole",
       "type":"Other"
     },
     {
@@ -161,23 +159,23 @@
       "type":"Other"
     },
     {
+      "name":"Meyer, Felix",
+      "affiliation":"HZDR, TU Dresden",
+      "type":"Other"
+    },
+    {
       "affiliation":"ELI-NP",
       "name":"Ong, Jian Fuh",
       "type":"Other"
     },
     {
       "affiliation":"HZDR, TU Dresden",
+      "name":"Prinz, Nils",
+      "type":"Other"
+    },
+    {
+      "affiliation":"HZDR, TU Dresden",
       "name":"Rudat, Sophie",
-      "type":"Other"
-    },
-    {
-      "affiliation":"TU-Dresden",
-      "name":"Winkler, Frank",
-      "type":"Other"
-    },
-    {
-      "affiliation":"LogMeIn, Inc.",
-      "name":"Worpitz, Benjamin",
       "type":"Other"
     },
     {
@@ -196,8 +194,48 @@
       "type":"Other"
     },
     {
+      "name":"Sprenger, Lennert",
+      "affiliation":"HZDR, TU Dresden",
+      "type":"Other"
+    },
+    {
+      "affiliation":"HZDR",
+      "name":"Starke, Sebastian",
+      "type":"Other"
+    },
+    {
+      "name":"Thévenet, Maxence",
+      "affiliation":"Desy",
+      "type":"Other"
+    },
+    {
       "affiliation":"University Jena",
       "name":"Tietze, Stefan",
+      "type":"Other"
+    },
+    {
+      "name":"Trojok, Jakob",
+      "affiliation":"HZDR, TU Dresden",
+      "type":"Other"
+    },
+    {
+      "name":"Wang, Manhui",
+      "affiliation":"University of Liverpool",
+      "type":"Other"
+    },
+    {
+      "affiliation":"TU-Dresden",
+      "name":"Winkler, Frank",
+      "type":"Other"
+    },
+    {
+      "affiliation":"LogMeIn, Inc.",
+      "name":"Worpitz, Benjamin",
+      "type":"Other"
+    },
+    {
+      "name":"Wrobel, Nico",
+      "affiliation":"HZDR, TU Dresden",
       "type":"Other"
     },
     {
