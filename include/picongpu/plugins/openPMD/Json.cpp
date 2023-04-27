@@ -296,7 +296,11 @@ The key 'select' must point to either a single string or an array of strings.)EN
 
     void addDefaults(nlohmann::json& config)
     {
-        // disable HDF5 chunking as it can conflict with MPI-IO backends
+        /*
+         * Disable HDF5 chunking as it can conflict with MPI-IO backends.
+         * This is very likely the same issue as
+         * https://github.com/open-mpi/ompi/issues/7795.
+         */
         {
             auto& hdf5Dataset = config["hdf5"]["dataset"];
             if(!hdf5Dataset.contains("chunks"))
