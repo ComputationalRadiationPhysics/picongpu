@@ -98,11 +98,6 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 ln -s ../stdout output
 
-# The OMPIO backend in OpenMPI up to 3.1.3 and 4.0.0 is broken, use the
-# fallback ROMIO backend instead.
-#   see bug https://github.com/open-mpi/ompi/issues/6285
-export OMPI_MCA_io=^ompio
-
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
   source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh \
