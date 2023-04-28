@@ -40,12 +40,6 @@ namespace picongpu
          */
         constexpr float_X MIN_WEIGHTING = 1.0;
 
-        /** During unit normalization, we assume this is a typical
-         *  number of particles per cell for normalization of weighted
-         *  particle attributes.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 10;
-
         namespace startPosition
         {
             namespace pypicongpu
@@ -53,8 +47,13 @@ namespace picongpu
                 {{#species_initmanager.operations.simple_density}}
                     struct random_ppc_{{{placed_species_initial.typename}}}
                     {
-                        /** Count of particles per cell at initial state
-                         *  unit: none
+                        /** Maximum number of macro-particles per cell during density profile evaluation.
+                         *
+                         * Determines the weighting of a macro particle as well as the number of
+                         * macro-particles which sample the evolution of the particle distribution
+                         * function in phase space.
+                         *
+                         * unit: none
                          */
                         static constexpr uint32_t numParticlesPerCell = {{{ppc}}};
                     };
@@ -62,6 +61,12 @@ namespace picongpu
                 {{/species_initmanager.operations.simple_density}}
             } // namespace pypicongpu
         } // namespace startPosition
+
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::pypicongpu::random_ppc_{{{placed_species_initial.typename}}}::numParticlesPerCell;
 
         namespace manipulators
         {

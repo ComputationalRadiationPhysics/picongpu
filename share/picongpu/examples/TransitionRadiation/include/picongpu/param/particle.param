@@ -1,4 +1,5 @@
-/* Copyright 2013-2022 Rene Widera, Richard Pausch, Axel Huebl
+/* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -17,6 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
 #pragma once
 
 #include "picongpu/particles/manipulators/manipulators.def"
@@ -24,50 +33,64 @@
 
 #include <pmacc/math/operation.hpp>
 
-#include <limits>
-
 
 namespace picongpu
 {
     namespace particles
     {
-        /* a particle with a weighting below MIN_WEIGHTING will not
+        /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
-         *  unit: none
-         */
+         *
+         *  unit: none */
         constexpr float_X MIN_WEIGHTING = 1.0;
-
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 50;
 
         namespace manipulators
         {
-            CONST_VECTOR(float_X, 3, DriftParamNegative_direction, 1.0, 1.0, 0.0);
-            struct DriftParamNegative
+            /** Define initial particle drift direction vector.
+             *  This vector is used in struct DriftParam.
+             */
+            CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 1.0, 0.0);
+
+            /** Define Lorentz factor of initial particle drift. */
+            struct DriftParam
             {
-                /** Initial particle drift velocity for electrons and ions
-                 *  Examples:
-                 *    - No drift is equal to 1.0
-                 *  unit: none
-                 */
-                static constexpr float_64 gamma = 100;
-                const DriftParamNegative_direction_t direction;
+                static constexpr float_64 gamma = 100.0;
+                const DriftParam_direction_t direction;
             };
-            // definition of SetDrift start
-            using AssignYDriftNegative = unary::Drift<DriftParamNegative, pmacc::math::operation::Assign>;
+            /** Definition of manipulator that assigns a drift in X
+             *  using parameters from struct DriftParam.
+             */
+            using AssignXYDrift = unary::Drift<DriftParam, pmacc::math::operation::Assign>;
 
         } // namespace manipulators
 
-
         namespace startPosition
         {
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
             struct RandomParameter
             {
-                /** Count of particles per cell at initial state
-                 *  unit: none
+                /** Maximum number of macro-particles per cell during density profile evaluation.
+                 *
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
-                static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+                static constexpr uint32_t numParticlesPerCell = 50u;
             };
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
             using Random = RandomImpl<RandomParameter>;
+
         } // namespace startPosition
+
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
+
     } // namespace particles
 } // namespace picongpu

@@ -1,5 +1,5 @@
 /* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch, Pawel Ordyna
+ *                     Richard Pausch, Pawel Ordyna, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -29,6 +29,7 @@
 #pragma once
 
 #include "picongpu/param/physicalConstants.param"
+#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
@@ -46,35 +47,44 @@ namespace picongpu
          *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
 
-        /** Number of maximum particles per cell during density profile evaluation.
+        /** Approximate number of maximum macro-particles per cell.
          *
-         * Determines the weighting of a macro particle and with it, the number of
-         * particles "sampling" dynamics in phase space.
+         * Used internally for unit normalization.
          */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 550u;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 100u;
 
         namespace manipulators
         {
-            // define a drift in X equal to 200 keV for electrons
+            /** Define initial particle drift direction vector.
+             *  This vector is used in the DriftParam structs.
+             */
             CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
 
-
+            /** Define Lorentz factor of initial particle drift for slow particles. */
             struct DriftSlowParam
             {
-                // v = 0.01c
-                static constexpr float_64 gamma = 1.00005;
+                static constexpr float_64 gamma = 1.00005; // v = 0.01c
                 const DriftParam_direction_t direction;
             };
+            /** Definition of manipulator that assigns a drift in X
+             *  using parameters from struct DriftSlowParam.
+             */
+            using AssignSlowDrift = unary::Drift<DriftSlowParam, pmacc::math::operation::Assign>;
 
+
+            /** Define Lorentz factor of initial particle drift for fast particles. */
             struct DriftFastParam
             {
-                // v = 0.05c
-                static constexpr float_64 gamma = 1.00125;
+                static constexpr float_64 gamma = 1.00125; // v = 0.05c
                 const DriftParam_direction_t direction;
             };
-            using AssignSlowDrift = unary::Drift<DriftSlowParam, pmacc::math::operation::Assign>;
+            /** Definition of manipulator that assigns a drift in X
+             *  using parameters from struct DriftFastParam.
+             */
             using AssignFastDrift = unary::Drift<DriftFastParam, pmacc::math::operation::Assign>;
 
+
+            /** Define initial temperature of electrons. */
             struct TemperatureParamElectrons
             {
                 /** Initial temperature
@@ -83,6 +93,12 @@ namespace picongpu
                 static constexpr float_64 temperature = SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                     * SI::SPEED_OF_LIGHT_SI * UNITCONV_Joule_to_keV * 0.0000002;
             };
+            /** Definition of manipulator assigning a temperature
+             *  using parameters from struct TemperatureParamElectrons.
+             */
+            using AddTemperatureElectrons = unary::Temperature<TemperatureParamElectrons>;
+
+            /** Define initial temperature of ions. */
             struct TemperatureParamIons
             {
                 /** Initial temperature
@@ -91,38 +107,78 @@ namespace picongpu
                 static constexpr float_64 temperature = SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                     * SI::SPEED_OF_LIGHT_SI * UNITCONV_Joule_to_keV * 0.00002;
             };
-            using AddTemperatureElectrons = unary::Temperature<TemperatureParamElectrons>;
+            /** Definition of manipulator assigning a temperature
+             *  using parameters from struct TemperatureParamIons.
+             */
             using AddTemperatureIons = unary::Temperature<TemperatureParamIons>;
 
-            struct IonCharge1Impl
+
+            /** Define initial ion charge to once ionized*/
+            struct OnceIonizedImpl
             {
+                /** Ionize ions once by removing one bound electron */
                 template<typename T_Particle>
                 DINLINE void operator()(T_Particle& particle)
                 {
-                    particle[boundElectrons_] = 5.0_X;
+                    constexpr float_X targetChargeState = 1; // once ionized
+
+                    // number of Electrons for neutral atom
+                    constexpr float_X numberBoundElectrons
+                        = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+
+                    PMACC_ASSERT_MSG(
+                        numberBoundElectrons >= targetChargeState,
+                        "too few protons for target charge state");
+
+                    picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
+                        particle,
+                        numberBoundElectrons - targetChargeState);
                 }
             };
+            /** Definition of manipulator that sets the ionization state of an ion macro-particle
+             * according properties defined in struct OnceIonizedImpl.
+             */
+            using IonCharge1 = generic::Free<OnceIonizedImpl>;
 
-            struct IonCharge3Impl
+
+            /** Define initial ion charge to thrice ionized*/
+            struct ThriceIonizedImpl
             {
+                /** Ionize ions thrice by removing three bound electrons */
                 template<typename T_Particle>
                 DINLINE void operator()(T_Particle& particle)
                 {
-                    particle[boundElectrons_] = 3.0_X;
+                    constexpr float_X targetChargeState = 3; // thrice ionized
+
+                    // number of Electrons for neutral atom
+                    constexpr float_X numberBoundElectrons
+                        = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+
+                    PMACC_ASSERT_MSG(
+                        numberBoundElectrons >= targetChargeState,
+                        "too few protons for target charge state");
+
+                    picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
+                        particle,
+                        numberBoundElectrons - targetChargeState);
                 }
             };
-
-
-            using IonCharge1 = generic::Free<IonCharge1Impl>;
-            using IonCharge3 = generic::Free<IonCharge3Impl>;
+            /** Definition of manipulator that sets the ionization state of an ion macro-particle
+             * according properties defined in struct ThriceIonizedImpl.
+             */
+            using IonCharge3 = generic::Free<ThriceIonizedImpl>;
 
         } // namespace manipulators
 
-
         namespace startPosition
         {
-            /* at the cell origin, required for derived quantities to be computed only from particles
-             * in a given cell */
+            /** Define initial in-cell particle position used as parameter in OnePosition functor.
+             *
+             * Here, macro-particles sit directly in lower corner of the cell.
+             *
+             * This defines the type InCellOffset_t
+             * where every instance of this type has the preset values defined here.
+             */
             CONST_VECTOR(
                 float_X,
                 3,
@@ -134,17 +190,26 @@ namespace picongpu
             template<uint32_t numParticles>
             struct OnePositionParam
             {
-                /** Count of particles per cell at initial state
+                /** Maximum number of macro-particles per cell during density profile evaluation.
                  *
-                 *  unit: none */
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
+                 */
                 static constexpr uint32_t numParticlesPerCell = numParticles;
 
                 const InCellOffset_t inCellOffset;
             };
-            // definition of quiet particle start
-            using Center1000ppc = OnePositionImpl<OnePositionParam<1000u>>;
-            using Center100ppc = OnePositionImpl<OnePositionParam<100u>>;
+            /** Definition of start position functor that
+             * places macro-particles at the initial in-cell position defined above.
+             * Number of macro-particles per cell is defined by argument to OnePositionParam<>.
+             */
+            using Corner100ppc = OnePositionImpl<OnePositionParam<TYPICAL_PARTICLES_PER_CELL>>;
+            using Corner1000ppc = OnePositionImpl<OnePositionParam<10u * TYPICAL_PARTICLES_PER_CELL>>;
 
         } // namespace startPosition
+
     } // namespace particles
 } // namespace picongpu

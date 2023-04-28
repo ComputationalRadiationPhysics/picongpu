@@ -1,5 +1,5 @@
 /* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch
+ *                     Richard Pausch, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -18,6 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
 #pragma once
 
 #include "picongpu/particles/filter/filter.def"
@@ -26,59 +34,78 @@
 
 #include <pmacc/math/operation.hpp>
 
+
 namespace picongpu
 {
     namespace particles
     {
         namespace startPosition
         {
-            struct Param25ppc
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
+            struct RandomParam
             {
-                /** Count of particles per cell at initial state
-                 *  unit: none
+                /** Maximum number of macro-particles per cell during density profile evaluation.
+                 *
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
-                static constexpr uint32_t numParticlesPerCell = 25;
+                static constexpr uint32_t numParticlesPerCell = 25u;
             };
-            using RandomBinomial25ppc = RandomBinomialImpl<Param25ppc>;
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
+            using RandomBinomial = RandomBinomialImpl<RandomParam>;
 
         } // namespace startPosition
 
         /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
-         *  unit: none
-         */
+         *
+         *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
 
-        /** During unit normalization, we assume this is a typical
-         *  number of particles per cell for normalization of weighted
-         *  particle attributes.
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
          */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::Param25ppc::numParticlesPerCell;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParam::numParticlesPerCell;
 
         namespace manipulators
         {
+            /** Define initial particle drift direction vector.
+             *  This vector is used in struct DriftParamPositive.
+             */
             CONST_VECTOR(float_X, 3, DriftParamPositive_direction, 1.0, 0.0, 0.0);
+
+            /** Define Lorentz factor of initial particle drift. */
             struct DriftParamPositive
             {
-                /** Initial particle drift velocity for electrons and ions
-                 *  Examples:
-                 *    - No drift is equal to 1.0
-                 *  unit: none
-                 */
                 static constexpr float_64 gamma = 1.021;
                 const DriftParamPositive_direction_t direction;
             };
+            /** Definition of manipulator that assigns a drift in +X
+             *  using parameters from struct DriftParamPositive.
+             */
             using AssignXDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
 
+
+            /** Define initial particle temperature. */
             struct TemperatureParam
             {
-                /* Initial temperature
+                /** Initial temperature
                  *  unit: keV
                  */
                 static constexpr float_64 temperature = 0.0005;
             };
+            /** Definition of manipulator assigning a temperature
+             *  using parameters from struct TemperatureParam.
+             */
             using AddTemperature = unary::Temperature<TemperatureParam>;
 
         } // namespace manipulators
+
     } // namespace particles
 } // namespace picongpu

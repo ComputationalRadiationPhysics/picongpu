@@ -31,10 +31,10 @@
 #include "picongpu/particles/InitFunctors.hpp"
 
 #ifndef PARAM_START_ELECTRONS
-#    define PARAM_START_ELECTRONS Center1000ppc
+#    define PARAM_START_ELECTRONS Corner1000ppc
 #endif
 #ifndef PARAM_START_IONS
-#    define PARAM_START_IONS Center1000ppc
+#    define PARAM_START_IONS Corner1000ppc
 #endif
 
 namespace picongpu

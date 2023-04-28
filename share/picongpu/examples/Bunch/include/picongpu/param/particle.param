@@ -1,4 +1,5 @@
-/* Copyright 2013-2022 Rene Widera, Richard Pausch, Axel Huebl
+/* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -17,6 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
 #pragma once
 
 #include "picongpu/particles/manipulators/manipulators.def"
@@ -26,19 +35,24 @@
 
 #include <limits>
 
-
 namespace picongpu
 {
     namespace particles
     {
-        /* a particle with a weighting below MIN_WEIGHTING will not
-         *      be created / will be deleted
-         *  unit: none
-         */
 #ifdef PARAM_SINGLE_PARTICLE
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *
+         *  unit: none */
         // note: this specific setting allows all kinds of weightings > 0.0
         constexpr float_X MIN_WEIGHTING = std::numeric_limits<float_X>::min();
 
+        /** (Approximate) Number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
+         * And used in startPosition functors further below
+         * to set real maximum number of macro-particles per cell.
+         */
         constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
 #else
         constexpr float_X MIN_WEIGHTING = 10.0;
@@ -48,36 +62,52 @@ namespace picongpu
 
         namespace manipulators
         {
+            /** Define initial particle drift direction vector.
+             *  This vector is used in struct DriftParam.
+             */
             CONST_VECTOR(float_X, 3, DriftParamNegative_direction, 0.0, -1.0, 0.0);
+
+            /** Define Lorentz factor of initial particle drift. */
             struct DriftParamNegative
             {
-                /** Initial particle drift velocity for electrons and ions
-                 *  Examples:
-                 *    - No drift is equal to 1.0
-                 *  unit: none
-                 */
                 static constexpr float_64 gamma = 5.0;
                 const DriftParamNegative_direction_t direction;
             };
-            // definition of SetDrift start
+            /** Definition of manipulator that assigns a drift in X
+             *  using parameters from struct DriftParam.
+             */
             using AssignYDriftNegative = unary::Drift<DriftParamNegative, pmacc::math::operation::Assign>;
 
         } // namespace manipulators
 
-
         namespace startPosition
         {
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
             struct RandomParameter
             {
-                /** Count of particles per cell at initial state
-                 *  unit: none
+                /** Maximum number of macro-particles per cell during density profile evaluation.
+                 *
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
                 static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
             };
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
             using Random = RandomImpl<RandomParameter>;
 
 
-            // sit directly in lower corner of the cell
+            /** Define initial in-cell particle position used as parameter in OnePosition functor.
+             *
+             * Here, macro-particles sit directly in lower corner of the cell.
+             *
+             * This defines the type InCellOffset_t
+             * where every instance of this type has the preset values defined here.
+             */
             CONST_VECTOR(
                 float_X,
                 3,
@@ -86,18 +116,23 @@ namespace picongpu
                 0.0,
                 0.0,
                 0.0);
-
             struct OnePositionParameter
             {
-                /** Count of particles per cell at initial state
-                 *  unit: none
+                /** Maximum number of macro-particles per cell during density profile evaluation.
+                 *
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
                  */
                 static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 
                 const InCellOffset_t inCellOffset;
             };
-
-            // definition of one specific position for particle start
+            /** Definition of OnePosition start position functor that
+             * places macro-particles at the initial in-cell position defined above.
+             */
             using OnePosition = OnePositionImpl<OnePositionParameter>;
 
         } // namespace startPosition

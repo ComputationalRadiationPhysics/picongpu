@@ -40,7 +40,7 @@ namespace picongpu
          * the functors are called in order (from first to last functor)
          */
         using InitPipeline = pmacc::mp_list<
-            CreateDensity<densityProfiles::Homogenous, startPosition::RandomBinomial25ppc, PIC_Electrons>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::RandomBinomial, PIC_Electrons>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::LowerQuarterYPosition>,
             Manipulate<manipulators::AddTemperature, PIC_Electrons>>;
 

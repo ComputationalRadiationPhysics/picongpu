@@ -41,14 +41,14 @@ namespace picongpu
          */
         using InitPipeline = pmacc::mp_list<
 #if(PARAM_IONIZATION == 0)
-            CreateDensity<densityProfiles::Gaussian, startPosition::Random2ppc, PIC_Electrons>
+            CreateDensity<densityProfiles::Gaussian, startPosition::Random, PIC_Electrons>
 #    if(PARAM_IONS == 1)
             ,
             Derive<PIC_Electrons, PIC_Ions>
 #    endif
 #else
 
-            CreateDensity<densityProfiles::Gaussian, startPosition::Random2ppc, PIC_Ions>,
+            CreateDensity<densityProfiles::Gaussian, startPosition::Random, PIC_Ions>,
             Manipulate<manipulators::SetBoundElectrons, PIC_Ions>
 #endif
             >;

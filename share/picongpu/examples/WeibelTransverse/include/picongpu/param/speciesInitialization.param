@@ -40,7 +40,7 @@ namespace picongpu
          * the functors are called in order (from first to last functor)
          */
         using InitPipeline = pmacc::mp_list<
-            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet4ppc, PIC_Ions>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Ions>,
             ManipulateDerive<
                 /* make sure in speciesDefinition.param that
                  *   densityRatio * chargeRatio

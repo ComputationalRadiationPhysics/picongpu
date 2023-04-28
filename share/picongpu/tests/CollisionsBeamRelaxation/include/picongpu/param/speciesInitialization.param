@@ -47,10 +47,10 @@ namespace picongpu
          */
         using InitPipeline = pmacc::mp_list<
             // Generate Densities
-            CreateDensity<densityProfiles::Homogenous, startPosition::Center100ppc, ElectronsLess>,
-            CreateDensity<densityProfiles::Homogenous, startPosition::Center1000ppc, ElectronsMore>,
-            CreateDensity<densityProfiles::Homogenous, startPosition::Center100ppc, IonsLess>,
-            CreateDensity<densityProfiles::Homogenous, startPosition::Center1000ppc, IonsMore>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Corner100ppc, ElectronsLess>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Corner1000ppc, ElectronsMore>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Corner100ppc, IonsLess>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Corner1000ppc, IonsMore>,
             // Set initial temperatures
             Manipulate<manipulators::AddTemperatureElectrons, ElectronsLess>,
             Manipulate<manipulators::AddTemperatureElectrons, ElectronsMore>,
