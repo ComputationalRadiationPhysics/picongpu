@@ -205,8 +205,6 @@ If you want to use chunking, you can ask for it via the following option passed 
     }
   }
 
-In that case, make sure not to use an MPI IO backend that conflicts with HDF5 chunking, e.g. by removing lines such as ``export OMPI_MCA_io=^ompio`` from your batch scripts.
-
 Performance tuning on Summit
 """"""""""""""""""""""""""""
 

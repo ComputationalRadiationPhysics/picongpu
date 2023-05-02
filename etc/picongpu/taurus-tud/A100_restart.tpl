@@ -109,9 +109,6 @@ cd simOutput
 #   support ticket [Ticket:2014052241001186] srun: mpi mca flags
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
 export OMPI_MCA_mpi_leave_pinned=0
-# Use ROMIO for IO
-# according to ComputationalRadiationPhysics/picongpu#2857
-export OMPI_MCA_io=^ompio
 
 sleep 1
 
