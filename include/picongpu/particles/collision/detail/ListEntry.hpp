@@ -22,6 +22,11 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/verify.hpp>
+
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#    include <mallocMC/mallocMC.hpp>
+#endif
 
 namespace picongpu
 {
@@ -68,29 +73,12 @@ namespace picongpu
                                 {
                                     break;
                                 }
-                                else
-                                {
-#ifndef BOOST_COMP_HIP
-                                    // TODO: took it from ParticleBox.hpp but HIP should support printf, though
-                                    // maby only with HCC_ENABLE_PRINTF set.
-                                    printf(
-                                        "%s in collisions:  mallocMC out of memory (try %i of %i)\n",
-                                        (numTries + 1) == maxTries ? "ERROR" : "WARNING",
-                                        numTries + 1,
-                                        maxTries);
-#endif
-                                }
                             }
-                            if(ptrToIndicies == nullptr)
-                            {
-#if BOOST_COMP_HIP
-                                // do nothing
-#elif BOOST_LANG_CUDA
-                                __trap();
-#else
-                                throw std::runtime_error("Out of memory in collisions.");
-#endif
-                            }
+                            PMACC_DEVICE_VERIFY_MSG(
+                                ptrToIndicies != nullptr,
+                                "Error: Out of device heap memory in %s:%u\n",
+                                __FILE__,
+                                __LINE__);
                         }
                         // reset counter
                         size = 0u;

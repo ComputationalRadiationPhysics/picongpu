@@ -33,6 +33,8 @@
 #include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
 #include "pmacc/particles/memory/dataTypes/SuperCell.hpp"
 
+#include <pmacc/verify.hpp>
+
 namespace pmacc
 {
     /**
@@ -109,17 +111,9 @@ namespace pmacc
                     alpaka::mem_fence(worker.getAcc(), alpaka::memory_scope::Block{});
                     break;
                 }
-                else
-                {
-#ifndef BOOST_COMP_HIP
-                    printf(
-                        "%s: mallocMC out of memory (try %i of %i)\n",
-                        (numTries + 1) == maxTries ? "ERROR" : "WARNING",
-                        numTries + 1,
-                        maxTries);
-#endif
-                }
             }
+
+            PMACC_DEVICE_VERIFY_MSG(tmp != nullptr, "Error: Out of device heap memory in %s:%u\n", __FILE__, __LINE__);
 
             return FramePtr(tmp);
         }
