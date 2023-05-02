@@ -44,6 +44,7 @@
 #include <pmacc/traits/HasIdentifier.hpp>
 
 #include <algorithm> // std::any
+#include <complex>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -149,6 +150,7 @@ namespace picongpu
                     = openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
                 std::string openPMDConfig = "{}";
                 std::string openPMDCheckpointConfig = "{}";
+                bool writeDistributedAmplitudes = false;
 
             public:
                 Radiation()
@@ -241,7 +243,10 @@ namespace picongpu
                         "JSON/TOML configuration for initializing openPMD.")(
                         (pluginPrefix + ".openPMDCheckpointConfig").c_str(),
                         po::value<std::string>(&openPMDCheckpointConfig)->default_value("{}"),
-                        "JSON/TOML configuration for initializing openPMD checkpointing.");
+                        "JSON/TOML configuration for initializing openPMD checkpointing.")(
+                        (pluginPrefix + ".distributedAmplitude").c_str(),
+                        po::value<bool>(&writeDistributedAmplitudes)->default_value(false),
+                        "Additionally output distributed amplitudes per MPI rank.");
                 }
 
 
@@ -291,26 +296,22 @@ namespace picongpu
                     collectRadiationOnMaster();
                     sumAmplitudesOverTime(tmp_result, timeSumArray);
 
-                    // write backup file
-                    if(isMaster)
-                    {
-                        /*
-                         * No need to keep the Series open for checkpointing, so
-                         * just quickly open it here.
-                         */
-                        std::optional<::openPMD::Series> tmp;
-                        writeOpenPMDfile(
-                            tmp_result,
-                            restartDirectory,
-                            speciesName + std::string("_radRestart"),
-                            WriteOpenPMDParams{
-                                tmp,
-                                "_%T_0_0_0"
-                                    + (*openPMDExtensionCheckpointing.begin() == '.'
-                                           ? openPMDExtensionCheckpointing
-                                           : '.' + openPMDExtensionCheckpointing),
-                                openPMDCheckpointConfig});
-                    }
+                    /*
+                     * No need to keep the Series open for checkpointing, so
+                     * just quickly open it here.
+                     */
+                    std::optional<::openPMD::Series> tmp;
+                    writeOpenPMDfile(
+                        tmp_result,
+                        restartDirectory,
+                        speciesName + std::string("_radRestart"),
+                        WriteOpenPMDParams{
+                            tmp,
+                            "_%T_0_0_0"
+                                + (*openPMDExtensionCheckpointing.begin() == '.'
+                                       ? openPMDExtensionCheckpointing
+                                       : '.' + openPMDExtensionCheckpointing),
+                            openPMDCheckpointConfig});
                 }
 
 
@@ -558,14 +559,11 @@ namespace picongpu
                 /** write total radiation data as openPMD file */
                 void writeAmplitudesToOpenPMD()
                 {
-                    if(isMaster)
-                    {
-                        writeOpenPMDfile(
-                            timeSumArray,
-                            std::string("radiationOpenPMD/"),
-                            speciesName + std::string("_radAmplitudes"),
-                            WriteOpenPMDParams{m_series, openPMDSuffix, openPMDConfig});
-                    }
+                    writeOpenPMDfile(
+                        timeSumArray,
+                        std::string("radiationOpenPMD/"),
+                        speciesName + std::string("_radAmplitudes"),
+                        WriteOpenPMDParams{m_series, openPMDSuffix, openPMDConfig});
                 }
 
 
@@ -724,8 +722,13 @@ namespace picongpu
 
                     if(!series.has_value())
                     {
-                        series = std::make_optional(
-                            ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE, jsonConfig));
+                        GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                        auto communicator = gc.getCommunicator().getMPIComm();
+                        series = std::make_optional(::openPMD::Series(
+                            dir + '/' + filename.str(),
+                            ::openPMD::Access::CREATE,
+                            communicator,
+                            jsonConfig));
 
                         /* begin recommended openPMD global attributes */
                         series->setMeshesPath(meshesPathName);
@@ -780,26 +783,110 @@ namespace picongpu
                     openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
                     /* end required openPMD global attributes */
 
-                    // begin: write amplitude data
-                    ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
-
-                    mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
-                    mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
-                    mesh_amp.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
-                    mesh_amp.setGridGlobalOffset(std::vector<double>{0.0, 0.0, 0.0});
-                    mesh_amp.setGridUnitSI(1.0);
-                    mesh_amp.setAxisLabels(
-                        std::vector<std::string>{"detector direction index", "detector frequency index", "None"});
-                    mesh_amp.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
-                        {::openPMD::UnitDimension::L, 2.0},
-                        {::openPMD::UnitDimension::M, 1.0},
-                        {::openPMD::UnitDimension::T, -1.0}});
-
-                    /* get the radiation amplitude unit */
-                    Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-                    const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
-
+                    // begin: write per-rank amplitude data
+                    if(writeDistributedAmplitudes)
                     {
+                        ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes["Amplitude_distributed"];
+
+                        mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                        mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                        mesh_amp.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
+                        mesh_amp.setGridGlobalOffset(std::vector<double>{0.0, 0.0, 0.0});
+                        mesh_amp.setGridUnitSI(1.0);
+                        mesh_amp.setAxisLabels(
+                            std::vector<std::string>{"MPI", "detector direction index", "detector frequency index"});
+                        mesh_amp.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                            {::openPMD::UnitDimension::L, 2.0},
+                            {::openPMD::UnitDimension::M, 1.0},
+                            {::openPMD::UnitDimension::T, -1.0}});
+
+                        /* get the radiation amplitude unit */
+                        Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+                        const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
+
+                        // buffer for data re-arangement
+                        const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
+                        std::vector<std::complex<float_64>> fallbackBuffer;
+
+                        // reshape abstract MeshRecordComponent
+                        ::openPMD::Datatype datatype_amp = ::openPMD::determineDatatype<std::complex<float_64>>();
+                        auto communicator = Environment<simDim>::get().GridController().getCommunicator();
+                        ::openPMD::Extent total_extent_amp
+                            = {size_t(communicator.getSize()), parameters::N_observer, radiation_frequencies::N_omega};
+                        ::openPMD::Offset local_offset_amp = {size_t(communicator.getRank()), 0, 0};
+                        ::openPMD::Extent local_extent_amp
+                            = {1, parameters::N_observer, radiation_frequencies::N_omega};
+
+                        auto srcBuffer = radiation->getHostBuffer().getBasePointer();
+
+                        /*
+                         * numComponents includes the components of a complex number, e.g. in a 3D simulation,
+                         * numComponents is 6.
+                         * Since the distributed output uses native complex types, we don't want this.
+                         * ---> Amplitude::numComponents / 2
+                         */
+                        for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents / 2; ++ampIndex)
+                        {
+                            constexpr char const* labels[] = {"x", "y", "z"};
+                            std::string dir = labels[ampIndex];
+                            mesh_amp[dir].setUnitSI(factor);
+                            mesh_amp[dir].setPosition(std::vector<double>{0.0, 0.0, 0.0});
+                            ::openPMD::Dataset dataset_amp = ::openPMD::Dataset(datatype_amp, total_extent_amp);
+                            mesh_amp[dir].resetDataset(dataset_amp);
+
+                            // ask openPMD to create a buffer for us
+                            // in some backends (ADIOS2), this allows avoiding memcopies
+                            auto span = ::picongpu::openPMD::storeChunkSpan<std::complex<double>>(
+                                            mesh_amp[dir],
+                                            local_offset_amp,
+                                            local_extent_amp,
+                                            [&fallbackBuffer](size_t numElements)
+                                            {
+                                                // if there is no special backend support for creating buffers,
+                                                // use the fallback buffer
+                                                fallbackBuffer.resize(numElements);
+                                                return std::shared_ptr<std::complex<float_64>>{
+                                                    fallbackBuffer.data(),
+                                                    [](auto const*) {}};
+                                            })
+                                            .currentBuffer();
+
+                            // std::complex has guarantees on array-oriented access, so let's use this to make our
+                            // lives easer
+                            auto const* srcBuffer_reinterpreted
+                                = reinterpret_cast<std::complex<picongpu::float_64>*>(srcBuffer);
+                            for(uint32_t copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+                            {
+                                span[copyIndex]
+                                    = srcBuffer_reinterpreted[ampIndex + (Amplitude::numComponents / 2) * copyIndex];
+                            }
+                            // flush data now
+                            // this allows us to reuse the fallbackBuffer in the next iteration
+                            openPMDdataFile.flush();
+                        }
+                    }
+                    // end: write per-rank amplitude data
+
+                    // begin: write amplitude data
+                    {
+                        ::openPMD::Mesh mesh_amp = openPMDdataFileIteration.meshes[dataLabels(-1)];
+
+                        mesh_amp.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                        mesh_amp.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                        mesh_amp.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
+                        mesh_amp.setGridGlobalOffset(std::vector<double>{0.0, 0.0, 0.0});
+                        mesh_amp.setGridUnitSI(1.0);
+                        mesh_amp.setAxisLabels(
+                            std::vector<std::string>{"detector direction index", "detector frequency index", "None"});
+                        mesh_amp.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                            {::openPMD::UnitDimension::L, 2.0},
+                            {::openPMD::UnitDimension::M, 1.0},
+                            {::openPMD::UnitDimension::T, -1.0}});
+
+                        /* get the radiation amplitude unit */
+                        Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+                        const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
+
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
                         std::vector<float_64> fallbackBuffer;
@@ -819,25 +906,29 @@ namespace picongpu
 
                             // ask openPMD to create a buffer for us
                             // in some backends (ADIOS2), this allows avoiding memcopies
-                            auto span
-                                = ::picongpu::openPMD::storeChunkSpan<double>(
-                                      mesh_amp[dir],
-                                      offset_amp,
-                                      extent_amp,
-                                      [&fallbackBuffer](size_t numElements)
-                                      {
-                                          // if there is no special backend support for creating buffers,
-                                          // use the fallback buffer
-                                          fallbackBuffer.resize(numElements);
-                                          return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {}};
-                                      })
-                                      .currentBuffer();
-
-                            // select data
-                            for(uint32_t copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+                            if(isMaster)
                             {
-                                span[copyIndex] = reinterpret_cast<picongpu::float_64*>(
-                                    values.data())[ampIndex + Amplitude::numComponents * copyIndex];
+                                auto span
+                                    = ::picongpu::openPMD::storeChunkSpan<double>(
+                                          mesh_amp[dir],
+                                          offset_amp,
+                                          extent_amp,
+                                          [&fallbackBuffer](size_t numElements)
+                                          {
+                                              // if there is no special backend support for creating buffers,
+                                              // use the fallback buffer
+                                              fallbackBuffer.resize(numElements);
+                                              return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {
+                                                                               }};
+                                          })
+                                          .currentBuffer();
+
+                                // select data
+                                for(uint32_t copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+                                {
+                                    span[copyIndex] = reinterpret_cast<picongpu::float_64*>(
+                                        values.data())[ampIndex + Amplitude::numComponents * copyIndex];
+                                }
                             }
                             // flush data now
                             // this allows us to reuse the fallbackBuffer in the next iteration
@@ -877,27 +968,31 @@ namespace picongpu
                             ::openPMD::Dataset dataset_n = ::openPMD::Dataset(datatype_n, extent_n);
                             mesh_n[dir].resetDataset(dataset_n);
 
-                            // ask openPMD to create a buffer for us
-                            // in some backends (ADIOS2), this allows avoiding memcopies
-                            auto span
-                                = ::picongpu::openPMD::storeChunkSpan<double>(
-                                      mesh_n[dir],
-                                      offset_n,
-                                      extent_n,
-                                      [&fallbackBuffer](size_t numElements)
-                                      {
-                                          // if there is no special backend support for creating buffers,
-                                          // use the fallback buffer
-                                          fallbackBuffer.resize(numElements);
-                                          return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {}};
-                                      })
-                                      .currentBuffer();
-
-                            // select data
-                            for(uint32_t copyIndex = 0u; copyIndex < parameters::N_observer; ++copyIndex)
+                            if(isMaster)
                             {
-                                span[copyIndex] = reinterpret_cast<picongpu::float_64*>(
-                                    detectorPositions.data())[detectorDim + 3u * copyIndex];
+                                // ask openPMD to create a buffer for us
+                                // in some backends (ADIOS2), this allows avoiding memcopies
+                                auto span
+                                    = ::picongpu::openPMD::storeChunkSpan<double>(
+                                          mesh_n[dir],
+                                          offset_n,
+                                          extent_n,
+                                          [&fallbackBuffer](size_t numElements)
+                                          {
+                                              // if there is no special backend support for creating buffers,
+                                              // use the fallback buffer
+                                              fallbackBuffer.resize(numElements);
+                                              return std::shared_ptr<float_64>{fallbackBuffer.data(), [](auto const*) {
+                                                                               }};
+                                          })
+                                          .currentBuffer();
+
+                                // select data
+                                for(uint32_t copyIndex = 0u; copyIndex < parameters::N_observer; ++copyIndex)
+                                {
+                                    span[copyIndex] = reinterpret_cast<picongpu::float_64*>(
+                                        detectorPositions.data())[detectorDim + 3u * copyIndex];
+                                }
                             }
 
                             // flush data now
@@ -935,14 +1030,17 @@ namespace picongpu
                     ::openPMD::Dataset dataset_omega = ::openPMD::Dataset(datatype_omega, extent_omega);
                     omega_mrc.resetDataset(dataset_omega);
 
-                    // write actual data
-                    ::openPMD::Offset offset_omega = {0, 0, 0};
-                    /*
-                     * Here, we don't use storeChunkSpan, since detectorFrequencies
-                     * is created and filled upon activation of the plugin,
-                     * so it survives beyond the writing of a single dataset.
-                     */
-                    omega_mrc.storeChunk(detectorFrequencies, offset_omega, extent_omega);
+                    if(isMaster)
+                    {
+                        // write actual data
+                        ::openPMD::Offset offset_omega = {0, 0, 0};
+                        /*
+                         * Here, we don't use storeChunkSpan, since detectorFrequencies
+                         * is created and filled upon activation of the plugin,
+                         * so it survives beyond the writing of a single dataset.
+                         */
+                        omega_mrc.storeChunk(detectorFrequencies, offset_omega, extent_omega);
+                    }
                     // end: write frequencies
 
                     openPMDdataFileIteration.close();
