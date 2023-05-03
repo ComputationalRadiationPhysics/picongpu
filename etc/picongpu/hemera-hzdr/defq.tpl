@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2022 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2023 Axel Huebl, Richard Pausch, Rene Widera, Pawel Ordyna
 #
 # This file is part of PIConGPU.
 #
@@ -42,6 +42,35 @@
 #SBATCH -o stdout
 #SBATCH -e stderr
 
+help()
+{
+  echo "PIConGPU submit script generated with tbg"
+  echo ""
+  echo "usage: $0 [--verify]"
+  echo ""
+  echo "--validate      - validate picongpu call instead of running the simulation"
+  echo "--h | --help    - print this help message"
+}
+
+VALIDATE_MODE=false
+for arg in "$@"; do
+  case $arg in
+  --validate)
+    VALIDATE_MODE=true
+    shift # Remove --skip-verification from `$@`
+    ;;
+  -h | --help)
+    echo -e "$(help)"
+    shift
+    exit 0
+    ;;
+  *)
+    echo "unrecognized argument"
+    echo -e "$(help)"
+    exit 1
+    ;;
+  esac
+done
 
 ## calculations will be performed by tbg ##
 .TBG_queue="defq"
@@ -79,7 +108,7 @@
 
 ## end calculations ##
 
-echo 'Running program...'
+echo "Preparing environment..."
 
 cd !TBG_dstPath
 
@@ -98,8 +127,17 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 ln -s ../stdout output
 
-if [ $? -eq 0 ] ; then
-  # Run PIConGPU
-  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh \
+if [[ $VALIDATE_MODE == true ]]; then
+  echo "Validating PIConGPU call..."
+  !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --validate
+  if [ $? -ne 0 ] ; then
+    exit 1;
+  fi
+else
+  if [ $? -eq 0 ] ; then
+    # Run PIConGPU
+    echo "Running PIConGPU..."
+    source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh \
     !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  fi
 fi

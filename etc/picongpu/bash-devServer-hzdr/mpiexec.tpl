@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2022 Axel Huebl, Anton Helm, Rene Widera
+# Copyright 2013-2023 Axel Huebl, Anton Helm, Rene Widera, Pawel Ordyna
 #
 # This file is part of PIConGPU.
 #
@@ -18,6 +18,36 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+help()
+{
+  echo "PIConGPU submit script generated with tbg"
+  echo ""
+  echo "usage: $0 [--verify]"
+  echo ""
+  echo "--validate      - validate picongpu call instead of running the simulation"
+  echo "--h | --help    - print this help message"
+}
+
+VALIDATE_MODE=false
+for arg in "$@"; do
+  case $arg in
+  --validate)
+    VALIDATE_MODE=true
+    shift # Remove --skip-verification from `$@`
+    ;;
+  -h | --help)
+    echo -e "$(help)"
+    shift
+    exit 0
+    ;;
+  *)
+    echo "unrecognized argument"
+    echo -e "$(help)"
+    exit 1
+    ;;
+  esac
+done
+
 ##calculations will be performed by tbg##
 
 # settings that can be controlled by environment variables before submit
@@ -30,7 +60,7 @@
 ## end calculations ##
 
 
-echo 'Running program...'
+echo "Preparing environment..."
 
 cd !TBG_dstPath
 
@@ -44,13 +74,19 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-# test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
-  mpiexec -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+if [[ $VALIDATE_MODE == true ]]; then
+  echo "Validating PIConGPU call..."
+  !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --validate | tee output
 else
-  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
-fi
+  # test if cuda_memtest binary is available
+  if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
+    mpiexec -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+  else
+    echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
+  fi
 
-if [ $? -eq 0 ] ; then
-  mpiexec -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  if [ $? -eq 0 ] ; then
+    echo "Running PIConGPU..."
+    mpiexec -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  fi
 fi

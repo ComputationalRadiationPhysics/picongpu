@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2022 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2023 Axel Huebl, Rene Widera, Richard Pausch, Pawel Ordyna
 #
 # This file is part of PIConGPU.
 #
@@ -497,8 +497,13 @@ cp -a "$TBG_cfgFile" tbg/submit.cfg
 #warn, if there are still unresolved !TBG_ variables left
 check_final tbg/submit.start "$tooltpl_file_data"
 
-if [ -n "$submit_command" ] ; then
-    $submit_command tbg/submit.start
-else
-    echo "nothing to submit (-s option set?)"
+# verify picongpu call
+bash tbg/submit.start --validate
+
+if [ $? -eq 0 ] ; then
+  if [ -n "$submit_command" ] ; then
+      $submit_command tbg/submit.start
+  else
+      echo "nothing to submit (-s option set?)"
+  fi
 fi
