@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "picongpu/fields/incidentField/profiles/GaussianBeam.def"
+#include "picongpu/fields/incidentField/profiles/GaussianPulse.def"
 
 
 namespace picongpu
@@ -33,8 +33,8 @@ namespace picongpu
             {
                 namespace defaults
                 {
-                    // All parameters are same as for GaussianBeam, plus one extra parameter
-                    struct PulseFrontTiltParam : public GaussianBeamParam
+                    // All parameters are same as for GaussianPulse, plus one extra parameter
+                    struct PulseFrontTiltParam : public GaussianPulseParam
                     {
                         /** The tilt angles from laser propagation direction
                          *
@@ -55,14 +55,14 @@ namespace picongpu
                     };
                 } // namespace defaults
 
-                /** Gaussian Beam laser profile with titled pulse front tag
+                /** GaussianPulse laser profile with titled pulse front tag
                  *
-                 * @tparam T_Params class parameter to configure the Gaussian Beam with tilted front profile,
+                 * @tparam T_Params class parameter to configure the GaussianPulse with tilted front profile,
                  *                  see members of defaults::PulseFrontTiltParam
                  *                  for required members
                  */
                 template<typename T_Params = defaults::PulseFrontTiltParam>
-                using PulseFrontTilt = GaussianBeam<T_Params>;
+                using PulseFrontTilt = GaussianPulse<T_Params>;
             } // namespace profiles
         } // namespace incidentField
     } // namespace fields

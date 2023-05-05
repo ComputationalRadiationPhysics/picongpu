@@ -32,7 +32,7 @@ PARAMETERS = {
             default=800.0, range=(400.0, 1400.0)),
 
         Parameter(
-            name="Pulse_Length_SI", ptype="compile", unit="fs",
+            name="Pulse_Duration_SI", ptype="compile", unit="fs",
             default=5.0, range=(1.0, 150.0)),
     ],
     'target': [

@@ -33,7 +33,7 @@ namespace picongpu
             {
                 namespace defaults
                 {
-                    struct DispersiveLaserParam : public BaseParam
+                    struct DispersivePulseParam : public BaseParam
                     {
                         /** Beam waist: distance from the axis where the pulse intensity (E^2)
                          *              decreases to its 1/e^2-th part,
@@ -45,7 +45,7 @@ namespace picongpu
                          */
                         static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
                          * WATCH OUT! Dispersion parameters may lead to pulse lenghtening
                          * Please ensure to choose a value high enough to cover the whole pulse,
                          * otherwise the Fourier Transformation will misbehave.
@@ -93,14 +93,14 @@ namespace picongpu
                     };
                 } // namespace defaults
 
-                /** Dispersive laser profile with finite pulse length tag
+                /** Dispersive laser profile with finite pulse duration tag
                  *
                  * @tparam T_Params class parameter to configure the dispersive laser profile,
-                 *                  see members of defaults::DispersiveLaserParam
+                 *                  see members of defaults::DispersivePulseParam
                  *                  for required members
                  */
-                template<typename T_Params = defaults::DispersiveLaserParam>
-                struct DispersiveLaser;
+                template<typename T_Params = defaults::DispersivePulseParam>
+                struct DispersivePulse;
             } // namespace profiles
         } // namespace incidentField
     } // namespace fields

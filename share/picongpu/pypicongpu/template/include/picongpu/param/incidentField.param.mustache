@@ -22,16 +22,16 @@
  * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
- *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ *  - profiles::DispersivePulse<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
  * in focus. That is, SD, AD, GDD, and TOD, respectively.
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
- *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::GaussianPulse<>       : Pulse with Gaussian profile in all three dimensions with given parameters
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
  *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
  * parameters
- *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::PulseFrontTilt<>      : GaussianPulse with tilted pulse front with given parameters
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
  *
@@ -52,7 +52,7 @@
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
  * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
- * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ * using ZMax = profiles::GaussianPulse<UserGaussianPulseParams>;
  *
  * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
  * @endcode
@@ -74,7 +74,7 @@ namespace picongpu::fields::incidentField
     {
         static constexpr float_64 WAVE_LENGTH_SI = {{{wave_length_si}}}; // m
         static constexpr float_64 AMPLITUDE_SI = {{{E0_si}}}; // V/m
-        static constexpr float_64 PULSE_LENGTH_SI = {{{pulse_length_si}}}; // s (1 sigma)
+        static constexpr float_64 PULSE_DURATION_SI = {{{pulse_duration_si}}}; // s (1 sigma)
         static constexpr float_X LASER_PHASE = {{{phase}}}; // unitless
 
         static constexpr float_64 propagation_direction[3u] = {
@@ -107,11 +107,11 @@ namespace picongpu::fields::incidentField
         static constexpr float_64 POLARISATION_DIRECTION_Z = polarisation_direction[2];
     };
 
-    namespace PyPIConGPUGaussianBeam
+    namespace PyPIConGPUGaussianPulse
     {
                 //! Use only the 0th Laguerremode for a standard Gaussian
                 static constexpr uint32_t MODENUMBER = {{{modenumber}}};
-                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 
+                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES,
                 {{#laguerre_modes}}
                 {{{single_laguerre_mode}}}{{^_last}},{{/_last}}
                 {{/laguerre_modes}}
@@ -121,9 +121,9 @@ namespace picongpu::fields::incidentField
                 {{{single_laguerre_phase}}}{{^_last}},{{/_last}}
                 {{/laguerre_phases}}
                 );
-    } // namespace PyPIConGPUGaussianBeam
+    } // namespace PyPIConGPUGaussianPulse
 
-    struct PyPIConGPUGaussianBeamParam : public PyPIConGPULaserBaseParam
+    struct PyPIConGPUGaussianPulseParam : public PyPIConGPULaserBaseParam
     {
         /** Beam waist: distance from the axis where the pulse intensity (E^2)
          *              decreases to its 1/e^2-th part,
@@ -135,7 +135,7 @@ namespace picongpu::fields::incidentField
          */
         static constexpr float_64 W0_SI = {{{waist_si}}};
 
-        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
          *
          *  unit: none
          */
@@ -145,9 +145,9 @@ namespace picongpu::fields::incidentField
          *
          * @{
          */
-        using LAGUERREMODES_t = PyPIConGPUGaussianBeam::LAGUERREMODES_t;
-        using LAGUERREPHASES_t = PyPIConGPUGaussianBeam::LAGUERREPHASES_t;
-        static constexpr uint32_t MODENUMBER = PyPIConGPUGaussianBeam::MODENUMBER;
+        using LAGUERREMODES_t = PyPIConGPUGaussianPulse::LAGUERREMODES_t;
+        using LAGUERREPHASES_t = PyPIConGPUGaussianPulse::LAGUERREPHASES_t;
+        static constexpr uint32_t MODENUMBER = PyPIConGPUGaussianPulse::MODENUMBER;
         /** @} */
     };
 
@@ -186,7 +186,7 @@ namespace picongpu::fields::incidentField
 
     /**@{*/
     //! Incident field profile types along each boundary, these 6 types (or aliases) are required.
-    using YMin = profiles::GaussianBeam<PyPIConGPUGaussianBeamParam>;
+    using YMin = profiles::GaussianPulse<PyPIConGPUGaussianPulseParam>;
     {{/laser}}
     {{^laser}}
     // no laser defined case

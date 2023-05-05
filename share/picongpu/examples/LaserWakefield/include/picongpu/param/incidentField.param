@@ -22,16 +22,16 @@
  * Configure incident field profile and offset of the Huygens surface for each boundary.
  *
  * Available profiles:
- *  - profiles::DispersiveLaser<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
+ *  - profiles::DispersivePulse<>     : Gaussian pulse allowing to set first-, second-, and third-order dispersion
  * in focus. That is, SD, AD, GDD, and TOD, respectively.
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
- *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::GaussianPulse<>        : Pulse with Gaussian profile in all three dimensions with given parameters
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
  *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
  * parameters
- *  - profiles::PulseFrontTilt<>      : Gaussian beam with tilted pulse front with given parameters
+ *  - profiles::PulseFrontTilt<>      : GaussianPulse with tilted pulse front with given parameters
  *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
  * parameters
  *
@@ -52,7 +52,7 @@
  * using YMin = MakeSeq_t<profiles::PlaneWave<UserPlaneWaveParams>, profiles::Wavepacket<UserWavepacketParams>>;
  * using YMax = profiles::None;
  * using ZMin = profiles::Polynom<UserPolynomParams>;
- * using ZMax = profiles::GaussianBeam<UserGaussianBeamParams>;
+ * using ZMax = profiles::GaussianPulse<UserGaussianPulseParams>;
  *
  * constexpr int32_t POSITION[3][2] = { {16, -16}, {16, -16}, {16, -16} };
  * @endcode
@@ -70,8 +70,8 @@
 #    define PARAM_WAVE_LENGTH_SI 0.8e-6
 #endif
 
-#ifndef PARAM_PULSE_LENGTH_SI
-#    define PARAM_PULSE_LENGTH_SI 5.e-15
+#ifndef PARAM_PULSE_DURATION_SI
+#    define PARAM_PULSE_DURATION_SI 5.e-15
 #endif
 
 namespace picongpu
@@ -85,7 +85,7 @@ namespace picongpu
              * The particular used parameter structures do not have to inherit this, but must define same members
              * with same meaning.
              */
-            struct LwfaGaussianBeamBaseParams
+            struct LwfaGaussianPulseBaseParams
             {
                 /** Wave length along propagation direction
                  *
@@ -110,14 +110,14 @@ namespace picongpu
                  */
                 static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
-                /** Pulse length: sigma of std. gauss for intensity (E^2)
-                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                /** Pulse duration: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_DURATION_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
                  *                                          [    2.354820045     ]
                  *  Info:             FWHM_of_Intensity = FWHM_Illumination
                  *                      = what a experimentalist calls "pulse duration"
                  *  unit: seconds (1 sigma)
                  */
-                static constexpr float_64 PULSE_LENGTH_SI = PARAM_PULSE_LENGTH_SI;
+                static constexpr float_64 PULSE_DURATION_SI = PARAM_PULSE_DURATION_SI;
 
                 /** Laser phase shift (no shift: 0.0)
                  *
@@ -207,21 +207,21 @@ namespace picongpu
                 /** @} */
             };
 
-            namespace lwfaGaussianBeam
+            namespace lwfaGaussianPulse
             {
                 //! Use only the 0th Laguerremode for a standard Gaussian
                 static constexpr uint32_t MODENUMBER = 0;
                 PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
                 PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES, 0.0);
-            } // namespace lwfaGaussianBeam
+            } // namespace lwfaGaussianPulse
 
             /** Special structure for parameters of Gaussian laser pulses.
              *
-             * Inherits from LwfaGaussianBeamBaseParams in order to combine all Gaussian pulse parameters.
+             * Inherits from LwfaGaussianPulseBaseParams in order to combine all Gaussian pulse parameters.
              */
-            struct GaussianBeamParam : public LwfaGaussianBeamBaseParams
+            struct GaussianPulseParam : public LwfaGaussianPulseBaseParams
             {
-                /** Beam waist: distance from the axis where the pulse intensity (E^2)
+                /** Beam waist distance from the axis where the pulse intensity (E^2)
                  *              decreases to its 1/e^2-th part,
                  *              at the focus position of the laser
                  * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
@@ -231,7 +231,7 @@ namespace picongpu
                  */
                 static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
                  *
                  *  unit: none
                  */
@@ -241,9 +241,9 @@ namespace picongpu
                  *
                  * @{
                  */
-                using LAGUERREMODES_t = lwfaGaussianBeam::LAGUERREMODES_t;
-                using LAGUERREPHASES_t = lwfaGaussianBeam::LAGUERREPHASES_t;
-                static constexpr uint32_t MODENUMBER = lwfaGaussianBeam::MODENUMBER;
+                using LAGUERREMODES_t = lwfaGaussianPulse::LAGUERREMODES_t;
+                using LAGUERREPHASES_t = lwfaGaussianPulse::LAGUERREPHASES_t;
+                static constexpr uint32_t MODENUMBER = lwfaGaussianPulse::MODENUMBER;
                 /** @} */
             };
 
@@ -251,7 +251,7 @@ namespace picongpu
             //! Incident field profile types along each boundary, these 6 types (or aliases) are required.
             using XMin = profiles::None;
             using XMax = profiles::None;
-            using YMin = profiles::GaussianBeam<GaussianBeamParam>;
+            using YMin = profiles::GaussianPulse<GaussianPulseParam>;
             using YMax = profiles::None;
             using ZMin = profiles::None;
             using ZMax = profiles::None;

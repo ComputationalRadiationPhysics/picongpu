@@ -54,7 +54,7 @@ namespace picongpu
                         static constexpr float_64 W0_AXIS_1_SI = 4.246e-6;
                         static constexpr float_64 W0_AXIS_2_SI = W0_AXIS_1_SI;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
                          *
                          *  unit: none
                          */

@@ -76,7 +76,7 @@ namespace picongpu
                         static constexpr float_64 W0_AXIS_1_SI = 4.246e-6;
                         static constexpr float_64 W0_AXIS_2_SI = W0_AXIS_1_SI;
 
-                        /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_LENGTH before
+                        /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_DURATION before
                          * plateau and half at the end of the plateau
                          *
                          * unit: none
@@ -119,7 +119,7 @@ namespace picongpu
                  * The time of the prepulse and the three preramp points are given in
                  * SI, the intensities are given as multiples of the peak intensity.
                  *
-                 * @tparam T_Params class parameter to configure the beam profile,
+                 * @tparam T_Params class parameter to configure the pulse profile,
                  *                  see members of defaults::ExpRampWithPrepulseParam
                  *                  for required members.
                  *                  The focus position should be at or near the generation surface as the

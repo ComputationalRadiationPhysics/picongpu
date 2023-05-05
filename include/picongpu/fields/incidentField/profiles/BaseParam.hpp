@@ -71,12 +71,12 @@ namespace picongpu
                          */
                         static constexpr float_X AMPLITUDE = static_cast<float_X>(Params::AMPLITUDE_SI / UNIT_EFIELD);
 
-                        /** Pulse length
+                        /** Pulse duration
                          *
                          * unit: UNIT_TIME
                          */
-                        static constexpr float_X PULSE_LENGTH
-                            = static_cast<float_X>(Params::PULSE_LENGTH_SI / UNIT_TIME);
+                        static constexpr float_X PULSE_DURATION
+                            = static_cast<float_X>(Params::PULSE_DURATION_SI / UNIT_TIME);
 
                         // Some utility that is not part of public interface
                     private:
