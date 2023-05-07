@@ -158,7 +158,7 @@ namespace picongpu
 
                         using SimulationDimensions = pmacc::mp_iota<pmacc::mp_int<simDim>>;
 
-                        meta::ForEach<SimulationDimensions, detail::AbsorbInOneDirection<boost::mpl::_1>>
+                        meta::ForEach<SimulationDimensions, detail::AbsorbInOneDirection<pmacc::_1>>
                             absorbInAllDirections;
 
                         absorbInAllDirections(worker, field, thickness, absorberStrength, mapper, relExchangeDir);

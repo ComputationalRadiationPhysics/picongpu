@@ -112,8 +112,7 @@ namespace picongpu
              *                       with two components
              */
             template<typename T_TupleVector>
-            using Apply = typename boost::mpl::
-                apply1<pmacc::mp_at_c<T_TupleVector, plugin>, pmacc::mp_at_c<T_TupleVector, species>>::type;
+            using Apply = pmacc::Apply<pmacc::mp_at_c<T_TupleVector, plugin>, pmacc::mp_at_c<T_TupleVector, species>>;
 
             /** Check the combination Species+Plugin in the Tuple
              *
@@ -151,24 +150,24 @@ namespace picongpu
 
         /* define species plugins */
         using UnspecializedSpeciesPlugins = pmacc::mp_list<
-            plugins::multi::Master<EnergyParticles<boost::mpl::_1>>,
-            plugins::multi::Master<CalcEmittance<boost::mpl::_1>>,
-            plugins::multi::Master<BinEnergyParticles<boost::mpl::_1>>,
-            CountParticles<boost::mpl::_1>,
-            PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>,
-            plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>
+            plugins::multi::Master<EnergyParticles<pmacc::_1>>,
+            plugins::multi::Master<CalcEmittance<pmacc::_1>>,
+            plugins::multi::Master<BinEnergyParticles<pmacc::_1>>,
+            CountParticles<pmacc::_1>,
+            PngPlugin<Visualisation<pmacc::_1, PngCreator>>,
+            plugins::transitionRadiation::TransitionRadiation<pmacc::_1>
 #if ENABLE_OPENPMD
             ,
-            plugins::radiation::Radiation<boost::mpl::_1>
+            plugins::radiation::Radiation<pmacc::_1>
 #endif
 #if(ENABLE_OPENPMD == 1)
             ,
-            plugins::multi::Master<ParticleCalorimeter<boost::mpl::_1>>,
-            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>
+            plugins::multi::Master<ParticleCalorimeter<pmacc::_1>>,
+            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, pmacc::_1>>
 #endif
 #if(ENABLE_OPENPMD == 1)
             ,
-            PerSuperCell<boost::mpl::_1>
+            PerSuperCell<pmacc::_1>
 #endif
             >;
 
@@ -189,7 +188,7 @@ namespace picongpu
          */
         virtual void init()
         {
-            meta::ForEach<AllPlugins, PushBack<boost::mpl::_1>> pushBack;
+            meta::ForEach<AllPlugins, PushBack<pmacc::_1>> pushBack;
             pushBack(plugins);
         }
 

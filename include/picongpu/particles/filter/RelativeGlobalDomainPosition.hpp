@@ -102,10 +102,7 @@ namespace picongpu
                 using Params = T_Params;
 
                 template<typename T_SpeciesType>
-                struct apply
-                {
-                    using type = RelativeGlobalDomainPosition;
-                };
+                using fn = RelativeGlobalDomainPosition;
 
                 HINLINE RelativeGlobalDomainPosition()
                 {

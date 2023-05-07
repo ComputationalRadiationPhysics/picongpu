@@ -25,6 +25,7 @@
 // actual call to kernel found here
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/meta/Apply.hpp>
 
 #include <cstdint>
 
@@ -81,9 +82,8 @@ namespace picongpu
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, atomicPhysicsSolver<>>::type;
 
                 //! kernel to be called for each species
-                pmacc::meta::
-                    ForEach<SpeciesWithAtomicPhysics, particles::atomicPhysics::CallAtomicPhysics<boost::mpl::_1>>
-                        callAtomicPhysics;
+                pmacc::meta::ForEach<SpeciesWithAtomicPhysics, particles::atomicPhysics::CallAtomicPhysics<pmacc::_1>>
+                    callAtomicPhysics;
 
                 /** Description of cell structure used for PIC-Simulations.
                  *

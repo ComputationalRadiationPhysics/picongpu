@@ -32,8 +32,6 @@
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
 
-#include <boost/mpl/placeholders.hpp>
-
 #include <cassert>
 #include <stdexcept>
 
@@ -134,12 +132,11 @@ namespace picongpu
                 openPMDFrameType mappedFrame;
                 log<picLog::INPUT_OUTPUT>("openPMD: malloc mapped memory: %1%") % speciesName;
                 /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>> mallocMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<pmacc::_1>> mallocMem;
                 mallocMem(mappedFrame, totalNumParticles);
 
-                meta::
-                    ForEach<typename openPMDFrameType::ValueTypeSeq, LoadParticleAttributesFromOpenPMD<boost::mpl::_1>>
-                        loadAttributes;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, LoadParticleAttributesFromOpenPMD<pmacc::_1>>
+                    loadAttributes;
                 loadAttributes(params, mappedFrame, particleSpecies, particleOffset, totalNumParticles);
 
                 if(totalNumParticles != 0)
@@ -155,7 +152,7 @@ namespace picongpu
                         picLog::INPUT_OUTPUT());
 
                     /*free host memory*/
-                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<boost::mpl::_1>> freeMem;
+                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<pmacc::_1>> freeMem;
                     freeMem(mappedFrame);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) load species: %1%") % speciesName;

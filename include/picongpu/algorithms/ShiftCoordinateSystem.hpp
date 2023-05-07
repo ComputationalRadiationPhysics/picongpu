@@ -23,8 +23,6 @@
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/types.hpp>
 
-#include <boost/mpl/placeholders.hpp>
-
 namespace picongpu
 {
     /** shift to new coordinate system

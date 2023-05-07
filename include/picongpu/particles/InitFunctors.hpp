@@ -28,13 +28,13 @@
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/Environment.hpp>
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/apply.hpp>
 
 namespace picongpu
 {
@@ -85,18 +85,18 @@ namespace picongpu
          * @tparam T_SpeciesType type or name as PMACC_CSTRING of the used species,
          *                       see speciesDefinition.param
          */
-        template<typename T_DensityFunctor, typename T_PositionFunctor, typename T_SpeciesType = boost::mpl::_1>
+        template<typename T_DensityFunctor, typename T_PositionFunctor, typename T_SpeciesType = pmacc::_1>
         struct CreateDensity
         {
             using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
             using FrameType = typename SpeciesType::FrameType;
 
 
-            using UserDensityFunctor = typename boost::mpl::apply1<T_DensityFunctor, SpeciesType>::type;
+            using UserDensityFunctor = pmacc::Apply<T_DensityFunctor, SpeciesType>;
             /* add interface for compile time interface validation*/
             using DensityFunctor = densityProfiles::IProfile<UserDensityFunctor>;
 
-            using UserPositionFunctor = typename boost::mpl::apply1<T_PositionFunctor, SpeciesType>::type;
+            using UserPositionFunctor = pmacc::Apply<T_PositionFunctor, SpeciesType>;
             /* add interface for compile time interface validation*/
             using PositionFunctor = manipulators::IUnary<UserPositionFunctor>;
 
@@ -137,7 +137,7 @@ namespace picongpu
         template<
             typename T_Manipulator,
             typename T_SrcSpeciesType,
-            typename T_DestSpeciesType = boost::mpl::_1,
+            typename T_DestSpeciesType = pmacc::_1,
             typename T_SrcFilter = filter::All>
         struct ManipulateDerive
         {
@@ -146,9 +146,9 @@ namespace picongpu
             using SrcSpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SrcSpeciesType>;
             using SrcFrameType = typename SrcSpeciesType::FrameType;
 
-            using DestFunctor = typename boost::mpl::apply1<T_Manipulator, DestSpeciesType>::type;
+            using DestFunctor = pmacc::Apply<T_Manipulator, DestSpeciesType>;
 
-            using SrcFilter = typename boost::mpl::apply1<T_SrcFilter, SrcSpeciesType>::type;
+            using SrcFilter = pmacc::Apply<T_SrcFilter, SrcSpeciesType>;
 
             /* note: this is a FilteredManipulator with filter::All for
              * destination species, users can filter the destination directly via if's
@@ -184,10 +184,7 @@ namespace picongpu
          * @tparam T_Filter picongpu::particles::filter,
          *                  particle filter type to select source particles to derive
          */
-        template<
-            typename T_SrcSpeciesType,
-            typename T_DestSpeciesType = boost::mpl::_1,
-            typename T_Filter = filter::All>
+        template<typename T_SrcSpeciesType, typename T_DestSpeciesType = pmacc::_1, typename T_Filter = filter::All>
         struct Derive : ManipulateDerive<manipulators::generic::None, T_SrcSpeciesType, T_DestSpeciesType, T_Filter>
         {
         };
@@ -208,7 +205,7 @@ namespace picongpu
          * @tparam T_SpeciesType type or name as PMACC_CSTRING of the particle species
          *                       to fill gaps in memory
          */
-        template<typename T_SpeciesType = boost::mpl::_1>
+        template<typename T_SpeciesType = pmacc::_1>
         struct FillAllGaps
         {
             using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;

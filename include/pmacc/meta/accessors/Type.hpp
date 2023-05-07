@@ -23,9 +23,6 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/placeholders.hpp>
-
-
 namespace pmacc
 {
     namespace meta
@@ -38,7 +35,7 @@ namespace pmacc
              *
              * T must have defined ::type
              */
-            template<typename T = boost::mpl::_1>
+            template<typename T = pmacc::_1>
             struct Type
             {
                 using type = typename T::type;

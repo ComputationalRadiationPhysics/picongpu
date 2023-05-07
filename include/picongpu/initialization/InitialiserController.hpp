@@ -35,6 +35,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/assert.hpp>
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
 namespace picongpu
@@ -98,7 +99,7 @@ namespace picongpu
          * Calculate omega_p for each given species and create a `picLog::PHYSICS`
          * log message
          */
-        template<typename T_Species = boost::mpl::_1>
+        template<typename T_Species = pmacc::_1>
         struct LogOmegaP
         {
             void operator()()
@@ -229,8 +230,7 @@ namespace picongpu
         {
             using namespace fields;
             using IncidentFieldProfiles = fields::incidentField::UniqueEnabledProfiles;
-            meta::ForEach<IncidentFieldProfiles, PrintIncidentFieldDispersion<boost::mpl::_1>>
-                printIncidentFieldDispersion;
+            meta::ForEach<IncidentFieldProfiles, PrintIncidentFieldDispersion<pmacc::_1>> printIncidentFieldDispersion;
             printIncidentFieldDispersion();
         }
     };

@@ -54,10 +54,7 @@ namespace picongpu
             struct All
             {
                 template<typename T_SpeciesType>
-                struct apply
-                {
-                    using type = All;
-                };
+                using fn = All;
 
                 /** create filter for the accelerator
                  *

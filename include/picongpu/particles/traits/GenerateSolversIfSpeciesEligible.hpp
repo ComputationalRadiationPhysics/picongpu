@@ -21,9 +21,8 @@
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/meta/conversion/ToSeq.hpp>
-
-#include <boost/mpl/apply.hpp>
 
 namespace picongpu
 {
@@ -64,7 +63,7 @@ namespace picongpu
                 using SeqEligibleSpecies = pmacc::mp_copy_if<SeqSpecies, Predicate>;
 
                 template<typename T>
-                using Op = typename boost::mpl::apply1<Solver, T>::type;
+                using Op = pmacc::Apply<Solver, T>;
                 using type = pmacc::mp_transform<Op, SeqEligibleSpecies>;
             };
         } // namespace traits

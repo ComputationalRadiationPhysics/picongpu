@@ -21,9 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <boost/mpl/placeholders.hpp>
-
-
 namespace picongpu
 {
     namespace particles

@@ -23,11 +23,8 @@
 
 #include "pmacc/meta/conversion/SeqToMap.hpp"
 #include "pmacc/meta/conversion/TypeToAliasPair.hpp"
-#include "pmacc/meta/conversion/TypeToPair.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ReturnType.hpp"
 #include "pmacc/types.hpp"
-
-#include <boost/mpl/apply.hpp>
 
 #include <type_traits>
 
@@ -44,29 +41,28 @@ namespace pmacc
     template<typename T_MPLSeq, typename T_Key, typename T_KeyNotFoundPolicy = errorHandlerPolicies::ReturnType<>>
     struct GetKeyFromAlias
     {
-    private:
+    public:
         // FIXME(bgruber): all the boost::mp11:: qualifications inside this class work around nvcc 11.0 not finding the
         // mp_* templates
-
         using KeyNotFoundPolicy = T_KeyNotFoundPolicy;
         /*create a map where Key is a undeclared alias and value is real type*/
-        using AliasMap = typename SeqToMap<T_MPLSeq, TypeToAliasPair<boost::mpl::_1>>::type;
+        using AliasMap = typename SeqToMap<T_MPLSeq, mp_quote<TypeToAliasPair>>::type;
         /*create a map where Key and value is real type*/
-        using KeyMap = typename SeqToMap<T_MPLSeq, TypeToPair<boost::mpl::_1>>::type;
+        using KeyMap = typename SeqToMap<T_MPLSeq, mp_quote<TypeToPair>>::type;
         /*combine both maps*/
         using FullMap = boost::mp11::mp_fold<AliasMap, KeyMap, boost::mp11::mp_map_insert>;
         /* search for given key,
          * - we get the real type if key found
-         * - else we get boost::mpl::void_
+         * - else we get void
          */
         using MapType = boost::mp11::mp_map_find<FullMap, T_Key>;
 
     public:
         /* Check for KeyNotFound and calculate final type. (Uses lazy evaluation) */
         using type = typename boost::mp11::mp_if<
-            std::is_same<MapType, void>,
-            boost::mpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Key>,
-            boost::mp11::mp_defer<boost::mp11::mp_second, MapType>>::type;
+            boost::mp11::mp_map_contains<FullMap, T_Key>,
+            boost::mp11::mp_defer<boost::mp11::mp_second, MapType>,
+            boost::mp11::mp_defer<Apply, KeyNotFoundPolicy, T_MPLSeq, T_Key>>::type;
     };
 
 } // namespace pmacc

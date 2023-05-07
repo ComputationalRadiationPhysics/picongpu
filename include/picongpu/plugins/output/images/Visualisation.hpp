@@ -49,6 +49,7 @@
 #include <pmacc/memory/boxes/SharedBox.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
@@ -164,7 +165,7 @@ namespace picongpu
         HDINLINE static float_X getAmplitude()
         {
             using Profiles = fields::incidentField::UniqueEnabledProfiles;
-            meta::ForEach<Profiles, CalculateMaxAmplitude<boost::mpl::_1>> calculateMaxAmplitude;
+            meta::ForEach<Profiles, CalculateMaxAmplitude<pmacc::_1>> calculateMaxAmplitude;
             auto maxAmplitude = 0.0_X;
             calculateMaxAmplitude(maxAmplitude);
             return maxAmplitude;

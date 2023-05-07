@@ -79,7 +79,6 @@
 #include <pmacc/verify.hpp>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/mpl/placeholders.hpp>
 
 #include <algorithm>
 #include <array>
@@ -354,7 +353,8 @@ namespace picongpu
 #endif
 
             // Allocate and initialize particle species with all left-over memory below
-            meta::ForEach<VectorAllSpecies, particles::CreateSpecies<boost::mpl::_1>> createSpeciesMemory;
+
+            meta::ForEach<VectorAllSpecies, particles::CreateSpecies<pmacc::_1>> createSpeciesMemory;
             createSpeciesMemory(deviceHeap, cellDescription.get());
 
             size_t freeGpuMem = freeDeviceMemory();
@@ -394,7 +394,7 @@ namespace picongpu
 
 #endif
 
-            meta::ForEach<VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<boost::mpl::_1>>
+            meta::ForEach<VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<pmacc::_1>>
                 logMemoryStatisticsForSpecies;
             logMemoryStatisticsForSpecies(deviceHeap);
 
@@ -463,7 +463,7 @@ namespace picongpu
                 else
                 {
                     initialiserController->init();
-                    meta::ForEach<particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
+                    meta::ForEach<particles::InitPipeline, pmacc::functor::Call<pmacc::_1>> initSpecies;
                     initSpecies(0);
                     /* Remove all particles that are outside the respective boundaries
                      * (this can happen if density functor didn't account for it).
@@ -556,7 +556,7 @@ namespace picongpu
         void resetAll(uint32_t currentStep) override
         {
             resetFields(currentStep);
-            meta::ForEach<VectorAllSpecies, particles::CallReset<boost::mpl::_1>> resetParticles;
+            meta::ForEach<VectorAllSpecies, particles::CallReset<pmacc::_1>> resetParticles;
             resetParticles(currentStep);
         }
 
@@ -569,7 +569,7 @@ namespace picongpu
                 log<picLog::SIMULATION_STATE>("slide in step %1%") % currentStep;
                 resetAll(currentStep);
                 initialiserController->slide(currentStep);
-                meta::ForEach<particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
+                meta::ForEach<particles::InitPipeline, pmacc::functor::Call<pmacc::_1>> initSpecies;
                 initSpecies(currentStep);
             }
         }

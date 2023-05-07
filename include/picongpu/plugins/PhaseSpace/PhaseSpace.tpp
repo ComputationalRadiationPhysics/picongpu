@@ -186,7 +186,7 @@ namespace picongpu
             // particle filter
             std::placeholders::_1);
 
-        meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
+        meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<pmacc::_1>>{}(
             m_help->filter.get(m_id),
             currentStep,
             bindFunctor);

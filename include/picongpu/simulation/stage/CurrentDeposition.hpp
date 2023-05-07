@@ -74,7 +74,7 @@ namespace picongpu
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
                     meta::ForEach<
                         SpeciesWithCurrentSolver,
-                        detail::CurrentDeposition<boost::mpl::_1, pmacc::mp_int<type::CORE + type::BORDER>>>
+                        detail::CurrentDeposition<pmacc::_1, pmacc::mp_int<type::CORE + type::BORDER>>>
                         depositCurrent;
                     depositCurrent(step, fieldJ, dc);
                 }

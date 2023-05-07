@@ -205,8 +205,7 @@ namespace picongpu
                                 using ParticleCleanedAttrList =
                                     typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
 
-                                meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<boost::mpl::_1>>
-                                    setToDefault;
+                                meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<pmacc::_1>> setToDefault;
                                 setToDefault(particle);
                             }
                             particle[multiMask_] = 1;

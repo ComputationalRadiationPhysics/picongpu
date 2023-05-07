@@ -34,6 +34,7 @@
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/traits/IsBaseTemplateOf.hpp>
@@ -633,10 +634,10 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrement = maxwellSolver::getTimeStep();
-                    meta::ForEach<T_MinProfiles, ApplyUpdateE<boost::mpl::_1>> applyMinProfiles;
+                    meta::ForEach<T_MinProfiles, ApplyUpdateE<pmacc::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<boost::mpl::_1>> applyMaxProfiles;
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateE<pmacc::_1>> applyMaxProfiles;
                     applyMaxProfiles(parameters);
                 }
 
@@ -682,10 +683,10 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrement = 0.5_X * maxwellSolver::getTimeStep();
-                    meta::ForEach<T_MinProfiles, ApplyUpdateB<boost::mpl::_1>> applyMinProfiles;
+                    meta::ForEach<T_MinProfiles, ApplyUpdateB<pmacc::_1>> applyMinProfiles;
                     applyMinProfiles(parameters);
                     parameters.direction = -1.0_X;
-                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<boost::mpl::_1>> applyMaxProfiles;
+                    meta::ForEach<T_MaxProfiles, ApplyUpdateB<pmacc::_1>> applyMaxProfiles;
                     applyMaxProfiles(parameters);
                 }
 

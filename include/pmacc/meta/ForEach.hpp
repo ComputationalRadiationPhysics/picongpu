@@ -21,21 +21,18 @@
 
 #pragma once
 
-#include "pmacc/meta/accessors/Identity.hpp"
-
-#include <boost/mpl/apply.hpp>
+#include "Apply.hpp"
+#include "Mp11.hpp"
 
 #include <type_traits>
 
 namespace pmacc::meta
 {
-    /** Compile-Time for each for Boost::MPL Type Lists
+    /** Compile-Time for each for type lists
      *
      *  @tparam List An mp_list.
      *  @tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
-     *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
-     *          The maximum number of parameters for the operator() is limited by
-     *          PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
+     *          _1 is substituted by Accessor's result using Apply with elements from List.
      *  @tparam T_Accessor An unary lambda operation
      *
      * Example:
@@ -43,20 +40,17 @@ namespace pmacc::meta
      *      Functor = any unary lambda functor
      *      Accessor = lambda operation identity
      *
-     *      definition: F(X) means boost::apply<F,X>
-     *
      *      call:   ForEach<List,Functor,Accessor>()(42);
      *      unrolled code: Functor(Accessor(int))(42);
      *                     Functor(Accessor(float))(42);
      */
-    template<typename List, typename T_Functor, typename T_Accessor = meta::accessors::Identity<>>
+    template<typename List, typename T_Functor, typename T_Accessor = mp_identity<_1>>
     struct ForEach
     {
-        template<typename X>
-        using ReplacePlaceholder =
-            typename boost::mpl::apply1<T_Functor, typename boost::mpl::apply1<T_Accessor, X>::type>::type;
+        template<typename T>
+        using MakeFunctor = Apply<T_Functor, typename Apply<T_Accessor, T>::type>;
 
-        using SolvedFunctors = mp_transform<ReplacePlaceholder, List>;
+        using SolvedFunctors = mp_transform<MakeFunctor, List>;
 
         template<typename... T_Types>
         HDINLINE void operator()(T_Types&&... ts) const

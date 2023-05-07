@@ -21,11 +21,10 @@
 
 #pragma once
 
+#include "pmacc/meta/Apply.hpp"
 #include "pmacc/meta/Mp11.hpp"
 #include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
-
-#include <boost/mpl/apply.hpp>
 
 namespace pmacc
 {
@@ -38,12 +37,13 @@ namespace pmacc
      * from the sequence is passed to T_UnaryOperator
      * @return ::type mp_list
      */
-    template<typename T_MPLSeq, typename T_UnaryOperator, typename T_Accessor = meta::accessors::Identity<>>
+    template<typename T_MPLSeq, typename T_UnaryOperator, typename T_Accessor = _1>
     struct OperateOnSeq
     {
-        template<typename X>
-        using Op =
-            typename boost::mpl::apply1<T_UnaryOperator, typename boost::mpl::apply1<T_Accessor, X>::type>::type;
+        static_assert(detail::isPlaceholderExpression<T_UnaryOperator>);
+
+        template<typename T>
+        using Op = Apply<T_UnaryOperator, Apply<T_Accessor, T>>;
 
         using type = mp_transform<Op, T_MPLSeq>;
     };

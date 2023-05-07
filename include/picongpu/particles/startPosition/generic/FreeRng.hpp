@@ -84,10 +84,7 @@ namespace picongpu
                     , private picongpu::particles::functor::misc::Rng<T_Distribution>
                 {
                     template<typename T_SpeciesType>
-                    struct apply
-                    {
-                        using type = FreeRng;
-                    };
+                    using fn = FreeRng;
 
                     using RngGenerator = picongpu::particles::functor::misc::Rng<T_Distribution>;
 

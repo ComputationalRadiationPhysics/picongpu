@@ -237,7 +237,7 @@ namespace picongpu
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                meta::ForEach<EligibleFilters, plugins::misc::AppendName<boost::mpl::_1>> getEligibleFilterNames;
+                meta::ForEach<EligibleFilters, plugins::misc::AppendName<pmacc::_1>> getEligibleFilterNames;
                 getEligibleFilterNames(allowedFilters);
 
                 concatenatedFilterNames = plugins::misc::concatenateToString(allowedFilters, ", ");
@@ -489,7 +489,7 @@ namespace picongpu
                 mapper,
                 std::placeholders::_1);
 
-            meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
+            meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<pmacc::_1>>{}(
                 m_help->filter.get(m_id),
                 currentStep,
                 binaryKernel);

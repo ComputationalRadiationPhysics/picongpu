@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/math/MapTuple.hpp"
+#include "pmacc/meta/Apply.hpp"
 #include "pmacc/meta/GetKeyFromAlias.hpp"
 #include "pmacc/meta/conversion/OperateOnSeq.hpp"
 #include "pmacc/meta/conversion/SeqToMap.hpp"
@@ -33,8 +34,6 @@
 #include "pmacc/traits/HasFlag.hpp"
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/types.hpp"
-
-#include <boost/mpl/apply.hpp>
 
 namespace pmacc
 {
@@ -60,9 +59,9 @@ namespace pmacc
               typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type>
         , public InheritLinearly<mp_append<
               typename T_ParticleDescription::MethodsList,
-              typename OperateOnSeq<
-                  typename T_ParticleDescription::FrameExtensionList,
-                  boost::mpl::apply1<boost::mpl::_1, Frame<T_CreatePairOperator, T_ParticleDescription>>>::type>>
+              mp_transform_q<
+                  mp_bind<Apply, _1, Frame<T_CreatePairOperator, T_ParticleDescription>>,
+                  typename T_ParticleDescription::FrameExtensionList>>>
     {
         using ParticleDescription = T_ParticleDescription;
         using Name = typename ParticleDescription::Name;

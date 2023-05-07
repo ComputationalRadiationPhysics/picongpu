@@ -33,6 +33,7 @@ namespace picongpu
         {
             using type = typename pmacc::traits::Resolve<
                 typename GetFlagType<typename T_Species::FrameType, shape<>>::type>::type;
+            static_assert(!std::is_void_v<type>);
         };
 
     } // namespace traits

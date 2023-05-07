@@ -50,13 +50,10 @@ namespace pmacc
         template<uint32_t T_size>
         struct OperatorCreatePairStaticArray
         {
-            template<typename X>
-            struct apply
-            {
-                using type = meta::Pair<
-                    X,
-                    StaticArray<typename traits::Resolve<X>::type::type, std::integral_constant<uint32_t, T_size>>>;
-            };
+            template<typename T>
+            using fn = meta::Pair<
+                T,
+                StaticArray<typename traits::Resolve<T>::type::type, std::integral_constant<uint32_t, T_size>>>;
         };
     } // namespace detail
 

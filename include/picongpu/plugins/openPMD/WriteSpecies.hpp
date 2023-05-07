@@ -43,8 +43,6 @@
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
 
-#include <boost/mpl/placeholders.hpp>
-
 #include <algorithm>
 #include <type_traits> // std::remove_reference_t
 
@@ -107,14 +105,14 @@ namespace picongpu
             {
                 /* malloc host memory */
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) malloc host memory: %1%") % name;
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocHostMemory<boost::mpl::_1>> mallocMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocHostMemory<pmacc::_1>> mallocMem;
                 mallocMem(hostFrame, myNumParticles);
                 log<picLog::INPUT_OUTPUT>("openPMD:   ( end ) malloc host memory: %1%") % name;
             }
 
             void free(openPMDFrameType& hostFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeHostMemory<boost::mpl::_1>> freeMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeHostMemory<pmacc::_1>> freeMem;
                 freeMem(hostFrame);
             }
 
@@ -177,14 +175,14 @@ namespace picongpu
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) malloc mapped memory: %1%") % name;
                 /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>> mallocMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<pmacc::_1>> mallocMem;
                 mallocMem(mappedFrame, myNumParticles);
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) malloc mapped memory: %1%") % name;
             }
 
             void free(openPMDFrameType& mappedFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<boost::mpl::_1>> freeMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<pmacc::_1>> freeMem;
                 freeMem(mappedFrame);
             }
 
@@ -418,7 +416,7 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write particle records for %1%")
                     % T_SpeciesFilter::getName();
 
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, openPMD::ParticleAttribute<boost::mpl::_1>>
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, openPMD::ParticleAttribute<pmacc::_1>>
                     writeToOpenPMD;
                 writeToOpenPMD(
                     params,
