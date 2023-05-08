@@ -52,8 +52,3 @@ The charge is normalized to ``UNIT_CHARGE`` (third column) which is the typical 
 
 There is a up 5% difference to a native hdf5 post-processing based implementation of the charge conversation check due to a different order of subtraction.
 And the zero-th time step (only numerical differences) might differ more then 5% relative due to the close to zero result. 
-
-Known Limitations
-^^^^^^^^^^^^^^^^^
-
-- this plugin is only available with the CUDA backend
