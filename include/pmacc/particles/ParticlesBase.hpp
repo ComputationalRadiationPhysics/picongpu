@@ -45,9 +45,10 @@ namespace pmacc
     class ParticlesBase : public SimulationFieldHelper<T_MappingDesc>
     {
         using ParticleDescription = T_ParticleDescription;
-        using MappingDesc = T_MappingDesc;
 
     public:
+        using MappingDesc = T_MappingDesc;
+
         /* Type of used particles buffer
          */
         using BufferType = ParticlesBuffer<
