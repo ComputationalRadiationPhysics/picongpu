@@ -45,7 +45,8 @@ namespace picongpu
 
             using type = pmacc::mp_if<
                 hasMemCfg,
-                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, exchangeMemCfg<>>::type>::type,
+                typename pmacc::traits::Resolve<
+                    typename pmacc::traits::GetFlagType<FrameType, exchangeMemCfg<>>::type>::type,
                 ::picongpu::DefaultExchangeMemCfg>;
         };
 

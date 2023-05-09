@@ -32,7 +32,7 @@ namespace picongpu
         struct GetPusher
         {
             using type = typename pmacc::traits::Resolve<
-                typename GetFlagType<typename T_Species::FrameType, particlePusher<>>::type>::type;
+                typename pmacc::traits::GetFlagType<typename T_Species::FrameType, particlePusher<>>::type>::type;
         };
 
     } // namespace traits

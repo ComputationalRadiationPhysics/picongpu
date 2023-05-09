@@ -50,7 +50,7 @@ namespace picongpu
                 using FrameType = typename SpeciesType::FrameType;
 
                 // the following line only fetches the alias
-                using FoundIonizersAlias = typename GetFlagType<FrameType, ionizers<>>::type;
+                using FoundIonizersAlias = typename pmacc::traits::GetFlagType<FrameType, ionizers<>>::type;
 
                 // this now resolves the alias into the actual object type, a list of ionizers
                 using FoundIonizerList = typename pmacc::traits::Resolve<FoundIonizersAlias>::type;

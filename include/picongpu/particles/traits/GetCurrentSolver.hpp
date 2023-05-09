@@ -32,7 +32,7 @@ namespace picongpu
         struct GetCurrentSolver
         {
             using type = typename pmacc::traits::Resolve<
-                typename GetFlagType<typename T_Species::FrameType, current<>>::type>::type;
+                typename pmacc::traits::GetFlagType<typename T_Species::FrameType, current<>>::type>::type;
         };
     } // namespace traits
 

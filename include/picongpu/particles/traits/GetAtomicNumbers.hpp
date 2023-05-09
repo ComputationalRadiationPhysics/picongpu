@@ -39,7 +39,7 @@ namespace picongpu
             /* throw static assert if species has no protons or neutrons */
             PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers, hasAtomicNumbers::value == true);
 
-            using FoundAtomicNumbersAlias = typename GetFlagType<FrameType, atomicNumbers<>>::type;
+            using FoundAtomicNumbersAlias = typename pmacc::traits::GetFlagType<FrameType, atomicNumbers<>>::type;
             using type = typename pmacc::traits::Resolve<FoundAtomicNumbersAlias>::type;
         };
     } // namespace traits

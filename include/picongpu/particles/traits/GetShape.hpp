@@ -32,7 +32,7 @@ namespace picongpu
         struct GetShape
         {
             using type = typename pmacc::traits::Resolve<
-                typename GetFlagType<typename T_Species::FrameType, shape<>>::type>::type;
+                typename pmacc::traits::GetFlagType<typename T_Species::FrameType, shape<>>::type>::type;
         };
 
     } // namespace traits

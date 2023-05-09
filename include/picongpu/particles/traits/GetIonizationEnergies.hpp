@@ -42,7 +42,8 @@ namespace picongpu
                 No_ionization_energies_are_defined_for_this_species,
                 hasIonizationEnergies::value == true);
 
-            using FoundIonizationEnergiesAlias = typename GetFlagType<FrameType, ionizationEnergies<>>::type;
+            using FoundIonizationEnergiesAlias =
+                typename pmacc::traits::GetFlagType<FrameType, ionizationEnergies<>>::type;
             /* Extract ionization energy vector from AU namespace */
             using type = typename pmacc::traits::Resolve<FoundIonizationEnergiesAlias>::type;
 

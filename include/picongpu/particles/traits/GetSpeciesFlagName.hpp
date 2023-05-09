@@ -43,7 +43,7 @@ namespace picongpu
         struct GetSpeciesFlagName
         {
             using SpeciesFlag = typename pmacc::traits::Resolve<
-                typename GetFlagType<typename T_Species::FrameType, T_Flag>::type>::type;
+                typename pmacc::traits::GetFlagType<typename T_Species::FrameType, T_Flag>::type>::type;
 
             std::string operator()() const
             {
