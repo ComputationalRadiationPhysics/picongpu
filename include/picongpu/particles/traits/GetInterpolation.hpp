@@ -32,7 +32,7 @@ namespace picongpu
         struct GetInterpolation
         {
             using type = typename pmacc::traits::Resolve<
-                typename GetFlagType<typename T_Species::FrameType, interpolation<>>::type>::type;
+                typename pmacc::traits::GetFlagType<typename T_Species::FrameType, interpolation<>>::type>::type;
         };
     } // namespace traits
 

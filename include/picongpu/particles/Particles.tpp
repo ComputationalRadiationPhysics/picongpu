@@ -295,7 +295,7 @@ namespace picongpu
     template<typename T_Name, typename T_Flags, typename T_Attributes>
     void Particles<T_Name, T_Flags, T_Attributes>::update(uint32_t const currentStep)
     {
-        using PusherAlias = typename GetFlagType<FrameType, particlePusher<>>::type;
+        using PusherAlias = typename pmacc::traits::GetFlagType<FrameType, particlePusher<>>::type;
         using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
         // Because of composite pushers, we have to defer using the launcher
         PushLauncher<ParticlePush>{}(*this, currentStep);
@@ -334,8 +334,8 @@ namespace picongpu
             _internal_error_particle_push_instantiated_for_composite_pusher,
             particles::pusher::IsComposite<T_Pusher>::type::value == false);
 
-        using InterpolationScheme =
-            typename pmacc::traits::Resolve<typename GetFlagType<FrameType, interpolation<>>::type>::type;
+        using InterpolationScheme = typename pmacc::traits::Resolve<
+            typename pmacc::traits::GetFlagType<FrameType, interpolation<>>::type>::type;
 
         using FrameSolver = PushParticlePerFrame<T_Pusher, MappingDesc::SuperCellSize, InterpolationScheme>;
 

@@ -43,7 +43,8 @@ namespace picongpu
                 No_effective_atomic_numbers_are_defined_for_this_species,
                 hasEffectiveNuclearCharge::value == true);
 
-            using FoundEffectiveNuclearChargeAlias = typename GetFlagType<FrameType, effectiveNuclearCharge<>>::type;
+            using FoundEffectiveNuclearChargeAlias =
+                typename pmacc::traits::GetFlagType<FrameType, effectiveNuclearCharge<>>::type;
             /* Extract vector of effective atomic numbers */
             using type = typename pmacc::traits::Resolve<FoundEffectiveNuclearChargeAlias>::type;
 

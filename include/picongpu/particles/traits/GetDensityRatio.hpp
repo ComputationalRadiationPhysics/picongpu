@@ -46,8 +46,8 @@ namespace picongpu
         {
             using FrameType = typename T_Species::FrameType;
             using hasDensityRatio = typename HasFlag<FrameType, densityRatio<>>::type;
-            using DensityRatioOfSpecies =
-                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, densityRatio<>>::type>::type;
+            using DensityRatioOfSpecies = typename pmacc::traits::Resolve<
+                typename pmacc::traits::GetFlagType<FrameType, densityRatio<>>::type>::type;
 
             using type = pmacc::mp_if<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>;
         };

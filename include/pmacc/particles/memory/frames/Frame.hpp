@@ -141,7 +141,7 @@ namespace pmacc
         {
         private:
             using FrameType = pmacc::Frame<T_CreatePairOperator, T_ParticleDescription>;
-            using SolvedAliasName = typename GetFlagType<FrameType, T_IdentifierName>::type;
+            using SolvedAliasName = typename pmacc::traits::GetFlagType<FrameType, T_IdentifierName>::type;
             using FlagList = typename FrameType::FlagList;
 
         public:

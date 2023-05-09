@@ -70,8 +70,8 @@ namespace picongpu
                 using FrameType = typename SrcSpecies::FrameType;
 
                 /* specify field to particle interpolation scheme */
-                using Field2ParticleInterpolation =
-                    typename pmacc::traits::Resolve<typename GetFlagType<FrameType, interpolation<>>::type>::type;
+                using Field2ParticleInterpolation = typename pmacc::traits::Resolve<
+                    typename pmacc::traits::GetFlagType<FrameType, interpolation<>>::type>::type;
 
                 /* margins around the supercell for the interpolation of the field on the cells */
                 using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;

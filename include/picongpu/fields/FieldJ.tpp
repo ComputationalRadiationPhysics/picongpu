@@ -236,7 +236,7 @@ namespace picongpu
 
         using FrameType = typename T_Species::FrameType;
         using ParticleCurrentSolver =
-            typename pmacc::traits::Resolve<typename GetFlagType<FrameType, current<>>::type>::type;
+            typename pmacc::traits::Resolve<typename pmacc::traits::GetFlagType<FrameType, current<>>::type>::type;
 
         using FrameSolver
             = currentSolver::ComputePerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize>;
