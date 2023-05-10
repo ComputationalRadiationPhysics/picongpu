@@ -48,6 +48,12 @@ extensions = ['sphinx.ext.mathjax',
               'autoapi.extension',
               'myst_parser']
 
+# enable latex physics package in math expressions
+# https://docs.mathjax.org/en/v3.1-latest/input/tex/extensions/physics.html
+mathjax3_config = {
+    'loader': {'load': ['[tex]/physics']},
+    'tex': {'packages': {'[+]': ['physics']}}}
+
 if not on_rtd:
     extensions.append('sphinx.ext.githubpages')
 
