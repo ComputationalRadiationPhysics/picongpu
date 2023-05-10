@@ -59,7 +59,8 @@ namespace picongpu
                     }
 
                     template<typename T_Particle>
-                    HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
+                    HDINLINE uint32_t
+                    numberOfMacroParticles(float_X const realParticlesPerCell, DataSpace<simDim> const)
                     {
                         return startPosition::detail::WeightMacroParticles{}(
                             realParticlesPerCell,

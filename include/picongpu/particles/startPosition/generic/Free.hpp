@@ -66,9 +66,10 @@ namespace picongpu
                         }
 
                         template<typename T_Particle>
-                        HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
+                        HDINLINE uint32_t
+                        numberOfMacroParticles(float_X const realParticlesPerCell, DataSpace<simDim> const cellIdx)
                         {
-                            return Functor::template numberOfMacroParticles<T_Particle>(realParticlesPerCell);
+                            return Functor::template numberOfMacroParticles<T_Particle>(realParticlesPerCell, cellIdx);
                         }
                     };
                 } // namespace acc

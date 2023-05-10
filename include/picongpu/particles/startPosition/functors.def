@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2023 Rene Widera, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/particles/startPosition/OnePositionImpl.def"
+#include "picongpu/particles/startPosition/OneSuperCellPositionImpl.def"
 #include "picongpu/particles/startPosition/QuietImpl.def"
 #include "picongpu/particles/startPosition/RandomBinomialImpl.def"
 #include "picongpu/particles/startPosition/RandomImpl.def"

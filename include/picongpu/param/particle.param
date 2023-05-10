@@ -1,5 +1,5 @@
-/* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz,
- *                     Richard Pausch, Klaus Steiniger
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -18,7 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
+/** @file config file for particle manipulators
  *
  * Configurations for particle manipulators. Set up and declare functors that
  * can be used in speciesInitialization.param for particle species
@@ -233,6 +233,40 @@ namespace picongpu
              * places macro-particles at the initial in-cell position defined above.
              */
             using OnePosition = OnePositionImpl<OnePositionParameter>;
+
+            /** Define initial in-cell particle position used as parameter in OneSuperCellPosition functor.
+             *
+             * Here, macro-particles sit directly in lower corner of the cell.
+             *
+             * This defines the type InCellOffset_OneSuperCellPosition_t
+             * where every instance of this type has the preset values defined here.
+             *
+             * @attention assumes that the density functor gives the per superCell number
+             *  of physical particles for each cell in the same sueprCell
+             */
+            CONST_VECTOR(
+                /*datatype*/ float_X,
+                /*dim*/ 3,
+                /*name*/ InCellOffset_OneSuperCellPosition,
+                /*x*/ 0.0,
+                /*y*/ 0.0,
+                /*z*/ 0.0);
+            struct OneSuperCellPositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerSuperCell
+                    = TYPICAL_PARTICLES_PER_CELL * pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+                //! initial position of macro particle in-cell, as CONST_VECTOR of relative position in cell (x \in
+                //! [0.,1.), ...)
+                const InCellOffset_OneSuperCellPosition_t inCellOffset;
+
+                //! spawnCell index, @attention must be within superCell extent!
+                using spawnCellIdx = mCT::shrinkTo<mCT::UInt32<0u, 0u, 0u>, picongpu::simDim>::type;
+            };
+            using OneSuperCellPosition = OneSuperCellPositionImpl<OneSuperCellPositionParameter>;
         } // namespace startPosition
     } // namespace particles
 } // namespace picongpu
