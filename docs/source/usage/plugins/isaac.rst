@@ -27,9 +27,9 @@ Command line option               Description
                                   the very same hardware.
 ``--isaac.width WIDTH``           Setups the *WIDTH* and *HEIGHT* of the created image(s).
 ``--isaac.height HEIGHT``         Default is ``1024x768``.
-``--isaac.direct_pause``          If activated ISAAC will pause directly after the simulation started.
-                                  Useful for presentations or if you don't want to miss the beginning of
-                                  the simulation.
+``--isaac.direct_pause BOOL``     If activated (argument set to ``1``) ISAAC will pause directly after the
+                                  simulation started. Useful for presentations or if you don't want to miss
+				  the beginning of the simulation.
 ``--isaac.quality QUALITY``       Sets the *QUALITY* of the images, which are compressed right after creation.
                                   Values between ``1`` and ``100`` are possible.
                                   The default is ``90``, but ``70`` does also still produce decent results.
