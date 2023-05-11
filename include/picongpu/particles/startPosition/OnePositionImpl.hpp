@@ -45,7 +45,7 @@ namespace picongpu::particles::startPosition::acc
             particle[position_] = T_ParamClass{}.inCellOffset.template shrink<simDim>();
 
             // set the weighting attribute if the particle species has it
-            bool const hasWeighting
+            constexpr bool hasWeighting
                 = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
             if constexpr(hasWeighting)
                 particle[weighting_] = m_weighting;
@@ -54,13 +54,13 @@ namespace picongpu::particles::startPosition::acc
         template<typename T_Particle>
         HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
         {
-            bool const hasWeighting
+            constexpr bool hasWeighting
                 = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
 
             // note: m_weighting member might stay uninitialized!
             uint32_t result(T_ParamClass::numParticlesPerCell);
 
-            if(hasWeighting)
+            if constexpr(hasWeighting)
                 result = startPosition::detail::WeightMacroParticles{}(
                     realParticlesPerCell,
                     T_ParamClass::numParticlesPerCell,
