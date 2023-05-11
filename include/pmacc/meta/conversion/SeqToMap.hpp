@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/apply.hpp>
@@ -37,12 +36,11 @@ namespace pmacc
      * from the sequence is passed to T_UnaryOperator
      * @return ::type mpl map
      */
-    template<typename T_List, typename T_UnaryOperator, typename T_Accessor = meta::accessors::Identity<>>
+    template<typename T_List, typename T_MakePairUnaryOperator>
     struct SeqToMap
     {
         template<typename X>
-        using Op =
-            typename boost::mpl::apply1<T_UnaryOperator, typename boost::mpl::apply1<T_Accessor, X>::type>::type;
+        using Op = typename boost::mpl::apply<T_MakePairUnaryOperator, X>::type;
 
         using ListOfTuples = mp_transform<Op, T_List>;
         using type = mp_fold<ListOfTuples, mp_list<>, mp_map_insert>;
