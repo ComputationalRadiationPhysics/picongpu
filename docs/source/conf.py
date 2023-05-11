@@ -18,7 +18,6 @@
 #
 import os
 import subprocess
-from recommonmark.parser import CommonMarkParser
 import sys
 python_libs = os.path.abspath('../../lib/python')
 sys.path.insert(0, python_libs)
@@ -46,7 +45,8 @@ extensions = ['sphinx.ext.mathjax',
               'breathe',
               'sphinxcontrib.programoutput',
               'matplotlib.sphinxext.plot_directive',
-              'autoapi.extension']
+              'autoapi.extension',
+              'myst_parser']
 
 if not on_rtd:
     extensions.append('sphinx.ext.githubpages')
@@ -93,13 +93,6 @@ else:
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
-
-# The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
-source_parsers = {
-    '.md': CommonMarkParser,
-}
 
 source_suffix = ['.rst', '.md']
 

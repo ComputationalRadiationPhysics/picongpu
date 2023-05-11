@@ -1,16 +1,19 @@
-sphinx_rtd_theme>=0.3.1
-recommonmark
-sphinx==2.0.1
-breathe>=4.12.0,<4.15.0
+# restrict up to the next major as suggested in the rtd documentation
+sphinx_rtd_theme<=2.0.0
+# recommonmark was discontinued myst-parser is the new replacement
+myst-parser
+# rtd theme supports at least up to 4.1 but newest autoapi requires >=5.2 and myst-parser needs >=5
+sphinx==5.2.0
+breathe>=4.12.0
 sphinxcontrib.programoutput
 sphinxcontrib-napoleon>=0.7
 sphinx-autoapi
 pygments
-Jinja2<3.0
-markupsafe<2.0.0
-# docutils 0.17 breaks HTML tags & RTD theme
-# https://github.com/sphinx-doc/sphinx/issues/9001
-docutils==0.16
+# restrict up to next major
+Jinja2<4.0
+markupsafe<3.0.0
+# rtd theme supports up to 0.17
+docutils<=0.17
 # generate plots
 matplotlib
 scipy
