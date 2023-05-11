@@ -116,6 +116,7 @@ For example the previous setup with automatic calculation for the inter-species 
             Collider<relativistic::RelativisticCollisionDynamicLog<>, Pairs1>,
             Collider<relativistic::RelativisticCollisionConstLog<Params2>, Pairs2>
         >;
+
 The dynamic logarithm implementation uses a Debye length that is pre-calculated once for all colliders on each time step.
 So, whenever there is at least one collider with the ``RelativisticCollisionDynamicLog`` present in the ``CollisionPipeline`` this precalculation needs to be enabled by adding Species to the ``CollisionScreeningSpecies`` sequence.
 To include all species just set ``using CollisionScreeningSpecies = VectorAllSpecies;``.
@@ -194,6 +195,7 @@ This debug output can be enabled per collider by setting the optional template p
             Collider<relativistic::RelativisticCollisionDynamicLog<true>, Pairs1>,
             Collider<relativistic::RelativisticCollisionConstLog<Params2, true>, Pairs2>
         >;
+
 The debug info is written to a text file ``debug_values_collider_<collider index in the pipeline>_species_pair_<pair index in the list of pairs used with the collider>.dat``
 The output file has three columns: iteration, coulomb log, s param.
 It it also possible to write out the precalculated Debye length averaged over all simulation cells by setting ``constexpr bool debugScreeningLength = true;``
@@ -275,7 +277,7 @@ In a situation where there are less macro particles, inside one cell, of one spe
 Similar problem emerges in a case of intra-collisions when the particle number is odd.
 We deal with that issue using an approach introduced in :ref:`[2] <model-binaryCollisions-ref-Higginson2020>`.
 We collide, in such situation, some macro particles more than once.
-To account for that, we use corrected particle weights :math:`w_{0/1} =\frac{1}{\max\{d_0, d_1\}}`, where :math:`d_{0/1}` are the number of collisions for the colliding macro particles.
+To account for that, we use corrected particle weights :math:`w_{0/1} =\frac{1}{\max\qty{d_0, d_1}}`, where :math:`d_{0/1}` are the number of collisions for the colliding macro particles.
 
 Let us consider the inter-collisions first.
 The i–th particle from the longer list is collided with the (:math:`i \mod m)` –th particle in the shorter one (:math:`m` is the length of the shorter list).
@@ -304,7 +306,7 @@ A star :math:`^*` denotes a COMS variable.
 We use the coordinate transform from :ref:`[1] <model-binaryCollisions-ref-Perez2012>`:
 
 .. math::
-    \mathbf{p}^* = \mathbf{p}_{\text{lab}} + ( \frac{\gamma_C -1}{\left|\mathbf{v}_C\right|^2} \mathbf{v}_C \cdot\mathbf{v}_{\text{lab}} - \gamma_C) m\gamma \mathbf{v}_C \ ,
+    \mathbf{p}^* = \mathbf{p}_{\text{lab}} + \qty( \frac{\gamma_C -1}{\left|\mathbf{v}_C\right|^2} \mathbf{v}_C \cdot\mathbf{v}_{\text{lab}} - \gamma_C) m\gamma \mathbf{v}_C \ ,
    :label: eq:trans_fw
 
 where :math:`\mathbf{v}_C` is the velocity of the CMOS in the lab frame, :math:`\gamma` is the [list::duplications] factor in the lab frame, :math:`m` the particle mass and :math:`\gamma_C` the gamma factor of the CMOS frame.
@@ -315,7 +317,7 @@ where :math:`\mathbf{v}_C` is the velocity of the CMOS in the lab frame, :math:`
 
 The inverse transformation:
 
-.. math:: \mathbf{p_{\text{lab}}} = \mathbf{p}^* + ( \frac{\gamma_C -1}{\left|\mathbf{v}_C\right|^2} \mathbf{v}_C \cdot\mathbf{p}^* + m\gamma^* \gamma_C) \mathbf{v}_C \ ,
+.. math:: \mathbf{p_{\text{lab}}} = \mathbf{p}^* + \qty( \frac{\gamma_C -1}{\left|\mathbf{v}_C\right|^2} \mathbf{v}_C \cdot\mathbf{p}^* + m\gamma^* \gamma_C) \mathbf{v}_C \ ,
     :label: eq:trans_inv
 
 where
@@ -341,15 +343,15 @@ To calculate this parameter we use the relativistic formula from :ref:`[1] <mode
 .. math::
     \begin{split}
      s_{01} =& \frac{\Delta T \log \Lambda q_0^2 q_1^2}{4\pi \varepsilon_0^2 c^4 m_0 \gamma_0 m_1 \gamma_1} \\
-     & \times  \frac{\gamma_C\left|\mathbf{p}_0^*\right|}{m_0\gamma_0 + m_1 \gamma_1} ( m_0 \gamma_0^* m_1 \gamma_1^* c^2 \left|\mathbf{p}_0^*\right|^{-2} +1 )^2 \\
-     & \times  N_{\text{partners}} V_{\text{cell}}^{-1} \max\{\frac{w_0}{d}, \frac{w_1}{d}\} \ .
+     & \times  \frac{\gamma_C\left|\mathbf{p}_0^*\right|}{m_0\gamma_0 + m_1 \gamma_1} \qty( m_0 \gamma_0^* m_1 \gamma_1^* c^2 \left|\mathbf{p}_0^*\right|^{-2} +1 )^2 \\
+     & \times  N_{\text{partners}} V_{\text{cell}}^{-1} \max\qty{\frac{w_0}{d}, \frac{w_1}{d}} \ .
      \end{split}
     :label: eq:s12
 
 Here: :math:`\Delta T` – time step duration, :math:`\log \Lambda` – Coulomb logarithm, :math:`q_0,q_1` – particle charges, :math:`\gamma_0, \gamma_1` particles gamma factors(lab frame), :math:`N_{\text{partners}}` is the number of collision partners (macro particles), :math:`V_{\text{cell}}` – cell volume, :math:`w_0, w_1` particle weightings, :math:`d` was defined in :ref:`3.2 <model-binaryCollisions::details:duplication>`.
 
 For inter-species collisions :math:`N_{\text{partners}}` is equal to the size of the long particle list.
-For intra-species collisions :math:`N_{\text{partners}}` = :math:`n - 1 + (n \mod 2)`,where :math:`n` is the number of macro particles to collide.
+For intra-species collisions :math:`N_{\text{partners}}` = :math:`n - 1 + \qty(n \mod 2)`,where :math:`n` is the number of macro particles to collide.
 
 The fact that :math:`s_{01}` depends only on the higher weighting is accounted for by the rejection method in the 3.9 step.
 
@@ -357,22 +359,22 @@ The fact that :math:`s_{01}` depends only on the higher weighting is accounted f
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 According to :ref:`[1] <model-binaryCollisions-ref-Perez2012>` equation :eq:`eq:s12` will provide non physical values for low temperatures.
-More specifically, it will result in :math:`s` values corresponding to scattering lengths smaller than the average particle distance :math:`(\frac{V}{n})^{\frac{1}{3}}`.
+More specifically, it will result in :math:`s` values corresponding to scattering lengths smaller than the average particle distance :math:`\qty(\frac{V}{n})^{\frac{1}{3}}`.
 :ref:`[1] <model-binaryCollisions-ref-Perez2012>` provides a maximal value for :math:`s_{01}`:
 
 .. math::
    \begin{split}
-        s_{01}^{\max} =& (\frac{4\pi}{3})^{1/3} \frac{\Delta T(m_0 + m_1)}{\max  \{ m_0 n_0^{2/3}, m_1 n_1^{2/3}\}} \mathbf{v}_{\text{rel}}^* \\
-        & \times  N_{\text{partners}} V_{\text{cell}}^{-1} \max\{\frac{w_0}{d}, \frac{w_1}{d}\} \ .
+        s_{01}^{\max} =& \qty(\frac{4\pi}{3})^{1/3} \frac{\Delta T\qty(m_0 + m_1)}{\max  \qty{m_0 n_0^{2/3}, m_1 n_1^{2/3}}} \mathbf{v}_{\text{rel}}^* \\
+        & \times  N_{\text{partners}} V_{\text{cell}}^{-1} \max\qty{\frac{w_0}{d}, \frac{w_1}{d}} \ .
     \end{split}
    :label: eq:s12_max
 
 with
 
-.. math:: \mathbf{v}^*_{\text{rel}} = \frac{(m_1\gamma_1 + m_2\gamma_2)p_1^*}{m_1\gamma_1^*m_2\gamma_2^*\gamma_C} \ .
+.. math:: \mathbf{v}^*_{\text{rel}} = \frac{\qty(m_1\gamma_1 + m_2\gamma_2)p_1^*}{m_1\gamma_1^*m_2\gamma_2^*\gamma_C} \ .
     :label: eq:rel_vel
 
-where the relativistic factor :math:`(1 + v_1^*v_2^*/c^2)^{-1}` has been left out.
+where the relativistic factor :math:`\qty(1 + v_1^*v_2^*/c^2)^{-1}` has been left out.
 
 For each binary collision both values are calculated and the smallest one is used later.
 The particle density is just the sum of all particle weightings from one grid cell divided by cell volume
@@ -448,7 +450,7 @@ The final particle momenta in the COMS frame are calculated with the following f
 
 With the ``RelativisticCollisionDynamicLog`` functor the Coulomb logarithm is calculated individually for each collision following a formula from :ref:`[1] <model-binaryCollisions-ref-Perez2012>`:
 
-.. math:: \ln \Lambda = \max \left[2, \frac{1}{2}\ln\left(1 + \frac{\lambda_D^2}{b_\text{min}^2} \right) \right] \ ,
+.. math:: \ln \Lambda = \max \qty[2, \frac{1}{2}\ln\qty(1 + \frac{\lambda_D^2}{b_\text{min}^2} ) ] \ ,
 
 where :math:`b_\text{min}` is a minimal impact parameter that depends on particle momenta, charges, and masses; and :math:`\lambda_D` is the Debye length.
 
@@ -470,7 +472,7 @@ It can be shown that this is equal to :math:`\frac{1}{\epsilon_0} n <q>^2 / T`.
 
 Additionally :math:`\lambda_D` is cut-off at the mean interatomic distance of the species with the highest density:
 
-.. math:: \lambda_D \geq (4\pi n_\text{max}/3)^{-1/3}
+.. math:: \lambda_D \geq \qty(4\pi n_\text{max}/3)^{-1/3}
 
 
 .. _model-binaryCollisions::section::tests:
@@ -510,7 +512,7 @@ The theoretical curves are obtained from the same formula that was used by ``smi
 
 .. math::
 
-   \nu_\epsilon = \frac{2}{3}\sqrt\frac{2}{\pi} \frac{e^4\,Z^{\star 2} \sqrt{m_em_i}\,n_i\,\ln\Lambda }{ 4 \pi\varepsilon_0^2 \,\left(m_eT_e+m_iT_i\right)^{3/2} }
+   \nu_\epsilon = \frac{2}{3}\sqrt\frac{2}{\pi} \frac{e^4\,Z^{\star 2} \sqrt{m_em_i}\,n_i\,\ln\Lambda }{ 4 \pi\varepsilon_0^2 \,\qty(m_eT_e+m_iT_i)^{3/2} }
 
 Since the collisions in different cells are independent of each other, one can treat each cells as an individual randomized run.
 The simulation values are obtained by averaging over the individual simulation cells.
