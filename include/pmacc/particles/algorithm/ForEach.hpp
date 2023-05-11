@@ -438,8 +438,7 @@ namespace pmacc::particles::algorithm
     template<typename T_Species, typename T_Functor, typename T_AreaMapperFactory>
     HINLINE void forEach(T_Species&& species, T_Functor functor, T_AreaMapperFactory const& areaMapperFactory)
     {
-        using MappingDesc = decltype(species.getCellDescription());
-        using SuperCellSize = typename MappingDesc::SuperCellSize;
+        using SuperCellSize = typename std::remove_reference_t<T_Species>::MappingDesc::SuperCellSize;
 
         auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
         auto const mapper = areaMapperFactory(species.getCellDescription());
