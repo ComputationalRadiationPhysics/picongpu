@@ -12,6 +12,11 @@ import pandas as pd
 import os
 import collections
 
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
+
 
 class EnergyHistogramData(DataReader):
     """
@@ -130,7 +135,7 @@ class EnergyHistogramData(DataReader):
             the timestep between consecutive iterations
         """
         if iteration is not None:
-            if not isinstance(iteration, collections.Iterable):
+            if not isinstance(iteration, collectionsAbc.Iterable):
                 iteration = np.array([iteration])
 
         data_file_path = self.get_data_path(species, species_filter)

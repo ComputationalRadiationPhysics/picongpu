@@ -7,10 +7,15 @@ License: GPLv3+
 """
 from .base_reader import DataReader
 
-import collections
 import numpy as np
 import os
 import openpmd_api as io
+import collections
+
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
 
 
 class PhaseSpaceMeta(object):
@@ -200,7 +205,7 @@ class PhaseSpaceData(DataReader):
         available_iterations = [key for key, _ in series.iterations.items()]
 
         if iteration is not None:
-            if not isinstance(iteration, collections.Iterable):
+            if not isinstance(iteration, collectionsAbc.Iterable):
                 iteration = [iteration]
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
