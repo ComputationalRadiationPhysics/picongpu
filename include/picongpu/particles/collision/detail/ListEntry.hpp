@@ -174,7 +174,11 @@ namespace picongpu
                                     if(filter(worker, particle))
                                     {
                                         auto parLocalIndex = particle[localCellIdx_];
-                                        cupla::atomicAdd(worker.getAcc(), &nppc[parLocalIndex], 1u);
+                                        cupla::atomicAdd(
+                                            worker.getAcc(),
+                                            &nppc[parLocalIndex],
+                                            1u,
+                                            ::alpaka::hierarchy::Threads{});
                                     }
                                 }
                             });
@@ -216,8 +220,11 @@ namespace picongpu
                                     if(filter(worker, particle))
                                     {
                                         auto parLocalIndex = particle[localCellIdx_];
-                                        uint32_t parOffset
-                                            = cupla::atomicAdd(worker.getAcc(), &parCellList[parLocalIndex].size, 1u);
+                                        uint32_t parOffset = cupla::atomicAdd(
+                                            worker.getAcc(),
+                                            &parCellList[parLocalIndex].size,
+                                            1u,
+                                            ::alpaka::hierarchy::Threads{});
                                         parCellList[parLocalIndex].ptrToIndicies[parOffset] = parInSuperCellIdx;
                                     }
                                 }
