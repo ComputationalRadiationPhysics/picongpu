@@ -72,7 +72,7 @@ namespace picongpu
                 using ValueType = typename Data::ValueType;
                 field.getHostBuffer().setValue(ValueType::create(0.0));
 
-                DataSpace<simDim> domain_offset = localDomain.offset;
+                ::pmacc::math::Vector<uint64_t, simDim> domain_offset = localDomain.offset;
                 DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
                 bool useLinearIdxAsDestination = false;
 
@@ -115,7 +115,7 @@ namespace picongpu
                     log<picLog::INPUT_OUTPUT>("openPMD:  (end) collect PML sizes for %1%") % objectName;
 
                     domain_offset = DataSpace<simDim>::create(0);
-                    domain_offset[0] = static_cast<int>(domainOffset);
+                    domain_offset[0] = domainOffset;
                     local_domain_size = DataSpace<simDim>::create(1);
                     local_domain_size[0] = elementCount;
                     useLinearIdxAsDestination = true;
@@ -138,7 +138,8 @@ namespace picongpu
 
                     log<picLog::INPUT_OUTPUT>("openPMD: Read from field '%1%'") % objectName;
 
-                    ::openPMD::Offset start = asStandardVector<DataSpace<simDim>&, ::openPMD::Offset>(domain_offset);
+                    ::openPMD::Offset start
+                        = asStandardVector<::pmacc::math::Vector<uint64_t, simDim>&, ::openPMD::Offset>(domain_offset);
                     ::openPMD::Extent count
                         = asStandardVector<DataSpace<simDim>&, ::openPMD::Extent>(local_domain_size);
 
