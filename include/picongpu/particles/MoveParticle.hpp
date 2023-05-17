@@ -58,7 +58,16 @@ namespace picongpu
              * direction the particle is leaving the cell.
              * The floating point precision is equal for -0.5 and 0.5.
              */
-            floatD_X pos = newPos - 0.5_X;
+#if(BOOST_COMP_HIP)
+            // workaround for a broken HIP optimization
+            // https://github.com/ComputationalRadiationPhysics/picongpu/issues/4561
+            volatile
+#else
+            constexpr
+#endif
+                auto shift
+                = 0.5_X;
+            floatD_X pos = newPos - shift;
 
             DataSpace<simDim> dir;
 
@@ -74,7 +83,7 @@ namespace picongpu
                     moveDir = 1.0_X;
 
                 pos[i] -= moveDir;
-                particle[position_][i] = pos[i] + 0.5_X;
+                particle[position_][i] = pos[i] + shift;
                 dir[i] = precisionCast<int>(moveDir);
             }
 
