@@ -1,0 +1,13 @@
+.base_pypicongpu_quick_test:
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-pic:${CONTAINER_TAG}
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  script:
+    - echo "CI_CONTAINER_NAME -> $CI_CONTAINER_NAME"
+    - echo "PYTHON_VERSION -> $PYTHON_VERSION"
+    - env | grep PYPIC_DEP_VERSION_
+    - source $CI_PROJECT_DIR/share/ci/install/pypicongpu.sh
+  tags:
+    - cpuonly
+    - x86_64
+  interruptible: true
