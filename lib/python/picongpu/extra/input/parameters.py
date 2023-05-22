@@ -9,6 +9,11 @@ import collections
 import pint
 ureg = pint.UnitRegistry()
 
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
+
 
 class Parameter(object):
     """
@@ -88,7 +93,7 @@ class Parameter(object):
         if values is not None and range is not None:
             raise ValueError("Can only set either 'values' or 'range'!")
         elif values is not None:
-            if not isinstance(values, collections.Iterable):
+            if not isinstance(values, collectionsAbc.Iterable):
                 values = [values]
             if not values:
                 # check empty values list

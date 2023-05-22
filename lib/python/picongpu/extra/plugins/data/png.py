@@ -9,8 +9,13 @@ from .base_reader import DataReader
 
 import numpy as np
 import os
-import collections
 from imageio import imread
+import collections
+
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
 
 
 SPECIES_LONG_NAMES = {
@@ -186,7 +191,7 @@ class PNGData(DataReader):
             species, species_filter, axis, slice_point)
 
         if iteration is not None:
-            if not isinstance(iteration, collections.Iterable):
+            if not isinstance(iteration, collectionsAbc.Iterable):
                 iteration = [iteration]
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
