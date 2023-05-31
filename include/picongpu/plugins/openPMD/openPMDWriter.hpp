@@ -41,10 +41,12 @@
 #include "picongpu/plugins/multi/Option.hpp"
 #include "picongpu/plugins/openPMD/Json.hpp"
 #include "picongpu/plugins/openPMD/NDScalars.hpp"
+#include "picongpu/plugins/openPMD/Parameters.hpp"
 #include "picongpu/plugins/openPMD/WriteSpecies.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
+#include "picongpu/plugins/openPMD/toml.hpp"
 #include "picongpu/plugins/output/IIOBackend.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
@@ -71,6 +73,8 @@
 #include <pmacc/traits/Limits.hpp>
 
 #include <boost/mpl/placeholders.hpp>
+
+#include <tuple>
 
 #include <openPMD/openPMD.hpp>
 
@@ -244,6 +248,36 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "respectively.",
                    "doubleBuffer"};
 
+            struct Parameter
+            {
+                plugins::multi::Option<std::string>* commandLineOption;
+                std::optional<std::string> tomlOption;
+                std::optional<std::string PluginOptions::*> targetInConfigObject;
+            };
+
+            std::vector<Parameter> parameters
+                = {{&source, std::nullopt, std::nullopt},
+                   {&fileName, "file", &PluginOptions::fileName},
+                   {&fileNameExtension, "ext", &PluginOptions::fileExtension},
+                   {&fileNameInfix, "infix", &PluginOptions::fileInfix},
+                   {&jsonConfig, "backend_config", &PluginOptions::jsonConfig},
+                   {&dataPreparationStrategy, "data_preparation_strategy", &PluginOptions::dataPreparationStrategy},
+                   {&range, "range", &PluginOptions::range}};
+
+            std::vector<toml::TomlOption> tomlParameters()
+            {
+                std::vector<toml::TomlOption> res;
+                for(auto const& param : parameters)
+                {
+                    if(param.tomlOption.has_value() && param.targetInConfigObject.has_value())
+                    {
+                        res.emplace_back(
+                            toml::TomlOption{param.tomlOption.value(), param.targetInConfigObject.value()});
+                    }
+                }
+                return res;
+            }
+
             /** defines if the plugin must register itself to the PMacc plugin
              * system
              *
@@ -252,6 +286,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * controlled by another class)
              */
             bool selfRegister = false;
+
+            std::optional<toml::DataSources> tomlDataSources;
 
             template<typename T_TupleVector>
             using CreateSpeciesFilter = plugins::misc::SpeciesFilter<
@@ -343,15 +379,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     auto res = tomlSources.size() > notifyPeriod.size() ? tomlSources.size() : notifyPeriod.size();
                     if(res == 0)
                     {
-                        std::vector<plugins::multi::Option<std::string>> theseMustBeEmpty{
-                            source,
-                            fileName,
-                            fileNameExtension,
-                            fileNameInfix,
-                            jsonConfig,
-                            dataPreparationStrategy};
-                        for(auto const& option : theseMustBeEmpty)
+                        for(auto const& parameter : parameters)
                         {
+                            auto const& option = *parameter.commandLineOption;
                             if(option.size() > 0)
                             {
                                 throw std::runtime_error(
@@ -386,6 +416,41 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             std::string const description = "dump simulation data with openPMD";
             //! prefix used for command line arguments
             std::string const prefix = "openPMD";
+
+            std::vector<std::string> currentDataSources(uint32_t currentStep, size_t id)
+            {
+                if(tomlDataSources.has_value())
+                {
+                    return tomlDataSources.value().currentDataSources(currentStep);
+                }
+                else
+                {
+                    std::string dataSourceNames = source.get(id);
+                    return plugins::misc::splitString(plugins::misc::removeSpaces(dataSourceNames));
+                }
+            }
+
+            PluginOptions pluginOptions(size_t id)
+            {
+                if(tomlDataSources.has_value())
+                {
+                    return tomlDataSources.value().openPMDPluginOptions;
+                }
+                else
+                {
+                    PluginOptions res;
+                    for(auto const& [cmd_param, _, target] : parameters)
+                    {
+                        (void) _;
+                        if(!target.has_value() || !cmd_param->optionDefined(id))
+                        {
+                            continue;
+                        }
+                        res.*target.value() = cmd_param->get(id);
+                    }
+                    return res;
+                }
+            }
         };
 
         void ThreadParams::initFromConfig(
@@ -396,47 +461,25 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         {
             std::string strategyString;
             std::string jsonString;
+            std::string selectedRange;
 
-            switch(m_configurationSource)
-            {
-            case ConfigurationVia::Toml:
-                {
-                    std::tie(fileName, fileInfix, fileExtension, strategyString, jsonString)
-                        = tomlDataSources->openPMDPluginOptions;
-                    break;
-                }
-            case ConfigurationVia::CommandLine:
-                {
-                    if(!file.has_value())
-                    {
-                        /*
-                         * If file is empty, then the openPMD plugin is running as a normal IO plugin.
-                         * In this case, read the file from command line parameters.
-                         * If there is a filename, it is running as a checkpoint and the filename
-                         * has been supplied from outside.
-                         * We must not read it from the command line since it's not there.
-                         * Reason: A checkpoint is triggered by writing something like:
-                         * > --checkpoint.file asdf --checkpoint.period 100
-                         * ... and NOT by something like:
-                         * > --checkpoint.openPMD.file asdf --checkpoint.period 100
-                         */
-                        /* if file name is relative, prepend with common directory */
-                        fileName = help.fileName.get(id);
-                    }
+            std::tie(fileName, fileInfix, fileExtension, strategyString, jsonString, selectedRange)
+                = help.pluginOptions(id);
 
-                    /*
-                     * These two however should always be read because they have default values.
-                     */
-                    fileExtension = help.fileNameExtension.get(id);
-                    fileInfix = help.fileNameInfix.get(id);
-
-                    strategyString = help.dataPreparationStrategy.get(id);
-                    jsonString = help.jsonConfig.get(id);
-                    jsonRestartParams = help.jsonRestartConfig.get(id);
-                    break;
-                }
-            }
-
+            /*
+             * If file is empty, then the openPMD plugin is running as a normal IO plugin.
+             * In this case, read the file from command line parameters.
+             * If there is a filename, it is running as a checkpoint and the filename
+             * has been supplied from outside.
+             * We must not read it from the command line since it's not there.
+             * Reason: A checkpoint is triggered by writing something like:
+             * > --checkpoint.file asdf --checkpoint.period 100
+             * ... and NOT by something like:
+             * > --checkpoint.openPMD.file asdf --checkpoint.period 100
+             *
+             * fileExtension and fileInfix are always read since they have default values.
+             */
+            /* if file name is relative, prepend with common directory */
             if(file.has_value())
             {
                 // If file was specified as function parameter (i.e. when checkpointing), ignore command line
@@ -486,6 +529,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                               << std::endl;
                 }
             }
+
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+            /* window selection */
+            auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
+            window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, selectedRange);
         }
 
         /** Writes simulation data to openPMD.
@@ -872,15 +920,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     if(tomlSourcesSpecified && not notifyPeriodSpecified)
                     {
                         // Verify that all other parameters are empty for this instance of the plugin
-                        std::vector<plugins::multi::Option<std::string>> theseMustBeEmpty{
-                            m_help->source,
-                            m_help->fileName,
-                            m_help->fileNameExtension,
-                            m_help->fileNameInfix,
-                            m_help->jsonConfig,
-                            m_help->dataPreparationStrategy};
-                        for(auto const& option : theseMustBeEmpty)
+                        for(auto const& parameter : m_help->parameters)
                         {
+                            auto const& option = *parameter.commandLineOption;
                             if(option.optionDefined(m_id) && not option.get(m_id).empty())
                             {
                                 throw std::runtime_error(
@@ -891,16 +933,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         }
 
                         std::string const& tomlSources = m_help->tomlSources.get(id);
-                        mThreadParams.m_configurationSource = ConfigurationVia::Toml;
 
-                        mThreadParams.tomlDataSources = std::make_unique<toml::DataSources>(
+                        m_help->tomlDataSources = toml::DataSources{
                             m_help->tomlSources.get(id),
+                            m_help->tomlParameters(),
                             m_help->allowedDataSources,
-                            mThreadParams.communicator);
+                            mThreadParams.communicator};
 
                         Environment<>::get().PluginConnector().setNotificationPeriod(
                             this,
-                            mThreadParams.tomlDataSources->periods());
+                            m_help->tomlDataSources.value().periods());
 
                         /** create notify directory */
                         Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
@@ -912,7 +954,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                                      "file must also be defined");
 
                         std::string const& notifyPeriod = m_help->notifyPeriod.get(id);
-                        mThreadParams.m_configurationSource = ConfigurationVia::CommandLine;
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
                         /** create notify directory */
@@ -947,18 +988,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 eventSystem::getTransactionEvent().waitForFinished();
 
                 mThreadParams.initFromConfig(*m_help, m_id, outputDirectory);
-
-                /* window selection */
-                auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
-
-                // set default if the user is not providing the parameter.
-                std::string selectedRange = ":,:,:";
-                if(m_help->range.optionDefined(m_id) && !m_help->range.get(m_id).empty())
-                    selectedRange = m_help->range.get(m_id);
-
-                const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-                mThreadParams.window
-                    = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, selectedRange);
 
                 mThreadParams.isCheckpoint = false;
                 dumpData(currentStep);
@@ -1151,21 +1180,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
         private:
-            std::vector<std::string> currentDataSources(uint32_t currentStep)
-            {
-                switch(mThreadParams.m_configurationSource)
-                {
-                case ConfigurationVia::Toml:
-                    return mThreadParams.tomlDataSources->currentDataSources(currentStep);
-                case ConfigurationVia::CommandLine:
-                    {
-                        std::string dataSourceNames = m_help->source.get(m_id);
-                        return plugins::misc::splitString(plugins::misc::removeSpaces(dataSourceNames));
-                    }
-                }
-                throw std::runtime_error("Unreachable!");
-            }
-
             void endWrite()
             {
                 mThreadParams.fieldBuffer.resize(0);
@@ -1519,7 +1533,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::vector<std::string> vectorOfDataSourceNames;
                 if(m_help->selfRegister)
                 {
-                    vectorOfDataSourceNames = currentDataSources(threadParams->currentStep);
+                    vectorOfDataSourceNames = m_help->currentDataSources(threadParams->currentStep, m_id);
                 }
 
                 bool dumpFields = plugins::misc::containsObject(vectorOfDataSourceNames, "fields_all");

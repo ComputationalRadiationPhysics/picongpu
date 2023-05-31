@@ -123,7 +123,10 @@ namespace
         return res;
     }
 
-    void parsePluginOptions(picongpu::toml::PluginOptions& options, toml::value tomlConfig)
+    void parsePluginOptions(
+        picongpu::openPMD::PluginOptions& options,
+        toml::value tomlConfig,
+        std::vector<picongpu::toml::TomlOption> tomlOptions)
     {
         auto parseOption = [&tomlConfig](std::string& target, std::string const& key)
         {
@@ -142,15 +145,15 @@ namespace
             }
         };
 
-        parseOption(options.fileName, "file");
-        parseOption(options.fileInfix, "infix");
-        parseOption(options.fileExtension, "ext");
-        parseOption(options.jsonConfig, "backend_config");
-        parseOption(options.dataPreparationStrategy, "data_preparation_strategy");
+        for(auto const& [param, target_pointer] : tomlOptions)
+        {
+            parseOption(options.*target_pointer, param);
+        }
     }
 
     PeriodTable_t parseTomlFile(
         picongpu::toml::DataSources& dataSources,
+        std::vector<picongpu::toml::TomlOption> tomlOptions,
         std::string const& content,
         std::string const& file = "unknown file")
     {
@@ -160,7 +163,7 @@ namespace
             return toml::parse(istream, file);
         }();
 
-        parsePluginOptions(dataSources.openPMDPluginOptions, data);
+        parsePluginOptions(dataSources.openPMDPluginOptions, data, tomlOptions);
 
         if(not data.contains("sink"))
         {
@@ -209,6 +212,7 @@ namespace
     template<typename ChronoDuration>
     PeriodTable_t waitForAndParseTomlFile(
         picongpu::toml::DataSources& dataSources,
+        std::vector<picongpu::toml::TomlOption> tomlOptions,
         std::string const path,
         ChronoDuration const& sleepInterval,
         ChronoDuration const& timeout,
@@ -249,7 +253,7 @@ namespace
         picongpu::toml::writeLog("openPMD: Reading TOML file collectively");
         std::string fileContents = picongpu::collective_file_read(path, comm);
 
-        return parseTomlFile(dataSources, fileContents, path);
+        return parseTomlFile(dataSources, tomlOptions, fileContents, path);
     }
 } // namespace
 
@@ -269,6 +273,7 @@ namespace picongpu
 
         DataSources::DataSources(
             std::string const& tomlFile,
+            std::vector<picongpu::toml::TomlOption> tomlOptions,
             std::vector<std::string> const& allowedDataSources,
             MPI_Comm comm)
         {
@@ -276,7 +281,7 @@ namespace picongpu
              * Do NOT put the following line as part of the constructor initializers!
              * It takes *this as first parameter, so things must be fully default-constructed before calling it.
              */
-            m_periods = waitForAndParseTomlFile(*this, tomlFile, WAIT_TIME, TIMEOUT, comm);
+            m_periods = waitForAndParseTomlFile(*this, tomlOptions, tomlFile, WAIT_TIME, TIMEOUT, comm);
             for(auto& periodicity : m_periods)
             {
                 for(auto const& source : periodicity.sources)

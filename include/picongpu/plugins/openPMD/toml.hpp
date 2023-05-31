@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/plugins/openPMD/Parameters.hpp"
+
 #include <cstdint>
 #include <limits>
 #include <map>
@@ -34,24 +36,10 @@ namespace picongpu
 {
     namespace toml
     {
-        struct PluginOptions
+        struct TomlOption
         {
-            std::string fileName = "simData";
-            std::string fileInfix = "_%06T";
-            std::string fileExtension = "bp";
-            std::string dataPreparationStrategy = "doubleBuffer";
-            std::string jsonConfig = "{}";
-
-            // for using this with std::tie()
-            operator std::tuple<std::string&, std::string&, std::string&, std::string&, std::string&>()
-            {
-                return std::tuple<std::string&, std::string&, std::string&, std::string&, std::string&>{
-                    fileName,
-                    fileInfix,
-                    fileExtension,
-                    dataPreparationStrategy,
-                    jsonConfig};
-            }
+            std::string optionName;
+            std::string openPMD::PluginOptions::*destination;
         };
 
         // We can't use pmacc::pluginSystem::Slice in a hostonly file due to PIConGPU include structure
@@ -82,9 +70,13 @@ namespace picongpu
             std::vector<Periodicity> m_periods;
 
         public:
-            PluginOptions openPMDPluginOptions;
+            openPMD::PluginOptions openPMDPluginOptions;
 
-            DataSources(std::string const& tomlFile, std::vector<std::string> const& allowedDataSources, MPI_Comm);
+            DataSources(
+                std::string const& tomlFile,
+                std::vector<picongpu::toml::TomlOption> tomlOptions,
+                std::vector<std::string> const& allowedDataSources,
+                MPI_Comm);
 
             /*
              * The datasources that are active at currentStep().

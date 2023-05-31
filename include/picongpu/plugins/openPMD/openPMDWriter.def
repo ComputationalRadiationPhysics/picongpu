@@ -73,12 +73,6 @@ namespace picongpu
         class openPMDWriter;
         class Help;
 
-        enum class ConfigurationVia : bool
-        {
-            CommandLine,
-            Toml
-        };
-
         struct ThreadParams
         {
             uint32_t currentStep; /** current simulation step */
@@ -97,8 +91,6 @@ namespace picongpu
             std::unique_ptr<AbstractJsonMatcher> jsonMatcher;
             std::string jsonRestartParams;
 
-            std::unique_ptr<toml::DataSources> tomlDataSources;
-
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
             MappingDesc* cellDescription;
@@ -113,8 +105,6 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
-
-            ConfigurationVia m_configurationSource = ConfigurationVia::CommandLine;
 
             ::openPMD::Series& openSeries(::openPMD::Access at);
 
