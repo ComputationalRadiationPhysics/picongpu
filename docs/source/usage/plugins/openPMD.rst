@@ -49,7 +49,7 @@ In order to set defaults for these value, two further options control the filena
 * ``--openPMD.ext`` sets the filename extension.
   Possible extensions include ``bp`` for the ADIOS2 backend (default), ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
   In case your openPMD API supports both ADIOS1 and ADIOS2, make sure that environment variable ``OPENPMD_BP_BACKEND`` is not set to ADIOS1.
-* ``--openPMD.infix`` sets the filename pattern that controls the iteration layout, default is "_06T" for a six-digit number specifying the iteration.
+* ``--openPMD.infix`` sets the filename pattern that controls the iteration layout, default is "_%06T" for a six-digit number specifying the iteration.
   Leave empty to pick group-based iteration layout.
   Since passing an empty string may be tricky in some workflows, specifying ``--openPMD.infix=NULL`` is also possible.
 
