@@ -219,18 +219,18 @@ namespace picongpu
                 auto shapeI = makeTrajectoryAssignmentShapeFunction(
                     typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
                         line.m_pos0[0],
-                        (parStatus[0] & 2) != 0},
+                        bitpacking::test(parStatus[0], bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL)},
                     typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
                         line.m_pos1[0],
-                        (parStatus[0] & 4) != 0});
+                        bitpacking::test(parStatus[0], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 
                 auto shapeJ = makeTrajectoryAssignmentShapeFunction(
                     typename T_Strategy::template ShapeMiddleLoop<ParticleAssign>{
                         line.m_pos0[1],
-                        (parStatus[1] & 2) != 0},
+                        bitpacking::test(parStatus[1], bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL)},
                     typename T_Strategy::template ShapeMiddleLoop<ParticleAssign>{
                         line.m_pos1[1],
-                        (parStatus[1] & 4) != 0});
+                        bitpacking::test(parStatus[1], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 
                 float_X const currentSurfaceDensityZ = this->charge * (1.0_X / float_X(CELL_VOLUME)) * v_z;
                 int const leaveCellJ = bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL);
