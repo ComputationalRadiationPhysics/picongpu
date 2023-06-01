@@ -16,9 +16,17 @@ namespace picongpu::openPMD
         std::string jsonRestartParams = "{}";
 
         // for using this with std::tie()
-        operator std::tuple<std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&>()
+        operator std::
+            tuple<std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&>()
         {
-            return std::tuple<std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&>{
+            return std::tuple<
+                std::string&,
+                std::string&,
+                std::string&,
+                std::string&,
+                std::string&,
+                std::string&,
+                std::string&>{
                 fileName,
                 fileInfix,
                 fileExtension,

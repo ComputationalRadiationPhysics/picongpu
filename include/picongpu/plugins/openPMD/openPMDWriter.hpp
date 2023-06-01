@@ -407,7 +407,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             [[fallthrough]];
                         }
                     case ApplyParameter::Always:
-                        param.commandLineOption->registerHelp(desc, masterPrefix + prefix);
+                        {
+                            std::string additionalDescription
+                                = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
+                            param.commandLineOption->registerHelp(desc, masterPrefix + prefix, additionalDescription);
+                        }
                     }
                 }
             }
