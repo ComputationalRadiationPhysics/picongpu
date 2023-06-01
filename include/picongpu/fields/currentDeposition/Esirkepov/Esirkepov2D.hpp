@@ -156,10 +156,10 @@ namespace picongpu
                     return;
 
                 auto shapeI = makeTrajectoryAssignmentShapeFunction(
-                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                    typename T_Strategy::template ShapeInnerLoop<ParticleAssign>{
                         line.m_pos0[0],
                         bitpacking::test(parStatus[0], bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL)},
-                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                    typename T_Strategy::template ShapeInnerLoop<ParticleAssign>{
                         line.m_pos1[0],
                         bitpacking::test(parStatus[0], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 
@@ -217,10 +217,10 @@ namespace picongpu
                     return;
 
                 auto shapeI = makeTrajectoryAssignmentShapeFunction(
-                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                    typename T_Strategy::template ShapeInnerLoop<ParticleAssign>{
                         line.m_pos0[0],
                         bitpacking::test(parStatus[0], bitpacking::Status::START_PARTICLE_IN_ASSIGNMENT_CELL)},
-                    typename T_Strategy::template ShapeOuterLoop<ParticleAssign>{
+                    typename T_Strategy::template ShapeInnerLoop<ParticleAssign>{
                         line.m_pos1[0],
                         bitpacking::test(parStatus[0], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 

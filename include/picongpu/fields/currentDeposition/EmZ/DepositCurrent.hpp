@@ -173,8 +173,8 @@ namespace picongpu
                         return;
 
                     auto const shapeI = makeTrajectoryAssignmentShapeFunction(
-                        typename T_Strategy::template ShapeOuterLoop<T_ParticleAssign>{line.m_pos0[0], true},
-                        typename T_Strategy::template ShapeOuterLoop<T_ParticleAssign>{line.m_pos1[0], true});
+                        typename T_Strategy::template ShapeInnerLoop<T_ParticleAssign>{line.m_pos0[0], true},
+                        typename T_Strategy::template ShapeInnerLoop<T_ParticleAssign>{line.m_pos1[0], true});
 
                     auto const shapeJ = makeTrajectoryAssignmentShapeFunction(
                         typename T_Strategy::template ShapeMiddleLoop<T_ParticleAssign>{line.m_pos0[1], true},
@@ -226,8 +226,8 @@ namespace picongpu
                         return;
 
                     auto const shapeI = makeTrajectoryAssignmentShapeFunction(
-                        typename T_Strategy::template ShapeOuterLoop<T_ParticleAssign>{line.m_pos0[0], true},
-                        typename T_Strategy::template ShapeOuterLoop<T_ParticleAssign>{line.m_pos1[0], true});
+                        typename T_Strategy::template ShapeInnerLoop<T_ParticleAssign>{line.m_pos0[0], true},
+                        typename T_Strategy::template ShapeInnerLoop<T_ParticleAssign>{line.m_pos1[0], true});
 
                     auto const shapeJ = makeTrajectoryAssignmentShapeFunction(
                         typename T_Strategy::template ShapeMiddleLoop<T_ParticleAssign>{line.m_pos0[1], true},
