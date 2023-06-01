@@ -248,21 +248,70 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "respectively.",
                    "doubleBuffer"};
 
+            enum class ApplyParameter
+            {
+                Always,
+                NotInCheckpoint,
+                OnlyInCheckpoint
+            };
+
             struct Parameter
             {
                 plugins::multi::Option<std::string>* commandLineOption;
                 std::optional<std::string> tomlOption;
                 std::optional<std::string PluginOptions::*> targetInConfigObject;
+                ApplyParameter applyParameter;
+                std::optional<std::function<std::string()>> additionalDescription;
+
+                Parameter(
+                    plugins::multi::Option<std::string>* commandLineOption_in,
+                    std::optional<std::string> tomlOption_in,
+                    std::optional<std::string PluginOptions::*> targetInConfigObject_in,
+                    ApplyParameter applyParameter_in = ApplyParameter::Always,
+                    std::optional<std::function<std::string()>> additionalDescription_in = std::nullopt)
+                    : commandLineOption{std::move(commandLineOption_in)}
+                    , tomlOption{std::move(tomlOption_in)}
+                    , targetInConfigObject{std::move(targetInConfigObject_in)}
+                    , applyParameter{std::move(applyParameter_in)}
+                    , additionalDescription{std::move(additionalDescription_in)}
+                {
+                }
             };
 
-            std::vector<Parameter> parameters
-                = {{&source, std::nullopt, std::nullopt},
-                   {&fileName, "file", &PluginOptions::fileName},
-                   {&fileNameExtension, "ext", &PluginOptions::fileExtension},
-                   {&fileNameInfix, "infix", &PluginOptions::fileInfix},
-                   {&jsonConfig, "backend_config", &PluginOptions::jsonConfig},
-                   {&dataPreparationStrategy, "data_preparation_strategy", &PluginOptions::dataPreparationStrategy},
-                   {&range, "range", &PluginOptions::range}};
+            /*
+             * Not listed in here: notifyPeriod and tomlSources.
+             * Those two parameters are implemented manually since they decide
+             * if the command line parameters or a TOML specification is used.
+             */
+            std::vector<Parameter> parameters = {
+                {&source,
+                 std::nullopt,
+                 std::nullopt,
+                 ApplyParameter::NotInCheckpoint,
+                 [this]()
+                 {
+                     meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<boost::mpl::_1>>
+                         getEligibleDataSourceNames;
+                     getEligibleDataSourceNames(allowedDataSources);
+
+                     meta::ForEach<AllFieldSources, plugins::misc::AppendName<boost::mpl::_1>> appendFieldSourceNames;
+                     appendFieldSourceNames(allowedDataSources);
+
+                     // string list with all possible particle sources
+                     std::string concatenatedSourceNames
+                         = plugins::misc::concatenateToString(allowedDataSources, ", ");
+                     return std::string("[") + concatenatedSourceNames + "]";
+                 }},
+                {&fileName, "file", &PluginOptions::fileName, ApplyParameter::NotInCheckpoint},
+                {&fileNameExtension, "ext", &PluginOptions::fileExtension},
+                {&fileNameInfix, "infix", &PluginOptions::fileInfix},
+                {&jsonConfig, "backend_config", &PluginOptions::jsonConfig},
+                {&dataPreparationStrategy, "data_preparation_strategy", &PluginOptions::dataPreparationStrategy},
+                {&range, "range", &PluginOptions::range, ApplyParameter::NotInCheckpoint},
+                {&jsonRestartConfig,
+                 std::nullopt,
+                 &PluginOptions::jsonRestartParams,
+                 ApplyParameter::OnlyInCheckpoint}};
 
             std::vector<toml::TomlOption> tomlParameters()
             {
@@ -321,10 +370,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::string concatenatedSourceNames = plugins::misc::concatenateToString(allowedDataSources, ", ");
 
                 notifyPeriod.registerHelp(desc, masterPrefix + prefix);
-                range.registerHelp(desc, masterPrefix + prefix);
-                source.registerHelp(desc, masterPrefix + prefix, std::string("[") + concatenatedSourceNames + "]");
                 tomlSources.registerHelp(desc, masterPrefix + prefix);
-                fileName.registerHelp(desc, masterPrefix + prefix);
+
+
+                for(auto const& param : parameters)
+                {
+                    if(param.applyParameter == ApplyParameter::NotInCheckpoint)
+                    {
+                        std::string additionalDescription
+                            = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
+                        param.commandLineOption->registerHelp(desc, masterPrefix + prefix, additionalDescription);
+                    }
+                }
 
                 selfRegister = true;
                 expandHelp(desc, "");
@@ -334,13 +391,24 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                fileNameExtension.registerHelp(desc, masterPrefix + prefix);
-                fileNameInfix.registerHelp(desc, masterPrefix + prefix);
-                jsonConfig.registerHelp(desc, masterPrefix + prefix);
-                dataPreparationStrategy.registerHelp(desc, masterPrefix + prefix);
-                if(!selfRegister)
+                for(auto const& param : parameters)
                 {
-                    jsonRestartConfig.registerHelp(desc, masterPrefix + prefix);
+                    switch(param.applyParameter)
+                    {
+                    case ApplyParameter::NotInCheckpoint:
+                        break;
+                    case ApplyParameter::OnlyInCheckpoint:
+                        if(selfRegister)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            [[fallthrough]];
+                        }
+                    case ApplyParameter::Always:
+                        param.commandLineOption->registerHelp(desc, masterPrefix + prefix);
+                    }
                 }
             }
 
@@ -439,9 +507,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 else
                 {
                     PluginOptions res;
-                    for(auto const& [cmd_param, _, target] : parameters)
+                    for(auto const& param : parameters)
                     {
-                        (void) _;
+                        auto const& cmd_param = param.commandLineOption;
+                        auto const& target = param.targetInConfigObject;
                         if(!target.has_value() || !cmd_param->optionDefined(id))
                         {
                             continue;
@@ -463,7 +532,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             std::string jsonString;
             std::string selectedRange;
 
-            std::tie(fileName, fileInfix, fileExtension, strategyString, jsonString, selectedRange)
+            std::tie(fileName, fileInfix, fileExtension, strategyString, jsonString, selectedRange, jsonRestartParams)
                 = help.pluginOptions(id);
 
             /*
