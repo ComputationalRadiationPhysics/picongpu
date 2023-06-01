@@ -36,10 +36,10 @@ namespace picongpu
 {
     namespace toml
     {
-        struct TomlOption
+        struct TomlParameter
         {
             std::string optionName;
-            std::string openPMD::PluginOptions::*destination;
+            std::string openPMD::PluginParameters::*destination;
         };
 
         // We can't use pmacc::pluginSystem::Slice in a hostonly file due to PIConGPU include structure
@@ -70,11 +70,11 @@ namespace picongpu
             std::vector<Periodicity> m_periods;
 
         public:
-            openPMD::PluginOptions openPMDPluginOptions;
+            openPMD::PluginParameters openPMDPluginParameters;
 
             DataSources(
                 std::string const& tomlFile,
-                std::vector<picongpu::toml::TomlOption> tomlOptions,
+                std::vector<picongpu::toml::TomlParameter> tomlParameters,
                 std::vector<std::string> const& allowedDataSources,
                 MPI_Comm);
 

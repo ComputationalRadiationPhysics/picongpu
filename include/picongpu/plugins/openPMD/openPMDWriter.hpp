@@ -248,6 +248,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "respectively.",
                    "doubleBuffer"};
 
+            /*
+             * The openPMD plugin is used as a normal I/O plugin as well as for
+             * the creation of checkpoints.
+             * Some parameters should only be available in either of both modes.
+             */
             enum class ApplyParameter
             {
                 Always,
@@ -255,22 +260,39 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 OnlyInCheckpoint
             };
 
+            /*
+             * Information used for configuring a parameter of the openPMD
+             * plugin. Used in the `parameters` member.
+             * Emplacing such a parameter in that list will activate
+             * the parameter in the PIConGPU command line and in the TOML
+             * configuration of the openPMD plugin.
+             */
             struct Parameter
             {
-                plugins::multi::Option<std::string>* commandLineOption;
-                std::optional<std::string> tomlOption;
-                std::optional<std::string PluginOptions::*> targetInConfigObject;
+                // Pointer to a command line option object that should be registered
+                plugins::multi::Option<std::string>* commandLineParameter;
+                // Optionally, the name for the parameter in the TOML configuration
+                std::optional<std::string> tomlParameter;
+                // Optionally, a member pointer inside the PluginParameters struct
+                // where the value of this parameter should be read to
+                // If not specifying this, the value must be manually read
+                // (used for the source parameter since the simple logic
+                //  is not sufficient for it)
+                std::optional<std::string PluginParameters::*> targetInConfigObject;
+                // See description of enum class ApplyParameter
                 ApplyParameter applyParameter;
+                // Optionally the additionalDescription parameter of
+                // commandLineParameter->registerHelp()
                 std::optional<std::function<std::string()>> additionalDescription;
 
                 Parameter(
-                    plugins::multi::Option<std::string>* commandLineOption_in,
-                    std::optional<std::string> tomlOption_in,
-                    std::optional<std::string PluginOptions::*> targetInConfigObject_in,
+                    plugins::multi::Option<std::string>* commandLineParameter_in,
+                    std::optional<std::string> tomlParameter_in,
+                    std::optional<std::string PluginParameters::*> targetInConfigObject_in,
                     ApplyParameter applyParameter_in = ApplyParameter::Always,
                     std::optional<std::function<std::string()>> additionalDescription_in = std::nullopt)
-                    : commandLineOption{std::move(commandLineOption_in)}
-                    , tomlOption{std::move(tomlOption_in)}
+                    : commandLineParameter{std::move(commandLineParameter_in)}
+                    , tomlParameter{std::move(tomlParameter_in)}
                     , targetInConfigObject{std::move(targetInConfigObject_in)}
                     , applyParameter{std::move(applyParameter_in)}
                     , additionalDescription{std::move(additionalDescription_in)}
@@ -279,9 +301,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             };
 
             /*
+             * The sub-commands for the openPMD plugin.
              * Not listed in here: notifyPeriod and tomlSources.
-             * Those two parameters are implemented manually since they decide
-             * if the command line parameters or a TOML specification is used.
+             * Those two parameters are implemented manually since they are the
+             * plugin's main commands that activate it and decide its interaction
+             * with the main program.
              */
             std::vector<Parameter> parameters = {
                 {&source,
@@ -302,26 +326,26 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                          = plugins::misc::concatenateToString(allowedDataSources, ", ");
                      return std::string("[") + concatenatedSourceNames + "]";
                  }},
-                {&fileName, "file", &PluginOptions::fileName, ApplyParameter::NotInCheckpoint},
-                {&fileNameExtension, "ext", &PluginOptions::fileExtension},
-                {&fileNameInfix, "infix", &PluginOptions::fileInfix},
-                {&jsonConfig, "backend_config", &PluginOptions::jsonConfig},
-                {&dataPreparationStrategy, "data_preparation_strategy", &PluginOptions::dataPreparationStrategy},
-                {&range, "range", &PluginOptions::range, ApplyParameter::NotInCheckpoint},
+                {&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint},
+                {&fileNameExtension, "ext", &PluginParameters::fileExtension},
+                {&fileNameInfix, "infix", &PluginParameters::fileInfix},
+                {&jsonConfig, "backend_config", &PluginParameters::jsonConfig},
+                {&dataPreparationStrategy, "data_preparation_strategy", &PluginParameters::dataPreparationStrategy},
+                {&range, "range", &PluginParameters::range, ApplyParameter::NotInCheckpoint},
                 {&jsonRestartConfig,
                  std::nullopt,
-                 &PluginOptions::jsonRestartParams,
+                 &PluginParameters::jsonRestartParams,
                  ApplyParameter::OnlyInCheckpoint}};
 
-            std::vector<toml::TomlOption> tomlParameters()
+            std::vector<toml::TomlParameter> tomlParameters()
             {
-                std::vector<toml::TomlOption> res;
+                std::vector<toml::TomlParameter> res;
                 for(auto const& param : parameters)
                 {
-                    if(param.tomlOption.has_value() && param.targetInConfigObject.has_value())
+                    if(param.tomlParameter.has_value() && param.targetInConfigObject.has_value())
                     {
                         res.emplace_back(
-                            toml::TomlOption{param.tomlOption.value(), param.targetInConfigObject.value()});
+                            toml::TomlParameter{param.tomlParameter.value(), param.targetInConfigObject.value()});
                     }
                 }
                 return res;
@@ -379,7 +403,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     {
                         std::string additionalDescription
                             = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
-                        param.commandLineOption->registerHelp(desc, masterPrefix + prefix, additionalDescription);
+                        param.commandLineParameter->registerHelp(desc, masterPrefix + prefix, additionalDescription);
                     }
                 }
 
@@ -410,7 +434,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         {
                             std::string additionalDescription
                                 = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
-                            param.commandLineOption->registerHelp(desc, masterPrefix + prefix, additionalDescription);
+                            param.commandLineParameter->registerHelp(desc, masterPrefix + prefix, additionalDescription);
                         }
                     }
                 }
@@ -453,7 +477,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     {
                         for(auto const& parameter : parameters)
                         {
-                            auto const& option = *parameter.commandLineOption;
+                            auto const& option = *parameter.commandLineParameter;
                             if(option.size() > 0)
                             {
                                 throw std::runtime_error(
@@ -502,18 +526,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
-            PluginOptions pluginOptions(size_t id)
+            PluginParameters pluginParameters(size_t id)
             {
                 if(tomlDataSources.has_value())
                 {
-                    return tomlDataSources.value().openPMDPluginOptions;
+                    return tomlDataSources.value().openPMDPluginParameters;
                 }
                 else
                 {
-                    PluginOptions res;
+                    PluginParameters res;
                     for(auto const& param : parameters)
                     {
-                        auto const& cmd_param = param.commandLineOption;
+                        auto const& cmd_param = param.commandLineParameter;
                         auto const& target = param.targetInConfigObject;
                         if(!target.has_value() || !cmd_param->optionDefined(id))
                         {
@@ -537,7 +561,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             std::string selectedRange;
 
             std::tie(fileName, fileInfix, fileExtension, strategyString, jsonString, selectedRange, jsonRestartParams)
-                = help.pluginOptions(id);
+                = help.pluginParameters(id);
 
             /*
              * If file is empty, then the openPMD plugin is running as a normal IO plugin.
@@ -995,13 +1019,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         // Verify that all other parameters are empty for this instance of the plugin
                         for(auto const& parameter : m_help->parameters)
                         {
-                            auto const& option = *parameter.commandLineOption;
-                            if(option.optionDefined(m_id) && not option.get(m_id).empty())
+                            auto const& cmd = *parameter.commandLineParameter;
+                            if(cmd.optionDefined(m_id) && not cmd.get(m_id).empty())
                             {
                                 throw std::runtime_error(
                                     "[openPMD plugin] If using parameter toml, no other parameter may be used (do not "
                                     "define '"
-                                    + option.getName() + "').");
+                                    + cmd.getName() + "').");
                             }
                         }
 

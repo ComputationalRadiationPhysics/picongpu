@@ -5,7 +5,7 @@
 
 namespace picongpu::openPMD
 {
-    struct PluginOptions
+    struct PluginParameters
     {
         std::string fileName = "simData";
         std::string fileInfix = "_%06T";
