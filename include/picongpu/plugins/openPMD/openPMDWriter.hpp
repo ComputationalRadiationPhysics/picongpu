@@ -740,14 +740,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // getPointer() will wait for device->host transfer
                 ValueType* nativePtr = buffer.getHostBuffer().getPointer();
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
-#if OPENPMDAPI_VERSION_GE(0, 15, 0)
-                mrc.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
-#else
-                mrc.storeChunk(
-                    ::openPMD::shareRaw(rawPtr),
-                    asStandardVector(recordOffsetDims),
-                    asStandardVector(recordLocalSizeDims));
-#endif
+                storeChunkRaw(mrc, rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
                 flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
             }
 
@@ -793,17 +786,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* Explicit template parameters to asStandardVector required
                  * as we need to change the element type as well
                  */
-#if OPENPMDAPI_VERSION_GE(0, 15, 0)
-                mrc.loadChunkRaw(
+                loadChunkRaw(
+                    mrc,
                     rawPtr,
                     asStandardVector<VecUInt64, ::openPMD::Offset>(recordOffsetDims),
                     asStandardVector<VecUInt64, ::openPMD::Extent>(recordLocalSizeDims));
-#else
-                mrc.loadChunk(
-                    ::openPMD::shareRaw(rawPtr),
-                    asStandardVector<VecUInt64, ::openPMD::Offset>(recordOffsetDims),
-                    asStandardVector<VecUInt64, ::openPMD::Extent>(recordLocalSizeDims));
-#endif
                 params->openPMDSeries->flush();
                 // Copy data to device
                 rngProvider->syncToDevice();
