@@ -329,9 +329,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint},
                 {&fileNameExtension, "ext", &PluginParameters::fileExtension},
                 {&fileNameInfix, "infix", &PluginParameters::fileInfix},
-                {&jsonConfig, "backend_config", &PluginParameters::jsonConfig},
-                {&dataPreparationStrategy, "data_preparation_strategy", &PluginParameters::dataPreparationStrategy},
-                {&range, "range", &PluginParameters::range, ApplyParameter::NotInCheckpoint},
+                {&jsonConfig, "backend_config", &PluginParameters::jsonConfigString},
+                {&dataPreparationStrategy, "data_preparation_strategy", &PluginParameters::dataPreparationStrategyString},
+                {&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint},
                 {&jsonRestartConfig,
                  std::nullopt,
                  &PluginParameters::jsonRestartParams,
@@ -556,12 +556,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             std::string const& dir,
             std::optional<std::string> file)
         {
-            std::string strategyString;
-            std::string jsonString;
-            std::string selectedRange;
-
-            std::tie(fileName, fileInfix, fileExtension, strategyString, jsonString, selectedRange, jsonRestartParams)
-                = help.pluginParameters(id);
+            *static_cast<PluginParameters*>(this) = help.pluginParameters(id);
 
             /*
              * If file is empty, then the openPMD plugin is running as a normal IO plugin.
@@ -601,7 +596,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                jsonMatcher = AbstractJsonMatcher::construct(jsonString, communicator);
+                jsonMatcher = AbstractJsonMatcher::construct(jsonConfigString, communicator);
             }
 
             log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % jsonMatcher->getDefault();
@@ -611,11 +606,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
             {
-                if(strategyString == "adios" || strategyString == "doubleBuffer")
+                if(dataPreparationStrategyString == "adios" || dataPreparationStrategyString == "doubleBuffer")
                 {
                     strategy = WriteSpeciesStrategy::ADIOS;
                 }
-                else if(strategyString == "hdf5" || strategyString == "mappedMemory")
+                else if(dataPreparationStrategyString == "hdf5" || dataPreparationStrategyString == "mappedMemory")
                 {
                     strategy = WriteSpeciesStrategy::HDF5;
                 }
@@ -630,7 +625,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             /* window selection */
             auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
-            window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, selectedRange);
+            window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
         }
 
         /** Writes simulation data to openPMD.

@@ -7,33 +7,12 @@ namespace picongpu::openPMD
 {
     struct PluginParameters
     {
-        std::string fileName = "simData";
+        std::string fileName = "simData"; /* Name of the openPMDSeries, excluding the extension */
         std::string fileInfix = "_%06T";
-        std::string fileExtension = "bp";
-        std::string dataPreparationStrategy = "doubleBuffer";
-        std::string jsonConfig = "{}";
-        std::string range = ":,:,:";
+        std::string fileExtension = "bp"; /* Extension of the file name */
+        std::string dataPreparationStrategyString = "doubleBuffer";
+        std::string jsonConfigString = "{}";
+        std::string rangeString = ":,:,:";
         std::string jsonRestartParams = "{}";
-
-        // for using this with std::tie()
-        operator std::
-            tuple<std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&>()
-        {
-            return std::tuple<
-                std::string&,
-                std::string&,
-                std::string&,
-                std::string&,
-                std::string&,
-                std::string&,
-                std::string&>{
-                fileName,
-                fileInfix,
-                fileExtension,
-                dataPreparationStrategy,
-                jsonConfig,
-                range,
-                jsonRestartParams};
-        }
     };
 } // namespace picongpu::openPMD

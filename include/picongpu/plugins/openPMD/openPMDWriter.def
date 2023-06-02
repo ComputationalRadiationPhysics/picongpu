@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/openPMD/Json.hpp"
+#include "picongpu/plugins/openPMD/Parameters.hpp"
 #include "picongpu/plugins/openPMD/toml.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
@@ -73,7 +74,7 @@ namespace picongpu
         class openPMDWriter;
         class Help;
 
-        struct ThreadParams
+        struct ThreadParams : PluginParameters
         {
             uint32_t currentStep; /** current simulation step */
 
@@ -84,12 +85,8 @@ namespace picongpu
             bool isCheckpoint;
 
             MPI_Comm communicator; /* MPI communicator for openPMD API */
-            std::string fileName; /* Name of the openPMDSeries, excluding the extension */
-            std::string fileExtension; /* Extension of the file name */
-            std::string fileInfix;
 
             std::unique_ptr<AbstractJsonMatcher> jsonMatcher;
-            std::string jsonRestartParams;
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
