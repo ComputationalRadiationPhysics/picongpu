@@ -330,7 +330,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {&fileNameExtension, "ext", &PluginParameters::fileExtension},
                 {&fileNameInfix, "infix", &PluginParameters::fileInfix},
                 {&jsonConfig, "backend_config", &PluginParameters::jsonConfigString},
-                {&dataPreparationStrategy, "data_preparation_strategy", &PluginParameters::dataPreparationStrategyString},
+                {&dataPreparationStrategy,
+                 "data_preparation_strategy",
+                 &PluginParameters::dataPreparationStrategyString},
                 {&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint},
                 {&jsonRestartConfig,
                  std::nullopt,
@@ -434,7 +436,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         {
                             std::string additionalDescription
                                 = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
-                            param.commandLineParameter->registerHelp(desc, masterPrefix + prefix, additionalDescription);
+                            param.commandLineParameter->registerHelp(
+                                desc,
+                                masterPrefix + prefix,
+                                additionalDescription);
                         }
                     }
                 }
