@@ -23,12 +23,11 @@ import os
 import sys
 
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)) + "/../../")
-from testsuite import Math as tm  # noqa
+import testsuite as ts  # noqa
 
 # general information about the test
 title = "KHI Growthrate (2D ESKHI)"
 author = "Mika Soren Voss"
-
 
 # directory specified
 resultDirection = None
@@ -47,7 +46,7 @@ plot_title = None  # if None or not defined title will be used
 plot_xlabel = r"$t[\omega_{pe}^ {-1}]$"
 plot_ylabel = r"$\Gamma_\mathrm{Fi}$"
 # if None or not defined the standard type will be used, see documentation
-plot_type = "1D"
+plot_type = None
 # if None or not defined the time will be used
 plot_xaxis = None
 # for more values see the documentation (e.g. 2D plot needs zaxis and yaxis)
@@ -85,9 +84,9 @@ def simData(Bx, **kwargs):
     -------
     out : values from the simulation!
     """
-    frequency = tm.physics.plasmafrequence()
-    time = tm.physics.calculateTimeFreq(
+    frequency = ts.Math.physics.plasmafrequence()
+    time = ts.Math.physics.calculateTimeFreq(
                            frequency, step_direction="fields_energy.dat")
 
-    sim_values = tm.math.growthRate(Bx, time)
+    sim_values = ts.Math.math.growthRate(Bx, time)
     return sim_values
