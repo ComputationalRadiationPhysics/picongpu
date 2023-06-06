@@ -10,6 +10,8 @@ backend_config = "@./adios_config.json"    # replaces --openPMD.json,
                                            # default is "{}"
 data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationStrategy,
                                            # default is "doubleBuffer"
+range = "10,:,:"   # replaces --openPMD.range
+                   # default is ":,:,:"
 
 
 # Periods and data sources are specified independently per reading application
