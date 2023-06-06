@@ -1,0 +1,5 @@
+.. _testing-examples:
+
+Examples
+========
+
