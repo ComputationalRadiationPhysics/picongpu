@@ -421,7 +421,7 @@ namespace picongpu
 
 
                                 par1[momentum_] = precisionCast<float_X>(finalLab1 * v.normalizedWeight1);
-                                if((v.normalizedWeight1 / v.normalizedWeight0) - rng(worker) > 0)
+                                if((v.normalizedWeight1 / v.normalizedWeight0) - rng(worker) > 0.0_COLL)
                                 {
                                     finalLab0 = comsToLab(
                                         finalComs0,
