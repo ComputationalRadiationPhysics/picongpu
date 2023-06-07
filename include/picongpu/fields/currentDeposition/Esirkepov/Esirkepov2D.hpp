@@ -181,7 +181,7 @@ namespace picongpu
                     if(j < end + bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL))
                     {
                         const float_X s0j = shapeJ.S0(j);
-                        const float_X dsj = shapeJ.S0(j) - s0j;
+                        const float_X dsj = shapeJ.S1(j) - s0j;
 
                         float_X tmp = -currentSurfaceDensity * (s0j + 0.5_X * dsj);
 
