@@ -41,6 +41,8 @@
  *
  */
 
+#pragma once
+
 namespace picongpu
 {
     namespace SI
