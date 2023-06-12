@@ -19,6 +19,9 @@ variables:
   artifacts:
     paths:
       - compile.yml
+  tags:
+    - x86_64
+    - cpuonly
   interruptible: true
 
 # pull request validation:
@@ -53,6 +56,7 @@ pull-request-validation:
     - source $CI_PROJECT_DIR/share/ci/check_cpp_code_style.sh
   tags:
     - x86_64
+    - cpuonly
   interruptible: true
 
 # generate reduced test matrix
