@@ -101,10 +101,10 @@ namespace picongpu
                 pmacc::math::dot(this->calorimeterFrameVecZ, dirVec));
 
             /* convert dirVec to yaw and pitch */
-            const float_X yaw = atan2(dirVec.x(), dirVec.y());
-            const float_X pitch = asin(dirVec.z());
+            const float_X yaw = math::atan2(dirVec.x(), dirVec.y());
+            const float_X pitch = math::asin(dirVec.z());
 
-            if(abs(yaw) < this->maxYaw && abs(pitch) < this->maxPitch)
+            if(math::abs(yaw) < this->maxYaw && math::abs(pitch) < this->maxPitch)
             {
                 const float2_X calorimeterPos
                     = particleCalorimeter::mapYawPitchToNormedRange(yaw, pitch, this->maxYaw, this->maxPitch);
