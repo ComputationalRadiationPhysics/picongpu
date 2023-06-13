@@ -1,0 +1,55 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+//! @file defines of functors setting the charge state of macro-particles
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/manipulators/generic/Free.def"
+
+#include <cstdint>
+
+namespace picongpu::particles::manipulators::unary
+{
+    namespace acc
+    {
+        //! Functors implementing modifying particle charge state
+
+        /** version for fixed charge state
+         *
+         *  @tparam T_chargeState charge state to set macro-ions to
+         */
+        template<uint8_t T_chargeState>
+        struct ChargeState;
+
+        // ... add further versions here
+    } // namespace acc
+
+    //! set macro-ion charge state
+
+    /** version for fixed charge state
+     *
+     * @tparam T_chargeState charge state to set macro ion to
+     */
+    template<uint8_t T_chargeState>
+    using ChargeState = generic::Free<acc::ChargeState<T_chargeState>>;
+
+} // namespace picongpu::particles::manipulators::unary

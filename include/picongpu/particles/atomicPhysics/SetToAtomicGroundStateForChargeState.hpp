@@ -29,66 +29,56 @@ namespace picongpu
         {
             struct SetToAtomicGroundStateForChargeState
             {
-                template<typename T_Particle>
-                DINLINE void operator()(T_Particle& particle, float_X numberBoundElectrons)
+                template<typename T_Ion>
+                DINLINE void operator()(T_Ion& ion, uint8_t numberBoundElectrons)
                 {
                     /** set a given ion to its ground state for a given number of bound
                      *  electrons
                      *
-                     *  Functor, sets a given particle's boundElectrons attribute,
-                     *  and, if present, atomicState attribute, to the correct value/s
-                     *  for its ground state.
+                     * Functor, sets, if present, the atomicConfigNumber(i.e. atomicState) attribute,
+                     *   to the ground state.
                      *
                      *  Example:
                      *    Ar(Z=18), boundElectrons=3 --> super configuration(2,1,0,0,...)
                      *
-                     *  BEWARE: Different Usage from previous SetIonization(),
-                     *      specify NUMBER of bound electrons NOT charge state.
-                     *  BEWARE: Uses simple fill from bottom shell wise for ground state
-                     *      determination, not actually entire truth.
-                     *  @todo : implement full madelung occupation schema, and exceptions,
-                     *      like Cu.
+                     * @attention uses simple fill from bottom shell wise for ground state
+                     *      determination, may different from input data set ground state.
+                     *  @todo : implement searching for ground state in atomic input data
                      */
 
                     PMACC_DEVICE_ASSERT_MSG(numberBoundElectrons >= 0, "Number of bound electrons must be >= 0");
 
-                    using Particle = T_Particle;
-
-                    particle[boundElectrons_] = numberBoundElectrons;
-
                     if constexpr(pmacc::traits::HasFlag<
-                                     typename T_Particle::FrameType,
+                                     typename T_Ion::FrameType,
                                      atomicPhysicsSolver<>>::type::value) // -> atomicState exists
                     {
                         // get current Configuration number object
-                        auto configNumber = particle[atomicConfigNumber_];
+                        auto configNumber = ion[atomicConfigNumber_];
 
                         // create blank occupation number vector
                         auto occupationNumberVector
                             = pmacc::math::Vector<uint8_t, configNumber.numberLevels>::create(0);
                         // could actually be reduced to uint8_t since Z<=98(Californium) for our purposes
 
-                        uint8_t numberElectronsRemaining = static_cast<uint8_t>(numberBoundElectrons);
-
                         // fill from bottom up until no electrons remaining -> ground state init
                         /// @todo : implement Mandelung Schema and exceptions, Brian Marre, 2022
                         for(uint8_t level = 1u; level <= configNumber.numberLevels; level++)
                         {
                             // g(n) = 2*n^2; for hydrogen like states
-                            if(numberElectronsRemaining >= 2u * level * level)
+                            if(numberBoundElectrons >= 2u * level * level)
                             {
                                 (occupationNumberVector)[level - 1u] = 2u * level * level;
-                                numberElectronsRemaining -= 2u * level * level;
+                                numberBoundElectrons -= 2u * level * level;
                             }
                             else
                             {
-                                (occupationNumberVector)[level - 1u] = numberElectronsRemaining;
+                                (occupationNumberVector)[level - 1u] = numberBoundElectrons;
                                 break;
                             }
                         }
 
                         // set atomic state index
-                        particle[atomicConfigNumber_] = configNumber.getAtomicConfigNumber(occupationNumberVector);
+                        ion[atomicConfigNumber_] = configNumber.getAtomicConfigNumber(occupationNumberVector);
                     }
                 }
             };
