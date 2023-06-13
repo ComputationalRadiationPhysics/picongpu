@@ -66,7 +66,7 @@ namespace picongpu
          *
          * Used internally for unit normalization.
          */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::pypicongpu::random_ppc_{{{placed_species_initial.typename}}}::numParticlesPerCell;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = {{{typical_ppc}}}u;
 
         namespace manipulators
         {

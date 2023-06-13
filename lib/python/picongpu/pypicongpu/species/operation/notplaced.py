@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from .operation import Operation
+from .densityoperation import DensityOperation
 from ..species import Species
 from ..attribute import Position, Weighting
 from ... import util
@@ -13,7 +13,7 @@ from typeguard import typechecked
 
 
 @typechecked
-class NotPlaced(Operation):
+class NotPlaced(DensityOperation):
     """
     assigns a position attribute, but does not place a species
 
@@ -25,6 +25,8 @@ class NotPlaced(Operation):
 
     species = util.build_typesafe_property(Species)
     """species which will not be placed"""
+
+    ppc = 0
 
     def __init__(self):
         pass

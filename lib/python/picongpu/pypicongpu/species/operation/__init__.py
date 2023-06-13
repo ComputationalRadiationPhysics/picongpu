@@ -1,4 +1,5 @@
 from .operation import Operation
+from .densityoperation import DensityOperation
 from .simpledensity import SimpleDensity
 from .notplaced import NotPlaced
 from .simplemomentum import SimpleMomentum
@@ -10,6 +11,7 @@ from . import momentum
 
 __all__ = [
     "Operation",
+    "DensityOperation",
     "SimpleDensity",
     "NotPlaced",
     "SimpleMomentum",
