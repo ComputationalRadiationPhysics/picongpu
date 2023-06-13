@@ -46,6 +46,13 @@ class Simulation(RenderedObject):
     init_manager = util.build_typesafe_property(species.InitManager)
     """init manager holding all species & their information"""
 
+    typical_ppc = util.build_typesafe_property(int)
+    """
+    typical number of macro particles spawned per cell, >=1
+
+    used for normalization of units
+    """
+
     def __get_output_context(self) -> dict:
         """retrieve all output objects"""
         auto = output.Auto()
@@ -59,6 +66,7 @@ class Simulation(RenderedObject):
         serialized = {
             "delta_t_si": self.delta_t_si,
             "time_steps": self.time_steps,
+            "typical_ppc": self.typical_ppc,
             "solver": self.solver.get_rendering_context(),
             "grid": self.grid.get_rendering_context(),
             "species_initmanager": self.init_manager.get_rendering_context(),

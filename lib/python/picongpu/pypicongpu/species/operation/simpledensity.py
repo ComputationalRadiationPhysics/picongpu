@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from .operation import Operation
+from .densityoperation import DensityOperation
 from typeguard import typechecked
 from ... import util
 from ..species import Species
@@ -16,7 +16,7 @@ from ..constant import DensityRatio
 
 
 @typechecked
-class SimpleDensity(Operation):
+class SimpleDensity(DensityOperation):
     """
     Place a set of species together, using the same density profile
 

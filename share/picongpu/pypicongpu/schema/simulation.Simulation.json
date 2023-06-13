@@ -12,6 +12,11 @@
             "minimum": 1,
             "description": "total number of time steps to run for"
         },
+        "typical_ppc":{
+            "type": "integer",
+            "minimum": 1,
+            "description": "typical number of macroparticles per cell, used for normalization"
+        },
         "solver": {
             "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.solver.YeeSolver"
         },
@@ -53,6 +58,7 @@
     "required": [
         "delta_t_si",
         "time_steps",
+        "typical_ppc",
         "solver",
         "grid",
         "laser"

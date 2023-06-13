@@ -105,6 +105,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def __init__(self,
                  picongpu_template_dir: typing.Optional[
                      typing.Union[str, pathlib.Path]] = None,
+                 picongpu_typical_ppc: typing.Optional[int] = None,
                  **kw):
         # delegate actual work to parent
         super().__init__(**kw)
@@ -127,6 +128,8 @@ class Simulation(picmistandard.PICMI_Simulation):
             assert template_path.is_dir(), \
                 "picongpu_template_dir must be existing dir"
             self.picongpu_template_dir = str(template_path)
+
+        self.picongpu_typical_ppc = picongpu_typical_ppc
 
         # store runner state
         self.__runner = None
@@ -481,6 +484,16 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.__resolve_electrons()
 
         s.init_manager = self.__get_init_manager()
+
+        # set typical ppc if not overwritten by user
+        if self.picongpu_typical_ppc is None:
+            s.typical_ppc = (s.init_manager).get_typical_particle_per_cell()
+        else:
+            s.typical_ppc = self.picongpu_typical_ppc
+
+        if s.typical_ppc < 1:
+            raise ValueError("typical_ppc must be >= 1")
+
         return s
 
     def picongpu_run(self) -> None:

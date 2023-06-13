@@ -30,6 +30,7 @@ class TestSimulation(unittest.TestCase):
         self.s = Simulation()
         self.s.delta_t_si = 13.37
         self.s.time_steps = 42
+        self.s.typical_ppc = 1
         self.s.grid = grid.Grid3D()
         self.s.grid.cell_size_x_si = 1
         self.s.grid.cell_size_y_si = 2

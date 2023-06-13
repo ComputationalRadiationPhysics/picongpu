@@ -9,8 +9,8 @@ from typeguard import typechecked, check_type
 import typing
 from .. import util
 from .species import Species
-from .operation import Operation, SimpleDensity, SimpleMomentum, \
-    SetBoundElectrons
+from .operation import Operation, DensityOperation, SimpleDensity, \
+    SimpleMomentum, SetBoundElectrons
 from .attribute import Attribute
 from .constant import Constant
 from functools import reduce
@@ -448,6 +448,31 @@ class InitManager(RenderedObject):
         # check species themselves
         for species in self.all_species:
             species.check()
+
+    def get_typical_particle_per_cell(self) -> int:
+        """
+        get typical number of macro particles per cell(ppc) of simulation
+
+        @returns middle value of ppc-range of all operations, minimum 1
+        """
+        ppcs = []
+
+        for operation in self.all_operations:
+            if isinstance(operation, DensityOperation):
+                ppcs.append(operation.ppc)
+
+        if len(ppcs) == 0:
+            return 1
+
+        max_ppc = max(ppcs)
+        min_ppc = min(ppcs)
+
+        if max_ppc < 1:
+            max_ppc = 1
+        if min_ppc < 1:
+            min_ppc = 1
+
+        return (max_ppc - min_ppc)//2 + min_ppc
 
     def _get_serialized(self) -> dict:
         """

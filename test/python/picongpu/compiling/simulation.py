@@ -33,6 +33,7 @@ class TestSimulation(unittest.TestCase):
         sim = pypicongpu.Simulation()
         sim.delta_t_si = 1.39e-16
         sim.time_steps = 1
+        sim.typical_ppc = 1
         sim.grid = pypicongpu.grid.Grid3D()
         sim.grid.cell_size_x_si = 1.776e-07
         sim.grid.cell_size_y_si = 4.43e-08
