@@ -138,35 +138,12 @@ namespace picongpu
             /** Definition of manipulator that sets the ionization state of an ion macro-particle
              * according properties defined in struct OnceIonizedImpl.
              */
-            using IonCharge1 = generic::Free<OnceIonizedImpl>;
+            using IonCharge1 = unary::ChargeState<1u>;
 
-
-            /** Define initial ion charge to thrice ionized*/
-            struct ThriceIonizedImpl
-            {
-                /** Ionize ions thrice by removing three bound electrons */
-                template<typename T_Particle>
-                DINLINE void operator()(T_Particle& particle)
-                {
-                    constexpr float_X targetChargeState = 3; // thrice ionized
-
-                    // number of Electrons for neutral atom
-                    constexpr float_X numberBoundElectrons
-                        = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-
-                    PMACC_ASSERT_MSG(
-                        numberBoundElectrons >= targetChargeState,
-                        "too few protons for target charge state");
-
-                    picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
-                        particle,
-                        numberBoundElectrons - targetChargeState);
-                }
-            };
             /** Definition of manipulator that sets the ionization state of an ion macro-particle
              * according properties defined in struct ThriceIonizedImpl.
              */
-            using IonCharge3 = generic::Free<ThriceIonizedImpl>;
+            using IonCharge3 = unary::ChargeState<3u>;
 
         } // namespace manipulators
 
