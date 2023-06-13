@@ -5,10 +5,10 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from . import * # noqa
+from . import *  # noqa
 
 import unittest
 import logging
 
-logging.basicConfig(filename="/dev/null")
+logging.basicConfig(level=logging.ERROR)
 unittest.main()

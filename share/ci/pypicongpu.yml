@@ -5,7 +5,24 @@
   script:
     - echo "CI_CONTAINER_NAME -> $CI_CONTAINER_NAME"
     - echo "PYTHON_VERSION -> $PYTHON_VERSION"
-    - env | grep PYPIC_DEP_VERSION_
+    - source $CI_PROJECT_DIR/share/ci/install/pypicongpu.sh
+  tags:
+    - cpuonly
+    - x86_64
+  interruptible: true
+
+.base_pypicongpu_compile_test:
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-pic:${CONTAINER_TAG}
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  script:
+    - echo "CI_CONTAINER_NAME -> $CI_CONTAINER_NAME"
+    - echo "PYTHON_VERSION -> $PYTHON_VERSION"
+    - apt update
+    - apt install -y curl libjpeg-dev
+    - source $CI_PROJECT_DIR/share/ci/install/gcc.sh
+    - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - source $CI_PROJECT_DIR/share/ci/bash.profile
     - source $CI_PROJECT_DIR/share/ci/install/pypicongpu.sh
   tags:
     - cpuonly
