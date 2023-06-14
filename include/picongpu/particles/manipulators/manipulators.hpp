@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera, Axel Huebl
+/* Copyright 2014-2023 Rene Widera, Axel Huebl, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 
 #include "picongpu/particles/manipulators/generic/Free.hpp"
 #include "picongpu/particles/manipulators/generic/FreeRng.hpp"
+#include "picongpu/particles/manipulators/unary/ChargeState.hpp"
 #include "picongpu/particles/manipulators/unary/Drift.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.hpp"

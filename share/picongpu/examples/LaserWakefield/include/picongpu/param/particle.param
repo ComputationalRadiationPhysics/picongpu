@@ -75,27 +75,8 @@ namespace picongpu
 
         namespace manipulators
         {
-            /** Define initial charge state of ion macro-particel species. */
-            struct SetIonToNeutral
-            {
-                /** Set number of bound electrons to number of protons
-                 * to create neutral atoms at initialization.
-                 */
-                template<typename T_Particle>
-                DINLINE void operator()(T_Particle& particle)
-                {
-                    using Particle = T_Particle;
-
-                    // number of bound electrons at initialization state of the neutral atom
-                    float_X const protonNumber = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-
-                    particle[boundElectrons_] = protonNumber;
-                }
-            };
-            /** Definition of manipulator that sets boundElectrons attribute an ion macro-particle
-             * according properties defined in struct SetIonToNeutral.
-             */
-            using SetBoundElectrons = generic::Free<SetIonToNeutral>;
+            //! Definition of manipulator that sets boundElectrons attribute to neutral value
+            using SetBoundElectrons = unary::ChargeState<0u>;
 
         } // namespace manipulators
     } // namespace particles

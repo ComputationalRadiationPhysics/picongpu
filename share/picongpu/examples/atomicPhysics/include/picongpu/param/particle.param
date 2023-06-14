@@ -110,35 +110,8 @@ namespace picongpu
 
         namespace manipulators
         {
-            /** Define initial ion charge */
-            struct SetIonTo16Ionized
-            {
-                /** set ion bound electrons to yield targetChargeState.
-                 */
-                template<typename T_Particle>
-                DINLINE void operator()(T_Particle& particle)
-                {
-                    constexpr float_X targetChargeState = 16;
-
-                    // number of Electrons for neutral atom
-                    constexpr float_X numberBoundElectrons
-                        = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-
-                    PMACC_ASSERT_MSG(
-                        numberBoundElectrons >= targetChargeState,
-                        "too few protons for target charge state");
-
-                    picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
-                        particle,
-                        numberBoundElectrons - targetChargeState);
-                }
-            };
-
-            /** Definition of manipulator that sets properties of an ion macro-particle
-             * according properties defined in struct SetIonTo16Ionized.
-             */
-            using SetIonization = generic::Free<SetIonTo16Ionized>;
-
+            //! Definition of manipulator to set charge State to 16 times ionized
+            using SetIonization = unary::ChargeState<16u>;
 
             /** Define initial particle drift direction vector.
              *  This vector is used in struct DriftParam.

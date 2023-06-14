@@ -149,6 +149,12 @@ namespace picongpu
 
             /** Definition of manipulator that changes the in-cell position of each particle of a species. */
             using RandomPosition = unary::RandomPosition;
+
+            /** definition of manipulator that sets the boundElectron attribute(charge state) of each
+             * particle of an ion of a species to neutral
+             */
+            using SetNeutral = unary::ChargeState<0u>;
+
         } // namespace manipulators
 
         namespace startPosition

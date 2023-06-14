@@ -112,17 +112,8 @@ namespace picongpu
                 {{/species_initmanager.operations.simple_momentum}}
 
                 {{#species_initmanager.operations.set_bound_electrons}}
-                    struct PreIonize_{{{species.typename}}}_Impl
-                    {
-                        template<typename T_Particle>
-                        DINLINE void operator()(T_Particle& particle)
-                        {
-                            particle[boundElectrons_] = {{{bound_electrons}}}._X;
-                        }
-                    };
-
-                    //! definition of TwiceIonizedImpl manipulator
-                    using PreIonize_{{{species.typename}}} = generic::Free<PreIonize_{{{species.typename}}}_Impl>;
+                    //! definition of PreIonized manipulator
+                    using PreIonize_{{{species.typename}}} = unary::ChargeState<{{{bound_electrons}}}u>;;
                 {{/species_initmanager.operations.set_bound_electrons}}
             } // namespace pypicongpu
         } // namespace manipulators
