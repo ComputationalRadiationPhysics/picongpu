@@ -1025,12 +1025,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                         auto [emplaced, newly_inserted] = m_help->tomlDataSources.emplace(
                             std::piecewise_construct,
-                            std::tuple{id},
-                            std::tuple{
+                            std::make_tuple(id),
+                            std::make_tuple(
                                 m_help->tomlSources.get(id),
                                 m_help->tomlParameters(),
                                 m_help->allowedDataSources,
-                                mThreadParams.communicator});
+                                mThreadParams.communicator));
                         if(!newly_inserted)
                         {
                             throw std::runtime_error("[openPMD plugin] Internal logic error: Tried parsing the same "
