@@ -130,7 +130,7 @@ namespace pmacc
                         complex_T cp0 = cone;
                         for(uint32_t k = 0u; k < kz; k++)
                         {
-                            cp0 += a[k] * pow(z1, float_T(-2.0) * k - float_T(2.0));
+                            cp0 += a[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(2.0));
                         }
                         complex_T cq0 = float_T(-0.125) / z1;
                         for(uint32_t k = 0; k < kz; k++)

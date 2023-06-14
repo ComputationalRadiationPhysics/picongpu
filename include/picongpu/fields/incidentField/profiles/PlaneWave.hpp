@@ -127,14 +127,14 @@ namespace picongpu
                             {
                                 // downramp = end
                                 auto const exponent = (time - startDownramp) / tau;
-                                envelope *= exp(-0.5_X * exponent * exponent);
+                                envelope *= math::exp(-0.5_X * exponent * exponent);
                                 integrationCorrectionFactor = (time - startDownramp) / (Unitless::w * tau * tau);
                             }
                             else if(time < endUpramp)
                             {
                                 // upramp = start
                                 auto const exponent = (time - endUpramp) / tau;
-                                envelope *= exp(-0.5_X * exponent * exponent);
+                                envelope *= math::exp(-0.5_X * exponent * exponent);
                                 integrationCorrectionFactor = (time - endUpramp) / (Unitless::w * tau * tau);
                             }
 

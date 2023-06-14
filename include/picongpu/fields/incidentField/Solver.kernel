@@ -326,18 +326,18 @@ namespace picongpu
                         bool const applyIncidentField2
                             = ((isUpdatedFieldTotal && !isLastUpdatedCell[incidentComponent1])
                                || (!isUpdatedFieldTotal && !isLastUpdatedCell[incidentComponent2]));
-                        for(int32_t axisShift = abs(updatedFieldShift); axisShift < margin; axisShift++)
+                        for(int32_t axisShift = math::abs(updatedFieldShift); axisShift < margin; axisShift++)
                         {
                             auto coeffIdx = pmacc::DataSpace<3>::create(0);
                             coeffIdx[axis] = axisShift;
                             incidentIdxShift[dir1] = static_cast<float_X>(1 - sizeDir1);
                             for(int32_t dir1Shift = 1 - sizeDir1; dir1Shift < sizeDir1; dir1Shift++)
                             {
-                                coeffIdx[dir1] = abs(dir1Shift);
+                                coeffIdx[dir1] = math::abs(dir1Shift);
                                 incidentIdxShift[dir2] = static_cast<float_X>(1 - sizeDir2);
                                 for(int32_t dir2Shift = 1 - sizeDir2; dir2Shift < sizeDir2; dir2Shift++)
                                 {
-                                    coeffIdx[dir2] = abs(dir2Shift);
+                                    coeffIdx[dir2] = math::abs(dir2Shift);
                                     // Implement the update scheme, multiply by baseCoefficient after the loops
                                     auto const derivativeCoefficient
                                         = derivativeCoefficients.value[coeffIdx[0]][coeffIdx[1]][coeffIdx[2]];

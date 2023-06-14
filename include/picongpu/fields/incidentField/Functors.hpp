@@ -422,7 +422,7 @@ namespace picongpu
                             constexpr double ulp = 4.0;
                             constexpr double eps = std::numeric_limits<double>::epsilon();
                             bool const isMatchingUnit
-                                = (std::fabs(unitField[axis] - UNIT_EFIELD) <= eps * UNIT_EFIELD * ulp);
+                                = (math::abs(unitField[axis] - UNIT_EFIELD) <= eps * UNIT_EFIELD * ulp);
                             if(!isMatchingUnit)
                             {
                                 throw std::runtime_error(

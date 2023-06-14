@@ -336,7 +336,7 @@ namespace picongpu
 
                     // For near-zero velocity use an approximate formula
                     constexpr auto eps = 1e-5;
-                    if(abs(vel) < eps * cellSize[axis])
+                    if(math::abs(vel) < eps * cellSize[axis])
                     {
                         auto const startNormalizedSigma = detail::getNormalizedSigma(startPos, parameters, axis);
                         auto const finishNormalizedSigma = detail::getNormalizedSigma(finishPos, parameters, axis);
