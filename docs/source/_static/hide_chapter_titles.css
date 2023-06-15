@@ -1,24 +1,24 @@
 /* front page: hide chapter titles
  * needed for consistent HTML-PDF-EPUB chapters
  */
-#how-to-read-this-document.section div.section {
-    display:none;
+section#how-to-read-this-document div.section {
+    display: block;
 }
 
 /* parameter files: only show short intro of title
  * and description in HTML.
  * Work-Around for https://github.com/michaeljones/breathe/issues/318
  */
-div#pic-core.section > div > dl.type,
-div#pic-core.section > div > div.breathe-sectiondef,
-div#memory.section > div > dl.type,
-div#memory.section > div > div.breathe-sectiondef,
-div#pic-extensions.section > div > dl.type,
-div#pic-extensions.section > div > div.breathe-sectiondef,
-div#plugins.section > div > dl.type,
-div#plugins.section > div > div.breathe-sectiondef,
-div#misc.section > div > dl.type,
-div#misc.section > div > div.breathe-sectiondef
+section#pic-core dl.type,
+section#pic-core div.breathe-sectiondef,
+section#memory dl.type,
+section#memory div.breathe-sectiondef,
+section#pic-extensions dl.type,
+section#pic-extensions div.breathe-sectiondef,
+section#plugins dl.type,
+section#plugins div.breathe-sectiondef,
+section#misc dl.type,
+section#misc div.breathe-sectiondef
 {
     display: none;
 }

@@ -105,7 +105,7 @@ The extended format is only available for configuration of the writing procedure
 The reading procedures (i.e. for restarting from a checkpoint) can be configured via ``--checkpoint.openPMD.jsonRestart``, e.g. see the example below for configuring the number of blosc decompression threads in ADIOS2.
 Note that most sensible use cases for this command line option (including this example) require openPMD-api >= 0.15 (or a recent dev version until the 0.15 release).
 
-.. literatlinclude:: openPMD_restart_config.json
+.. literalinclude:: openPMD_restart_config.json
 
 Two data preparation strategies are available for downloading particle data off compute devices.
 

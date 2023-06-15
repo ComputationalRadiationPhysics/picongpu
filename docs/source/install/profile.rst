@@ -62,9 +62,9 @@ and providing default parameters for :ref:`TBG <usage-tbg>`.
 Crusher (ORNL)
 --------------
 
-**System overview:** `link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#system-overview>`_
+**System overview:** `link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#system-overview>`__
 
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#data-and-storage>`_).
+**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#data-and-storage>`__).
 Note that ``$HOME`` is mounted on compute nodes as read-only.
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>` manually.
@@ -84,7 +84,7 @@ MI250X GPUs using craycc
 Hemera (HZDR)
 -------------
 
-**System overview:** `link (internal) <https://www.hzdr.de/db/Cms?pOid=29813>`_
+**System overview:** `link (internal) <https://www.hzdr.de/db/Cms?pOid=29813>`__
 
 **User guide:** *None*
 
@@ -132,11 +132,11 @@ Queue: k80 (8x NVIDIA K80 12GB)
 Summit (ORNL)
 -------------
 
-**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/>`_
+**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/>`__
 
-**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/>`_
+**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/>`__
 
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
+**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`__).
 Note that ``$HOME`` is mounted on compute nodes as read-only.
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
@@ -150,11 +150,11 @@ V100 GPUs (recommended)
 Piz Daint (CSCS)
 ----------------
 
-**System overview:** `link <https://www.cscs.ch/computers/piz-daint/>`_
+**System overview:** `link <https://www.cscs.ch/computers/piz-daint/>`__
 
-**User guide:** `link <https://user.cscs.ch/>`_
+**User guide:** `link <https://user.cscs.ch/>`__
 
-**Production directory:** ``$SCRATCH`` (`link <https://user.cscs.ch/storage/file_systems/>`_).
+**Production directory:** ``$SCRATCH`` (`link <https://user.cscs.ch/storage/file_systems/>`__).
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, libpng, PNGwriter and ADIOS2 <install-dependencies>` manually.
 
@@ -173,9 +173,9 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 Taurus (TU Dresden)
 -------------------
 
-**System overview:** `link <https://tu-dresden.de/zih/hochleistungsrechnen/hpc>`_
+**System overview:** `link <https://tu-dresden.de/zih/hochleistungsrechnen/hpc>`__
 
-**User guide:** `link <https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus>`_
+**User guide:** `link <https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus>`__
 
 **Production directory:** ``/scratch/$USER/`` and ``/scratch/$proj/``
 
@@ -207,11 +207,11 @@ For this profile, you additionally need to compile and install everything for th
 Cori (NERSC)
 ------------
 
-**System overview:** `link <https://www.nersc.gov/users/computational-systems/cori/configuration/>`_
+**System overview:** `link <https://www.nersc.gov/users/computational-systems/cori/configuration/>`__
 
-**User guide:** `link <https://docs.nersc.gov/>`_
+**User guide:** `link <https://docs.nersc.gov/>`__
 
-**Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`_).
+**Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`__).
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
 
@@ -224,9 +224,9 @@ Queue: dgx (DGX - A100)
 Draco (MPCDF)
 -------------
 
-**System overview:** `link <https://www.mpcdf.mpg.de/services/computing/draco/about-the-system>`_
+**System overview:** `link <https://www.mpcdf.mpg.de/services/computing/draco/about-the-system>`__
 
-**User guide:** `link <https://www.mpcdf.mpg.de/services/computing/draco>`_
+**User guide:** `link <https://www.mpcdf.mpg.de/services/computing/draco>`__
 
 **Production directory:** ``/ptmp/$USER/``
 
@@ -238,11 +238,11 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 D.A.V.I.D.E (CINECA)
 --------------------
 
-**System overview:** `link <http://www.hpc.cineca.it/content/davide>`_
+**System overview:** `link <http://www.hpc.cineca.it/content/davide>`__
 
-**User guide:** `link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG3.2%3A+D.A.V.I.D.E.+UserGuide>`_
+**User guide:** `link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG3.2%3A+D.A.V.I.D.E.+UserGuide>`__
 
-**Production directory:** ``$CINECA_SCRATCH/`` (`link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG2.4%3A+Data+storage+and+FileSystems>`_)
+**Production directory:** ``$CINECA_SCRATCH/`` (`link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG2.4%3A+Data+storage+and+FileSystems>`__)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
 
@@ -255,11 +255,11 @@ Queue: dvd_usr_prod (Nvidia P100 GPUs)
 JURECA (JSC)
 ------------
 
-**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/JURECA_node.html>`_
+**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/JURECA_node.html>`__
 
-**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/UserInfo/UserInfo_node.html>`_
+**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/UserInfo/UserInfo_node.html>`__
 
-**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/SharedDocs/FAQs/IAS/JSC/EN/JUST/FAQ_00_File_systems.html?nn=1297148>`_)
+**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/SharedDocs/FAQs/IAS/JSC/EN/JUST/FAQ_00_File_systems.html?nn=1297148>`__)
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
 
@@ -284,11 +284,11 @@ Queue: booster (Intel Xeon Phi 7250-F, 68 cores + Hyperthreads)
 JUWELS (JSC)
 ------------
 
-**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_
+**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`__
 
-**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/UserInfo/UserInfo_node.html>`_
+**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/UserInfo/UserInfo_node.html>`__
 
-**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/FAQ/juwels_FAQ_node.html#faq1495160>`_)
+**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/FAQ/juwels_FAQ_node.html#faq1495160>`__)
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
 
@@ -307,11 +307,11 @@ Queue: gpus (4 x Nvidia V100 GPUs)
 ARIS (GRNET)
 ------------
 
-**System overview:** `link <http://doc.aris.grnet.gr/>`_
+**System overview:** `link <http://doc.aris.grnet.gr/>`__
 
-**User guide:** `link <http://doc.aris.grnet.gr/environment/>`_
+**User guide:** `link <http://doc.aris.grnet.gr/environment/>`__
 
-**Production directory:** ``$WORKDIR`` (`link <http://doc.aris.grnet.gr/system/storage/>`_)
+**Production directory:** ``$WORKDIR`` (`link <http://doc.aris.grnet.gr/system/storage/>`__)
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
 
@@ -324,9 +324,9 @@ Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
 Ascent (ORNL)
 -------------
 
-**System overview and user guide:** `link <https://docs.olcf.ornl.gov/systems/ascent_user_guide.html#system-overview/>`_
+**System overview and user guide:** `link <https://docs.olcf.ornl.gov/systems/ascent_user_guide.html#system-overview/>`__
 
-**Production directory:** usually ``$PROJWORK/$proj/`` (as on summit `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
+**Production directory:** usually ``$PROJWORK/$proj/`` (as on summit `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`__).
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`openPMD-api and PNGwriter <install-dependencies>` manually or use pre-installed libraries in the shared project directory.
 
@@ -334,10 +334,4 @@ V100 GPUs (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/ascent-ornl/gpu_picongpu.profile.example
-   :language: bash
-
-Queue: gpu (8 x NVIDIA Tesla k10 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/dicc-um/gpu_picongpu.profile.example
    :language: bash
