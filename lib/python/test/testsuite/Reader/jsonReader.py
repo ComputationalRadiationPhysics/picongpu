@@ -22,179 +22,129 @@ getValue(parameter:str, direction:str = None)
     returns the value of the searched parameter
 """
 
-__all__ = ['checkJSONFilesInDir',
-           'getAllJSONFiles',
-           'getJSONwithParam',
-           'getValue']
 
-import os
+__all__ = ['JSONReader']
+
 import json
-import testsuite._checkData as cD
+from . import readFiles as rF
 
 
-def checkJSONFilesInDir(direction: str = None) -> bool:
-    """
-    checks if there are .json files in the directory
+class JSONReader(rF.ReadFiles):
 
-    Input:
-    -------
-    direction : str, optional
-                Directory of the .json files, the value from
-                Data.py is used. Must only be set if Data.py is
-                not used or jsonDirectory is not set there
+    def __init__(self, fileExtension: str = r".json",
+                 direction: str = None,
+                 directiontype: str = None):
+        """
+        constructor
 
-    Return:
-    -------
-    out : bool
-          True if there are .json files in the specified directory,
-          False otherwise
-    """
+        Input:
+        -------
+        fileExtension : str, optional
+                        The file extension to search for
+                        (e.g. .dat, .param, .json,...)
+                        Default: r".json"
 
-    direction = cD.checkDirection(variable="jsonDirection",
-                                  direction=direction)
+        direction :     str, optional
+                        Directory of the files, the value from
+                        config.py is used. Must only be set if config.py is
+                        not used or directiontype is not set there
+                        Default: None
 
-    # fixed value, just search for .json
-    fileExt = r".json"
+        directiontype : str, optional
+                        Is the designation of the variable in
+                        config.py for the directory
+                        (e.g dataDirection, jsonDirection)
+                        Default: None
 
-    all_files = [_ for _ in os.listdir(direction) if _.endswith(fileExt)]
+        Raise:
+        -------
+        TypeError: If neither a directory nor a directiontype was passed
+        """
 
-    if all_files:
-        return True
-    else:
-        return False
+        super().__init__(fileExtension, direction, directiontype)
 
+    def getJSONwithParam(self, parameter: str) -> list:
+        """
+        returns all .json files in which the parameter is present
 
-def getAllJSONFiles(direction: str = None) -> list:
-    """
-    returns all .json files from the directory
+        Input:
+        -------
+        parameter : str
+                    Name of the value to be searched for
 
-    Input:
-    -------
-    direction : str, optional
-                Directory of the .json files, the value from
-                Data.py is used. Must only be set if Data.py is
-                not used or jsonDirectory is not set there
+        Raise:
+        -------
+        ValueError:
+            If no .json files could be found in the specified directory
 
-    Return:
-    -------
-    out : list
-          List of all names of .json files
-    """
+        Return:
+        -------
+        out : list
+              List with the names of all .json files in which the
+              parameter could be found.
+        """
 
-    direction = cD.checkDirection(variable="jsonDirection",
-                                  direction=direction)
+        searchResult = []
 
-    # fixed value, just search for .json
-    fileExt = r".json"
+        # check if there are .param Files
+        if not self.checkFilesInDir():
+            raise FileNotFoundError("No .json files could be found in the"
+                                    " specified directory. Note: "
+                                    "The directory from config.py may"
+                                    " have been used (if config.py defined).")
 
-    return [_ for _ in os.listdir(direction) if _.endswith(fileExt)]
+        for file in self.getAllFiles():
 
+            with open(self._direction + file) as json_file:
 
-def getJSONwithParam(parameter: str, direction: str = None) -> list:
-    """
-    returns all .json files in which the parameter is present
+                data = json.load(json_file)
 
-    Input:
-    -------
-    parameter : str
-                Name of the value to be searched for
+                if parameter in data:
+                    searchResult.append(file)
 
-    direction : str, optional
-                Directory of the .json files, the value from
-                Data.py is used. Must only be set if Data.py is
-                not used or paramDirectory is not set there
+        return searchResult
 
-    Use:
-    -------
-    checkJSONFilesInDir
+    def getValue(self, parameter: str):
+        """
+        returns the value of the searched parameter
 
-    getAllJSONFiles
+        Input:
+        -------
+        parameter : str
+                    Name of the value to be searched for
 
-    Raise:
-    -------
-    ValueError:
-        If no .json files could be found in the specified directory
+        Use:
+        -------
 
-    Return:
-    -------
-    out : list
-          List with the names of all .json files in which the
-          parameter could be found.
-    """
+        getJSONwithParam
 
-    searchResult = []
+        Raise:
+        -------
+        ValueError:
+            If the parameter could not be found or more
+            than one value could be found
 
-    direction = cD.checkDirection(variable="jsonDirection",
-                                  direction=direction)
+        Return:
+        -------
+        out :
+              value from the parameter
+        """
 
-    # check if there are .param Files
-    if not checkJSONFilesInDir(direction):
-        raise FileNotFoundError("No .json files could be found in the"
-                                " specified directory. Note: The directory"
-                                " from Data.py may have been used"
-                                " (if Data.py defined).")
+        if not self.getJSONwithParam(parameter):
+            raise ValueError("The parameter could not be found in"
+                             " the .json Files")
 
-    for file in getAllJSONFiles(direction):
+        all_files = self.getJSONwithParam(parameter)
 
-        with open(direction + file) as json_file:
+        for file in all_files:
+            with open(self._direction + file) as json_file:
 
-            data = json.load(json_file)
+                data = json.load(json_file)
 
-            if parameter in data:
-                searchResult.append(file)
+                if "value" not in locals():
+                    value = data[parameter]
+                elif "value" in locals() and value != data[parameter]:
+                    raise ValueError("More than one value could be found"
+                                     " for {}".format(parameter))
 
-    return searchResult
-
-
-def getValue(parameter: str, direction: str = None):
-    """
-    returns the value of the searched parameter
-
-    Input:
-    -------
-    parameter : str
-                Name of the value to be searched for
-
-    direction : str, optional
-                Directory of the .json files, the value from
-                Data.py is used. Must only be set if Data.py is
-                not used or jsonDirectory is not set there
-
-    Use:
-    -------
-
-    getJSONwithParam
-
-    Raise:
-    -------
-    ValueError:
-        If the parameter could not be found or more
-        than one value could be found
-
-    Return:
-    -------
-    out :
-          value from the parameter
-    """
-
-    direction = cD.checkDirection(variable="jsonDirection",
-                                  direction=direction)
-
-    if not getJSONwithParam(parameter, direction):
-        raise ValueError("The parameter could not be found in"
-                         " the .json Files")
-
-    all_files = getJSONwithParam(parameter, direction)
-
-    for file in all_files:
-        with open(direction + file) as json_file:
-
-            data = json.load(json_file)
-
-            if "value" not in locals():
-                value = data[parameter]
-            elif "value" in locals() and value != data[parameter]:
-                raise ValueError("More than one value could be found"
-                                 " for {}".format(parameter))
-
-    return value
+        return value["values"]

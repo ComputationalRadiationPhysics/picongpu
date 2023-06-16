@@ -27,7 +27,8 @@ getAcceptanceRange(theory, acceptance:float = None):
     which as a limit leads to the acceptance of the test
 
 getTestResult(theory, simulation, acceptance:float = None) -> bool:
-    determines whether a test passes or fails based on the acceptance range
+    determines whether a test passes or fails based on the
+    acceptance range
 """
 
 __all__ = ["getDifference",

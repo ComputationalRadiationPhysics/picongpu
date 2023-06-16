@@ -14,7 +14,7 @@ ToDo: So far only the 1D plot is integrated in the plot.
 
 from . import Log
 from . import Viewer
-import Data
+import config
 import sys
 import testsuite._checkData as cD
 import testsuite.Math.physics as ph
@@ -28,11 +28,11 @@ def __calculate(axis, parameter, *args):
     """
     try:
         if axis == "plot_xaxis":
-            return Data.plot_xaxis(*args)
+            return config.plot_xaxis(*args)
         elif axis == "plot_yaxis":
-            return Data.plot_yaxis(*args)
+            return config.plot_yaxis(*args)
         else:
-            return Data.plot_zaxis(*args)
+            return config.plot_zaxis(*args)
 
     except Exception:
         error1 = str(sys.exc_info()[1])
@@ -50,7 +50,7 @@ def getaxisvalues(parameter, axis: str = "plot_xaxis"):
                          " or plot_zaxis")
 
     # check if a function is given
-    if axis in [func[0] for func in getmembers(Data, isfunction)]:
+    if axis in [func[0] for func in getmembers(config, isfunction)]:
         values = __calculate(axis=axis, parameter=parameter)
 
     # otherwise it has to be a list
@@ -72,6 +72,14 @@ def getaxisvalues(parameter, axis: str = "plot_xaxis"):
     return values
 
 
+def getInputparameter(parameter: dict) -> dict:
+    param_Parameter = cD.checkExistVariables("param_Parameter")
+    if param_Parameter:
+        return {key: parameter[key] for key in config.param_Parameter}
+    else:
+        return None
+
+
 def _output(direction,
             theory,
             simulation,
@@ -90,8 +98,8 @@ def _output(direction,
     # plotter
     plot_type = cD.checkVariables(variable="plot_type",
                                   default="1D")
+    inputparameter = getInputparameter(parameter)
     if plot_type == "1D":
-
         # get the values for the axis of the plot
         x_value = getaxisvalues(parameter)
         plot_log = cD.checkVariables(variable="plot_log",
@@ -113,7 +121,7 @@ def _output(direction,
                        direction=direction)
     else:
         Viewer.plot_2D()
-
+    print(inputparameter)
     # resultlog
     value_sim = max(simulation)
     Log.resultLog(theory,
@@ -122,4 +130,5 @@ def _output(direction,
                   perc,
                   result,
                   max_diff,
-                  direction=direction)
+                  direction=direction,
+                  inputparameter=inputparameter)

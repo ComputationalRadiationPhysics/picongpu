@@ -27,7 +27,8 @@ def resultLog(theory: float,
               result: bool,
               difference: float,
               direction: str = None,
-              title: str = None):
+              title: str = None,
+              inputparameter=None):
     """
     Creates the file testresult.log, in which all essential
     parameters of the test and the result of the test are
@@ -55,18 +56,21 @@ def resultLog(theory: float,
 
     direction : str, optional
                 The directory in which the log file should be saved.
-                If None or set in Data.py, the value from Data.py is
+                If None or set in config.py, the value from config.py is
                 used.
 
     title :     str, optional
                 Description of the test case. If None or set in
-                Data.py, the value from Data.py is used. If the title
+                config.py, the value from config.py is used. If the title
                 was not set at all, "no title" is used.
+
+    inputparameter: dict, optional
+                    all parameter that are used from the testsuite
 
     Raise:
     -------
     ValueError :
-        If both values (direction and Data.resultDirection) are None
+        If both values (direction and config.resultDirection) are None
 
     Example of testresult.log:
     -------
@@ -106,6 +110,9 @@ def resultLog(theory: float,
         fobj_out.write("result of the test:{} \n".format(result))
         fobj_out.write("difference: {}\n".format(difference))
         fobj_out.write("difference in percentage: {}\n".format(perc_diff))
+        for key in inputparameter.keys():
+            fobj_out.write("input parameter: {}={}\n".format(
+                key, inputparameter[key]))
         fobj_out.close()
 
     except Exception:
@@ -121,8 +128,8 @@ def errorLog(direction: str = None):
     -------
     direction : str, optional
                 The directory in which the error log file should be
-                saved. If None or set in Data.py, the value from
-                Data.py is used. If both are not set or the directory
+                saved. If None or set in config.py, the value from
+                config.py is used. If both are not set or the directory
                 does not exist, the current working directory is used.
     """
 
