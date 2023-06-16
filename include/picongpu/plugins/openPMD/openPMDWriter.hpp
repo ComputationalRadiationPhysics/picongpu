@@ -362,7 +362,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              */
             bool selfRegister = false;
 
-            std::optional<toml::DataSources> tomlDataSources;
+            /*
+             * plugin instance id -> TOML Datasources object
+             * If `id` entry exists, then that instance of the object is steered
+             * by TOML params.
+             */
+            std::map<size_t, toml::DataSources> tomlDataSources;
 
             template<typename T_TupleVector>
             using CreateSpeciesFilter = plugins::misc::SpeciesFilter<
@@ -520,9 +525,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             std::vector<std::string> currentDataSources(uint32_t currentStep, size_t id)
             {
-                if(tomlDataSources.has_value())
+                if(auto it = tomlDataSources.find(id); it != tomlDataSources.end())
                 {
-                    return tomlDataSources.value().currentDataSources(currentStep);
+                    return it->second.currentDataSources(currentStep);
                 }
                 else
                 {
@@ -533,9 +538,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             PluginParameters pluginParameters(size_t id)
             {
-                if(tomlDataSources.has_value())
+                if(auto it = tomlDataSources.find(id); it != tomlDataSources.end())
                 {
-                    return tomlDataSources.value().openPMDPluginParameters;
+                    return it->second.openPMDPluginParameters;
                 }
                 else
                 {
@@ -1018,15 +1023,21 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                         std::string const& tomlSources = m_help->tomlSources.get(id);
 
-                        m_help->tomlDataSources = toml::DataSources{
-                            m_help->tomlSources.get(id),
-                            m_help->tomlParameters(),
-                            m_help->allowedDataSources,
-                            mThreadParams.communicator};
+                        auto [emplaced, newly_inserted] = m_help->tomlDataSources.emplace(
+                            std::piecewise_construct,
+                            std::make_tuple(id),
+                            std::make_tuple(
+                                m_help->tomlSources.get(id),
+                                m_help->tomlParameters(),
+                                m_help->allowedDataSources,
+                                mThreadParams.communicator));
+                        if(!newly_inserted)
+                        {
+                            throw std::runtime_error("[openPMD plugin] Internal logic error: Tried parsing the same "
+                                                     "plugin instance twice?");
+                        }
 
-                        Environment<>::get().PluginConnector().setNotificationPeriod(
-                            this,
-                            m_help->tomlDataSources.value().periods());
+                        Environment<>::get().PluginConnector().setNotificationPeriod(this, emplaced->second.periods());
 
                         /** create notify directory */
                         Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
