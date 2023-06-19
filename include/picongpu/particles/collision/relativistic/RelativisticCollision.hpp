@@ -150,7 +150,7 @@ namespace picongpu
                      * is determined by a float value between 0 and 1.
                      *
                      * @param s12 @f[ s_{12} @f] parameter. See [Perez 2012]. It should be >= 0.
-                     * @param u a random generated float between 0 and 1
+                     * @param u a random generated float within the range [0;1)
                      */
                     DINLINE float_COLL calcCosXi(float_COLL const s12, float_COLL const u)
                     {
@@ -400,7 +400,7 @@ namespace picongpu
                             auto const& worker = *ctx.m_worker;
                             auto& rngHandle = *ctx.m_hRng;
                             using UniformFloat = pmacc::random::distributions::Uniform<
-                                pmacc::random::distributions::uniform::ExcludeZero<float_COLL>>;
+                                pmacc::random::distributions::uniform::ExcludeOne<float_COLL>::Reduced>;
                             auto rng = rngHandle.template applyDistribution<UniformFloat>();
                             float_COLL rngValue = rng(worker);
 
