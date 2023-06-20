@@ -44,8 +44,10 @@
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
 
 #include <boost/mpl/placeholders.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 
 #include <algorithm>
+#include <fstream>
 #include <type_traits> // std::remove_reference_t
 
 namespace picongpu
@@ -107,15 +109,13 @@ namespace picongpu
             {
                 /* malloc host memory */
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) malloc host memory: %1%") % name;
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocHostMemory<boost::mpl::_1>> mallocMem;
-                mallocMem(hostFrame, myNumParticles);
+                mallocFrameMemory(hostFrame);
                 log<picLog::INPUT_OUTPUT>("openPMD:   ( end ) malloc host memory: %1%") % name;
             }
 
             void free(openPMDFrameType& hostFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeHostMemory<boost::mpl::_1>> freeMem;
-                freeMem(hostFrame);
+                freeFrameMemory(hostFrame);
             }
 
 
@@ -176,16 +176,13 @@ namespace picongpu
             void malloc(std::string name, openPMDFrameType& mappedFrame, uint64_cu const myNumParticles) override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) malloc mapped memory: %1%") % name;
-                /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>> mallocMem;
-                mallocMem(mappedFrame, myNumParticles);
+                mallocMappedFrameMemory(mappedFrame);
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) malloc mapped memory: %1%") % name;
             }
 
             void free(openPMDFrameType& mappedFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<boost::mpl::_1>> freeMem;
-                freeMem(mappedFrame);
+                freeMappedFrameMemory(mappedFrame);
             }
 
             void prepare(std::string name, openPMDFrameType& mappedFrame, RunParameters rp) override
@@ -241,7 +238,7 @@ namespace picongpu
             using NewParticleDescription =
                 typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type;
 
-            using openPMDFrameType = Frame<OperatorCreateVectorBox, NewParticleDescription>;
+            using openPMDFrameType = Frame<llama::dyn, NewParticleDescription, ParticleFrameMemoryLayoutOpenPMD>;
 
             void setParticleAttributes(
                 ::openPMD::ParticleSpecies& record,
@@ -350,14 +347,12 @@ namespace picongpu
                 {
                 case WriteSpeciesStrategy::ADIOS:
                     {
-                        using type = StrategyADIOS<openPMDFrameType, RunParameters_T>;
-                        strategy = std::unique_ptr<AStrategy>(dynamic_cast<AStrategy*>(new type));
+                        strategy = std::make_unique<StrategyADIOS<openPMDFrameType, RunParameters_T>>();
                         break;
                     }
                 case WriteSpeciesStrategy::HDF5:
                     {
-                        using type = StrategyHDF5<openPMDFrameType, RunParameters_T>;
-                        strategy = std::unique_ptr<AStrategy>(dynamic_cast<AStrategy*>(new type));
+                        strategy = std::make_unique<StrategyHDF5<openPMDFrameType, RunParameters_T>>();
                         break;
                     }
                 }
@@ -399,7 +394,18 @@ namespace picongpu
                 ::openPMD::ParticleSpecies& particleSpecies = iteration.particles[speciesGroup];
 
                 // copy over particles to host
-                openPMDFrameType hostFrame;
+                openPMDFrameType hostFrame{boost::numeric_cast<int>(myNumParticles)};
+#if __has_include(<fmt/format.h>)
+                if constexpr(PIConGPUVerbose::log_level & picLog::INPUT_OUTPUT::lvl)
+                {
+                    log<picLog::INPUT_OUTPUT>(
+                        "Dumping LLAMA memory layout for openPMD frame into llama_openPMD_write_frame.*");
+                    auto m = typename openPMDFrameType::Mapping{
+                        llama::ArrayExtentsDynamic<int, 1>{std::min(hostFrame.view.mapping().extents()[0], 1024)}};
+                    std::ofstream{"llama_openPMD_write_frame.svg"} << llama::toSvg(m);
+                    std::ofstream{"llama_openPMD_write_frame.html"} << llama::toHtml(m);
+                }
+#endif
 
                 strategy->malloc(T_SpeciesFilter::getName(), hostFrame, myNumParticles);
                 RunParameters_T runParameters(

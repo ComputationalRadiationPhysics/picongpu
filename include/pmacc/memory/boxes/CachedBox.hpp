@@ -26,23 +26,30 @@
 #include "pmacc/memory/boxes/SharedBox.hpp"
 #include "pmacc/types.hpp"
 
-
-namespace pmacc
+namespace pmacc::CachedBox
 {
-    namespace CachedBox
+    template<
+        uint32_t Id_,
+        typename T_MemoryMapping,
+        typename ValueType_,
+        typename BlockDescription_,
+        typename T_Worker>
+    DINLINE auto create(T_Worker const& worker, const BlockDescription_ block)
     {
-        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Worker>
-        DINLINE auto create(T_Worker const& worker, const BlockDescription_ block)
-        {
-            using OffsetOrigin = typename BlockDescription_::OffsetOrigin;
-            using Type = DataBox<SharedBox<ValueType_, typename BlockDescription_::FullSuperCellSize, Id_>>;
-            return Type{Type::init(worker)}.shift(DataSpace<OffsetOrigin::dim>{OffsetOrigin::toRT()});
-        }
+        using OffsetOrigin = typename BlockDescription_::OffsetOrigin;
+        using Type
+            = DataBox<SharedBox<ValueType_, typename BlockDescription_::FullSuperCellSize, Id_, T_MemoryMapping>>;
+        return Type{Type::init(worker)}.shift(DataSpace<OffsetOrigin::dim>{OffsetOrigin::toRT()});
+    }
 
-        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Worker>
-        DINLINE auto create(T_Worker const& worker, const ValueType_& value, const BlockDescription_ block)
-        {
-            return create<Id_, ValueType_, BlockDescription_>(worker);
-        }
-    } // namespace CachedBox
-} // namespace pmacc
+    template<
+        uint32_t Id_,
+        typename T_MemoryMapping,
+        typename ValueType_,
+        typename BlockDescription_,
+        typename T_Worker>
+    DINLINE auto create(T_Worker const& worker, const ValueType_& value, const BlockDescription_ block)
+    {
+        return create<Id_, ValueType_, BlockDescription_, T_MemoryMapping>(worker);
+    }
+} // namespace pmacc::CachedBox

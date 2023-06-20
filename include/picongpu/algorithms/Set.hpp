@@ -33,9 +33,9 @@ namespace picongpu
         }
 
         template<typename Dst, typename T_Worker>
-        HDINLINE void operator()(T_Worker const&, Dst& dst) const
+        HDINLINE void operator()(T_Worker const&, Dst&& dst) const
         {
-            dst = value;
+            std::forward<Dst>(dst) = value;
         }
 
     private:

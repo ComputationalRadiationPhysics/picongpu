@@ -43,6 +43,7 @@
 #include <pmacc/traits/Resolve.hpp>
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -197,7 +198,9 @@ namespace picongpu
         const std::shared_ptr<DeviceHeap>& heap,
         picongpu::MappingDesc cellDescription,
         SimulationDataId datasetID)
-        : ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>(heap, cellDescription)
+        : ParticlesBase<SpeciesParticleDescription, ParticleFrameMemoryLayout, picongpu::MappingDesc, DeviceHeap>(
+            heap,
+            cellDescription)
         , m_datasetID(datasetID)
     {
         constexpr bool particleHasShape = pmacc::traits::HasIdentifier<FrameType, shape<>>::type::value;
@@ -211,6 +214,21 @@ namespace picongpu
         }
 
         size_t sizeOfExchanges = 0u;
+
+#if __has_include(<fmt/format.h>)
+        // dump the data layout of the particle frames
+        if constexpr(PIConGPUVerbose::log_level & picLog::MEMORY::lvl)
+        {
+            log<picLog::MEMORY>(
+                "Dumping LLAMA memory layout for frame and border into llama_frame.* and llama_border_fream.*");
+            auto fm = typename decltype(FrameType::view)::Mapping{};
+            std::ofstream{"llama_frame.html"} << llama::toHtml(fm);
+            std::ofstream{"llama_frame.svg"} << llama::toSvg(fm);
+            auto bfm = typename decltype(FrameTypeBorder::view)::Mapping{};
+            std::ofstream{"llama_border_frame.html"} << llama::toHtml(bfm);
+            std::ofstream{"llama_border_frame.svg"} << llama::toSvg(bfm);
+        }
+#endif
 
         const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid();
         log<picLog::MEMORY>("communication tag for species %1%: %2%") % FrameType::getName() % commTag;

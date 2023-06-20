@@ -283,8 +283,9 @@ namespace picongpu
                     using IntVector = pmacc::math::Vector<int, simDim>;
                     auto const beginLocalUserIdx
                         = Index{math::max(IntVector{beginUserIdx - totalCellOffset}, IntVector::create(0))};
-                    auto const endLocalUserIdx
-                        = Index{math::min(IntVector{endUserIdx - totalCellOffset}, IntVector{localDomain.size})};
+                    auto const endLocalUserIdx = Index{math::min(
+                        IntVector{endUserIdx - totalCellOffset},
+                        static_cast<const IntVector&>(localDomain.size))};
 
                     // Check if we have any active cells in the local domain
                     bool areAnyCellsInLocalDomain = true;

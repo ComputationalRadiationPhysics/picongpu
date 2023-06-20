@@ -131,7 +131,8 @@ namespace picongpu
                 // The rest uses normal weighting
                 const float_X weighting = particle[weighting_];
                 Velocity velocity;
-                const float3_X vel = velocity(particle[momentum_], attribute::getMass(weighting, particle));
+                const float3_X vel
+                    = velocity(static_cast<float3_X>(particle[momentum_]), attribute::getMass(weighting, particle));
                 auto fieldJShiftToParticle = jBox.shift(localCell);
                 ParticleAlgo perParticle;
                 perParticle(worker, fieldJShiftToParticle, pos, vel, charge, m_deltaTime);

@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/param/memory.param"
 #include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
@@ -104,8 +105,20 @@ namespace picongpu
                 PMACC_ALIGN(eneBox, FieldTmp::DataBoxType);
 
                 /* shared memory EM-field device databoxes */
-                PMACC_ALIGN(cachedRho, DataBox<SharedBox<ValueType_Rho, typename BlockArea::FullSuperCellSize, 0>>);
-                PMACC_ALIGN(cachedEne, DataBox<SharedBox<ValueType_Ene, typename BlockArea::FullSuperCellSize, 1>>);
+                PMACC_ALIGN(
+                    cachedRho,
+                    DataBox<SharedBox<
+                        ValueType_Rho,
+                        typename BlockArea::FullSuperCellSize,
+                        0,
+                        SharedDataBoxMemoryLayout>>);
+                PMACC_ALIGN(
+                    cachedEne,
+                    DataBox<SharedBox<
+                        ValueType_Ene,
+                        typename BlockArea::FullSuperCellSize,
+                        1,
+                        SharedDataBoxMemoryLayout>>);
 
             public:
                 /* host constructor initializing member : random number generator */
@@ -185,8 +198,8 @@ namespace picongpu
                 DINLINE void collectiveInit(const T_Worker& worker, const DataSpace<simDim>& blockCell)
                 {
                     /* caching of density and "temperature" fields */
-                    cachedRho = CachedBox::create<0, ValueType_Rho>(worker, BlockArea());
-                    cachedEne = CachedBox::create<1, ValueType_Ene>(worker, BlockArea());
+                    cachedRho = CachedBox::create<0, SharedDataBoxMemoryLayout, ValueType_Rho>(worker, BlockArea());
+                    cachedEne = CachedBox::create<1, SharedDataBoxMemoryLayout, ValueType_Ene>(worker, BlockArea());
 
                     /* instance of nvidia assignment operator */
                     pmacc::math::operation::Assign assign;

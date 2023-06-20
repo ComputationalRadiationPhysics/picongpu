@@ -179,7 +179,9 @@ namespace picongpu
                         auto srcFieldBlock = srcField.shift(beginCellIdx);
                         auto cacheStencilArea = makeThreadCollective<StencilCfg>();
                         auto cachedSrcField
-                            = CachedBox::create<0u, typename T_SrcBox::ValueType>(worker, StencilCfg{});
+                            = CachedBox::create<0u, SharedDataBoxMemoryLayout, typename T_SrcBox::ValueType>(
+                                worker,
+                                StencilCfg{});
                         cacheStencilArea(worker, assign, cachedSrcField, srcFieldBlock);
 
                         worker.sync();

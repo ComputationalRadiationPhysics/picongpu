@@ -48,15 +48,11 @@ namespace picongpu
                  */
                 template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox>
                 DINLINE static auto create(T_Worker const& worker, T_FieldBox const& fieldBox)
-#if(!BOOST_COMP_CLANG)
-                    -> decltype(CachedBox::create<0u, typename T_FieldBox::ValueType>(
-                        worker,
-                        std::declval<T_BlockDescription>()))
-#endif
                 {
                     using ValueType = typename T_FieldBox::ValueType;
                     /* this memory is used by all virtual blocks */
-                    auto cache = CachedBox::create<0u, ValueType>(worker, T_BlockDescription{});
+                    auto cache
+                        = CachedBox::create<0u, SharedDataBoxMemoryLayout, ValueType>(worker, T_BlockDescription{});
 
                     Set<ValueType> set(ValueType::create(0.0_X));
                     auto collectiveFill = makeThreadCollective<T_BlockDescription>();
@@ -90,9 +86,6 @@ namespace picongpu
                  */
                 template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox>
                 DINLINE static auto create([[maybe_unused]] T_Worker const& worker, T_FieldBox const& fieldBox)
-#if(!BOOST_COMP_CLANG)
-                    -> T_FieldBox
-#endif
                 {
                     return fieldBox;
                 }

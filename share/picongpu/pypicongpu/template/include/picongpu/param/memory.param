@@ -114,4 +114,18 @@ namespace picongpu
      */
     constexpr bool fieldTmpSupportGatherCommunication = true;
 
+    struct ParticleFrameMemoryLayout : llama::mapping::BindSoA<false, true>
+    {
+        inline static constexpr bool splitVector = false;
+    };
+
+    struct ParticleFrameMemoryLayoutOpenPMD : llama::mapping::BindSoA<true>
+    {
+        inline static constexpr bool splitVector = false;
+    };
+
+    struct SharedDataBoxMemoryLayout : llama::mapping::BindAoS<>
+    {
+        inline static constexpr bool splitVector = false;
+    };
 } // namespace picongpu

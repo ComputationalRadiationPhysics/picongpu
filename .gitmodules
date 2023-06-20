@@ -1,0 +1,3 @@
+[submodule "thirdParty/llama"]
+	path = thirdParty/llama
+	url = https://github.com/alpaka-group/llama

@@ -222,8 +222,10 @@ namespace picongpu
 
             onlyMaster([&]() { mustShiftSupercell = 0; });
 
-            auto cachedB = CachedBox::create<0, typename T_BBox::ValueType>(worker, T_DataDomain());
-            auto cachedE = CachedBox::create<1, typename T_EBox::ValueType>(worker, T_DataDomain());
+            auto cachedB
+                = CachedBox::create<0, SharedDataBoxMemoryLayout, typename T_BBox::ValueType>(worker, T_DataDomain());
+            auto cachedE
+                = CachedBox::create<1, SharedDataBoxMemoryLayout, typename T_EBox::ValueType>(worker, T_DataDomain());
 
             worker.sync();
 
