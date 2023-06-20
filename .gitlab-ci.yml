@@ -122,3 +122,28 @@ pmacc-compile-reduced-matrix:
       - artifact: compile.yml
         job: pmacc-generate-reduced-matrix
     strategy: depend
+
+pypicongpu-generate-full-matrix:
+  stage: generate
+  image: ubuntu:22.04
+  script:
+    - apt update
+    - apt install -y python3 python3-pip
+    - pip3 install pyyaml requests
+    - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - python3 $CI_PROJECT_DIR/share/ci/pypicongpu_generator.py $CI_PROJECT_DIR/lib/python/picongpu/requirements.txt > compile.yml
+    - cat compile.yml
+  artifacts:
+    paths:
+      - compile.yml
+  tags:
+      - x86_64
+  interruptible: true
+
+pypicongpu-full-matrix:
+  stage: test
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: pypicongpu-generate-full-matrix
+    strategy: depend
