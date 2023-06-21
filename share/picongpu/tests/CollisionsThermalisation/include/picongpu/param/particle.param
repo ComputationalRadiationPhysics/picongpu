@@ -29,10 +29,8 @@
 #pragma once
 
 #include "picongpu/param/physicalConstants.param"
-#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/startPosition/functors.def"
-#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/math/operation.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
@@ -102,7 +100,7 @@ namespace picongpu
             using AddTemperatureIons = unary::Temperature<TemperatureParamIons>;
 
             /** Definition of manipulator that sets the ionization state of an ion macro-particle
-             * according properties defined in struct OnceIonizedImpl.
+             * to charge state 1, ie. number of bound electrons is (number of protons - 1)
              */
             using OnceIonized = unary::ChargeState<1u>;
 

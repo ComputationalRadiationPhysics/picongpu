@@ -1,4 +1,4 @@
-/* Copyright 2021 Brian Marre, Sergei Bastrakov
+/* Copyright 2021-2023 Brian Marre, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -18,6 +18,8 @@
  */
 
 #pragma once
+
+#include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/traits/HasFlag.hpp>
 
@@ -43,10 +45,8 @@ namespace picongpu
                      *
                      * @attention uses simple fill from bottom shell wise for ground state
                      *      determination, may different from input data set ground state.
-                     *  @todo : implement searching for ground state in atomic input data
+                     *  @todo : implement searching for ground state in atomic input data, 2023, Brian Marre
                      */
-
-                    PMACC_DEVICE_ASSERT_MSG(numberBoundElectrons >= 0, "Number of bound electrons must be >= 0");
 
                     if constexpr(pmacc::traits::HasFlag<
                                      typename T_Ion::FrameType,
@@ -61,7 +61,6 @@ namespace picongpu
                         // could actually be reduced to uint8_t since Z<=98(Californium) for our purposes
 
                         // fill from bottom up until no electrons remaining -> ground state init
-                        /// @todo : implement Mandelung Schema and exceptions, Brian Marre, 2022
                         for(uint8_t level = 1u; level <= configNumber.numberLevels; level++)
                         {
                             // g(n) = 2*n^2; for hydrogen like states

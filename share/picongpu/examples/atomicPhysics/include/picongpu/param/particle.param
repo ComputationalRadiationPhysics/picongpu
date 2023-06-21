@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/startPosition/functors.def"
 
@@ -128,7 +127,6 @@ namespace picongpu
              *  using parameters from struct DriftParam.
              */
             using Assign200keVDrift = unary::Drift<Drift200keVParam, pmacc::math::operation::Assign>;
-
 
             /** Define initial particle temperature. */
             struct TemperatureParam
