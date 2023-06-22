@@ -1,5 +1,5 @@
-/* Copyright 2013-2022 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov, Pawel Ordyna
  *
  * This file is part of PMacc.
  *
@@ -144,19 +144,29 @@ namespace pmacc
         uint32_t currentStep)
     {
         /*dump 100% after simulation*/
-        if(output && progress && (currentStep % showProgressAnyStep) == 0)
+        bool const writeAtPercent = progress && (currentStep % showProgressAnyStep) == 0;
+        bool const writeAtStepPeriod
+            = (progressStepPeriodEnabled && pluginSystem::containsStep(seqProgressPeriod, currentStep));
+        if(output && (writeAtPercent || writeAtStepPeriod))
         {
             tSimCalculation.toggleEnd();
+            uint32_t progressInterval{currentStep - lastProgressStep};
+            // avoid division by 0 at 0% output
+            if(progressInterval == 0u)
+            {
+                progressInterval = 1u;
+            }
             std::cout << std::setw(3)
                       << uint16_t(
                              double(currentStep) / double(Environment<>::get().SimulationDescription().getRunSteps())
                              * 100.)
                       << " % = " << std::setw(8) << currentStep << " | time elapsed:" << std::setw(25)
                       << tSimCalculation.printInterval()
-                      << " | avg time per step: " << TimeIntervall::printeTime(roundAvg / (double) showProgressAnyStep)
+                      << " | avg time per step: " << TimeIntervall::printeTime(roundAvg / (double) progressInterval)
                       << std::endl;
             std::cout.flush();
 
+            lastProgressStep = currentStep;
             roundAvg = 0.0; // clear round avg timer
         }
     }
@@ -286,6 +296,8 @@ namespace pmacc
                  "Note: does not yet work with all plugins, see issue #1305")
                 ("percent,p", po::value<uint16_t>(&progress)->default_value(5),
                  "Print time statistics after p percent to stdout")
+                ("progressPeriod",po::value<std::string>(&progressPeriod),
+                "write progress [for each n-th step], plugin period syntax can be used here.")
                 ("checkpoint.restart", po::value<bool>(&restartRequested)->zero_tokens(),
                  "Restart simulation from a checkpoint. Requires a valid checkpoint.")
                 ("checkpoint.tryRestart", po::value<bool>(&tryRestart)->zero_tokens(),
@@ -315,6 +327,9 @@ namespace pmacc
         Environment<>::get().SimulationDescription().setAuthor(author);
 
         calcProgress();
+        progressStepPeriodEnabled = !progressPeriod.empty();
+        if(progressStepPeriodEnabled)
+            seqProgressPeriod = pluginSystem::toTimeSlice(progressPeriod);
 
         output = (getGridController().getGlobalRank() == 0);
 
