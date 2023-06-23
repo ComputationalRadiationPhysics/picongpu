@@ -1,5 +1,5 @@
-/* Copyright 2013-2022 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov, Pawel Ordyna
  *
  * This file is part of PMacc.
  *
@@ -234,6 +234,12 @@ namespace pmacc
 
         uint16_t progress;
         uint32_t showProgressAnyStep;
+
+        /* progress intervals */
+        bool progressStepPeriodEnabled = false;
+        SeqOfTimeSlices seqProgressPeriod;
+        std::string progressPeriod;
+        uint32_t lastProgressStep = 0u;
 
         TimeIntervall tSimulation;
         TimeIntervall tInit;
