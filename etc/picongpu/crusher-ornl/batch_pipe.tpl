@@ -32,6 +32,7 @@
 # when trying to run two sub-jobs asynchronously.
 #SBATCH -S 0
 #SBATCH --exclusive # This one might not be strictly necessarily, haven't tested
+#SBATCH --network=single_node_vni,job_vni
 
 ###################
 # Optional params #
@@ -94,6 +95,29 @@ export OMP_NUM_THREADS=!TBG_coresPerGPU
 ## end calculations ##
 
 echo 'Start job with !TBG_nodes_adjusted nodes. Required are !TBG_nodes nodes.'
+
+if (( !TBG_nodes < 2 )); then
+    cat << EOF >&2
+Frontier does not reliably initialize its networking capabilities for
+single-node jobs. For a reliable streaming implementation, please adjust the
+.cfg file such that the job uses at least two nodes.
+EOF
+    exit 1
+fi
+
+cat << EOF >&2
+WARNING: Scalable streaming with ADIOS2 SST (currently) requires the MPI-based
+implementation of SST. Due to changes in the networking capabilities
+of Frontier, the CMake configuration of ADIOS2 does (currently) not detect its
+availability and requires manual intervention:
+
+  diff --git a/cmake/DetectOptions.cmake b/cmake/DetectOptions.cmake
+  -    if (ADIOS2_HAVE_MPI_CLIENT_SERVER)
+  -      set(ADIOS2_SST_HAVE_MPI TRUE)
+  -    endif()
+  +    set(ADIOS2_SST_HAVE_MPI TRUE)
+
+EOF
 
 cd !TBG_dstPath
 
@@ -208,6 +232,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       --gpus-per-node=0                           \
       --cpus-per-task=!TBG_coresPerPipeInstance   \
       --cpu-bind=verbose,mask_cpu:$mask           \
+      --network=single_node_vni,job_vni           \
       openpmd-pipe                                \
         --infile "!TBG_streamdir"                 \
         --outfile "!TBG_dumpdir"                  \
@@ -235,6 +260,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       --gpus-per-node=!TBG_devicesPerNode   \
       --cpus-per-task=!TBG_coresPerGPU      \
       --cpu-bind=verbose,mask_cpu:$mask     \
+      --network=single_node_vni,job_vni     \
       -K1                                   \
       !TBG_dstPath/input/bin/picongpu       \
         --mpiDirect                         \
