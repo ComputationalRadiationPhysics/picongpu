@@ -1,3 +1,5 @@
+include:
+  - local: '/share/ci/pypicongpu.yml'
 
 stages:
   - validate
@@ -147,3 +149,14 @@ pypicongpu-full-matrix:
       - artifact: compile.yml
         job: pypicongpu-generate-full-matrix
     strategy: depend
+
+pypicongpu-compiling-test:
+  stage: test
+  extends: .base_pypicongpu_compile_test
+  variables:
+    CI_CONTAINER_NAME: 'ubuntu20.04'
+    PYTHON_VERSION: '3.11.*'
+    CXX_VERSION: 'g++-11'
+    CMAKE_VERSION: '3.22'
+    BOOST_VERSION: '1.75.0'
+    PYTHON_COMPILING_TEST: 'ON'
