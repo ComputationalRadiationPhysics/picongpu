@@ -26,7 +26,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
-#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
+#include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
@@ -239,15 +239,16 @@ namespace picongpu
                     parentIon[momentum_] -= electronMomentum;
 
                     /** ionization of the ion by reducing the number of bound electrons
-                     *  and reset of atoic state to ground state of new charge state
                      *
-                     * @warning substracting a float from a float can potentially
+                     * @warning subtracting a float from a float can potentially
                      *          create a negative boundElectrons number for the ion,
                      *          see #1850 for details
                      */
-                    picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
-                        parentIon,
-                        parentIon[boundElectrons_] - float_X(1.));
+                    float_X numberBoundElectrons = parentIon[boundElectrons_];
+
+                    numberBoundElectrons -= 1._X;
+
+                    picongpu::particles::atomicPhysics::SetChargeState{}(parentIon, numberBoundElectrons);
                 }
             };
 

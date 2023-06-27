@@ -26,7 +26,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 // safe to import in .param files since does not import a .param itself
-#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
+#include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
 
 #include <pmacc/static_assert.hpp>
 
@@ -53,13 +53,8 @@ namespace picongpu::particles::manipulators::unary::acc
             constexpr float_X targetNumberBoundElectrons
                 = numberBoundElectronsNeutralAtom - static_cast<float_X>(T_chargeState);
 
-            // set standard charge state
-            ion[boundElectrons_] = targetNumberBoundElectrons;
-
-            // try to set atomic state
-            picongpu::particles::atomicPhysics::SetToAtomicGroundStateForChargeState{}(
-                ion,
-                static_cast<uint8_t>(targetNumberBoundElectrons));
+            // set to charge state
+            picongpu::particles::atomicPhysics::SetChargeState{}(ion, targetNumberBoundElectrons);
         }
     };
 } // namespace picongpu::particles::manipulators::unary::acc
