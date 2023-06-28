@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Marco Garten, Rene Widera
+/* Copyright 2015-2023 Marco Garten, Rene Widera, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -26,22 +26,25 @@
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-namespace picongpu
+namespace picongpu::traits
 {
-    namespace traits
+    /** get atomicNumbers (number of protons and neutrons) flag from species
+     *
+     * @tparam T_Species particle type or resolved species type
+     *
+     * @return struct with two static constexpr members numberOfProtons:float_X and numberOfNeutrons:float_X,
+     *  stored in member type of this struct
+     */
+    template<typename T_Species>
+    struct GetAtomicNumbers
     {
-        template<typename T_Species>
-        struct GetAtomicNumbers
-        {
-            using FrameType = typename T_Species::FrameType;
+        using FrameType = typename T_Species::FrameType;
 
-            using hasAtomicNumbers = typename HasFlag<FrameType, atomicNumbers<>>::type;
-            /* throw static assert if species has no protons or neutrons */
-            PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers, hasAtomicNumbers::value == true);
+        using hasAtomicNumbers = typename HasFlag<FrameType, atomicNumbers<>>::type;
+        /* throw static assert if species lacks flag*/
+        PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers, hasAtomicNumbers::value == true);
 
-            using FoundAtomicNumbersAlias = typename pmacc::traits::GetFlagType<FrameType, atomicNumbers<>>::type;
-            using type = typename pmacc::traits::Resolve<FoundAtomicNumbersAlias>::type;
-        };
-    } // namespace traits
-
-} // namespace picongpu
+        using FoundAtomicNumbersAlias = typename pmacc::traits::GetFlagType<FrameType, atomicNumbers<>>::type;
+        using type = typename pmacc::traits::Resolve<FoundAtomicNumbersAlias>::type;
+    };
+} // namespace picongpu::traits
