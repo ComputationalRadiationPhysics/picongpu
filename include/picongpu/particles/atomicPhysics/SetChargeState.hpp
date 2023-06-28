@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/SetToAtomicGroundStateForChargeState.hpp"
+#include "picongpu/particles/atomicPhysics/SetToAtomicGroundState.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/assert.hpp>
@@ -44,7 +44,7 @@ namespace picongpu::particles::atomicPhysics
 
             ion[boundElectrons_] = numberBoundElectrons;
 
-            SetToAtomicGroundStateForChargeState{}(ion, static_cast<uint8_t>(numberBoundElectrons));
+            SetToAtomicGroundState{}(ion, static_cast<uint8_t>(numberBoundElectrons));
         }
     };
 } // namespace picongpu::particles::atomicPhysics
