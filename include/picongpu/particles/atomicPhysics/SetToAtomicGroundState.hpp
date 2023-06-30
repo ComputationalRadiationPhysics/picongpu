@@ -29,7 +29,7 @@ namespace picongpu
     {
         namespace atomicPhysics
         {
-            struct SetToAtomicGroundStateForChargeState
+            struct SetToAtomicGroundState
             {
                 template<typename T_Ion>
                 DINLINE void operator()(T_Ion& ion, uint8_t numberBoundElectrons)
