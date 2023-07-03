@@ -181,8 +181,9 @@ namespace picongpu
                          */
                         HDINLINE float_X getLongitudinal(float_X const time, float_X const phaseShift) const
                         {
-                            auto const phase = Unitless::w * time + Unitless::LASER_PHASE + phaseShift;
-                            return math::sin(phase) * getEnvelope(time);
+                            auto const runTimeShifted = time + Unitless::time_start_init;
+                            auto const phase = Unitless::w * runTimeShifted + Unitless::LASER_PHASE + phaseShift;
+                            return math::sin(phase) * getEnvelope(runTimeShifted);
                         }
 
                     private:
