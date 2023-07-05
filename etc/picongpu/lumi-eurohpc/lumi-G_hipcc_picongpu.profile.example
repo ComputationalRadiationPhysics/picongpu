@@ -1,0 +1,140 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+
+# Project Information ######################################## (edit this line)
+#   - project for allocation and shared directories
+#   - use lumi-allocations to see all your projects
+#export PROJID=<your_project>
+
+# Job control
+# Allocate more nodes then required to execute the jobs to be able to handle broken nodes
+# Oversubscribe the nodes allocated by N per thousand required nodes.
+export PIC_NODE_OVERSUBSCRIPTION_PT=2
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="vim"
+
+# General modules #############################################################
+#
+# There are a lot of required modules already loaded when connecting
+# such as mpi, libfabric and others.
+# The following modules just add to these.
+
+module load PrgEnv-cray-amd/8.3.3 # Compiling with cray compiler wrapper CC
+module load craype-accel-amd-gfx90a
+module load rocm/5.2.3
+
+export MPICH_GPU_SUPPORT_ENABLED=1
+module load cray-mpich/8.1.23
+
+
+module load LUMI/23.03  partition/G
+module load Boost/1.81.0-cpeCray-23.03
+
+module load buildtools/23.03
+
+## set environment variables required for compiling and linking
+##   see (https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#compiling-with-hipcc)
+
+export MPICH_GPU_SUPPORT_ENABLED=1
+
+export CXX=hipcc
+export CXXFLAGS="$CXXFLAGS -I${MPICH_DIR}/include"
+export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a}"
+
+# Other Software ##############################################################
+#
+libpng/1.6.38-cpeCray-23.03
+module load freetype/2.12.1-cpeCray-23.03
+
+# ATTENTION: blosc2 is used, please check your cfg's and replace blosc with blosc2
+#module load openpmd-api/0.14.4
+
+# Self-Build Software #########################################################
+# Optional, not required.
+#
+# needs to be compiled by the user
+#export PIC_LIBS=$HOME/lib/
+
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.1
+export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
+export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1.436
+export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.14.4
+
+export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
+
+export PATH=$ADIOS2_ROOT/bin:$PATH
+export PATH=$OPENPMD_ROOT/bin:$PATH
+
+export PYTHONPATH=$ADIOS2_ROOT/lib/python3.9/site-packages/adios2:$PYTHONPATH
+export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.9/site-packages/openpmd_api:$PYTHONPATH
+
+# Environment #################################################################
+#
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="hip:gfx90a"
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/frontier-ornl"}
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "caar" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/lumi-eurohpc/standard-g.tpl"
+
+# allocate an interactive shell for one hour
+#   getNode 2  # allocates two interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks=$((numNodes * 8)) --gres=gpu:$((numNodes * 8)) --cpus-per-task=7 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p standard-g -A $PROJID --pty bash
+}
+
+# allocate an interactive shell for one hour
+#   getDevice 2  # allocates two interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numGPUs=1
+    else
+        if [ "$1" -gt 8 ] ; then
+            echo "The maximal number of devices per node is 8." 1>&2
+            return 1
+        else
+            numGPUs=$1
+        fi
+    fi
+    srun  --time=1:00:00 --nodes=1 --ntasks=$(($numGPUs)) --gres=gpu:$(($numGPUs)) --cpus-per-task=7 --ntasks-per-gpu=1 --gpu-bind=closest --mem-per-gpu=64000 -p dev-g -A $PROJID --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
