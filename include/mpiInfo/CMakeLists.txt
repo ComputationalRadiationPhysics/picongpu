@@ -57,6 +57,13 @@ if(POLICY CMP0074)
 endif()
 
 
+################################################################################
+# mpiInfo options
+################################################################################
+
+option(MPIINFO_ADD_RPATH "Add RPATH's to binary." ON)
+
+
 ###############################################################################
 # Language Flags
 ###############################################################################
@@ -110,6 +117,20 @@ add_executable(mpiInfo
 )
 
 target_link_libraries(mpiInfo PRIVATE ${MPIINFO_LIBS})
+
+## annotate with RPATH's
+if(MPIINFO_ADD_RPATH)
+    if(NOT DEFINED CMAKE_INSTALL_RPATH)
+        if(APPLE)
+            set_target_properties(mpiInfo PROPERTIES INSTALL_RPATH "@loader_path")
+        elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+            set_target_properties(mpiInfo PROPERTIES INSTALL_RPATH "$ORIGIN")
+        endif()
+    endif()
+    if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+        set_target_properties(mpiInfo PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
+    endif()
+endif()
 
 
 ################################################################################
