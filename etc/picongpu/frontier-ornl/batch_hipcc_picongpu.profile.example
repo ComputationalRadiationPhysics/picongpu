@@ -1,10 +1,3 @@
-printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
-printf "@ Set the initial buffer size in your ADIOS2              @\n" >&2
-printf "@ configuration of your job's *.cfg file to 28GiB,        @\n" >&2
-printf "@ and do not use more than this amount of memory per GCD  @\n" >&2
-printf "@ in your setup, or you will see out-of-memory errors.    @\n" >&2
-printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
-
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
