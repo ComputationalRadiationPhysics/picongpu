@@ -49,19 +49,19 @@ def plot_1D(theory,
 
     direction : str, optional
                 The directory in which the plot should be saved.
-                If None or set in Data.py, the value from Data.py is
+                If None or set in config.py, the value from config.py is
                 used.
                 Default: None
 
     xlabel/ylabel : str, optional
                 Axis labeling of the x or y axis.
-                If None or set in Data.py, the value from Data.py is
+                If None or set in config.py, the value from config.py is
                 used.
                 Default: None ("No Title" is displayed)
 
     title :     str, optional
                 title of the Plot
-                If None or set in Data.py, the value from Data.py is
+                If None or set in config.py, the value from config.py is
                 used.
                 Default: None ("No Title" is displayed)
 

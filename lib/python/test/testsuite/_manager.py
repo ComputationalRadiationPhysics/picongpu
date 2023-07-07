@@ -1,12 +1,12 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2022 PIConGPU contributors
+Copyright 2023 PIConGPU contributors
 Authors: Mika Soren Voss
 License: GPLv3+
 """
 
-import Data
+import config
 import testsuite.Output.Log as log
 import sys
 
@@ -25,8 +25,8 @@ def run_testsuite(dataDirection,
 
         # now we can determine the theory and simulation
         parameter = {**json, **param, **data}
-        theory = Data.theory(**parameter)
-        simData = Data.simData(**parameter)
+        theory = config.theory(**parameter)
+        simData = config.simData(**parameter)
 
         # calculate the deviation
         from .Math import _manager as dv
@@ -47,6 +47,7 @@ def run_testsuite(dataDirection,
             sys.exit(0)
         else:
             sys.exit(1)
+
     except Exception:
         log.errorLog()
         sys.exit(42)

@@ -27,24 +27,24 @@ import warnings
 import importlib
 import os
 
-if (importlib.util.find_spec("Data") is None):
-    from testsuite.Template import Data
-    warnings.warn("The file Data.py could not be found. Note that now"
+if (importlib.util.find_spec("config") is None):
+    from testsuite.Template import config
+    warnings.warn("The file config.py could not be found. Note that now"
                   " optional parameters must be passed. Otherwise error"
                   " messages will be generated or default values will"
                   " be used. See the documentation for more"
                   " information.")
 else:
-    import Data
+    import config
 
 
 def checkDirection(variable: str = "undefined",
                    direction: str = None,
                    errorhandling: bool = False) -> str:
     """
-    Checks whether the value is present in Data.py. If so, this is
+    Checks whether the value is present in config.py. If so, this is
     returned if the directory exists. If there is no corresponding
-    value in Data.py, direction is returned. If both values are None
+    value in config.py, direction is returned. If both values are None
     and no error handling is carried out, an error is raised.
 
     Warning: if the directory does not exist, the current working
@@ -53,12 +53,12 @@ def checkDirection(variable: str = "undefined",
     Input:
     -------
     variable : str, optional
-               Is the name of the directory in Data.py
+               Is the name of the directory in config.py
                Note: if not set, direction must be set
 
     direction : str, optional
                The directory in which to search or save
-               if Data.py is not used or not set
+               if config.py is not used or not set
 
     errorhandling : bool, optional
                Parameters for error handling only!
@@ -71,7 +71,7 @@ def checkDirection(variable: str = "undefined",
     Raise:
     -------
     ValueError:
-        If both values (direction and Data....Direction) are None
+        If both values (direction and config....Direction) are None
         and errorhandling is also False
 
     Returns:
@@ -85,21 +85,21 @@ def checkDirection(variable: str = "undefined",
 
     """
 
-    val_name = "Data." + variable
+    val_name = "config." + variable
 
     # Since the variable does not necessarily have to be set,
     # this must be checked beforehand
-    if variable in dir(Data):
+    if variable in dir(config):
         val = eval(val_name)
     else:
         val = None
 
     # check if at least one direction is given
-    # if there are two use Data.py value
+    # if there are two use config.py value
 
     if val is not None and direction is not None:
         warnings.warn("Both " + variable + " and direction are set."
-                      "Note that the value from Data.py is used.")
+                      "Note that the value from config.py is used.")
 
         direction = val
 
@@ -132,12 +132,12 @@ def checkDirection(variable: str = "undefined",
 
 def checkExistVariables(variable: str) -> bool:
     """
-    checks if a variable exists in Data.py
+    checks if a variable exists in config.py
 
     Input:
     -------
     variable : str
-               Variable label in Data.py
+               Variable label in config.py
 
     Return:
     -------
@@ -145,9 +145,9 @@ def checkExistVariables(variable: str) -> bool:
           False if the variable does not exist or is None,
           else True
     """
-    val_name = "Data." + variable
+    val_name = "config." + variable
 
-    if variable not in dir(Data):
+    if variable not in dir(config):
         return False
     else:
         val = eval(val_name)
@@ -162,26 +162,26 @@ def checkVariables(variable: str = "undefined",
                    parameter=None):
     """
     Takes over the decision which value should be taken. The value
-    from Data.py is always taken first. If this does not exist or
+    from config.py is always taken first. If this does not exist or
     the value is not defined there, passed parameters are used,
     first parameter and only then default.
 
     Input:
     ------
     variable : str, optional
-               Variable label in Data.py
+               Variable label in config.py
                Note: if not set, default or parameter must be set
 
     default : optional
               Sets the default value to use if the parameter or
-              value is not set in Data.py
+              value is not set in config.py
 
     parameter : optional
 
     Raise:
     -------
     ValueError
-       If default, parameter and the Value from Data.py is None
+       If default, parameter and the Value from config.py is None
 
     Return:
     -------
@@ -189,11 +189,11 @@ def checkVariables(variable: str = "undefined",
 
     """
 
-    val_name = "Data." + variable
+    val_name = "config." + variable
 
     # Since the variable does not necessarily have to be set,
     # this must be checked beforehand
-    if variable in dir(Data):
+    if variable in dir(config):
         val = eval(val_name)
     else:
         val = None
@@ -206,7 +206,7 @@ def checkVariables(variable: str = "undefined",
     if val is not None and parameter is not None:
         warnings.warn("Both " + val_name + " and the optional"
                       " parameter are set. Note that the value"
-                      " from Data.py is used.")
+                      " from config.py is used.")
 
         value = val
 
