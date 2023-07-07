@@ -736,11 +736,28 @@ parse_local_date(location& loc)
         const auto month = static_cast<std::int8_t >(from_string<int>(m.unwrap().str(), 0));
         const auto day   = static_cast<std::int8_t >(from_string<int>(d.unwrap().str(), 0));
 
-        // this could be improved a bit more, but is it ... really ... needed?
-        if(31 < day)
+        // We briefly check whether the input date is valid or not. But here, we
+        // only check if the RFC3339 compliance.
+        //     Actually there are several special date that does not exist,
+        // because of historical reasons, such as 1582/10/5-1582/10/14 (only in
+        // several countries). But here, we do not care about such a complicated
+        // rule. It makes the code complicated and there is only low probability
+        // that such a specific date is needed in practice. If someone need to
+        // validate date accurately, that means that the one need a specialized
+        // library for their purpose in a different layer.
         {
-            throw syntax_error(format_underline("toml::parse_date: invalid date",
-                {{source_location(loc), "here"}}), source_location(loc));
+            const bool is_leap = (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
+            const auto max_day = (month == 2) ? (is_leap ? 29 : 28) :
+                ((month == 4 || month == 6 || month == 9 || month == 11) ? 30 : 31);
+
+            if((month < 1 || 12 < month) || (day < 1 || max_day < day))
+            {
+                throw syntax_error(format_underline("toml::parse_date: "
+                    "invalid date: it does not conform RFC3339.", {{
+                    source_location(loc), "month should be 01-12, day should be"
+                    " 01-28,29,30,31, depending on month/year."
+                    }}), source_location(inner_loc));
+            }
         }
         return ok(std::make_pair(local_date(year, static_cast<month_t>(month - 1), day),
                                  token.unwrap()));
@@ -787,10 +804,22 @@ parse_local_time(location& loc)
                 {{source_location(inner_loc), "here"}}),
                 source_location(inner_loc));
         }
-        local_time time(
-            from_string<int>(h.unwrap().str(), 0),
-            from_string<int>(m.unwrap().str(), 0),
-            from_string<int>(s.unwrap().str(), 0), 0, 0);
+
+        const int hour   = from_string<int>(h.unwrap().str(), 0);
+        const int minute = from_string<int>(m.unwrap().str(), 0);
+        const int second = from_string<int>(s.unwrap().str(), 0);
+
+        if((hour   < 0 || 23 < hour) || (minute < 0 || 59 < minute) ||
+           (second < 0 || 60 < second)) // it may be leap second
+        {
+            throw syntax_error(format_underline("toml::parse_time: "
+                "invalid time: it does not conform RFC3339.", {{
+                source_location(loc), "hour should be 00-23, minute should be"
+                " 00-59, second should be 00-60 (depending on the leap"
+                " second rules.)"}}), source_location(inner_loc));
+        }
+
+        local_time time(hour, minute, second, 0, 0);
 
         const auto before_secfrac = inner_loc.iter();
         if(const auto secfrac = lex_time_secfrac::invoke(inner_loc))
@@ -870,7 +899,7 @@ parse_local_datetime(location& loc)
         {
             throw internal_error(format_underline(
                 "toml::parse_local_datetime: invalid datetime format",
-                {{source_location(inner_loc), "invalid time fomrat"}}),
+                {{source_location(inner_loc), "invalid time format"}}),
                 source_location(inner_loc));
         }
         return ok(std::make_pair(
@@ -904,15 +933,26 @@ parse_offset_datetime(location& loc)
         if(const auto ofs = lex_time_numoffset::invoke(inner_loc))
         {
             const auto str = ofs.unwrap().str();
+
+            const auto hour   = from_string<int>(str.substr(1,2), 0);
+            const auto minute = from_string<int>(str.substr(4,2), 0);
+
+            if((hour < 0 || 23 < hour) || (minute < 0 || 59 < minute))
+            {
+                throw syntax_error(format_underline("toml::parse_offset_datetime: "
+                    "invalid offset: it does not conform RFC3339.", {{
+                    source_location(loc), "month should be 01-12, day should be"
+                    " 01-28,29,30,31, depending on month/year."
+                    }}), source_location(inner_loc));
+            }
+
             if(str.front() == '+')
             {
-                offset = time_offset(from_string<int>(str.substr(1,2), 0),
-                                     from_string<int>(str.substr(4,2), 0));
+                offset = time_offset(hour, minute);
             }
             else
             {
-                offset = time_offset(-from_string<int>(str.substr(1,2), 0),
-                                     -from_string<int>(str.substr(4,2), 0));
+                offset = time_offset(-hour, -minute);
             }
         }
         else if(*inner_loc.iter() != 'Z' && *inner_loc.iter() != 'z')
@@ -1217,6 +1257,9 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
 // forward decl for is_valid_forward_table_definition
 result<std::pair<std::vector<key>, region>, std::string>
 parse_table_key(location& loc);
+template<typename Value>
+result<std::pair<typename Value::table_type, region>, std::string>
+parse_inline_table(location& loc);
 
 // The following toml file is allowed.
 // ```toml
@@ -1242,16 +1285,81 @@ parse_table_key(location& loc);
 // of the key. If the key region points deeper node, it would be allowed.
 // Otherwise, the key points the same node. It would be rejected.
 template<typename Value, typename Iterator>
-bool is_valid_forward_table_definition(const Value& fwd,
+bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
+    // ------------------------------------------------------------------------
+    // check type of the value to be inserted/merged
+
+    std::string inserting_reg = "";
+    if(const auto ptr = detail::get_region(inserting))
+    {
+        inserting_reg = ptr->str();
+    }
+    location inserting_def("internal", std::move(inserting_reg));
+    if(const auto inlinetable = parse_inline_table<Value>(inserting_def))
+    {
+        // check if we are overwriting existing table.
+        // ```toml
+        // # NG
+        // a.b = 42
+        // a = {d = 3.14}
+        // ```
+        // Inserting an inline table to a existing super-table is not allowed in
+        // any case. If we found it, we can reject it without further checking.
+        return false;
+    }
+
+    // Valid and invalid cases when inserting to the [a.b] table:
+    //
+    // ## Invalid
+    //
+    // ```toml
+    // # invalid
+    // [a]
+    // b.c.d = "foo"
+    // [a.b]       # a.b is already defined and closed
+    // d = "bar"
+    // ```
+    // ```toml
+    // # invalid
+    // a = {b.c.d = "foo"}
+    // [a.b] # a is already defined and inline table is closed
+    // d = "bar"
+    // ```
+    // ```toml
+    // # invalid
+    // a.b.c.d = "foo"
+    // [a.b] # a.b is already defined and dotted-key table is closed
+    // d = "bar"
+    // ```
+    //
+    // ## Valid
+    //
+    // ```toml
+    // # OK. a.b is defined, but is *overwritable*
+    // [a.b.c]
+    // d = "foo"
+    // [a.b]
+    // d = "bar"
+    // ```
+    // ```toml
+    // # OK. a.b is defined, but is *overwritable*
+    // [a]
+    // b.c.d = "foo"
+    // b.e = "bar"
+    // ```
+
+    // ------------------------------------------------------------------------
+    // check table defined before
+
     std::string internal = "";
     if(const auto ptr = detail::get_region(fwd))
     {
         internal = ptr->str();
     }
     location def("internal", std::move(internal));
-    if(const auto tabkeys = parse_table_key(def))
+    if(const auto tabkeys = parse_table_key(def)) // [table.key]
     {
         // table keys always contains all the nodes from the root.
         const auto& tks = tabkeys.unwrap().first;
@@ -1264,7 +1372,7 @@ bool is_valid_forward_table_definition(const Value& fwd,
         // the keys are not equivalent. it is allowed.
         return true;
     }
-    if(const auto dotkeys = parse_key(def))
+    if(const auto dotkeys = parse_key(def)) // a.b.c = "foo"
     {
         // consider the following case.
         // [a]
@@ -1272,6 +1380,18 @@ bool is_valid_forward_table_definition(const Value& fwd,
         // [a.b.c]
         // e = 2.71
         // this defines the table [a.b.c] twice. no?
+        if(const auto reopening_dotkey_by_table = parse_table_key(inserting_def))
+        {
+            // re-opening a dotkey-defined table by a table is invalid.
+            // only dotkey can append a key-val. Like:
+            // ```toml
+            // a.b.c = "foo"
+            // a.b.d = "bar" # OK. reopen `a.b` by dotkey
+            // [a.b]
+            // e = "bar" # Invalid. re-opening `a.b` by [a.b] is not allowed.
+            // ```
+            return false;
+        }
 
         // a dotted key starts from the node representing a table in which the
         // dotted key belongs to.
@@ -1367,7 +1487,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     // b = 54
                     // ```
                     // Here, from the type information, these cannot be detected
-                    // bacause inline table is also a table.
+                    // because inline table is also a table.
                     // But toml v0.5.0 explicitly says it is invalid. The above
                     // array-of-tables has a static size and appending to the
                     // array is invalid.
@@ -1417,7 +1537,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     // ```toml
                     // # comment 1
                     // aot = [
-                    //     # coment 2
+                    //     # comment 2
                     //     {foo = "bar"},
                     // ]
                     // ```
@@ -1441,7 +1561,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 if(tab->at(k).is_table() && v.is_table())
                 {
                     if(!is_valid_forward_table_definition(
-                                tab->at(k), first, iter, last))
+                                tab->at(k), v, first, iter, last))
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: table (\"",
@@ -1459,6 +1579,16 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     auto& t = tab->at(k).as_table();
                     for(const auto& kv : v.as_table())
                     {
+                        if(tab->at(k).contains(kv.first))
+                        {
+                            throw syntax_error(format_underline(concat_to_string(
+                                "toml::insert_value: value (\"",
+                                format_dotted_keys(first, last),
+                                "\") already exists."), {
+                                    {t.at(kv.first).location(), "already exists here"},
+                                    {v.location(), "this defined twice"}
+                                }), v.location());
+                        }
                         t[kv.first] = kv.second;
                     }
                     detail::change_region(tab->at(k), key_reg);
@@ -1904,7 +2034,7 @@ parse_table_key(location& loc)
                 source_location(inner_loc));
         }
 
-        // after [table.key], newline or EOF(empty table) requried.
+        // after [table.key], newline or EOF(empty table) required.
         if(loc.iter() != loc.end())
         {
             using lex_newline_after_table_key =
@@ -1961,7 +2091,7 @@ parse_array_table_key(location& loc)
                 source_location(inner_loc));
         }
 
-        // after [[table.key]], newline or EOF(empty table) requried.
+        // after [[table.key]], newline or EOF(empty table) required.
         if(loc.iter() != loc.end())
         {
             using lex_newline_after_table_key =
@@ -2124,7 +2254,7 @@ result<Value, std::string> parse_toml_file(location& loc)
 
     table_type data;
     // root object is also a table, but without [tablename]
-    if(auto tab = parse_ml_table<value_type>(loc))
+    if(const auto tab = parse_ml_table<value_type>(loc))
     {
         data = std::move(tab.unwrap());
     }
@@ -2199,11 +2329,16 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     std::vector<char> letters(static_cast<std::size_t>(fsize));
     is.read(letters.data(), fsize);
 
-    while(!letters.empty() && letters.back() == '\0')
+    // append LF.
+    // Although TOML does not require LF at the EOF, to make parsing logic
+    // simpler, we "normalize" the content by adding LF if it does not exist.
+    // It also checks if the last char is CR, to avoid changing the meaning.
+    // This is not the *best* way to deal with the last character, but is a
+    // simple and quick fix.
+    if(!letters.empty() && letters.back() != '\n' && letters.back() != '\r')
     {
-        letters.pop_back();
+        letters.push_back('\n');
     }
-    assert(letters.empty() || letters.back() != '\0');
 
     detail::location loc(std::move(fname), std::move(letters));
 
@@ -2252,7 +2387,7 @@ basic_value<Comment, Table, Array> parse(const std::string& fname)
 // Without this, both parse(std::string) and parse(std::filesystem::path)
 // matches to parse("filename.toml"). This breaks the existing code.
 //
-// This function exactly matches to the invokation with c-string.
+// This function exactly matches to the invocation with c-string.
 // So this function is preferred than others and the ambiguity disappears.
 template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,

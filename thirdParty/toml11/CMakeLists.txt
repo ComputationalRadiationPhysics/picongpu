@@ -1,17 +1,20 @@
 cmake_minimum_required(VERSION 3.1)
 enable_testing()
 
-project(toml11 VERSION 3.7.0)
+project(toml11 VERSION 3.7.1)
 
 option(toml11_BUILD_TEST "Build toml tests" OFF)
+option(toml11_INSTALL "Install CMake targets during install step." ON)
 option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
 option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 
 include(CheckCXXCompilerFlag)
 if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
-    set(CMAKE_CXX_STANDARD 11 CACHE STRING "The C++ standard whose features are requested to build all targets.")
-    set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
     set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
+    if(NOT DEFINED CMAKE_CXX_STANDARD)
+        set(CMAKE_CXX_STANDARD 11 CACHE STRING "The C++ standard whose features are requested to build all targets.")
+    endif()
+    set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
 else()
     # Manually check for C++11 compiler flag.
     CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -38,7 +41,7 @@ else()
 endif()
 
 if(MSVC)
-    add_definitions("/Zc:__cplusplus")  # define __cplusplus value correctly
+#     add_definitions("/Zc:__cplusplus")  # define __cplusplus value correctly
     add_definitions("/utf-8")           # enable to use u8"" literal
     if(MSVC_VERSION LESS 1910)
         message(STATUS "MSVC < 1910. DEFINE_CONVERSION_NON_INTRUSIVE is disabled")
@@ -73,38 +76,40 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-configure_package_config_file(
-    cmake/toml11Config.cmake.in
-    ${toml11_config}
-    INSTALL_DESTINATION ${toml11_install_cmake_dir}
-    PATH_VARS toml11_install_cmake_dir
-)
+if (toml11_INSTALL)
+    configure_package_config_file(
+        cmake/toml11Config.cmake.in
+        ${toml11_config}
+        INSTALL_DESTINATION ${toml11_install_cmake_dir}
+        PATH_VARS toml11_install_cmake_dir
+    )
 
-# Install config files
-install(FILES ${toml11_config} ${toml11_config_version}
-    DESTINATION ${toml11_install_cmake_dir}
-)
+    # Install config files
+    install(FILES ${toml11_config} ${toml11_config_version}
+        DESTINATION ${toml11_install_cmake_dir}
+    )
 
-# Install header files
-install(
-    FILES toml.hpp
-    DESTINATION "${toml11_install_include_dir}"
-)
-install(
-    DIRECTORY "toml"
-    DESTINATION "${toml11_install_include_dir}"
-    FILES_MATCHING PATTERN "*.hpp"
-)
+    # Install header files
+    install(
+        FILES toml.hpp
+        DESTINATION "${toml11_install_include_dir}"
+    )
+    install(
+        DIRECTORY "toml"
+        DESTINATION "${toml11_install_include_dir}"
+        FILES_MATCHING PATTERN "*.hpp"
+    )
 
-# Export targets and install them
-install(TARGETS toml11
-    EXPORT toml11Targets
-)
-install(EXPORT toml11Targets
-    FILE toml11Targets.cmake
-    DESTINATION ${toml11_install_cmake_dir}
-    NAMESPACE toml11::
-)
+    # Export targets and install them
+    install(TARGETS toml11
+        EXPORT toml11Targets
+    )
+    install(EXPORT toml11Targets
+        FILE toml11Targets.cmake
+        DESTINATION ${toml11_install_cmake_dir}
+        NAMESPACE toml11::
+    )
+endif()
 
 if (toml11_BUILD_TEST)
     add_subdirectory(tests)
