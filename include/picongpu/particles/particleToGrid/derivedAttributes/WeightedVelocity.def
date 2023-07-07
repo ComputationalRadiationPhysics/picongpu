@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <pmacc/static_assert.hpp>
@@ -76,12 +77,8 @@ namespace picongpu
                     //! Get text name
                     HINLINE static std::string getName()
                     {
-                        if constexpr(T_direction == 0)
-                            return "particleVelocityX";
-                        else if constexpr(T_direction == 1)
-                            return "particleVelocityY";
-                        else
-                            return "particleVelocityZ";
+                        auto const componentNames = plugins::misc::getComponentNames(3);
+                        return "weightedVelocity/" + componentNames[T_direction];
                     }
 
                     /** Calculate value of the derived attribute per particle
