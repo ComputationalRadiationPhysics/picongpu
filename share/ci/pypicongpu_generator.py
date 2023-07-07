@@ -303,7 +303,7 @@ PYTHON_VERSIONS: List[str] = ["3.9", "3.10", "3.11"]
 # pip decides which version is used.
 PACKAGES_TO_TEST: Dict[str, Callable] = {
     "typeguard": get_all_major_pypi_versions,
-    "jsonschema": get_all_major_pypi_versions,
+    "jsonschema": get_all_pypi_versions,  # @todo change back
     "picmistandard": get_all_pypi_versions,
 }
 
