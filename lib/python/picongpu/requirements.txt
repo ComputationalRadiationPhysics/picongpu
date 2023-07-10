@@ -1,7 +1,7 @@
 typeguard >= 2.12, < 3.0.0
 sympy >= 1.9
 chevron >= 0.13.1
-jsonschema >= 4.17.3
+jsonschema == 4.17.3
 scipy >= 1.7.1
 picmistandard == 0.0.22
 
