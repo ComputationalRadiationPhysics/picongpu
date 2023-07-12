@@ -26,7 +26,7 @@ This section explains what is done when this script is run to build it manually.
 Requirements
 ------------
 
-First, install `Doxygen`_ and its dependencies for graph generation.
+install `Doxygen`_ and its dependencies for graph generation.
 
 .. _Doxygen: http://doxygen.org
 
@@ -34,6 +34,13 @@ First, install `Doxygen`_ and its dependencies for graph generation.
 
     # install requirements (Debian/Ubuntu)
     sudo apt-get install doxygen graphviz
+
+Activate HTML Output
+--------------------
+
+activate the generation of html files in the doxygen config file
+
+.. code-block:: bash
 
     # enable HTML output in our Doxyfile
     sed -i 's/GENERATE_HTML.*=.*NO/GENERATE_HTML     = YES/' docs/Doxyfile
