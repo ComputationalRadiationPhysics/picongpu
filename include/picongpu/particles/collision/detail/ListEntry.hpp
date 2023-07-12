@@ -64,8 +64,18 @@ namespace picongpu
                             for(int numTries = 0; numTries < maxTries; ++numTries)
                             {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP) // Allocate memory on a GPU device
-                                ptrToIndicies
-                                    = (uint32_t*) deviceHeapHandle.malloc(worker.getAcc(), sizeof(uint32_t) * numPar);
+                                static_assert(
+                                    cellListChunkSize != 0u,
+                                    "collision::cellListChunkSize must be non zero!");
+                                /* Round-up the number of slots up to an mutiple of the typical amount of particles of
+                                 * a cell. This will waist memory but is avoiding that the mallocMC heap is fragmented
+                                 * which often results into out of memory crashes even if the amount of particles in
+                                 * the simulation is small.
+                                 */
+                                uint32_t const allocateNumParticles
+                                    = ((numPar + cellListChunkSize - 1u) / cellListChunkSize) * cellListChunkSize;
+                                uint32_t const allocationBytes = sizeof(uint32_t) * allocateNumParticles;
+                                ptrToIndicies = (uint32_t*) deviceHeapHandle.malloc(worker.getAcc(), allocationBytes);
 #else // No cuda or hip means the device heap is the host heap.
                                 ptrToIndicies = new uint32_t[numPar];
 #endif
