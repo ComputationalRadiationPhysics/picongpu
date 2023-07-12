@@ -1,0 +1,105 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/particles/algorithm/ForEach.hpp>
+
+#include <cstdint>
+
+namespace picongpu::particles::atomicPhysics2::kernel
+{
+    //! @tparam T_ConfigNumber type of configNumber used for storage of atomic state by species
+    template<typename T_ConfigNumber>
+    struct ChooseTransitionKernel
+    {
+        /** call operator
+         *
+         * called by ChooseTransition atomic physics sub-stage
+         *
+         * @param worker object containing the device and block
+         *  information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param rngFactory factory for uniformly distributed random number generator
+         * @param ionBox deviceDataBox containing the ion frames of all local superCells
+         * @param chargeStateOrgaBox deviceDataBox giving access to charge state orga data
+         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
+         * @param transitionSelectionDataBox deviceDataBox giving access to the number of
+         *  physical transitions for each atomic state
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_IonBox,
+            typename T_RngGeneratorFactoryInt,
+            typename T_ChargeStateOrgaDataBox,
+            typename T_AtomicStateDataDataBox,
+            typename T_TransitionSelectionDataBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_RngGeneratorFactoryInt rngFactory, /// const?, @todo Brian Marre, 2023
+            T_IonBox ionBox,
+            T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
+            T_AtomicStateDataDataBox const atomicStateDataDataBox,
+            T_TransitionSelectionDataBox const transitionSelectionDataBox) const
+        {
+            pmacc::DataSpace<simDim> const superCellIdx(
+                areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+
+            auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
+
+            // Offset without guards for random numbers
+            auto const superCellLocalOffset = superCellIdx - areaMapping.getGuardingSuperCells();
+
+            // end kernel if no ions
+            if(!forEachLocalIonBoxEntry.hasParticles())
+                return;
+
+            // choose transition randomly,
+            //  (processClass / transitionCollectionIndex / binIndex) are
+            //  (extracted / extracted / randomly rolled) later by the deduce transitionKernel
+            forEachLocalIonBoxEntry(
+                [&superCellLocalOffset,
+                 &rngFactory,
+                 &atomicStateDataDataBox,
+                 &chargeStateOrgaBox,
+                 &transitionSelectionDataBox](T_Worker const& worker, auto& ion)
+                {
+                    if(ion[accepted_])
+                        return;
+
+                    auto rngGenerator = rngFactory(worker, superCellLocalOffset);
+
+                    typename T_ConfigNumber::DataType const atomicStateConfigNumber
+                        = ion[atomicConfigNumber_].getConfigNumber();
+
+                    uint8_t const chargeState = T_ConfigNumber::getChargeState(atomicStateConfigNumber);
+
+                    uint32_t const atomicStateCollectionIndex = atomicStateDataDataBox.findStateCollectionIndex(
+                        atomicStateConfigNumber,
+                        chargeStateOrgaBox.numberAtomicStates(chargeState),
+                        chargeStateOrgaBox.startIndexBlockAtomicStates(chargeState));
+
+                    ion[transitionIndex_]
+                        = rngGenerator() % transitionSelectionDataBox.numberTransitions(atomicStateCollectionIndex);
+                });
+        }
+    };
+} // namespace picongpu::particles::atomicPhysics2::kernel

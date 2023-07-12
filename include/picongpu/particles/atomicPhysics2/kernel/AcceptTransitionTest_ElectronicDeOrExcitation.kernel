@@ -1,0 +1,199 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp" // need: picongpu/unitless/grid.unitless for CELL_VOLUME
+
+#include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/rateCalculation/BoundBoundTransitionRates.hpp"
+
+#include <pmacc/particles/algorithm/ForEach.hpp>
+
+#include <cstdint>
+
+namespace picongpu::particles::atomicPhysics2::kernel
+{
+    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+
+    /** test for accepting electronicExciation transitions
+     *
+     * @tparam T_Histogram type of the histogram
+     * @tparam T_n_max number of levels
+     * @tparam T_AcceptanceFunctor functor for acceptance probability
+     * @tparam T_excitation true =^= excitation, false =^= deexcitation
+     */
+    template<typename T_Histogram, uint8_t T_n_max, typename T_AcceptanceFunctor, bool T_excitation>
+    struct AcceptTransitionTestKernel_ElectronicDeOrExcitation
+    {
+        /** call operator
+         *
+         * called by AcceptTransitionTest atomic physics sub-stage
+         *
+         * @param worker object containing the device and block
+         *  information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param rngFactory factory for uniformly distributed random number generator
+         * @param ionBox deviceDataBox giving access to the particle frames
+         *  of all local superCells
+         * @param localTimeStepBox deviceDataBox giving access to the local time step length
+         *  of all local superCells
+         * @param localElectronHistogramDataBox deviceDataBox giving access to the local
+         *  electron histograms of all local superCells
+         * @param chargeStateDataDataBox deviceDataBox giving access to charge state property data
+         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
+         * @param boundBoundTransitionDataBox deviceDataBox giving access to bound-bound transition data
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_RngGeneratorFactoryFloat,
+            typename T_IonBox,
+            typename T_TimeStepDataBox,
+            typename T_LocalElectronHistogramDataBox,
+            typename T_AtomicStateDataDataBox,
+            typename T_BoundBoundTransitionDataBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_RngGeneratorFactoryFloat rngFactory, /// const?, @todo Brian Marre, 2023
+            T_IonBox ionBox,
+            T_TimeStepDataBox const localTimeStepBox,
+            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
+            T_AtomicStateDataDataBox const atomicStateDataDataBox,
+            T_BoundBoundTransitionDataBox const boundBoundTransitionDataBox) const
+        {
+            // check that assumptions on databox given
+            PMACC_CASSERT_MSG(
+                dataBox_does_not_contain_bound_bound_transitions,
+                u8(T_BoundBoundTransitionDataBox::processClassGroup)
+                    == u8(procClass::ProcessClassGroup::boundBoundBased));
+
+            if constexpr(T_excitation)
+            {
+                PMACC_CASSERT_MSG(
+                    wrong_ordering_of_DataBox,
+                    u8(T_BoundBoundTransitionDataBox::transitionOrdering)
+                        == u8(procClass::TransitionOrdering::byLowerState));
+            }
+            else
+            {
+                PMACC_CASSERT_MSG(
+                    wrong_ordering_of_DataBox,
+                    u8(T_BoundBoundTransitionDataBox::transitionOrdering)
+                        == u8(procClass::TransitionOrdering::byUpperState));
+            }
+
+            pmacc::DataSpace<simDim> const superCellIdx(
+                areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = superCellIdx - areaMapping.getGuardingSuperCells();
+
+            // get histogram for current superCell
+            T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
+
+            auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
+
+            float_X const timeStep = localTimeStepBox(superCellFieldIdx);
+
+            // end kernel if no particles
+            if(!forEachLocalIonBoxEntry.hasParticles())
+                return;
+
+            // calculate rate of chosen transition and try to accept transition
+            forEachLocalIonBoxEntry(
+                [&superCellFieldIdx,
+                 &rngFactory,
+                 &timeStep,
+                 &electronHistogram,
+                 &atomicStateDataDataBox,
+                 &boundBoundTransitionDataBox](T_Worker const& worker, auto& ion)
+                {
+                    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+
+                    if constexpr(T_excitation)
+                    {
+                        bool const notElectronicExcitation
+                            = (ion[processClass_] != u8(procClass::ProcessClass::electronicExcitation));
+
+                        if((ion[accepted_]) || notElectronicExcitation)
+                            return;
+                    }
+                    else
+                    {
+                        bool const notElectronicDeexcitation
+                            = (ion[processClass_] != u8(procClass::ProcessClass::electronicDeexcitation));
+
+                        if((ion[accepted_]) || notElectronicDeexcitation)
+                            return;
+                    }
+
+                    // UNIT_LENGTH^3
+                    constexpr float_X volumeScalingFactor
+                        = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+
+                    uint32_t const binIndex = ion[binIndex_];
+
+                    // eV
+                    float_X const energy = electronHistogram.getBinEnergy(binIndex);
+                    // eV
+                    float_X const binWidth = electronHistogram.getBinWidth(binIndex);
+                    // 1/(UNIT_LENGTH^3 * eV)
+                    float_X const density = electronHistogram.getBinWeight0(binIndex) / volumeScalingFactor / binWidth;
+
+                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+
+                    // 1/UNIT_TIME
+                    float_X const rate = picongpu::particles::atomicPhysics2::rateCalculation ::
+                        BoundBoundTransitionRates<T_n_max>::template rateCollisionalBoundBoundTransition<
+                            T_AtomicStateDataDataBox,
+                            T_BoundBoundTransitionDataBox,
+                            T_excitation>(
+                            energy,
+                            binWidth,
+                            density,
+                            ion[transitionIndex_],
+                            atomicStateDataDataBox,
+                            boundBoundTransitionDataBox);
+
+                    // unitless
+                    float_X const probability = T_AcceptanceFunctor::probabilityChange(rate, timeStep);
+
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
+                                     PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)
+                    {
+                        if constexpr(T_excitation)
+                            printf("BinEnergy: %.8f electronic excitation %.8e\n", energy, probability);
+                        else
+                            printf("BinEnergy: %.8f electronic deexcitation %.8e\n", energy, probability);
+                    }
+
+                    // try to accept
+                    if(probability >= rngGenerator())
+                        ion[accepted_] = true;
+                });
+        }
+    };
+} // namespace picongpu::particles::atomicPhysics2::kernel

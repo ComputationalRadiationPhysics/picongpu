@@ -28,7 +28,7 @@ namespace picongpu
         namespace frame
         {
             template<typename T_Frame>
-            HDINLINE float_X getMass();
+            HDINLINE constexpr float_X getMass();
 
         } // namespace frame
     } // namespace traits

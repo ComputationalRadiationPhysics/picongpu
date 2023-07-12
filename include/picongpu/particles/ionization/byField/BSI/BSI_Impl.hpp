@@ -26,7 +26,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
-#include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
+#include "picongpu/particles/atomicPhysics2/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
@@ -244,7 +244,7 @@ namespace picongpu
 
                     numberBoundElectrons -= 1._X;
 
-                    picongpu::particles::atomicPhysics::SetChargeState{}(parentIon, numberBoundElectrons);
+                    picongpu::particles::atomicPhysics2::SetChargeState{}(parentIon, numberBoundElectrons);
                 }
             };
 

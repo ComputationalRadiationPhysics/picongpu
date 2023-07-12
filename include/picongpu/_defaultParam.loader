@@ -22,6 +22,10 @@
  * only PIConGPU programmers should change this file
  *
  * for examples use extensionParam.loader
+ *
+ * @attention order of includes matters here since some .param files depend on others
+ *   param files themselves usually do not include other param files, instead
+ * @todo create overview of dependencies, Brian Marre, 2023
  */
 #pragma once
 
@@ -35,7 +39,6 @@
 #include "picongpu/param/memory.param"
 #include "picongpu/param/random.param"
 #include "picongpu/param/physicalConstants.param"
-#include "picongpu/param/atomicPhysics.param"
 #include "picongpu/param/speciesConstants.param"
 #include "picongpu/param/speciesAttributes.param"
 #include "picongpu/param/grid.param"
@@ -47,6 +50,9 @@
 #include "picongpu/param/density.param"
 #include "picongpu/param/particle.param"
 #include "picongpu/param/unit.param"
+#include "picongpu/param/atomicPhysics.param" ///@todo remove
+#include "picongpu/param/atomicPhysics2_Debug.param"
+#include "picongpu/param/atomicPhysics2.param"
 #include "picongpu/param/particleFilters.param"
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"

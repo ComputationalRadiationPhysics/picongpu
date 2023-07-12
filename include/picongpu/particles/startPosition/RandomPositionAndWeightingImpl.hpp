@@ -87,7 +87,8 @@ namespace picongpu
                      * @param realParticlesPerCell number of real particles for the cell
                      */
                     template<typename T_Particle>
-                    HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
+                    HDINLINE uint32_t
+                    numberOfMacroParticles(float_X const realParticlesPerCell, DataSpace<simDim> const)
                     {
                         m_remainingMacroparticles = startPosition::detail::WeightMacroParticles{}(
                             realParticlesPerCell,

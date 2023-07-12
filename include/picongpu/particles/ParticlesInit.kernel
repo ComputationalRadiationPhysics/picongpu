@@ -156,7 +156,7 @@ namespace picongpu
 
                     if(realParticlesPerCell > 0.0_X)
                         numParsPerCell
-                            = posFunctor.template numberOfMacroParticles<ParticleType>(realParticlesPerCell);
+                            = posFunctor.template numberOfMacroParticles<ParticleType>(realParticlesPerCell, cellIdx);
 
                     if(numParsPerCell > 0)
                     {
