@@ -18,7 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
+/** @file config file for particle manipulators
  *
  * Configurations for particle manipulators. Set up and declare functors that
  * can be used in speciesInitialization.param for particle species

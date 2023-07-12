@@ -1,0 +1,396 @@
+/* Copyright 2024 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software you can redistribute it and or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file framework kernel for spawning new macro particles of a productSpecies(P) based on macro particles of a
+ *      sourceSpecies(S)
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/atomicPhysics2/ConvertEnum.hpp"
+#include "picongpu/particles/creation/ModuleConfig.hpp"
+// interface definitions for modules of this kernel
+#include "picongpu/particles/creation/SpawnFromSourceSpeciesModuleInterfaces.hpp"
+
+#include <pmacc/lockstep/ForEach.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
+#include <pmacc/static_assert.hpp>
+
+#include <cstdint>
+
+namespace picongpu::particles::creation
+{
+    namespace s_conv = picongpu::particles::atomicPhysics2;
+    namespace detail
+    {
+        //! helper struct for named index acess
+        enum struct Access : uint32_t
+        {
+            low = 0u,
+            high = 1u
+        };
+    } // namespace detail
+
+    /** generalised kernel for spawning p-particles from p-particles
+     *
+     * Kernel framework consists of the following steps
+     *  0.) each worker calculates sharedDataBoxes access index using SharedDataBoxIndexFunctor
+     *  1.) each worker tests whether to skip the current superCell based on sharedDataBoxes data and
+     * sharedDataBoxIndex 2.) master thread initialises per superCell read-only sharedState in shared memory using
+     * InitSharedStateFunctor 3.) we go over sourceSpecies frames of superCell 3.1) predict for each S-particle how
+     * many P-particles are to be spawned based on the P-particle, sharedState and sharedDataBoxes 3.2) loop, until all
+     * predicted P-particles have been spawned 3.2.1) spawn 1 or 0 new P-particles for each S-particle in the current
+     * frame 3.2.2) initialize P-particles and update S-Particles depending on S-particle attributes, sharedState and
+     * sharedDataBoxes
+     *
+     * @tparam T_TypeNumber type to use for storage of number of particles to spawn
+     * @tparam T_ModuleConfig wrapper holding all modules to be used in framework kernel, see ModuleConfig above for
+     *  interface
+     * @tparam T_passCascadeIndex true =^= pass cascade index to ParticlePairUpdateFunctor, false =^= don't
+     * @tparam T_passSharedDataBoxes true =^= pass sharedDataBoxes to ParticlePairUpdateFunctor, false =^= don't
+     * @tparam T_KernelConfigOptions additional setting customizing behaviour of modules
+     */
+    template<
+        typename T_TypeNumber,
+        typename T_ModuleConfig,
+        bool T_passCascadeIndex,
+        bool T_passSharedDataBoxes,
+        typename... T_KernelConfigOptions>
+    struct SpawnFromSourceSpeciesKernelFramework
+    {
+        using Modules = T_ModuleConfig;
+        using TypeNumber = T_TypeNumber;
+
+        /** call operator
+         *
+         * called by picongpu stage/sub-stage
+         *
+         * @param worker object containing the device and block information,
+         *  passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param sourceBox deviceDataBox giving access to the particle frames of sourceSpecies particles of all local
+         *  superCells
+         * @param productBox deviceDataBox giving access to the particle frames of productSpecies particles of all
+         * local superCells
+         * @param sharedDataBoxes deviceDataBoxes giving access to the some superCell/Cell/global data required by the
+         *  modul functors or to which the functors write
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_SourceParticleBox,
+            typename T_ProductParticleBox,
+            typename... T_SharedDataBoxes>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_SourceParticleBox sourceBox,
+            T_ProductParticleBox productBox,
+            T_SharedDataBoxes... sharedDataBoxes) const
+        {
+            using SourceSpeciesFramePtr = typename T_SourceParticleBox::FramePtr;
+            using ProductSpeciesFramePtr = typename T_ProductParticleBox::FramePtr;
+
+            // perform sanity checks that input is consistent with assumptions
+            using SanityCheck = typename Modules::template SanityCheckInputs<
+                T_SourceParticleBox,
+                T_ProductParticleBox,
+                T_KernelConfigOptions...,
+                T_SharedDataBoxes...>;
+
+            // get frame size
+            PMACC_CASSERT_MSG(
+                sourceSpecies_framesize_must_less_or_equal_productSpecies_framesize,
+                T_SourceParticleBox::frameSize == T_ProductParticleBox::frameSize);
+            constexpr uint32_t frameSize = T_SourceParticleBox::frameSize;
+
+            // for accessing particle frame list of superCell
+            pmacc::DataSpace<picongpu::simDim> const superCellIndex
+                = areaMapping.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+
+            using IndexFunctor = typename Modules::template SharedDataBoxIndexFunctor<T_KernelConfigOptions...>;
+            auto const sharedDataBoxIndex = IndexFunctor::getIndex(areaMapping, superCellIndex);
+
+            SourceSpeciesFramePtr sourceSpeciesFrame = sourceBox.getLastFrame(superCellIndex);
+
+            // test for skipping superCell due to no sourceSpecies particles or Skip Test
+            bool const skipSuperCell = Modules::template SkipSuperCellFunctor<T_KernelConfigOptions...>::test(
+                superCellIndex,
+                sharedDataBoxIndex,
+                sharedDataBoxes...);
+
+            if(skipSuperCell || (!sourceSpeciesFrame.isValid()))
+                return;
+
+            auto forEachFrameSlot = pmacc::lockstep::makeForEach<frameSize, T_Worker>(worker);
+            auto forEachFrameMaster = pmacc::lockstep::makeForEach<2u, T_Worker>(worker);
+            auto onlyMaster = pmacc::lockstep::makeMaster(worker);
+
+            PMACC_SMEM(worker, offsetLowFrame, int32_t);
+            PMACC_SMEM(worker, totalNumberProductSpeciesParticlesToSpawn, uint32_t);
+            PMACC_SMEM(worker, spawnCounter, uint32_t);
+
+            using FrameArray = memory::Array<ProductSpeciesFramePtr, static_cast<uint32_t>(2u)>;
+            PMACC_SMEM(worker, productSpeciesFrameArray, FrameArray);
+
+            // create shared memory variable for shared state
+            PMACC_SMEM(worker, sharedState, typename Modules::SharedStateType);
+
+            auto numberProductParticlesCtxArr
+                = lockstep::makeVar<TypeNumber>(forEachFrameSlot, static_cast<TypeNumber>(0u));
+
+            // init shared memory
+            onlyMaster(
+                [&superCellIndex,
+                 &productBox,
+                 &sharedDataBoxIndex,
+                 &offsetLowFrame,
+                 &spawnCounter,
+                 &totalNumberProductSpeciesParticlesToSpawn,
+                 &productSpeciesFrameArray,
+                 &sharedState,
+                 &sharedDataBoxes...]()
+                {
+                    Modules::template InitSharedStateFunctor<T_KernelConfigOptions...>::init(
+                        superCellIndex,
+                        sharedDataBoxIndex,
+                        sharedState,
+                        sharedDataBoxes...);
+
+                    //! number of particles in last frame of productSpecies particleBox frameList of superCell
+                    offsetLowFrame = static_cast<int32_t>(productBox.getSuperCell(superCellIndex).getSizeLastFrame());
+                    totalNumberProductSpeciesParticlesToSpawn = static_cast<uint32_t>(0u);
+                    spawnCounter = static_cast<uint32_t>(0u);
+
+                    // might be nullptr if no electrons in superCell
+                    productSpeciesFrameArray[s_conv::u32(detail::Access::low)]
+                        = productBox.getLastFrame(superCellIndex);
+                    productSpeciesFrameArray[s_conv::u32(detail::Access::high)] = nullptr;
+                });
+            worker.sync();
+
+            // go over frames until all processed
+            while(sourceSpeciesFrame.isValid())
+            {
+                /* Predictor: get number productSpecies particles to spawn for each sourceSpecies particle in current
+                 *  sourceSpecies frame */
+                forEachFrameSlot(
+                    [&worker,
+                     &sharedDataBoxIndex,
+                     &sourceSpeciesFrame,
+                     &totalNumberProductSpeciesParticlesToSpawn,
+                     &sharedState,
+                     &sharedDataBoxes...](uint32_t const slotIdx, TypeNumber& numberProductParticles)
+                    {
+                        auto sourceParticle = sourceSpeciesFrame[slotIdx];
+
+                        // empty slots never spawn P-particles
+                        bool const slotNotOccupied = !static_cast<bool>(sourceParticle[multiMask_]);
+                        if(slotNotOccupied)
+                        {
+                            numberProductParticles = static_cast<TypeNumber>(0u);
+                            return;
+                        }
+
+                        numberProductParticles = Modules::
+                            template PredictorFunctor<TypeNumber, T_KernelConfigOptions...>::getNumberNewParticles(
+                                worker,
+                                sharedDataBoxIndex,
+                                sourceParticle,
+                                sharedState,
+                                sharedDataBoxes...);
+
+                        uint32_t const temp = static_cast<uint32_t>(numberProductParticles);
+                        // update global counter
+                        alpaka::atomicAdd(
+                            worker.getAcc(),
+                            &totalNumberProductSpeciesParticlesToSpawn,
+                            temp,
+                            ::alpaka::hierarchy::Threads{});
+                    },
+                    numberProductParticlesCtxArr);
+                worker.sync();
+
+                // work over current frame until all predicted product species particles have been spawned
+                while(true)
+                {
+                    // need new frame? provide!
+                    /* might create frame not used in current iteration but never one not used at all */
+                    forEachFrameMaster(
+                        [&worker,
+                         &frameSize,
+                         &superCellIndex,
+                         &offsetLowFrame,
+                         &totalNumberProductSpeciesParticlesToSpawn,
+                         &productBox,
+                         &productSpeciesFrameArray](uint32_t const linearIdx)
+                        {
+                            int32_t const numberFreeSlotsPreviousLinearIdx
+                                = static_cast<int32_t>(linearIdx * frameSize) - offsetLowFrame;
+                            // for low will always be <0(partially filled) or ==0(nullptr)
+
+                            if(
+                                // need slots from frame, since previous is not enough
+                                (numberFreeSlotsPreviousLinearIdx
+                                 < static_cast<int32_t>(totalNumberProductSpeciesParticlesToSpawn))
+                                &&
+                                // is nullPtr
+                                !(productSpeciesFrameArray[linearIdx].isValid()))
+                            {
+                                productSpeciesFrameArray[linearIdx] = productBox.getEmptyFrame(worker);
+                                productBox.setAsLastFrame(worker, productSpeciesFrameArray[linearIdx], superCellIndex);
+                            }
+                        });
+                    worker.sync();
+
+                    // try to init one productParticle for each logical worker
+                    forEachFrameSlot(
+                        [&worker,
+                         &sourceSpeciesFrame,
+                         &productSpeciesFrameArray,
+                         &frameSize,
+                         &spawnCounter,
+                         &offsetLowFrame,
+                         &sharedDataBoxes...](uint32_t const frameSlotIdx, TypeNumber& numberProductParticles)
+                        {
+                            auto sourceParticle = sourceSpeciesFrame[frameSlotIdx];
+
+                            // not occupied or does not want to spawn a particle
+                            if(numberProductParticles == static_cast<TypeNumber>(0u))
+                                return;
+
+                            uint32_t const globalSlotIndex = alpaka::atomicAdd(
+                                worker.getAcc(),
+                                &spawnCounter,
+                                static_cast<uint32_t>(1u),
+                                ::alpaka::hierarchy::Threads{});
+
+                            uint32_t const productSpeciesFrameIndex = (globalSlotIndex + offsetLowFrame) / frameSize;
+                            uint32_t const localSlotIndex = (globalSlotIndex + offsetLowFrame) % frameSize;
+
+                            auto productParticle = productSpeciesFrameArray[productSpeciesFrameIndex][localSlotIndex];
+
+                            // init frame slot, mark as valid particle
+                            productParticle[multiMask_] = 1u;
+
+                            // init productParticle and maybe change source particle attributes
+                            if constexpr(T_passCascadeIndex && T_passSharedDataBoxes)
+                            {
+                                (typename Modules::ParticlePairUpdateFunctor){}(
+                                    sourceParticle,
+                                    productParticle,
+                                    numberProductParticles,
+                                    sharedDataBoxes...);
+                            }
+                            else
+                            {
+                                if constexpr(T_passCascadeIndex)
+                                {
+                                    (typename Modules::ParticlePairUpdateFunctor){}(
+                                        sourceParticle,
+                                        productParticle,
+                                        numberProductParticles);
+                                }
+                                if constexpr(T_passSharedDataBoxes)
+                                {
+                                    (typename Modules::ParticlePairUpdateFunctor){}(
+                                        sourceParticle,
+                                        productParticle,
+                                        sharedDataBoxes...);
+                                }
+                                else
+                                {
+                                    (typename Modules::ParticlePairUpdateFunctor){}(sourceParticle, productParticle);
+                                }
+                            }
+
+                            // update frame slot counter
+                            //      will never underflow since we check for 0 above
+                            numberProductParticles -= static_cast<uint8_t>(1u);
+                        },
+                        numberProductParticlesCtxArr);
+                    worker.sync();
+
+                    // book keeping
+                    onlyMaster(
+                        [&spawnCounter,
+                         &totalNumberProductSpeciesParticlesToSpawn,
+                         &productBox,
+                         &superCellIndex,
+                         &offsetLowFrame,
+                         &frameSize,
+                         &productSpeciesFrameArray]()
+                        {
+                            totalNumberProductSpeciesParticlesToSpawn -= spawnCounter;
+                            // will never underflow since we only spawn what was previously predicted
+
+                            offsetLowFrame += spawnCounter;
+
+                            if(offsetLowFrame >= static_cast<int32_t>(frameSize))
+                            {
+                                // low frame of FrameArray is full --> need to shift one further in linked list
+                                // update offset
+                                offsetLowFrame -= frameSize;
+
+                                // shift high to low to keep partially filled frame at low and "empty" frame at high
+                                /// @attention high may be nullptr if no further electrons to spawn
+                                productSpeciesFrameArray[s_conv::u32(detail::Access::low)]
+                                    = productSpeciesFrameArray[s_conv::u32(detail::Access::high)];
+
+                                // reset high with nullptr to mark for next "need new frame?" pass
+                                productSpeciesFrameArray[s_conv::u32(detail::Access::high)] = nullptr;
+                            }
+
+                            using SuperCellType = typename T_ProductParticleBox::SuperCellType;
+                            SuperCellType& superCell = productBox.getSuperCell(superCellIndex);
+
+                            // update numParticles in superCell for electrons
+                            superCell.setNumParticles(superCell.getNumParticles() + spawnCounter);
+
+                            spawnCounter = static_cast<uint32_t>(0u);
+                        });
+                    worker.sync();
+
+                    if(totalNumberProductSpeciesParticlesToSpawn == static_cast<uint32_t>(0u))
+                        break;
+                }
+
+                // get next ion frame
+                sourceSpeciesFrame = sourceBox.getPreviousFrame(sourceSpeciesFrame);
+
+                //  no need to set "totalNumberProductSpeciesParticlesToSpawn = 0",
+                //   already guaranteed by break condition
+
+                worker.sync();
+            }
+
+            onlyMaster(
+                [&superCellIndex, &sharedDataBoxIndex, &sharedState, &sharedDataBoxes...]()
+                {
+                    Modules::template WriteOutSharedStateFunctor<T_KernelConfigOptions...>::template write(
+                        superCellIndex,
+                        sharedDataBoxIndex,
+                        sharedState,
+                        sharedDataBoxes...);
+                });
+        }
+    };
+} // namespace picongpu::particles::creation

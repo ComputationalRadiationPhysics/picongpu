@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Rene Widera, Felix Schmitt, Axel Huebl,
- *                     Alexander Grund, Finn-Ole Carstens
+ *                     Alexander Grund, Finn-Ole Carstens, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -592,52 +592,13 @@ namespace picongpu
             }
         };
 
-        template<typename T_Type>
-        struct Unit<atomicLevels<T_Type>>
-        {
-            // unitless and not scaled by a factor: 1.0
-            static std::vector<double> get()
-            {
-                // dataType is actual Type of this Object
-                using DataType = typename T_Type::type;
-                constexpr uint32_t dim = DataType::dim;
-                return std::vector<double>(dim, 1.0);
-            }
-        };
-        template<typename T_Type>
-        struct UnitDimension<atomicLevels<T_Type>>
-        {
-            static std::vector<float_64> get()
-            {
-                // atomicState is unitless
-                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
-                return unitDimension;
-            }
-        };
-        template<typename T_Type>
-        struct MacroWeighted<atomicLevels<T_Type>>
-        {
-            // only macro-particles have an atomic State
-            static bool get()
-            {
-                return false;
-            }
-        };
-        template<typename T_Type>
-        struct WeightingPower<atomicLevels<T_Type>>
-        {
-            static float_64 get()
-            {
-                return 0.0;
-            }
-        };
-
+        //! @todo remove
         template<typename T_Type>
         struct Unit<atomicConfigNumber<T_Type>>
         {
-            // unitless and not scaled by a factor: by convention 1.0
             static std::vector<double> get()
             {
+                // unitless and not scaled by a factor: by convention 1.0
                 std::vector<double> unit(1, 1.0);
                 return unit;
             }
@@ -654,7 +615,7 @@ namespace picongpu
         template<typename T_Type>
         struct MacroWeighted<atomicConfigNumber<T_Type>>
         {
-            // only maro particles have a configNumber
+            // only macro particles have a configNumber
             static bool get()
             {
                 return false;
@@ -663,7 +624,197 @@ namespace picongpu
         template<typename T_Type>
         struct WeightingPower<atomicConfigNumber<T_Type>>
         {
-            // particle ids do not scale with weighting
+            // state ids do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<atomicStateCollectionIndex>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<atomicStateCollectionIndex>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<atomicStateCollectionIndex>
+        {
+            // only macro particles have an atomic state
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<atomicStateCollectionIndex>
+        {
+            // state ids do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<processClass>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<processClass>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<processClass>
+        {
+            // only macro particles have a processClass
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<processClass>
+        {
+            // process classifications do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<transitionIndex>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<transitionIndex>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<transitionIndex>
+        {
+            // only macro particles have a processClass
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<transitionIndex>
+        {
+            // transition indexes do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<binIndex>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<binIndex>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<binIndex>
+        {
+            // only macro particles have a interacting bin
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<binIndex>
+        {
+            // bin indices do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<accepted>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<accepted>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<accepted>
+        {
+            // only macro particles have may accept a atomic physics transition
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<accepted>
+        {
+            // bools do not scale with weighting
             static float_64 get()
             {
                 return 0.0;

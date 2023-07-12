@@ -1,0 +1,71 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software you can redistribute it and or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+//! @file dump all macro particles information to console
+
+#pragma once
+
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
+
+#include <pmacc/particles/algorithm/ForEach.hpp>
+
+#include <cstdint>
+
+namespace picongpu::particles::atomicPhysics2::kernel
+{
+    /** debug kernel
+     *
+     * dump atomicPhysics data of all all macro-ion to console
+     *
+     * @attention only useful in serial and cpu-build!
+     */
+    struct DumpAllIonsToConsoleKernel
+    {
+        /** call operator
+         *
+         * called by DumpAllIonsToConsole atomicPhysics sub-stage
+         *
+         * @param worker object containing the device and block
+         *  information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param particleBox deviceDataBox giving access to the ion species particle frames
+         *   of all local superCells
+         */
+        template<typename T_Worker, typename T_AreaMapping, typename T_IonBox>
+        HDINLINE void operator()(T_Worker const& worker, T_AreaMapping const areaMapping, T_IonBox ionBox) const
+        {
+            pmacc::DataSpace<simDim> const superCellIdx(
+                areaMapping.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+
+            auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
+
+            // end kernel if no particles
+            if(!forEachLocalIonBoxEntry.hasParticles())
+                return;
+
+            // bin electrons
+            forEachLocalIonBoxEntry(
+                [](T_Worker const& worker, auto& ion)
+                { picongpu::particles::atomicPhysics2::debug::printAtomicPhysicsIonToConsole(ion); });
+        }
+    };
+} // namespace picongpu::particles::atomicPhysics2::kernel

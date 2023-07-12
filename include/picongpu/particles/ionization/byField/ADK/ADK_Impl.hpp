@@ -24,7 +24,7 @@
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
+#include "picongpu/particles/atomicPhysics2/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byField/ADK/ADK.def"
 #include "picongpu/particles/ionization/byField/ADK/AlgorithmADK.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"
@@ -216,7 +216,7 @@ namespace picongpu
                     return retValue.newMacroElectrons;
                 }
 
-                /* Functor implementation
+                /** Functor implementation
                  *
                  * Ionization model specific particle creation
                  *
@@ -266,7 +266,7 @@ namespace picongpu
 
                     numberBoundElectrons -= 1._X;
 
-                    picongpu::particles::atomicPhysics::SetChargeState{}(parentIon, numberBoundElectrons);
+                    picongpu::particles::atomicPhysics2::SetChargeState{}(parentIon, numberBoundElectrons);
                 }
             };
 

@@ -689,7 +689,7 @@ Ultimately rendering this code (reformatted for reading):
 
 .. code:: c++
 
-    value_identifier(float_X, MassRatio_species_e,
+    value_identifier_constexpr(float_X, MassRatio_species_e,
                     9.1093837015000008e-31 / SI::BASE_MASS_SI);
     value_identifier(float_X, ChargeRatio_species_e,
                     -1.6021766339999999e-19 / SI::BASE_CHARGE_SI);
@@ -707,7 +707,7 @@ Ultimately rendering this code (reformatted for reading):
                                 ParticleAttributes_species_e>;
 
 
-    value_identifier(float_X, MassRatio_species_helium,
+    value_identifier_constexpr(float_X, MassRatio_species_helium,
                     6.6464736679731602e-27 / SI::BASE_MASS_SI);
     value_identifier(float_X, ChargeRatio_species_helium,
                     3.2043532679999998e-19 / SI::BASE_CHARGE_SI);

@@ -45,7 +45,7 @@ namespace picongpu
              * - massRatio<> is the user defined ratio which is pinned as flag to a species
              */
             template<typename T_Frame>
-            HDINLINE float_X getMass()
+            HDINLINE constexpr float_X getMass()
             {
                 using MassRatioValue = typename pmacc::traits::Resolve<
                     typename pmacc::traits::GetFlagType<T_Frame, massRatio<>>::type>::type;

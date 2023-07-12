@@ -68,6 +68,7 @@ namespace pmacc
             mustShiftVal = value;
         }
 
+        //! get number of particle in the last frame
         HDINLINE uint32_t getSizeLastFrame() const
 #if(ALPAKA_ACC_GPU_HIP_ENABLED && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
             /* ROCm 5.2.0 producing particle loss in KernelShiftParticles if this method is defined as `const`.
@@ -77,6 +78,19 @@ namespace pmacc
 #endif
         {
             constexpr uint32_t frameSize = T_FrameType::frameSize;
+
+            /* NOTE on result expression understanding:
+             * (numParticles % frameSize) =^= how many particle did not fit in a not full frame?
+             *
+             * but we need how many are in the last frame
+             * => (numParticles - 1u) % frameSize + 1u
+             *   only shift by one which is reversed by + 1u
+             *  => will return the same result for numParticles =/= i * frameSize ;i \in N
+             *
+             *  and for ((frameSize * i) - 1u) % frameSize + 1u = (frameSize - 1u) + 1u
+             *  = frameSize; QED
+             */
+            // avoids underflow for uint32_t numParticles = 0u
             return numParticles ? ((numParticles - 1u) % frameSize + 1u) : 0u;
         }
 

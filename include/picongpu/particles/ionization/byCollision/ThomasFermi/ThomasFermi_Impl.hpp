@@ -23,7 +23,7 @@
 
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
-#include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
+#include "picongpu/particles/atomicPhysics2/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
 
@@ -318,7 +318,7 @@ namespace picongpu
 
                     numberBoundElectrons -= 1._X;
 
-                    picongpu::particles::atomicPhysics::SetChargeState{}(parentIon, numberBoundElectrons);
+                    picongpu::particles::atomicPhysics2::SetChargeState{}(parentIon, numberBoundElectrons);
                 }
             };
 

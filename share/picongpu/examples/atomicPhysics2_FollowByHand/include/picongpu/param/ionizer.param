@@ -1,0 +1,240 @@
+/* Copyright 2014-2022 Marco Garten, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * This file contains the proton and neutron numbers of commonly used elements
+ * of the periodic table. The elements here should have a matching list of
+ * ionization energies in @see ionizationEnergies.param. Moreover this file
+ * contains a description of how to configure an ionization model for a species.
+ *
+ * Furthermore there are parameters for specific ionization models to be found
+ * here. That includes lists of screened nuclear charges as seen by bound
+ * electrons for the aforementioned elements as well as fitting parameters of
+ * the Thomas-Fermi ionization model.
+ */
+
+#pragma once
+
+#include "picongpu/particles/ionization/byCollision/collisionalIonizationCalc.def"
+#include "picongpu/particles/ionization/byCollision/ionizers.def"
+#include "picongpu/particles/ionization/byField/fieldIonizationCalc.def"
+#include "picongpu/particles/ionization/byField/ionizers.def"
+
+namespace picongpu
+{
+    /** Ionization Model Configuration
+     *
+     * - None : no particle is ionized
+     * - BSI : simple barrier suppression ionization
+     * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
+     *                   atomic number Z_eff
+     * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
+     *               -> linearly polarized lasers
+     * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
+     *                -> circularly polarized lasers
+     * - Keldysh : Keldysh ionization model
+     * - ThomasFermi : statistical impact ionization based on Thomas-Fermi
+     *                 atomic model
+     *                 Attention: requires 2 FieldTmp slots @see memory.param
+     *
+     * Research and development:
+     * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
+     *                     Stark upshift of ionization potentials
+     *
+     * Usage: Add flags to the list of particle flags that has the following structure
+     *
+     *        ionizers< MakeSeq_t< particles::ionization::IonizationModel< Species2BCreated > > >,
+     *        atomicNumbers< ionization::atomicNumbers::Element_t >,
+     *        effectiveNuclearCharge< ionization::effectiveNuclearCharge::Element_t >,
+     *        ionizationEnergies< ionization::energies::AU::Element_t >
+     */
+    namespace ionization
+    {
+        /*! Specify (chemical) element
+         *
+         * Proton and neutron numbers define the chemical element that the ion species
+         * is based on. This value can be non-integer for physical models taking
+         * charge shielding effects into account.
+         * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
+         *
+         * It is wrapped into a struct because of C++ restricting floats from being
+         * template arguments.
+         *
+         * Do not forget to set the correct mass and charge via
+         * `massRatio<>` and `chargeRatio<>`!
+         */
+        namespace atomicNumbers
+        {
+            /** Ar-40 ~99,6% NA */
+            struct Argon_t
+            {
+                static constexpr float_X numberOfProtons = 18.0;
+                static constexpr float_X numberOfNeutrons = 22.0;
+            };
+
+            /** H-1 99.98% NA */
+            struct Hydrogen_t
+            {
+                static constexpr float_X numberOfProtons = 1.0;
+                static constexpr float_X numberOfNeutrons = 0.0;
+            };
+
+            /** He-4 ~100% NA */
+            struct Helium_t
+            {
+                static constexpr float_X numberOfProtons = 2.0;
+                static constexpr float_X numberOfNeutrons = 2.0;
+            };
+        } // namespace atomicNumbers
+
+        /** Effective Nuclear Charge
+         *
+         * Due to the shielding effect of inner electron shells in an atom / ion
+         * which makes the core charge seem smaller to valence electrons
+         * new, effective, atomic core charge numbers can be defined to make the
+         * crude barrier suppression ionization (BSI) model less inaccurate.
+         *
+         * @see https://en.wikipedia.org/wiki/Effective_nuclear_charge
+         * or refer directly to the calculations by Slater or Clementi and Raimondi
+         *
+         * References:
+         *   Clementi, E.; Raimondi, D. L. (1963)
+         *     "Atomic Screening Constants from SCF Functions"
+         *     J. Chem. Phys. 38 (11): 2686-2689. doi:10.1063/1.1733573
+         *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
+         *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
+         *     Journal of Chemical Physics. 47: 1300-1307. doi:10.1063/1.1712084
+         *
+         * IMPORTANT NOTE:
+         * You have to insert the values in REVERSE order since the lowest shell
+         * corresponds to the last ionization process!
+         */
+        namespace effectiveNuclearCharge
+        {
+            /* Example: argon */
+            PMACC_CONST_VECTOR(
+                float_X,
+                18,
+                Argon,
+                /* 3p^6 */
+                6.764,
+                6.764,
+                6.764,
+                6.764,
+                6.764,
+                6.764,
+                /* 3s^2 */
+                7.757,
+                7.757,
+                /* 2p^6 */
+                14.008,
+                14.008,
+                14.008,
+                14.008,
+                14.008,
+                14.008,
+                /* 2s^2 */
+                12.230,
+                12.230,
+                /* 1s^2 */
+                17.508,
+                17.508);
+
+        } // namespace effectiveNuclearCharge
+    } // namespace ionization
+
+    namespace particles
+    {
+        namespace ionization
+        {
+            namespace thomasFermi
+            {
+                /** Fitting parameters to average ionization degree Z* = 4/3*pi*R_0^3 * n(R_0)
+                 * as an extension towards arbitrary atoms and temperatures
+                 *
+                 * See table IV of
+                 * \url http://www.sciencedirect.com/science/article/pii/S0065219908601451
+                 * doi:10.1016/S0065-2199(08)60145-1
+                 */
+                constexpr float_X TFAlpha = 14.3139;
+                constexpr float_X TFBeta = 0.6624;
+
+                constexpr float_X TFA1 = 3.323e-3;
+                constexpr float_X TFA2 = 9.718e-1;
+                constexpr float_X TFA3 = 9.26148e-5;
+                constexpr float_X TFA4 = 3.10165;
+
+                constexpr float_X TFB0 = -1.7630;
+                constexpr float_X TFB1 = 1.43175;
+                constexpr float_X TFB2 = 0.31546;
+
+                constexpr float_X TFC1 = -0.366667;
+                constexpr float_X TFC2 = 0.983333;
+
+                /** cutoff energy for electron "temperature" calculation
+                 *
+                 * In laser produced plasmas we can have different, well-separable groups
+                 * of electrons. For the Thomas-Fermi ionization model we only want the
+                 * thermalized "bulk" electrons. Including the high-energy "prompt"
+                 * electrons is physically questionable since they do not have a large
+                 * cross section for collisional ionization.
+                 *
+                 * unit: keV
+                 */
+                constexpr float_X CUTOFF_MAX_ENERGY_KEV = 50.0;
+                /** cutoff energy for electron "temperature" calculation in SI units*/
+                constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * UNITCONV_keV_to_Joule;
+
+                /** lower ion density cutoff
+                 *
+                 * The Thomas-Fermi model yields unphysical artifacts for low ion densities.
+                 * Low ion densities imply lower collision frequency and thus less collisional ionization.
+                 * The Thomas-Fermi model yields an increasing charge state for decreasing densities and electron
+                 * temperatures of 10eV and above. This cutoff will be used to set the lower application threshold for
+                 * charge state calculation.
+                 *
+                 * @note This cutoff value should be set in accordance to FLYCHK calculations,
+                 *       for instance! It is not a universal value and requires some preliminary
+                 *       approximations!
+                 *
+                 * unit: 1 / m^3
+                 *
+                 * example: 1.7422e27 as a hydrogen ion number density equal to the corresponding critical electron
+                 * number density for an 800nm laser
+                 *
+                 * The choice of the default is motivated by by the following:
+                 * In laser-driven plasmas all dynamics in density regions below the
+                 * critical electron density will be laser-dominated. Once ions of that density
+                 * are ionized once the laser will not penetrate fully anymore and the as electrons are heated
+                 * the dynamics will be collision-dominated.
+                 */
+                constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27;
+
+                /** lower electron temperature cutoff
+                 *
+                 * The Thomas-Fermi model predicts initial ionization for many materials of
+                 * solid density even when the electron temperature is 0.
+                 */
+                constexpr float_X CUTOFF_LOW_TEMPERATURE_EV = 1.0;
+
+            } // namespace thomasFermi
+        } // namespace ionization
+    } // namespace particles
+} // namespace picongpu

@@ -46,18 +46,22 @@ namespace picongpu
 
         // Electron properties
         /** unit: kg */
-        constexpr float_64 ELECTRON_MASS_SI = 9.109382e-31;
+        constexpr float_64 ELECTRON_MASS_SI = 9.1093837015e-31;
         /** unit: C */
         constexpr float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
 
-        /* atomic unit for energy:
-         * 1 Rydberg = 27.21 eV --> converted to Joule
+        /** atomic unit for energy:
+         * 2 Rydberg = 27.21 eV --> converted to Joule
          */
         constexpr float_64 ATOMIC_UNIT_ENERGY = 4.36e-18;
 
+        /** Rydberg energy, see https://en.wikipedia.org/wiki/Rydberg_constant, unit: eV
+         */
+        constexpr float_X RYDBERG_ENERGY = 13.605693122994_X; // eV
+
         /** bohr radius, unit: m
          */
-        constexpr float_64 BOHR_RADIUS = 5.292e-7;
+        constexpr float_64 BOHR_RADIUS = 5.29177210903e-11;
 
         /* atomic unit for electric field in V/m:
          * field strength between electron and core in ground state hydrogen
@@ -114,7 +118,7 @@ namespace picongpu
     //   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI * UNITCONV_keV_to_Joule /
     //   UNIT_ENERGY) // unit: none
     //
-    constexpr float_64 UNITCONV_keV_to_Joule = 1.60217646e-16;
+    constexpr float_64 UNITCONV_keV_to_Joule = 1.602176634e-16;
     constexpr float_64 UNITCONV_eV_to_Joule = UNITCONV_keV_to_Joule * 1e-3;
     constexpr float_64 UNITCONV_Joule_to_keV = (1.0 / UNITCONV_keV_to_Joule);
 
@@ -122,5 +126,4 @@ namespace picongpu
      * which is twice the ground state binding energy of atomic hydrogen */
     constexpr float_64 UNITCONV_AU_to_eV = 27.21139;
     constexpr float_64 UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
-
 } // namespace picongpu

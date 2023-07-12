@@ -58,7 +58,7 @@ namespace picongpu
     /* thermal bulk electrons: 10, 100, 1000 eV */
 
     /* ratio relative to BASE_CHARGE and BASE_MASS */
-    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier_constexpr(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
     /* ratio relative to BASE_DENSITY
@@ -83,7 +83,7 @@ namespace picongpu
     /*--------------------------- ions Argon ------------------------------------*/
 
     /* ratio relative to BASE_CHARGE and BASE_MASS */
-    value_identifier(float_X, MassRatioArgon, 40 * 1836.152672);
+    value_identifier_constexpr(float_X, MassRatioArgon, 40 * 1836.152672);
     value_identifier(float_X, ChargeRatioArgon, -18.0);
 
     /* ratio relative to BASE_DENSITY */

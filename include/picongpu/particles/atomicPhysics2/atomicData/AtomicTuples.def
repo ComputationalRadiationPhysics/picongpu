@@ -1,0 +1,102 @@
+/* Copyright 2022-2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+//! @file gathers all definitions of tuples for atomicPhysics
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+#include <string>
+
+namespace picongpu::particles::atomicPhysics2::atomicData
+{
+    template<typename T_Value>
+    using ChargeStateTuple = std::tuple<
+        uint8_t, // charge state
+        T_Value, // ionization energy[eV]
+        T_Value>; // screened charge[e]
+
+    template<typename T_Value, typename T_Idx>
+    using AtomicStateTuple = std::tuple<
+        T_Idx, // configNumber
+        T_Value>; // energy over ground [eV]
+
+    template<typename T_Idx>
+    using PressureIonizationStateTuple = std::tuple<
+        T_Idx, // state configNumber
+        T_Idx>; // pressure ionization state configNumber
+
+    template<typename T_Value, typename T_Idx>
+    using BoundBoundTransitionTuple = std::tuple<
+        T_Value, // collisional oscillator strength, #0
+        T_Value, // absorption oscillator strength , #1
+        T_Value, // cxin1 gaunt tunnel coefficient , #2
+        T_Value, // cxin2                          , #3
+        T_Value, // cxin3                          , #4
+        T_Value, // cxin4                          , #5
+        T_Value, // cxin5                          , #6
+        T_Idx, // lowerState configNumber, #7
+        T_Idx>; // upperState configNumber, #8
+
+    template<typename T_Value, typename T_Idx>
+    using BoundFreeTransitionTuple = std::tuple<
+        T_Value, // cxin1 cross section parameter, #0
+        T_Value, // cxin2                        , #1
+        T_Value, // cxin3                        , #2
+        T_Value, // cxin4                        , #3
+        T_Value, // cxin5                        , #4
+        T_Value, // cxin6                        , #5
+        T_Value, // cxin7                        , #6
+        T_Value, // cxin8                        , #7
+        T_Idx, // lowerState configNumber      , #8
+        T_Idx>; // upperState configNumber      , #9
+
+    template<typename T_Idx>
+    using AutonomousTransitionTuple = std::tuple<
+        float_64, // rate [1/s]             , #0
+        T_Idx, // lowerState configNumber, #1
+        T_Idx>; // upperState configNumber, #2
+
+    //! helper function giving back transition type name
+    template<typename T_TransitionTuple>
+    HINLINE std::string getStringTransitionType()
+    {
+        throw std::runtime_error("not implemented!");
+    }
+
+    template<>
+    HINLINE std::string getStringTransitionType<BoundBoundTransitionTuple<float_X, uint64_t>>()
+    {
+        return "bound-bound";
+    }
+
+    template<>
+    HINLINE std::string getStringTransitionType<BoundFreeTransitionTuple<float_X, uint64_t>>()
+    {
+        return "bound-free";
+    }
+
+    template<>
+    HINLINE std::string getStringTransitionType<AutonomousTransitionTuple<uint64_t>>()
+    {
+        return "autonomous";
+    }
+} // namespace picongpu::particles::atomicPhysics2::atomicData

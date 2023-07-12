@@ -1,0 +1,220 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+// need unit.param, UNIT_LENGTH for normalisation
+
+#include "picongpu/particles/atomicPhysics2/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics2/electronDistribution/CachedHistogram.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/rateCalculation/BoundFreeTransitionRates.hpp"
+
+#include <pmacc/algorithms/math/PowerFunction.hpp>
+#include <pmacc/lockstep/ForEach.hpp>
+#include <pmacc/static_assert.hpp>
+
+#include <cstdint>
+
+namespace picongpu::particles::atomicPhysics2::kernel
+{
+    namespace s_enums = picongpu::particles::atomicPhysics2::enums;
+
+    /** fill rate cache kernel
+     *
+     * add for all atomic states and all bins the rate of each upward bound-free
+     *  transition to the rate cache slot of the atomic state.
+     *
+     * called by fillRateCache atomicPhysics sub-stage
+     *
+     * @todo implement recombination, Brian Marre, 2023
+     *
+     * @attention assumes that the rate cache has been reset to 0 before first
+     *  fillLocalRateChacheKernel call this atomicPhysics step
+     *
+     * @tparam T_IPDModel ionization potential depression model to use
+     *
+     * @tparam T_numberLevels maximum principal quantum number of atomic states of ion species
+     * @tparam T_numberAtomicStates number of atomic states in atomic data data base
+     * @tparam T_numberBins number of regular bins in histogram
+     *
+     * @tparam electronicIonization is channel active?
+     * @tparam T_TransitionOrdering ordering of assumed for transition DataBox
+     */
+    template<
+        typename T_IPDModel,
+        uint8_t T_numberLevels,
+        uint32_t T_numberAtomicStates,
+        uint32_t T_numberBins,
+        bool T_electronicIonization,
+        s_enums::TransitionOrdering T_TransitionOrdering>
+    struct FillLocalRateCacheKernel_BoundFree
+    {
+        /** call operator
+         *
+         * called by FillLocalRateCache atomic physics sub-stage
+         *
+         * @param worker object containing the device and block information, passed by PMACC_KERNEL call
+         * @param areaMapping mapping of blockIndex to block superCell index
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super
+         * cells
+         * @param localRateCacheBox deviceDataBox giving access to the local rate cache of
+         *  all local superCells
+         * @param localElectronHistogramDataBox giving access to the local electron histograms
+         *  of all local superCells
+         * @param chargeStateDataDataBox deviceDataBox giving access to charge state property data
+         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
+         * @param startIndexDataBox deviceDataBox giving access to the start index of each atomic states'
+         *  block of transitions in the up-/down-ward bound-bound transition collection
+         * @param numberTransitionsDataBox deviceDataBox giving access to the number of transitions
+         *   of each atomic state up- and down-ward
+         * @param boundFreeTransitionDataBox deviceDataBox giving access to bound-free transition property data
+         * @param ipdInput deviceDataBoxes giving access to ionization potential depression input for each superCell
+         *
+         * @todo implement recombination, Brian Marre, 2023
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalRateCacheBox,
+            typename T_LocalElectronHistogramDataBox,
+            typename T_ChargeStateDataDataBox,
+            typename T_AtomicStateDataDataBox,
+            typename T_AtomicStateStartIndexBox,
+            typename T_AtomicStateNumberTransitionsBox,
+            typename T_BoundFreeTransitionDataBox,
+            typename... T_IPDInput>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_LocalRateCacheBox localRateCacheBox,
+            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
+            T_ChargeStateDataDataBox const chargeStateDataDataBox,
+            T_AtomicStateDataDataBox const atomicStateDataDataBox,
+            T_AtomicStateStartIndexBox const startIndexDataBox,
+            T_AtomicStateNumberTransitionsBox const numberTransitionsDataBox,
+            T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox,
+            T_IPDInput... ipdInput) const
+        {
+            // check that correct databoxes are given
+            PMACC_CASSERT_MSG(
+                number_transitions_dataBox_not_bound_free_based,
+                u8(T_AtomicStateNumberTransitionsBox::processClassGroup)
+                    == u8(s_enums::ProcessClassGroup::boundFreeBased));
+            PMACC_CASSERT_MSG(
+                startIndex_dataBox_not_bound_free_based,
+                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
+            PMACC_CASSERT_MSG(
+                transition_dataBox_not_boud_free_based,
+                u8(T_BoundFreeTransitionDataBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
+            // check ordering of transition dataBox
+            PMACC_CASSERT_MSG(
+                wrong_ordering_of_DataBox,
+                u8(T_BoundFreeTransitionDataBox::transitionOrdering) == u8(T_TransitionOrdering));
+
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = areaMapping.getSuperCellIndex(device::getBlockIdx(worker.getAcc()))
+                - areaMapping.getGuardingSuperCells();
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
+
+            auto forEachAtomicStateAndBin
+                = pmacc::lockstep::makeForEach<T_numberAtomicStates * T_numberBins, T_Worker>(worker);
+
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
+
+            // UNIT_LENGTH^3
+            constexpr float_X volumeScalingFactor
+                = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+
+            PMACC_SMEM(worker, cachedHistogram, CachedHistogram<T_numberBins>);
+            cachedHistogram.fill(worker, histogram, volumeScalingFactor);
+
+            float_X const ionizationPotentialDepression
+                = T_IPDModel::template calculateIPD<T_ChargeStateDataDataBox::atomicNumber>(
+                    superCellFieldIdx,
+                    ipdInput...);
+
+            forEachAtomicStateAndBin(
+                [&worker,
+                 &rateCache,
+                 &cachedHistogram,
+                 &chargeStateDataDataBox,
+                 &atomicStateDataDataBox,
+                 &startIndexDataBox,
+                 &numberTransitionsDataBox,
+                 &boundFreeTransitionDataBox,
+                 &ionizationPotentialDepression](uint32_t const linearIdx)
+                {
+                    uint32_t const binIndex = linearIdx / T_numberAtomicStates;
+                    uint32_t const atomicStateCollectionIndex = linearIdx % T_numberAtomicStates;
+
+                    // check if atomic state present at all
+                    if(!rateCache.present(atomicStateCollectionIndex))
+                        return;
+
+                    uint32_t const numberTransitionsUp
+                        = numberTransitionsDataBox.numberOfTransitionsUp(atomicStateCollectionIndex);
+
+                    uint32_t offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
+
+                    [[maybe_unused]] auto const energy = cachedHistogram.energy[binIndex];
+                    [[maybe_unused]] auto const binWidth = cachedHistogram.binWidth[binIndex];
+                    [[maybe_unused]] auto const density = cachedHistogram.density[binIndex];
+
+                    for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitionsUp;
+                        ++transitionID)
+                    {
+                        if constexpr(T_electronicIonization)
+                        {
+                            rateCache.template add<T_Worker, s_enums::TransitionDataSet::boundFreeUpward>(
+                                worker,
+                                atomicStateCollectionIndex,
+                                picongpu::particles::atomicPhysics2::rateCalculation::BoundFreeTransitionRates<
+                                    T_numberLevels>::
+                                    template rateCollisionalIonizationTransition<
+                                        T_ChargeStateDataDataBox,
+                                        T_AtomicStateDataDataBox,
+                                        T_BoundFreeTransitionDataBox>(
+                                        energy,
+                                        binWidth,
+                                        density,
+                                        ionizationPotentialDepression,
+                                        // transitionCollectionIndex
+                                        offset + transitionID,
+                                        chargeStateDataDataBox,
+                                        atomicStateDataDataBox,
+                                        boundFreeTransitionDataBox));
+                        }
+                    }
+                });
+        }
+    };
+} // namespace picongpu::particles::atomicPhysics2::kernel

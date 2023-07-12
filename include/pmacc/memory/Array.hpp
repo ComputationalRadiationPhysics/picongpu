@@ -117,7 +117,7 @@ namespace pmacc
              *
              * std::array is a so-called "aggregate" which does not default-initialize
              * its members. In order to allow arbitrary types to skip implementing
-             * a default constructur, this member is not stored as
+             * a default constructor, this member is not stored as
              * `value_type m_data[ T_size ]` but as type-size aligned Byte type.
              */
             uint8_t m_data alignas(alignof(T_Type))[T_size * sizeof(T_Type)];

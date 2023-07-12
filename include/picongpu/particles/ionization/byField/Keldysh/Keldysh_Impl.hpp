@@ -24,7 +24,7 @@
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
+#include "picongpu/particles/atomicPhysics2/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
 #include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
@@ -266,7 +266,7 @@ namespace picongpu
 
                     numberBoundElectrons -= 1._X;
 
-                    picongpu::particles::atomicPhysics::SetChargeState{}(parentIon, numberBoundElectrons);
+                    picongpu::particles::atomicPhysics2::SetChargeState{}(parentIon, numberBoundElectrons);
                 }
             };
 

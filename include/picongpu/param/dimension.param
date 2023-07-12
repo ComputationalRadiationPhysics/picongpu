@@ -31,5 +31,8 @@
 
 namespace picongpu
 {
+    /** @attention if simDim = DIM2 and using atomicPhysics, CELL_DEPTH must be set to system size integrated over in
+     *  conversion of 3d density to 2d density!
+     */
     constexpr uint32_t simDim = SIMDIM;
 } // namespace picongpu

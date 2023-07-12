@@ -58,7 +58,11 @@ namespace picongpu
          *  unit: meter */
         constexpr float_64 CELL_HEIGHT_SI = 0.4430e-7;
         /** equals Z
-         *  unit: meter */
+         *  unit: meter
+         *
+         * @attention if SIMDIM = DIM2 and using atomicPhysics, must be set to system size integrated over in
+         * projection!
+         */
         constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
 
     } // namespace SI
