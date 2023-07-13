@@ -27,7 +27,7 @@ namespace picongpu::particles::atomicPhysics2
     {
         /** probability for transition with initial and final atomic state the same
          *
-         * @param rate rate R_ii of transition, with convention R_ii < 0, [1/UNIT_TIME]
+         * @param rate rate R_ji of transition, with convention R_ji > 0, [1/UNIT_TIME]
          * @param timeStep time step length of the current atomic physics step(may be != PIC-time step),
          *  [UNIT_TIME]
          */

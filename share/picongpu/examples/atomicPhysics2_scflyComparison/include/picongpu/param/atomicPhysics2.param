@@ -39,7 +39,7 @@ namespace picongpu::atomicPhysics2
     struct MaxEnergyParam
     {
         // eV
-        static constexpr float_X maxEnergy = float_X(1e7);
+        static constexpr float_X maxEnergy = float_X(1e4);
     };
     using ElectronHistogram = particles::atomicPhysics2::electronDistribution::LogSpaceHistogram<
         100u, // T_numberBins

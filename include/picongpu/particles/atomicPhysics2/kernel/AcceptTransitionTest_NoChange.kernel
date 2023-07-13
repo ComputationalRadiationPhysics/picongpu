@@ -117,11 +117,18 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     float_X const rate = rateCache.rate(atomicStateCollectionIndex);
 
                     // unitless
-                    float_X const probability = T_AcceptanceFunctor::probabilityNoChange(rate, timeStep);
+                    float_X const probability = T_AcceptanceFunctor::probabilityNoChange(
+                        static_cast<float_64>(rate), static_cast<float_64>(timeStep));
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)
-                        printf("no-change %.8e\n", probability);
+                        printf("[no-change] rate %.8e probability %.8e\n", rate, probability);
+
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::CHECK_RATE_LIMIT)
+                    {
+                        if (probability > 1._X)
+                            printf("atomicPhysics ERROR: too high rate");
+                    }
 
                     // try to accept
                     if(probability >= rngGenerator())

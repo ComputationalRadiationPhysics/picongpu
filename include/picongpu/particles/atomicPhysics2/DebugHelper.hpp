@@ -55,7 +55,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             std::cout << "(" << centralEnergy - binWidth / 2._X << ", " << centralEnergy + binWidth / 2._X << "] :";
 
             // bin data, [w0, DeltaW, DeltaEnergy, binOverSubscribed]
-            std::cout << " [w0, Dw, DE, o?]: [";
+            std::cout << " [w0, Dw, DE]: [";
             std::cout << histogram.getBinWeight0(i) << ", ";
             std::cout << histogram.getBinDeltaWeight(i) << ", ";
             std::cout << histogram.getBinDeltaEnergy(i) << "]";

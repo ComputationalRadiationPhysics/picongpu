@@ -156,12 +156,24 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             atomicStateDataDataBox,
                             boundFreeTransitionDataBox);
 
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::CHECK_RATE_LIMIT)
+                    {
+                        if (rate * timeStep > 1._X)
+                            printf("atomicPhysics ERROR: too high rate");
+                    }
+
                     // unitless
-                    float_X const probability = T_AcceptanceFunctor::probabilityChange(rate, timeStep);
+                    float_X const probability = T_AcceptanceFunctor::probabilityChange(
+                        static_cast<float_64>(rate), static_cast<float_64>(timeStep));
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)
-                        printf("energy: %.8f electronic ionization %.8e\n", energy, probability);
+                            printf("[electronic Ionization]   transition %u \t enoughEnergy %5s densityElectron!=0 %5s rate %.8e probability %.8e\n",
+                                ion[transitionIndex_],
+                                ((energy > DeltaEnergyTransition::get(ion[transitionIndex_], atomicStateDataDataBox, boundFreeTransitionDataBox,  chargeStateDataDataBox)) ? "true" : "false"),
+                                ((density != 0._X) ? "true" : "false"),
+                                rate,
+                                probability);
 
                     // try to accept
                     if(probability >= rngGenerator())

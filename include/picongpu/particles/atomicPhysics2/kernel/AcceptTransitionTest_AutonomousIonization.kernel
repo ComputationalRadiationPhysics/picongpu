@@ -118,7 +118,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             ion[transitionIndex_],
                             autonomousTransitionDataBox);
 
-                    float_X const probability = T_AcceptanceFunctor::probabilityChange(rate, timeStep);
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::CHECK_RATE_LIMIT)
+                    {
+                        if (rate * timeStep > 1._X)
+                            printf("atomicPhysics ERROR: too high rate");
+                    }
+
+                    float_X const probability = T_AcceptanceFunctor::probabilityChange(
+                        static_cast<float_64>(rate), static_cast<float_64>(timeStep));
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)

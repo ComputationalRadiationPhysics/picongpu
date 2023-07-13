@@ -36,7 +36,7 @@ namespace picongpu::atomicPhysics2::debug
         //! range check in store calls to individual data boxes, only once upon initial loading of atomic input data
         constexpr bool RANGE_CHECKS_IN_DATA_LOAD = true;
         //! @attention will not catch members missing from hostToDevice() method,
-        constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = false;
+        constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = true;
     } // namespace  atomicData
 
 
