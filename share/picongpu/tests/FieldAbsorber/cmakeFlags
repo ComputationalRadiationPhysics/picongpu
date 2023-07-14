@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+#
+# Copyright 2013-2023 Axel Huebl, Rene Widera, Richard Pausch, Sergei Bastrakov
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+#
+# generic compile options
+#
+
+################################################################################
+# add presets here
+#   - default: index 0
+#   - start with zero index
+#   - increase by 1, no gaps
+
+# Compile test for standard Yee solver in 3D and setup for runtime field absorber test
+flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+# Setup for reference simulation of runtime field absorber test
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_GRID_SIZE=660'"
+
+# Compile test for standard Yee solver compiles in 2D
+flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+# Compile test for arbitrary-order solver in 3D and 2D
+flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=ArbitraryOrderFDTD<4>;-DPARAM_CFLFACTOR=1.29;-DPARAM_ABSORBER_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+flags[4]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=ArbitraryOrderFDTD<4>;-DPARAM_CFLFACTOR=1.29;-DPARAM_ABSORBER_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+
+# The following tests are for absorber performance and demonstration of
+# reasonable parameters, commented out to make compile-time tests faster
+
+# Exponential damping in 3D, default strength
+#flags[5]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=12'"
+#flags[6]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=16'"
+#flags[7]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=24'"
+#flags[8]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=32'"
+
+# Exponential damping in 2D, default strength
+#flags[9]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=12;-DPARAM_DIMENSION=DIM2'"
+#flags[10]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=16;-DPARAM_DIMENSION=DIM2'"
+#flags[11]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=24;-DPARAM_DIMENSION=DIM2'"
+#flags[12]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_ABSORBER_SIZE=32;-DPARAM_DIMENSION=DIM2'"
+
+# Convolutional PML in 3D, default strength, no stretching
+#flags[13]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=6;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+#flags[14]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+#flags[15]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=12;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+#flags[16]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+
+# Convolutional PML in 3D, default strength, stretching
+#flags[17]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+#flags[18]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+
+# Convolutional PML in 2D, default strength, no stretching
+#flags[19]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=6;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+#flags[20]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+#flags[21]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=12;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+#flags[22]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+
+# Convolutional PML in 2D, default strength, stretching
+#flags[23]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+#flags[24]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+
+# Uniaxial PML in 3D, default strength, no stretching
+#flags[25]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.0'"
+#flags[26]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.0'"
+
+# Uniaxial PML in 3D, default strength, stretching
+#flags[27]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.0'"
+#flags[28]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.0'"
+
+# Uniaxial PML in 2D, default strength, no stretching
+#flags[29]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.0;-DPARAM_DIMENSION=DIM2'"
+#flags[30]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.0;-DPARAM_DIMENSION=DIM2'"
+
+# Uniaxial PML in 2D, default strength, stretching
+#flags[31]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.0;-DPARAM_DIMENSION=DIM2'"
+#flags[32]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=16;-DPARAM_PML_KAPPA_MAX=10.0;-DPARAM_PML_ALPHA_MAX=0.0;-DPARAM_DIMENSION=DIM2'"
+
+
+################################################################################
+# execution
+
+case "$1" in
+    -l)  echo ${#flags[@]}
+         ;;
+    -ll) for f in "${flags[@]}"; do echo $f; done
+         ;;
+    *)   echo -n ${flags[$1]}
+         ;;
+esac
