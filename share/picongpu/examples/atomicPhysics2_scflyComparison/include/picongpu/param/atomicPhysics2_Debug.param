@@ -17,7 +17,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file configurations for compile time debug options of atomicPhysics
+/** @file
+ * configurations for compile time debug options of atomicPhysics
  *
  *
  * needs to be a separate file to avoid circular imports in
@@ -30,13 +31,13 @@ namespace picongpu::atomicPhysics2::debug
 {
     namespace atomicData
     {
-        constexpr bool PRINT_TO_CONSOLE = true;
+        constexpr bool PRINT_TO_CONSOLE = false;
         //! @attention performance relevant, uncaught error will lead to invalid memory access
         constexpr bool RANGE_CHECKS_IN_DATA_QUERIES = true;
         //! range check in store calls to individual data boxes, only once upon initial loading of atomic input data
         constexpr bool RANGE_CHECKS_IN_DATA_LOAD = true;
         //! @attention will not catch members missing from hostToDevice() method,
-        constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = true;
+        constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = false;
     } // namespace  atomicData
 
 
@@ -47,7 +48,7 @@ namespace picongpu::atomicPhysics2::debug
         //! @attention performance relevant, uncaught error will lead to invalid memory access
         constexpr bool RANGE_CHECKS_ENERGY = true;
         //! @attention only useful if building serial and cpu-only
-        constexpr bool PRINT_TO_CONSOLE = true;
+        constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace electronHistogram
 
 
@@ -55,7 +56,7 @@ namespace picongpu::atomicPhysics2::debug
     {
         //! @attention performance relevant
         constexpr bool DEBUG_CHECKS = true;
-        constexpr bool RUN_UNIT_TESTS = true;
+        constexpr bool RUN_UNIT_TESTS = false;
     } // namespace rateCalculation
 
 
@@ -70,6 +71,7 @@ namespace picongpu::atomicPhysics2::debug
     {
         //! range checks in rate cache, @attention performance relevant
         constexpr bool COLLECTION_INDEX_RANGE_CHECKS = true;
+
         //! @attention only useful if building serial and cpu-only
         constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace rateCache
@@ -98,13 +100,10 @@ namespace picongpu::atomicPhysics2::debug
         //! fixed temperature setting
         struct TemperatureParam
         {
-            /** Initial temperature
-             *  unit: keV
-             */
+            //! Initial temperature, [keV]
             static constexpr float_64 temperature = 1.;
         };
     } // namespace scFlyComparison
-
 
     namespace kernel::calculateTimeStep
     {
@@ -112,25 +111,25 @@ namespace picongpu::atomicPhysics2::debug
         constexpr bool CHECK_ALL_RATE_CACHE_ENTRIES_NEGATIVE = true;
     } // namespace kernel::calculateTimeStep
 
-
     namespace kernel::extractTransition
     {
         //! @attention performance relevant
         constexpr bool CHECK_FOR_INVALID_PROCESS_ID = true;
     } // namespace kernel::extractTransition
 
-
     namespace kernel::acceptanceTest
     {
         //! @attention only viable serial and cpu only compile
-        constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = true;
+        constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = false;
+
+        //! @attention performance relevant
+        constexpr bool CHECK_RATE_LIMIT = true;
 
         //! @attention only viable serial and cpu only compile
-        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = true;
+        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
         //! @attention only viable serial and cpu only compile
         constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = false;
     } // namespace kernel::acceptanceTest
-
 
     namespace kernel::spawnIonizationElectrons
     {

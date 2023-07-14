@@ -147,6 +147,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     uint32_t const binIndex = linearIdx / T_numberAtomicStates;
                     uint32_t const atomicStateCollectionIndex = linearIdx % T_numberAtomicStates;
 
+                    // check if atomic state present at all
+                    if(!rateCache.present(atomicStateCollectionIndex))
+                        return;
+
                     uint32_t numberTransitions;
                     if constexpr(upward)
                         numberTransitions = numberTransitionsDataBox.numberOfTransitionsUp(atomicStateCollectionIndex);
@@ -206,6 +210,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                      &numberTransitionsDataBox,
                      &boundBoundTransitionDataBox](uint32_t const atomicStateCollectionIndex)
                     {
+                        // check if atomic state present at all
+                        if(!rateCache.present(atomicStateCollectionIndex))
+                            return;
+
                         uint32_t const numberTransitions
                             = numberTransitionsDataBox.numberOfTransitionsDown(atomicStateCollectionIndex);
                         uint32_t const offset

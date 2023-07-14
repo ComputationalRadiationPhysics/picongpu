@@ -32,6 +32,7 @@
 #include "picongpu/particles/atomicPhysics2/stage/CalculateStepLength.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CheckForAcceptance.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CheckForOverSubscription.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/CheckPresence.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ChooseTransition.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DumpAllIonsToConsole.hpp"
@@ -153,6 +154,9 @@ namespace picongpu::simulation::stage
             //! fill rate cache with diagonal elements of rate matrix
             using ForEachIonSpeciesFillLocalRateCache = pmacc::meta::
                 ForEach<SpeciesRepresentingIons, particles::atomicPhysics2::stage::FillLocalRateCache<boost::mpl::_1>>;
+            //! check which atomic states are actually present in each superCell
+            using ForEachIonSpeciesCheckPresenceOfAtomicStates = pmacc::meta::
+                ForEach<SpeciesRepresentingIons, particles::atomicPhysics2::stage::CheckPresence<boost::mpl::_1>>;
             //! calculate local atomicPhysics time step length
             using ForEachIonSpeciesCalculateStepLength = pmacc::meta::ForEach<
                 SpeciesRepresentingIons,
@@ -243,6 +247,7 @@ namespace picongpu::simulation::stage
                 // timeStep = localTimeRemaining
 
                 picongpu::particles::atomicPhysics2::stage::ResetLocalTimeStepField()(mappingDesc);
+                ForEachIonSpeciesCheckPresenceOfAtomicStates{}(mappingDesc);
                 ForEachIonSpeciesResetLocalRateCache{}();
                 // R_ii = -(sum of rates of all transitions from state i)
                 ForEachIonSpeciesFillLocalRateCache{}(mappingDesc);

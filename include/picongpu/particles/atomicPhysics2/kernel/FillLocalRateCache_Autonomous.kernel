@@ -119,6 +119,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     [&worker, &rateCache, &startIndexDataBox, &numberTransitionsDataBox, &autonomousTransitionDataBox](
                         uint32_t const atomicStateCollectionIndex)
                     {
+                        // check if atomic state present at all
+                        if(!rateCache.present(atomicStateCollectionIndex))
+                            return;
+
                         uint32_t const numberTransitionsDown
                             = numberTransitionsDataBox.numberOfTransitionsDown(atomicStateCollectionIndex);
 

@@ -35,6 +35,7 @@ namespace picongpu::particles::atomicPhysics2::stage
     /** @class atomic physics sub-stage for finding atomic physics step length
      *
      * @attention assumes localTimeStepField to have been reset before
+     * @attention assumes localRateCacheField to have been filled before
      *
      * @tparam T_IonSpecies ion species type
      */

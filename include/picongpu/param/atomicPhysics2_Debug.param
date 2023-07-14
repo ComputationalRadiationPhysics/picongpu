@@ -104,35 +104,35 @@ namespace picongpu::atomicPhysics2::debug
     } // namespace scFlyComparison
 
 
-    namespace kernel
+    namespace kernel::calculateTimeStep
     {
-        namespace calculateTimeStep
-        {
-            //! @attention performance relevant
-            constexpr bool CHECK_ALL_RATE_CACHE_ENTRIES_NEGATIVE = false;
-        } // namespace calculateTimeStep
+        //! @attention performance relevant
+        constexpr bool CHECK_ALL_RATE_CACHE_ENTRIES_NEGATIVE = false;
+    } // namespace kernel::calculateTimeStep
 
-        namespace extractTransition
-        {
-            //! @attention performance relevant
-            constexpr bool CHECK_FOR_INVALID_PROCESS_ID = false;
-        } // namespace extractTransition
+    namespace kernel::extractTransition
+    {
+        //! @attention performance relevant
+        constexpr bool CHECK_FOR_INVALID_PROCESS_ID = false;
+    } // namespace kernel::extractTransition
 
-        namespace acceptanceTest
-        {
-            //! @attention only viable serial and cpu only compile
-            constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = false;
+    namespace kernel::acceptanceTest
+    {
+        //! @attention only viable serial and cpu only compile
+        constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = false;
 
-            //! @attention only viable serial and cpu only compile
-            constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
-            //! @attention only viable serial and cpu only compile
-            constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = false;
-        } // namespace acceptanceTest
+        //! @attention performance relevant
+        constexpr bool CHECK_RATE_LIMIT = true;
 
-        namespace spawnIonizationElectrons
-        {
-            //! @attention performance relevant
-            constexpr bool ELECTRON_PARTICLE_BOX_FILL_GAPS = false;
-        } // namespace spawnIonizationElectrons
-    } // namespace kernel
+        //! @attention only viable serial and cpu only compile
+        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
+        //! @attention only viable serial and cpu only compile
+        constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = false;
+    } // namespace kernel::acceptanceTest
+
+    namespace kernel::spawnIonizationElectrons
+    {
+        //! @attention performance relevant
+        constexpr bool ELECTRON_PARTICLE_BOX_FILL_GAPS = false;
+    } // namespace kernel::spawnIonizationElectrons
 } // namespace picongpu::atomicPhysics2::debug

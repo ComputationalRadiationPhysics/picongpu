@@ -17,9 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file implements kernel randomly rolling a transition for macro particles
-
 #pragma once
+
+#include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -27,69 +27,54 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
-    //! @tparam T_ConfigNumber type of configNumber used for storage of atomic state by species
     template<typename T_ConfigNumber>
-    struct ChooseTransitionKernel
+    struct CheckPresenceKernel
     {
         /** call operator
          *
-         * called by ChooseTransition atomic physics sub-stage
+         * called by checkPresence atomic physics sub-stage
          *
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call
          * @param areMapping mapping of blockIndex to block superCell index
-         * @param rngFactory factory for uniformly distributed random number generator
          * @param ionBox deviceDataBox giving access to all ion frames of a species of all local
          *  superCells
-         * @param chargeStateOrgaBox deviceDataBox giving access to charge state orga data
-         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
-         * @param transitionSelectionDataBox deviceDataBox giving access to the number of
-         *  physical transitions for each atomic state
+         * @param localTimeStepBox deviceDataBox giving access to superCell local rateCaches
+         *  of all local superCells
+         *
+         * @todo refactor for storing atomic state collection index, Brian Marre, 2023
          */
         template<
             typename T_Worker,
             typename T_AreaMapping,
             typename T_IonBox,
-            typename T_RngGeneratorFactoryInt,
+            typename T_LocalRateCache,
             typename T_ChargeStateOrgaDataBox,
-            typename T_AtomicStateDataDataBox,
-            typename T_TransitionSelectionDataBox>
+            typename T_AtomicStateDataDataBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_RngGeneratorFactoryInt rngFactory, /// const?, @todo Brian Marre, 2023
-            T_IonBox ionBox,
+            T_IonBox const ionBox,
+            T_LocalRateCache localRateCacheBox,
             T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
-            T_AtomicStateDataDataBox const atomicStateDataDataBox,
-            T_TransitionSelectionDataBox const transitionSelectionDataBox) const
+            T_AtomicStateDataDataBox const atomicStateDataDataBox) const
         {
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
-
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
-
-            // Offset without guards for random numbers
-            auto const superCellLocalOffset = superCellIdx - areaMapping.getGuardingSuperCells();
 
             // end kernel if no ions
             if(!forEachLocalIonBoxEntry.hasParticles())
                 return;
 
-            // choose transition randomly,
-            //  (processClass / transitionCollectionIndex / binIndex) are
-            //  (extracted / extracted / randomly rolled) later by the deduce transitionKernel
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
+                - areaMapping.getGuardingSuperCells();
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+
             forEachLocalIonBoxEntry(
-                [&superCellLocalOffset,
-                 &rngFactory,
-                 &atomicStateDataDataBox,
-                 &chargeStateOrgaBox,
-                 &transitionSelectionDataBox](T_Worker const& worker, auto& ion)
+                [&rateCache, &chargeStateOrgaBox, &atomicStateDataDataBox](T_Worker const& worker, auto& ion)
                 {
-                    if(ion[accepted_])
-                        return;
-
-                    auto rngGenerator = rngFactory(worker, superCellLocalOffset);
-
                     typename T_ConfigNumber::DataType const atomicStateConfigNumber
                         = ion[atomicConfigNumber_].getConfigNumber();
 
@@ -100,8 +85,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         chargeStateOrgaBox.numberAtomicStates(chargeState),
                         chargeStateOrgaBox.startIndexBlockAtomicStates(chargeState));
 
-                    ion[transitionIndex_]
-                        = rngGenerator() % transitionSelectionDataBox.numberTransitions(atomicStateCollectionIndex);
+                    rateCache.setPresent(worker, atomicStateCollectionIndex, true);
                 });
         }
     };

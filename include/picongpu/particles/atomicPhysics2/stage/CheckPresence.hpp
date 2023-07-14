@@ -17,41 +17,38 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file chooseTransition sub-stage of atomicPhysics
+/** @file checkForPresence sub-stage of atomicPhysics
  *
- * randomly decide on one known transition for each macro-ion from it's current atomic state
+ * record all atomic states present in a superCell as present in the local rate Cache
  */
 
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/kernel/ChooseTransition.kernel"
+#include "picongpu/particles/atomicPhysics2/kernel/CheckPresence.kernel"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
-
-/// @todo find reference to pmacc RNGfactories files, Brian Marre, 2023
 
 #include <cstdint>
 #include <string>
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    /** atomic physics sub-stage for choosing one known transition for each macro-ion
+    /** atomic physics sub-stage for recording all atomic states actually present in each superCell
      *
      * @tparam T_IonSpecies ion species type
+     *
+     * @attention assumes localRateCacheField to have been reset before
      */
     template<typename T_IonSpecies>
-    struct ChooseTransition
+    struct CheckPresence
     {
         // might be alias, from here on out no more
         //! resolved type of alias T_IonSpecies
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
 
-        using DistributionInt = pmacc::random::distributions::Uniform<uint32_t>;
-        using RngFactoryInt = particles::functor::misc::Rng<DistributionInt>;
-
         //! call of kernel for every superCell
-        HINLINE void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
         {
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
@@ -62,21 +59,23 @@ namespace picongpu::particles::atomicPhysics2::stage
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
             using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
-
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
-            RngFactoryInt rngFactory = RngFactoryInt{currentStep};
+            // pointers to memory, we will only work on device, no sync required
+            //      pointer to localRateCache
+            auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
+                                                    LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
+                IonSpecies::FrameType::getName() + "_localRateCacheField");
 
             PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel::ChooseTransitionKernel<SpeciesConfigNumberType>(),
+                picongpu::particles::atomicPhysics2::kernel::CheckPresenceKernel<SpeciesConfigNumberType>(),
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
-                rngFactory,
                 ions.getDeviceParticlesBox(),
+                localRateCacheField.getDeviceDataBox(),
                 atomicData.template getChargeStateOrgaDataBox<false>(),
-                atomicData.template getAtomicStateDataDataBox<false>(),
-                atomicData.template getTransitionSelectionDataBox<false>());
+                atomicData.template getAtomicStateDataDataBox<false>());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

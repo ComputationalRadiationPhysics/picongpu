@@ -39,6 +39,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
 
     private:
         float_X rates[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        bool m_present[T_numberAtomicStates] = {false}; // unitless
 
     public:
         /** add to cache entry, using atomics
@@ -84,6 +85,28 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
             return;
         }
 
+        /** set indicator if atomic state is present
+         *
+         * @param worker object containing the device and block information
+         * @param collectionIndex collection Index of atomic state
+         * @param status presence status to set, true =^= present, false =^= not present
+         *
+         * @attention no range checks outside a debug compile, invalid memory write on failure
+         */
+        template<typename T_Worker>
+        HDINLINE void setPresent(T_Worker const& worker, uint32_t const collectionIndex, bool const status)
+        {
+            if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
+                if(collectionIndex >= numberAtomicStates)
+                {
+                    printf("atomicPhysics ERROR: out of range in add() call on RateCache\n");
+                    return;
+                }
+
+            cupla::atomicExch(worker.getAcc(), &(this->m_present[collectionIndex]), status);
+            return;
+        }
+
         /** get cached rate for an atomic state
          *
          * @param collectionIndex collection Index of atomic state
@@ -101,6 +124,25 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                 }
 
             return rates[collectionIndex];
+        }
+
+        /** get presence status for an atomic state
+         *
+         * @param collectionIndex collection Index of atomic state
+         * @return if state is present in superCell
+         *
+         * @attention no range checks outside a debug compile, invalid memory access on failure
+         */
+        HDINLINE bool present(uint32_t const collectionIndex) const
+        {
+            if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
+                if(collectionIndex >= numberAtomicStates)
+                {
+                    printf("atomicPhysics ERROR: out of range in rate() call on rateCache\n");
+                    return 0._X;
+                }
+
+            return m_present[collectionIndex];
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::localHelperFields

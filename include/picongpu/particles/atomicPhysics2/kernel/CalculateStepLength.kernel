@@ -17,6 +17,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+//! @file implements kernel to calculate atomic physics time step length
+
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
@@ -40,6 +42,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * called by calculateStepLength atomic physics sub-stage
          *
          * calculate minimum time step for species
+         *
+         * @param worker object containing the device and block
+         *  information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param localTimeStepBox deviceDataBox giving access to localTimeStep superCellField values
+         *  of all local superCells
+         * @param localTimeStepBox deviceDataBox giving access to superCell local rateCaches
+         *  of all local superCells
          */
         template<typename T_Worker, typename T_AreaMapping, typename T_LocalRateCache, typename T_LocalTimeStepBox>
         HDINLINE void operator()(
@@ -62,6 +72,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
             forEachAtomicState(
                 [&](uint32_t const atomicStateCollectionIndex)
                 {
+                    // check if atomic state present at all
+                    if(!rateCache.present(atomicStateCollectionIndex))
+                        return;
+
                     // uses (- rate) , since all diagonal rates are <0 by definition and
                     // we need the abs(rate)
                     float_X const rateCacheEntry = -rateCache.rate(atomicStateCollectionIndex);
