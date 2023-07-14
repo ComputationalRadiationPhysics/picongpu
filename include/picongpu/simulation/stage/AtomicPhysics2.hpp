@@ -247,9 +247,9 @@ namespace picongpu::simulation::stage
                 // timeStep = localTimeRemaining
 
                 picongpu::particles::atomicPhysics2::stage::ResetLocalTimeStepField()(mappingDesc);
-                ForEachIonSpeciesCheckPresenceOfAtomicStates{}(mappingDesc);
                 ForEachIonSpeciesResetLocalRateCache{}();
-                // R_ii = -(sum of rates of all transitions from state i)
+                ForEachIonSpeciesCheckPresenceOfAtomicStates{}(mappingDesc);
+                // R_ii = -(sum of rates of all transitions from state i to some other state j)
                 ForEachIonSpeciesFillLocalRateCache{}(mappingDesc);
                 // min(1/(-R_ii)) * alpha
                 ForEachIonSpeciesCalculateStepLength{}(mappingDesc);

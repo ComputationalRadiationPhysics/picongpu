@@ -123,7 +123,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)
-                        printf("[no-change] rate %.8e probability %.8e\n", rate, probability);
+                        printf("[no-change] timeStep %.3f rate %.8e probability %.8e\n", timeStep, rate, probability);
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::CHECK_RATE_LIMIT)
                     {

@@ -125,7 +125,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::CHECK_RATE_LIMIT)
                     {
-                        if(rate + timeStep > 1._X)
+                        if(rate * timeStep > 1._X)
                             printf("atomicPhysics ERROR: too high rate");
                     }
 
@@ -136,7 +136,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)
-                        printf("spontaneous deexcitation %.8e\n ", probability);
+                        printf("[spontaneous deexcitation] timeStep %.3f transition %u \t rate %.8e probability %.8e\n ", timeStep, ion[transitionIndex_], rate, probability);
 
                     // try to accept
                     if(probability >= rngGenerator())
