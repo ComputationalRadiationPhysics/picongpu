@@ -197,7 +197,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     {
                         if constexpr(T_excitation)
                             printf(
-                                "[electronic Excitation]   timeStep %.3f transition %u \t enoughEnergy %5s densityElectron!=0 %5s rate %.8e probability %.8e\n",
+                                "[electronic Excitation]   timeStep %.3f transition %u \t enoughEnergy %5s "
+                                "densityElectron!=0 %5s rate %.8e probability %.8e\n",
                                 ion[transitionIndex_],
                                 ((energy > DeltaEnergyTransition::get(
                                       timeStep,
@@ -211,7 +212,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                 probability);
                         else
                             printf(
-                                "[electronic Deexcitation] timeStep %.3f transition %u \t enoughEnergy %5s densityElectron!=0 %5s rate %.8e probability %.8e\n",
+                                "[electronic Deexcitation] timeStep %.3f transition %u \t enoughEnergy %5s "
+                                "densityElectron!=0 %5s rate %.8e probability %.8e\n",
                                 timeStep,
                                 ion[transitionIndex_],
                                 ((energy > DeltaEnergyTransition::get(

@@ -170,7 +170,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE)
                         printf(
-                            "[electronic Ionization]   timeStep %.3f transition %u \t enoughEnergy %5s densityElectron!=0 %5s rate %.8e probability %.8e\n",
+                            "[electronic Ionization]   timeStep %.3f transition %u \t enoughEnergy %5s "
+                            "densityElectron!=0 %5s rate %.8e probability %.8e\n",
                             timeStep,
                             ion[transitionIndex_],
                             ((energy > DeltaEnergyTransition::get(
