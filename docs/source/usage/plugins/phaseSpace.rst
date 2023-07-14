@@ -63,7 +63,7 @@ The output writes a number of non-standard custom openPMD attributes:
 
 * ``p_min`` and ``p_max``: The lower and upper bounds for the momentum axis, respectively.
 * ``dr``: The spacing of the spatial axis in PIConGPU units.
-* ``dV``: The volume of a phase space cell. Relates to ``dr`` via ``dV = dp * dr`` where ``dp`` would be the grid spacing along the momentum axis.
+* ``dV``: The volume of a cell of the spatial grid. That is, ``dV = cell_depth * cell_height * cell_width`` in PIConGPU units.
 * ``dr_unit``: The SI scaling for the spatial axis. Use this instead of ``gridUnitSI``.
 * ``p_unit``: The SI scaling for the momentum axis. Use this instead of ``gridUnitSI``.
 * ``globalDomainOffset``, ``globalDomainSize`` and ``globalDomainAxisLabels``: Information on the global domain.
@@ -80,7 +80,7 @@ You can quickly load and interact with the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.data import PhaseSpaceData
+   from picongpu.extra.plugins.data import PhaseSpaceData
    import numpy as np
 
 
@@ -98,7 +98,7 @@ You can quickly load and interact with the data in Python with:
    mu = 1.e6  # meters to microns
    e_mc_r = 1. / (9.109e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
 
-   Q_dr_dp = np.abs(ps) * meta.dV  # C s kg^-1 m^-2
+   Q_dr_dp = np.abs(ps) * meta.dV  # unit: Coulomb
    extent = meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
 
    # load data for a given time
@@ -121,7 +121,7 @@ You can quickly plot the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.plot_mpl import PhaseSpaceMPL
+   from picongpu.extra.plugins.plot_mpl import PhaseSpaceMPL
    import matplotlib.pyplot as plt
 
 
@@ -173,7 +173,7 @@ Jupyter Widget
 """"""""""""""
 
 If you want more interactive visualization, then start a jupyter notebook and make
-sure that ``ipywidgets`` and ``ìpympl`` are installed.
+sure that ``ipywidgets`` and ``ipympl`` are installed.
 
 After starting the notebook server write the following
 
@@ -185,7 +185,7 @@ After starting the notebook server write the following
    plt.ioff()
 
    from IPython.display import display
-   from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+   from picongpu.extra.plugins.jupyter_widgets import PhaseSpaceWidget
 
    # provide the paths to the simulations you want to be able to choose from
    # together with labels that will be used in the plot legends so you still know

@@ -187,7 +187,7 @@ namespace picongpu
             dataset.setUnitSI(unit);
             {
                 using UD = ::openPMD::UnitDimension;
-                mesh.setUnitDimension({{UD::I, 1.0}, {UD::T, 1.0}, {UD::L, -1.0}}); // charge density
+                mesh.setUnitDimension({{UD::I, 1.0}, {UD::T, 1.0}, {UD::L, -3.0}}); // charge density
             }
             mesh.setAttribute("p_unit", pRange_unit);
             mesh.setAttribute("p_min", axis_p_range.first);
@@ -197,7 +197,8 @@ namespace picongpu
             mesh.setAttribute("movingWindowSize", globalMovingWindowSize);
             mesh.setAttribute("dr", dr);
             mesh.setAttribute("dV", CELL_VOLUME);
-            mesh.setGridSpacing(std::vector<float_X>{dr, CELL_VOLUME / dr});
+            mesh.setGridSpacing(
+                std::vector<float_X>{dr, (axis_p_range.second - axis_p_range.first) / globalPhaseSpace_extent[1]});
             mesh.setAttribute("dr_unit", UNIT_LENGTH);
             iteration.setDt(DELTA_T);
             iteration.setTimeUnitSI(UNIT_TIME);
