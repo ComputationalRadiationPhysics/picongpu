@@ -297,7 +297,7 @@ namespace picongpu::simulation::stage
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                      DUMP_ION_DATA_TO_CONSOLE_EACH_TRY)
                     {
-                        std::cout << "choose Transition loop:" << std::endl;
+                        std::cout << "choose Transition loop try:" << std::endl;
                         ForEachIonSpeciesDumpToConsole{}(mappingDesc);
                     }
 
