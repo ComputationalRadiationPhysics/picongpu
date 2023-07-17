@@ -206,13 +206,18 @@ namespace mallocMC
 #endif
             static constexpr uint32 hashingDistWPRel = MALLOCMC_CP_SCATTER_HASHINGDISTWPREL;
 
-            /**
-             * Page Table Entry struct
+            /** Page Table Entry struct
+             *
              * The PTE holds basic information about each page
              */
             struct PTE
             {
                 uint32 chunksize;
+                /** Counter for how many page table entries are used.
+                 *
+                 * This counter is used internally as lock, to guard a full PTE the value must be set to pagesize via
+                 * atomic CAS.
+                 */
                 uint32 count;
                 uint32 bitmask;
 
@@ -243,8 +248,11 @@ namespace mallocMC
                  */
                 ALPAKA_FN_ACC void init()
                 {
-                    // clear the entire data which can hold bitfields
-                    uint32* write = (uint32*) (data + pagesize - (int) (sizeof(uint32) * maxOnPageMasks));
+                    /* Clear the entire data which can hold bitfields.
+                     * volatile avoids that the data is changed within L1 Cache and therefore is hidden for other
+                     * threads.
+                     */
+                    volatile uint32* write = (uint32*) (data + pagesize - (int) (sizeof(uint32) * maxOnPageMasks));
                     while(write < (uint32*) (data + pagesize))
                         *write++ = 0;
                 }
@@ -438,11 +446,17 @@ namespace mallocMC
              * tryUsePage tries to use the page for the allocation request
              * @param page the page to use
              * @param chunksize the chunksize of the page
-             * @return pointer to a free chunk on the page, 0 if we were unable
-             * to obtain a free chunk
+             * @param isChunkSizeInRange functor to validate if a given chunk size can be used even if the size is
+             * different to the parameter chunksize. Required interface: `bool operator()(uint32_t)` returning true if
+             * range is valid else false
+             * @return pointer to a free chunk on the page, 0 if we were unable to obtain a free chunk
              */
-            template<typename AlpakaAcc>
-            ALPAKA_FN_ACC inline auto tryUsePage(const AlpakaAcc& acc, uint32 page, uint32 chunksize) -> void*
+            template<typename AlpakaAcc, typename T_ChunkSizeRangeCheck>
+            ALPAKA_FN_ACC inline auto tryUsePage(
+                const AlpakaAcc& acc,
+                uint32 page,
+                uint32 chunksize,
+                T_ChunkSizeRangeCheck&& isChunkSizeInRange) -> void*
             {
                 void* chunk_ptr = nullptr;
 
@@ -452,21 +466,28 @@ namespace mallocMC
                 // if resetfreedpages == false we do not need to re-check filllevel or chunksize
                 bool tryAllocMem = !resetfreedpages;
 
-                // if _ptes[page].count >= pagesize then page is currently freed by another thread
-                if(resetfreedpages && filllevel < pagesize)
-                {
-                    /* Recheck chunk size (it could be that the page got freed in he meanwhile...)
-                     * Use atomic to guarantee that no other thread deleted the page and reinitialized
-                     * it with another chunk size.
-                     */
-                    const uint32 current_chunksize = alpaka::atomicOp<alpaka::AtomicCas>(
-                        acc,
-                        (uint32*) &_ptes[page].chunksize,
-                        chunksize,
-                        chunksize);
-                    if(current_chunksize == chunksize)
-                        tryAllocMem = true;
-                }
+                // note: if filllevel >= pagesize then page is currently freed by another thread
+                if constexpr(resetfreedpages)
+                    if(filllevel < pagesize)
+                    {
+                        /* Re-check chunk size (it could be that the page got freed in the meanwhile...)
+                         * Use atomic to guarantee that no other thread deleted the page and reinitialized
+                         * it with another chunk size.
+                         *
+                         * In case the page is now free (chunksize == 0) we acquire the new chunk size.
+                         * In cases where the page has already a chunksize we test if the chunksize fits our needs.
+                         */
+                        const uint32 oldChunksize = alpaka::atomicOp<alpaka::AtomicCas>(
+                            acc,
+                            (uint32*) &_ptes[page].chunksize,
+                            0u,
+                            chunksize);
+                        if(oldChunksize == 0u || isChunkSizeInRange(oldChunksize))
+                            tryAllocMem = true;
+                        // update the chunk size used for the allocation if the PTE was not empty before.
+                        if(oldChunksize != 0)
+                            chunksize = oldChunksize;
+                    }
 
                 if(tryAllocMem)
                 {
@@ -489,7 +510,7 @@ namespace mallocMC
                     }
                 }
 
-                // this one is full/not useable
+                // this one is full or not useable
                 if(chunk_ptr == nullptr)
                     alpaka::atomicOp<alpaka::AtomicSub>(acc, (uint32*) &(_ptes[page].count), 1u);
 
@@ -557,35 +578,32 @@ namespace mallocMC
                             // loop over pages within a region
                             do
                             {
-                                const uint32 chunksize = _ptes[page_in_region].chunksize;
-                                if(chunksize >= bytes && chunksize <= maxchunksize)
+                                // Set the chunk size to our needs. If the old chunk size is not zero we check if we
+                                // can still use the chunk even if memory is waisted.
+                                uint32 beforeChunkSize = alpaka::atomicOp<alpaka::AtomicCas>(
+                                    acc,
+                                    (uint32*) &_ptes[page_in_region].chunksize,
+                                    0u,
+                                    minAllocation);
+                                // Check if the chunk size can be used even if the size is not an exact match.
+                                auto const isChunkSizeInRange = [&](uint32_t currentChunkSize) {
+                                    return currentChunkSize >= bytes && currentChunkSize <= maxchunksize;
+                                };
+                                uint32_t useChunkSize = 0u;
+                                if(beforeChunkSize == 0u)
                                 {
-                                    void* res = tryUsePage(acc, page_in_region, chunksize);
+                                    useChunkSize = minAllocation;
+                                }
+                                else if(isChunkSizeInRange(beforeChunkSize))
+                                {
+                                    // someone else acquired the page, but we can also use it
+                                    useChunkSize = beforeChunkSize;
+                                }
+                                if(useChunkSize != 0u)
+                                {
+                                    void* res = tryUsePage(acc, page_in_region, useChunkSize, isChunkSizeInRange);
                                     if(res != nullptr)
                                         return res;
-                                }
-                                else if(chunksize == 0)
-                                {
-                                    // lets open up a new page
-                                    const uint32 beforechunksize = alpaka::atomicOp<alpaka::AtomicCas>(
-                                        acc,
-                                        (uint32*) &_ptes[page_in_region].chunksize,
-                                        0u,
-                                        minAllocation);
-                                    if(beforechunksize == 0)
-                                    {
-                                        void* res = tryUsePage(acc, page_in_region, minAllocation);
-                                        if(res != nullptr)
-                                            return res;
-                                    }
-                                    else if(beforechunksize >= bytes && beforechunksize <= maxchunksize)
-                                    {
-                                        // someone else aquired the page,
-                                        // but we can also use it
-                                        void* res = tryUsePage(acc, page_in_region, beforechunksize);
-                                        if(res != nullptr)
-                                            return res;
-                                    }
                                 }
                                 page_in_region = region_offset + ((page_in_region + 1) % regionsize);
                             } while(page_in_region != global_page);
@@ -652,30 +670,56 @@ namespace mallocMC
                     const uint32 segment = inpage_offset / chunksize;
                     alpaka::atomicOp<alpaka::AtomicAnd>(acc, (uint32*) &_ptes[page].bitmask, ~(1u << segment));
                 }
-                // reduce filllevel as free
-                const uint32 oldfilllevel = alpaka::atomicOp<alpaka::AtomicSub>(acc, (uint32*) &_ptes[page].count, 1u);
 
-                if(resetfreedpages)
+                uint32 oldfilllevel = 0u;
+                if constexpr(resetfreedpages)
                 {
+                    /* Workaround for nvcc because the in class defined static constexpr variable can not be passed
+                     * into functions taking a constant reference.
+                     */
+                    constexpr auto pageSize = pagesize;
+                    /* Try lock the PTE to cleanup the meta data.
+                     * Only the last allocation within the PTE will be successfully lock the PTE.
+                     * In case it is the last allocation on the page the new pagesize will signal full and nobody else
+                     * is allowed to touch the meta data anymore.
+                     */
+                    oldfilllevel
+                        = alpaka::atomicOp<alpaka::AtomicCas>(acc, (uint32*) &_ptes[page].count, 1u, pageSize);
                     if(oldfilllevel == 1)
                     {
-                        // this page now got free!
-                        // -> try lock it
-                        const uint32 old
-                            = alpaka::atomicOp<alpaka::AtomicCas>(acc, (uint32*) &_ptes[page].count, 0u, +pagesize);
-                        if(old == 0)
-                        {
-                            // clean the bits for the hierarchy
-                            _page[page].init();
-                            // remove chunk information
-                            alpaka::atomicOp<alpaka::AtomicCas>(acc, (uint32*) &_ptes[page].chunksize, chunksize, 0u);
+                        // clean meta data bits on the PTE
+                        _page[page].init();
 
-                            threadfenceDevice(acc);
+                        // remove chunk information
+                        alpaka::atomicOp<alpaka::AtomicCas>(acc, (uint32*) &_ptes[page].chunksize, chunksize, 0u);
 
-                            // unlock it
-                            alpaka::atomicOp<alpaka::AtomicSub>(acc, (uint32*) &_ptes[page].count, +pagesize);
-                        }
+                        /** Take care that the meta data changes where we did not use atomics are propagated to all
+                         * other threads.
+                         *
+                         * @todo Moving this line above the chunk size reset will result into misaligned memory access
+                         * on CUDA in seldom cases. It is not clear why :-(
+                         */
+                        threadfenceDevice(acc);
+
+                        /* Unlock the PTE by reducing the counter.
+                         * In case another allocation is at the same moment trying to allocate memory in tryUsePage()
+                         * the counter can be larger then zero after this dealloc is reducing the counter, this is no
+                         * problem because if the chunk size in tryUsaPage() is not fitting the counter is reduced an
+                         * the page is marked as free.
+                         */
+                        alpaka::atomicOp<alpaka::AtomicSub>(acc, (uint32*) &_ptes[page].count, pageSize);
                     }
+                    else
+                    {
+                        // Locking the page was not possible because there are still other allocations on the PTE.
+                        oldfilllevel = alpaka::atomicOp<alpaka::AtomicSub>(acc, (uint32*) &_ptes[page].count, 1u);
+                    }
+                }
+                else
+                {
+                    // If we do not reset free pages we only need to reduce the counter, no need to clean the meta
+                    // data.
+                    oldfilllevel = alpaka::atomicOp<alpaka::AtomicSub>(acc, (uint32*) &_ptes[page].count, 1u);
                 }
 
                 // meta information counters ... should not be changed by too
