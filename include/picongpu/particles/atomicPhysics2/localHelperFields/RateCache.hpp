@@ -39,7 +39,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
 
     private:
         float_X rates[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
-        uint8_t m_present[T_numberAtomicStates] = {static_cast<uint8_t>(false)}; // unitless
+        uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
 
     public:
         /** add to cache entry, using atomics
@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                     return;
                 }
 
-            cupla::atomicExch(worker.getAcc(), &(this->m_present[collectionIndex]), static_cast<uint8_t>(status));
+            cupla::atomicExch(worker.getAcc(), &(this->m_present[collectionIndex]), static_cast<uint32_t>(status));
             return;
         }
 
