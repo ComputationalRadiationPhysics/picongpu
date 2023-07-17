@@ -183,10 +183,31 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         checkProcessClass(S_ProcessIDConversion::getProcessClassAutonomous_Down(processID));
                     }
 
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    {
+                        printf(
+                            "state %u transitionChoice %u offset %u "
+                            "numberPhysicalTransitionsDown %u factorDown %u processID %u processClass %u "
+                            "startIndexBlock %u",
+                            atomicStateCollectionIndex,
+                            ion[transitionIndex_],
+                            offset,
+                            numberPhysicalTransitionsDown,
+                            factorDown,
+                            processID,
+                            static_cast<uint16_t>(S_ProcessIDConversion::getProcessClassAutonomous_Down(processID)),
+                            startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex));
+                    }
+
                     // set ion attributes
                     ion[processClass_] = S_ProcessIDConversion::getProcessClassAutonomous_Down(processID);
                     ion[transitionIndex_] = startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex)
                         + (ion[transitionIndex_] - offset) / factorDown;
+
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    {
+                        printf(" transitionIndex %u\n", ion[transitionIndex_]);
+                    }
                 });
         }
     };

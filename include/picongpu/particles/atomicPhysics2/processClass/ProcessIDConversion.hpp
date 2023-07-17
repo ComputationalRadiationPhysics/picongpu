@@ -38,7 +38,7 @@ namespace picongpu::particles::atomicPhysics2::processClass
      *      section
      *
      * processIDs are convertible to processClasses using the conversion methods in
-     *  picongpu/particles/atomicPhysics2/ProcessClass.hpp
+     *  picongpu/particles/atomicPhysics2/ProcessIDConversion.hpp
      *
      * Exp.:
      *  Abbreviations: bb ... bound-bound, bf ... bound-free, auto ... autonomous

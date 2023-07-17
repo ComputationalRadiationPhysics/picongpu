@@ -198,10 +198,31 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         checkProcessClass<true>(S_ProcessIDConversion::getProcessClassBoundFree_Up(processID));
                     }
 
+
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    {
+                        printf(
+                            "state %u transitionChoice %u offset %u numberPhysicalTransitionsUp %u factorUp %u "
+                            "processID %u processClass %u startIndexBlock %u",
+                            atomicStateCollectionIndex,
+                            ion[transitionIndex_],
+                            offset,
+                            numberPhysicalTransitionsUp,
+                            factorUp,
+                            processID,
+                            static_cast<uint16_t>(S_ProcessIDConversion::getProcessClassBoundFree_Up(processID)),
+                            startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex));
+                    }
+
                     ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundFree_Up(processID);
                     ion[transitionIndex_] = startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex)
                         + (ion[transitionIndex_] - offset) / factorUp;
                     ion[binIndex_] = rngGenerator() % T_numberBins;
+
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    {
+                        printf(" transitionIndex %u\n", ion[transitionIndex_]);
+                    }
 
                     // down-ward bound-free transition
                     /// @todo implement recombination, Brian Marre, 2023

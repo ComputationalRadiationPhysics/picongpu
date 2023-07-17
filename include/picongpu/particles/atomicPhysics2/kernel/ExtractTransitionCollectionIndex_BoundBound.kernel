@@ -221,30 +221,82 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         {
                             checkProcessClass<true>(S_ProcessIDConversion::getProcessClassBoundBound_Up(processID));
                         }
-                        ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundBound_Up(processID);
 
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
+                                         PRINT_DEBUG_TO_CONSOLE)
+                        {
+                            printf(
+                                "state %u transitionChoice %u offset %u numberPhysicalTransitionsUp %u factorUp %u "
+                                "numberPhysicalTransitionsDown %u factorDown %u processID %u processClass %u "
+                                "startIndexBlock %u",
+                                atomicStateCollectionIndex,
+                                ion[transitionIndex_],
+                                offset,
+                                numberPhysicalTransitionsUp,
+                                factorUp,
+                                numberPhysicalTransitionsDown,
+                                factorDown,
+                                processID,
+                                static_cast<uint16_t>(S_ProcessIDConversion::getProcessClassBoundBound_Up(processID)),
+                                startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex));
+                        }
+
+                        ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundBound_Up(processID);
                         ion[transitionIndex_] = startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex)
                             + (ion[transitionIndex_] - offset) / factorUp;
                         ion[binIndex_] = rngGenerator() % T_numberBins;
+
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
+                                         PRINT_DEBUG_TO_CONSOLE)
+                        {
+                            printf(" transitionIndex %u\n", ion[transitionIndex_]);
+                        }
                     }
                     else
                     {
                         // down-ward bound-bound transition
 
-                        uint32_t const processID = (ion[transitionIndex_] - offset) % factorDown;
+                        uint32_t const processID
+                            = (ion[transitionIndex_] - offset - numberPhysicalTransitionsUp) % factorDown;
 
                         // debug check, for not found processClass
                         if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
                                          CHECK_FOR_INVALID_PROCESS_ID)
                         {
-                            checkProcessClass<false>(S_ProcessIDConversion::getProcessClassBoundBound_Up(processID));
+                            checkProcessClass<false>(S_ProcessIDConversion::getProcessClassBoundBound_Down(processID));
                         }
 
-                        ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundBound_Up(processID);
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
+                                         PRINT_DEBUG_TO_CONSOLE)
+                        {
+                            printf(
+                                "state %u transitionChoice %u offset %u numberPhysicalTransitionsUp %u factorUp %u "
+                                "numberPhysicalTransitionsDown %u factorDown %u processID %u processClass %u "
+                                "startIndexBlock %u",
+                                atomicStateCollectionIndex,
+                                ion[transitionIndex_],
+                                offset,
+                                numberPhysicalTransitionsUp,
+                                factorUp,
+                                numberPhysicalTransitionsDown,
+                                factorDown,
+                                processID,
+                                static_cast<uint16_t>(
+                                    S_ProcessIDConversion::getProcessClassBoundBound_Down(processID)),
+                                startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex));
+                        }
+
+                        ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundBound_Down(processID);
                         ion[transitionIndex_]
                             = startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex)
-                            + (ion[transitionIndex_] - offset) / factorDown;
+                            + (ion[transitionIndex_] - offset - numberPhysicalTransitionsUp) / factorDown;
                         ion[binIndex_] = rngGenerator() % T_numberBins;
+
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
+                                         PRINT_DEBUG_TO_CONSOLE)
+                        {
+                            printf(" transitionIndex %u\n", ion[transitionIndex_]);
+                        }
                     }
                 });
         }

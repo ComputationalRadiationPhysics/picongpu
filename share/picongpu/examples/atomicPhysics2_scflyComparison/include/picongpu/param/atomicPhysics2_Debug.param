@@ -115,6 +115,8 @@ namespace picongpu::atomicPhysics2::debug
     {
         //! @attention performance relevant
         constexpr bool CHECK_FOR_INVALID_PROCESS_ID = true;
+        //! @attention only viable serial and cpu only compile
+        constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::extractTransition
 
     namespace kernel::acceptanceTest
