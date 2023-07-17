@@ -88,7 +88,7 @@ namespace picongpu::particles::externalBeam::density
 
     } // namespace detail
 
-    template<typename T_ParamClass>
+    template<typename T_ParamClass, typename T_Species>
     struct ProbingBeamImpl : public T_ParamClass
     {
         using ParamClass = T_ParamClass;
@@ -125,7 +125,7 @@ namespace picongpu::particles::externalBeam::density
         template<typename T_SpeciesType>
         struct apply
         {
-            using type = ProbingBeamImpl<ParamClass>;
+            using type = ProbingBeamImpl<ParamClass, T_SpeciesType>;
         };
         /* Host side constructor
          *
@@ -138,7 +138,10 @@ namespace picongpu::particles::externalBeam::density
             SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
             DataSpace<simDim> const localCells = subGrid.getLocalDomain().size;
             globalDomain_m = subGrid.getGlobalDomain();
-            globalDomain_m.offset.y() += numSlides * localCells.y();
+
+            DataConnector& dc = Environment<>::get().DataConnector();
+            auto species = dc.get<T_Species>(T_Species::FrameType::getName());
+            boundaryOffset_m = species->boundaryDescription()[Side::template BeamToSimIdx_t<2u>::value].offset;
         }
 
         //! Check if we are in the first row of cells and at the side where the particles are injected
@@ -150,11 +153,11 @@ namespace picongpu::particles::externalBeam::density
             bool boundary = false;
             if constexpr(reverse)
             {
-                boundary = globalCellOffset[d] == globalDomain_m.size[d] - 1;
+                boundary = globalCellOffset[d] == globalDomain_m.size[d] - static_cast<int>(1u + boundaryOffset_m);
             }
             else
             {
-                boundary = globalCellOffset[d] == 0;
+                boundary = globalCellOffset[d] == static_cast<int>(boundaryOffset_m);
             }
             return boundary;
         }
@@ -194,5 +197,6 @@ namespace picongpu::particles::externalBeam::density
         PMACC_ALIGN(probingBeam_m, ProbingBeam);
         PMACC_ALIGN(globalDomain_m, pmacc::Selection<simDim>);
         PMACC_ALIGN(currentStep_m, uint32_t);
+        PMACC_ALIGN(boundaryOffset_m = 0u, uint32_t);
     };
 } // namespace picongpu::particles::externalBeam::density

@@ -48,6 +48,7 @@ namespace picongpu
                 return pmacc::math::Pi<float_X>::doubleValue * SPEED_OF_LIGHT / wavelength;
             }
             using Species = T_Species;
+
             /** operator call for calling without a particle
              *
              * Works since the return value does not depend on particle attributes only flags
@@ -56,7 +57,6 @@ namespace picongpu
             {
                 return get();
             }
-
 
             /** alternative call signature with a particle as parameter
              *
@@ -117,7 +117,7 @@ namespace picongpu
                 phi_0 = math::fmod(phi_0, 2.0 * PI);
                 float_64 result = phi_0 - dPhi;
                 // Keep in range of [0,2*PI)
-                if(result < 0)
+                if(result < 0.0)
                     result += 2.0 * PI;
                 return result;
             }
@@ -127,6 +127,7 @@ namespace picongpu
             operator()(const uint32_t currentStep, Species const& particle, float_64 phi_0 = 0.0) const
             {
                 const float_64 omega = GetAngFrequency<Species>()(particle);
+
                 /* phase phi = phi_0 - omega * t;
                  * Note: This MUST be calculated in double precision as single precision is inexact after ~100
                  * timesteps Double precision is enough for about 10^10 timesteps More timesteps (in SP&DP) are
@@ -137,7 +138,7 @@ namespace picongpu
                 phi_0 = math::fmod(phi_0, 2.0 * PI);
                 float_64 result = phi_0 - dPhi;
                 // Keep in range of [0,2*PI)
-                if(result < 0)
+                if(result < 0.0)
                     result += 2.0 * PI;
                 return result;
             }

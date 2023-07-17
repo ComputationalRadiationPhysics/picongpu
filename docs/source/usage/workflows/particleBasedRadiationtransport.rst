@@ -15,7 +15,7 @@ See :ref:`[1] <masterThesis-PawelOrdyna>` for more details.
 --------------------
 
 It is possible to inject photon like macro particles at a simulation boundary for probing like setups.
-The particles are spawned within the first layer of cells (line in 2D, plane in 3D) at a given simulation box side.
+The particles are spawned within the layer of cells at the species boundary offset (line in 2D, plane in 3D) at a given simulation box side.
 At the moment they can only be spawned with their momenta oriented along the direction normal to the boundary, so only probing along one of the simulation box axes is possible.
 
 The beam particle spawning is similar to initial density initialization.
@@ -25,6 +25,8 @@ At the moment all particles are initialized with the same momentum (mono-energet
 These initial attributes as well as additional ones are set with functors that can be configured in ``externalBeam.param``.
 This param file also defines the beam profile and shape. The injection has to be also included in ``iterationStart.param``.
 
+Please note, the particle boundary offset is taken into account when spawning particles, but the beam temporal shape is not automaticaly shifted.
+The offset can be set manually via `beamDelay_SI` in `OffsetParam`.
 Example Configuration
 ^^^^^^^^^^^^^^^^^^^^^
 

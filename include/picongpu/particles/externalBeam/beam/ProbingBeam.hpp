@@ -95,7 +95,7 @@ namespace picongpu::particles::externalBeam::beam
             const float_X beamDelay = OffsetParam::beamDelay_SI / UNIT_TIME;
             const float_X offsetParallel_b = beamDelay * SPEED_OF_LIGHT;
             // Complete offset from the initial position.
-            const float3_X offsetFromMiddlePoint_b{offsetTrans_b[0], offsetTrans_b[1], -1 * offsetParallel_b};
+            const float3_X offsetFromMiddlePoint_b{offsetTrans_b[0], offsetTrans_b[1], -1.0_X * offsetParallel_b};
 
             // Move to the PIC coordinate system.
             const float3_X offsetFromMiddlePoint_s = Side::rotateBeamToSim(offsetFromMiddlePoint_b);

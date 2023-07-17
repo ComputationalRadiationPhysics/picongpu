@@ -147,16 +147,17 @@ namespace picongpu::particles::externalBeam::beam
         {
             T_Vector result = T_Vector::create(0.0);
             auto twisted = twistSimToBeam(vector);
+            using ComponentType = typename T_Vector::type;
             if constexpr(reverse_beam_x)
-                result[0] = static_cast<typename T_Vector::type>(-1.0) * twisted[0];
+                result[0] = static_cast<ComponentType>(-1.0) * twisted[0];
             else
                 result[0] = twisted[0];
             if constexpr(reverse_beam_y)
-                result[1] = static_cast<typename T_Vector::type>(-1.0) * twisted[1];
+                result[1] = static_cast<ComponentType>(-1.0) * twisted[1];
             else
                 result[1] = twisted[1];
             if constexpr(reverse_beam_z)
-                result[2] = static_cast<typename T_Vector::type>(-1.0) * twisted[2];
+                result[2] = static_cast<ComponentType>(-1.0) * twisted[2];
             else
                 result[2] = twisted[2];
             return result;
@@ -167,16 +168,17 @@ namespace picongpu::particles::externalBeam::beam
         static HDINLINE auto rotateBeamToSim(T_Vector const& vector)
         {
             T_Vector result = T_Vector::create(0.0);
+            using ComponentType = typename T_Vector::type;
             if constexpr(reverse_beam_x)
-                result[0] = static_cast<typename T_Vector::type>(-1.0) * vector[0];
+                result[0] = static_cast<ComponentType>(-1.0) * vector[0];
             else
                 result[0] = vector[0];
             if constexpr(reverse_beam_y)
-                result[1] = static_cast<typename T_Vector::type>(-1.0) * vector[1];
+                result[1] = static_cast<ComponentType>(-1.0) * vector[1];
             else
                 result[1] = vector[1];
             if constexpr(reverse_beam_z)
-                result[2] = static_cast<typename T_Vector::type>(-1.0) * vector[2];
+                result[2] = static_cast<ComponentType>(-1.0) * vector[2];
             else
                 result[2] = vector[2];
             return twistBeamToSim(result);
@@ -187,7 +189,7 @@ namespace picongpu::particles::externalBeam::beam
         static HDINLINE T_Vector transformOffsetSimToBeam(T_Vector const& vector, T_Vector const& volumeSize)
         {
             T_Vector result = rotateSimToBeam(vector);
-            for(uint32_t i = 1u; 1 < T_Vector::dim; i++)
+            for(uint32_t i = 1u; i < T_Vector::dim; i++)
                 result[i] = math::fmod(vector[i] + volumeSize[i], volumeSize[i]);
             return result;
         }
@@ -197,7 +199,7 @@ namespace picongpu::particles::externalBeam::beam
         static HDINLINE T_Vector transformOffsetBeamToSim(T_Vector const& vector, T_Vector const& volumeSize)
         {
             T_Vector result = rotateBeamToSim(vector);
-            for(uint32_t i = 1u; 1 < T_Vector::dim; i++)
+            for(uint32_t i = 1u; i < T_Vector::dim; i++)
                 result[i] = math::fmod(vector[i] + volumeSize[i], volumeSize[i]);
             return result;
         }

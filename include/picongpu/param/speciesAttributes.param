@@ -88,7 +88,7 @@ namespace picongpu
     //! Photon start phase
     value_identifier(float_X, startPhase, 0._X);
 
-    //! Photon polarization angle
+    //! Photon polarization angle in radians
     value_identifier(float_X, polarizationAngle, 0._X);
 
     /** interpolated electric field with respect to particle shape

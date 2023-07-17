@@ -41,8 +41,9 @@ namespace picongpu
                  *          };
                  *     @endcode
                  *
+                 * @tparam T_SpeciesClass species for that the density is used
                  */
-                template<typename T_ParamClass>
+                template<typename T_ParamClass, typename T_Species = boost::mpl::_1>
                 struct ProbingBeamImpl;
             } // namespace density
         } // namespace externalBeam

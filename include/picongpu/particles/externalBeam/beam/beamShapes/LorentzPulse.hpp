@@ -41,7 +41,7 @@ namespace picongpu
                         static constexpr float_X startTime = timeOffset - cutTimeFront;
                         static constexpr float_X endTime = timeOffset + cutTimeBack;
 
-                        static constexpr float_X gamma = T_ParamClass::FWHM_SI / UNIT_TIME / 2.0;
+                        static constexpr float_X gamma = T_ParamClass::FWHM_SI / UNIT_TIME / 2.0_X;
                         static constexpr float_X gammaSquared = gamma * gamma;
 
 

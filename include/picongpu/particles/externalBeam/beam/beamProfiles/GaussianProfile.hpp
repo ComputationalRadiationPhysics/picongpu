@@ -40,6 +40,8 @@ namespace picongpu
                         {
                             constexpr float_X s_x = ParamClass::sigmaX_SI / UNIT_LENGTH;
                             constexpr float_X s_y = ParamClass::sigmaY_SI / UNIT_LENGTH;
+                            static_assert(s_x != 0.0, "sigmaX can't be zero");
+                            static_assert(s_y != 0.0, "sigmaY can't be zero");
                             const float_X tmp_x = x / s_x;
                             const float_X tmp_y = y / s_y;
                             float_X exponent = -0.5_X * (tmp_x * tmp_x + tmp_y * tmp_y);

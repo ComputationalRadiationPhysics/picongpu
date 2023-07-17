@@ -41,6 +41,7 @@ namespace picongpu
                         static constexpr float_X startTime = timeOffset - cutTimeFront;
                         static constexpr float_X endTime = timeOffset + cutTimeBack;
 
+                        //! FWHM to sigma conversion factor equal to 2 * sqrt(2 * ln(2))
                         static constexpr float_64 conversion = 2.3548200450309493;
                         static constexpr float_X sigma = T_ParamClass::FWHM_SI / UNIT_TIME / conversion;
                         static constexpr float_X sigmaSquared = sigma * sigma;
@@ -52,7 +53,7 @@ namespace picongpu
                                && (time <= endTime || !T_ParamClass::limitEnd))
                             {
                                 const float_X timeDist = time - timeOffset;
-                                float_X exponent = -0.5 * (timeDist * timeDist / sigmaSquared);
+                                float_X exponent = -0.5_X * (timeDist * timeDist / sigmaSquared);
                                 return math::exp(exponent);
                             }
                             else

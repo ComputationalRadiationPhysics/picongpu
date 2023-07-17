@@ -42,21 +42,21 @@ namespace picongpu
                     typename T_Context,
                     typename T_AccStartPositionFunctor,
                     typename T_AccMomentumFunctor,
-                    typename... T_AccFunctor>
+                    typename... T_AccFunctors>
                 struct StartAttributes
                     : private T_AccStartPositionFunctor
                     , private T_AccMomentumFunctor
-                    , private T_AccFunctor...
+                    , private T_AccFunctors...
                 {
                 public:
                     DINLINE StartAttributes(
                         T_Context const& context,
-                        T_AccStartPositionFunctor const&& accStartPositionFunctor,
-                        T_AccMomentumFunctor const&& accMomentumFunctor,
-                        T_AccFunctor const&&... accFunctor)
-                        : T_AccStartPositionFunctor(accStartPositionFunctor)
-                        , T_AccMomentumFunctor(accMomentumFunctor)
-                        , T_AccFunctor(accFunctor)...
+                        T_AccStartPositionFunctor&& accStartPositionFunctor,
+                        T_AccMomentumFunctor&& accMomentumFunctor,
+                        T_AccFunctors&&... accFunctor)
+                        : T_AccStartPositionFunctor(std::forward<T_AccStartPositionFunctor>(accStartPositionFunctor))
+                        , T_AccMomentumFunctor(std::forward<T_AccMomentumFunctor>(accMomentumFunctor))
+                        , T_AccFunctors(std::forward<T_AccFunctors>(accFunctor))...
                         , context_m(context)
                     {
                     }
@@ -78,7 +78,7 @@ namespace picongpu
                         // set momentum (needs weighting to be already set)
                         T_AccMomentumFunctor::operator()(context_m, particle);
                         // execute additional functors  e.g. setting the startPhase attribute
-                        (T_AccFunctor::operator()(context_m, particle), ...);
+                        (T_AccFunctors::operator()(context_m, particle), ...);
                     }
 
 
@@ -120,11 +120,11 @@ namespace picongpu
                 typename T_Species,
                 typename T_StartPositionFunctor,
                 typename T_MomentumFunctor,
-                typename... T_Functor>
+                typename... T_Functors>
             struct StartAttributesImpl
                 : private T_StartPositionFunctor
                 , private T_MomentumFunctor
-                , private T_Functor...
+                , private T_Functors...
 
             {
                 using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
@@ -132,7 +132,7 @@ namespace picongpu
                 HINLINE StartAttributesImpl(uint32_t const& currentStep)
                     : T_StartPositionFunctor(currentStep)
                     , T_MomentumFunctor(currentStep)
-                    , T_Functor(currentStep)...
+                    , T_Functors(currentStep)...
                     , rngHandle(RNGFactory::createHandle())
                 {
                 }
@@ -160,11 +160,11 @@ namespace picongpu
                         ALPAKA_DECAY_T(decltype(context)),
                         ALPAKA_DECAY_T(decltype(T_StartPositionFunctor::operator()(worker, localSupercellOffset))),
                         ALPAKA_DECAY_T(decltype(T_MomentumFunctor::operator()(worker, localSupercellOffset))),
-                        ALPAKA_DECAY_T(decltype(T_Functor::operator()(worker, localSupercellOffset)))...>(
+                        ALPAKA_DECAY_T(decltype(T_Functors::operator()(worker, localSupercellOffset)))...>(
                         context,
                         T_StartPositionFunctor::operator()(worker, localSupercellOffset),
                         T_MomentumFunctor::operator()(worker, localSupercellOffset),
-                        T_Functor::operator()(worker, localSupercellOffset)...);
+                        T_Functors::operator()(worker, localSupercellOffset)...);
                 }
 
                 static HINLINE std::string getName()
