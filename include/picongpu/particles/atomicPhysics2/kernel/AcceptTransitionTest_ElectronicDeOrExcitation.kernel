@@ -43,7 +43,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         struct RateCollisionalBoundBound
         {
             template<typename... T_AtomicData>
-            static float_X rate(
+            HDINLINE static float_X rate(
                 float_X const energy,
                 float_X const binWidth,
                 float_X const density,

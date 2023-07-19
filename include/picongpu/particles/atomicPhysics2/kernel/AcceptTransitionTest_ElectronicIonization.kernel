@@ -22,8 +22,10 @@
 #include "picongpu/simulation_defines.hpp" // need: picongpu/unitless/grid.unitless for CELL_VOLUME
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/RollElectronBin.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundFreeTransitionRates.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -38,7 +40,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         struct RateCollisionalIonization
         {
             template<typename... T_AtomicData>
-            static float_X rate(
+            HDINLINE static float_X rate(
                 float_X const energy,
                 float_X const binWidth,
                 float_X const density,
