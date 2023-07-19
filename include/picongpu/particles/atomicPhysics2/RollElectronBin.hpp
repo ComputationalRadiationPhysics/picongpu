@@ -39,7 +39,7 @@ namespace picongpu::particles::atomicPhysics2::rollElectronBin
         struct RateFunctional
         {
             template<typename... AtomicData>
-            static float_X rate(
+            HDINLINE static float_X rate(
                 float_X const energy,
                 float_X const binWidth,
                 float_X const density,
@@ -64,7 +64,7 @@ namespace picongpu::particles::atomicPhysics2::rollElectronBin
      * @param atomicData atomicData dataBoxes
      */
     template<typename T_Histogram, typename T_RateFunctional, typename... T_AtomicData>
-    static uint32_t findBin(
+    HDINLINE static uint32_t findBin(
         float_X const rngValue,
         uint32_t const transitionIndex,
         float_X const rate_total,
