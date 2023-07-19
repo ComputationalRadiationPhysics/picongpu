@@ -109,7 +109,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
-            typename T_RngGeneratorFactoryInt,
             typename T_IonBox,
             typename T_ChargeStateOrgaDataBox,
             typename T_AtomicStateDataDataBox,
@@ -118,7 +117,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_RngGeneratorFactoryInt rngFactory, /// @todo const?, Brian Marre, 2023
             T_IonBox ionBox,
             T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
@@ -151,7 +149,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
                 [&superCellLocalOffset,
-                 &rngFactory,
                  &chargeStateOrgaBox,
                  &atomicStateDataDataBox,
                  &numberTransitionsBox,
@@ -186,8 +183,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         // not a bound-free transition
                         return;
 
-                    auto rngGenerator = rngFactory(worker, superCellLocalOffset);
-
                     // up-ward bound-free transition
                     uint32_t const processID = (ion[transitionIndex_] - offset) % factorUp;
 
@@ -217,7 +212,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundFree_Up(processID);
                     ion[transitionIndex_] = startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex)
                         + (ion[transitionIndex_] - offset) / factorUp;
-                    ion[binIndex_] = rngGenerator() % T_numberBins;
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
                     {

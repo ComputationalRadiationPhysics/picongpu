@@ -32,6 +32,9 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
 {
     class HistogramInterface
     {
+        //! number histogram bins
+        // static constexpr uint32_t numberBins
+
         //! check whether the given energy, [eV] is in the histogram energy range
         // HDINLINE virtual bool inRange(float_X const energy) const = 0;
 

@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp" // need: picongpu/unitless/grid.unitless for CELL_VOLUME
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/RollElectronBin.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
@@ -36,6 +37,30 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
+    namespace detail
+    {
+        template<uint8_t T_n_max, bool T_excitation>
+        struct RateCollisionalBoundBound
+        {
+            template<typename... T_AtomicData>
+            static float_X rate(
+                float_X const energy,
+                float_X const binWidth,
+                float_X const density,
+                uint32_t const transitionIndex,
+                T_AtomicData... atomicData)
+            {
+                return picongpu::particles::atomicPhysics2::rateCalculation::BoundBoundTransitionRates<T_n_max>::
+                    template rateCollisionalBoundBoundTransition<T_AtomicData..., T_excitation>(
+                        energy,
+                        binWidth,
+                        density,
+                        transitionIndex,
+                        atomicData...);
+            }
+        };
+    } // namespace detail
+
     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
     /** test for accepting electronicExciation transitions
@@ -157,39 +182,44 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     constexpr float_X volumeScalingFactor
                         = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
 
-                    uint32_t const binIndex = ion[binIndex_];
+                    uint32_t const transitionIndex = ion[transitionIndex_];
 
-                    // eV
-                    float_X const energy = electronHistogram.getBinEnergy(binIndex);
-                    // eV
-                    float_X const binWidth = electronHistogram.getBinWidth(binIndex);
-                    // 1/(UNIT_LENGTH^3 * eV)
-                    float_X const density = electronHistogram.getBinWeight0(binIndex) / volumeScalingFactor / binWidth;
+                    // calculate rate of entire spectrum
+                    float_X rate_total = 0._X;
+                    constexpr uint32_t numberBins = T_Histogram::numberBins;
+                    for(uint32_t i = 0u; i < numberBins; ++i)
+                    {
+                        // eV
+                        float_X const energy = electronHistogram.getBinEnergy(i);
+                        // eV
+                        float_X const binWidth = electronHistogram.getBinWidth(i);
+                        // 1/(UNIT_LENGTH^3 * eV)
+                        float_X const density = electronHistogram.getBinWeight0(i) / volumeScalingFactor / binWidth;
 
-                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+                        // 1/UNIT_TIME
+                        rate_total += picongpu::particles::atomicPhysics2::rateCalculation::
+                            BoundBoundTransitionRates<T_n_max>::template rateCollisionalBoundBoundTransition<
+                                T_AtomicStateDataDataBox,
+                                T_BoundBoundTransitionDataBox,
+                                T_excitation>(
+                                energy,
+                                binWidth,
+                                density,
+                                transitionIndex,
+                                atomicStateDataDataBox,
+                                boundBoundTransitionDataBox);
+                    }
 
-                    // 1/UNIT_TIME
-                    float_X const rate = picongpu::particles::atomicPhysics2::rateCalculation ::
-                        BoundBoundTransitionRates<T_n_max>::template rateCollisionalBoundBoundTransition<
-                            T_AtomicStateDataDataBox,
-                            T_BoundBoundTransitionDataBox,
-                            T_excitation>(
-                            energy,
-                            binWidth,
-                            density,
-                            ion[transitionIndex_],
-                            atomicStateDataDataBox,
-                            boundBoundTransitionDataBox);
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::CHECK_RATE_LIMIT)
                     {
-                        if(rate * timeStep > 1._X)
+                        if(rate_total * timeStep > 1._X)
                             printf("atomicPhysics ERROR: too high rate");
                     }
 
                     // unitless
                     float_X const probability = T_AcceptanceFunctor::probabilityChange(
-                        static_cast<float_64>(rate),
+                        static_cast<float_64>(rate_total),
                         static_cast<float_64>(timeStep));
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
@@ -197,39 +227,40 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     {
                         if constexpr(T_excitation)
                             printf(
-                                "[electronic Excitation]   timeStep %.3f transition %u \t enoughEnergy %5s "
-                                "densityElectron!=0 %5s rate %.8e probability %.8e\n",
+                                "[electronic Excitation]   timeStep %.3f transition %u \t rate %.8e probability "
+                                "%.8e\n",
                                 timeStep,
                                 ion[transitionIndex_],
-                                ((energy > DeltaEnergyTransition::get(
-                                      ion[transitionIndex_],
-                                      atomicStateDataDataBox,
-                                      boundBoundTransitionDataBox))
-                                     ? "true"
-                                     : "false"),
-                                ((density != 0._X) ? "true" : "false"),
-                                rate,
+                                rate_total,
                                 probability);
                         else
                             printf(
-                                "[electronic Deexcitation] timeStep %.3f transition %u \t enoughEnergy %5s "
-                                "densityElectron!=0 %5s rate %.8e probability %.8e\n",
+                                "[electronic Deexcitation] timeStep %.3f transition %u \t rate %.8e probability "
+                                "%.8e\n",
                                 timeStep,
                                 ion[transitionIndex_],
-                                ((energy > DeltaEnergyTransition::get(
-                                      ion[transitionIndex_],
-                                      atomicStateDataDataBox,
-                                      boundBoundTransitionDataBox))
-                                     ? "true"
-                                     : "false"),
-                                ((density != 0._X) ? "true" : "false"),
-                                rate,
+                                rate_total,
                                 probability);
                     }
 
+                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+
                     // try to accept
                     if(probability >= rngGenerator())
+                    {
                         ion[accepted_] = true;
+                        ion[binIndex_] = picongpu::particles::atomicPhysics2::rollElectronBin::findBin<
+                            T_Histogram,
+                            detail::RateCollisionalBoundBound<T_n_max, T_excitation>,
+                            T_AtomicStateDataDataBox,
+                            T_BoundBoundTransitionDataBox>(
+                            rngGenerator(),
+                            transitionIndex,
+                            rate_total,
+                            electronHistogram,
+                            atomicStateDataDataBox,
+                            boundBoundTransitionDataBox);
+                    }
                 });
         }
     };

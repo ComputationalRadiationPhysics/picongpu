@@ -43,9 +43,6 @@ namespace picongpu::particles::atomicPhysics2::stage
         //! resolved type of alias T_IonSpecies
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
 
-        using DistributionInt = pmacc::random::distributions::Uniform<uint32_t>;
-        using RngFactoryInt = particles::functor::misc::Rng<DistributionInt>;
-
         //! call of kernel for every superCell
         HINLINE void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
         {
@@ -60,8 +57,6 @@ namespace picongpu::particles::atomicPhysics2::stage
             using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
 
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
-
-            RngFactoryInt rngFactory = RngFactoryInt{currentStep};
 
             // no-change transition
             PMACC_LOCKSTEP_KERNEL(
@@ -87,7 +82,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                     workerCfg)
                 (mapper.getGridDim())(
                     mapper,
-                    rngFactory,
                     ions.getDeviceParticlesBox(),
                     atomicData.template getChargeStateOrgaDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -111,7 +105,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                     workerCfg)
                 (mapper.getGridDim())(
                     mapper,
-                    rngFactory,
                     ions.getDeviceParticlesBox(),
                     atomicData.template getChargeStateOrgaDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),

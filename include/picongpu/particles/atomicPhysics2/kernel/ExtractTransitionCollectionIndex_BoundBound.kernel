@@ -125,7 +125,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
-            typename T_RngGeneratorFactoryInt,
             typename T_IonBox,
             typename T_ChargeStateOrgaDataBox,
             typename T_AtomicStateDataDataBox,
@@ -134,7 +133,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_RngGeneratorFactoryInt rngFactory, /// @todo const?, Brian Marre, 2023
             T_IonBox ionBox,
             T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
@@ -167,7 +165,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
                 [&superCellLocalOffset,
-                 &rngFactory,
                  &chargeStateOrgaBox,
                  &atomicStateDataDataBox,
                  &numberTransitionsBox,
@@ -208,8 +205,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         // not a bound-bound transition
                         return;
 
-                    auto rngGenerator = rngFactory(worker, superCellLocalOffset);
-
                     bool const isUpwardTransition = ion[transitionIndex_] < (offset + numberPhysicalTransitionsUp);
                     if(isUpwardTransition)
                     {
@@ -244,7 +239,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundBound_Up(processID);
                         ion[transitionIndex_] = startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex)
                             + (ion[transitionIndex_] - offset) / factorUp;
-                        ion[binIndex_] = rngGenerator() % T_numberBins;
 
                         if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
                                          PRINT_DEBUG_TO_CONSOLE)
@@ -290,7 +284,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         ion[transitionIndex_]
                             = startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex)
                             + (ion[transitionIndex_] - offset - numberPhysicalTransitionsUp) / factorDown;
-                        ion[binIndex_] = rngGenerator() % T_numberBins;
 
                         if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
                                          PRINT_DEBUG_TO_CONSOLE)
