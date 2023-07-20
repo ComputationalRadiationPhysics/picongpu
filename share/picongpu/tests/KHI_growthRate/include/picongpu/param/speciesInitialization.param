@@ -48,7 +48,8 @@ namespace picongpu
             Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::LowerQuarterYPosition>,
             Manipulate<manipulators::AssignXDriftNegative, PIC_Electrons, filter::MiddleHalfYPosition>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::UpperQuarterYPosition>,
-            Manipulate<manipulators::AddTemperature, PIC_Electrons>>;
+            Manipulate<manipulators::AddTemperature, PIC_Electrons>,
+            CreateInitialStaticField<512>>;
 
     } // namespace particles
 } // namespace picongpu

@@ -95,19 +95,28 @@ namespace picongpu
                  *
                  * @param step index of time iteration
                  * @param fieldSolver field solver
+                 * @param communicateGuards True if the current filoed guards and border should be updated in case particles or field background creates a current.
                  */
-                void operator()(uint32_t const step, fields::Solver& fieldSolver) const
+                void operator()(uint32_t const step, fields::Solver& fieldSolver, bool communicateGuards = true) const
                 {
                     using namespace pmacc;
                     using SpeciesWithCurrentSolver =
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
-                    auto const numSpeciesWithCurrentSolver = pmacc::mp_size<SpeciesWithCurrentSolver>::value;
-                    auto const existsParticleCurrent = numSpeciesWithCurrentSolver > 0;
-                    if(existsParticleCurrent)
+                    constexpr auto numSpeciesWithCurrentSolver = pmacc::mp_size<SpeciesWithCurrentSolver>::value;
+                    constexpr bool existsParticleCurrent = numSpeciesWithCurrentSolver > 0;
+
+                    constexpr bool hasParticleOrBackgroundCurrent = existsParticleCurrent || hasCurrentBackground;
+
+                    EventTask eRecvCurrent;
+                    if(hasParticleOrBackgroundCurrent && communicateGuards)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
-                        auto eRecvCurrent = fieldJ.asyncCommunication(eventSystem::getTransactionEvent());
+                        eRecvCurrent = fieldJ.asyncCommunication(eventSystem::getTransactionEvent());
+                    }
+
+                    if(existsParticleCurrent)
+                    {
                         auto& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
                         auto const currentRecvLower = interpolation.getLowerMargin();
                         auto const currentRecvUpper = interpolation.getUpperMargin();
