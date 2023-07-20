@@ -65,7 +65,7 @@ class ReadFiles():
         direction = cD.checkDirection(variable=directiontype,
                                       direction=direction)
 
-        self._direction = direction
+        self._direction = direction + "/"
         self._fileExtension = fileExtension
         self._directiontype = directiontype
 
@@ -95,7 +95,7 @@ class ReadFiles():
         direction = cD.checkDirection(variable=self.directiontype,
                                       direction=direction)
 
-        self._direction = direction
+        self._direction = direction + "/"
 
     def setFileExtionsion(self, fileExtension: str):
         self._fileExtension = fileExtension
