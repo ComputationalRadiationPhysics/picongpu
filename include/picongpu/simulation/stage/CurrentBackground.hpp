@@ -26,6 +26,7 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/type/Area.hpp>
 
@@ -39,7 +40,7 @@ namespace picongpu
         namespace stage
         {
             //! Functor for the stage of the PIC loop applying current background
-            class CurrentBackground
+            class CurrentBackground : public ISimulationData
             {
             public:
                 /** Create a current background functor
@@ -71,6 +72,28 @@ namespace picongpu
                             FieldBackgroundJ(fieldJ.getUnit()),
                             step);
                     }
+                }
+
+                /** Name of the solver which can be used to share this class via DataConnector */
+                static std::string getName()
+                {
+                    return "CurrentBackground";
+                }
+
+                /**
+                 * Synchronizes simulation data, meaning accessing (host side) data
+                 * will return up-to-date values.
+                 */
+                void synchronize() override{};
+
+                /**
+                 * Return the globally unique identifier for this simulation data.
+                 *
+                 * @return globally unique identifier
+                 */
+                SimulationDataId getUniqueId() override
+                {
+                    return getName();
                 }
 
             private:

@@ -29,6 +29,7 @@
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 
 #include <cstdint>
@@ -40,7 +41,9 @@ namespace picongpu
         namespace maxwellSolver
         {
             template<typename T_CurlE, typename T_CurlB>
-            class FDTD : public fdtd::FDTDBase<T_CurlE, T_CurlB>
+            class FDTD
+                : public fdtd::FDTDBase<T_CurlE, T_CurlB>
+                , public ISimulationData
             {
             public:
                 //! Base type
@@ -100,6 +103,28 @@ namespace picongpu
                 {
                     pmacc::traits::StringProperty propList("name", "FDTD");
                     return propList;
+                }
+
+                /** Name of the solver which can be used to share this class via DataConnector */
+                static std::string getName()
+                {
+                    return "FieldSolverFDTD";
+                }
+
+                /**
+                 * Synchronizes simulation data, meaning accessing (host side) data
+                 * will return up-to-date values.
+                 */
+                void synchronize() override{};
+
+                /**
+                 * Return the globally unique identifier for this simulation data.
+                 *
+                 * @return globally unique identifier
+                 */
+                SimulationDataId getUniqueId() override
+                {
+                    return getName();
                 }
             };
 
