@@ -105,6 +105,10 @@ namespace picongpu
                  * optional metadata:
                  */
 
+                // PIConGPU is writing particles and fields based on the openPMD standard 'ED-PIC' extension.
+                constexpr uint32_t openPMDExtensionMask = 1u;
+                series.setOpenPMDextension(openPMDExtensionMask);
+
                 /*   recommended */
                 const std::string author = Environment<>::get().SimulationDescription().getAuthor();
                 if(author.length() > 0)
