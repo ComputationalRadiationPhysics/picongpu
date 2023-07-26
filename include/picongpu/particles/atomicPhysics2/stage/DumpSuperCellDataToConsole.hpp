@@ -42,7 +42,7 @@ namespace picongpu::particles::atomicPhysics2::stage
     struct DumpSuperCellDataToConsole
     {
         //! call of kernel for every superCell
-        HINLINE void operator()(piconpgu::MappingDesc const mappingDesc) const
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
         {
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
@@ -74,7 +74,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                 mapper,
                 localElectronHistogramField.getDeviceDataBox(),
                 localRejectionProbabilityCacheField.getDeviceDataBox(),
-                localTimeStepField.getDeviceDataBox() localTimeRemainingField.getDeviceDataBox());
+                localTimeStepField.getDeviceDataBox(),
+                localTimeRemainingField.getDeviceDataBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

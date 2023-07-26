@@ -36,6 +36,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     template<uint32_t T_numberBins>
     class RejectionProbabilityCache
     {
+    public:
         static constexpr uint32_t numberBins = T_numberBins;
 
     private:

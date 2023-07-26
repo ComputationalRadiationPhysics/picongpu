@@ -67,7 +67,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
             T_LocalRejectionProbabilityCacheDataBox const localRejectionProbabilityCacheBox,
             T_LocalTimeStepDataBox const localTimeStepBox,
-            T_LocalTimeRemainingDataBox const localTimeRemaningBox) const
+            T_LocalTimeRemainingDataBox const localTimeRemainingBox) const
         {
             // atomicPhysics superCellFields have no guard, but areMapping includes a guard
             //  -> must subtract guard to get correct superCellFieldIdx

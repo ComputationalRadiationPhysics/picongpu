@@ -330,11 +330,11 @@ namespace picongpu::particles::atomicPhysics2::debug
     template<typename T_RejectionProbabilityCache>
     void printRejectionProbabilityCacheToConsole(T_RejectionProbabilityCache const& rejectionProbabilityCache)
     {
-        constexpr uint16_t numAtomicStates = T_RateCache::numberAtomicStates;
-        std::cout << "rejectionProbabilityCache: numberAtomicStates=" << numAtomicStates << std::endl;
-        for(uint16_t i = 0u; i < numAtomicStates; i++)
+        constexpr uint16_t numBins = T_RejectionProbabilityCache::numberBins;
+        std::cout << "rejectionProbabilityCache: numberAtomicStates=" << numBins << std::endl;
+        for(uint16_t i = 0u; i < numBins; i++)
         {
-            std::cout << "\t" << i << ":[ " << rejectionProbabilityCache.rejectionProbability(i) << "]" << std::endl;
+            std::cout << "\t" << i << ":[ " << rejectionProbabilityCache.rejectionProbability(i) << " ]" << std::endl;
         }
     }
 
