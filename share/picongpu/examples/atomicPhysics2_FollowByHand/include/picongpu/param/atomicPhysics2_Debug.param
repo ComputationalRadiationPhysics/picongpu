@@ -43,12 +43,13 @@ namespace picongpu::atomicPhysics2::debug
 
     namespace electronHistogram
     {
+        //! @attention only useful if building serial and cpu-only
+        constexpr bool PRINT_TO_CONSOLE = false;
+
         //! @attention performance relevant, uncaught error will lead to invalid memory access
         constexpr bool RANGE_CHECKS_BIN_INDEX = true;
         //! @attention performance relevant, uncaught error will lead to invalid memory access
         constexpr bool RANGE_CHECKS_ENERGY = true;
-        //! @attention only useful if building serial and cpu-only
-        constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace electronHistogram
 
 
@@ -56,7 +57,7 @@ namespace picongpu::atomicPhysics2::debug
     {
         //! @attention performance relevant
         constexpr bool DEBUG_CHECKS = true;
-        constexpr bool RUN_UNIT_TESTS = true;
+        constexpr bool RUN_UNIT_TESTS = false;
     } // namespace rateCalculation
 
 
@@ -69,16 +70,19 @@ namespace picongpu::atomicPhysics2::debug
 
     namespace rateCache
     {
-        //! range checks in rate cache, @attention performance relevant
-        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = true;
-
         //! @attention only useful if building serial and cpu-only
         constexpr bool PRINT_TO_CONSOLE = false;
+
+        //! range checks in rate cache, @attention performance relevant
+        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = true;
     } // namespace rateCache
 
 
     namespace rejectionProbabilityCache
     {
+        //! @attention only useful if building serial and cpu-only
+        constexpr bool PRINT_TO_CONSOLE = false;
+
         //! @attention performance relevant
         constexpr bool BIN_INDEX_RANGE_CHECK = true;
     } // namespace rejectionProbabilityCache
@@ -122,15 +126,15 @@ namespace picongpu::atomicPhysics2::debug
     namespace kernel::acceptanceTest
     {
         //! @attention only viable serial and cpu only compile
-        constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = true;
+        constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = false;
 
         //! @attention performance relevant
         constexpr bool CHECK_RATE_LIMIT = true;
 
         //! @attention only viable serial and cpu only compile
-        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = true;
+        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
         //! @attention only viable serial and cpu only compile
-        constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = true;
+        constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = false;
     } // namespace kernel::acceptanceTest
 
     namespace kernel::spawnIonizationElectrons
