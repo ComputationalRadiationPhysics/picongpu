@@ -65,4 +65,3 @@ namespace picongpu::particles::atomicPhysics2::stage
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage
-

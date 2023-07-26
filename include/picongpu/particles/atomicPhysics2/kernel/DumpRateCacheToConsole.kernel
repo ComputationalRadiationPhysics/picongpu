@@ -43,10 +43,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param localRateCacheBox deviceDataBox giving access to the local rate cache of
          *  all local superCells
          */
-        template<
-            typename T_Worker,
-            typename T_AreaMapping,
-            typename T_LocalRateCacheBox>
+        template<typename T_Worker, typename T_AreaMapping, typename T_LocalRateCacheBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,

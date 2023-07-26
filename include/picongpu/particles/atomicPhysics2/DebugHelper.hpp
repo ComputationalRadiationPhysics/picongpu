@@ -321,7 +321,8 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "rateCache: numberAtomicStates=" << numAtomicStates << std::endl;
         for(uint16_t i = 0u; i < numAtomicStates; i++)
         {
-            std::cout << "\t" << i << ":(present: " << ((rateCache.present(i))? "true" : "false" ) << ")[" << rateCache.rate(i) << "]" << std::endl;
+            std::cout << "\t" << i << ":(present: " << ((rateCache.present(i)) ? "true" : "false") << ")["
+                      << rateCache.rate(i) << "]" << std::endl;
         }
     }
 
@@ -385,7 +386,6 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "State : " << static_cast<uint16_t>(lowerChargeState) << ", " << lowerAtomicState << ", "
                   << static_cast<uint16_t>(upperChargeState) << ", " << upperAtomicState << std::endl;
     }
-
 
 
 } // namespace picongpu::particles::atomicPhysics2::debug

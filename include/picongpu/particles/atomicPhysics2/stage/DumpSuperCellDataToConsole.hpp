@@ -69,15 +69,12 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             using DumpToConsole = picongpu::particles::atomicPhysics2::kernel::DumpSuperCellDataToConsoleKernel;
 
-            PMACC_LOCKSTEP_KERNEL(
-                DumpToConsole(),
-                workerCfg)
+            PMACC_LOCKSTEP_KERNEL(DumpToConsole(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 localElectronHistogramField.getDeviceDataBox(),
                 localRejectionProbabilityCacheField.getDeviceDataBox(),
-                localTimeStepField.getDeviceDataBox()
-                localTimeRemainingField.getDeviceDataBox());
+                localTimeStepField.getDeviceDataBox() localTimeRemainingField.getDeviceDataBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

@@ -73,7 +73,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //  -> must subtract guard to get correct superCellFieldIdx
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
-                    - areaMapping.getGuardingSuperCells();
+                - areaMapping.getGuardingSuperCells();
 
             // get histogram for current superCell
             auto const& histogram = localElectronHistogramDataBox(superCellFieldIdx);
