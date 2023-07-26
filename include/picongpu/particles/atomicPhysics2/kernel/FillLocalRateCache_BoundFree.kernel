@@ -37,7 +37,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 {
     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
-    /** @class fill rate cache kernel
+    /** fill rate cache kernel
      *
      * add for all atomic states and all bins the rate of each upward bound-free
      *  transition to the rate cache slot of the atomic state.

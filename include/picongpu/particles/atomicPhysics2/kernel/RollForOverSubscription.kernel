@@ -96,7 +96,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
             T_Histogram& histogram = localElectronHistogramBox(superCellFieldIdx);
 
-            picongpu::particles::atomicPhysics2::localHelperFields ::RejectionProbabilityCache<
+            picongpu::particles::atomicPhysics2::localHelperFields::RejectionProbabilityCache<
                 T_Histogram::numberBins>& rejectionProbabilityCache
                 = localRejectionProbabilityCacheBox(superCellFieldIdx);
 

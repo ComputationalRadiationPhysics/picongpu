@@ -321,7 +321,19 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "rateCache: numberAtomicStates=" << numAtomicStates << std::endl;
         for(uint16_t i = 0u; i < numAtomicStates; i++)
         {
-            std::cout << "\t" << i << ":[" << rateCache.rate(i) << "]" << std::endl;
+            std::cout << "\t" << i << ":(present: " << ((rateCache.present(i))? "true" : "false" ) << ")[" << rateCache.rate(i) << "]" << std::endl;
+        }
+    }
+
+    //! debug only, write content of rate cache to console, @attention serial and cpu build only
+    template<typename T_RejectionProbabilityCache>
+    void printRejectionProbabilityCacheToConsole(T_RejectionProbabilityCache const& rejectionProbabilityCache)
+    {
+        constexpr uint16_t numAtomicStates = T_RateCache::numberAtomicStates;
+        std::cout << "rejectionProbabilityCache: numberAtomicStates=" << numAtomicStates << std::endl;
+        for(uint16_t i = 0u; i < numAtomicStates; i++)
+        {
+            std::cout << "\t" << i << ":[ " << rejectionProbabilityCache.rejectionProbability(i) << "]" << std::endl;
         }
     }
 
@@ -359,7 +371,7 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "\t\t - boundElectrons: " << ion[boundElectrons_] << std::endl;
     }
 
-    //! debug only. write transiton tuple to console, @attention serial and cpu buidl only
+    //! debug only. write transition tuple to console, @attention serial and cpu build only
     template<typename T_Tuple, typename T_Idx, typename T_Value, typename T_ConfigNumber>
     void printTransitionTupleToConsole(T_Tuple const& tuple)
     {
@@ -373,4 +385,7 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "State : " << static_cast<uint16_t>(lowerChargeState) << ", " << lowerAtomicState << ", "
                   << static_cast<uint16_t>(upperChargeState) << ", " << upperAtomicState << std::endl;
     }
+
+
+
 } // namespace picongpu::particles::atomicPhysics2::debug

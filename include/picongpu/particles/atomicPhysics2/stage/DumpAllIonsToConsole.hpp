@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file dump particle information to console debug stage of atomicPhysics
+//! @file dump particle information to console, debug stage of atomicPhysics
 
 
 #pragma once
@@ -34,10 +34,11 @@
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    /** @class atomicPhysics sub-stage for a species calling the kernel per superCell
+    /** @class atomicPhysics sub-stage dumping all macro ion atomicPhysics data for a species to console
+     * calls the corresponding kernel per superCell
      *
      * is called once per time step for the entire local simulation volume and for
-     * every isElectron species by the atomicPhysics stage by the atomicPhysicsStage
+     * every isElectron species by the atomicPhysics stage
      *
      * @tparam T_ElectronSpecies species for which to call the functor
      */
@@ -45,7 +46,7 @@ namespace picongpu::particles::atomicPhysics2::stage
     struct DumpAllIonsToConsole
     {
         // might be alias, from here on out no more
-        //! resolved type of alias T_ElectronSpecies
+        //! resolved type of alias T_Species
         using Species = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_Species>;
 
         //! call of kernel for every superCell
@@ -57,7 +58,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
             // pointer to memory, we will only work on device, no sync required
-            // init pointer to electrons and localElectronHistogramField
+            // init pointer to macro particles
             auto& particles = *dc.get<Species>(Species::FrameType::getName());
 
             using DumpToConsole = picongpu::particles::atomicPhysics2::kernel::DumpAllIonsToConsoleKernel;

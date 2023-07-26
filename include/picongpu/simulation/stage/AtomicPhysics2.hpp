@@ -36,6 +36,8 @@
 #include "picongpu/particles/atomicPhysics2/stage/ChooseTransition.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DumpAllIonsToConsole.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/DumpSuperCellDataToConsole.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/DumpRateCacheToConsole.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ExtractTransitionCollectionIndex.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/FillLocalRateCache.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RecordChanges.hpp"
@@ -44,7 +46,6 @@
 #include "picongpu/particles/atomicPhysics2/stage/ResetLocalRateCache.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetLocalTimeStepField.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RollForOverSubscription.hpp"
-#include "picongpu/particles/atomicPhysics2/stage/SetMomentumToZero.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/SpawnIonizationElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/UpdateTimeRemaining.hpp"
 
@@ -202,6 +203,9 @@ namespace picongpu::simulation::stage
             using ForEachElectronSpeciesSetTemperature = pmacc::meta::ForEach<
                 SpeciesRepresentingElectrons,
                 picongpu::particles::Manipulate<picongpu::particles::atomicPhysics2::SetTemperature, boost::mpl::_1>>;
+            using ForEachIonSpeciesDumpRateCacheToConsole = pmacc::meta::ForEach<
+                SpeciesRepresentingIons,
+                particles::atomicPhysics2::stage::DumpRateCacheToConsole<boost::mpl::_1>>;
 
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
 
@@ -227,7 +231,6 @@ namespace picongpu::simulation::stage
             setTimeRemaining(); // = (Delta t)_PIC
 
             uint16_t counterSubStep = 0u;
-
             // atomicPhysics sub-stepping loop, ends when timeRemaining<=0._X
             while(true)
             {
@@ -251,27 +254,54 @@ namespace picongpu::simulation::stage
                 ForEachIonSpeciesCheckPresenceOfAtomicStates{}(mappingDesc);
                 // R_ii = -(sum of rates of all transitions from state i to some other state j)
                 ForEachIonSpeciesFillLocalRateCache{}(mappingDesc);
+
+                if constexpr(picongpu::atomicPhysics2::debug::rateCache::PRINT_TO_CONSOLE)
+                    ForEachIonSpeciesDumpRateCacheToConsole{}(mappingDesc);
+
                 // min(1/(-R_ii)) * alpha
                 ForEachIonSpeciesCalculateStepLength{}(mappingDesc);
 
+                // debug only
+                uint16_t counterChooseTransition = 0u;
                 // chooseTransition loop, ends when all ion[accepted_] = true
                 while(true)
                 {
+                    std::cout << "\t chooseTransition iteration: " << counterChooseTransition << std::endl;
+                    ++counterChooseTransition;
+
                     // randomly roll transition for each not yet accepted macro ion
                     ForEachIonSpeciesChooseTransition{}(mappingDesc, currentStep);
                     ForEachIonSpeciesExtractTransitionCollectionIndex{}(mappingDesc, currentStep);
                     ForEachIonSpeciesDoAcceptTransitionTest{}(mappingDesc, currentStep);
                     ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
 
+                    // debug only
+                    uint16_t counterOverSubscription = 0u;
+
                     // reject overSubscription loop, ends when no histogram bin oversubscribed
                     while(true)
                     {
+                        // debug only
+                        std::cout << "\t\t overSubscription loop" << std::endl;
+                        // debug only
+                        if (counterOverSubscription > 10u)
+                        {
+                            ForEachIonSpeciesDumpToConsole{}(mappingDesc);
+                            picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole{}(mappingDesc);
+                        }
+
                         // check bins for over subscription --> localElectronHistogramOverSubscribedField
                         picongpu::particles::atomicPhysics2::stage::CheckForOverSubscription()(mappingDesc);
 
                         auto linearizedOverSubscribedBox = S_LinearizedBox<S_OverSubscribedField>(
                             localElectronHistogramOverSubscribedField.getDeviceDataBox(),
                             fieldGridLayoutOverSubscription);
+
+                        // debug only
+                        std::cout << "\t\t histogram oversubscribed?: " << ((static_cast<bool>(deviceLocalReduce(
+                               pmacc::math::operation::Or(),
+                               linearizedOverSubscribedBox,
+                               fieldGridLayoutOverSubscription.productOfComponents())))? "true" : "false") << std::endl;
 
                         if(!static_cast<bool>(deviceLocalReduce(
                                pmacc::math::operation::Or(),
@@ -310,6 +340,7 @@ namespace picongpu::simulation::stage
                         break;
                     }
                 } // end chooseTransition loop
+                std::cout << "\t end chooseTransition loop" << std::endl;
 
                 if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                  DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED)

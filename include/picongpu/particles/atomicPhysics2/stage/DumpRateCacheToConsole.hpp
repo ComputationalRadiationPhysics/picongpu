@@ -17,14 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file set momentum of species to zero debug stage of atomicPhysics
+//! @file dump rateCache to console, debug stage of atomicPhysics
 
 
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/kernel/SetMomentumToZero.kernel"
+#include "picongpu/particles/atomicPhysics2/kernel/DumpRateCacheToConsole.kernel"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -34,37 +34,35 @@
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    /** @class atomicPhysics sub-stage for a species calling the kernel per superCell
+    /** @class atomicPhysics sub-stage dumping rateCache for one ion species to console,
+     * calls the corresponding kernel per superCell
      *
-     * is called once per time step for the entire local simulation volume and for
-     * every isElectron species by the atomicPhysics stage by the atomicPhysicsStage
-     *
-     * @tparam T_ElectronSpecies species for which to call the functor
+     * is called once per time step for the entire local simulation volume by the atomicPhysicsStage
      */
-    template<typename T_Species>
-    struct SetMomentumToZero
+    template<typename T_IonSpecies>
+    struct DumpRateCacheToConsole
     {
         // might be alias, from here on out no more
-        //! resolved type of alias T_ElectronSpecies
-        using Species = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_Species>;
+        //! resolved type of alias T_Species
+        using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
 
         //! call of kernel for every superCell
-        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
+        HINLINE void operator()(piconpgu::MappingDesc const mappingDesc) const
         {
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
-            // pointer to memory, we will only work on device, no sync required
-            // init pointer to electrons and localElectronHistogramField
-            auto& particles = *dc.get<Species>(Species::FrameType::getName());
+            auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
+                                                    LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
+                IonSpecies::FrameType::getName() + "_localRateCacheField");
 
-            using SetMomentumZero = picongpu::particles::atomicPhysics2::kernel::SetMomentumToZeroKernel;
+            using DumpToConsole = picongpu::particles::atomicPhysics2::kernel::DumpRateCacheToConsole;
 
-            // macro for call of kernel on every superCell, see pull request #4321
-            PMACC_LOCKSTEP_KERNEL(SetMomentumZero(), workerCfg)
-            (mapper.getGridDim())(mapper, particles.getDeviceParticlesBox());
+            PMACC_LOCKSTEP_KERNEL(DumpToConsole(), workerCfg)
+            (mapper.getGridDim())(mapper, localRateCacheField.getDeviceDataBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage
+

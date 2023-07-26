@@ -36,16 +36,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
 {
     /** debug kernel
      *
-     * @attention assumes that the histogram has been reset previously
+     * dump atomicPhysics data of all all macro-ion to console
      *
-     * called by binElectrons sub-stage, bins all macro particles of the species
-     * T_ElectronSpecies in the given superCell into the given histogram
+     * @attention only useful in serial and cpu-build!
      */
     struct DumpAllIonsToConsoleKernel
     {
         /** call operator
          *
-         * called by SetMomentumToZero atomicPhysics debug stage
+         * called by DumpAllIonsToConsole atomicPhysics sub-stage
          *
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call
