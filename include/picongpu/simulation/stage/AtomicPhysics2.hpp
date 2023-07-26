@@ -36,8 +36,8 @@
 #include "picongpu/particles/atomicPhysics2/stage/ChooseTransition.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DumpAllIonsToConsole.hpp"
-#include "picongpu/particles/atomicPhysics2/stage/DumpSuperCellDataToConsole.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DumpRateCacheToConsole.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/DumpSuperCellDataToConsole.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ExtractTransitionCollectionIndex.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/FillLocalRateCache.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RecordChanges.hpp"
@@ -292,13 +292,17 @@ namespace picongpu::simulation::stage
                             fieldGridLayoutOverSubscription);
 
                         // debug only
-                        if (counterOverSubscription > 10u)
+                        if(counterOverSubscription > 10u)
                         {
-                            std::cout << "\t\t histogram oversubscribed?: " << ((static_cast<bool>(deviceLocalReduce(
-                                pmacc::math::operation::Or(),
-                                linearizedOverSubscribedBox,
-                                fieldGridLayoutOverSubscription.productOfComponents())))? "true" : "false") << std::endl;
-                            //ForEachIonSpeciesDumpToConsole{}(mappingDesc);
+                            std::cout << "\t\t histogram oversubscribed?: "
+                                      << ((static_cast<bool>(deviceLocalReduce(
+                                              pmacc::math::operation::Or(),
+                                              linearizedOverSubscribedBox,
+                                              fieldGridLayoutOverSubscription.productOfComponents())))
+                                              ? "true"
+                                              : "false")
+                                      << std::endl;
+                            // ForEachIonSpeciesDumpToConsole{}(mappingDesc);
 
                             picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole{}(mappingDesc);
                         }
