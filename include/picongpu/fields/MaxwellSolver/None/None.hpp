@@ -26,6 +26,7 @@
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/types.hpp>
 
 #include <cstdint>
@@ -38,7 +39,7 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            class None
+            class None : public ISimulationData
             {
             private:
                 using SuperCellSize = MappingDesc::SuperCellSize;
@@ -67,6 +68,27 @@ namespace picongpu
                 {
                     pmacc::traits::StringProperty propList("name", "none");
                     return propList;
+                }
+
+                static std::string getName()
+                {
+                    return "FieldSolverNone";
+                }
+
+                /**
+                 * Synchronizes simulation data, meaning accessing (host side) data
+                 * will return up-to-date values.
+                 */
+                void synchronize() override{};
+
+                /**
+                 * Return the globally unique identifier for this simulation data.
+                 *
+                 * @return globally unique identifier
+                 */
+                SimulationDataId getUniqueId() override
+                {
+                    return getName();
                 }
             };
 

@@ -28,6 +28,7 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
@@ -49,7 +50,7 @@ namespace picongpu
             /** Functor for the stage of the PIC loop performing current interpolation
              *  and addition to grid values of the electromagnetic field
              */
-            class CurrentInterpolationAndAdditionToEMF
+            class CurrentInterpolationAndAdditionToEMF : public ISimulationData
             {
             public:
                 /** Register program options for current interpolation
@@ -144,6 +145,28 @@ namespace picongpu
                             fieldSolver.addCurrent<type::CORE + type::BORDER>();
                         }
                     }
+                }
+
+                /** Name of the solver which can be used to share this class via DataConnector */
+                static std::string getName()
+                {
+                    return "CurrentInterpolationAndAdditionToEMF";
+                }
+
+                /**
+                 * Synchronizes simulation data, meaning accessing (host side) data
+                 * will return up-to-date values.
+                 */
+                void synchronize() override{};
+
+                /**
+                 * Return the globally unique identifier for this simulation data.
+                 *
+                 * @return globally unique identifier
+                 */
+                SimulationDataId getUniqueId() override
+                {
+                    return getName();
                 }
 
             private:

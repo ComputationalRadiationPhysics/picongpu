@@ -148,7 +148,10 @@ namespace picongpu
                  "set the number of MPI ranks using a single device together");
             // clang-format on
 
-            currentInterpolationAndAdditionToEMF.registerHelp(desc);
+            // pluginRegisterHelp() is called before init therefore we need to create the member here.
+            currentInterpolationAndAdditionToEMF
+                = std::make_shared<simulation::stage::CurrentInterpolationAndAdditionToEMF>();
+            currentInterpolationAndAdditionToEMF->registerHelp(desc);
             fieldAbsorber.registerHelp(desc);
             fieldBackground.registerHelp(desc);
             particleBoundaries.registerHelp(desc);
@@ -290,8 +293,6 @@ namespace picongpu
 
             SimulationHelper<simDim>::pluginUnload();
 
-            myFieldSolver.reset();
-
             /** unshare all registered ISimulationData sets
              *
              * @todo can be removed as soon as our Environment learns to shutdown in
@@ -306,13 +307,20 @@ namespace picongpu
 
         void init() override
         {
-            // This has to be called before initFields()
-            currentInterpolationAndAdditionToEMF.init();
-
             DataConnector& dc = Environment<>::get().DataConnector();
+
+            dc.share(currentInterpolationAndAdditionToEMF);
+
+            // This has to be called before initFields()
+            currentInterpolationAndAdditionToEMF->init();
+
+            currentBackground = std::make_shared<simulation::stage::CurrentBackground>(*cellDescription);
+            dc.share(currentBackground);
+
             initFields(dc);
 
-            myFieldSolver = std::make_unique<fields::Solver>(*cellDescription);
+            myFieldSolver = std::make_shared<fields::Solver>(*cellDescription);
+            dc.share(myFieldSolver);
 
             // initialize field background stage,
             // this may include allocation of additional fields so has to be done before particles
@@ -518,9 +526,9 @@ namespace picongpu
             myFieldSolver->update_beforeCurrent(currentStep);
             eventSystem::setTransactionEvent(commEvent);
             atomicPhysics->runSolver(currentStep);
-            CurrentBackground{*cellDescription}(currentStep);
+            (*currentBackground)(currentStep);
             CurrentDeposition{}(currentStep);
-            currentInterpolationAndAdditionToEMF(currentStep, *myFieldSolver);
+            (*currentInterpolationAndAdditionToEMF)(currentStep, *myFieldSolver);
             myFieldSolver->update_afterCurrent(currentStep);
         }
 
@@ -588,8 +596,9 @@ namespace picongpu
     protected:
         std::shared_ptr<DeviceHeap> deviceHeap;
 
-        std::unique_ptr<fields::Solver> myFieldSolver;
-        simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
+        std::shared_ptr<fields::Solver> myFieldSolver;
+        std::shared_ptr<simulation::stage::CurrentInterpolationAndAdditionToEMF> currentInterpolationAndAdditionToEMF;
+        std::shared_ptr<simulation::stage::CurrentBackground> currentBackground;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
