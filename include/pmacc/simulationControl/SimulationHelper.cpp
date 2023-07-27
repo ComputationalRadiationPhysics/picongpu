@@ -63,8 +63,11 @@ namespace pmacc
     template<unsigned DIM>
     SimulationHelper<DIM>::~SimulationHelper()
     {
-        // notify all concurrent threads to exit
-        exitConcurrentThreads.notify_all();
+        {
+            // notify all concurrent threads to exit
+            std::unique_lock<std::mutex> lk(this->concurrentThreadMutex);
+            exitConcurrentThreads.notify_all();
+        }
         // wait for time triggered checkpoint thread
         if(checkpointTimeThread.joinable())
             checkpointTimeThread.join();
@@ -184,10 +187,9 @@ namespace pmacc
         // register concurrent thread to perform checkpointing periodically after a user defined time
         if(checkpointPeriodMinutes != 0)
             checkpointTimeThread = std::thread(
-                [&]()
+                [&, this]()
                 {
-                    std::mutex mutex;
-                    std::unique_lock<std::mutex> lk(mutex);
+                    std::unique_lock<std::mutex> lk(this->concurrentThreadMutex);
                     while(exitConcurrentThreads.wait_until(
                               lk,
                               std::chrono::system_clock::now() + std::chrono::minutes(checkpointPeriodMinutes))
