@@ -22,6 +22,8 @@
 #include "picongpu/particles/atomicPhysics2/atomicData/GetStateFromTransitionTuple.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
 
+#include <pmacc/dimensions/DataSpace.hpp>
+
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -29,40 +31,6 @@
 namespace picongpu::particles::atomicPhysics2::debug
 {
     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
-
-    //! debug only, print content and bins of histogram to console, @attention serial and cpu build only
-    template<typename T_Histogram>
-    void printHistogramToConsole(T_Histogram const& histogram)
-    {
-        constexpr uint32_t numBins = T_Histogram::numberBins;
-
-        std::cout << "histogram: base=" << histogram.getBase();
-        std::cout << " numBins=" << T_Histogram::numberBins;
-        std::cout << " maxE=" << T_Histogram::maxEnergy << std::endl;
-
-        float_X centralEnergy;
-        float_X binWidth;
-
-        for(uint32_t i = 0u; i < numBins; i++)
-        {
-            // binIndex
-            std::cout << "\t " << i;
-
-            // central bin energy [eV] and binWidth [eV]
-            centralEnergy = histogram.getBinEnergy(i);
-            binWidth = histogram.getBinWidth(i);
-
-            std::cout << "(" << centralEnergy - binWidth / 2._X << ", " << centralEnergy + binWidth / 2._X << "] :";
-
-            // bin data, [w0, DeltaW, DeltaEnergy, binOverSubscribed]
-            std::cout << " [w0, Dw, DE]: [";
-            std::cout << histogram.getBinWeight0(i) << ", ";
-            std::cout << histogram.getBinDeltaWeight(i) << ", ";
-            std::cout << histogram.getBinDeltaEnergy(i) << "]";
-            std::cout << std::endl;
-        }
-        std::cout << "\t overFlow: w0=" << histogram.getOverflowWeight() << std::endl;
-    }
 
     //! debug only, write atomic data to console, @attention serially and cpu build only
     template<typename T_AtomicData, bool T_printTransitionData, bool T_printInverseTransitions>
@@ -313,43 +281,17 @@ namespace picongpu::particles::atomicPhysics2::debug
         return atomicData;
     }
 
-    //! debug only, write content of rate cache to console, @attention serial and cpu build only
-    template<typename T_RateCache>
-    void printRateCacheToConsole(T_RateCache const& rateCache)
-    {
-        constexpr uint16_t numAtomicStates = T_RateCache::numberAtomicStates;
-        std::cout << "rateCache: numberAtomicStates=" << numAtomicStates << std::endl;
-        for(uint16_t i = 0u; i < numAtomicStates; i++)
-        {
-            std::cout << "\t" << i << ":(present: " << ((rateCache.present(i)) ? "true" : "false") << ")["
-                      << rateCache.rate(i) << "]" << std::endl;
-        }
-    }
-
-    //! debug only, write content of rate cache to console, @attention serial and cpu build only
-    template<typename T_RejectionProbabilityCache>
-    void printRejectionProbabilityCacheToConsole(T_RejectionProbabilityCache const& rejectionProbabilityCache)
-    {
-        constexpr uint16_t numBins = T_RejectionProbabilityCache::numberBins;
-        std::cout << "rejectionProbabilityCache: numberAtomicStates=" << numBins << std::endl;
-        for(uint16_t i = 0u; i < numBins; i++)
-        {
-            std::cout << "\t" << i << ":[ " << rejectionProbabilityCache.rejectionProbability(i) << " ]" << std::endl;
-        }
-    }
-
-    //! print vector to console, simDim version, @attention serial and cpu build only
+    //! vector to string , @attention serial and cpu build only
     template<typename T_Vector>
     std::string linearize(T_Vector const& vector)
     {
         std::string result = "";
-        result += "( " + std::to_string(vector[0u]);
+        result += std::to_string(vector[0u]);
 
         for(uint8_t i = 1u; i < T_Vector::dim; i++)
         {
             result += ", " + std::to_string(vector[i]);
         }
-        result += " )";
 
         return result;
     }
@@ -361,8 +303,8 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "ID: " << ion[particleId_] << std::endl;
         std::cout << "\t - weighting: " << ion[weighting_] << std::endl;
 
-        std::cout << "\t - momentum: " << linearize(ion[momentum_]) << std::endl;
-        std::cout << "\t - position: " << linearize(ion[position_]) << std::endl;
+        std::cout << "\t - momentum: (" << linearize(ion[momentum_]) << ")" << std::endl;
+        std::cout << "\t - position: (" << linearize(ion[position_]) << ")" << std::endl;
         std::cout << "\t - atomicPhysicsData:" << std::endl;
         std::cout << "\t\t - atomicConfigNumber: " << ion[atomicConfigNumber_].getConfigNumber() << std::endl;
         std::cout << "\t\t - processClass: " << static_cast<uint16_t>(ion[processClass_]) << std::endl;
@@ -386,6 +328,4 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "State : " << static_cast<uint16_t>(lowerChargeState) << ", " << lowerAtomicState << ", "
                   << static_cast<uint16_t>(upperChargeState) << ", " << upperAtomicState << std::endl;
     }
-
-
 } // namespace picongpu::particles::atomicPhysics2::debug

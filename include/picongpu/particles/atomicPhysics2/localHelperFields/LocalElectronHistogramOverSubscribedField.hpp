@@ -23,11 +23,26 @@
 
 #include "picongpu/particles/atomicPhysics2/SuperCellField.hpp"
 
+#include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
+
 #include <cstdint>
 #include <string>
 
 namespace picongpu::particles::atomicPhysics2::localHelperFields
 {
+    //! debug only, write content of rate cache to console, @attention serial and cpu build only
+    struct PrintOverSubcriptionFieldToConsole
+    {
+        HDINLINE void operator()(
+            uint32_t const overSubscribed,
+            pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        {
+            std::cout << "overSubscribed ["
+                << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
+            std::cout << ((overSubscribed)? "true": "false") << std::endl;
+        }
+    };
+
     /**@class superCell field of the electronHistogram over subscribed state
      *
      * @tparam T_MappingDescription description of local mapping from device to grid

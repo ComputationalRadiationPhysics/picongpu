@@ -31,51 +31,32 @@
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
+#include <string>
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    /** @class atomicPhysics sub-stage dumping all superCell general atomicPhysics data to console,
+    /** @class atomicPhysics sub-stage dumping an atomicPhysics superCellField to console,
      * calls the corresponding kernel per superCell
      *
-     * is called once per time step for the entire local simulation volume by the atomicPhysicsStage
+     * is called once per time step for the entire local simulation volume by the atomicPhysics stage
      */
+    template<typename T_FieldType, typename T_PrintFunctor>
     struct DumpSuperCellDataToConsole
     {
         //! call of kernel for every superCell
-        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc, std::string const superCellFieldName) const
         {
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
-            auto& localRejectionProbabilityCacheField
-                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalRejectionProbabilityCacheField<
-                    picongpu::MappingDesc>>("LocalRejectionProbabilityCacheField");
+            T_FieldType& superCellField = *dc.get<T_FieldType>(superCellFieldName);
 
-            auto& localElectronHistogramField
-                = *dc.get<picongpu::particles::atomicPhysics2::electronDistribution::
-                              LocalHistogramField<picongpu::atomicPhysics2::ElectronHistogram, picongpu::MappingDesc>>(
-                    "Electron_localHistogramField");
-
-            auto& localTimeStepField = *dc.get<
-                picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>>(
-                "LocalTimeStepField");
-
-            auto& localTimeRemainingField
-                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
-                    picongpu::MappingDesc>>("LocalTimeRemainingField");
-
-
-            using DumpToConsole = picongpu::particles::atomicPhysics2::kernel::DumpSuperCellDataToConsoleKernel;
+            using DumpToConsole = picongpu::particles::atomicPhysics2::kernel::DumpSuperCellDataToConsoleKernel<T_PrintFunctor>;
 
             PMACC_LOCKSTEP_KERNEL(DumpToConsole(), workerCfg)
-            (mapper.getGridDim())(
-                mapper,
-                localElectronHistogramField.getDeviceDataBox(),
-                localRejectionProbabilityCacheField.getDeviceDataBox(),
-                localTimeStepField.getDeviceDataBox(),
-                localTimeRemainingField.getDeviceDataBox());
+            (mapper.getGridDim())(mapper, superCellField.getDeviceDataBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

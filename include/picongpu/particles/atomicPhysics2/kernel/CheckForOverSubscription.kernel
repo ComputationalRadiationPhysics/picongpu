@@ -104,7 +104,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         // bin is oversubscribed by suggested changes
 
                         // calculate rejection probability
-                        rejectionProbability = (deltaWeight - weight0) / deltaWeight;
+                        rejectionProbability = math::max(
+                            // proportion of weight we want to reject
+                            (deltaWeight - weight0) / deltaWeight,
+                            // but at least one average one macro ion should be rejected
+                            TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / deltaWeight
+                            );
 
                         // set flag that histogram has over subscribed bin
                         cupla::atomicExch(worker.getAcc(), &histogramOverSubscribed, static_cast<uint32_t>(true));

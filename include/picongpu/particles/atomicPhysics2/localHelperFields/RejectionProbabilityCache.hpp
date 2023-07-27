@@ -19,12 +19,49 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics2_Debug.param
+// need: picongpu/param/atomicPhysics2_Debug.param
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
+
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
+#include <iostream>
+#include <iomanip>
 
 namespace picongpu::particles::atomicPhysics2::localHelperFields
 {
+    //! debug only, write content of rate cache to console, @attention serial and cpu build only
+    struct PrintRejectionProbabilityCacheToConsole
+    {
+        template<typename T_RejectionProbabilityCache>
+        HDINLINE void operator()(
+            T_RejectionProbabilityCache const& rejectionProbabilityCache,
+            pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        {
+            constexpr uint16_t numBins = T_RejectionProbabilityCache::numberBins;
+
+            // check if overSubscribed
+            bool overSubscription = false;
+            for(uint16_t i = 0u; i < numBins; i++)
+            {
+                if (rejectionProbabilityCache.rejectionProbability(i) > 0._X)
+                    overSubscription = true;
+            }
+
+            // print content
+            std::cout << "rejectionProbabilityCache ["
+                << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
+            std::cout << " oversubcribed: " << ((overSubscription)? "true": "false") << std::endl;
+            for(uint16_t i = 0u; i < numBins; i++)
+            {
+                std::cout << "\t\t" << i << ":[ " << std::setw(10) << std::scientific
+                    << rejectionProbabilityCache.rejectionProbability(i) << std::defaultfloat << " ]" << std::endl;
+            }
+        }
+    };
+
     /** @class cache of rejection probability p of over subscribed bin,
      *
      * p = (binDeltaWeight - binWeight0)/binDeltaWeight

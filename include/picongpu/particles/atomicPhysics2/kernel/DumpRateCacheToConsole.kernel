@@ -56,7 +56,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 - areaMapping.getGuardingSuperCells();
 
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
-            printRateCacheToConsole(rateCache);
+            rateCache.printToConsole(superCellFieldIdx);
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel

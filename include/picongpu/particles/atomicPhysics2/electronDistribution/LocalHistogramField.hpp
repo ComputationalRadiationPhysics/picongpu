@@ -24,16 +24,57 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics2/SuperCellField.hpp"
+#include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
+
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
 #include <string>
+#include <iostream>
 
 namespace picongpu::particles::atomicPhysics2::electronDistribution
 {
-    /**@class holds a gridBuffer of the per-superCell localHistograms for atomicPhysics
+    //! debug only, print content and bins of histogram to console, @attention serial and cpu build only!
+    struct PrintHistogramToConsole
+    {
+        template<typename T_Histogram>
+        HDINLINE void operator()(T_Histogram const& histogram, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        {
+            constexpr uint32_t numBins = T_Histogram::numberBins;
+
+            std::cout << "histogram [" << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
+            std::cout << " base=" << histogram.getBase();
+            std::cout << " numBins=" << T_Histogram::numberBins;
+            std::cout << " maxE=" << T_Histogram::maxEnergy << std::endl;
+
+            float_X centralEnergy;
+            float_X binWidth;
+
+            for(uint32_t i = 0u; i < numBins; i++)
+            {
+                // binIndex
+                std::cout << "\t " << i;
+
+                // central bin energy [eV] and binWidth [eV]
+                centralEnergy = histogram.getBinEnergy(i);
+                binWidth = histogram.getBinWidth(i);
+
+                std::cout << "(" << centralEnergy - binWidth / 2._X << ", " << centralEnergy + binWidth / 2._X << "] :";
+
+                // bin data, [w0, DeltaW, DeltaEnergy, binOverSubscribed]
+                std::cout << " [w0, Dw, DE]: [";
+                std::cout << histogram.getBinWeight0(i) << ", ";
+                std::cout << histogram.getBinDeltaWeight(i) << ", ";
+                std::cout << histogram.getBinDeltaEnergy(i) << "]";
+                std::cout << std::endl;
+            }
+            std::cout << "\t overFlow: w0=" << histogram.getOverflowWeight() << std::endl;
+        }
+    };
+
+    /** holds a gridBuffer of the per-superCell localHistograms for atomicPhysics
      *
-     * @attention histograms are uninitialized upon creation of the field,
-     *  use .getDeviceBuffer().setValue() to init
+     * @attention histograms are uninitialized upon creation of the field, use .getDeviceBuffer().setValue() to init
      */
     template<typename T_Histogram, typename T_MappingDescription>
     struct LocalHistogramField : SuperCellField<T_Histogram, T_MappingDescription, false /*no guards*/>

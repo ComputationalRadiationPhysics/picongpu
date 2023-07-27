@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics2_Debug.param
 
+#include <pmacc/dimensions/DataSpace.hpp>
+
 #include <cstdint>
 
 namespace picongpu::particles::atomicPhysics2::localHelperFields
@@ -143,6 +145,18 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                 }
 
             return m_present[collectionIndex];
+        }
+
+        //! debug only, write content of rate cache to console, @attention serial and cpu build only
+        void printToConsole(pmacc::DataSpace<picongpu::simDim> superCellFieldIdx) const
+        {
+            std::cout << "rateCache: ["
+                << picongpu::particles::atomicPhysics2::debug::linearize(superCellFieldIdx) << "]" << std::endl;
+            for(uint16_t i = 0u; i < numberAtomicStates; i++)
+            {
+                std::cout << "\t" << i << ":(present: " << ((this->present(i)) ? "true" : "false") << ")["
+                        << this->rate(i) << "]" << std::endl;
+            }
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::localHelperFields

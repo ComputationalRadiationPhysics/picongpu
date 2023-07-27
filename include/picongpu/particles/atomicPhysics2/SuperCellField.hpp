@@ -76,10 +76,10 @@ namespace picongpu::particles::atomicPhysics2
             : SimulationFieldHelper<T_MappingDescription>(mappingDesc)
         {
             if constexpr(T_withGuards)
-                this->superCellField
+                superCellField
                     = std::make_unique<GridBuffer<T_Entry, picongpu::simDim>>(mappingDesc.getGridSuperCells());
             else
-                this->superCellField = std::make_unique<GridBuffer<T_Entry, picongpu::simDim>>(
+                superCellField = std::make_unique<GridBuffer<T_Entry, picongpu::simDim>>(
                     mappingDesc.getGridSuperCellsWithoutGuards());
         }
 
@@ -114,12 +114,12 @@ namespace picongpu::particles::atomicPhysics2
          */
         HINLINE DataBoxType getDeviceDataBox()
         {
-            return this->superCellField->getDeviceBuffer().getDataBox();
+            return superCellField->getDeviceBuffer().getDataBox();
         }
 
         HINLINE DeviceBufferType& getDeviceBuffer()
         {
-            return this->superCellField->getDeviceBuffer();
+            return superCellField->getDeviceBuffer();
         }
 
         HINLINE GridLayout<picongpu::simDim> getGridLayout()

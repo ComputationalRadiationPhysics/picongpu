@@ -29,17 +29,33 @@
 #include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
+#include <iostream>
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
+    //! example print functor
+    struct PrintPrimitives
+    {
+        template<typename T_Type>
+        HDINLINE void operator()(T_Type const value, pmacc::DataSpace<simDim> superCellFieldIdx) const
+        {
+            std::cout << "[" << picongpu::particles::atomicPhysics2::debug::linearize(superCellFieldIdx) << "]";
+            std::cout << "]" << value << std::endl;
+        }
+    };
+
     /** debug kernel
      *
      * dump all superCell based atomicPhysics data to console
      *
+     * @tparam T_PrintFunctor functor for printing data to console
+     *
      * @attention only useful in serial and cpu-build!
      */
+    template<typename T_PrintFunctor>
     struct DumpSuperCellDataToConsoleKernel
     {
         /** call operator
@@ -49,25 +65,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call
          * @param areMapping mapping of blockIndex to block superCell index
-         * @param localRejectionProbabilityCacheBox deviceDataBox giving access to the
-         *  local RejectionProbabilityCache of each local superCells
-         * @param localElectronHistogramBox deviceDataBox giving access to the
-         *  local electron histogram of all local superCells
+         * @param SuperCellFieldDataBox deviceDataBox giving access to a superCellField
          */
         template<
             typename T_Worker,
             typename T_AreaMapping,
-            typename T_LocalElectronHistogramDataBox,
-            typename T_LocalRejectionProbabilityCacheDataBox,
-            typename T_LocalTimeStepDataBox,
-            typename T_LocalTimeRemainingDataBox>
+            typename T_SuperCellFieldDataBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
-            T_LocalRejectionProbabilityCacheDataBox const localRejectionProbabilityCacheBox,
-            T_LocalTimeStepDataBox const localTimeStepBox,
-            T_LocalTimeRemainingDataBox const localTimeRemainingBox) const
+            T_SuperCellFieldDataBox const superCellFieldBox) const
         {
             // atomicPhysics superCellFields have no guard, but areMapping includes a guard
             //  -> must subtract guard to get correct superCellFieldIdx
@@ -76,19 +83,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 - areaMapping.getGuardingSuperCells();
 
             // get histogram for current superCell
-            auto const& histogram = localElectronHistogramDataBox(superCellFieldIdx);
-            auto const& rejectionProbabilityCache = localRejectionProbabilityCacheBox(superCellFieldIdx);
+            auto const& fieldValue = superCellFieldBox(superCellFieldIdx);
 
-            if constexpr(picongpu::atomicPhysics2::debug::electronHistogram::PRINT_TO_CONSOLE)
-                debug::printHistogramToConsole(histogram);
-
-            if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
-                debug::printRejectionProbabilityCacheToConsole(rejectionProbabilityCache);
-
-            auto& timeRemaining = localTimeRemainingBox(superCellFieldIdx);
-            auto& timeStep = localTimeStepBox(superCellFieldIdx);
-
-            printf("timeRemaining[UNIT_TIME]: %.8e timeStep[UNIT_TIME]: %.8e\n", timeRemaining, timeStep);
+            T_PrintFunctor{}(fieldValue, superCellFieldIdx);
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel
