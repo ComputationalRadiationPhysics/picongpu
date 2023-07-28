@@ -167,6 +167,7 @@ namespace pmacc
 
         // conditional variable to notify all concurrent threads and signal exit of the simulation
         std::condition_variable exitConcurrentThreads;
+        std::mutex concurrentThreadMutex;
 
         /* common directory for checkpoints */
         std::string checkpointDirectory;
