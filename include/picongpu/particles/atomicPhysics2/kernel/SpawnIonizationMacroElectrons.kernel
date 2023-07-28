@@ -198,19 +198,19 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             // for autonomous transitions allows initialState == upperState
                             numberIonizationElectrons = lowerChargeState - upperChargeState;
                         }
-                        if constexpr(u8(T_ProcessClassGroup) == u8(procClass::ProcessClassGroup::boundFreeBased))
-                        {
-                            // bound-free transition allow both ways
-                            if(upperChargeState > lowerChargeState)
-                                numberIonizationElectrons = upperChargeState - lowerChargeState;
-                            else
-                                numberIonizationElectrons = lowerChargeState - upperChargeState;
-                        }
                         else
                         {
-                            printf("atomicPhysics ERROR: unknown processClassGroup in "
-                                   "SpawnionizationMacroElectronsKernel\n");
-                            numberIonizationElectrons = static_cast<int8_t>(0u);
+                            if constexpr(u8(T_ProcessClassGroup) == u8(procClass::ProcessClassGroup::boundFreeBased))
+                            {
+                                numberIonizationElectrons = upperChargeState - lowerChargeState;
+                            }
+                            else
+                            {
+                                printf("atomicPhysics ERROR: unknown processClassGroup %u in "
+                                    "SpawnionizationMacroElectronsKernel\n",
+                                    static_cast<uint16_t>(u8(T_ProcessClassGroup)));
+                                numberIonizationElectrons = static_cast<int8_t>(0u);
+                            }
                         }
 
 
