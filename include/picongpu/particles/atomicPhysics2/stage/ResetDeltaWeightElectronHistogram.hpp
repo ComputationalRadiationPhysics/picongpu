@@ -17,18 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file check for overSubscription of histogram bins and calculate rejectionProbability for each bin
- */
+//! @file reset deltaWeight entry of all histogram bin
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
 // need picongpu::atomicPhysics2::ElectronHistogram from atomicPhysics2.param
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LocalHistogramField.hpp"
-#include "picongpu/particles/atomicPhysics2/kernel/CheckForOverSubscription.kernel"
-#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalElectronHistogramOverSubscribedField.hpp"
-#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRejectionProbabilityCacheField.hpp"
+#include "picongpu/particles/atomicPhysics2/kernel/ResetDeltaWeightElectronHistogram.kernel"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -38,12 +35,11 @@
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    /** CheckForAndRejectOversubscription atomic physics sub-stage
+    /** ResetDeltaWeightElectronHistogram atomic physics sub-stage
      *
-     * check each histogram bin for deltaWeight > weight0, if yes mark bin as over subscribed
-     *
+     * reset deltaWeight entry for each electron histogram bin to 0
      */
-    struct CheckForOverSubscription
+    struct ResetDeltaWeightElectronHistogram
     {
         //! call of kernel for every superCell
         HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
@@ -58,25 +54,14 @@ namespace picongpu::particles::atomicPhysics2::stage
                               LocalHistogramField<picongpu::atomicPhysics2::ElectronHistogram, picongpu::MappingDesc>>(
                     "Electron_localHistogramField");
 
-            auto& localElectronHistogramOverSubscribedField
-                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
-                              LocalElectronHistogramOverSubscribedField<picongpu::MappingDesc>>(
-                    "LocalElectronHistogramOverSubscribedField");
-
-            auto& localRejectionProbabilityCacheField
-                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalRejectionProbabilityCacheField<
-                    picongpu::MappingDesc>>("LocalRejectionProbabilityCacheField");
-
             // macro for call of kernel for every superCell, see pull request #4321
             PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel::CheckForOverSubscriptionKernel<
+                picongpu::particles::atomicPhysics2::kernel::ResetDeltaWeightElectronHistogramKernel<
                     picongpu::atomicPhysics2::ElectronHistogram>(),
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
-                localElectronHistogramField.getDeviceDataBox(),
-                localElectronHistogramOverSubscribedField.getDeviceDataBox(),
-                localRejectionProbabilityCacheField.getDeviceDataBox());
+                localElectronHistogramField.getDeviceDataBox());
 
             /// @todo implement photon histogram, Brian Marre, 2023
         }

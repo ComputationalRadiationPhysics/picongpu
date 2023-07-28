@@ -295,6 +295,24 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
             return;
         }
 
+        /** set the deltaWeight of a given bin
+         *
+         * @attention no range check outside of debug compile
+         * @attention does not use atomics!
+         *
+         * @param binIndex ... physical particle energy, unitless
+         * @param weight ... weight of the macroParticle, unitless
+         */
+        HDINLINE void setDeltaWeight(uint32_t const binIndex, float_X const weight)
+        {
+            if constexpr(picongpu::atomicPhysics2::debug::electronHistogram::RANGE_CHECKS_BIN_INDEX)
+                if(!debugCheckBinIndexInRange(binIndex))
+                    return;
+
+            this->binDeltaWeights[binIndex] = weight;
+            return;
+        }
+
         /** add to the deltaEnergy of a given bin
          *
          * @attention no range check outside of debug compile

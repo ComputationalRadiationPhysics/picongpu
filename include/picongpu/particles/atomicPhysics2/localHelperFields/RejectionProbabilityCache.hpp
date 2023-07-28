@@ -33,6 +33,7 @@
 namespace picongpu::particles::atomicPhysics2::localHelperFields
 {
     //! debug only, write content of rate cache to console, @attention serial and cpu build only
+    template<bool printOnlyOversubscribed>
     struct PrintRejectionProbabilityCacheToConsole
     {
         template<typename T_RejectionProbabilityCache>
@@ -56,6 +57,12 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
             std::cout << " oversubcribed: " << ((overSubscription)? "true": "false") << std::endl;
             for(uint16_t i = 0u; i < numBins; i++)
             {
+                if constexpr(printOnlyOversubscribed)
+                {
+                    if (rejectionProbabilityCache.rejectionProbability(i) < 0._X)
+                        continue;
+                }
+
                 std::cout << "\t\t" << i << ":[ " << std::setw(10) << std::scientific
                     << rejectionProbabilityCache.rejectionProbability(i) << std::defaultfloat << " ]" << std::endl;
             }

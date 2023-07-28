@@ -310,7 +310,7 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "\t\t - processClass: " << static_cast<uint16_t>(ion[processClass_]) << std::endl;
         std::cout << "\t\t - transitionIndex: " << ion[transitionIndex_] << std::endl;
         std::cout << "\t\t - binIndex: " << ion[binIndex_] << std::endl;
-        std::cout << "\t\t - accepted: " << ion[accepted_] << std::endl;
+        std::cout << "\t\t - accepted: " << ((ion[accepted_])? "true" : "false") << std::endl;
         std::cout << "\t\t - boundElectrons: " << ion[boundElectrons_] << std::endl;
     }
 

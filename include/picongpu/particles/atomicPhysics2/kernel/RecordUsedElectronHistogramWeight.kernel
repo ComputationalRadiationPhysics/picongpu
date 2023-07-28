@@ -79,19 +79,19 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 return;
 
             forEachLocalIonBoxEntry(
-                [&electronHistogram](T_Worker const& worker, auto& particle)
+                [&electronHistogram](T_Worker const& worker, auto& ion)
                 {
                     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
-                    if((!particle[accepted_])
+                    if((!ion[accepted_])
                        // not accepted transition, does not suggest changes
                        ||
                        // not an electronic collisional interaction
                        (!procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
-                           particle[processClass_])))
+                           ion[processClass_])))
                         return;
 
-                    electronHistogram.addDeltaWeight(worker, particle[binIndex_], particle[weighting_]);
+                    electronHistogram.addDeltaWeight(worker, ion[binIndex_], ion[weighting_]);
                 });
         }
     };

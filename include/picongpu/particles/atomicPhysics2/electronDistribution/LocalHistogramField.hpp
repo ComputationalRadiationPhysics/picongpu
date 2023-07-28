@@ -35,6 +35,7 @@
 namespace picongpu::particles::atomicPhysics2::electronDistribution
 {
     //! debug only, print content and bins of histogram to console, @attention serial and cpu build only!
+    template<bool printOnlyOverSubscribed>
     struct PrintHistogramToConsole
     {
         template<typename T_Histogram>
@@ -45,13 +46,20 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
             std::cout << "histogram [" << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
             std::cout << " base=" << histogram.getBase();
             std::cout << " numBins=" << T_Histogram::numberBins;
-            std::cout << " maxE=" << T_Histogram::maxEnergy << std::endl;
+            std::cout << " maxE=" << T_Histogram::maxEnergy;
+            std::cout << " overFlow: w0=" << histogram.getOverflowWeight() << std::endl;
 
             float_X centralEnergy;
             float_X binWidth;
 
             for(uint32_t i = 0u; i < numBins; i++)
             {
+                if constexpr(printOnlyOverSubscribed)
+                {
+                    if(histogram.getBinWeight0(i) >= histogram.getBinDeltaWeight(i))
+                        continue;
+                }
+
                 // binIndex
                 std::cout << "\t " << i;
 
@@ -68,7 +76,6 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
                 std::cout << histogram.getBinDeltaEnergy(i) << "]";
                 std::cout << std::endl;
             }
-            std::cout << "\t overFlow: w0=" << histogram.getOverflowWeight() << std::endl;
         }
     };
 

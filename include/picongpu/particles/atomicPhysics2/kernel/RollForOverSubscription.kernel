@@ -83,14 +83,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = superCellIdx - areaMapping.getGuardingSuperCells();
 
-            bool const histogramOverSubscribed = localElectronHistogramOverSubscribedBox(superCellFieldIdx);
+            bool const histogramOverSubscribed
+                = static_cast<bool>(localElectronHistogramOverSubscribedBox(superCellFieldIdx));
 
             // at least one bin overSubscribed?
             if(!histogramOverSubscribed)
                 return;
-
-            // Offset without guards for random numbers
-            auto const superCellLocalOffset = superCellIdx - areaMapping.getGuardingSuperCells();
 
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
 
@@ -106,12 +104,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
             // try to reject each accepted macro-ion, which takes from an oversubscribed bin
             forEachLocalIonBoxEntry(
-                [&superCellLocalOffset, &rngFactory, &histogram, &rejectionProbabilityCache](
+                [&superCellFieldIdx, &rngFactory, &histogram, &rejectionProbabilityCache](
                     T_Worker const& worker,
-                    auto& particle)
+                    auto& ion)
                 {
-                    uint32_t const binIndex = particle[binIndex_];
-                    uint8_t const processClass = particle[processClass_];
+                    uint32_t const binIndex = ion[binIndex_];
+                    uint8_t const processClass = ion[processClass_];
 
                     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
@@ -122,18 +120,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     bool const usesNotOverSubcribedBin
                         = (rejectionProbabilityCache.rejectionProbability(binIndex) <= 0._X);
 
-                    if((!particle[accepted_]) || (!processUsesElectronHistogramWeight) || usesNotOverSubcribedBin)
+                    if((!ion[accepted_]) || (!processUsesElectronHistogramWeight) || usesNotOverSubcribedBin)
                         return;
 
-                    auto rngGenerator = rngFactory(worker, superCellLocalOffset);
-
-                    if(rejectionProbabilityCache.rejectionProbability(binIndex) >= rngGenerator())
+                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+                    if(rngGenerator() < rejectionProbabilityCache.rejectionProbability(binIndex))
                     {
                         // reject transition
-                        particle[accepted_] = false;
-
-                        // update deltaWeight
-                        histogram.addDeltaWeight(worker, binIndex, -particle[weighting_]);
+                        ion[accepted_] = false;
                     }
                 });
         }
