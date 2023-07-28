@@ -108,8 +108,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             // proportion of weight we want to reject
                             (deltaWeight - weight0) / deltaWeight,
                             // but at least one average one macro ion should be rejected
-                            TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / deltaWeight
-                            );
+                            TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / deltaWeight);
 
                         // set flag that histogram has over subscribed bin
                         cupla::atomicExch(worker.getAcc(), &histogramOverSubscribed, static_cast<uint32_t>(true));

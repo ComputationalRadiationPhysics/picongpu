@@ -27,8 +27,8 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 namespace picongpu::particles::atomicPhysics2::localHelperFields
 {
@@ -47,24 +47,25 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
             bool overSubscription = false;
             for(uint16_t i = 0u; i < numBins; i++)
             {
-                if (rejectionProbabilityCache.rejectionProbability(i) > 0._X)
+                if(rejectionProbabilityCache.rejectionProbability(i) > 0._X)
                     overSubscription = true;
             }
 
             // print content
             std::cout << "rejectionProbabilityCache ["
-                << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
-            std::cout << " oversubcribed: " << ((overSubscription)? "true": "false") << std::endl;
+                      << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
+            std::cout << " oversubcribed: " << ((overSubscription) ? "true" : "false") << std::endl;
             for(uint16_t i = 0u; i < numBins; i++)
             {
                 if constexpr(printOnlyOversubscribed)
                 {
-                    if (rejectionProbabilityCache.rejectionProbability(i) < 0._X)
+                    if(rejectionProbabilityCache.rejectionProbability(i) < 0._X)
                         continue;
                 }
 
                 std::cout << "\t\t" << i << ":[ " << std::setw(10) << std::scientific
-                    << rejectionProbabilityCache.rejectionProbability(i) << std::defaultfloat << " ]" << std::endl;
+                          << rejectionProbabilityCache.rejectionProbability(i) << std::defaultfloat << " ]"
+                          << std::endl;
             }
         }
     };

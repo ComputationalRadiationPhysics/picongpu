@@ -59,9 +59,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 picongpu::particles::atomicPhysics2::kernel::ResetDeltaWeightElectronHistogramKernel<
                     picongpu::atomicPhysics2::ElectronHistogram>(),
                 workerCfg)
-            (mapper.getGridDim())(
-                mapper,
-                localElectronHistogramField.getDeviceDataBox());
+            (mapper.getGridDim())(mapper, localElectronHistogramField.getDeviceDataBox());
 
             /// @todo implement photon histogram, Brian Marre, 2023
         }

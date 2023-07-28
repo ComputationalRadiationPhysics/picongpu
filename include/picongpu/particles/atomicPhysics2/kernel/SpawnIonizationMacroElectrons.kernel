@@ -206,7 +206,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             }
                             else
                             {
-                                printf("atomicPhysics ERROR: unknown processClassGroup %u in "
+                                printf(
+                                    "atomicPhysics ERROR: unknown processClassGroup %u in "
                                     "SpawnionizationMacroElectronsKernel\n",
                                     static_cast<uint16_t>(u8(T_ProcessClassGroup)));
                                 numberIonizationElectrons = static_cast<int8_t>(0u);

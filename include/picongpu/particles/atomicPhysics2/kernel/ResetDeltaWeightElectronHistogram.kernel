@@ -44,10 +44,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param localHistogramBox deviceDataBox giving access to localHistograms for
          *  all local superCells
          */
-        template<
-            typename T_Worker,
-            typename T_AreaMapping,
-            typename T_LocalHistogramDataBox>
+        template<typename T_Worker, typename T_AreaMapping, typename T_LocalHistogramDataBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
@@ -57,17 +54,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //  -> must subtract guard to get correct superCellFieldIdx
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
-                    - areaMapping.getGuardingSuperCells();
+                - areaMapping.getGuardingSuperCells();
 
             auto forEachBin = pmacc::lockstep::makeForEach<T_Histogram::numberBins, T_Worker>(worker);
 
             T_Histogram& histogram = localHistogramBox(superCellFieldIdx);
 
-            forEachBin(
-                [&worker, &histogram](uint32_t const binIndex)
-                {
-                    histogram.setDeltaWeight(binIndex, 0._X);
-                });
+            forEachBin([&worker, &histogram](uint32_t const binIndex) { histogram.setDeltaWeight(binIndex, 0._X); });
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel

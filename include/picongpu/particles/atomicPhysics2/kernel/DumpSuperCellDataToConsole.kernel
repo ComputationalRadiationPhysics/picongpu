@@ -28,8 +28,8 @@
 
 #include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
 
-#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <cstdint>
 #include <iostream>
@@ -67,10 +67,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param areMapping mapping of blockIndex to block superCell index
          * @param SuperCellFieldDataBox deviceDataBox giving access to a superCellField
          */
-        template<
-            typename T_Worker,
-            typename T_AreaMapping,
-            typename T_SuperCellFieldDataBox>
+        template<typename T_Worker, typename T_AreaMapping, typename T_SuperCellFieldDataBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,

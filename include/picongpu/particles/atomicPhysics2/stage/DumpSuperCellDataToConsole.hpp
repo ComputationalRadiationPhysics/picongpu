@@ -53,7 +53,8 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             T_FieldType& superCellField = *dc.get<T_FieldType>(superCellFieldName);
 
-            using DumpToConsole = picongpu::particles::atomicPhysics2::kernel::DumpSuperCellDataToConsoleKernel<T_PrintFunctor>;
+            using DumpToConsole
+                = picongpu::particles::atomicPhysics2::kernel::DumpSuperCellDataToConsoleKernel<T_PrintFunctor>;
 
             PMACC_LOCKSTEP_KERNEL(DumpToConsole(), workerCfg)
             (mapper.getGridDim())(mapper, superCellField.getDeviceDataBox());

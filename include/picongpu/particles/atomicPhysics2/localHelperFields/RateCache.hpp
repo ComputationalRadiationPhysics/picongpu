@@ -150,12 +150,12 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         //! debug only, write content of rate cache to console, @attention serial and cpu build only
         void printToConsole(pmacc::DataSpace<picongpu::simDim> superCellFieldIdx) const
         {
-            std::cout << "rateCache: ["
-                << picongpu::particles::atomicPhysics2::debug::linearize(superCellFieldIdx) << "]" << std::endl;
+            std::cout << "rateCache: [" << picongpu::particles::atomicPhysics2::debug::linearize(superCellFieldIdx)
+                      << "]" << std::endl;
             for(uint16_t i = 0u; i < numberAtomicStates; i++)
             {
                 std::cout << "\t" << i << ":(present: " << ((this->present(i)) ? "true" : "false") << ")["
-                        << this->rate(i) << "]" << std::endl;
+                          << this->rate(i) << "]" << std::endl;
             }
         }
     };

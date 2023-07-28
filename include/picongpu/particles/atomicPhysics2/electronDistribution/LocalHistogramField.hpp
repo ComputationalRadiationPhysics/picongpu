@@ -23,14 +23,14 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics2/SuperCellField.hpp"
 #include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
+#include "picongpu/particles/atomicPhysics2/SuperCellField.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace picongpu::particles::atomicPhysics2::electronDistribution
 {
@@ -67,7 +67,8 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
                 centralEnergy = histogram.getBinEnergy(i);
                 binWidth = histogram.getBinWidth(i);
 
-                std::cout << "(" << centralEnergy - binWidth / 2._X << ", " << centralEnergy + binWidth / 2._X << "] :";
+                std::cout << "(" << centralEnergy - binWidth / 2._X << ", " << centralEnergy + binWidth / 2._X
+                          << "] :";
 
                 // bin data, [w0, DeltaW, DeltaEnergy, binOverSubscribed]
                 std::cout << " [w0, Dw, DE]: [";

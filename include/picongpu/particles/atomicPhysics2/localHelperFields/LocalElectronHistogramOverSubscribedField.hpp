@@ -21,9 +21,8 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics2/SuperCellField.hpp"
-
 #include "picongpu/particles/atomicPhysics2/DebugHelper.hpp"
+#include "picongpu/particles/atomicPhysics2/SuperCellField.hpp"
 
 #include <cstdint>
 #include <string>
@@ -33,13 +32,11 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     //! debug only, write content of rate cache to console, @attention serial and cpu build only
     struct PrintOverSubcriptionFieldToConsole
     {
-        HDINLINE void operator()(
-            uint32_t const overSubscribed,
-            pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        HDINLINE void operator()(uint32_t const overSubscribed, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {
-            std::cout << "overSubscribed ["
-                << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
-            std::cout << ((overSubscribed)? "true": "false") << std::endl;
+            std::cout << "overSubscribed [" << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx)
+                      << "]";
+            std::cout << ((overSubscribed) ? "true" : "false") << std::endl;
         }
     };
 
