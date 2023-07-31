@@ -281,21 +281,6 @@ namespace picongpu::particles::atomicPhysics2::debug
         return atomicData;
     }
 
-    //! vector to string , @attention serial and cpu build only
-    template<typename T_Vector>
-    std::string linearize(T_Vector const& vector)
-    {
-        std::string result = "";
-        result += std::to_string(vector[0u]);
-
-        for(uint8_t i = 1u; i < T_Vector::dim; i++)
-        {
-            result += ", " + std::to_string(vector[i]);
-        }
-
-        return result;
-    }
-
     //! debug only, write atomicPhysics attributes to console, @attention serial and cpu build only
     template<typename T_Ion>
     void printAtomicPhysicsIonToConsole(T_Ion const& ion)
@@ -303,8 +288,8 @@ namespace picongpu::particles::atomicPhysics2::debug
         std::cout << "ID: " << ion[particleId_] << std::endl;
         std::cout << "\t - weighting: " << ion[weighting_] << std::endl;
 
-        std::cout << "\t - momentum: (" << linearize(ion[momentum_]) << ")" << std::endl;
-        std::cout << "\t - position: (" << linearize(ion[position_]) << ")" << std::endl;
+        std::cout << "\t - momentum: (" << ion[momentum_].toString(",", "") << ")" << std::endl;
+        std::cout << "\t - position: (" << ion[position_].toString(",", "") << ")" << std::endl;
         std::cout << "\t - atomicPhysicsData:" << std::endl;
         std::cout << "\t\t - atomicConfigNumber: " << ion[atomicConfigNumber_].getConfigNumber() << std::endl;
         std::cout << "\t\t - processClass: " << static_cast<uint16_t>(ion[processClass_]) << std::endl;

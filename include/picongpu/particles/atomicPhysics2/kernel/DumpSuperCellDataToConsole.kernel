@@ -42,8 +42,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<typename T_Type>
         HDINLINE void operator()(T_Type const value, pmacc::DataSpace<simDim> superCellFieldIdx) const
         {
-            std::cout << "[" << picongpu::particles::atomicPhysics2::debug::linearize(superCellFieldIdx) << "]";
-            std::cout << "]" << value << std::endl;
+            std::cout << superCellFieldIdx.toString(",", "[]") << value << std::endl;
         }
     };
 

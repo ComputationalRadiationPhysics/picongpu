@@ -34,9 +34,8 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     {
         HDINLINE void operator()(uint32_t const overSubscribed, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {
-            std::cout << "overSubscribed [" << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx)
-                      << "]";
-            std::cout << ((overSubscribed) ? "true" : "false") << std::endl;
+            std::cout << "overSubscribed " << superCellIdx.toString(",", "[]");
+            std::cout << " " << (static_cast<bool>(overSubscribed) ? "true" : "false") << std::endl;
         }
     };
 

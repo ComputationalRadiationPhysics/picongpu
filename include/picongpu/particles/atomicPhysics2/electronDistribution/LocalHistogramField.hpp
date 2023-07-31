@@ -43,7 +43,7 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
         {
             constexpr uint32_t numBins = T_Histogram::numberBins;
 
-            std::cout << "histogram [" << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
+            std::cout << "histogram " << superCellIdx.toString(",", "[]");
             std::cout << " base=" << histogram.getBase();
             std::cout << " numBins=" << T_Histogram::numberBins;
             std::cout << " maxE=" << T_Histogram::maxEnergy;

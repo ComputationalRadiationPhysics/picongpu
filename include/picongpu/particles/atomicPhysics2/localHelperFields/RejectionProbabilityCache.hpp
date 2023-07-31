@@ -52,8 +52,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
             }
 
             // print content
-            std::cout << "rejectionProbabilityCache ["
-                      << picongpu::particles::atomicPhysics2::debug::linearize(superCellIdx) << "]";
+            std::cout << "rejectionProbabilityCache " << superCellIdx.toString(",", "[]");
             std::cout << " oversubcribed: " << ((overSubscription) ? "true" : "false") << std::endl;
             for(uint16_t i = 0u; i < numBins; i++)
             {
