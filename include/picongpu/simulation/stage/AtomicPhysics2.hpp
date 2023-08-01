@@ -329,8 +329,8 @@ namespace picongpu::simulation::stage
                                 picongpu::particles::atomicPhysics2::electronDistribution::LocalHistogramField<
                                     picongpu::atomicPhysics2::ElectronHistogram,
                                     picongpu::MappingDesc>,
-                                picongpu::particles::atomicPhysics2::electronDistribution ::PrintHistogramToConsole<
-                                    true>>{}(mappingDesc, "Electron_localHistogramField");
+                                picongpu::particles::atomicPhysics2::electronDistribution::
+                                    PrintHistogramToConsole<true>>{}(mappingDesc, "Electron_localHistogramField");
                         }
 
                         if(!static_cast<bool>(deviceLocalReduce(

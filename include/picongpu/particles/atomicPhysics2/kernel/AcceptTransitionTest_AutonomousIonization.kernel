@@ -114,7 +114,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 
                     float_X const rate = picongpu::particles::atomicPhysics2::rateCalculation ::
-                        AutonomousTransitionRates ::template rateAutonomousIonization<T_AutonomousTransitionDataBox>(
+                        AutonomousTransitionRates::template rateAutonomousIonization<T_AutonomousTransitionDataBox>(
                             ion[transitionIndex_],
                             autonomousTransitionDataBox);
 
