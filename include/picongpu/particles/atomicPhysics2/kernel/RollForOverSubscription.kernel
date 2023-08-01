@@ -120,10 +120,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     bool const usesNotOverSubcribedBin
                         = (rejectionProbabilityCache.rejectionProbability(binIndex) <= 0._X);
 
-                    if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription
-                            ::PRINT_DEBUG_TO_CONSOLE)
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription::
+                                     PRINT_DEBUG_TO_CONSOLE)
                     {
-                        if (!usesNotOverSubcribedBin && processUsesElectronHistogramWeight && ion[accepted_])
+                        if(!usesNotOverSubcribedBin && processUsesElectronHistogramWeight && ion[accepted_])
                         {
                             picongpu::particles::atomicPhysics2::debug::printAtomicPhysicsIonToConsole(ion);
                         }

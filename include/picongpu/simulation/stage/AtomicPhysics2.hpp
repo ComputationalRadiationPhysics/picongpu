@@ -298,13 +298,13 @@ namespace picongpu::simulation::stage
                         if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
                         {
                             std::cout << "\t\t a histogram oversubscribed?: "
-                                    << ((static_cast<bool>(deviceLocalReduce(
-                                            pmacc::math::operation::Or(),
-                                            linearizedOverSubscribedBox,
-                                            fieldGridLayoutOverSubscription.productOfComponents())))
-                                            ? "true"
-                                            : "false")
-                                    << std::endl;
+                                      << ((static_cast<bool>(deviceLocalReduce(
+                                              pmacc::math::operation::Or(),
+                                              linearizedOverSubscribedBox,
+                                              fieldGridLayoutOverSubscription.productOfComponents())))
+                                              ? "true"
+                                              : "false")
+                                      << std::endl;
 
                             // print LocalElectronHistogramOverSubscribedField
                             picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
@@ -344,34 +344,34 @@ namespace picongpu::simulation::stage
                         }
 
                         // debug only
-                        if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription
-                            ::PRINT_DEBUG_TO_CONSOLE)
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription ::
+                                         PRINT_DEBUG_TO_CONSOLE)
                         {
                             if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
                             {
                                 std::cout << "\t\t [" << counterOverSubscription << "] a histogram oversubscribed?: "
-                                        << ((static_cast<bool>(deviceLocalReduce(
-                                                pmacc::math::operation::Or(),
-                                                linearizedOverSubscribedBox,
-                                                fieldGridLayoutOverSubscription.productOfComponents())))
-                                                ? "true"
-                                                : "false")
-                                        << std::endl;
+                                          << ((static_cast<bool>(deviceLocalReduce(
+                                                  pmacc::math::operation::Or(),
+                                                  linearizedOverSubscribedBox,
+                                                  fieldGridLayoutOverSubscription.productOfComponents())))
+                                                  ? "true"
+                                                  : "false")
+                                          << std::endl;
 
                                 // print LocalElectronHistogramOverSubscribedField
                                 picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
                                     picongpu::particles::atomicPhysics2::localHelperFields::
                                         LocalElectronHistogramOverSubscribedField<picongpu::MappingDesc>,
-                                    picongpu::particles::atomicPhysics2::localHelperFields ::
+                                    picongpu::particles::atomicPhysics2::localHelperFields::
                                         PrintOverSubcriptionFieldToConsole>{}(
                                     mappingDesc,
                                     "LocalElectronHistogramOverSubscribedField");
 
                                 // print rejectionProbabilityCache
                                 picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
-                                    picongpu::particles::atomicPhysics2::localHelperFields ::
+                                    picongpu::particles::atomicPhysics2::localHelperFields::
                                         LocalRejectionProbabilityCacheField<picongpu::MappingDesc>,
-                                    picongpu::particles::atomicPhysics2::localHelperFields ::
+                                    picongpu::particles::atomicPhysics2::localHelperFields::
                                         PrintRejectionProbabilityCacheToConsole<true>>{}(
                                     mappingDesc,
                                     "LocalRejectionProbabilityCacheField");
@@ -381,8 +381,8 @@ namespace picongpu::simulation::stage
                                     picongpu::particles::atomicPhysics2::electronDistribution::LocalHistogramField<
                                         picongpu::atomicPhysics2::ElectronHistogram,
                                         picongpu::MappingDesc>,
-                                    picongpu::particles::atomicPhysics2::electronDistribution ::PrintHistogramToConsole<
-                                        true>>{}(mappingDesc, "Electron_localHistogramField");
+                                    picongpu::particles::atomicPhysics2::electronDistribution::
+                                        PrintHistogramToConsole<true>>{}(mappingDesc, "Electron_localHistogramField");
                             }
                         }
                         // at least one superCell electron histogram over subscribed
