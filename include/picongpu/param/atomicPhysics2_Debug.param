@@ -137,6 +137,11 @@ namespace picongpu::atomicPhysics2::debug
         constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = false;
     } // namespace kernel::acceptanceTest
 
+    namespace kernel::rollForOverSubscription
+    {
+        constexpr bool PRINT_DEBUG_TO_CONSOLE = true;
+    } // namespace kernel::rollForOverSubscription
+
     namespace kernel::spawnIonizationElectrons
     {
         //! @attention performance relevant
