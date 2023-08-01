@@ -269,6 +269,10 @@ namespace picongpu::simulation::stage
                 // min(1/(-R_ii)) * alpha
                 ForEachIonSpeciesCalculateStepLength{}(mappingDesc);
 
+                // debug only
+                uint16_t counterChooseTransition = 0u;
+                uint32_t counterOverSubscription = 0u;
+
                 // chooseTransition loop, ends when all ion[accepted_] = true
                 while(true)
                 {
@@ -276,12 +280,13 @@ namespace picongpu::simulation::stage
                     ForEachIonSpeciesChooseTransition{}(mappingDesc, currentStep);
                     ForEachIonSpeciesExtractTransitionCollectionIndex{}(mappingDesc, currentStep);
                     ForEachIonSpeciesDoAcceptTransitionTest{}(mappingDesc, currentStep);
-                    picongpu::particles::atomicPhysics2::stage::ResetDeltaWeightElectronHistogram{}(mappingDesc);
-                    ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
 
                     // reject overSubscription loop, ends when no histogram bin oversubscribed
                     while(true)
                     {
+                        picongpu::particles::atomicPhysics2::stage::ResetDeltaWeightElectronHistogram{}(mappingDesc);
+                        // record all shared resources usage by accepted transitions
+                        ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
                         // check bins for over subscription --> localElectronHistogramOverSubscribedField
                         picongpu::particles::atomicPhysics2::stage::CheckForOverSubscription()(mappingDesc);
 
@@ -293,13 +298,13 @@ namespace picongpu::simulation::stage
                         if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
                         {
                             std::cout << "\t\t a histogram oversubscribed?: "
-                                      << ((static_cast<bool>(deviceLocalReduce(
-                                              pmacc::math::operation::Or(),
-                                              linearizedOverSubscribedBox,
-                                              fieldGridLayoutOverSubscription.productOfComponents())))
-                                              ? "true"
-                                              : "false")
-                                      << std::endl;
+                                    << ((static_cast<bool>(deviceLocalReduce(
+                                            pmacc::math::operation::Or(),
+                                            linearizedOverSubscribedBox,
+                                            fieldGridLayoutOverSubscription.productOfComponents())))
+                                            ? "true"
+                                            : "false")
+                                    << std::endl;
 
                             // print LocalElectronHistogramOverSubscribedField
                             picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
@@ -309,6 +314,7 @@ namespace picongpu::simulation::stage
                                     PrintOverSubcriptionFieldToConsole>{}(
                                 mappingDesc,
                                 "LocalElectronHistogramOverSubscribedField");
+
                             // print rejectionProbabilityCache
                             picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
                                 picongpu::particles::atomicPhysics2::localHelperFields ::
@@ -336,8 +342,55 @@ namespace picongpu::simulation::stage
                              *  localElectronHistogramOverSubscribedField */
                             break;
                         }
+
+                        // debug only
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription
+                            ::PRINT_DEBUG_TO_CONSOLE)
+                        {
+                            if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
+                            {
+                                std::cout << "\t\t [" << counterOverSubscription << "] a histogram oversubscribed?: "
+                                        << ((static_cast<bool>(deviceLocalReduce(
+                                                pmacc::math::operation::Or(),
+                                                linearizedOverSubscribedBox,
+                                                fieldGridLayoutOverSubscription.productOfComponents())))
+                                                ? "true"
+                                                : "false")
+                                        << std::endl;
+
+                                // print LocalElectronHistogramOverSubscribedField
+                                picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
+                                    picongpu::particles::atomicPhysics2::localHelperFields::
+                                        LocalElectronHistogramOverSubscribedField<picongpu::MappingDesc>,
+                                    picongpu::particles::atomicPhysics2::localHelperFields ::
+                                        PrintOverSubcriptionFieldToConsole>{}(
+                                    mappingDesc,
+                                    "LocalElectronHistogramOverSubscribedField");
+
+                                // print rejectionProbabilityCache
+                                picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
+                                    picongpu::particles::atomicPhysics2::localHelperFields ::
+                                        LocalRejectionProbabilityCacheField<picongpu::MappingDesc>,
+                                    picongpu::particles::atomicPhysics2::localHelperFields ::
+                                        PrintRejectionProbabilityCacheToConsole<true>>{}(
+                                    mappingDesc,
+                                    "LocalRejectionProbabilityCacheField");
+
+                                // print histogram
+                                picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
+                                    picongpu::particles::atomicPhysics2::electronDistribution::LocalHistogramField<
+                                        picongpu::atomicPhysics2::ElectronHistogram,
+                                        picongpu::MappingDesc>,
+                                    picongpu::particles::atomicPhysics2::electronDistribution ::PrintHistogramToConsole<
+                                        true>>{}(mappingDesc, "Electron_localHistogramField");
+                            }
+                        }
                         // at least one superCell electron histogram over subscribed
+
                         ForEachIonSpeciesRollForOverSubscription{}(mappingDesc, currentStep);
+
+                        // debug only
+                        ++counterOverSubscription;
                     } // end reject overSubscription loop
 
                     // check all macro-ions accepted --> localAllIonsAcceptedField
@@ -363,7 +416,14 @@ namespace picongpu::simulation::stage
                     {
                         break;
                     }
+
+                    // debug only
+                    ++counterChooseTransition;
                 } // end chooseTransition loop
+
+                // debug only
+                std::cout << "\t counterOverSubscription: " << counterOverSubscription << std::endl;
+                std::cout << "\t counterChooseTransition: " << counterChooseTransition << std::endl;
 
                 if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
                                  DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED)
@@ -396,6 +456,8 @@ namespace picongpu::simulation::stage
                 {
                     break;
                 }
+
+                // debug only
                 counterSubStep++;
             } // end atomicPhysics sub-stepping loop
         }

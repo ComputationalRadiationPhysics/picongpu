@@ -123,8 +123,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription
                             ::PRINT_DEBUG_TO_CONSOLE)
                     {
-                        if ((superCellFieldIdx[0] == 5) && (superCellFieldIdx[1] == 3) && (superCellFieldIdx[2] == 2)
-                            && !usesNotOverSubcribedBin)
+                        if (!usesNotOverSubcribedBin && processUsesElectronHistogramWeight && ion[accepted_])
                         {
                             picongpu::particles::atomicPhysics2::debug::printAtomicPhysicsIonToConsole(ion);
                         }
