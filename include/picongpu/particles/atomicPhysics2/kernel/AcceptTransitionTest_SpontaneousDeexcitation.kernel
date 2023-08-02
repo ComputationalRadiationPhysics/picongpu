@@ -98,11 +98,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
             if(!forEachLocalIonBoxEntry.hasParticles())
                 return;
 
+            auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+
             // calculate rate of chosen transition and try to accept transition
             forEachLocalIonBoxEntry(
-                [&superCellFieldIdx, &rngFactory, &timeStep, &atomicStateDataDataBox, &boundBoundTransitionDataBox](
-                    T_Worker const& worker,
-                    auto& ion)
+                [&](T_Worker const& worker, auto& ion)
                 {
                     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
@@ -111,8 +111,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     if(ion[accepted_] || notSpontaneousDeexcitation)
                         return;
-
-                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 
                     // 1/UNIT_TIME
                     float_X const rate = picongpu::particles::atomicPhysics2::rateCalculation ::

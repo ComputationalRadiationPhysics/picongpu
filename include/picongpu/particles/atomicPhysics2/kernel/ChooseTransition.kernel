@@ -75,20 +75,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
             if(!forEachLocalIonBoxEntry.hasParticles())
                 return;
 
+            auto rngGenerator = rngFactory(worker, superCellLocalOffset);
+
             // choose transition randomly,
             //  (processClass / transitionCollectionIndex / binIndex) are
             //  (extracted / extracted / randomly rolled) later by the deduce transitionKernel
             forEachLocalIonBoxEntry(
-                [&superCellLocalOffset,
-                 &rngFactory,
-                 &atomicStateDataDataBox,
-                 &chargeStateOrgaBox,
-                 &transitionSelectionDataBox](T_Worker const& worker, auto& ion)
+                [&](T_Worker const& worker, auto& ion)
                 {
                     if(ion[accepted_])
                         return;
-
-                    auto rngGenerator = rngFactory(worker, superCellLocalOffset);
 
                     typename T_ConfigNumber::DataType const atomicStateConfigNumber
                         = ion[atomicConfigNumber_].getConfigNumber();

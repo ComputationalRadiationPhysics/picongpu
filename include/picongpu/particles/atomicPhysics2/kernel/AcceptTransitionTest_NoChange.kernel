@@ -89,19 +89,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
             if(!forEachLocalIonBoxEntry.hasParticles())
                 return;
 
+            auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 
             // get no change rate from rateCache and try to accept transition
             forEachLocalIonBoxEntry(
-                [&superCellFieldIdx, &rngFactory, &timeStep, &rateCache, &chargeStateOrgaBox, &atomicStateDataDataBox](
-                    T_Worker const& worker,
-                    auto& ion)
+                [&](T_Worker const& worker, auto& ion)
                 {
                     namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
                     if((ion[accepted_]) || (ion[processClass_] != u8(procClass::ProcessClass::noChange)))
                         return;
-
-                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 
                     typename T_ConfigNumber::DataType const atomicStateConfigNumber
                         = ion[atomicConfigNumber_].getConfigNumber();

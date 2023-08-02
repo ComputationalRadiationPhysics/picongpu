@@ -102,11 +102,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
             if(!forEachLocalIonBoxEntry.hasParticles())
                 return;
 
+            auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+
             // try to reject each accepted macro-ion, which takes from an oversubscribed bin
             forEachLocalIonBoxEntry(
-                [&superCellFieldIdx, &rngFactory, &histogram, &rejectionProbabilityCache](
-                    T_Worker const& worker,
-                    auto& ion)
+                [&](T_Worker const& worker, auto& ion)
                 {
                     uint32_t const binIndex = ion[binIndex_];
                     uint8_t const processClass = ion[processClass_];
@@ -132,7 +132,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     if((!ion[accepted_]) || (!processUsesElectronHistogramWeight) || usesNotOverSubcribedBin)
                         return;
 
-                    auto rngGenerator = rngFactory(worker, superCellFieldIdx);
                     if(rngGenerator() < rejectionProbabilityCache.rejectionProbability(binIndex))
                     {
                         // reject transition
