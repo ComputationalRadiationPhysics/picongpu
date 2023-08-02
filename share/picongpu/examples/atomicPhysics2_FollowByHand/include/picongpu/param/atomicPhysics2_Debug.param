@@ -44,7 +44,7 @@ namespace picongpu::atomicPhysics2::debug
     namespace electronHistogram
     {
         //! @attention only useful if building serial and cpu-only
-        constexpr bool PRINT_TO_CONSOLE = false;
+        constexpr bool PRINT_TO_CONSOLE = true;
 
         //! @attention performance relevant, uncaught error will lead to invalid memory access
         constexpr bool RANGE_CHECKS_BIN_INDEX = true;
@@ -81,7 +81,7 @@ namespace picongpu::atomicPhysics2::debug
     namespace rejectionProbabilityCache
     {
         //! @attention only useful if building serial and cpu-only
-        constexpr bool PRINT_TO_CONSOLE = false;
+        constexpr bool PRINT_TO_CONSOLE = true;
 
         //! @attention performance relevant
         constexpr bool BIN_INDEX_RANGE_CHECK = true;

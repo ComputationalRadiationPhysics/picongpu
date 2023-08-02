@@ -40,10 +40,7 @@ namespace picongpu
          *
          * unit: ELEMENTS/m^3
          */
-#ifndef PARAM_BASE_DENSITY_SI
-#    define PARAM_BASE_DENSITY_SI 1.e25
-#endif
-        constexpr float_64 BASE_DENSITY_SI = 1e25;
+        constexpr float_64 BASE_DENSITY_SI = 1e28;
     } // namespace SI
 
     namespace densityProfiles
