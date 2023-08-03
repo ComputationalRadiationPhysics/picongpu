@@ -67,7 +67,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             PMACC_LOCKSTEP_KERNEL(
                 picongpu::particles::atomicPhysics2::kernel::ExtractTransitionCollectionIndexKernel_NoChange(),
                 workerCfg)
-            (mapper.getGridDim())(mapper, ions.getDeviceParticlesBox());
+            (mapper.getGridDim())(
+                mapper,
+                localTimeRemainingField.getDeviceDataBox(),
+                ions.getDeviceParticlesBox());
 
             if constexpr(
                 AtomicDataType::switchElectronicExcitation || AtomicDataType::switchElectronicDeexcitation

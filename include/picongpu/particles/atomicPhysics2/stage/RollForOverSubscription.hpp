@@ -65,11 +65,6 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
-            auto& localElectronHistogramField
-                = *dc.get<picongpu::particles::atomicPhysics2::electronDistribution::
-                              LocalHistogramField<picongpu::atomicPhysics2::ElectronHistogram, picongpu::MappingDesc>>(
-                    "Electron_localHistogramField");
-
             auto& localRejectionProbabilityCacheField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalRejectionProbabilityCacheField<
                     picongpu::MappingDesc>>("LocalRejectionProbabilityCacheField");
@@ -92,8 +87,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 localTimeRemainingField.getDeviceDataBox(),
                 localElectronHistogramOverSubscribedField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
-                localRejectionProbabilityCacheField.getDeviceDataBox(),
-                localElectronHistogramField.getDeviceDataBox());
+                localRejectionProbabilityCacheField.getDeviceDataBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

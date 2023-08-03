@@ -77,8 +77,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
-                localTimeRemainingField.getDeviceDataBox(),
                 rngFactory,
+                localTimeRemainingField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
                 atomicData.template getChargeStateOrgaDataBox<false>(),
                 atomicData.template getAtomicStateDataDataBox<false>(),

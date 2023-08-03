@@ -55,8 +55,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param ionBox deviceDataBox giving access to the particle frames of all local superCells
          * @param localRejectionProbabilityCacheBox deviceDataBox giving access to the
          *  local RejectionProbabilityCache of each local superCells
-         * @param localElectronHistogramBox deviceDataBox giving access to the
-         *  local electron histogram of all local superCells
          */
         template<
             typename T_Worker,
@@ -65,8 +63,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             typename T_LocalTimeRemainingBox,
             typename T_LocalElectronHistogramOverSubscribedDataBox,
             typename T_IonBox,
-            typename T_LocalRejectionProbabilityCacheDataBox,
-            typename T_LocalElectronHistogramDataBox>
+            typename T_LocalRejectionProbabilityCacheDataBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
@@ -74,8 +71,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalElectronHistogramOverSubscribedDataBox const localElectronHistogramOverSubscribedBox,
             T_IonBox ionBox,
-            T_LocalRejectionProbabilityCacheDataBox const localRejectionProbabilityCacheBox,
-            T_LocalElectronHistogramDataBox localElectronHistogramBox) const
+            T_LocalRejectionProbabilityCacheDataBox const localRejectionProbabilityCacheBox) const
         {
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -95,8 +91,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
             // end kernel if superCell already finished or no bin over subscribed or contains no particles
             if((timeRemaining <= 0._X) || (!histogramOverSubscribed) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
-
-            T_Histogram& histogram = localElectronHistogramBox(superCellFieldIdx);
 
             picongpu::particles::atomicPhysics2::localHelperFields::RejectionProbabilityCache<T_Histogram::numberBins>&
                 rejectionProbabilityCache
