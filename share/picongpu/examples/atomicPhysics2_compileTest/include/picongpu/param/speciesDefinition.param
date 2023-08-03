@@ -59,6 +59,7 @@ namespace picongpu
 
     /*--------------------------- electrons --------------------------------------*/
     /* thermal bulk electrons: */
+
     /* ratio relative to BASE_CHARGE and BASE_MASS */
     value_identifier_constexpr(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
@@ -66,7 +67,7 @@ namespace picongpu
     /* ratio relative to BASE_DENSITY
      * thermal "bulk": 1x ionized n_Cu
      */
-    value_identifier(float_X, DensityRatioBulkElectrons, 15);
+    value_identifier(float_X, DensityRatioBulkElectrons, 16);
 
     using ParticleFlagsElectrons = MakeSeq_t<
         particlePusher<UsedParticlePusher>,
@@ -79,7 +80,10 @@ namespace picongpu
         isAtomicPhysicsElectron<>>;
 
     /* thermal bulk electrons */
-    using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
+    using BulkElectrons = Particles<
+        PMACC_CSTRING("eth"),
+        ParticleFlagsElectrons,
+        DefaultParticleAttributes>;
 
     /*--------------------------- ions Argon ------------------------------------*/
 
@@ -107,21 +111,18 @@ namespace picongpu
         atomicDataType<atomicPhysics2::AtomicData_Ar>, // data type used for atomic data storage
 
         /// currently all are required, @todo change?, Brian Marre
-        chargeStatesFileName<PMACC_CSTRING("../ChargeStates_Ar.txt")>, // path to input file from call location
-        atomicStatesFileName<PMACC_CSTRING("../AtomicStates_Ar.txt")>, // path to input file from call location
+        chargeStatesFileName<PMACC_CSTRING("../ChargeStates_Ar.txt")>,
+        atomicStatesFileName<PMACC_CSTRING("../AtomicStates_Ar.txt")>,
         /// @todo replace with runtime hostDeviceBuffer of DataBoxes, Brian Marre, 2022
-        numberAtomicStates<particles::atomicPhysics2::Number<470u>>, // number of atomic states in input file
-        boundBoundTransitionsFileName<PMACC_CSTRING("../BoundBoundTransitions_Ar.txt")>, // path to input file from
-                                                                                         // call location
-        boundFreeTransitionsFileName<PMACC_CSTRING("../BoundFreeTransitions_Ar.txt")>, // path to input file from call
-                                                                                       // location
-        autonomousTransitionsFileName<PMACC_CSTRING("../AutonomousTransitions_Ar.txt")>, // path to input file from
-                                                                                         // call location
+        numberAtomicStates<particles::atomicPhysics2::Number<470u>>,
+        boundBoundTransitionsFileName<PMACC_CSTRING("../BoundBoundTransitions_Ar.txt")>,
+        boundFreeTransitionsFileName<PMACC_CSTRING("../BoundFreeTransitions_Ar.txt")>,
+        autonomousTransitionsFileName<PMACC_CSTRING("../AutonomousTransitions_Ar.txt")>,
 
         atomicNumbers<ionization::atomicNumbers::Argon_t>,
         ionizationElectronSpecies<BulkElectrons>, // which species to spawn as electrons upon ionization
         isAtomicPhysicsIon<>>;
-    //! @attention only channels present in data and active in solver are actually possible
+        //! @attention only channels activated in both data and solver are actually possible
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,

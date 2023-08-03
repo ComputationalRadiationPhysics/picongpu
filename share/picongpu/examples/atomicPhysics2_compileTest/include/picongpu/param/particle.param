@@ -32,43 +32,72 @@
 namespace picongpu::particles
 {
     /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *  unit: none
-     */
-    constexpr float_X MIN_WEIGHTING = 0.1_X;
+        *      be created / will be deleted
+        *  unit: none
+        */
+    constexpr float_X MIN_WEIGHTING = 1.0;
 
     namespace startPosition
     {
-        struct RandomParameter
+        struct RandomParameter10ppc
         {
             /** Count of particles per cell at initial state
-             *  unit: none
-             */
-            static constexpr uint32_t numParticlesPerCell = 18u;
+                *  unit: none
+                */
+            static constexpr uint32_t numParticlesPerCell = 10u;
         };
-        using Random = RandomImpl<RandomParameter>;
+
+        // sit directly in lower corner of the cell
+        CONST_VECTOR(
+            float_X,
+            3,
+            InCellOffset,
+            // each x, y, z in-cell position component in range [0.0, 1.0)
+            0.0,
+            0.0,
+            0.0);
+        struct OnePositionParameter
+        {
+            /** Count of particles per cell at initial state
+                *  unit: none
+                */
+            static constexpr uint32_t numParticlesPerCell = 1u;
+
+            const InCellOffset_t inCellOffset;
+        };
+        using OnePosition = OnePositionImpl<OnePositionParameter>;
+        using Random10ppc = RandomImpl<RandomParameter10ppc>;
 
     } // namespace startPosition
 
     /** During unit normalization, we assume this is a typical
-     *  number of particles per cell for normalization of weighted
-     *  particle attributes.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
+        *  number of particles per cell for normalization of weighted
+        *  particle attributes.
+        */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter10ppc::numParticlesPerCell;
 
     namespace manipulators
     {
+        // define a drift in X equal to 200 keV for electrons
+        CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
+        struct Drift200keVParam
+        {
+            static constexpr float_64 gamma = 1.39139;
+            const DriftParam_direction_t direction;
+        };
+        using Assign200keVDrift = unary::Drift<Drift200keVParam, pmacc::math::operation::Assign>;
+
         struct TemperatureParam
         {
             /** Initial temperature
-             *  unit: keV
-             */
+                *  unit: keV
+                */
             static constexpr float_64 temperature = 1.;
         };
         using AddTemperature = unary::Temperature<TemperatureParam>;
 
         // definition of set initial ionization
-        using SetIonization = unary::ChargeState<15u>;
+        using SetIonization = unary::ChargeState<16u>;
 
     } // namespace manipulators
 } // namespace picongpu::particles

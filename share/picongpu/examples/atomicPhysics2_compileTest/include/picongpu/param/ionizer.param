@@ -95,13 +95,6 @@ namespace picongpu
                 static constexpr float_X numberOfProtons = 1.0;
                 static constexpr float_X numberOfNeutrons = 0.0;
             };
-
-            /** He-4 ~100% NA */
-            struct Helium_t
-            {
-                static constexpr float_X numberOfProtons = 2.0;
-                static constexpr float_X numberOfNeutrons = 2.0;
-            };
         } // namespace atomicNumbers
 
         /** Effective Nuclear Charge
