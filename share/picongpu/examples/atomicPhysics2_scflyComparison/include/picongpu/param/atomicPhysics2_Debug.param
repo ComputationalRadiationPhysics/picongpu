@@ -33,9 +33,9 @@ namespace picongpu::atomicPhysics2::debug
     {
         constexpr bool PRINT_TO_CONSOLE = false;
         //! @attention performance relevant, uncaught error will lead to invalid memory access
-        constexpr bool RANGE_CHECKS_IN_DATA_QUERIES = true;
+        constexpr bool RANGE_CHECKS_IN_DATA_QUERIES = false;
         //! range check in store calls to individual data boxes, only once upon initial loading of atomic input data
-        constexpr bool RANGE_CHECKS_IN_DATA_LOAD = true;
+        constexpr bool RANGE_CHECKS_IN_DATA_LOAD = false;
         //! @attention will not catch members missing from hostToDevice() method,
         constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = false;
     } // namespace  atomicData
@@ -47,16 +47,16 @@ namespace picongpu::atomicPhysics2::debug
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant, uncaught error will lead to invalid memory access
-        constexpr bool RANGE_CHECKS_BIN_INDEX = true;
+        constexpr bool RANGE_CHECKS_BIN_INDEX = false;
         //! @attention performance relevant, uncaught error will lead to invalid memory access
-        constexpr bool RANGE_CHECKS_ENERGY = true;
+        constexpr bool RANGE_CHECKS_ENERGY = false;
     } // namespace electronHistogram
 
 
     namespace rateCalculation
     {
         //! @attention performance relevant
-        constexpr bool DEBUG_CHECKS = true;
+        constexpr bool DEBUG_CHECKS = false;
         constexpr bool RUN_UNIT_TESTS = false;
     } // namespace rateCalculation
 
@@ -74,24 +74,24 @@ namespace picongpu::atomicPhysics2::debug
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! range checks in rate cache, @attention performance relevant
-        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = true;
+        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = false;
     } // namespace rateCache
 
 
     namespace rejectionProbabilityCache
     {
         //! @attention only useful if building serial and cpu-only
-        constexpr bool PRINT_TO_CONSOLE = true;
+        constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
-        constexpr bool BIN_INDEX_RANGE_CHECK = true;
+        constexpr bool BIN_INDEX_RANGE_CHECK = false;
     } // namespace rejectionProbabilityCache
 
 
     namespace initIonizationElectrons
     {
         //! @attention performance relevant
-        constexpr bool CHECK_DELTA_ENERGY_INIT_FROM_COMOVING_POSITIVE = true;
+        constexpr bool CHECK_DELTA_ENERGY_INIT_FROM_COMOVING_POSITIVE = false;
     } // namespace initIonizationElectrons
 
     namespace scFlyComparison
@@ -112,13 +112,13 @@ namespace picongpu::atomicPhysics2::debug
     namespace kernel::calculateTimeStep
     {
         //! @attention performance relevant
-        constexpr bool CHECK_ALL_RATE_CACHE_ENTRIES_NEGATIVE = true;
+        constexpr bool CHECK_ALL_RATE_CACHE_ENTRIES_NEGATIVE = false;
     } // namespace kernel::calculateTimeStep
 
     namespace kernel::extractTransition
     {
         //! @attention performance relevant
-        constexpr bool CHECK_FOR_INVALID_PROCESS_ID = true;
+        constexpr bool CHECK_FOR_INVALID_PROCESS_ID = false;
         //! @attention only viable serial and cpu only compile
         constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::extractTransition
@@ -129,7 +129,7 @@ namespace picongpu::atomicPhysics2::debug
         constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = false;
 
         //! @attention performance relevant
-        constexpr bool CHECK_RATE_LIMIT = true;
+        constexpr bool CHECK_RATE_LIMIT = false;
 
         //! @attention only viable serial and cpu only compile
         constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
@@ -139,7 +139,7 @@ namespace picongpu::atomicPhysics2::debug
 
     namespace kernel::rollForOverSubscription
     {
-        constexpr bool PRINT_DEBUG_TO_CONSOLE = true;
+        constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::rollForOverSubscription
 
     namespace kernel::spawnIonizationElectrons

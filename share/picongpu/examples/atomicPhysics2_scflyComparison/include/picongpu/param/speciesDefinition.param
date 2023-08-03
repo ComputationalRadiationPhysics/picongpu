@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Rene Widera, Benjamin Worpitz, Heiko Burau, Brian Marre
+/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Heiko Burau, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -45,6 +45,7 @@
 
 #include <cstdint>
 
+// argon + thermal electrons
 namespace picongpu
 {
     /*########################### define default attributes ######################*/
@@ -58,15 +59,14 @@ namespace picongpu
 
     /*--------------------------- electrons --------------------------------------*/
     /* thermal bulk electrons: */
-
     /* ratio relative to BASE_CHARGE and BASE_MASS */
     value_identifier_constexpr(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
     /* ratio relative to BASE_DENSITY
-     * thermal "bulk": not ionized
+     * thermal "bulk": 2x ionized n_Ar
      */
-    value_identifier(float_X, DensityRatioBulkElectrons, 15._X);
+    value_identifier(float_X, DensityRatioBulkElectrons, 2._X);
 
     using ParticleFlagsElectrons = MakeSeq_t<
         particlePusher<UsedParticlePusher>,
@@ -79,7 +79,10 @@ namespace picongpu
         isAtomicPhysicsElectron<>>;
 
     /* thermal bulk electrons */
-    using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
+    using BulkElectrons = Particles<
+        PMACC_CSTRING("eth"),
+        ParticleFlagsElectrons,
+        DefaultParticleAttributes>;
 
     /*--------------------------- ions Argon ------------------------------------*/
 
@@ -88,7 +91,7 @@ namespace picongpu
     value_identifier(float_X, ChargeRatioArgon, -18.0);
 
     /* ratio relative to BASE_DENSITY */
-    value_identifier(float_X, DensityRatioArgon, 1.0);
+    value_identifier(float_X, DensityRatioArgon, 1.0_X);
 
 #ifndef PARAM_IONIZATIONCURRENT
 #    define PARAM_IONIZATIONCURRENT None
@@ -104,21 +107,21 @@ namespace picongpu
         densityRatio<DensityRatioArgon>,
 
         // core flag for loading atomic input data, no atomicPhysics outside ionizers if not set
-        atomicDataType<atomicPhysics2::AtomicData_Ar>,
+        atomicDataType<atomicPhysics2::AtomicData_Ar>, // data type used for atomic data storage
 
         /// currently all are required, @todo change?, Brian Marre
-        chargeStatesFileName<PMACC_CSTRING("../ChargeStates_Ar.txt")>,
-        atomicStatesFileName<PMACC_CSTRING("../AtomicStates_Ar.txt")>,
+        chargeStatesFileName<PMACC_CSTRING("ChargeStates_Ar.txt")>, // path to input file from call location
+        atomicStatesFileName<PMACC_CSTRING("AtomicStates_Ar.txt")>, // path to input file from call location
         /// @todo replace with runtime hostDeviceBuffer of DataBoxes, Brian Marre, 2022
-        numberAtomicStates<particles::atomicPhysics2::Number<470u>>,
-        boundBoundTransitionsFileName<PMACC_CSTRING("../BoundBoundTransitions_Ar.txt")>,
-        boundFreeTransitionsFileName<PMACC_CSTRING("../BoundFreeTransitions_Ar.txt")>,
-        autonomousTransitionsFileName<PMACC_CSTRING("../AutonomousTransitions_Ar.txt")>,
+        numberAtomicStates<particles::atomicPhysics2::Number<470u>>, // number of atomic states in input file
+        boundBoundTransitionsFileName<PMACC_CSTRING("BoundBoundTransitions_Ar.txt")>, // path to input file from call location
+        boundFreeTransitionsFileName< PMACC_CSTRING("BoundFreeTransitions_Ar.txt" )>, // path to input file from call location
+        autonomousTransitionsFileName<PMACC_CSTRING("AutonomousTransitions_Ar.txt")>, // path to input file from call location
 
         atomicNumbers<ionization::atomicNumbers::Argon_t>,
         ionizationElectronSpecies<BulkElectrons>, // which species to spawn as electrons upon ionization
         isAtomicPhysicsIon<>>;
-    //! @attention only channels activated in both data and solver are actually possible
+        //! @attention only channels present in data and active in solver are actually possible
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,
@@ -131,8 +134,8 @@ namespace picongpu
         transitionIndex,
         binIndex,
         accepted,
-        // legacy ionization support
 
+        // legacy ionization support
         /// @todo remove?, Brian Marre, 2022
         boundElectrons>;
 
@@ -147,4 +150,5 @@ namespace picongpu
      * to make them available to the PIC algorithm.
      */
     using VectorAllSpecies = MakeSeq_t<BulkElectrons, ArgonIons>;
+
 } // namespace picongpu
