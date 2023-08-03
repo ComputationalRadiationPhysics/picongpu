@@ -127,7 +127,7 @@ def smooth(x, sigma, window_len=11, fkt=gaussWindow):
 
     """
     # check input:
-    if type(x) != np.ndarray:
+    if type(x) is not np.ndarray:
         error_msg = "ERROR: input needs to by a 1D numpy array. " + \
                     "Data type is {}".format(type(x))
         raise Exception(error_msg)
@@ -186,7 +186,7 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
 
     """
     # check input
-    if type(data) != np.ndarray:
+    if type(data) is not np.ndarray:
         error_msg = "ERROR: input needs to by a 2D numpy array. " + \
                     "Data type is {}".format(type(data))
         raise Exception(error_msg)

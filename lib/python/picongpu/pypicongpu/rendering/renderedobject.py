@@ -91,7 +91,7 @@ class RenderedObject:
                               .format(json_file_path))
                 continue
             uri = schema["$id"]
-            if type(uri) != str:
+            if type(uri) is not str:
                 raise TypeError(
                     "URI ($id) must be string: {}".format(json_file_path))
 
@@ -153,7 +153,7 @@ class RenderedObject:
         validator.check_schema(schema)
 
         # there are schemas that are valid but not an object -> skip checks
-        if type(schema) == dict:
+        if type(schema) is dict:
             if "unevaluatedProperties" not in schema:
                 logging.warning("schema does not explicitly forbid "
                                 "unevaluated properties: {}".format(fqn))

@@ -25,7 +25,7 @@ class TestInitManager(unittest.TestCase):
     @typechecked
     class ConstantWithDependencies(species.constant.Constant):
         def __init__(self, dependencies=[]):
-            if type(dependencies) != list:
+            if type(dependencies) is not list:
                 self.dependencies = [dependencies]
             else:
                 self.dependencies = dependencies
