@@ -32,9 +32,9 @@
 namespace picongpu::particles
 {
     /** a particle with a weighting below MIN_WEIGHTING will not
-        *      be created / will be deleted
-        *  unit: none
-        */
+     *      be created / will be deleted
+     *  unit: none
+     */
     constexpr float_X MIN_WEIGHTING = 1.0;
 
     namespace startPosition
@@ -42,8 +42,8 @@ namespace picongpu::particles
         struct RandomParameter10ppc
         {
             /** Count of particles per cell at initial state
-                *  unit: none
-                */
+             *  unit: none
+             */
             static constexpr uint32_t numParticlesPerCell = 10u;
         };
 
@@ -59,8 +59,8 @@ namespace picongpu::particles
         struct OnePositionParameter
         {
             /** Count of particles per cell at initial state
-                *  unit: none
-                */
+             *  unit: none
+             */
             static constexpr uint32_t numParticlesPerCell = 1u;
 
             const InCellOffset_t inCellOffset;
@@ -71,9 +71,9 @@ namespace picongpu::particles
     } // namespace startPosition
 
     /** During unit normalization, we assume this is a typical
-        *  number of particles per cell for normalization of weighted
-        *  particle attributes.
-        */
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
     constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter10ppc::numParticlesPerCell;
 
     namespace manipulators
@@ -90,8 +90,8 @@ namespace picongpu::particles
         struct TemperatureParam
         {
             /** Initial temperature
-                *  unit: keV
-                */
+             *  unit: keV
+             */
             static constexpr float_64 temperature = 1.;
         };
         using AddTemperature = unary::Temperature<TemperatureParam>;

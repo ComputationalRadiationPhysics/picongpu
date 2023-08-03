@@ -30,7 +30,6 @@
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LogSpaceHistogram.hpp"
 #include "picongpu/particles/atomicPhysics2/stateRepresentation/ConfigNumber.hpp"
 
-
 #include <pmacc/identifier/value_identifier.hpp>
 
 #include <cstdint>
@@ -44,8 +43,8 @@ namespace picongpu::atomicPhysics2
         static constexpr float_X maxEnergy = float_X(1.5e4);
     };
     using ElectronHistogram = particles::atomicPhysics2::electronDistribution::LogSpaceHistogram<
-            100u, // T_numberBins
-            MaxEnergyParam>;
+        100u, // T_numberBins
+        MaxEnergyParam>;
 
     // atomicPhysics rate solver settings
     //      atomicPhysics timeStepLength sub-stepping of numerical limit
@@ -76,23 +75,23 @@ namespace picongpu::atomicPhysics2
      * @attention actual data type must be defined separately from value_identifier,
      *  since all "," are interpreted as separating macro arguments
      */
-    using ConfigNumber_Argon = particles::atomicPhysics2::stateRepresentation::ConfigNumber<
-            configNumberStorageDataType_Ar, numLevels_Ar, protonNumber_Ar>;
+    using ConfigNumber_Argon = particles::atomicPhysics2::stateRepresentation::
+        ConfigNumber<configNumberStorageDataType_Ar, numLevels_Ar, protonNumber_Ar>;
 
     // datatype to be used for configNumber storage
     value_identifier(ConfigNumber_Argon, ConfigNumber_Ar, ConfigNumber_Argon(1u));
 
     // atomicData dataBase type
     using AtomicData_Ar = particles::atomicPhysics2::atomicData::AtomicData<
-            uint32_t, // T_Number
-            float_X, // T_Value
-            uint32_t, // T_CollectionIndex
-            ConfigNumber_Argon, // T_ConfigNumber, data type used configNumber storage
-            true, // T_electronicExcitation
-            true, // T_electronicDeexcitation
-            true, // T_spontaneousDeexcitation
-            true, // T_electronicIonization
-            true, // T_autonomousIonization
-            false>; // T_fieldIonization
+        uint32_t, // T_Number
+        float_X, // T_Value
+        uint32_t, // T_CollectionIndex
+        ConfigNumber_Argon, // T_ConfigNumber, data type used configNumber storage
+        true, // T_electronicExcitation
+        true, // T_electronicDeexcitation
+        true, // T_spontaneousDeexcitation
+        true, // T_electronicIonization
+        true, // T_autonomousIonization
+        false>; // T_fieldIonization
 
 } // namespace picongpu::atomicPhysics2

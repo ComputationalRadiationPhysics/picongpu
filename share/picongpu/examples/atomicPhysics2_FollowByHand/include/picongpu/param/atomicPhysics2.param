@@ -42,8 +42,8 @@ namespace picongpu::atomicPhysics2
         static constexpr float_X maxEnergy = float_X(1.5e4);
     };
     using ElectronHistogram = particles::atomicPhysics2::electronDistribution::LogSpaceHistogram<
-            10u, // T_numberBins
-            MaxEnergyParam>;
+        10u, // T_numberBins
+        MaxEnergyParam>;
 
     // atomicPhysics rate solver settings
     //      atomicPhysics timeStepLength sub-stepping of numerical limit

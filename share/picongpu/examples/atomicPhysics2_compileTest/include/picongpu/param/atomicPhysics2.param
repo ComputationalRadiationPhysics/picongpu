@@ -40,10 +40,9 @@ namespace picongpu::atomicPhysics2
     {
         static constexpr float_X maxEnergy = float_X(1e7);
     };
-    using ElectronHistogram =
-        particles::atomicPhysics2::electronDistribution::LogSpaceHistogram<
-            100u, // T_numberBins
-            MaxEnergyParam>;
+    using ElectronHistogram = particles::atomicPhysics2::electronDistribution::LogSpaceHistogram<
+        100u, // T_numberBins
+        MaxEnergyParam>;
 
     // atomicPhysics rate solver settings
     //      atomicPhysics timeStepLength sub-stepping of numerical limit
@@ -75,9 +74,8 @@ namespace picongpu::atomicPhysics2
      * @attention actual data type must be defined separately from value_identifier,
      *  since all "," are interpreted as separating macro arguments
      */
-    using ConfigNumber_Argon =
-        particles::atomicPhysics2::stateRepresentation::ConfigNumber<
-            configNumberStorageDataType_Ar, numLevels_Ar, protonNumber_Ar>;
+    using ConfigNumber_Argon = particles::atomicPhysics2::stateRepresentation::
+        ConfigNumber<configNumberStorageDataType_Ar, numLevels_Ar, protonNumber_Ar>;
 
     // datatype to be used for configNumber storage
     value_identifier(ConfigNumber_Argon, ConfigNumber_Ar, ConfigNumber_Argon(1u));

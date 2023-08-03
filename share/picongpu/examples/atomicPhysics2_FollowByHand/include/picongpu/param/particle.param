@@ -32,9 +32,9 @@
 namespace picongpu::particles
 {
     /** a particle with a weighting below MIN_WEIGHTING will not
-        *      be created / will be deleted
-        *  unit: none
-        */
+     *      be created / will be deleted
+     *  unit: none
+     */
     constexpr float_X MIN_WEIGHTING = 1.0;
 
     namespace startPosition
@@ -42,8 +42,8 @@ namespace picongpu::particles
         struct RandomParameter
         {
             /** Count of particles per cell at initial state
-                *  unit: none
-                */
+             *  unit: none
+             */
             static constexpr uint32_t numParticlesPerCell = 180u;
         };
         using Random = RandomImpl<RandomParameter>;
@@ -68,8 +68,8 @@ namespace picongpu::particles
         struct OneSuperCellPositionParameter
         {
             /** Count of particles per cell at initial state
-                *  unit: none
-                */
+             *  unit: none
+             */
             static constexpr uint32_t numParticlesPerSuperCell = 1u;
 
             //! initial position of macro particle in-cell, as CONST_VECTOR of relative position in cell (x \in
@@ -87,7 +87,8 @@ namespace picongpu::particles
      *  number of particles per cell for normalization of weighted
      *  particle attributes.
      */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::OneSuperCellPositionParameter::numParticlesPerSuperCell;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
+        = startPosition::OneSuperCellPositionParameter::numParticlesPerSuperCell;
 
     namespace manipulators
     {
@@ -103,8 +104,8 @@ namespace picongpu::particles
         struct TemperatureParam
         {
             /** Initial temperature
-                *  unit: keV
-                */
+             *  unit: keV
+             */
             static constexpr float_64 temperature = 1.;
         };
         using AddTemperature = unary::Temperature<TemperatureParam>;

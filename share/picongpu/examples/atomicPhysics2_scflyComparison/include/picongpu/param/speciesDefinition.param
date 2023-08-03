@@ -79,10 +79,7 @@ namespace picongpu
         isAtomicPhysicsElectron<>>;
 
     /* thermal bulk electrons */
-    using BulkElectrons = Particles<
-        PMACC_CSTRING("eth"),
-        ParticleFlagsElectrons,
-        DefaultParticleAttributes>;
+    using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
     /*--------------------------- ions Argon ------------------------------------*/
 
@@ -114,14 +111,17 @@ namespace picongpu
         atomicStatesFileName<PMACC_CSTRING("AtomicStates_Ar.txt")>, // path to input file from call location
         /// @todo replace with runtime hostDeviceBuffer of DataBoxes, Brian Marre, 2022
         numberAtomicStates<particles::atomicPhysics2::Number<470u>>, // number of atomic states in input file
-        boundBoundTransitionsFileName<PMACC_CSTRING("BoundBoundTransitions_Ar.txt")>, // path to input file from call location
-        boundFreeTransitionsFileName< PMACC_CSTRING("BoundFreeTransitions_Ar.txt" )>, // path to input file from call location
-        autonomousTransitionsFileName<PMACC_CSTRING("AutonomousTransitions_Ar.txt")>, // path to input file from call location
+        boundBoundTransitionsFileName<PMACC_CSTRING("BoundBoundTransitions_Ar.txt")>, // path to input file from call
+                                                                                      // location
+        boundFreeTransitionsFileName<PMACC_CSTRING("BoundFreeTransitions_Ar.txt")>, // path to input file from call
+                                                                                    // location
+        autonomousTransitionsFileName<PMACC_CSTRING("AutonomousTransitions_Ar.txt")>, // path to input file from call
+                                                                                      // location
 
         atomicNumbers<ionization::atomicNumbers::Argon_t>,
         ionizationElectronSpecies<BulkElectrons>, // which species to spawn as electrons upon ionization
         isAtomicPhysicsIon<>>;
-        //! @attention only channels present in data and active in solver are actually possible
+    //! @attention only channels present in data and active in solver are actually possible
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,

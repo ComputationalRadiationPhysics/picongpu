@@ -80,10 +80,7 @@ namespace picongpu
         isAtomicPhysicsElectron<>>;
 
     /* thermal bulk electrons */
-    using BulkElectrons = Particles<
-        PMACC_CSTRING("eth"),
-        ParticleFlagsElectrons,
-        DefaultParticleAttributes>;
+    using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
     /*--------------------------- ions Argon ------------------------------------*/
 
@@ -122,7 +119,7 @@ namespace picongpu
         atomicNumbers<ionization::atomicNumbers::Argon_t>,
         ionizationElectronSpecies<BulkElectrons>, // which species to spawn as electrons upon ionization
         isAtomicPhysicsIon<>>;
-        //! @attention only channels activated in both data and solver are actually possible
+    //! @attention only channels activated in both data and solver are actually possible
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,
