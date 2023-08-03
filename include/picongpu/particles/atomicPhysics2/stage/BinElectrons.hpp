@@ -41,6 +41,7 @@
 
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics2/kernel/BinElectrons.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -72,6 +73,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             // pointer to memory, we will only work on device, no sync required
             // init pointer to electrons and localElectronHistogramField
             auto& electrons = *dc.get<ElectronSpecies>(ElectronSpecies::FrameType::getName());
@@ -87,6 +92,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             PMACC_LOCKSTEP_KERNEL(BinElectrons(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
+                localTimeRemainingField.getDeviceDataBox(),
                 electrons.getDeviceParticlesBox(),
                 localElectronHistogramField.getDeviceDataBox()); // standard data box
         }

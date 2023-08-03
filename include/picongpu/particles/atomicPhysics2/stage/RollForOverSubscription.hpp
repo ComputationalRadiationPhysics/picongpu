@@ -23,6 +23,7 @@
 #include "picongpu/particles/atomicPhysics2/kernel/RollForOverSubscription.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalElectronHistogramOverSubscribedField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRejectionProbabilityCacheField.hpp"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 
 #include <cstdint>
 
@@ -58,6 +59,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             auto& localElectronHistogramField
@@ -84,6 +89,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             (mapper.getGridDim())(
                 mapper,
                 rngFactory,
+                localTimeRemainingField.getDeviceDataBox(),
                 localElectronHistogramOverSubscribedField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
                 localRejectionProbabilityCacheField.getDeviceDataBox(),

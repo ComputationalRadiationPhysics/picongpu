@@ -25,6 +25,7 @@
 #include "picongpu/particles/atomicPhysics2/kernel/ExtractTransitionCollectionIndex_BoundBound.kernel"
 #include "picongpu/particles/atomicPhysics2/kernel/ExtractTransitionCollectionIndex_BoundFree.kernel"
 #include "picongpu/particles/atomicPhysics2/kernel/ExtractTransitionCollectionIndex_NoChange.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
@@ -56,6 +57,10 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             // no-change transition
@@ -82,6 +87,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     atomicData.template getChargeStateOrgaDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -105,6 +111,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     atomicData.template getChargeStateOrgaDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -127,6 +134,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     atomicData.template getChargeStateOrgaDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),

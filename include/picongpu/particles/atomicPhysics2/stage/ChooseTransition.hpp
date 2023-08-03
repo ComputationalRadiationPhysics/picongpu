@@ -27,6 +27,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/kernel/ChooseTransition.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 
 /// @todo find reference to pmacc RNGfactories files, Brian Marre, 2023
@@ -63,6 +64,10 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             RngFactoryInt rngFactory = RngFactoryInt{currentStep};
@@ -72,6 +77,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
+                localTimeRemainingField.getDeviceDataBox(),
                 rngFactory,
                 ions.getDeviceParticlesBox(),
                 atomicData.template getChargeStateOrgaDataBox<false>(),

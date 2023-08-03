@@ -49,11 +49,24 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param ionBox deviceDataBox pointing to the particle frames of the species
          *   T_IonSpecies of all local superCells
          */
-        template<typename T_Worker, typename T_AreaMapping, typename T_IonBox>
-        HDINLINE void operator()(T_Worker const& worker, T_AreaMapping const areaMapping, T_IonBox const ionBox) const
+        template<typename T_Worker, typename T_AreaMapping, typename T_LocalTimeRemainingBox, typename T_IonBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_IonBox const ionBox) const
         {
-            pmacc::DataSpace<simDim> const superCellIdx(
-                areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            pmacc::DataSpace<simDim> const superCellIdx
+                = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = superCellIdx - areaMapping.getGuardingSuperCells();
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
 
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
 

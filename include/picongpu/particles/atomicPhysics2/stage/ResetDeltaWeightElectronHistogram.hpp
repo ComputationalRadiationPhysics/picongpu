@@ -26,6 +26,7 @@
 
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics2/kernel/ResetDeltaWeightElectronHistogram.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -49,6 +50,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& localElectronHistogramField
                 = *dc.get<picongpu::particles::atomicPhysics2::electronDistribution::
                               LocalHistogramField<picongpu::atomicPhysics2::ElectronHistogram, picongpu::MappingDesc>>(
@@ -59,7 +64,10 @@ namespace picongpu::particles::atomicPhysics2::stage
                 picongpu::particles::atomicPhysics2::kernel::ResetDeltaWeightElectronHistogramKernel<
                     picongpu::atomicPhysics2::ElectronHistogram>(),
                 workerCfg)
-            (mapper.getGridDim())(mapper, localElectronHistogramField.getDeviceDataBox());
+            (mapper.getGridDim())(
+                mapper,
+                localTimeRemainingField.getDeviceDataBox(),
+                localElectronHistogramField.getDeviceDataBox());
 
             /// @todo implement photon histogram, Brian Marre, 2023
         }

@@ -89,6 +89,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             typename T_Worker,
             typename T_AreaMapping,
             typename T_RngGeneratorFactoryFloat,
+            typename T_LocalTimeRemainingBox,
             typename T_IonBox,
             typename T_TimeStepDataBox,
             typename T_LocalElectronHistogramDataBox,
@@ -99,6 +100,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_RngGeneratorFactoryFloat rngFactory, /// const?, @todo Brian Marre, 2023
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox ionBox,
             T_TimeStepDataBox const localTimeStepBox,
             T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
@@ -124,16 +126,18 @@ namespace picongpu::particles::atomicPhysics2::kernel
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = superCellIdx - areaMapping.getGuardingSuperCells();
 
-            // get histogram for current superCell
-            T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
 
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
 
-            float_X const timeStep = localTimeStepBox(superCellFieldIdx);
-
-            // end kernel if no particles
-            if(!forEachLocalIonBoxEntry.hasParticles())
+            // end kernel if superCell already finished or no particles
+            if((timeRemaining <= 0._X) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
+
+            // UNIT_TIME
+            float_X const timeStep = localTimeStepBox(superCellFieldIdx);
+            // get histogram for current superCell
+            T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
 
             auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 

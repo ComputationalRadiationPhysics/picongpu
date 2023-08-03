@@ -89,6 +89,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
             typename T_LocalRateCacheBox,
             typename T_LocalElectronHistogramDataBox,
             typename T_ChargeStateDataDataBox,
@@ -130,11 +131,17 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                 - areaMapping.getGuardingSuperCells();
 
-            auto& rateCache = localRateCacheBox(superCellFieldIdx);
-            auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
 
             auto forEachAtomicStateAndBin
                 = pmacc::lockstep::makeForEach<T_numberAtomicStates * T_numberBins, T_Worker>(worker);
+
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
             forEachAtomicStateAndBin(
                 [&worker,
@@ -188,7 +195,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         }
                     }
                 });
-            worker.sync();
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel

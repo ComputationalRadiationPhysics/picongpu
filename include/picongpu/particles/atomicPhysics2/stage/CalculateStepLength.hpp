@@ -27,6 +27,7 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics2/kernel/CalculateStepLength.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 
 #include <string>
 
@@ -54,6 +55,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             // pointers to memory, we will only work on device, no sync required
             //      pointer to localRateCache
             auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
@@ -73,6 +78,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
+                localTimeRemainingField.getDeviceDataBox(),
                 localTimeStepField.getDeviceDataBox(),
                 localRateCacheField.getDeviceDataBox());
         }

@@ -27,6 +27,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/kernel/CheckPresence.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 
 #include <cstdint>
@@ -59,6 +60,11 @@ namespace picongpu::particles::atomicPhysics2::stage
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
             using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
+
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             // pointers to memory, we will only work on device, no sync required
@@ -72,6 +78,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
+                localTimeRemainingField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
                 localRateCacheField.getDeviceDataBox(),
                 atomicData.template getChargeStateOrgaDataBox<false>(),

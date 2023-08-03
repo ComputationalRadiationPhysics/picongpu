@@ -31,6 +31,7 @@
 #include "picongpu/particles/atomicPhysics2/kernel/AcceptTransitionTest_NoChange.kernel"
 #include "picongpu/particles/atomicPhysics2/kernel/AcceptTransitionTest_SpontaneousDeexcitation.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRateCacheField.hpp"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeStepField.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
 
@@ -72,6 +73,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
@@ -100,6 +105,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             (mapper.getGridDim())(
                 mapper,
                 rngFactory,
+                localTimeRemainingField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
                 localTimeStepField.getDeviceDataBox(),
                 localRateCacheField.getDeviceDataBox(),
@@ -120,6 +126,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 (mapper.getGridDim())(
                     mapper,
                     rngFactory,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localTimeStepField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
@@ -143,6 +150,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 (mapper.getGridDim())(
                     mapper,
                     rngFactory,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localTimeStepField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
@@ -162,6 +170,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 (mapper.getGridDim())(
                     mapper,
                     rngFactory,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localTimeStepField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -183,6 +192,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 (mapper.getGridDim())(
                     mapper,
                     rngFactory,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localTimeStepField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
@@ -207,6 +217,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 (mapper.getGridDim())(
                     mapper,
                     rngFactory,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localTimeStepField.getDeviceDataBox(),
                     atomicData.template getAutonomousTransitionDataBox<

@@ -56,7 +56,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                 - areaMapping.getGuardingSuperCells();
 
-            auto& timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
+
             auto& timeStep = localTimeStepBox(superCellFieldIdx);
 
             auto onlyMaster = lockstep::makeMaster(worker);

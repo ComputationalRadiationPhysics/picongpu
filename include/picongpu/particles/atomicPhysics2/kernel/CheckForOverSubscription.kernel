@@ -55,12 +55,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
             typename T_LocalHistogramDataBox,
             typename T_LocalElectronHistogramOverSubscribedDataBox,
             typename T_LocalRejectionProbabilityCacheDataBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalHistogramDataBox const localHistogramBox,
             T_LocalElectronHistogramOverSubscribedDataBox localElectronHistogramOverSubscribedBox,
             T_LocalRejectionProbabilityCacheDataBox localRejectionProbabilityCacheBox) const
@@ -72,6 +74,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //  -> must subtract guard to get correct superCellFieldIdx
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = superCellIdx - areaMapping.getGuardingSuperCells();
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
 
             auto forEachBin = pmacc::lockstep::makeForEach<T_Histogram::numberBins, T_Worker>(worker);
             auto onlyMaster = pmacc::lockstep::makeMaster<T_Worker>(worker);

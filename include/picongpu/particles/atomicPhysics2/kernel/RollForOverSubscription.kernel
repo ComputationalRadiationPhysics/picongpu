@@ -62,6 +62,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             typename T_Worker,
             typename T_AreaMapping,
             typename T_RngGeneratorFactoryFloat,
+            typename T_LocalTimeRemainingBox,
             typename T_LocalElectronHistogramOverSubscribedDataBox,
             typename T_IonBox,
             typename T_LocalRejectionProbabilityCacheDataBox,
@@ -70,6 +71,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_RngGeneratorFactoryFloat rngFactory, /// const?, @todo Brian Marre, 2023
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalElectronHistogramOverSubscribedDataBox const localElectronHistogramOverSubscribedBox,
             T_IonBox ionBox,
             T_LocalRejectionProbabilityCacheDataBox const localRejectionProbabilityCacheBox,
@@ -83,24 +85,22 @@ namespace picongpu::particles::atomicPhysics2::kernel
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = superCellIdx - areaMapping.getGuardingSuperCells();
 
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
             bool const histogramOverSubscribed
                 = static_cast<bool>(localElectronHistogramOverSubscribedBox(superCellFieldIdx));
 
-            // at least one bin overSubscribed?
-            if(!histogramOverSubscribed)
-                return;
-
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
+
+            // end kernel if superCell already finished or no bin over subscribed or contains no particles
+            if((timeRemaining <= 0._X) || (!histogramOverSubscribed) || (!forEachLocalIonBoxEntry.hasParticles()))
+                return;
 
             T_Histogram& histogram = localElectronHistogramBox(superCellFieldIdx);
 
             picongpu::particles::atomicPhysics2::localHelperFields::RejectionProbabilityCache<T_Histogram::numberBins>&
                 rejectionProbabilityCache
                 = localRejectionProbabilityCacheBox(superCellFieldIdx);
-
-            // end kernel if no particles
-            if(!forEachLocalIonBoxEntry.hasParticles())
-                return;
 
             auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 

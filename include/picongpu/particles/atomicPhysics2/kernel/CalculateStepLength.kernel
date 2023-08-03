@@ -51,10 +51,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param localTimeStepBox deviceDataBox giving access to superCell local rateCaches
          *  of all local superCells
          */
-        template<typename T_Worker, typename T_AreaMapping, typename T_LocalRateCache, typename T_LocalTimeStepBox>
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalRateCache,
+            typename T_LocalTimeStepBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalTimeStepBox const localTimeStepBox,
             T_LocalRateCache localRateCacheBox) const
         {
@@ -64,7 +70,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                 - areaMapping.getGuardingSuperCells();
 
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
+
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            // UNIT_TIME
             float_X& timeStep = localTimeStepBox(superCellFieldIdx);
 
             auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);

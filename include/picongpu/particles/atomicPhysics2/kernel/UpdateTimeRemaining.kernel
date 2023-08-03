@@ -49,8 +49,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_LocalTimeRemainingBox const localTimeRemainingBox,
-            T_LocalTimeStepBox localTimeStepBox) const
+            T_LocalTimeRemainingBox localTimeRemainingBox,
+            T_LocalTimeStepBox const localTimeStepBox) const
         {
             // atomicPhysics superCellFields have no guard, but areMapping includes a guard
             //  -> must subtract guard to get correct superCellFieldIdx
@@ -58,8 +58,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                 - areaMapping.getGuardingSuperCells();
 
-            auto& timeRemaining = localTimeRemainingBox(superCellFieldIdx);
-            auto const timeStep = localTimeStepBox(superCellFieldIdx);
+            // UNIT_TIME
+            float_X& timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
+
+            // UNIT_TIME
+            float_X const timeStep = localTimeStepBox(superCellFieldIdx);
 
             auto onlyMaster = lockstep::makeMaster(worker);
 

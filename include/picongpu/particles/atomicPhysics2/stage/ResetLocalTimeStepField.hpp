@@ -22,6 +22,8 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics2/kernel/ResetLocalTimeStepField.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeStepField.hpp"
 
 #include <string>
 
@@ -38,7 +40,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
+            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<1u>();
 
             // pointers to memory, we will only work on device, no sync required
             //      pointer to localTimeRemainingField

@@ -86,6 +86,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
             typename T_LocalRateCacheBox,
             typename T_LocalElectronHistogramDataBox,
             typename T_AtomicStateDataDataBox,
@@ -95,6 +96,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalRateCacheBox localRateCacheBox,
             T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
@@ -128,12 +130,18 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                 - areaMapping.getGuardingSuperCells();
 
-            auto& rateCache = localRateCacheBox(superCellFieldIdx);
-            auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+
+            // end kernelif superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
 
             auto forEachAtomicStateAndBin
                 = pmacc::lockstep::makeForEach<T_numberAtomicStates * T_numberBins, T_Worker>(worker);
             auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
+
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
             forEachAtomicStateAndBin(
                 [&worker,

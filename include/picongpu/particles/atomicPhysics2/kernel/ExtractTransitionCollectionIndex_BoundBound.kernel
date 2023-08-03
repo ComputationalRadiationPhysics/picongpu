@@ -125,6 +125,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
             typename T_IonBox,
             typename T_ChargeStateOrgaDataBox,
             typename T_AtomicStateDataDataBox,
@@ -133,6 +134,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox ionBox,
             T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
@@ -151,24 +153,24 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = superCellIdx - areaMapping.getGuardingSuperCells();
 
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
 
-            // Offset without guards for random numbers
-            auto const superCellLocalOffset = superCellIdx - areaMapping.getGuardingSuperCells();
-
-            // end kernel if no particles
-            if(!forEachLocalIonBoxEntry.hasParticles())
+            // end kernel if superCell already finished or no particles
+            if((timeRemaining <= 0._X) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
 
             // check whether bound-bound transition and if yes,
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
-                [&superCellLocalOffset,
-                 &chargeStateOrgaBox,
-                 &atomicStateDataDataBox,
-                 &numberTransitionsBox,
-                 &startIndexBox](T_Worker const& worker, auto& ion)
+                [&chargeStateOrgaBox, &atomicStateDataDataBox, &numberTransitionsBox, &startIndexBox](
+                    T_Worker const& worker,
+                    auto& ion)
                 {
                     // reject working on already accepted ions
                     if(ion[accepted_])

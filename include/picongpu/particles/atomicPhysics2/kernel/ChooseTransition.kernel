@@ -49,6 +49,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
             typename T_IonBox,
             typename T_RngGeneratorFactoryInt,
             typename T_ChargeStateOrgaDataBox,
@@ -58,6 +59,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_RngGeneratorFactoryInt rngFactory, /// const?, @todo Brian Marre, 2023
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox ionBox,
             T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
@@ -65,21 +67,23 @@ namespace picongpu::particles::atomicPhysics2::kernel
         {
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = superCellIdx - areaMapping.getGuardingSuperCells();
 
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
 
-            // Offset without guards for random numbers
-            auto const superCellLocalOffset = superCellIdx - areaMapping.getGuardingSuperCells();
-
-            // end kernel if no ions
-            if(!forEachLocalIonBoxEntry.hasParticles())
+            // end kernel if superCell already finished or if contains no ions
+            if((timeRemaining <= 0._X) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
 
-            auto rngGenerator = rngFactory(worker, superCellLocalOffset);
+            auto rngGenerator = rngFactory(worker, superCellFieldIdx);
 
             // choose transition randomly,
             //  (processClass / transitionCollectionIndex / binIndex) are
-            //  (extracted / extracted / randomly rolled) later by the deduce transitionKernel
+            //  (extracted / extracted / randomly rolled) later by a ExtractTransitionCollectionIndex_*Kernel
             forEachLocalIonBoxEntry(
                 [&](T_Worker const& worker, auto& ion)
                 {

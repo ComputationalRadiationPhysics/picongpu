@@ -29,6 +29,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/kernel/SpawnIonizationMacroElectrons.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
 #include "picongpu/particles/traits/GetIonizationElectronSpecies.hpp"
 
@@ -63,6 +64,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
             auto& electrons = *dc.get<IonizationElectronSpecies>(IonizationElectronSpecies::FrameType::getName());
 
@@ -83,6 +88,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(SpawnElectrons_BoundFree(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     electrons.getDeviceParticlesBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -104,6 +110,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(SpawnElectrons_Autonomous(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     electrons.getDeviceParticlesBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),

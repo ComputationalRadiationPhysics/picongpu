@@ -25,6 +25,7 @@
 
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics2/kernel/RecordChanges.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
 
 #include <cstdint>
@@ -53,6 +54,10 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             auto& localElectronHistogramField
@@ -73,6 +78,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicExcitation(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -90,6 +96,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicDeexcitation(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -108,6 +115,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_spontaneousDeexcitation(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -126,6 +134,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicIonization(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -147,6 +156,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_autonomousIonization(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -156,5 +166,4 @@ namespace picongpu::particles::atomicPhysics2::stage
             }
         }
     };
-
 } // namespace picongpu::particles::atomicPhysics2::stage

@@ -37,6 +37,7 @@
 #include "picongpu/particles/atomicPhysics2/kernel/FillLocalRateCache_BoundBound.kernel"
 #include "picongpu/particles/atomicPhysics2/kernel/FillLocalRateCache_BoundFree.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRateCacheField.hpp"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
@@ -73,6 +74,10 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
                                                     LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
                 IonSpecies::FrameType::getName() + "_localRateCacheField");
@@ -106,6 +111,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheUpWardBoundBound(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     localRateCacheField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -131,6 +137,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheDownWardBoundBound(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     localRateCacheField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
@@ -154,6 +161,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheUpWardBoundFree(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     localRateCacheField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getChargeStateDataDataBox<false>(),
@@ -175,6 +183,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheAutonomous(), workerCfg)
                 (mapper.getGridDim())(
                     mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
                     localRateCacheField.getDeviceDataBox(),
                     atomicData.template getAutonomousStartIndexBlockDataBox<false>(),
                     atomicData.template getAutonomousNumberTransitionsDataBox<false>(),

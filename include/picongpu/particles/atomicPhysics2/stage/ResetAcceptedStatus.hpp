@@ -22,6 +22,7 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics2/kernel/ResetAcceptedStatus.kernel"
+#include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
@@ -46,10 +47,14 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
             pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
 
+            auto& localTimeRemainingField
+                = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                    picongpu::MappingDesc>>("LocalTimeRemainingField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
             PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel::ResetAcceptedStatusKernel(), workerCfg)
-            (mapper.getGridDim())(mapper, ions.getDeviceParticlesBox());
+            (mapper.getGridDim())(mapper, localTimeRemainingField.getDeviceDataBox(), ions.getDeviceParticlesBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

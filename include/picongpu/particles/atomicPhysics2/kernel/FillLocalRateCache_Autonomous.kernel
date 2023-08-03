@@ -74,6 +74,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
             typename T_LocalRateCacheBox,
             typename T_AtomicStateStartIndexBox,
             typename T_AtomicStateNumberTransitionsBox,
@@ -81,6 +82,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalRateCacheBox localRateCacheBox,
             T_AtomicStateStartIndexBox const startIndexDataBox,
             T_AtomicStateNumberTransitionsBox const numberTransitionsDataBox,
@@ -110,11 +112,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
                 - areaMapping.getGuardingSuperCells();
 
-            auto& rateCache = localRateCacheBox(superCellFieldIdx);
-            auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
 
             if constexpr(T_autonomousIonization)
             {
+                auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
+                auto& rateCache = localRateCacheBox(superCellFieldIdx);
+
                 forEachAtomicState(
                     [&worker, &rateCache, &startIndexDataBox, &numberTransitionsDataBox, &autonomousTransitionDataBox](
                         uint32_t const atomicStateCollectionIndex)
