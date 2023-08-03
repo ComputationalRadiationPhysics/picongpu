@@ -59,7 +59,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 - areaMapping.getGuardingSuperCells();
 
             auto& timeRemaining = localTimeRemainingBox(superCellFieldIdx);
-            auto& timeStep = localTimeStepBox(superCellFieldIdx);
+            auto const timeStep = localTimeStepBox(superCellFieldIdx);
 
             auto onlyMaster = lockstep::makeMaster(worker);
 
