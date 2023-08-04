@@ -92,7 +92,12 @@ namespace picongpu
 
             virtual void free(openPMDFrameType& hostFrame) = 0;
 
-            virtual void prepare(std::string name, openPMDFrameType& hostFrame, RunParameters) = 0;
+            virtual void prepare(
+                uint32_t const currentStep,
+                std::string name,
+                openPMDFrameType& hostFrame,
+                RunParameters)
+                = 0;
 
             virtual ~Strategy() = default;
         };
@@ -119,7 +124,8 @@ namespace picongpu
             }
 
 
-            void prepare(std::string name, openPMDFrameType& hostFrame, RunParameters rp) override
+            void prepare(uint32_t const currentStep, std::string name, openPMDFrameType& hostFrame, RunParameters rp)
+                override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) copy particle host (with hierarchy) to "
                                           "host (without hierarchy): %1%")
@@ -188,7 +194,8 @@ namespace picongpu
                 freeMem(mappedFrame);
             }
 
-            void prepare(std::string name, openPMDFrameType& mappedFrame, RunParameters rp) override
+            void prepare(uint32_t currentStep, std::string name, openPMDFrameType& mappedFrame, RunParameters rp)
+                override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) copy particle to host: %1%") % name;
 
@@ -315,7 +322,10 @@ namespace picongpu
                 }
             }
 
-            HINLINE void operator()(ThreadParams* params, const DataSpace<simDim> particleToTotalDomainOffset)
+            HINLINE void operator()(
+                ThreadParams* params,
+                uint32_t const currentStep,
+                const DataSpace<simDim> particleToTotalDomainOffset)
             {
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) write species: %1%") % T_SpeciesFilter::getName();
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -327,11 +337,11 @@ namespace picongpu
                 const std::string speciesGroup(T_Species::getName());
 
                 ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Iteration iteration = series.writeIterations()[params->currentStep];
+                ::openPMD::Iteration iteration = series.writeIterations()[currentStep];
                 const std::string basename = series.particlesPath() + speciesGroup;
 
                 // enforce that the filter interface is fulfilled
-                particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter{params->currentStep};
+                particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter{currentStep};
                 using usedFilters = pmacc::mp_list<typename GetPositionFilter<simDim>::type>;
                 using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
                 MyParticleFilter filter;
@@ -413,7 +423,7 @@ namespace picongpu
                     globalNumParticles);
                 if(globalNumParticles > 0)
                 {
-                    strategy->prepare(T_SpeciesFilter::getName(), hostFrame, std::move(runParameters));
+                    strategy->prepare(currentStep, T_SpeciesFilter::getName(), hostFrame, std::move(runParameters));
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write particle records for %1%")
                     % T_SpeciesFilter::getName();

@@ -77,7 +77,7 @@ namespace picongpu
              * @param restartChunkSize number of particles processed in one kernel
              * call
              */
-            HINLINE void operator()(ThreadParams* params, const uint32_t restartChunkSize)
+            HINLINE void operator()(ThreadParams* params, uint32_t const currentStep, const uint32_t restartChunkSize)
             {
                 std::string const speciesName = FrameType::getName();
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) load species: %1%") % speciesName;
@@ -85,8 +85,7 @@ namespace picongpu
                 GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
                 ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Container<::openPMD::ParticleSpecies>& particles
-                    = series.iterations[params->currentStep].particles;
+                ::openPMD::Container<::openPMD::ParticleSpecies>& particles = series.iterations[currentStep].particles;
                 ::openPMD::ParticleSpecies particleSpecies = particles[speciesName];
 
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
