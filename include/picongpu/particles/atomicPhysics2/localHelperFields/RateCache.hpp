@@ -148,7 +148,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         }
 
         //! debug only, write content of rate cache to console, @attention serial and cpu build only
-        void printToConsole(pmacc::DataSpace<picongpu::simDim> superCellFieldIdx) const
+        HINLINE void printToConsole(pmacc::DataSpace<picongpu::simDim> superCellFieldIdx) const
         {
             std::cout << "rateCache: " << superCellFieldIdx.toString(",", "[]") << std::endl;
             for(uint16_t i = 0u; i < numberAtomicStates; i++)

@@ -37,7 +37,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     struct PrintRejectionProbabilityCacheToConsole
     {
         template<typename T_RejectionProbabilityCache>
-        HDINLINE void operator()(
+        HINLINE void operator()(
             T_RejectionProbabilityCache const& rejectionProbabilityCache,
             pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {

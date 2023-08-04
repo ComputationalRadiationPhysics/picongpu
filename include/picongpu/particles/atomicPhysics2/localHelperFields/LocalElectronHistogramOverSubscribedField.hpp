@@ -32,8 +32,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     //! debug only, write content of rate cache to console, @attention serial and cpu build only
     struct PrintOverSubcriptionFieldToConsole
     {
-        ALPAKA_NO_HOST_ACC_WARNING
-        HDINLINE void operator()(uint32_t const overSubscribed, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        HINLINE void operator()(uint32_t const overSubscribed, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {
             std::cout << "overSubscribed " << superCellIdx.toString(",", "[]");
             std::cout << " " << (static_cast<bool>(overSubscribed) ? "true" : "false") << std::endl;

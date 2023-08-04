@@ -39,7 +39,7 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
     struct PrintHistogramToConsole
     {
         template<typename T_Histogram>
-        HDINLINE void operator()(T_Histogram const& histogram, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        HINLINE void operator()(T_Histogram const& histogram, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {
             constexpr uint32_t numBins = T_Histogram::numberBins;
 
