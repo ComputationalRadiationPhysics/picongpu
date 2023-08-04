@@ -494,7 +494,7 @@ class pipe:
                 path of the current layer, only for verbose printing.
         """
         self.print(current_path)
-        if (type(src) != type(dest)
+        if (type(src) is not type(dest)
                 and not isinstance(src, io.IndexedIteration)
                 and not isinstance(dest, io.Iteration)):
             raise RuntimeError(

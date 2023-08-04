@@ -52,19 +52,19 @@ class Renderer:
                                  .format(path, key))
 
             # value validation
-            if type(value) == dict:
+            if type(value) is dict:
                 if {} == value:
                     raise TypeError("leaf must not be empty dict")
                 # dict -> recursive call
                 Renderer.__check_rendering_context_recursive(
                     "{}.{}".format(path, key), value)
-            elif type(value) == list:
+            elif type(value) is list:
                 # may only contain dicts
                 # note: this is not a strict mustache requirement, but only
                 # exists to prevent developer-screwups (in mustache, rendering
                 # mylist: [1, 2, 3] is performed by
                 # {{#mylist}}{{{.}}}{{/mylist}}, which is somewhat unintuitive)
-                not_dict = list(filter(lambda e: type(e) != dict, value))
+                not_dict = list(filter(lambda e: type(e) is not dict, value))
                 if 0 != len(not_dict):
                     raise TypeError("lists may only contains dicts: {}.{}"
                                     .format(path, key))
@@ -122,10 +122,10 @@ class Renderer:
         """
         pp = {}
         for key, value in context.items():
-            if type(value) == dict:
+            if type(value) is dict:
                 # dict -> decent
                 pp[key] = Renderer.__get_context_preprocessed_recursive(value)
-            elif type(value) == list:
+            elif type(value) is list:
                 # list: add _last, _first
                 new_list = []
                 for i in range(len(value)):

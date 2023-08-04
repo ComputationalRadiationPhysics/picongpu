@@ -377,7 +377,7 @@ class InitManager(RenderedObject):
                             "got: {}".format(required_constant))
 
                     # self-references are not allowed
-                    if type(constant) == required_constant:
+                    if type(constant) is required_constant:
                         raise ReferenceError(
                             "constants may not depend on themselves")
 
@@ -520,7 +520,7 @@ class InitManager(RenderedObject):
         for op_name, op_type in operation_types_by_name.items():
             operations_context[op_name] = list(
                 map(lambda op: op.get_rendering_context(),
-                    filter(lambda op: type(op) == op_type,
+                    filter(lambda op: type(op) is op_type,
                            self.all_operations)))
 
         return {

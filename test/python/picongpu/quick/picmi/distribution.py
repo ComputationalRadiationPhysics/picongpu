@@ -24,8 +24,8 @@ class HelperTestPicmiBoundaries:
     """
 
     def __init__(self):
-        if type(self) == HelperTestPicmiBoundaries:
-            raise RuntimeError("This class is abstract, inherit it!")
+        if type(self) is HelperTestPicmiBoundaries:
+            raise RuntimeError("This class is abstract, inherit from it!")
 
     def _get_distribution(self, lower_bound, upper_bound):
         """
