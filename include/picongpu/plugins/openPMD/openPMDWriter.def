@@ -76,9 +76,6 @@ namespace picongpu
 
         struct ThreadParams : PluginParameters
         {
-            uint32_t currentStep; /** current simulation step */
-
-
             std::unique_ptr<::openPMD::Series> openPMDSeries; /* is null iff there is no series currently open */
 
             /** current dump is a checkpoint */
@@ -90,7 +87,7 @@ namespace picongpu
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
-            MappingDesc* cellDescription;
+            MappingDesc* cellDescription = nullptr;
 
             std::vector<char> fieldBuffer; /* temp. buffer for fields */
 
@@ -110,7 +107,12 @@ namespace picongpu
             /*
              * If file is empty, read from command line parameters.
              */
-            void initFromConfig(Help&, size_t id, std::string const& dir, std::optional<std::string> file = {});
+            void initFromConfig(
+                Help&,
+                size_t id,
+                uint32_t const currentStep,
+                std::string const& dir,
+                std::optional<std::string> file = {});
 
             /**
              * Wrapper for ::openPMD::resetDataset, set dataset parameters

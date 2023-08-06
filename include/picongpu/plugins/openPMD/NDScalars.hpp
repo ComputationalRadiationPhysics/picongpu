@@ -65,6 +65,7 @@ namespace picongpu
              */
             std::tuple<::openPMD::MeshRecordComponent, ::openPMD::Offset, ::openPMD::Extent> prepare(
                 ThreadParams& params,
+                uint32_t const currentStep,
                 T_Attribute attribute)
             {
                 auto name = baseName + "/" + group + "/" + dataset;
@@ -85,7 +86,7 @@ namespace picongpu
 
                 ::openPMD::Series& series = *params.openPMDSeries;
                 ::openPMD::MeshRecordComponent mrc
-                    = series.writeIterations()[params.currentStep].meshes[baseName + "_" + group][dataset];
+                    = series.writeIterations()[currentStep].meshes[baseName + "_" + group][dataset];
 
                 if(!attrName.empty())
                 {
@@ -105,9 +106,13 @@ namespace picongpu
             }
 
         public:
-            void operator()(ThreadParams& params, T_Scalar value, T_Attribute attribute = T_Attribute())
+            void operator()(
+                ThreadParams& params,
+                uint32_t const currentStep,
+                T_Scalar value,
+                T_Attribute attribute = T_Attribute())
             {
-                auto tuple = prepare(params, std::move(attribute));
+                auto tuple = prepare(params, currentStep, std::move(attribute));
                 auto name = baseName + "/" + group + "/" + dataset;
                 log<picLog::INPUT_OUTPUT>("openPMD: write %1%D scalars: %2%") % simDim % name;
 
@@ -139,6 +144,7 @@ namespace picongpu
              * referenced by the pointers */
             void operator()(
                 ThreadParams& params,
+                const uint32_t currentStep,
                 const std::string& baseName,
                 const std::string& group,
                 const std::string& dataset,
@@ -153,7 +159,7 @@ namespace picongpu
                 auto datasetName = baseName + "/" + group + "/" + dataset;
                 ::openPMD::Series& series = *params.openPMDSeries;
                 ::openPMD::MeshRecordComponent mrc
-                    = series.iterations[params.currentStep].meshes[baseName + "_" + group][dataset];
+                    = series.iterations[currentStep].meshes[baseName + "_" + group][dataset];
                 auto ndim = mrc.getDimensionality();
                 if(ndim != simDim)
                 {

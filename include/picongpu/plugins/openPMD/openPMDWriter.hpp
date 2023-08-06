@@ -563,6 +563,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         void ThreadParams::initFromConfig(
             Help& help,
             size_t id,
+            uint32_t const currentStep,
             std::string const& dir,
             std::optional<std::string> file)
         {
@@ -681,7 +682,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     return createUnit(unit, T_Field::numComponents);
                 }
 
-                HDINLINE void operator()(ThreadParams* params)
+                HDINLINE void operator()(ThreadParams* params, uint32_t const currentStep)
                 {
 #ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
@@ -710,6 +711,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     openPMDWriter::writeField<ComponentType>(
                         params,
+                        currentStep,
                         GetNComponents<ValueType>::value,
                         T_Field::getName(),
                         *field,
@@ -740,9 +742,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                  * call virtual functions.
                  */
                 PMACC_NO_NVCC_HDWARNING
-                HDINLINE void operator()(ThreadParams* tparam)
+                HDINLINE void operator()(ThreadParams* tparam, uint32_t const currentStep)
                 {
-                    this->operator_impl(tparam);
+                    this->operator_impl(tparam, currentStep);
                 }
 
             private:
@@ -774,7 +776,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     return FieldTmpOperation<Solver, Species, Filter>::getName();
                 }
 
-                HINLINE void operator_impl(ThreadParams* params)
+                HINLINE void operator_impl(ThreadParams* params, uint32_t const currentStep)
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
 
@@ -791,7 +793,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     auto event
                         = particles::particleToGrid::ComputeFieldValue<CORE + BORDER, Solver, Species, Filter>()(
                             *fieldTmp,
-                            params->currentStep,
+                            currentStep,
                             1u);
                     // wait for unfinished asynchronous communication
                     if(event.has_value())
@@ -819,6 +821,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     /*write data to openPMD Series*/
                     openPMDWriter::template writeField<ComponentType>(
                         params,
+                        currentStep,
                         components,
                         getName(),
                         *fieldTmp,
@@ -838,7 +841,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * Only suitable for the currently implemented RNG storage: one state per cell, no guards.
              * If this doesn't hold, the implementation can't work as is, and an exception will be thrown.
              */
-            HINLINE void writeRngStates(ThreadParams* params)
+            HINLINE void writeRngStates(ThreadParams* params, uint32_t currentStep)
             {
                 DataConnector& dc = Environment<simDim>::get().DataConnector();
                 using RNGProvider = pmacc::random::RNGProvider<simDim, random::Generator>;
@@ -847,12 +850,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 rngProvider->synchronize();
                 auto const name = rngProvider->getName();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 auto const unitDimension = std::vector<float_64>(7, 0.0);
                 auto const timeOffset = 0.0_X;
-                writeFieldAttributes(params, unitDimension, timeOffset, mesh);
+                writeFieldAttributes(params, currentStep, unitDimension, timeOffset, mesh);
 
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
                 std::string datasetName = params->openPMDSeries->meshesPath() + name;
@@ -903,14 +906,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * Only suitable for the currently implemented RNG storage: one state per cell, no guards.
              * If this doesn't hold, the implementation can't work as is, and an exception will be thrown.
              */
-            HINLINE void loadRngStatesImpl(ThreadParams* params)
+            HINLINE void loadRngStatesImpl(ThreadParams* params, uint32_t const restartStep)
             {
                 DataConnector& dc = Environment<simDim>::get().DataConnector();
                 using RNGProvider = pmacc::random::RNGProvider<simDim, random::Generator>;
                 auto rngProvider = dc.get<RNGProvider>(RNGProvider::getName());
                 auto const name = rngProvider->getName();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[restartStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
 
@@ -951,7 +954,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * In case it triggers an exception in the process, swallow it and do nothing.
              * Then the states will be re-initialized.
              */
-            HINLINE void loadRngStates(ThreadParams* params)
+            HINLINE void loadRngStates(ThreadParams* params, uint32_t const restartStep)
             {
                 /* Do not enforce it to support older checkpoints.
                  * In case RNG states can't be loaded, they will be default-initialized.
@@ -959,7 +962,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                  */
                 try
                 {
-                    loadRngStatesImpl(&mThreadParams);
+                    loadRngStatesImpl(&mThreadParams, restartStep);
                 }
                 catch(...)
                 {
@@ -1082,13 +1085,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 eventSystem::getTransactionEvent().waitForFinished();
 
-                mThreadParams.initFromConfig(*m_help, m_id, outputDirectory);
+                mThreadParams.initFromConfig(*m_help, m_id, currentStep, outputDirectory);
 
                 mThreadParams.isCheckpoint = false;
                 dumpData(currentStep);
             }
 
-            void restart(uint32_t restartStep, std::string const& restartDirectory) override
+            void restart(uint32_t const restartStep, std::string const& restartDirectory) override
             {
                 /* IInstance restart interface is not needed becase IIOBackend
                  * restart interface is used
@@ -1115,7 +1118,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* if file name is relative, prepend with common directory */
 
                 mThreadParams.isCheckpoint = true;
-                mThreadParams.initFromConfig(*m_help, m_id, checkpointDirectory, checkpointFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, currentStep, checkpointDirectory, checkpointFilename);
 
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
 
@@ -1202,17 +1205,15 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // Checkpoint
                 assert(!m_help->selfRegister);
 
-                mThreadParams.initFromConfig(*m_help, m_id, restartDirectory, constRestartFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, restartStep, restartDirectory, constRestartFilename);
 
-                // mThreadParams.isCheckpoint = isCheckpoint;
-                mThreadParams.currentStep = restartStep;
                 mThreadParams.cellDescription = m_cellDescription;
 
                 mThreadParams.openSeries(::openPMD::Access::READ_ONLY);
 
                 checkIOFileVersionRestartCompatibility(mThreadParams.openPMDSeries);
 
-                ::openPMD::Iteration iteration = mThreadParams.openPMDSeries->iterations[mThreadParams.currentStep];
+                ::openPMD::Iteration iteration = mThreadParams.openPMDSeries->iterations[restartStep];
 
                 /* load number of slides to initialize MovingWindow */
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) read attr (%1% available)") % iteration.numAttributes();
@@ -1245,24 +1246,31 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 /* load all fields */
                 meta::ForEach<FileCheckpointFields, LoadFields<boost::mpl::_1>> ForEachLoadFields;
-                ForEachLoadFields(&mThreadParams);
+                ForEachLoadFields(&mThreadParams, restartStep);
 
                 /* load all particles */
                 meta::ForEach<FileCheckpointParticles, LoadSpecies<boost::mpl::_1>> ForEachLoadSpecies;
-                ForEachLoadSpecies(&mThreadParams, restartChunkSize);
+                ForEachLoadSpecies(&mThreadParams, restartStep, restartChunkSize);
 
-                loadRngStates(&mThreadParams);
+                loadRngStates(&mThreadParams, restartStep);
 
                 IdProvider<simDim>::State idProvState;
                 ReadNDScalars<uint64_t, uint64_t>()(
                     mThreadParams,
+                    restartStep,
                     "picongpu",
                     "idProvider",
                     "startId",
                     &idProvState.startId,
                     "maxNumProc",
                     &idProvState.maxNumProc);
-                ReadNDScalars<uint64_t>()(mThreadParams, "picongpu", "idProvider", "nextId", &idProvState.nextId);
+                ReadNDScalars<uint64_t>()(
+                    mThreadParams,
+                    restartStep,
+                    "picongpu",
+                    "idProvider",
+                    "nextId",
+                    &idProvState.nextId);
                 log<picLog::INPUT_OUTPUT>("Setting next free id on current rank: %1%") % idProvState.nextId;
                 IdProvider<simDim>::setState(idProvState);
 
@@ -1297,7 +1305,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // local offset + extent
                 const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 mThreadParams.cellDescription = m_cellDescription;
-                mThreadParams.currentStep = currentStep;
 
                 for(uint32_t i = 0; i < simDim; ++i)
                 {
@@ -1331,7 +1338,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 timer.toggleStart();
                 initWrite();
 
-                write(&mThreadParams, mpiTransportParams);
+                write(&mThreadParams, currentStep, mpiTransportParams);
 
                 endWrite();
                 timer.toggleEnd();
@@ -1345,6 +1352,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             static void writeFieldAttributes(
                 ThreadParams* params,
+                uint32_t const currentStep,
                 std::vector<float_64> const& unitDimension,
                 float_X timeOffset,
                 ::openPMD::Mesh& mesh)
@@ -1392,7 +1400,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                  */
                 DataSpace<simDim> globalSlideOffset;
                 const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
+                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                 globalSlideOffset.y() += numSlides * localDomain.size.y();
 
                 // globalDimensions is {x, y, z} but fields are F[z][y][x]
@@ -1409,6 +1417,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             template<typename ComponentType, typename FieldBuffer>
             static void writeField(
                 ThreadParams* params,
+                uint32_t currentStep,
                 const uint32_t nComponents,
                 const std::string name,
                 FieldBuffer& buffer,
@@ -1437,11 +1446,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents
                     % buffer.getHostDataBox().getPointer();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 // set mesh attributes
-                writeFieldAttributes(params, unitDimension, timeOffset, mesh);
+                writeFieldAttributes(params, currentStep, unitDimension, timeOffset, mesh);
 
                 /* data to describe source buffer */
                 GridLayout<simDim> bufferGridLayout = buffer.getGridLayout();
@@ -1454,6 +1463,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 pmacc::math::UInt64<simDim> recordLocalSizeDims = localWindowSize;
                 pmacc::math::UInt64<simDim> recordOffsetDims = params->window.localDimensions.offset;
                 pmacc::math::UInt64<simDim> recordGlobalSizeDims = params->window.globalDimensions.size;
+
+                std::cout << "record: flobalOffset" << recordOffsetDims.toString()
+                          << " glbalsize=" << recordGlobalSizeDims.toString()
+                          << " local=" << recordLocalSizeDims.toString() << std::endl;
 
                 /* Patch for non-domain-bound fields
                  * Allow for the output of reduced 1d PML buffer
@@ -1585,6 +1598,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 void operator()(
                     const std::vector<std::string>& vectorOfDataSourceNames,
                     ThreadParams* params,
+                    uint32_t const currentStep,
                     const Space domainOffset)
                 {
                     bool const containsDataSource
@@ -1593,7 +1607,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     if(containsDataSource)
                     {
                         WriteSpecies<T_ParticleFilter> writeSpecies;
-                        writeSpecies(params, domainOffset);
+                        writeSpecies(params, currentStep, domainOffset);
                     }
                 }
             };
@@ -1601,7 +1615,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             template<typename T_Fields>
             struct CallGetFields
             {
-                void operator()(const std::vector<std::string>& vectorOfDataSourceNames, ThreadParams* params)
+                void operator()(
+                    const std::vector<std::string>& vectorOfDataSourceNames,
+                    ThreadParams* params,
+                    uint32_t const currentStep)
                 {
                     bool const containsDataSource
                         = plugins::misc::containsObject(vectorOfDataSourceNames, T_Fields::getName());
@@ -1609,12 +1626,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     if(containsDataSource)
                     {
                         GetFields<T_Fields> getFields;
-                        getFields(params);
+                        getFields(params, currentStep);
                     }
                 }
             };
 
-            void write(ThreadParams* threadParams, std::string mpiTransportParams)
+            void write(ThreadParams* threadParams, uint32_t const currentStep, std::string mpiTransportParams)
             {
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                 const pmacc::Selection<simDim> localDomain = subGrid.getLocalDomain();
@@ -1628,7 +1645,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::vector<std::string> vectorOfDataSourceNames;
                 if(m_help->selfRegister)
                 {
-                    vectorOfDataSourceNames = m_help->currentDataSources(threadParams->currentStep, m_id);
+                    vectorOfDataSourceNames = m_help->currentDataSources(currentStep, m_id);
                 }
 
                 bool dumpFields = plugins::misc::containsObject(vectorOfDataSourceNames, "fields_all");
@@ -1648,8 +1665,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 WriteMeta writeMetaAttributes;
                 writeMetaAttributes(
                     *threadParams->openPMDSeries,
-                    (*threadParams->openPMDSeries).writeIterations()[threadParams->currentStep],
-                    threadParams->currentStep);
+                    (*threadParams->openPMDSeries).writeIterations()[currentStep],
+                    currentStep);
 
                 bool dumpAllParticles = plugins::misc::containsObject(vectorOfDataSourceNames, "species_all");
 
@@ -1658,20 +1675,21 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 if(threadParams->isCheckpoint)
                 {
                     meta::ForEach<FileCheckpointFields, GetFields<boost::mpl::_1>> ForEachGetFields;
-                    ForEachGetFields(threadParams);
+                    ForEachGetFields(threadParams, currentStep);
                 }
                 else
                 {
                     if(dumpFields)
                     {
                         meta::ForEach<FileOutputFields, GetFields<boost::mpl::_1>> ForEachGetFields;
-                        ForEachGetFields(threadParams);
+                        ForEachGetFields(threadParams, currentStep);
                     }
 
                     // move over all field data sources
                     meta::ForEach<typename Help::AllFieldSources, CallGetFields<boost::mpl::_1>>{}(
                         vectorOfDataSourceNames,
-                        threadParams);
+                        threadParams,
+                        currentStep);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing fields.");
 
@@ -1686,7 +1704,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             plugins::misc::SpeciesFilter<boost::mpl::_1>,
                             plugins::misc::UnfilteredSpecies<boost::mpl::_1>>>
                         writeSpecies;
-                    writeSpecies(threadParams, particleToTotalDomainOffset);
+                    writeSpecies(threadParams, currentStep, particleToTotalDomainOffset);
                 }
                 else
                 {
@@ -1698,13 +1716,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             FileOutputParticles,
                             WriteSpecies<plugins::misc::UnfilteredSpecies<boost::mpl::_1>>>
                             writeSpecies;
-                        writeSpecies(threadParams, particleToTotalDomainOffset);
+                        writeSpecies(threadParams, currentStep, particleToTotalDomainOffset);
                     }
 
                     // move over all species data sources
                     meta::ForEach<typename Help::AllEligibleSpeciesSources, CallWriteSpecies<boost::mpl::_1>>{}(
                         vectorOfDataSourceNames,
                         threadParams,
+                        currentStep,
                         particleToTotalDomainOffset);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle species.");
@@ -1713,7 +1732,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 if(threadParams->isCheckpoint)
                 {
                     log<picLog::INPUT_OUTPUT>("openPMD: ( begin ) writing RNG states.");
-                    writeRngStates(threadParams);
+                    writeRngStates(threadParams, currentStep);
                     log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing RNG states.");
                 }
 
@@ -1728,13 +1747,17 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     "startId",
                     "maxNumProc");
                 WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu", "idProvider", "nextId");
-                writeIdProviderStartId(*threadParams, idProviderState.startId, idProviderState.maxNumProc);
-                writeIdProviderNextId(*threadParams, idProviderState.nextId);
+                writeIdProviderStartId(
+                    *threadParams,
+                    currentStep,
+                    idProviderState.startId,
+                    idProviderState.maxNumProc);
+                writeIdProviderNextId(*threadParams, currentStep, idProviderState.nextId);
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 eventSystem::getTransactionEvent().waitForFinished();
-                mThreadParams.openPMDSeries->writeIterations()[mThreadParams.currentStep].close();
+                mThreadParams.openPMDSeries->writeIterations()[currentStep].close();
 
                 return;
             }

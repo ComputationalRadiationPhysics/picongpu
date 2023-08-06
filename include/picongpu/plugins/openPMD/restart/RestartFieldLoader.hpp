@@ -60,6 +60,7 @@ namespace picongpu
                 const uint32_t numComponents,
                 std::string objectName,
                 ThreadParams* params,
+                uint32_t const currentStep,
                 bool const isDomainBound)
             {
                 log<picLog::INPUT_OUTPUT>("Begin loading field '%1%'") % objectName;
@@ -122,7 +123,7 @@ namespace picongpu
                 }
 
                 ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Container<::openPMD::Mesh>& meshes = series.iterations[params->currentStep].meshes;
+                ::openPMD::Container<::openPMD::Mesh>& meshes = series.iterations[currentStep].meshes;
 
                 auto destBox = field.getHostBuffer().getDataBox();
                 for(uint32_t n = 0; n < numComponents; ++n)
@@ -203,7 +204,7 @@ namespace picongpu
         struct LoadFields
         {
         public:
-            HDINLINE void operator()(ThreadParams* params)
+            HDINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
             {
 #ifndef __CUDA_ARCH__
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -223,6 +224,7 @@ namespace picongpu
                     (uint32_t) T_Field::numComponents,
                     T_Field::getName(),
                     tp,
+                    restartStep,
                     isDomainBound);
 #endif
             }
