@@ -30,12 +30,14 @@ title = "KHI Growthrate (2D MI)"
 author = "Mika Soren Voss"
 
 # directory specified
+direction = None
 resultDirection = None
 paramDirection = None
 dataDirection = None
+cmakeDirection = None
 
 # parameter information found in .param files
-param_Parameter = ["gamma", "BASE_DENSITY_SI", "DELTA_T_SI"]
+param_Parameter = ["DIMENSION", "gamma", "BASE_DENSITY_SI", "DELTA_T_SI"]
 data_Parameter = ["Bx", "step"]
 
 # acceptance, ratio to 1

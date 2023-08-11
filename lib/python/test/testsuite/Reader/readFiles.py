@@ -62,6 +62,9 @@ class ReadFiles():
             raise TypeError("You must set at least one of the"
                             " values(direction or directiontype)")
 
+        if directiontype is None:
+            directiontype = "undefined"
+
         direction = cD.checkDirection(variable=directiontype,
                                       direction=direction)
 
