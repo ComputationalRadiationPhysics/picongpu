@@ -115,6 +115,7 @@ namespace picongpu
                 std::string pluginPrefix;
                 std::string folderTransRad;
                 std::string filenamePrefix;
+                std::string fileExtension;
 
                 bool isMaster = false;
                 uint32_t currentStep = 0;
@@ -173,7 +174,11 @@ namespace picongpu
                     desc.add_options()(
                         (pluginPrefix + ".period").c_str(),
                         po::value<std::string>(&notifyPeriod),
-                        "enable plugin [for each n-th step]");
+                        "enable plugin [for each n-th step]")(
+                        (pluginPrefix + ".ext").c_str(),
+                        po::value<std::string>(&fileExtension)->default_value("bp"),
+                        "openpmd file extension"
+                        );
                 }
 
                 /** Implementation of base class function.
@@ -338,6 +343,7 @@ namespace picongpu
                         writeFile(
                             theTransRad.data(),
                             folderTransRad + "/" + filenamePrefix + "_" + o_step.str() + ".dat");
+                        writeOpenPMDFile(currentStep);
                     }
                 }
 
@@ -454,6 +460,213 @@ namespace picongpu
 
                         outFile.close();
                     }
+                }
+
+                void writeOpenPMDFile(uint32_t currentStep)
+                {
+                    auto buffer = std::make_unique<HostBuffer<float_X, DIM3>>(
+                        DataSpace<DIM3>(
+                            parameters::nTheta,
+                            parameters::nPhi,
+                            transitionRadiation::frequencies::nOmega
+                        )
+                    );
+                    auto dataBox = buffer->getDataBox();
+                    
+                    for (int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver; ++index_direction){
+                        // theta
+                        const int i = index_direction / parameters::nPhi;
+                        // phi
+                        const int j = index_direction % parameters::nPhi;
+
+                        for (int k = 0; k < transitionRadiation::frequencies::nOmega; ++k) {
+                            dataBox({i, j, k}) = static_cast<float_X>(
+                                theTransRad[
+                                    index_direction * transitionRadiation::frequencies::nOmega + k
+                                ]
+                            );
+                        }
+                    }
+
+                    std::stringstream filename;
+                    filename << filenamePrefix << "_%T." << fileExtension;
+
+                    ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
+
+                    ::openPMD::Extent extent = {
+                        static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
+                        static_cast<unsigned long int>(parameters::nPhi),
+                        static_cast<unsigned long int>(parameters::nTheta) 
+                    };
+                    ::openPMD::Offset offset = {0, 0, 0};
+                    ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset dataset{datatype, extent};
+
+                    auto mesh = series.iterations[currentStep].meshes["transitionradiation"];
+
+                    mesh.setAxisLabels(std::vector<std::string>{"omega index", "phi index", "theta index"});
+                    mesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    mesh.setGridUnitSI(1);
+                    mesh.setGridSpacing(std::vector<double>{1, 1, 1});
+                    mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    mesh.setAttribute<float_X>("foilPosition", transitionRadiation::parameters::SI::foilPosition);
+                                    
+                    mesh.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                        {::openPMD::UnitDimension::L, 2.0},
+                        {::openPMD::UnitDimension::M, 1.0},
+                        {::openPMD::UnitDimension::T, -1.0}});
+
+                    auto transitionRadiation = mesh[::openPMD::RecordComponent::SCALAR];
+                    transitionRadiation.resetDataset(dataset);
+
+                    transitionRadiation.setUnitSI(SI::ELECTRON_CHARGE_SI * SI::ELECTRON_CHARGE_SI
+                                    * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * SI::SPEED_OF_LIGHT_SI)));
+
+                    auto sharedDataPtr = std::shared_ptr<float_X>{buffer->getPointer(), [](auto const*) {}};
+
+                    transitionRadiation.storeChunk(sharedDataPtr, offset, extent);
+
+                    // Omega axis
+                    auto bufferOmega = std::make_unique<HostBuffer<float_X, DIM3>>(
+                        DataSpace<DIM3>(
+                            1,
+                            1,
+                            transitionRadiation::frequencies::nOmega
+                        )
+                    );
+
+                    auto dataBoxOmega = bufferOmega->getDataBox();
+                    
+                    for (int i = 0; i < transitionRadiation::frequencies::nOmega; ++i){
+                        
+                            dataBoxOmega({i, 0, 0}) = static_cast<float_X>(
+                                freqFkt(i)
+                            );
+                    }
+
+                    ::openPMD::Extent extentOmega = {
+                        static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
+                        1,
+                        1 
+                    };
+                    ::openPMD::Offset offsetOmega = {0, 0, 0};
+                    ::openPMD::Datatype datatypeOmega = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset datasetOmega{datatypeOmega, extentOmega};
+
+                    auto meshOmega = series.iterations[currentStep].meshes["detector omega"];
+
+                    meshOmega.setAxisLabels(std::vector<std::string>{"omega", "", ""});
+                    meshOmega.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshOmega.setGridUnitSI(1);
+                    meshOmega.setGridSpacing(std::vector<double>{1, 1, 1});
+                    meshOmega.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                                    
+                    meshOmega.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                        {::openPMD::UnitDimension::T, -1.0}});
+
+                    auto omega = meshOmega[::openPMD::RecordComponent::SCALAR];
+                    omega.resetDataset(datasetOmega);
+
+                    omega.setUnitSI(1.0);
+
+                    auto sharedDataPtrOmega = std::shared_ptr<float_X>{bufferOmega->getPointer(), [](auto const*) {}};
+
+                    omega.storeChunk(sharedDataPtrOmega, offsetOmega, extentOmega);
+
+
+                    // Phi axis
+                    auto bufferPhi = std::make_unique<HostBuffer<float_X, DIM3>>(
+                        DataSpace<DIM3>(
+                            1,
+                            transitionRadiation::parameters::nPhi,
+                            1
+                        )
+                    );
+
+                    auto dataBoxPhi = bufferPhi->getDataBox();
+                    
+                    if(transitionRadiation::parameters::nPhi > 1){
+                        for (int i = 0; i < transitionRadiation::parameters::nPhi; ++i){
+                            dataBoxPhi({0, i, 0}) = parameters::phiMin 
+                            + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
+                        }
+                    } else {
+                        dataBoxPhi({0,0,0}) = parameters::phiMin;
+                    }
+
+                    ::openPMD::Extent extentPhi = {
+                        1,
+                        static_cast<unsigned long int>(transitionRadiation::parameters::nPhi),
+                        1 
+                    };
+                    ::openPMD::Offset offsetPhi = {0, 0, 0};
+                    ::openPMD::Datatype datatypePhi = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset datasetPhi{datatypePhi, extentPhi};
+
+                    auto meshPhi = series.iterations[currentStep].meshes["detector phi"];
+
+                    meshPhi.setAxisLabels(std::vector<std::string>{"", "phi", ""});
+                    meshPhi.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshPhi.setGridUnitSI(1);
+                    meshPhi.setGridSpacing(std::vector<double>{1, 1, 1});
+                    meshPhi.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    auto phi = meshPhi[::openPMD::RecordComponent::SCALAR];
+                    phi.resetDataset(datasetPhi);
+
+                    phi.setUnitSI(1.0);
+
+                    auto sharedDataPtrPhi = std::shared_ptr<float_X>{bufferPhi->getPointer(), [](auto const*) {}};
+
+                    phi.storeChunk(sharedDataPtrPhi, offsetPhi, extentPhi);
+
+                    // Theta axis
+                    auto bufferTheta = std::make_unique<HostBuffer<float_X, DIM3>>(
+                        DataSpace<DIM3>(
+                            static_cast<unsigned long int>(transitionRadiation::parameters::nTheta),
+                            1,
+                            1
+                        )
+                    );
+
+                    auto dataBoxTheta = bufferTheta->getDataBox();
+                    
+                    if(transitionRadiation::parameters::nTheta > 1){
+                        for (int i = 0; i < transitionRadiation::parameters::nTheta; ++i){
+                            dataBoxTheta({i, 0, 0}) = parameters::thetaMin 
+                                + i * (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0);
+                        }
+                    } else {
+                        dataBoxTheta({0,0,0}) = parameters::thetaMin;
+                    }
+
+                    ::openPMD::Extent extentTheta = {
+                        1,
+                        1,
+                        transitionRadiation::parameters::nTheta 
+                    };
+                    ::openPMD::Offset offsetTheta = {0, 0, 0};
+                    ::openPMD::Datatype datatypeTheta = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset datasetTheta{datatypeTheta, extentTheta};
+
+                    auto meshTheta = series.iterations[currentStep].meshes["detector theta"];
+
+                    meshTheta.setAxisLabels(std::vector<std::string>{"", "", "theta"});
+                    meshTheta.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshTheta.setGridUnitSI(1);
+                    meshTheta.setGridSpacing(std::vector<double>{1, 1, 1});
+                    meshTheta.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    auto theta = meshTheta[::openPMD::RecordComponent::SCALAR];
+                    theta.resetDataset(datasetTheta);
+
+                    theta.setUnitSI(1.0);
+
+                    auto sharedDataPtrTheta = std::shared_ptr<float_X>{bufferTheta->getPointer(), [](auto const*) {}};
+
+                    theta.storeChunk(sharedDataPtrTheta, offsetTheta, extentTheta);
+
+                    series.iterations[currentStep].close();
                 }
 
                 /** Kernel call
