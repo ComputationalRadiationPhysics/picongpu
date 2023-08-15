@@ -22,7 +22,7 @@
 #pragma once
 
 #ifndef PMACC_UNROLL
-#    define PMACC_PRAGMA(x) _Pragma(#    x)
+#    define PMACC_PRAGMA(x) _Pragma(#x)
 
 #    if defined(__clang__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCC__)
 #        define PMACC_UNROLL(var) PMACC_PRAGMA(unroll var)

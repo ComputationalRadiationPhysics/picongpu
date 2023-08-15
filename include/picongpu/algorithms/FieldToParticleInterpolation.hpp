@@ -111,10 +111,7 @@ namespace picongpu
                 floatD_X particlePosShifted = particlePos;
                 ShiftCoordinateSystem<supp>()(shiftedField, particlePosShifted, fieldPos[i]);
 
-                auto accessFunctor = [&](DataSpace<simDim> const& idx) constexpr
-                {
-                    return shiftedField(idx)[i];
-                };
+                auto accessFunctor = [&](DataSpace<simDim> const& idx) constexpr { return shiftedField(idx)[i]; };
                 result[i] = InterpolationMethod::template interpolate<begin, end>(
                     accessFunctor,
                     getShapeFunctors(particlePosShifted));

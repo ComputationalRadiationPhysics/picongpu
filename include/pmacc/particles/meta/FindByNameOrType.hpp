@@ -53,10 +53,8 @@ namespace pmacc
                 template<typename T_Value>
                 struct HasTypeOrName
                 {
-                    static constexpr bool value
-                        = std::is_same_v<
-                              T_Identifier,
-                              T_Value> || std::is_same_v<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>;
+                    static constexpr bool value = std::is_same_v<T_Identifier, T_Value>
+                        || std::is_same_v<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>;
                 };
 
                 using FilteredSeq = mp_copy_if<T_MPLSeq, HasTypeOrName>;

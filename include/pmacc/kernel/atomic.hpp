@@ -56,10 +56,9 @@ namespace pmacc
             template<typename T>
             struct AtomicAllIncIsOptimized
             {
-                inline static constexpr bool value
-                    = std::is_same_v<
-                          T,
-                          int> || std::is_same_v<T, unsigned int> || std::is_same_v<T, long long int> || std::is_same_v<T, unsigned long long int> || std::is_same_v<T, float>;
+                inline static constexpr bool value = std::is_same_v<T, int> || std::is_same_v<T, unsigned int>
+                    || std::is_same_v<T, long long int> || std::is_same_v<T, unsigned long long int>
+                    || std::is_same_v<T, float>;
             };
 
             /**

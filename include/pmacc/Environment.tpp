@@ -255,7 +255,7 @@ namespace pmacc
             int num_gpus = 0; // number of gpus
             cuplaGetDeviceCount(&num_gpus);
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            //##ERROR handling
+            // ##ERROR handling
             if(num_gpus < 1) // check if cupla device is found
             {
                 throw std::runtime_error("no CUDA capable devices detected");

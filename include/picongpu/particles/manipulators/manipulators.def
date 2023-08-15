@@ -19,8 +19,8 @@
 
 #pragma once
 
-//#include "picongpu/particles/manipulators/IManipulator.def"
-//#include "picongpu/particles/manipulators/NoneImpl.def"
+// #include "picongpu/particles/manipulators/IManipulator.def"
+// #include "picongpu/particles/manipulators/NoneImpl.def"
 
 #include "picongpu/particles/manipulators/IBinary.def"
 #include "picongpu/particles/manipulators/IUnary.def"
