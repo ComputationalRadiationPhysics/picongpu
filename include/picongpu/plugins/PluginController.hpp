@@ -156,7 +156,7 @@ namespace picongpu
             plugins::multi::Master<BinEnergyParticles<boost::mpl::_1>>,
             CountParticles<boost::mpl::_1>,
             PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>,
-            plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>
+            plugins::multi::Master<plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>>
 #if ENABLE_OPENPMD
             ,
             plugins::radiation::Radiation<boost::mpl::_1>

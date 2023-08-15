@@ -24,8 +24,14 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
+//#include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/common/openPMDAttributes.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 #include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
 #include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
@@ -77,12 +83,95 @@ namespace picongpu
              * medium. Since it is mostly used to analyze electron bunches, this plugin
              * assumes that the analyzed particles have the mass and charge of electrons.
              *
-             * @tparam T_ParticlesType particle type to compute transition radiation from
+             * @tparam ParticlesType particle type to compute transition radiation from
              */
-            template<typename T_ParticlesType>
-            class TransitionRadiation : public ILightweightPlugin
+            template<typename ParticlesType>
+            class TransitionRadiation : public plugins::multi::IInstance
             {
             private:
+                struct Help : public plugins::multi::IHelp
+                {
+                    /** creates an instance
+                     *
+                     * @param help plugin defined help
+                     * @param id index of the plugin, range: [0;help->getNumPlugins())
+                     */
+                    std::shared_ptr<IInstance> create(
+                        std::shared_ptr<IHelp>& help,
+                        size_t const id,
+                        MappingDesc* cellDescription) override
+                    {
+                        return std::shared_ptr<IInstance>(new TransitionRadiation<ParticlesType>(help, id, cellDescription));
+                    }
+
+                    //! periodicity of computing the particle energy
+                    plugins::multi::Option<std::string> notifyPeriod
+                        = {"period", "enable plugin [for each n-th step]"};
+                    plugins::multi::Option<std::string> optionFileName
+                        = {"file", "file name to store transition radiation in: ", "transRad"};
+                    plugins::multi::Option<std::string> optionFileExtention
+                        = {"ext",
+                           "openPMD filename extension. This controls the"
+                           "backend picked by the openPMD API. Available extensions: ["
+                               + openPMD::printAvailableExtensions() + "]",
+                           openPMD::getDefaultExtension().c_str()};                    
+                    plugins::multi::Option<bool> optionTextOutput
+                        = {"datOutput",
+                           "optional output: transition radiation as text file in readable format for the "
+                           "in picongpu provided python analysis script, 1==enabled",
+                           0};
+
+                    ///! method used by plugin controller to get --help description
+                    void registerHelp(
+                        boost::program_options::options_description& desc,
+                        std::string const& masterPrefix = std::string{}) override
+                    {
+                        notifyPeriod.registerHelp(desc, masterPrefix + prefix);
+                        optionFileName.registerHelp(desc, masterPrefix + prefix);
+                        optionFileExtention.registerHelp(desc, masterPrefix + prefix);
+                        optionTextOutput.registerHelp(desc, masterPrefix + prefix);
+                    }
+
+                    void expandHelp(
+                        boost::program_options::options_description& desc,
+                        std::string const& masterPrefix = std::string{}) override
+                    {
+                    }
+
+
+                    void validateOptions() override
+                    {
+                        ///@todo verify options
+                    }
+
+                    size_t getNumPlugins() const override
+                    {
+                        return notifyPeriod.size();
+                    }
+
+                    std::string getDescription() const override
+                    {
+                        return description;
+                    }
+
+                    std::string getOptionPrefix() const
+                    {
+                        return prefix;
+                    }
+
+                    std::string getName() const override
+                    {
+                        return name;
+                    }
+
+                    std::string const name = "TransitionRadiation";
+                    //! short description of the plugin
+                    std::string const description
+                        = "Calculate transition radiation of given specified particle species.";
+                    //! prefix used for command line arguments
+                    std::string const prefix = ParticlesType::FrameType::getName() + std::string("_transRad");
+                };
+
                 using SuperCellSize = MappingDesc::SuperCellSize;
 
                 using radLog = plugins::radiation::PIConGPUVerboseRadiation;
@@ -100,14 +189,11 @@ namespace picongpu
                 std::vector<complex_X> tmpCTRperp;
                 std::vector<float_X> tmpNum;
                 std::vector<float_X> theTransRad;
-                MappingDesc* cellDescription = nullptr;
-                std::string notifyPeriod;
                 uint32_t timeStep;
 
                 std::string pluginName;
                 std::string speciesName;
                 std::string pluginPrefix;
-                std::string folderTransRad;
                 std::string filenamePrefix;
                 std::string fileExtension;
 
@@ -115,17 +201,26 @@ namespace picongpu
                 uint32_t currentStep = 0;
 
                 mpi::MPIReduce reduce;
+                
+                MappingDesc* m_cellDescription = nullptr;
+                std::shared_ptr<Help> m_help;
+                size_t m_id;
 
             public:
                 //! Constructor
-                TransitionRadiation()
-                    : pluginName("TransitionRadiation: calculate transition radiation of species")
-                    , speciesName(T_ParticlesType::FrameType::getName())
-                    , pluginPrefix(speciesName + std::string("_transRad"))
-                    , folderTransRad("transRad")
-                    , filenamePrefix(pluginPrefix)
+                TransitionRadiation(
+                    std::shared_ptr<plugins::multi::IHelp>& help,
+                    size_t const id,
+                    MappingDesc* cellDescription
+                )
+                    : m_cellDescription(cellDescription)
+                    , m_help(std::static_pointer_cast<Help>(help))
+                    , m_id(id)
                 {
-                    Environment<>::get().PluginConnector().registerPlugin(this);
+                    filenamePrefix = ParticlesType::FrameType::getName() + "_" + m_help->optionFileName.get(m_id);
+                    fileExtension = m_help->optionFileExtention.get(m_id);
+
+                    init();
                 }
 
                 ~TransitionRadiation() override = default;
@@ -146,7 +241,6 @@ namespace picongpu
 
                     resetBuffers();
                     this->currentStep = currentStep;
-
                     calculateTransitionRadiation(currentStep);
 
                     log<radLog::SIMULATION_STATE>("Transition Radition (%1%): finished time step %2% ") % speciesName
@@ -159,38 +253,11 @@ namespace picongpu
                         % currentStep;
                 }
 
-                /** Implementation of base class function. Registers plugin options.
-                 *
-                 * @param desc boost::program_options description
-                 */
-                void pluginRegisterHelp(po::options_description& desc) override
-                {
-                    desc.add_options()(
-                        (pluginPrefix + ".period").c_str(),
-                        po::value<std::string>(&notifyPeriod),
-                        "enable plugin [for each n-th step]")(
-                        (pluginPrefix + ".ext").c_str(),
-                        po::value<std::string>(&fileExtension)->default_value("bp"),
-                        "openpmd file extension"
-                        );
-                }
 
-                /** Implementation of base class function.
-                 *
-                 * @return name of plugin
-                 */
-                std::string pluginGetName() const override
+                //! must be implemented by the user
+                static std::shared_ptr<plugins::multi::IHelp> getHelp()
                 {
-                    return pluginName;
-                }
-
-                /** Implementation of base class function. Sets mapping description.
-                 *
-                 * @param cellDescription
-                 */
-                void setMappingDescription(MappingDesc* cellDescription) override
-                {
-                    this->cellDescription = cellDescription;
+                    return std::shared_ptr<plugins::multi::IHelp>(new Help{});
                 }
 
             private:
@@ -224,43 +291,37 @@ namespace picongpu
                  * transition radiation calculation and create a folder for transition
                  * radiation storage.
                  */
-                void pluginLoad() override
+                void init()
                 {
-                    if(!notifyPeriod.empty())
+                    tmpITR.resize(elementsTransitionRadiation());
+                    tmpCTRpara.resize(elementsTransitionRadiation());
+                    tmpCTRperp.resize(elementsTransitionRadiation());
+                    tmpNum.resize(elementsTransitionRadiation());
+
+                    /*only rank 0 create a file*/
+                    isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
+                    pmacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+
+                    Environment<>::get().PluginConnector().setNotificationPeriod(this, m_help->notifyPeriod.get(m_id));
+
+                    incTransRad = std::make_unique<GridBuffer<float_X, DIM1>>(
+                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    cohTransRadPara = std::make_unique<GridBuffer<complex_X, DIM1>>(
+                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    cohTransRadPerp = std::make_unique<GridBuffer<complex_X, DIM1>>(
+                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    numParticles = std::make_unique<GridBuffer<float_X, DIM1>>(
+                        DataSpace<DIM1>(elementsTransitionRadiation()));
+
+                    freqInit.Init(listFrequencies::listLocation);
+                    freqFkt = freqInit.getFunctor();
+
+                    if(isMaster)
                     {
-                        tmpITR.resize(elementsTransitionRadiation());
-                        tmpCTRpara.resize(elementsTransitionRadiation());
-                        tmpCTRperp.resize(elementsTransitionRadiation());
-                        tmpNum.resize(elementsTransitionRadiation());
-
-                        /*only rank 0 create a file*/
-                        isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
-                        pmacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
-
-                        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-
-                        incTransRad = std::make_unique<GridBuffer<float_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-                        cohTransRadPara = std::make_unique<GridBuffer<complex_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-                        cohTransRadPerp = std::make_unique<GridBuffer<complex_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-                        numParticles = std::make_unique<GridBuffer<float_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-
-                        freqInit.Init(listFrequencies::listLocation);
-                        freqFkt = freqInit.getFunctor();
-
-                        if(isMaster)
+                        theTransRad.resize(elementsTransitionRadiation());
+                        for(unsigned int i = 0; i < elementsTransitionRadiation(); ++i)
                         {
-                            theTransRad.resize(elementsTransitionRadiation());
-                            for(unsigned int i = 0; i < elementsTransitionRadiation(); ++i)
-                            {
-                                theTransRad[i] = 0;
-                            }
-
-                            fs.createDirectory(folderTransRad);
-                            fs.setDirectoryPermissions(folderTransRad);
+                            theTransRad[i] = 0;
                         }
                     }
                 }
@@ -336,7 +397,7 @@ namespace picongpu
                         // write totalRad data to txt
                         writeFile(
                             theTransRad.data(),
-                            folderTransRad + "/" + filenamePrefix + "_" + o_step.str() + ".dat");
+                            filenamePrefix + "_" + o_step.str() + ".dat");
                         writeOpenPMDFile(currentStep);
                     }
                 }
@@ -662,6 +723,16 @@ namespace picongpu
                     series.iterations[currentStep].close();
                 }
 
+
+                void restart(uint32_t restartStep, std::string const& restartDirectory) override
+                {
+                }
+
+                void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) override
+                {
+                }
+
+
                 /** Kernel call
                  *
                  * Executes the particle filter and calls the transition radiation kernel
@@ -672,7 +743,7 @@ namespace picongpu
                 void calculateTransitionRadiation(uint32_t currentStep)
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto particles = dc.get<T_ParticlesType>(T_ParticlesType::FrameType::getName());
+                    auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
                     /* execute the particle filter */
                     transitionRadiation::executeParticleFilter(particles, currentStep);
@@ -689,7 +760,7 @@ namespace picongpu
 
                     // Some funny things that make it possible for the kernel to calculate
                     // the absolute position of the particles
-                    DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+                    DataSpace<simDim> localSize(m_cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
@@ -708,7 +779,7 @@ namespace picongpu
                         cohTransRadPerp->getDeviceBuffer().getDataBox(),
                         numParticles->getDeviceBuffer().getDataBox(),
                         globalOffset,
-                        *cellDescription,
+                        *m_cellDescription,
                         freqFkt,
                         subGrid.getGlobalDomain().size);
                 }
