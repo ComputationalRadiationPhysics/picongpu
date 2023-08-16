@@ -19,6 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if(ENABLE_OPENPMD == 1)
 
 // clang-format off
 #include "picongpu/simulation_defines.hpp"
@@ -111,7 +112,8 @@ namespace picongpu
                         size_t const id,
                         MappingDesc* cellDescription) override
                     {
-                        return std::shared_ptr<IInstance>(new TransitionRadiation<ParticlesType>(help, id, cellDescription));
+                        return std::shared_ptr<IInstance>(
+                            new TransitionRadiation<ParticlesType>(help, id, cellDescription));
                     }
 
                     //! periodicity of computing the particle energy
@@ -124,11 +126,16 @@ namespace picongpu
                            "openPMD filename extension. This controls the"
                            "backend picked by the openPMD API. Available extensions: ["
                                + openPMD::printAvailableExtensions() + "]",
-                           openPMD::getDefaultExtension().c_str()};                    
+                           openPMD::getDefaultExtension().c_str()};
                     plugins::multi::Option<bool> optionTextOutput
                         = {"datOutput",
                            "optional output: transition radiation as text file in readable format for the "
                            "in picongpu provided python analysis script, 1==enabled",
+                           0};
+                    plugins::multi::Option<float_X> foilPositionSI
+                        = {"foilPosition",
+                           "optional parameter: absolute position of the virtual foil to calculate the transition "
+                           "radiation for [in meter]. 0==disabled",
                            0};
 
                     ///! method used by plugin controller to get --help description
@@ -140,6 +147,7 @@ namespace picongpu
                         optionFileName.registerHelp(desc, masterPrefix + prefix);
                         optionFileExtention.registerHelp(desc, masterPrefix + prefix);
                         optionTextOutput.registerHelp(desc, masterPrefix + prefix);
+                        foilPositionSI.registerHelp(desc, masterPrefix + prefix);
                     }
 
                     void expandHelp(
@@ -211,24 +219,29 @@ namespace picongpu
                 uint32_t currentStep = 0;
 
                 mpi::MPIReduce reduce;
-                
+
                 MappingDesc* m_cellDescription = nullptr;
                 std::shared_ptr<Help> m_help;
                 size_t m_id;
+
+                bool textOutput;
+                float_X foilPositionSI;
 
             public:
                 //! Constructor
                 TransitionRadiation(
                     std::shared_ptr<plugins::multi::IHelp>& help,
                     size_t const id,
-                    MappingDesc* cellDescription
-                )
+                    MappingDesc* cellDescription)
                     : m_cellDescription(cellDescription)
                     , m_help(std::static_pointer_cast<Help>(help))
                     , m_id(id)
                 {
                     filenamePrefix = ParticlesType::FrameType::getName() + "_" + m_help->optionFileName.get(m_id);
                     fileExtension = m_help->optionFileExtention.get(m_id);
+
+                    foilPositionSI = m_help->foilPositionSI.get(m_id);
+                    textOutput = m_help->optionTextOutput.get(m_id);
 
                     init();
                 }
@@ -310,18 +323,17 @@ namespace picongpu
 
                     /*only rank 0 create a file*/
                     isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
-                    auto& fs = pmacc::Filesystem::get();
 
                     Environment<>::get().PluginConnector().setNotificationPeriod(this, m_help->notifyPeriod.get(m_id));
 
-                    incTransRad = std::make_unique<GridBuffer<float_X, DIM1>>(
-                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    incTransRad
+                        = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(elementsTransitionRadiation()));
                     cohTransRadPara = std::make_unique<GridBuffer<complex_X, DIM1>>(
                         DataSpace<DIM1>(elementsTransitionRadiation()));
                     cohTransRadPerp = std::make_unique<GridBuffer<complex_X, DIM1>>(
                         DataSpace<DIM1>(elementsTransitionRadiation()));
-                    numParticles = std::make_unique<GridBuffer<float_X, DIM1>>(
-                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    numParticles
+                        = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(elementsTransitionRadiation()));
 
                     freqInit.Init(listFrequencies::listLocation);
                     freqFkt = freqInit.getFunctor();
@@ -405,9 +417,10 @@ namespace picongpu
                         o_step << currentStep;
 
                         // write totalRad data to txt
-                        writeFile(
-                            theTransRad.data(),
-                            filenamePrefix + "_" + o_step.str() + ".dat");
+                        if(textOutput)
+                        {
+                            writeFile(theTransRad.data(), filenamePrefix + "_" + o_step.str() + ".dat");
+                        }
                         writeOpenPMDFile(currentStep);
                     }
                 }
@@ -529,27 +542,25 @@ namespace picongpu
 
                 void writeOpenPMDFile(uint32_t currentStep)
                 {
-                    auto buffer = std::make_unique<HostBuffer<float_X, DIM3>>(
-                        DataSpace<DIM3>(
-                            parameters::nTheta,
-                            parameters::nPhi,
-                            transitionRadiation::frequencies::nOmega
-                        )
-                    );
+                    auto buffer = std::make_unique<HostBuffer<float_X, DIM3>>(DataSpace<DIM3>(
+                        parameters::nTheta,
+                        parameters::nPhi,
+                        transitionRadiation::frequencies::nOmega));
                     auto dataBox = buffer->getDataBox();
-                    
-                    for (int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver; ++index_direction){
+
+                    for(unsigned int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver;
+                        ++index_direction)
+                    {
                         // theta
                         const int i = index_direction / parameters::nPhi;
                         // phi
                         const int j = index_direction % parameters::nPhi;
 
-                        for (int k = 0; k < transitionRadiation::frequencies::nOmega; ++k) {
-                            dataBox({i, j, k}) = static_cast<float_X>(
-                                theTransRad[
-                                    index_direction * transitionRadiation::frequencies::nOmega + k
-                                ]
-                            );
+                        for(unsigned int k = 0; k < transitionRadiation::frequencies::nOmega; ++k)
+                        {
+                            dataBox({static_cast<int>(i), static_cast<int>(j), static_cast<int>(k)})
+                                = static_cast<float_X>(
+                                    theTransRad[index_direction * transitionRadiation::frequencies::nOmega + k]);
                         }
                     }
 
@@ -558,11 +569,10 @@ namespace picongpu
 
                     ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 
-                    ::openPMD::Extent extent = {
-                        static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
-                        static_cast<unsigned long int>(parameters::nPhi),
-                        static_cast<unsigned long int>(parameters::nTheta) 
-                    };
+                    ::openPMD::Extent extent
+                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
+                           static_cast<unsigned long int>(parameters::nPhi),
+                           static_cast<unsigned long int>(parameters::nTheta)};
                     ::openPMD::Offset offset = {0, 0, 0};
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset dataset{datatype, extent};
@@ -574,8 +584,8 @@ namespace picongpu
                     mesh.setGridUnitSI(1);
                     mesh.setGridSpacing(std::vector<double>{1, 1, 1});
                     mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
-                    mesh.setAttribute<float_X>("foilPosition", transitionRadiation::parameters::SI::foilPosition);
-                                    
+                    mesh.setAttribute<float_X>("foilPosition", foilPositionSI);
+
                     mesh.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
                         {::openPMD::UnitDimension::L, 2.0},
                         {::openPMD::UnitDimension::M, 1.0},
@@ -584,8 +594,9 @@ namespace picongpu
                     auto transitionRadiation = mesh[::openPMD::RecordComponent::SCALAR];
                     transitionRadiation.resetDataset(dataset);
 
-                    transitionRadiation.setUnitSI(SI::ELECTRON_CHARGE_SI * SI::ELECTRON_CHARGE_SI
-                                    * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * SI::SPEED_OF_LIGHT_SI)));
+                    transitionRadiation.setUnitSI(
+                        SI::ELECTRON_CHARGE_SI * SI::ELECTRON_CHARGE_SI
+                        * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * SI::SPEED_OF_LIGHT_SI)));
 
                     auto sharedDataPtr = std::shared_ptr<float_X>{buffer->data(), [](auto const*) {}};
 
@@ -593,27 +604,17 @@ namespace picongpu
 
                     // Omega axis
                     auto bufferOmega = std::make_unique<HostBuffer<float_X, DIM3>>(
-                        DataSpace<DIM3>(
-                            1,
-                            1,
-                            transitionRadiation::frequencies::nOmega
-                        )
-                    );
+                        DataSpace<DIM3>(1, 1, transitionRadiation::frequencies::nOmega));
 
                     auto dataBoxOmega = bufferOmega->getDataBox();
-                    
-                    for (int i = 0; i < transitionRadiation::frequencies::nOmega; ++i){
-                        
-                            dataBoxOmega({i, 0, 0}) = static_cast<float_X>(
-                                freqFkt(i)
-                            );
+
+                    for(unsigned int i = 0; i < transitionRadiation::frequencies::nOmega; ++i)
+                    {
+                        dataBoxOmega({0, 0, static_cast<int>(i)}) = static_cast<float_X>(freqFkt(i));
                     }
 
-                    ::openPMD::Extent extentOmega = {
-                        static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
-                        1,
-                        1 
-                    };
+                    ::openPMD::Extent extentOmega
+                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega), 1, 1};
                     ::openPMD::Offset offsetOmega = {0, 0, 0};
                     ::openPMD::Datatype datatypeOmega = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetOmega{datatypeOmega, extentOmega};
@@ -625,9 +626,9 @@ namespace picongpu
                     meshOmega.setGridUnitSI(1);
                     meshOmega.setGridSpacing(std::vector<double>{1, 1, 1});
                     meshOmega.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
-                                    
-                    meshOmega.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
-                        {::openPMD::UnitDimension::T, -1.0}});
+
+                    meshOmega.setUnitDimension(
+                        std::map<::openPMD::UnitDimension, double>{{::openPMD::UnitDimension::T, -1.0}});
 
                     auto omega = meshOmega[::openPMD::RecordComponent::SCALAR];
                     omega.resetDataset(datasetOmega);
@@ -641,29 +642,25 @@ namespace picongpu
 
                     // Phi axis
                     auto bufferPhi = std::make_unique<HostBuffer<float_X, DIM3>>(
-                        DataSpace<DIM3>(
-                            1,
-                            transitionRadiation::parameters::nPhi,
-                            1
-                        )
-                    );
+                        DataSpace<DIM3>(1, transitionRadiation::parameters::nPhi, 1));
 
                     auto dataBoxPhi = bufferPhi->getDataBox();
-                    
-                    if(transitionRadiation::parameters::nPhi > 1){
-                        for (int i = 0; i < transitionRadiation::parameters::nPhi; ++i){
-                            dataBoxPhi({0, i, 0}) = parameters::phiMin 
-                            + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
+
+                    if(transitionRadiation::parameters::nPhi > 1)
+                    {
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::nPhi; ++i)
+                        {
+                            dataBoxPhi({0, static_cast<int>(i), 0}) = parameters::phiMin
+                                + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
                         }
-                    } else {
-                        dataBoxPhi({0,0,0}) = parameters::phiMin;
+                    }
+                    else
+                    {
+                        dataBoxPhi({0, 0, 0}) = parameters::phiMin;
                     }
 
-                    ::openPMD::Extent extentPhi = {
-                        1,
-                        static_cast<unsigned long int>(transitionRadiation::parameters::nPhi),
-                        1 
-                    };
+                    ::openPMD::Extent extentPhi
+                        = {1, static_cast<unsigned long int>(transitionRadiation::parameters::nPhi), 1};
                     ::openPMD::Offset offsetPhi = {0, 0, 0};
                     ::openPMD::Datatype datatypePhi = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetPhi{datatypePhi, extentPhi};
@@ -686,30 +683,27 @@ namespace picongpu
                     phi.storeChunk(sharedDataPtrPhi, offsetPhi, extentPhi);
 
                     // Theta axis
-                    auto bufferTheta = std::make_unique<HostBuffer<float_X, DIM3>>(
-                        DataSpace<DIM3>(
-                            static_cast<unsigned long int>(transitionRadiation::parameters::nTheta),
-                            1,
-                            1
-                        )
-                    );
+                    auto bufferTheta = std::make_unique<HostBuffer<float_X, DIM3>>(DataSpace<DIM3>(
+                        static_cast<unsigned long int>(transitionRadiation::parameters::nTheta),
+                        1,
+                        1));
 
                     auto dataBoxTheta = bufferTheta->getDataBox();
-                    
-                    if(transitionRadiation::parameters::nTheta > 1){
-                        for (int i = 0; i < transitionRadiation::parameters::nTheta; ++i){
-                            dataBoxTheta({i, 0, 0}) = parameters::thetaMin 
+
+                    if(transitionRadiation::parameters::nTheta > 1)
+                    {
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::nTheta; ++i)
+                        {
+                            dataBoxTheta({static_cast<int>(i), 0, 0}) = parameters::thetaMin
                                 + i * (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0);
                         }
-                    } else {
-                        dataBoxTheta({0,0,0}) = parameters::thetaMin;
+                    }
+                    else
+                    {
+                        dataBoxTheta({0, 0, 0}) = parameters::thetaMin;
                     }
 
-                    ::openPMD::Extent extentTheta = {
-                        1,
-                        1,
-                        transitionRadiation::parameters::nTheta 
-                    };
+                    ::openPMD::Extent extentTheta = {1, 1, transitionRadiation::parameters::nTheta};
                     ::openPMD::Offset offsetTheta = {0, 0, 0};
                     ::openPMD::Datatype datatypeTheta = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetTheta{datatypeTheta, extentTheta};
@@ -781,16 +775,18 @@ namespace picongpu
                     PMACC_LOCKSTEP_KERNEL(KernelTransRadParticles{})
                         .config(gridDim_rad, *particles)(
                             /*Pointer to particles memory on the device*/
-                            particles->getDeviceParticlesBox(),
-                            /*Pointer to memory of radiated amplitude on the device*/
-                            incTransRad->getDeviceBuffer().getDataBox(),
-                            cohTransRadPara->getDeviceBuffer().getDataBox(),
-                            cohTransRadPerp->getDeviceBuffer().getDataBox(),
-                            numParticles->getDeviceBuffer().getDataBox(),
-                            globalOffset,
-                            *m_cellDescription,
-                            freqFkt,
-                            subGrid.getGlobalDomain().size);
+                        particles->getDeviceParticlesBox(),
+
+                        /*Pointer to memory of radiated amplitude on the device*/
+                        incTransRad->getDeviceBuffer().getDataBox(),
+                        cohTransRadPara->getDeviceBuffer().getDataBox(),
+                        cohTransRadPerp->getDeviceBuffer().getDataBox(),
+                        numParticles->getDeviceBuffer().getDataBox(),
+                        globalOffset,
+                        *m_cellDescription,
+                        freqFkt,
+                        subGrid.getGlobalDomain().size,
+                        foilPositionSI / UNIT_LENGTH);
                 }
             };
 
@@ -830,3 +826,5 @@ namespace picongpu
 } // namespace picongpu
 
 PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>);
+
+#endif

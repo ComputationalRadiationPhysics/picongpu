@@ -55,13 +55,6 @@ namespace picongpu
                 constexpr unsigned int blocksizeOmega = numFrameSlots;
                 constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
             } // namespace listFrequencies
-
-            //! unit for foil position
-            namespace parameters
-            {
-                constexpr float_X foilPosition = SI::foilPosition / sim.unit.length();
-            }
-
         } // namespace transitionRadiation
     } // namespace plugins
 } // namespace picongpu
