@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Sergei Bastrakov
+/* Copyright 2020-2023 Sergei Bastrakov, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -469,7 +469,8 @@ namespace picongpu
                     template<typename T_SeparableFunctor>
                     HDINLINE float3_X operator()(T_SeparableFunctor const& functor, floatD_X const& totalCellIdx) const
                     {
-                        auto const time = functor.getCurrentTime(totalCellIdx);
+                        auto const time
+                            = functor.getCurrentTime(totalCellIdx) - T_SeparableFunctor::Unitless::TIME_DELAY;
                         // Cut off when the laser has not entered at this point yet to avoid confusion.
                         if(time < 0.0_X)
                             return float3_X::create(0.0_X);

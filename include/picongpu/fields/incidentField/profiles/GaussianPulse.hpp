@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -111,28 +111,6 @@ namespace picongpu
                         // unit: UNIT_TIME
                         static constexpr float_X INIT_TIME
                             = static_cast<float_X>((Params::PULSE_INIT * Params::PULSE_DURATION_SI) / UNIT_TIME);
-
-                        /** SFINAE detection if the user parameter define the variable TIME_DELAY_SI
-                         *
-                         * This allows that time delay can be an optional variable a user must only define if needed.
-                         * The default if it is not defined is 0.
-                         * @{
-                         */
-                        template<typename T, typename = void>
-                        struct GetTimeDelay
-                        {
-                            static constexpr float_X value = 0.0;
-                        };
-
-                        template<typename T>
-                        struct GetTimeDelay<T, decltype((void) T::TIME_DELAY_SI, void())>
-                        {
-                            static constexpr float_X value = T::TIME_DELAY_SI;
-                        };
-
-                        // unit: UNIT_TIME
-                        static constexpr float_X TIME_DELAY
-                            = static_cast<float_X>(GetTimeDelay<Params>::value / UNIT_TIME);
                     };
 
                     /** GaussianPulse incident E functor
@@ -234,8 +212,8 @@ namespace picongpu
                         {
                             // transform to 3d internal coordinate system
                             float3_X pos = this->getInternalCoordinates(totalCellIdx);
-                            auto const time = this->getCurrentTime(totalCellIdx);
-                            if(time < Unitless::TIME_DELAY)
+                            auto const time = this->getCurrentTime(totalCellIdx) - Unitless::TIME_DELAY;
+                            if(time < 0.0_X)
                                 return 0.0_X;
 
                             // calculate focus position relative to the current point in the propagation direction
@@ -253,8 +231,7 @@ namespace picongpu
                             // we shift the complete pulse for the half of this time to start with
                             // the front of the laser pulse.
                             constexpr auto mue = 0.5_X * Unitless::INIT_TIME;
-                            auto const phase
-                                = Unitless::w * (time - Unitless::TIME_DELAY - mue - focusPos / SPEED_OF_LIGHT)
+                            auto const phase = Unitless::w * (time - mue - focusPos / SPEED_OF_LIGHT)
                                 + Unitless::LASER_PHASE + phaseShift;
 
                             // Apply tilt if needed

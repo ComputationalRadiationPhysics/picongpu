@@ -77,7 +77,7 @@ namespace picongpu
                         static constexpr float_64 W0_AXIS_2_SI = W0_AXIS_1_SI;
 
                         /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_DURATION before
-                         * plateau and half at the end of the plateau
+                         * plateau and half at the end of the plateau after TIME_DELAY_SI
                          *
                          * unit: none
                          */

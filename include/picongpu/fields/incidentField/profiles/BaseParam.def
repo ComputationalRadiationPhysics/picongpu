@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Sergei Bastrakov
+/* Copyright 2023 Sergei Bastrakov, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -148,6 +148,17 @@ namespace picongpu
                     static constexpr Origin FOCUS_ORIGIN_Y = Origin::Zero;
                     static constexpr Origin FOCUS_ORIGIN_Z = Origin::Zero;
                     /** @} */
+
+                    /** Time delay
+                     * For e.g. probe pulses, that enter the simulation volume later in time.
+                     * The laser will be initiation will start after the time delay.
+                     * The delay must be positive.
+                     *
+                     * unit: time
+                     *
+                     * @attention TIME_DELAY_SI is optional, default value is 0
+                     */
+                    static constexpr float_64 TIME_DELAY_SI = 0.0;
 
                     /** E polarization type
                      *

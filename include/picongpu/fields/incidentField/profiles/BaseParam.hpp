@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Sergei Bastrakov
+/* Copyright 2023 Sergei Bastrakov, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -96,7 +96,35 @@ namespace picongpu
                             return 0.0;
                         }
 
+                        /** SFINAE detection if the user parameter define the variable TIME_DELAY_SI
+                         *
+                         * This allows that time delay can be an optional variable a user must only define if needed.
+                         * The default if it is not defined is 0.
+                         * @{
+                         */
+                        template<typename T, typename = void>
+                        struct GetTimeDelay
+                        {
+                            static constexpr float_X value = 0.0;
+                        };
+
+                        template<typename T>
+                        struct GetTimeDelay<T, decltype((void) T::TIME_DELAY_SI, void())>
+                        {
+                            static constexpr float_X value = T::TIME_DELAY_SI;
+                        };
+
                     public:
+                        /** Time delay
+                         *
+                         * unit: UNIT_TIME
+                         */
+                        static constexpr float_X TIME_DELAY
+                            = static_cast<float_X>(GetTimeDelay<Params>::value / UNIT_TIME);
+                        PMACC_CASSERT_MSG(
+                            _error_laser_time_delay_must_be_positive____check_your_incidentField_param_file,
+                            (TIME_DELAY >= 0.0));
+
                         /** Unit propagation direction vector in 3d
                          *
                          * In 2d simulations, z component is always set to 0.
