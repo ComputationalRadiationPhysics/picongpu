@@ -153,8 +153,9 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
             std::cout << "rateCache: " << superCellFieldIdx.toString(",", "[]") << std::endl;
             for(uint16_t i = 0u; i < numberAtomicStates; i++)
             {
-                std::cout << "\t" << i << ":(present: " << ((this->present(i)) ? "true" : "false") << ")["
-                          << this->rate(i) << "]" << std::endl;
+                if (this->present(i))
+                {
+                    std::cout << "\t" << i << "[" << this->rate(i) << "]" << std::endl;
             }
         }
     };

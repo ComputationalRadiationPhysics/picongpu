@@ -31,7 +31,18 @@
 
 namespace picongpu::particles::atomicPhysics2::localHelperFields
 {
-    /**@class holds a gridBuffer of the per-superCell timeRemaining:float_X for atomicPhysics
+    //! debug only, write timeRemaining to console, @attention serial and cpu build only
+    struct PrintTimeRemaingToConsole
+    {
+        HINLINE void operator()(
+            float_X const timeRemaining,
+            pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        {
+            printf("timeRemaining %s: %.8e\n", superCellIdx.toString(",", "[]").c_str(), timeRemaining);
+        }
+    };
+
+    /** holds a gridBuffer of the per-superCell timeRemaining:float_X for atomicPhysics
      *
      * unit: UNIT_TIME
      */

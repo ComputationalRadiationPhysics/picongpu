@@ -344,7 +344,7 @@ namespace picongpu::simulation::stage
                         }
 
                         // debug only
-                        if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription ::
+                        if constexpr(picongpu::atomicPhysics2::debug::kernel::rollForOverSubscription::
                                          PRINT_DEBUG_TO_CONSOLE)
                         {
                             if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
@@ -431,12 +431,27 @@ namespace picongpu::simulation::stage
                     std::cout << "all accepted: current state:" << std::endl;
                     ForEachIonSpeciesDumpToConsole{}(mappingDesc);
                 }
+                if constexpr(picongpu::atomicPhysics2::debug::timeRemaining::PRINT_TO_CONSOLE)
+                {
+                    // print local time remaining to console
+                    picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
+                        picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<picongpu::MappingDesc>,
+                        picongpu::particles::atomicPhysics2::localHelperFields::PrintTimeRemaingToConsole>{}(
+                        mappingDesc,
+                        "LocalTimeRemainingField");
+                }
+                if constexpr(picongpu::atomicPhysics2::debug::timeStep::PRINT_TO_CONSOLE)
+                {
+                    // print local time step to console
+                    picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
+                        picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>,
+                        picongpu::particles::atomicPhysics2::localHelperFields::PrintTimeStepToConsole>{}(
+                        mappingDesc,
+                        "LocalTimeStepField");
+                }
 
                 // record changes electron spectrum
-                if constexpr(!picongpu::atomicPhysics2::debug::scFlyComparison::FORCE_CONSTANT_ELECTRON_TEMPERATURE)
-                {
-                    ForEachElectronSpeciesDecelerateElectrons{}(mappingDesc);
-                }
+                ForEachElectronSpeciesDecelerateElectrons{}(mappingDesc);
                 ForEachIonSpeciesSpawnIonizationElectrons{}(mappingDesc, currentStep);
                 ForEachIonSpeciesRecordChanges{}(mappingDesc);
 
