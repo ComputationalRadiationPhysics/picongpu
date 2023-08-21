@@ -267,7 +267,7 @@ namespace picongpu
                          */
                         HDINLINE float_X getValueE(floatD_X const& totalCellIdx, float_X const phaseShift) const
                         {
-                            auto const time = this->getCurrentTime(totalCellIdx) - Unitless::TIME_DELAY;
+                            auto const time = this->getCurrentTime(totalCellIdx);
                             if(time < 0.0_X)
                                 return 0.0_X;
 
@@ -463,7 +463,7 @@ namespace picongpu
                          */
                         HDINLINE float_X getValueB(int const axis, floatD_X const& totalCellIdx) const
                         {
-                            auto const time = this->getCurrentTime(totalCellIdx) - Unitless::TIME_DELAY;
+                            auto const time = this->getCurrentTime(totalCellIdx);
                             if(time < 0.0_X)
                                 return 0.0_X;
 

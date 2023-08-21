@@ -151,7 +151,7 @@ namespace picongpu
 
                     /** Time delay
                      * For e.g. probe pulses, that enter the simulation volume later in time.
-                     * The laser will be initiation will start after the time delay.
+                     * The laser initiation will be started after the time delay.
                      * The delay must be positive.
                      *
                      * unit: time

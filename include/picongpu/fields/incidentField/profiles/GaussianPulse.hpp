@@ -212,7 +212,7 @@ namespace picongpu
                         {
                             // transform to 3d internal coordinate system
                             float3_X pos = this->getInternalCoordinates(totalCellIdx);
-                            auto const time = this->getCurrentTime(totalCellIdx) - Unitless::TIME_DELAY;
+                            auto const time = this->getCurrentTime(totalCellIdx);
                             if(time < 0.0_X)
                                 return 0.0_X;
 
