@@ -435,7 +435,8 @@ namespace picongpu::simulation::stage
                 {
                     // print local time remaining to console
                     picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
-                        picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<picongpu::MappingDesc>,
+                        picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
+                            picongpu::MappingDesc>,
                         picongpu::particles::atomicPhysics2::localHelperFields::PrintTimeRemaingToConsole>{}(
                         mappingDesc,
                         "LocalTimeRemainingField");
@@ -444,7 +445,8 @@ namespace picongpu::simulation::stage
                 {
                     // print local time step to console
                     picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
-                        picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>,
+                        picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeStepField<
+                            picongpu::MappingDesc>,
                         picongpu::particles::atomicPhysics2::localHelperFields::PrintTimeStepToConsole>{}(
                         mappingDesc,
                         "LocalTimeStepField");

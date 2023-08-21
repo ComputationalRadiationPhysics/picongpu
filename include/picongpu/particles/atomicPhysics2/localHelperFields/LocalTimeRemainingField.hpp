@@ -34,9 +34,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     //! debug only, write timeRemaining to console, @attention serial and cpu build only
     struct PrintTimeRemaingToConsole
     {
-        HINLINE void operator()(
-            float_X const timeRemaining,
-            pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        HINLINE void operator()(float_X const timeRemaining, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {
             printf("timeRemaining %s: %.8e\n", superCellIdx.toString(",", "[]").c_str(), timeRemaining);
         }

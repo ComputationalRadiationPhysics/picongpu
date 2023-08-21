@@ -34,9 +34,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     //! debug only, write timeStep to console, @attention serial and cpu build only
     struct PrintTimeStepToConsole
     {
-        HINLINE void operator()(
-            float_X const timeStep,
-            pmacc::DataSpace<picongpu::simDim> superCellIdx) const
+        HINLINE void operator()(float_X const timeStep, pmacc::DataSpace<picongpu::simDim> superCellIdx) const
         {
             printf("timeStep %s: %.8e\n", superCellIdx.toString(",", "[]").c_str(), timeStep);
         }
