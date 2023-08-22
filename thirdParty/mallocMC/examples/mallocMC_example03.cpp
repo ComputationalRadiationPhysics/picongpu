@@ -44,7 +44,7 @@ using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
 struct ScatterConfig
 {
     static constexpr auto pagesize = 4096;
-    static constexpr auto accessblocks = 8;
+    static constexpr auto accessblocksize = 2u * 1024u * 1024u * 1024u;
     static constexpr auto regionsize = 16;
     static constexpr auto wastefactor = 2;
     static constexpr auto resetfreedpages = false;
@@ -100,7 +100,8 @@ struct ExampleKernel
 
 auto main() -> int
 {
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
     auto const devProps = alpaka::getAccDevProps<Acc>(dev);
     unsigned const block = std::min(static_cast<size_t>(32u), static_cast<size_t>(devProps.m_blockThreadCountMax));

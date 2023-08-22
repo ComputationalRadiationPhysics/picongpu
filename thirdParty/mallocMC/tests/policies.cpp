@@ -63,7 +63,9 @@ struct AlignmentConfig
 template<typename ScatterAllocator>
 void run()
 {
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
+
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
     ScatterAllocator scatterAlloc(dev, queue, 1024U * 1024U); // 1 MiB
