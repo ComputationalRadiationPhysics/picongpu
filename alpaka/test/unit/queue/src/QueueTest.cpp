@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/meta/Concatenate.hpp>
@@ -13,7 +8,9 @@
 #include <alpaka/test/queue/QueueCpuOmp2Collective.hpp>
 #include <alpaka/test/queue/QueueTestFixture.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
 #include <future>
@@ -28,28 +25,6 @@ using TestQueues = alpaka::meta::Concatenate<
 #endif
     >;
 
-//! Equivalent to CHECK but accounts for potential false negatives
-//!
-//! This is required when checking if an event or a queue is finished/empty.
-//! \warning This macro can be used on host only!
-//!
-//! \param count number of negative checks to be repeated
-//! \param msWait milli seconds to wait if cmd is returning false
-//! \param cmd command executed
-#define LOOPED_CHECK(count, msWait, cmd)                                                                              \
-    do                                                                                                                \
-    {                                                                                                                 \
-        bool ret = false;                                                                                             \
-        for(int i = 0; i < count; ++i)                                                                                \
-        {                                                                                                             \
-            ret = (cmd);                                                                                              \
-            if(ret)                                                                                                   \
-                break;                                                                                                \
-            std::this_thread::sleep_for(std::chrono::milliseconds(msWait));                                           \
-        }                                                                                                             \
-        CHECK(ret);                                                                                                   \
-    } while(0)
-
 TEMPLATE_LIST_TEST_CASE("queueIsInitiallyEmpty", "[queue]", TestQueues)
 {
     using DevQueue = TestType;
@@ -61,8 +36,6 @@ TEMPLATE_LIST_TEST_CASE("queueIsInitiallyEmpty", "[queue]", TestQueues)
 
 TEMPLATE_LIST_TEST_CASE("queueCallbackIsWorking", "[queue]", TestQueues)
 {
-// Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
     using DevQueue = TestType;
     using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
     Fixture f;
@@ -71,8 +44,30 @@ TEMPLATE_LIST_TEST_CASE("queueCallbackIsWorking", "[queue]", TestQueues)
 
     alpaka::enqueue(f.m_queue, [&]() { promise.set_value(true); });
 
-    LOOPED_CHECK(30, 100, promise.get_future().get());
-#endif
+    CHECK(promise.get_future().get());
+}
+
+TEMPLATE_LIST_TEST_CASE("queueTaskValueCategories", "[queue]", TestQueues)
+{
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
+    Fixture f;
+
+    bool flag = false;
+    auto task = [&] { flag = true; };
+    alpaka::enqueue(f.m_queue, task); // lvalue
+    alpaka::wait(f.m_queue);
+    CHECK(flag == true);
+
+    flag = false;
+    alpaka::enqueue(f.m_queue, std::move(task)); // xvalue
+    alpaka::wait(f.m_queue);
+    CHECK(flag == true);
+
+    flag = false;
+    alpaka::enqueue(f.m_queue, [&] { flag = true; }); // prvalue
+    alpaka::wait(f.m_queue);
+    CHECK(flag == true);
 }
 
 TEMPLATE_LIST_TEST_CASE("queueWaitShouldWork", "[queue]", TestQueues)
@@ -104,12 +99,18 @@ TEMPLATE_LIST_TEST_CASE(
     Fixture f;
 
     std::atomic<bool> callbackFinished{false};
+    std::atomic<bool> inKernelIsNotEmptyBeforeSleep{false};
+    std::atomic<bool> inKernelIsNotEmptyAfterSleep{false};
+
     alpaka::enqueue(
         f.m_queue,
-        [&f, &callbackFinished]() noexcept
+        [&]() noexcept
         {
-            LOOPED_CHECK(30, 100, !alpaka::empty(f.m_queue));
+            // This callback function is in the queue therefore the queue can not be empty.
+            inKernelIsNotEmptyBeforeSleep = !alpaka::empty(f.m_queue);
             std::this_thread::sleep_for(std::chrono::milliseconds(100u));
+            // Check again, the queue must stay not empty.
+            inKernelIsNotEmptyAfterSleep = !alpaka::empty(f.m_queue);
             callbackFinished = true;
         });
 
@@ -120,7 +121,47 @@ TEMPLATE_LIST_TEST_CASE(
     }
 
     CHECK(callbackFinished.load() == true);
-    LOOPED_CHECK(30, 100, alpaka::empty(f.m_queue));
+    CHECK(inKernelIsNotEmptyBeforeSleep.load() == true);
+    CHECK(inKernelIsNotEmptyAfterSleep.load() == true);
+
+    // The blocking queue must be empty because we wait for the non-blocking queue and the blocking on is synchronized
+    // implicitly.
+    CHECK(alpaka::empty(f.m_queue));
+}
+
+TEMPLATE_LIST_TEST_CASE("taskIsDestroyedAfterExecution", "[queue]", TestQueues)
+{
+    struct Kernel
+    {
+        std::atomic<bool>* destroyed;
+
+        explicit Kernel(std::atomic<bool>& a) : destroyed(&a)
+        {
+        }
+
+        Kernel(Kernel const&) = default;
+
+        ~Kernel()
+        {
+            *destroyed = true;
+        }
+
+        void operator()() const
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1u));
+        }
+    };
+
+    using DevQueue = TestType;
+    auto f = alpaka::test::QueueTestFixture<DevQueue>{};
+
+    std::atomic<bool> destroyed{false};
+    alpaka::enqueue(f.m_queue, Kernel{destroyed});
+
+    if(!alpaka::test::IsBlockingQueue<decltype(f.m_queue)>::value)
+        alpaka::wait(f.m_queue);
+    CHECK(destroyed == true);
+    CHECK(alpaka::empty(f.m_queue));
 }
 
 TEMPLATE_LIST_TEST_CASE("queueShouldNotExecuteTasksInParallel", "[queue]", TestQueues)
@@ -132,33 +173,37 @@ TEMPLATE_LIST_TEST_CASE("queueShouldNotExecuteTasksInParallel", "[queue]", TestQ
     std::atomic<bool> taskIsExecuting(false);
     std::promise<void> firstTaskFinished;
     std::future<void> firstTaskFinishedFuture = firstTaskFinished.get_future();
+    std::atomic<bool> firstTaskInKernelIsExecutingBeforeSleep{false};
+    std::atomic<bool> firstTaskInKernelIsExecutingAfterSleep{false};
     std::promise<void> secondTaskFinished;
     std::future<void> secondTaskFinishedFuture = secondTaskFinished.get_future();
+    std::atomic<bool> secondTaskInKernelIsExecutingBeforeSleep{false};
+    std::atomic<bool> secondTaskInKernelIsExecutingAfterSleep{false};
 
     std::thread thread1(
-        [&f, &taskIsExecuting, &firstTaskFinished]()
+        [&]()
         {
             alpaka::enqueue(
                 f.m_queue,
-                [&taskIsExecuting, &firstTaskFinished]() noexcept
+                [&]() noexcept
                 {
-                    CHECK(!taskIsExecuting.exchange(true));
+                    firstTaskInKernelIsExecutingBeforeSleep = !taskIsExecuting.exchange(true);
                     std::this_thread::sleep_for(std::chrono::milliseconds(100u));
-                    CHECK(taskIsExecuting.exchange(false));
+                    firstTaskInKernelIsExecutingAfterSleep = taskIsExecuting.exchange(false);
                     firstTaskFinished.set_value();
                 });
         });
 
     std::thread thread2(
-        [&f, &taskIsExecuting, &secondTaskFinished]()
+        [&]()
         {
             alpaka::enqueue(
                 f.m_queue,
-                [&taskIsExecuting, &secondTaskFinished]() noexcept
+                [&]() noexcept
                 {
-                    CHECK(!taskIsExecuting.exchange(true));
+                    secondTaskInKernelIsExecutingBeforeSleep = !taskIsExecuting.exchange(true);
                     std::this_thread::sleep_for(std::chrono::milliseconds(100u));
-                    CHECK(taskIsExecuting.exchange(false));
+                    secondTaskInKernelIsExecutingAfterSleep = taskIsExecuting.exchange(false);
                     secondTaskFinished.set_value();
                 });
         });
@@ -168,6 +213,10 @@ TEMPLATE_LIST_TEST_CASE("queueShouldNotExecuteTasksInParallel", "[queue]", TestQ
     thread2.join();
 
     alpaka::wait(f.m_queue);
+    CHECK(firstTaskInKernelIsExecutingBeforeSleep.load() == true);
+    CHECK(firstTaskInKernelIsExecutingAfterSleep.load() == true);
+    CHECK(secondTaskInKernelIsExecutingBeforeSleep.load() == true);
+    CHECK(secondTaskInKernelIsExecutingAfterSleep.load() == true);
 
     firstTaskFinishedFuture.get();
     secondTaskFinishedFuture.get();
@@ -177,7 +226,7 @@ TEMPLATE_LIST_TEST_CASE("queueShouldNotExecuteTasksInParallel", "[queue]", TestQ
 //! queue before the task is finished. The run time of the task is a bit longer
 //! than all other tests here, so the task would run past program termination if
 //! not synchronized somewhere. This test has no assertion, because the tested
-//! behviour is outside of any function scope.
+//! behaviour is outside of any function scope.
 //!
 //! A thread running past program termination invokes undefined behavior, which
 //! occasionally leads to crashes after termination. I.e. this test may crash
@@ -193,13 +242,30 @@ TEMPLATE_LIST_TEST_CASE("nonBlockingQueueShouldNotRunPastProgramTermination", "[
         // enqueue long task, destroy queue, see what happens
         alpaka::enqueue(
             f.m_queue,
-            [name = typeid(f.m_queue).name()]() noexcept
+            [name = alpaka::core::demangled<decltype(f.m_queue)>]
             {
                 std::cout << "BEGIN not-awaited task in Queue '" << name
-                          << "' (if there is no matchng 'END' line, the task ran past program termination)"
+                          << "' (if there is no matching 'END' line, the task ran past program termination)"
                           << std::endl;
                 std::this_thread::sleep_for(std::chrono::milliseconds(3000u));
                 std::cout << "END not-awaited task in Queue '" << name << "'" << std::endl;
             });
     }
+}
+
+TEMPLATE_LIST_TEST_CASE("enqueueBenchmark", "[queue]", alpaka::test::TestQueues)
+{
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
+    Fixture f;
+
+    constexpr auto reps = 1000;
+    BENCHMARK("Enqueue " + std::to_string(reps))
+    {
+        std::atomic<int> count = 0;
+        for(int i = 0; i < reps; i++)
+            alpaka::enqueue(f.m_queue, [&]() noexcept { ++count; });
+        alpaka::wait(f.m_queue);
+        return count.load();
+    };
 }

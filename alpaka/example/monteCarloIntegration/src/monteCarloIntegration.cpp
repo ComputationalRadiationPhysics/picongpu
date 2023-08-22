@@ -1,18 +1,5 @@
 /* Copyright 2020 Benjamin Worpitz, Sergei Bastrakov, Jakob Krude, Bernhard Manfred Gruber
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -94,8 +81,10 @@ auto main() -> int
     using Vec = alpaka::Vec<Dim, Idx>;
     using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
     using Host = alpaka::DevCpu;
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
-    auto const devHost = alpaka::getDevByIdx<Host>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
     using QueueProperty = alpaka::Blocking;
     using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
     QueueAcc queue{devAcc};
@@ -104,7 +93,7 @@ auto main() -> int
     using BufAcc = alpaka::Buf<Acc, uint32_t, Dim, Idx>;
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     // Problem parameter.
-    constexpr size_t numPoints = 100000000u;
+    constexpr size_t numPoints = 1'000'000u;
     constexpr size_t extent = 1u;
     constexpr size_t numThreads = 100u; // Kernel will decide numCalcPerThread.
     constexpr size_t numAlpakaElementsPerThread = 1;

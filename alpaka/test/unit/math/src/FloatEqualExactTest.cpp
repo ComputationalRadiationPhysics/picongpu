@@ -1,17 +1,13 @@
 /* Copyright 2022 Jiří Vyskočil, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/math/FloatEqualExact.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 class FloatEqualExactTestKernel
 {
@@ -42,7 +38,7 @@ TEMPLATE_LIST_TEST_CASE("floatEqualExactTest", "[math]", alpaka::test::TestAccs)
     // In case REQUIRE were ever somehow modified to silence the warning by itself.
     bool testValue = false;
 
-    float floatValue = -1.0;
+    float floatValue = -1.0f;
     testValue = alpaka::math::floatEqualExactNoWarning(floatValue, -1.0f);
     REQUIRE(testValue);
 

@@ -1,26 +1,21 @@
-/* Copyright 2022 Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jan Stephan, Sergei Bastrakov, René Widera, Luca Ferragina, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/math/Complex.hpp"
+#include "alpaka/math/Traits.hpp"
+
+#include <type_traits>
+
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/math/Complex.hpp>
-#    include <alpaka/math/Traits.hpp>
-
-#    include <CL/sycl.hpp>
-
-#    include <type_traits>
+#    include <sycl/sycl.hpp>
 
 //! The mathematical operation specifics.
-namespace alpaka::experimental::math
+namespace alpaka::math
 {
     //! The SYCL abs.
     class AbsGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAbs, AbsGenericSycl>
@@ -29,6 +24,11 @@ namespace alpaka::experimental::math
 
     //! The SYCL acos.
     class AcosGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAcos, AcosGenericSycl>
+    {
+    };
+
+    //! The SYCL acosh.
+    class AcoshGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAcosh, AcoshGenericSycl>
     {
     };
 
@@ -42,8 +42,18 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL asinh.
+    class AsinhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAsinh, AsinhGenericSycl>
+    {
+    };
+
     //! The SYCL atan.
     class AtanGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAtan, AtanGenericSycl>
+    {
+    };
+
+    //! The SYCL atanh.
+    class AtanhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathAtanh, AtanhGenericSycl>
     {
     };
 
@@ -67,8 +77,18 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL copysign.
+    class CopysignGenericSycl : public concepts::Implements<alpaka::math::ConceptMathCopysign, CopysignGenericSycl>
+    {
+    };
+
     //! The SYCL cos.
     class CosGenericSycl : public concepts::Implements<alpaka::math::ConceptMathCos, CosGenericSycl>
+    {
+    };
+
+    //! The SYCL cosh.
+    class CoshGenericSycl : public concepts::Implements<alpaka::math::ConceptMathCosh, CoshGenericSycl>
     {
     };
 
@@ -84,6 +104,11 @@ namespace alpaka::experimental::math
 
     //! The SYCL floor.
     class FloorGenericSycl : public concepts::Implements<alpaka::math::ConceptMathFloor, FloorGenericSycl>
+    {
+    };
+
+    //! The SYCL fma.
+    class FmaGenericSycl : public concepts::Implements<alpaka::math::ConceptMathFma, FmaGenericSycl>
     {
     };
 
@@ -109,6 +134,16 @@ namespace alpaka::experimental::math
 
     //! The SYCL log.
     class LogGenericSycl : public concepts::Implements<alpaka::math::ConceptMathLog, LogGenericSycl>
+    {
+    };
+
+    //! The SYCL log2.
+    class Log2GenericSycl : public concepts::Implements<alpaka::math::ConceptMathLog2, Log2GenericSycl>
+    {
+    };
+
+    //! The SYCL log10.
+    class Log10GenericSycl : public concepts::Implements<alpaka::math::ConceptMathLog10, Log10GenericSycl>
     {
     };
 
@@ -147,6 +182,11 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL sinh.
+    class SinhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathSinh, SinhGenericSycl>
+    {
+    };
+
     //! The SYCL sincos.
     class SinCosGenericSycl : public concepts::Implements<alpaka::math::ConceptMathSinCos, SinCosGenericSycl>
     {
@@ -162,6 +202,11 @@ namespace alpaka::experimental::math
     {
     };
 
+    //! The SYCL tanh.
+    class TanhGenericSycl : public concepts::Implements<alpaka::math::ConceptMathTanh, TanhGenericSycl>
+    {
+    };
+
     //! The SYCL trunc.
     class TruncGenericSycl : public concepts::Implements<alpaka::math::ConceptMathTrunc, TruncGenericSycl>
     {
@@ -171,22 +216,30 @@ namespace alpaka::experimental::math
     class MathGenericSycl
         : public AbsGenericSycl
         , public AcosGenericSycl
+        , public AcoshGenericSycl
         , public ArgGenericSycl
         , public AsinGenericSycl
+        , public AsinhGenericSycl
         , public AtanGenericSycl
+        , public AtanhGenericSycl
         , public Atan2GenericSycl
         , public CbrtGenericSycl
         , public CeilGenericSycl
         , public ConjGenericSycl
+        , public CopysignGenericSycl
         , public CosGenericSycl
+        , public CoshGenericSycl
         , public ErfGenericSycl
         , public ExpGenericSycl
         , public FloorGenericSycl
+        , public FmaGenericSycl
         , public FmodGenericSycl
         , public IsfiniteGenericSycl
         , public IsinfGenericSycl
         , public IsnanGenericSycl
         , public LogGenericSycl
+        , public Log2GenericSycl
+        , public Log10GenericSycl
         , public MaxGenericSycl
         , public MinGenericSycl
         , public PowGenericSycl
@@ -194,21 +247,23 @@ namespace alpaka::experimental::math
         , public RoundGenericSycl
         , public RsqrtGenericSycl
         , public SinGenericSycl
+        , public SinhGenericSycl
         , public SinCosGenericSycl
         , public SqrtGenericSycl
         , public TanGenericSycl
+        , public TanhGenericSycl
         , public TruncGenericSycl
     {
     };
-} // namespace alpaka::experimental::math
+} // namespace alpaka::math
 
 namespace alpaka::math::trait
 {
     //! The SYCL abs trait specialization.
     template<typename TArg>
-    struct Abs<experimental::math::AbsGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
+    struct Abs<math::AbsGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
     {
-        auto operator()(experimental::math::AbsGenericSycl const&, TArg const& arg)
+        auto operator()(math::AbsGenericSycl const&, TArg const& arg)
         {
             if constexpr(std::is_integral_v<TArg>)
                 return sycl::abs(arg);
@@ -221,24 +276,34 @@ namespace alpaka::math::trait
 
     //! The SYCL acos trait specialization.
     template<typename TArg>
-    struct Acos<experimental::math::AcosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Acos<math::AcosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::AcosGenericSycl const&, TArg const& arg)
+        auto operator()(math::AcosGenericSycl const&, TArg const& arg)
         {
             return sycl::acos(arg);
         }
     };
 
+    //! The SYCL acosh trait specialization.
+    template<typename TArg>
+    struct Acosh<math::AcoshGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::AcoshGenericSycl const&, TArg const& arg)
+        {
+            return sycl::acosh(arg);
+        }
+    };
+
     //! The SYCL arg trait specialization.
     template<typename TArgument>
-    struct Arg<experimental::math::ArgGenericSycl, TArgument, std::enable_if_t<std::is_arithmetic_v<TArgument>>>
+    struct Arg<math::ArgGenericSycl, TArgument, std::enable_if_t<std::is_arithmetic_v<TArgument>>>
     {
-        auto operator()(experimental::math::ArgGenericSycl const&, TArgument const& argument)
+        auto operator()(math::ArgGenericSycl const&, TArgument const& argument)
         {
             if constexpr(std::is_integral_v<TArgument>)
                 return sycl::atan2(0.0, static_cast<double>(argument));
             else if constexpr(std::is_floating_point_v<TArgument>)
-                return sycl::atan2(TArgument{0.0}, argument);
+                return sycl::atan2(static_cast<TArgument>(0.0), argument);
             else
                 static_assert(!sizeof(TArgument), "Unsupported data type");
         }
@@ -246,43 +311,65 @@ namespace alpaka::math::trait
 
     //! The SYCL asin trait specialization.
     template<typename TArg>
-    struct Asin<experimental::math::AsinGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Asin<math::AsinGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::AsinGenericSycl const&, TArg const& arg)
+        auto operator()(math::AsinGenericSycl const&, TArg const& arg)
         {
             return sycl::asin(arg);
         }
     };
 
+    //! The SYCL asinh trait specialization.
+    template<typename TArg>
+    struct Asinh<math::AsinhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::AsinhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::asinh(arg);
+        }
+    };
+
     //! The SYCL atan trait specialization.
     template<typename TArg>
-    struct Atan<experimental::math::AtanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Atan<math::AtanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::AtanGenericSycl const&, TArg const& arg)
+        auto operator()(math::AtanGenericSycl const&, TArg const& arg)
         {
             return sycl::atan(arg);
+        }
+    };
+
+    //! The SYCL atanh trait specialization.
+    template<typename TArg>
+    struct Atanh<math::AtanhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::AtanhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::atanh(arg);
         }
     };
 
     //! The SYCL atan2 trait specialization.
     template<typename Ty, typename Tx>
     struct Atan2<
-        experimental::math::Atan2GenericSycl,
+        math::Atan2GenericSycl,
         Ty,
         Tx,
         std::enable_if_t<std::is_floating_point_v<Ty> && std::is_floating_point_v<Tx>>>
     {
-        auto operator()(experimental::math::Atan2GenericSycl const&, Ty const& y, Tx const& x)
+        using TCommon = std::common_type_t<Ty, Tx>;
+
+        auto operator()(math::Atan2GenericSycl const&, Ty const& y, Tx const& x)
         {
-            return sycl::atan2(y, x);
+            return sycl::atan2(static_cast<TCommon>(y), static_cast<TCommon>(x));
         }
     };
 
     //! The SYCL cbrt trait specialization.
     template<typename TArg>
-    struct Cbrt<experimental::math::CbrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
+    struct Cbrt<math::CbrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
     {
-        auto operator()(experimental::math::CbrtGenericSycl const&, TArg const& arg)
+        auto operator()(math::CbrtGenericSycl const&, TArg const& arg)
         {
             if constexpr(std::is_integral_v<TArg>)
                 return sycl::cbrt(static_cast<double>(arg)); // Mirror CUDA back-end and use double for ints
@@ -295,9 +382,9 @@ namespace alpaka::math::trait
 
     //! The SYCL ceil trait specialization.
     template<typename TArg>
-    struct Ceil<experimental::math::CeilGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Ceil<math::CeilGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::CeilGenericSycl const&, TArg const& arg)
+        auto operator()(math::CeilGenericSycl const&, TArg const& arg)
         {
             return sycl::ceil(arg);
         }
@@ -305,29 +392,55 @@ namespace alpaka::math::trait
 
     //! The SYCL conj trait specialization.
     template<typename TArg>
-    struct Conj<experimental::math::ConjGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Conj<math::ConjGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::ConjGenericSycl const&, TArg const& arg)
+        auto operator()(math::ConjGenericSycl const&, TArg const& arg)
         {
             return Complex<TArg>{arg, TArg{0.0}};
         }
     };
 
+    //! The SYCL copysign trait specialization.
+    template<typename TMag, typename TSgn>
+    struct Copysign<
+        math::CopysignGenericSycl,
+        TMag,
+        TSgn,
+        std::enable_if_t<std::is_floating_point_v<TMag> && std::is_floating_point_v<TSgn>>>
+    {
+        using TCommon = std::common_type_t<TMag, TSgn>;
+
+        auto operator()(math::CopysignGenericSycl const&, TMag const& y, TSgn const& x)
+        {
+            return sycl::copysign(static_cast<TCommon>(y), static_cast<TCommon>(x));
+        }
+    };
+
     //! The SYCL cos trait specialization.
     template<typename TArg>
-    struct Cos<experimental::math::CosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Cos<math::CosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::CosGenericSycl const&, TArg const& arg)
+        auto operator()(math::CosGenericSycl const&, TArg const& arg)
         {
             return sycl::cos(arg);
         }
     };
 
+    //! The SYCL cos trait specialization.
+    template<typename TArg>
+    struct Cosh<math::CoshGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::CoshGenericSycl const&, TArg const& arg)
+        {
+            return sycl::cosh(arg);
+        }
+    };
+
     //! The SYCL erf trait specialization.
     template<typename TArg>
-    struct Erf<experimental::math::ErfGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Erf<math::ErfGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::ErfGenericSycl const&, TArg const& arg)
+        auto operator()(math::ErfGenericSycl const&, TArg const& arg)
         {
             return sycl::erf(arg);
         }
@@ -335,9 +448,9 @@ namespace alpaka::math::trait
 
     //! The SYCL exp trait specialization.
     template<typename TArg>
-    struct Exp<experimental::math::ExpGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Exp<math::ExpGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::ExpGenericSycl const&, TArg const& arg)
+        auto operator()(math::ExpGenericSycl const&, TArg const& arg)
         {
             return sycl::exp(arg);
         }
@@ -345,100 +458,131 @@ namespace alpaka::math::trait
 
     //! The SYCL floor trait specialization.
     template<typename TArg>
-    struct Floor<experimental::math::FloorGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Floor<math::FloorGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::FloorGenericSycl const&, TArg const& arg)
+        auto operator()(math::FloorGenericSycl const&, TArg const& arg)
         {
             return sycl::floor(arg);
+        }
+    };
+
+    //! The SYCL fma trait specialization.
+    template<typename Tx, typename Ty, typename Tz>
+    struct Fma<
+        math::FmaGenericSycl,
+        Tx,
+        Ty,
+        Tz,
+        std::enable_if_t<std::is_floating_point_v<Tx> && std::is_floating_point_v<Ty> && std::is_floating_point_v<Tz>>>
+    {
+        auto operator()(math::FmaGenericSycl const&, Tx const& x, Ty const& y, Tz const& z)
+        {
+            return sycl::fma(x, y, z);
         }
     };
 
     //! The SYCL fmod trait specialization.
     template<typename Tx, typename Ty>
     struct Fmod<
-        experimental::math::FmodGenericSycl,
+        math::FmodGenericSycl,
         Tx,
         Ty,
         std::enable_if_t<std::is_floating_point_v<Tx> && std::is_floating_point_v<Ty>>>
     {
-        auto operator()(experimental::math::FmodGenericSycl const&, Tx const& x, Ty const& y)
+        using TCommon = std::common_type_t<Tx, Ty>;
+
+        auto operator()(math::FmodGenericSycl const&, Tx const& x, Ty const& y)
         {
-            return sycl::fmod(x, y);
+            return sycl::fmod(static_cast<TCommon>(x), static_cast<TCommon>(y));
         }
     };
 
     //! The SYCL isfinite trait specialization.
     template<typename TArg>
-    struct Isfinite<experimental::math::IsfiniteGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Isfinite<math::IsfiniteGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::IsfiniteGenericSycl const&, TArg const& arg)
+        auto operator()(math::IsfiniteGenericSycl const&, TArg const& arg)
         {
-            return sycl::isfinite(arg);
+            return static_cast<bool>(sycl::isfinite(arg));
         }
     };
 
     //! The SYCL isinf trait specialization.
     template<typename TArg>
-    struct Isinf<experimental::math::IsinfGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Isinf<math::IsinfGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::IsinfGenericSycl const&, TArg const& arg)
+        auto operator()(math::IsinfGenericSycl const&, TArg const& arg)
         {
-            return sycl::isinf(arg);
+            return static_cast<bool>(sycl::isinf(arg));
         }
     };
 
     //! The SYCL isnan trait specialization.
     template<typename TArg>
-    struct Isnan<experimental::math::IsnanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Isnan<math::IsnanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::IsnanGenericSycl const&, TArg const& arg)
+        auto operator()(math::IsnanGenericSycl const&, TArg const& arg)
         {
-            return sycl::isnan(arg);
+            return static_cast<bool>(sycl::isnan(arg));
         }
     };
 
     //! The SYCL log trait specialization.
     template<typename TArg>
-    struct Log<experimental::math::LogGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Log<math::LogGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::LogGenericSycl const&, TArg const& arg)
+        auto operator()(math::LogGenericSycl const&, TArg const& arg)
         {
             return sycl::log(arg);
         }
     };
 
+    //! The SYCL log2 trait specialization.
+    template<typename TArg>
+    struct Log2<math::Log2GenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::Log2GenericSycl const&, TArg const& arg)
+        {
+            return sycl::log2(arg);
+        }
+    };
+
+    //! The SYCL log10 trait specialization.
+    template<typename TArg>
+    struct Log10<math::Log10GenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::Log10GenericSycl const&, TArg const& arg)
+        {
+            return sycl::log10(arg);
+        }
+    };
+
     //! The SYCL max trait specialization.
     template<typename Tx, typename Ty>
-    struct Max<
-        experimental::math::MaxGenericSycl,
-        Tx,
-        Ty,
-        std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>>>
+    struct Max<math::MaxGenericSycl, Tx, Ty, std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>>>
     {
-        auto operator()(experimental::math::MaxGenericSycl const&, Tx const& x, Ty const& y)
+        using TCommon = std::common_type_t<Tx, Ty>;
+
+        auto operator()(math::MaxGenericSycl const&, Tx const& x, Ty const& y)
         {
             if constexpr(std::is_integral_v<Tx> && std::is_integral_v<Ty>)
-                return sycl::max(x, y);
+                return sycl::max(static_cast<TCommon>(x), static_cast<TCommon>(y));
             else if constexpr(std::is_floating_point_v<Tx> && std::is_floating_point_v<Ty>)
-                return sycl::fmax(x, y);
+                return sycl::fmax(static_cast<TCommon>(x), static_cast<TCommon>(y));
             else if constexpr(
                 (std::is_floating_point_v<Tx> && std::is_integral_v<Ty>)
                 || (std::is_integral_v<Tx> && std::is_floating_point_v<Ty>) )
                 return sycl::fmax(static_cast<double>(x), static_cast<double>(y)); // mirror CUDA back-end
             else
-                static_assert(!sizeof(Tx), "Unsupported data type");
+                static_assert(!sizeof(Tx), "Unsupported data types");
         }
     };
 
     //! The SYCL min trait specialization.
     template<typename Tx, typename Ty>
-    struct Min<
-        experimental::math::MinGenericSycl,
-        Tx,
-        Ty,
-        std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>>>
+    struct Min<math::MinGenericSycl, Tx, Ty, std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>>>
     {
-        auto operator()(experimental::math::MinGenericSycl const&, Tx const& x, Ty const& y)
+        auto operator()(math::MinGenericSycl const&, Tx const& x, Ty const& y)
         {
             if constexpr(std::is_integral_v<Tx> && std::is_integral_v<Ty>)
                 return sycl::min(x, y);
@@ -449,43 +593,47 @@ namespace alpaka::math::trait
                 || (std::is_integral_v<Tx> && std::is_floating_point_v<Ty>) )
                 return sycl::fmin(static_cast<double>(x), static_cast<double>(y)); // mirror CUDA back-end
             else
-                static_assert(!sizeof(Tx), "Unsupported data type");
+                static_assert(!sizeof(Tx), "Unsupported data types");
         }
     };
 
     //! The SYCL pow trait specialization.
     template<typename TBase, typename TExp>
     struct Pow<
-        experimental::math::PowGenericSycl,
+        math::PowGenericSycl,
         TBase,
         TExp,
         std::enable_if_t<std::is_floating_point_v<TBase> && std::is_floating_point_v<TExp>>>
     {
-        auto operator()(experimental::math::PowGenericSycl const&, TBase const& base, TExp const& exp)
+        using TCommon = std::common_type_t<TBase, TExp>;
+
+        auto operator()(math::PowGenericSycl const&, TBase const& base, TExp const& exp)
         {
-            return sycl::pow(base, exp);
+            return sycl::pow(static_cast<TCommon>(base), static_cast<TCommon>(exp));
         }
     };
 
     //! The SYCL remainder trait specialization.
     template<typename Tx, typename Ty>
     struct Remainder<
-        experimental::math::RemainderGenericSycl,
+        math::RemainderGenericSycl,
         Tx,
         Ty,
         std::enable_if_t<std::is_floating_point_v<Tx> && std::is_floating_point_v<Ty>>>
     {
-        auto operator()(experimental::math::RemainderGenericSycl const&, Tx const& x, Ty const& y)
+        using TCommon = std::common_type_t<Tx, Ty>;
+
+        auto operator()(math::RemainderGenericSycl const&, Tx const& x, Ty const& y)
         {
-            return sycl::remainder(x, y);
+            return sycl::remainder(static_cast<TCommon>(x), static_cast<TCommon>(y));
         }
     };
 
     //! The SYCL round trait specialization.
     template<typename TArg>
-    struct Round<experimental::math::RoundGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Round<math::RoundGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::RoundGenericSycl const&, TArg const& arg)
+        auto operator()(math::RoundGenericSycl const&, TArg const& arg)
         {
             return sycl::round(arg);
         }
@@ -493,9 +641,9 @@ namespace alpaka::math::trait
 
     //! The SYCL lround trait specialization.
     template<typename TArg>
-    struct Lround<experimental::math::RoundGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Lround<math::RoundGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::RoundGenericSycl const&, TArg const& arg)
+        auto operator()(math::RoundGenericSycl const&, TArg const& arg)
         {
             return static_cast<long>(sycl::round(arg));
         }
@@ -503,9 +651,9 @@ namespace alpaka::math::trait
 
     //! The SYCL llround trait specialization.
     template<typename TArg>
-    struct Llround<experimental::math::RoundGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Llround<math::RoundGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::RoundGenericSycl const&, TArg const& arg)
+        auto operator()(math::RoundGenericSycl const&, TArg const& arg)
         {
             return static_cast<long long>(sycl::round(arg));
         }
@@ -513,13 +661,13 @@ namespace alpaka::math::trait
 
     //! The SYCL rsqrt trait specialization.
     template<typename TArg>
-    struct Rsqrt<experimental::math::RsqrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
+    struct Rsqrt<math::RsqrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
     {
-        auto operator()(experimental::math::RsqrtGenericSycl const&, TArg const& arg)
+        auto operator()(math::RsqrtGenericSycl const&, TArg const& arg)
         {
-            if(std::is_floating_point_v<TArg>)
+            if constexpr(std::is_floating_point_v<TArg>)
                 return sycl::rsqrt(arg);
-            else if(std::is_integral_v<TArg>)
+            else if constexpr(std::is_integral_v<TArg>)
                 return sycl::rsqrt(static_cast<double>(arg)); // mirror CUDA back-end and use double for ints
             else
                 static_assert(!sizeof(TArg), "Unsupported data type");
@@ -528,23 +676,29 @@ namespace alpaka::math::trait
 
     //! The SYCL sin trait specialization.
     template<typename TArg>
-    struct Sin<experimental::math::SinGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Sin<math::SinGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::SinGenericSycl const&, TArg const& arg)
+        auto operator()(math::SinGenericSycl const&, TArg const& arg)
         {
             return sycl::sin(arg);
         }
     };
 
+    //! The SYCL sinh trait specialization.
+    template<typename TArg>
+    struct Sinh<math::SinhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::SinhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::sinh(arg);
+        }
+    };
+
     //! The SYCL sincos trait specialization.
     template<typename TArg>
-    struct SinCos<experimental::math::SinCosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct SinCos<math::SinCosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(
-            experimental::math::SinCosGenericSycl const&,
-            TArg const& arg,
-            TArg& result_sin,
-            TArg& result_cos) -> void
+        auto operator()(math::SinCosGenericSycl const&, TArg const& arg, TArg& result_sin, TArg& result_cos) -> void
         {
             result_sin = sycl::sincos(arg, &result_cos);
         }
@@ -552,9 +706,9 @@ namespace alpaka::math::trait
 
     //! The SYCL sqrt trait specialization.
     template<typename TArg>
-    struct Sqrt<experimental::math::SqrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
+    struct Sqrt<math::SqrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
     {
-        auto operator()(experimental::math::SqrtGenericSycl const&, TArg const& arg)
+        auto operator()(math::SqrtGenericSycl const&, TArg const& arg)
         {
             if constexpr(std::is_floating_point_v<TArg>)
                 return sycl::sqrt(arg);
@@ -565,19 +719,29 @@ namespace alpaka::math::trait
 
     //! The SYCL tan trait specialization.
     template<typename TArg>
-    struct Tan<experimental::math::TanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Tan<math::TanGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::TanGenericSycl const&, TArg const& arg)
+        auto operator()(math::TanGenericSycl const&, TArg const& arg)
         {
             return sycl::tan(arg);
         }
     };
 
+    //! The SYCL tanh trait specialization.
+    template<typename TArg>
+    struct Tanh<math::TanhGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    {
+        auto operator()(math::TanhGenericSycl const&, TArg const& arg)
+        {
+            return sycl::tanh(arg);
+        }
+    };
+
     //! The SYCL trunc trait specialization.
     template<typename TArg>
-    struct Trunc<experimental::math::TruncGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+    struct Trunc<math::TruncGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
     {
-        auto operator()(experimental::math::TruncGenericSycl const&, TArg const& arg)
+        auto operator()(math::TruncGenericSycl const&, TArg const& arg)
         {
             return sycl::trunc(arg);
         }

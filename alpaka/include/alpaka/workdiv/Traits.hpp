@@ -1,19 +1,14 @@
 /* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Concepts.hpp>
-#include <alpaka/core/Positioning.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Positioning.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <type_traits>
 #include <utility>
@@ -51,7 +46,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(TWorkDiv const& workDiv)
             {
                 return alpaka::getWorkDiv<origin::Grid, unit::Blocks>(workDiv)
-                    * alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv);
+                       * alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv);
             }
         };
         //! The work div grid element extent trait specialization.
@@ -62,7 +57,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(TWorkDiv const& workDiv)
             {
                 return alpaka::getWorkDiv<origin::Grid, unit::Threads>(workDiv)
-                    * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
+                       * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
             }
         };
         //! The work div block element extent trait specialization.
@@ -73,7 +68,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(TWorkDiv const& workDiv)
             {
                 return alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv)
-                    * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
+                       * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
             }
         };
     } // namespace trait

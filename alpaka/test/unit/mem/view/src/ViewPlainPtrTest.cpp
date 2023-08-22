@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/core/BoostPredef.hpp>
@@ -15,7 +10,7 @@
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
 
 #include <numeric>
 #include <type_traits>
@@ -56,13 +51,12 @@ namespace alpaka::test
     auto testViewPlainPtr() -> void
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using View = alpaka::ViewPlainPtr<Dev, TElem, Dim, Idx>;
 
-        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
 
         auto const extentBuf
             = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
@@ -83,13 +77,12 @@ namespace alpaka::test
     auto testViewPlainPtrConst() -> void
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using View = alpaka::ViewPlainPtr<Dev, TElem, Dim, Idx>;
 
-        Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
 
         auto const extentBuf
             = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
@@ -110,13 +103,12 @@ namespace alpaka::test
     auto testViewPlainPtrOperators() -> void
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using View = alpaka::ViewPlainPtr<Dev, TElem, Dim, Idx>;
 
-        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
 
         auto const extentBuf
             = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
@@ -152,4 +144,51 @@ TEMPLATE_LIST_TEST_CASE("viewPlainPtrConstTest", "[memView]", alpaka::test::Test
 TEMPLATE_LIST_TEST_CASE("viewPlainPtrOperatorTest", "[memView]", alpaka::test::TestAccs)
 {
     alpaka::test::testViewPlainPtrOperators<TestType, float>();
+}
+
+TEMPLATE_TEST_CASE("createView", "[memView]", (std::array<float, 4>), std::vector<float>)
+{
+    using Dev = alpaka::DevCpu;
+    auto const platform = alpaka::PlatformCpu{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
+
+    TestType a{1, 2, 3, 4};
+
+    // pointer overload
+    {
+        auto view = alpaka::createView(dev, a.data(), 4);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, int>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtent<0>(view) == 4);
+    }
+
+    // container and size overload
+    {
+        auto view = alpaka::createView(dev, a, 4L);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, long>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtent<0>(view) == 4);
+    }
+
+    // container overload
+    {
+        auto view = alpaka::createView(dev, a);
+        STATIC_REQUIRE(
+            std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, std::size_t>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtent<0>(view) == 4);
+    }
+
+    alpaka::test::DefaultQueue<Dev> queue(dev);
+    decltype(a) b{0, 0, 0, 0};
+
+    // test as temporaries to memcpy
+    alpaka::memcpy(queue, alpaka::createView(dev, b, std::size_t{4}), alpaka::createView(dev, a));
+    alpaka::wait(queue);
+    CHECK(a == b);
+
+    // test as temporaries to memset
+    alpaka::memset(queue, alpaka::createView(dev, a), 0);
+    alpaka::wait(queue);
+    CHECK(a == decltype(a){0, 0, 0, 0});
 }

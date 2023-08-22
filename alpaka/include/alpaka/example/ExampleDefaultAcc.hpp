@@ -1,21 +1,8 @@
-/* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* Copyright 2023 Jeffrey Kelling, Bernhard Manfred Gruber, Jan Stephan, Aurora Perego, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
-#include <alpaka/alpaka.hpp>
+#include "alpaka/alpaka.hpp"
 
 #pragma once
 
@@ -33,28 +20,20 @@ namespace alpaka
     using ExampleDefaultAcc = alpaka::AccCpuOmp2Blocks<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
     using ExampleDefaultAcc = alpaka::AccCpuTbbBlocks<TDim, TIdx>;
-#elif defined(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
-    using ExampleDefaultAcc = alpaka::AccCpuFibers<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED)
     using ExampleDefaultAcc = alpaka::AccCpuOmp2Threads<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
     using ExampleDefaultAcc = alpaka::AccCpuThreads<TDim, TIdx>;
-#elif defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED)
-    using ExampleDefaultAcc = alpaka::AccOmp5<TDim, TIdx>;
-#elif defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
-    using ExampleDefaultAcc = alpaka::AccOacc<TDim, TIdx>;
+#elif defined(ALPAKA_ACC_SYCL_ENABLED)
+#    if defined(ALPAKA_SYCL_ONEAPI_CPU)
+    using ExampleDefaultAcc = alpaka::AccCpuSycl<TDim, TIdx>;
+#    elif defined(ALPAKA_SYCL_ONEAPI_FPGA)
+    using ExampleDefaultAcc = alpaka::AccFpgaSyclIntel<TDim, TIdx>;
+#    elif defined(ALPAKA_SYCL_ONEAPI_GPU)
+    using ExampleDefaultAcc = alpaka::AccGpuSyclIntel<TDim, TIdx>;
+#    endif
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
     using ExampleDefaultAcc = alpaka::AccCpuSerial<TDim, TIdx>;
-#elif defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI)
-#    if defined(ALPAKA_SYCL_ONEAPI_CPU)
-    using ExampleDefaultAcc = alpaka::experimental::AccCpuSyclIntel<TDim, TIdx>;
-#    elif defined(ALPAKA_SYCL_ONEAPI_FPGA)
-    using ExampleDefaultAcc = alpaka::experimental::AccFpgaSyclIntel<TDim, TIdx>;
-#    elif defined(ALPAKA_SYCL_ONEAPI_GPU)
-    using ExampleDefaultAcc = alpaka::experimental::AccGpuSyclIntel<TDim, TIdx>;
-#    endif
-#elif defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_XILINX)
-    using ExampleDefaultAcc = alpaka::experimental::AccFpgaSyclXilinx<TDim, TIdx>;
 #else
     class ExampleDefaultAcc;
 #    warning "No supported backend selected."

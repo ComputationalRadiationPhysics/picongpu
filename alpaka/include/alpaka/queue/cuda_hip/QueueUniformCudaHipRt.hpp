@@ -1,40 +1,29 @@
 /* Copyright 2022 Benjamin Worpitz, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
  * Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/CallbackThread.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/event/Traits.hpp"
+#include "alpaka/meta/DependentFalseType.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/wait/Traits.hpp"
+
+#include <condition_variable>
+#include <functional>
+#include <future>
+#include <memory>
+#include <mutex>
+#include <thread>
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/event/Traits.hpp>
-#    include <alpaka/meta/DependentFalseType.hpp>
-#    include <alpaka/queue/Traits.hpp>
-#    include <alpaka/wait/Traits.hpp>
-
-// Backend specific includes.
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <alpaka/core/Cuda.hpp>
-#    else
-#        include <alpaka/core/Hip.hpp>
-#    endif
-
-#    include <alpaka/core/CallbackThread.hpp>
-
-#    include <condition_variable>
-#    include <functional>
-#    include <future>
-#    include <memory>
-#    include <mutex>
-#    include <thread>
 
 namespace alpaka
 {
@@ -74,10 +63,10 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                // In case the device is still doing work in the queue when cuda/hip-StreamDestroy() is called, the
-                // function will return immediately and the resources associated with queue will be released
-                // automatically once the device has completed all work in queue.
-                // -> No need to synchronize here.
+                // Make sure all pending async work is finished before destroying the stream to guarantee determinism.
+                // This would not be necessary for plain CUDA/HIP operations, but we can have host functions in the
+                // stream, which reference this queue instance and its CallbackThread. Make sure they are done.
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::streamSynchronize(m_UniformCudaHipQueue));
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::streamDestroy(m_UniformCudaHipQueue));
             }
 
@@ -196,86 +185,38 @@ namespace alpaka
         template<typename TApi, bool TBlocking, typename TTask>
         struct Enqueue<uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>, TTask>
         {
-            enum class CallbackState
-            {
-                enqueued,
-                notified,
-                finished,
-            };
+            using QueueImpl = uniform_cuda_hip::detail::QueueUniformCudaHipRtImpl<TApi>;
 
-            struct CallbackSynchronizationData : public std::enable_shared_from_this<CallbackSynchronizationData>
+            struct HostFuncData
             {
-                std::mutex m_mutex;
-                std::condition_variable m_event;
-                CallbackState m_state = CallbackState::enqueued;
+                // We don't need to keep the queue alive, because in it's dtor it will synchronize with the CUDA/HIP
+                // stream and wait until all host functions and the CallbackThread are done. It's actually an error to
+                // copy the queue into the host function. Destroying it here would call CUDA/HIP APIs from the host
+                // function. Passing it further to the Callback thread, would make the Callback thread hold a task
+                // containing the queue with the CallbackThread itself. Destroying the task if no other queue instance
+                // exists will make the CallbackThread join itself and crash.
+                QueueImpl& q;
+                TTask t;
             };
 
             ALPAKA_FN_HOST static void uniformCudaHipRtHostFunc(void* arg)
             {
-                // explicitly copy the shared_ptr so that this method holds the state even when the executing thread
-                // has already finished.
-                const auto spCallbackSynchronizationData
-                    = reinterpret_cast<CallbackSynchronizationData*>(arg)->shared_from_this();
-
-                // Notify the executing thread.
-                {
-                    std::unique_lock<std::mutex> lock(spCallbackSynchronizationData->m_mutex);
-                    spCallbackSynchronizationData->m_state = CallbackState::notified;
-                }
-                spCallbackSynchronizationData->m_event.notify_one();
-
-                // Wait for the executing thread to finish the task if it has not already finished.
-                std::unique_lock<std::mutex> lock(spCallbackSynchronizationData->m_mutex);
-                if(spCallbackSynchronizationData->m_state != CallbackState::finished)
-                {
-                    spCallbackSynchronizationData->m_event.wait(
-                        lock,
-                        [&spCallbackSynchronizationData]()
-                        { return spCallbackSynchronizationData->m_state == CallbackState::finished; });
-                }
+                auto data = std::unique_ptr<HostFuncData>(reinterpret_cast<HostFuncData*>(arg));
+                auto& queue = data->q;
+                auto f = queue.m_callbackThread.submit([data = std::move(data)] { data->t(); });
+                f.wait();
             }
 
             ALPAKA_FN_HOST static auto enqueue(
                 uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, TBlocking>& queue,
                 TTask const& task) -> void
             {
-                auto spCallbackSynchronizationData = std::make_shared<CallbackSynchronizationData>();
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::launchHostFunc(
                     queue.getNativeHandle(),
                     uniformCudaHipRtHostFunc,
-                    spCallbackSynchronizationData.get()));
-
-                // We start a new std::thread which stores the task to be executed.
-                // This circumvents the limitation that it is not possible to call CUDA/HIP methods within the CUDA/HIP
-                // callback thread. The CUDA/HIP thread signals the std::thread when it is ready to execute the task.
-                // The CUDA/HIP thread is waiting for the std::thread to signal that it is finished executing the task
-                // before it executes the next task in the queue (CUDA/HIP stream).
-                auto f = queue.getCallbackThread().submit(std::packaged_task<void()>(
-                    [spCallbackSynchronizationData, task]()
-                    {
-                        // If the callback has not yet been called, we wait for it.
-                        {
-                            std::unique_lock<std::mutex> lock(spCallbackSynchronizationData->m_mutex);
-                            if(spCallbackSynchronizationData->m_state != CallbackState::notified)
-                            {
-                                spCallbackSynchronizationData->m_event.wait(
-                                    lock,
-                                    [&spCallbackSynchronizationData]()
-                                    { return spCallbackSynchronizationData->m_state == CallbackState::notified; });
-                            }
-
-                            task();
-
-                            // Notify the waiting CUDA/HIP thread.
-                            spCallbackSynchronizationData->m_state = CallbackState::finished;
-                        }
-                        spCallbackSynchronizationData->m_event.notify_one();
-                    }));
-
+                    new HostFuncData{*queue.m_spQueueImpl, task}));
                 if constexpr(TBlocking)
-                {
-                    f.wait();
-                }
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::streamSynchronize(queue.getNativeHandle()));
             }
         };
 

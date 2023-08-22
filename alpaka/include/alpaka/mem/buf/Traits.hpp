@@ -1,16 +1,12 @@
-/* Copyright 2022 Alexander Matthes, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Alexander Matthes, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/mem/view/Traits.hpp>
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/mem/view/Traits.hpp"
 
 namespace alpaka
 {
@@ -32,39 +28,21 @@ namespace alpaka
         template<typename TElem, typename TDim, typename TIdx, typename TDev, typename TSfinae = void>
         struct AsyncBufAlloc;
 
-        //! The stream-ordered memory allocator capability trait.
+        //! The stream-ordered memory allocation capability trait.
         template<typename TDim, typename TDev>
         struct HasAsyncBufSupport : public std::false_type
         {
         };
 
         //! The pinned/mapped memory allocator trait.
-        template<typename TElem, typename TDim, typename TIdx, typename TDev>
+        template<typename TPlatform, typename TElem, typename TDim, typename TIdx>
         struct BufAllocMapped;
 
-        //! The memory mapping trait.
-        template<typename TBuf, typename TDev, typename TSfinae = void>
-        struct Map;
-
-        //! The memory unmapping trait.
-        template<typename TBuf, typename TDev, typename TSfinae = void>
-        struct Unmap;
-
-        //! The memory pinning trait.
-        template<typename TBuf, typename TSfinae = void>
-        struct Pin;
-
-        //! The memory unpinning trait.
-        template<typename TBuf, typename TSfinae = void>
-        struct Unpin;
-
-        //! The memory pin state trait.
-        template<typename TBuf, typename TSfinae = void>
-        struct IsPinned;
-
-        //! The memory prepareForAsyncCopy trait.
-        template<typename TBuf, typename TSfinae = void>
-        struct PrepareForAsyncCopy;
+        //! The pinned/mapped memory allocation capability trait.
+        template<typename TPlatform>
+        struct HasMappedBufSupport : public std::false_type
+        {
+        };
     } // namespace trait
 
     //! The memory buffer type trait alias template to remove the ::type.
@@ -101,100 +79,111 @@ namespace alpaka
         return trait::AsyncBufAlloc<TElem, Dim<TExtent>, TIdx, alpaka::Dev<TQueue>>::allocAsyncBuf(queue, extent);
     }
 
-    //! Check if the given device can allocate a stream-ordered memory buffer of the given dimensionality.
-    //!
-    //! TDev is the type of device to allocate the buffer on.
-    //! TDim is the dimensionality of the buffer to allocate.
-    /* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because these
-    /  clang versions incorrectly warn about a missing 'extern'. */
+    /* TODO: Remove this pragma block once support for clang versions <= 13 is removed. These versions are unable to
+       figure out that the template parameters are attached to a C++17 inline variable. */
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#    pragma clang diagnostic ignored "-Wdocumentation"
 #endif
+    //! Checks if the given device can allocate a stream-ordered memory buffer of the given dimensionality.
+    //!
+    //! \tparam TDev The type of device to allocate the buffer on.
+    //! \tparam TDim The dimensionality of the buffer to allocate.
     template<typename TDev, typename TDim>
     constexpr inline bool hasAsyncBufSupport = trait::HasAsyncBufSupport<TDim, TDev>::value;
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
 
-    //! Allocates pinned/mapped memory on host, accessible by the given device.
+    //! If supported, allocates stream-ordered memory on the given queue and the associated device.
+    //! Otherwise, allocates regular memory on the device associated to the queue.
+    //! Please note that stream-ordered and regular memory have different semantics:
+    //! this function is provided for convenience in the cases where the difference is not relevant,
+    //! and the stream-ordered memory is only used as a performance optimisation.
     //!
     //! \tparam TElem The element type of the returned buffer.
     //! \tparam TIdx The linear index type of the buffer.
     //! \tparam TExtent The extent type of the buffer.
-    //! \tparam TDev The type of device the buffer is accessible from.
-    //! \param host The host device to allocate the buffer on.
-    //! \param dev The device to make the memory accessible from.
+    //! \tparam TQueue The type of queue used to order the buffer allocation.
+    //! \param queue The queue used to order the buffer allocation.
     //! \param extent The extent of the buffer.
     //! \return The newly allocated buffer.
-    template<typename TElem, typename TIdx, typename TExtent, typename TDev>
-    ALPAKA_FN_HOST auto allocMappedBuf(DevCpu const& host, TDev const& dev, TExtent const& extent = TExtent())
+    template<typename TElem, typename TIdx, typename TExtent, typename TQueue>
+    ALPAKA_FN_HOST auto allocAsyncBufIfSupported(TQueue queue, TExtent const& extent = TExtent())
     {
-        return trait::BufAllocMapped<TElem, Dim<TExtent>, TIdx, TDev>::allocMappedBuf(host, dev, extent);
+        if constexpr(hasAsyncBufSupport<alpaka::Dev<TQueue>, Dim<TExtent>>)
+        {
+            return allocAsyncBuf<TElem, TIdx>(queue, extent);
+        }
+        else
+        {
+            return allocBuf<TElem, TIdx>(getDev(queue), extent);
+        }
+
+        ALPAKA_UNREACHABLE(allocBuf<TElem, TIdx>(getDev(queue), extent));
     }
 
-    //! Maps the buffer into the memory of the given device.
+    //! Allocates pinned/mapped host memory, accessible by all devices in the given platform.
     //!
-    //! \tparam TBuf The buffer type.
-    //! \tparam TDev The device type.
-    //! \param buf The buffer to map into the device memory.
-    //! \param dev The device to map the buffer into.
-    template<typename TBuf, typename TDev>
-    ALPAKA_FN_HOST auto map(TBuf& buf, TDev const& dev) -> void
+    //! \tparam TPlatform The platform from which the buffer is accessible.
+    //! \tparam TElem The element type of the returned buffer.
+    //! \tparam TIdx The linear index type of the buffer.
+    //! \tparam TExtent The extent type of the buffer.
+    //! \param host The host device to allocate the buffer on.
+    //! \param extent The extent of the buffer.
+    //! \return The newly allocated buffer.
+    template<typename TPlatform, typename TElem, typename TIdx, typename TExtent>
+    ALPAKA_FN_HOST auto allocMappedBuf(
+        DevCpu const& host,
+        TPlatform const& platform,
+        TExtent const& extent = TExtent())
     {
-        return trait::Map<TBuf, TDev>::map(buf, dev);
+        return trait::BufAllocMapped<TPlatform, TElem, Dim<TExtent>, TIdx>::allocMappedBuf(host, platform, extent);
     }
 
-    //! Unmaps the buffer from the memory of the given device.
+    /* TODO: Remove this pragma block once support for clang versions <= 13 is removed. These versions are unable to
+       figure out that the template parameters are attached to a C++17 inline variable. */
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wdocumentation"
+#endif
+    //! Checks if the host can allocate a pinned/mapped host memory, accessible by all devices in the given platform.
     //!
-    //! \tparam TBuf The buffer type.
-    //! \tparam TDev The device type.
-    //! \param buf The buffer to unmap from the device memory.
-    //! \param dev The device to unmap the buffer from.
-    template<typename TBuf, typename TDev>
-    ALPAKA_FN_HOST auto unmap(TBuf& buf, TDev const& dev) -> void
-    {
-        return trait::Unmap<TBuf, TDev>::unmap(buf, dev);
-    }
+    //! \tparam TPlatform The platform from which the buffer is accessible.
+    template<typename TPlatform>
+    constexpr inline bool hasMappedBufSupport = trait::HasMappedBufSupport<TPlatform>::value;
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
 
-    //! Pins the buffer.
+    //! If supported, allocates pinned/mapped host memory, accessible by all devices in the given platform.
+    //! Otherwise, allocates regular host memory.
+    //! Please note that pinned/mapped and regular memory may have different semantics:
+    //! this function is provided for convenience in the cases where the difference is not relevant,
+    //! and the pinned/mapped memory is only used as a performance optimisation.
     //!
-    //! \tparam TBuf The buffer type.
-    //! \param buf The buffer to pin in the device memory.
-    template<typename TBuf>
-    ALPAKA_FN_HOST auto pin(TBuf& buf) -> void
+    //! \tparam TPlatform The platform from which the buffer is accessible.
+    //! \tparam TElem The element type of the returned buffer.
+    //! \tparam TIdx The linear index type of the buffer.
+    //! \tparam TExtent The extent type of the buffer.
+    //! \param host The host device to allocate the buffer on.
+    //! \param extent The extent of the buffer.
+    //! \return The newly allocated buffer.
+    template<typename TPlatform, typename TElem, typename TIdx, typename TExtent>
+    ALPAKA_FN_HOST auto allocMappedBufIfSupported(
+        DevCpu const& host,
+        TPlatform const& platform,
+        TExtent const& extent = TExtent())
     {
-        return trait::Pin<TBuf>::pin(buf);
-    }
+        if constexpr(hasMappedBufSupport<TPlatform>)
+        {
+            return allocMappedBuf<TPlatform, TElem, TIdx>(host, platform, extent);
+        }
+        else
+        {
+            return allocBuf<TElem, TIdx>(host, extent);
+        }
 
-    //! Unpins the buffer.
-    //!
-    //! \tparam TBuf The buffer type.
-    //! \param buf The buffer to unpin from the device memory.
-    template<typename TBuf>
-    ALPAKA_FN_HOST auto unpin(TBuf& buf) -> void
-    {
-        return trait::Unpin<TBuf>::unpin(buf);
-    }
-
-    //! The pin state of the buffer.
-    //!
-    //! \tparam TBuf The buffer type.
-    //! \param buf The buffer to get the pin state of.
-    template<typename TBuf>
-    ALPAKA_FN_HOST auto isPinned(TBuf const& buf) -> bool
-    {
-        return trait::IsPinned<TBuf>::isPinned(buf);
-    }
-
-    //! Prepares the buffer for non-blocking copy operations, e.g. pinning if
-    //! non-blocking copy between a cpu and a cuda device is wanted
-    //!
-    //! \tparam TBuf The buffer type.
-    //! \param buf The buffer to prepare in the device memory.
-    template<typename TBuf>
-    ALPAKA_FN_HOST auto prepareForAsyncCopy(TBuf& buf) -> void
-    {
-        return trait::PrepareForAsyncCopy<TBuf>::prepareForAsyncCopy(buf);
+        ALPAKA_UNREACHABLE(allocBuf<TElem, TIdx>(host, extent));
     }
 } // namespace alpaka

@@ -1,34 +1,38 @@
 #
-# Copyright 2014-2019 Benjamin Worpitz
+# Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan
+# SPDX-License-Identifier: MPL-2.0
 #
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-
-CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 #------------------------------------------------------------------------------
-# Calls HIP_ADD_EXECUTABLE or ADD_EXECUTABLE depending on the enabled alpaka accelerators.
+#
+# alpaka_add_executable(<name> [WIN32] [MACOSX_BUNDLE] [EXCLUDE_FROM_ALL] [<source>...])
+#
+# Calls add_executable under the hood. Depending on the enabled back-ends, source file or target properties which
+# cannot be propagated by the alpaka::alpaka target are set here.
+#
 # Using a macro to stay in the scope (fixes lost assignment of linker command in FindHIP.cmake)
 # https://github.com/ROCm-Developer-Tools/HIP/issues/631
-MACRO(ALPAKA_ADD_EXECUTABLE In_Name)
-    IF(alpaka_ACC_GPU_CUDA_ENABLE)
-        ENABLE_LANGUAGE(CUDA)
-        FOREACH(_file ${ARGN})
-            IF((${_file} MATCHES "\\.cpp$") OR (${_file} MATCHES "\\.cxx$") OR (${_file} MATCHES "\\.cu$"))
-                SET_SOURCE_FILES_PROPERTIES(${_file} PROPERTIES LANGUAGE CUDA)
-            ENDIF()
-        ENDFOREACH()
 
-        ADD_EXECUTABLE(
-            ${In_Name}
-            ${ARGN})
-    ELSE()
-        ADD_EXECUTABLE(
-            ${In_Name}
-            ${ARGN})
-    ENDIF()
-ENDMACRO()
+macro(alpaka_add_executable In_Name)
+
+    add_executable(${In_Name} ${ARGN})
+
+    if(alpaka_ACC_GPU_CUDA_ENABLE)
+       enable_language(CUDA)
+       foreach(_file ${ARGN})
+            if((${_file} MATCHES "\\.cpp$") OR 
+               (${_file} MATCHES "\\.cxx$") OR 
+               (${_file} MATCHES "\\.cu$")
+            )
+                set_source_files_properties(${_file} PROPERTIES LANGUAGE CUDA)
+            endif()
+        endforeach()
+
+        # We have to set this here since CUDA_SEPARABLE_COMPILATION is not propagated by the alpaka::alpaka target.
+        if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
+            set_property(TARGET ${In_Name} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+        elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
+            set_property(TARGET ${In_Name} PROPERTY CUDA_SEPARABLE_COMPILATION OFF)
+        endif()
+    endif()
+endmacro()

@@ -1,50 +1,45 @@
-/* Copyright 2022 Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jan Stephan, Luca Ferragina, Aurora Perego, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Sycl.hpp"
+#include "alpaka/dev/DevGenericSycl.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/mem/buf/BufCpu.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/mem/view/ViewAccessOps.hpp"
+#include "alpaka/vec/Vec.hpp"
+
+#include <memory>
+#include <type_traits>
+
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    include <alpaka/core/Sycl.hpp>
-#    include <alpaka/dev/DevGenericSycl.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/dim/DimIntegralConst.hpp>
-#    include <alpaka/dim/Traits.hpp>
-#    include <alpaka/mem/buf/BufCpu.hpp>
-#    include <alpaka/mem/buf/Traits.hpp>
-#    include <alpaka/mem/view/Accessor.hpp>
-#    include <alpaka/vec/Vec.hpp>
+#    include <sycl/sycl.hpp>
 
-#    include <CL/sycl.hpp>
-
-#    include <memory>
-#    include <type_traits>
-
-namespace alpaka::experimental
+namespace alpaka
 {
     //! The SYCL memory buffer.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    class BufGenericSycl
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    class BufGenericSycl : public internal::ViewAccessOps<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
+    public:
         static_assert(
             !std::is_const_v<TElem>,
             "The elem type of the buffer can not be const because the C++ Standard forbids containers of const "
             "elements!");
         static_assert(!std::is_const_v<TIdx>, "The idx type of the buffer can not be const!");
 
-    public:
         //! Constructor
-        template<typename TExtent>
-        BufGenericSycl(TDev const& dev, sycl::buffer<TElem, TDim::value> buffer, TExtent const& extent)
+        template<typename TExtent, typename Deleter>
+        BufGenericSycl(DevGenericSycl<TPlatform> const& dev, TElem* const pMem, Deleter deleter, TExtent const& extent)
             : m_dev{dev}
             , m_extentElements{getExtentVecEnd<TDim>(extent)}
-            , m_buffer{buffer}
+            , m_spMem(pMem, std::move(deleter))
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -58,285 +53,213 @@ namespace alpaka::experimental
                 "The idx type of TExtent and the TIdx template parameter have to be identical!");
         }
 
-        TDev m_dev;
+        DevGenericSycl<TPlatform> m_dev;
         Vec<TDim, TIdx> m_extentElements;
-        sycl::buffer<TElem, TDim::value> m_buffer;
+        std::shared_ptr<TElem> m_spMem;
     };
-} // namespace alpaka::experimental
+} // namespace alpaka
 
 namespace alpaka::trait
 {
     //! The BufGenericSycl device type trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct DevType<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct DevType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
-        using type = TDev;
+        using type = DevGenericSycl<TPlatform>;
     };
 
     //! The BufGenericSycl device get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct GetDev<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct GetDev<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
-        static auto getDev(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const& buf)
+        static auto getDev(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf)
         {
             return buf.m_dev;
         }
     };
 
     //! The BufGenericSycl dimension getter trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct DimType<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct DimType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
         using type = TDim;
     };
 
     //! The BufGenericSycl memory element type get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct ElemType<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct ElemType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
         using type = TElem;
     };
 
     //! The BufGenericSycl extent get trait specialization.
-    template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct GetExtent<TIdxIntegralConst, experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct GetExtent<TIdxIntegralConst, BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
         static_assert(TDim::value > TIdxIntegralConst::value, "Requested dimension out of bounds");
 
-        static auto getExtent(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const& buf) -> TIdx
+        static auto getExtent(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf) -> TIdx
         {
             return buf.m_extentElements[TIdxIntegralConst::value];
         }
     };
 
     //! The BufGenericSycl native pointer get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct GetPtrNative<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct GetPtrNative<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
-        static_assert(
-            !sizeof(TElem),
-            "Accessing device-side pointers on the host is not supported by the SYCL back-end");
-
-        static auto getPtrNative(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const&) -> TElem const*
+        static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf) -> TElem const*
         {
-            return nullptr;
+            return buf.m_spMem.get();
         }
 
-        static auto getPtrNative(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> TElem*
+        static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TPlatform>& buf) -> TElem*
         {
-            return nullptr;
+            return buf.m_spMem.get();
         }
     };
 
     //! The BufGenericSycl pointer on device get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct GetPtrDev<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>, TDev>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct GetPtrDev<BufGenericSycl<TElem, TDim, TIdx, TPlatform>, DevGenericSycl<TPlatform>>
     {
-        static_assert(
-            !sizeof(TElem),
-            "Accessing device-side pointers on the host is not supported by the SYCL back-end");
-
-        static auto getPtrDev(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const&, TDev const&)
-            -> TElem const*
+        static auto getPtrDev(
+            BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf,
+            DevGenericSycl<TPlatform> const& dev) -> TElem const*
         {
-            return nullptr;
+            if(dev == getDev(buf))
+            {
+                return buf.m_spMem.get();
+            }
+            else
+            {
+                throw std::runtime_error("The buffer is not accessible from the given device!");
+            }
         }
 
-        static auto getPtrDev(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&, TDev const&) -> TElem*
+        static auto getPtrDev(BufGenericSycl<TElem, TDim, TIdx, TPlatform>& buf, DevGenericSycl<TPlatform> const& dev)
+            -> TElem*
         {
-            return nullptr;
+            if(dev == getDev(buf))
+            {
+                return buf.m_spMem.get();
+            }
+            else
+            {
+                throw std::runtime_error("The buffer is not accessible from the given device!");
+            }
         }
     };
 
     //! The SYCL memory allocation trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct BufAlloc<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct BufAlloc<TElem, TDim, TIdx, DevGenericSycl<TPlatform>>
     {
         template<typename TExtent>
-        static auto allocBuf(experimental::DevGenericSycl<TPltf> const& dev, TExtent const& ext)
-            -> experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>
+        static auto allocBuf(DevGenericSycl<TPlatform> const& dev, TExtent const& extent)
+            -> BufGenericSycl<TElem, TDim, TIdx, TPlatform>
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
+#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             if constexpr(TDim::value == 0 || TDim::value == 1)
             {
-                auto const width = getWidth(ext);
+                auto const width = getWidth(extent);
 
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
                 std::cout << __func__ << " ew: " << width << " ewb: " << widthBytes << '\n';
-#    endif
-
-                auto const range = sycl::range<1>{width};
-                return {dev, sycl::buffer<TElem, 1>{range}, ext};
             }
             else if constexpr(TDim::value == 2)
             {
-                auto const width = getWidth(ext);
-                auto const height = getHeight(ext);
+                auto const width = getWidth(extent);
+                auto const height = getHeight(extent);
 
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
                 std::cout << __func__ << " ew: " << width << " eh: " << height << " ewb: " << widthBytes
                           << " pitch: " << widthBytes << '\n';
-#    endif
-
-                auto const range = sycl::range<2>{width, height};
-                return {dev, sycl::buffer<TElem, 2>{range}, ext};
             }
             else if constexpr(TDim::value == 3)
             {
-                auto const width = getWidth(ext);
-                auto const height = getHeight(ext);
-                auto const depth = getDepth(ext);
+                auto const width = getWidth(extent);
+                auto const height = getHeight(extent);
+                auto const depth = getDepth(extent);
 
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
                 std::cout << __func__ << " ew: " << width << " eh: " << height << " ed: " << depth
                           << " ewb: " << widthBytes << " pitch: " << widthBytes << '\n';
+            }
 #    endif
 
-                auto const range = sycl::range<3>{width, height, depth};
-                return {dev, sycl::buffer<TElem, 3>{range}, ext};
-            }
+            auto const& [nativeDev, nativeContext] = dev.getNativeHandle();
+            TElem* memPtr = sycl::malloc_device<TElem>(
+                static_cast<std::size_t>(getExtentProduct(extent)),
+                nativeDev,
+                nativeContext);
+            auto deleter = [ctx = nativeContext](TElem* ptr) { sycl::free(ptr, ctx); };
+
+            return BufGenericSycl<TElem, TDim, TIdx, TPlatform>(dev, memPtr, std::move(deleter), extent);
         }
     };
 
-    //! The BufGenericSycl SYCL device memory mapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Map<
-        experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>,
-        experimental::DevGenericSycl<TPltf>>
+    //! The BufGenericSycl stream-ordered memory allocation capability trait specialization.
+    template<typename TDim, typename TPlatform>
+    struct HasAsyncBufSupport<TDim, DevGenericSycl<TPlatform>> : std::false_type
     {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto map(
-            experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>> const&,
-            experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl SYCL device memory unmapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Unmap<
-        experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>,
-        experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto unmap(
-            experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>> const&,
-            experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl memory pinning trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct Pin<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static_assert(!sizeof(TElem), "Memory pinning is not supported by the SYCL back-end");
-
-        static auto pin(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl memory unpinning trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct Unpin<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static_assert(!sizeof(TElem), "Memory pinning is not supported by the SYCL back-end");
-
-        static auto unpin(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl memory pin state trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct IsPinned<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static_assert(!sizeof(TElem), "Memory pinning is not supported by the SYCL back-end");
-
-        static auto isPinned(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const&) -> bool
-        {
-            return false;
-        }
-    };
-
-    //! The BufGenericSycl memory prepareForAsyncCopy trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct PrepareForAsyncCopy<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
-    {
-        static auto prepareForAsyncCopy(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>&) -> void
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            // Everything in SYCL is async by default.
-        }
     };
 
     //! The BufGenericSycl offset get trait specialization.
-    template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct GetOffset<TIdxIntegralConst, experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct GetOffset<TIdxIntegralConst, BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
-        static auto getOffset(experimental::BufGenericSycl<TElem, TDim, TIdx, TDev> const&) -> TIdx
+        static auto getOffset(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const&) -> TIdx
         {
             return 0u;
         }
     };
 
+    //! The pinned/mapped memory allocation trait specialization for the SYCL devices.
+    template<typename TPlatform, typename TElem, typename TDim, typename TIdx>
+    struct BufAllocMapped
+    {
+        template<typename TExtent>
+        static auto allocMappedBuf(DevCpu const& host, TPlatform const& platform, TExtent const& extent)
+            -> BufCpu<TElem, TDim, TIdx>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            // Allocate SYCL page-locked memory on the host, mapped into the TPlatform address space and
+            // accessible to all devices in the TPlatform.
+            auto ctx = platform.syclContext();
+            TElem* memPtr = sycl::malloc_host<TElem>(static_cast<std::size_t>(getExtentProduct(extent)), ctx);
+            auto deleter = [ctx](TElem* ptr) { sycl::free(ptr, ctx); };
+
+            return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);
+        }
+    };
+
     //! The BufGenericSycl idx type trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    struct IdxType<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct IdxType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
     {
         using type = TIdx;
     };
 
-    //! The BufCpu SYCL device memory mapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Map<BufCpu<TElem, TDim, TIdx>, experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto map(BufCpu<TElem, TDim, TIdx>&, experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
-    //! The BufGenericSycl device memory unmapping trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct Unmap<BufCpu<TElem, TDim, TIdx>, experimental::DevGenericSycl<TPltf>>
-    {
-        static_assert(!sizeof(TElem), "Memory mapping is not supported by the SYCL back-end");
-
-        static auto unmap(BufCpu<TElem, TDim, TIdx>&, experimental::DevGenericSycl<TPltf> const&) -> void
-        {
-        }
-    };
-
     //! The BufCpu pointer on SYCL device get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, experimental::DevGenericSycl<TPltf>>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevGenericSycl<TPlatform>>
     {
-        static_assert(!sizeof(TElem), "Accessing host pointers on the device is not supported by the SYCL back-end");
-
-        static auto getPtrDev(BufCpu<TElem, TDim, TIdx> const&, experimental::DevGenericSycl<TPltf> const&)
-            -> TElem const*
+        static auto getPtrDev(BufCpu<TElem, TDim, TIdx> const& buf, DevGenericSycl<TPlatform> const&) -> TElem const*
         {
-            return nullptr;
+            return getPtrNative(buf);
         }
-
-        static auto getPtrDev(BufCpu<TElem, TDim, TIdx>&, experimental::DevGenericSycl<TPltf> const&) -> TElem*
+        static auto getPtrDev(BufCpu<TElem, TDim, TIdx>& buf, DevGenericSycl<TPlatform> const&) -> TElem*
         {
-            return nullptr;
+            return getPtrNative(buf);
         }
     };
 } // namespace alpaka::trait
 
-#    include <alpaka/mem/buf/sycl/Accessor.hpp>
-#    include <alpaka/mem/buf/sycl/Copy.hpp>
-#    include <alpaka/mem/buf/sycl/Set.hpp>
+#    include "alpaka/mem/buf/sycl/Copy.hpp"
+#    include "alpaka/mem/buf/sycl/Set.hpp"
 
 #endif

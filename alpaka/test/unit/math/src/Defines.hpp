@@ -1,10 +1,5 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jakob Krude, Benjamin Worpitz, Sergei Bastrakov
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
@@ -39,7 +34,8 @@ namespace alpaka
                 enum class Arity
                 {
                     Unary = 1,
-                    Binary = 2
+                    Binary = 2,
+                    Ternary = 3
                 };
 
                 template<typename T, Arity Tarity>
@@ -50,13 +46,13 @@ namespace alpaka
 
                     T arg[arity_nr]; // represents arg0, arg1, ...
 
-                    friend auto operator<<(std::ostream& os, const ArgsItem& argsItem) -> std::ostream&
+                    friend auto operator<<(std::ostream& os, ArgsItem const& argsItem) -> std::ostream&
                     {
                         os.precision(17);
-                        os << "[ ";
                         for(size_t i = 0; i < argsItem.arity_nr; ++i)
-                            os << std::setprecision(std::numeric_limits<T>::digits10 + 1) << argsItem.arg[i] << ", ";
-                        os << "]";
+                            os << (i == 0 ? "[ " : ", ") << std::setprecision(std::numeric_limits<T>::digits10 + 1)
+                               << argsItem.arg[i];
+                        os << " ]";
                         return os;
                     }
                 };
@@ -105,10 +101,10 @@ namespace alpaka
                 {
                     // the machine epsilon has to be scaled to the magnitude of the values used
                     // and multiplied by the desired precision in ULPs (units in the last place)
-                    return alpaka::math::abs(acc, x - y)
-                        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
-                        // unless the result is subnormal
-                        || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
+                    return alpaka::math::abs(acc, x - y) <= std::numeric_limits<FP>::epsilon()
+                                                                * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
+                           // unless the result is subnormal
+                           || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
                 }
 
                 //! Version for alpaka::Complex

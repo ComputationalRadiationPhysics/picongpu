@@ -1,10 +1,5 @@
-/* Copyright 2022 Jeffrey Kelling
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jeffrey Kelling, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/acc/Traits.hpp>
@@ -19,7 +14,8 @@
 #include <alpaka/workdiv/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 //! This tests checks if block-shared memory is shared correctly: only between all threads in a block.
 //!
@@ -57,13 +53,14 @@ void BlockSharedMemSharingTest(TKernel kernel)
     using Idx = alpaka::Idx<TAcc>;
     using Vec = alpaka::Vec<Dim, Idx>;
 
-    auto const devAcc = alpaka::getDevByIdx<TAcc>(0u);
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
-    const auto accDevProps = alpaka::getAccDevProps<TAcc>(devAcc);
+    auto const accDevProps = alpaka::getAccDevProps<TAcc>(devAcc);
     const Idx gridBlockCount = 2u;
     const Idx blockThreadCount = accDevProps.m_blockThreadCountMax;
 
-    const auto workDiv
+    auto const workDiv
         = alpaka::WorkDivMembers<Dim, Idx>(Vec(gridBlockCount), Vec(blockThreadCount), Vec(static_cast<Idx>(1u)));
 
     auto queue = alpaka::Queue<TAcc, alpaka::Blocking>(devAcc);
@@ -72,8 +69,8 @@ void BlockSharedMemSharingTest(TKernel kernel)
 
     alpaka::exec<TAcc>(queue, workDiv, kernel, alpaka::getPtrNative(bufAcc));
 
-    using DevHost = alpaka::DevCpu;
-    auto const devHost = alpaka::getDevByIdx<DevHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
     auto bufHost = alpaka::allocBuf<std::uint32_t, Idx>(devHost, gridBlockCount);
 
     alpaka::memcpy(queue, bufHost, bufAcc);

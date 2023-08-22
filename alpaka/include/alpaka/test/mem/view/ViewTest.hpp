@@ -1,20 +1,15 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber, Antonio Di
  * Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/KernelExecutionFixture.hpp>
-#include <alpaka/test/mem/view/Iterator.hpp>
+#include "alpaka/alpaka.hpp"
+#include "alpaka/test/KernelExecutionFixture.hpp"
+#include "alpaka/test/mem/view/Iterator.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <numeric>
 #include <type_traits>
@@ -206,12 +201,10 @@ namespace alpaka::test
     template<typename TView, typename TQueue>
     ALPAKA_FN_HOST auto iotaFillView(TQueue& queue, TView& view) -> void
     {
-        using DevHost = DevCpu;
-        using PltfHost = Pltf<DevHost>;
-
         using Elem = Elem<TView>;
 
-        DevHost const devHost = getDevByIdx<PltfHost>(0);
+        auto const platformHost = alpaka::PlatformCpu{};
+        auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
         auto const extent = getExtentVec(view);
 

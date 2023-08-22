@@ -1,19 +1,14 @@
 /* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/idx/Accessors.hpp>
-#include <alpaka/idx/MapIdx.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/mem/buf/Traits.hpp>
-#include <alpaka/meta/Fold.hpp>
+#include "alpaka/idx/Accessors.hpp"
+#include "alpaka/idx/MapIdx.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/meta/Fold.hpp"
 
 namespace alpaka
 {
@@ -46,8 +41,10 @@ namespace alpaka
             auto const idxThreadFirstElem = getIdxThreadFirstElem(acc, gridThreadIdx, threadElemExtent);
             auto idx = mapIdxPitchBytes<1u, Dim<TAcc>::value>(idxThreadFirstElem, pitch)[0];
             constexpr auto lastDim = Dim<TAcc>::value - 1;
-            const auto lastIdx = idx
-                + std::min(threadElemExtent[lastDim], static_cast<Idx>(extent[lastDim] - idxThreadFirstElem[lastDim]));
+            auto const lastIdx = idx
+                                 + std::min(
+                                     threadElemExtent[lastDim],
+                                     static_cast<Idx>(extent[lastDim] - idxThreadFirstElem[lastDim]));
 
             if((idxThreadFirstElem < extent).foldrAll(std::logical_and<bool>()))
             {

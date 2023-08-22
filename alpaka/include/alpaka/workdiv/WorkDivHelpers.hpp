@@ -1,20 +1,16 @@
 /* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/acc/Traits.hpp>
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/core/Common.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
-#include <alpaka/workdiv/WorkDivMembers.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Utility.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
 
 #include <algorithm>
 #include <array>
@@ -36,25 +32,22 @@ namespace alpaka
 
     namespace detail
     {
-        //! \param maxDivisor The maximum divisor.
+        //! Finds the largest divisor where divident % divisor == 0
         //! \param dividend The dividend.
+        //! \param maxDivisor The maximum divisor.
         //! \return The biggest number that satisfies the following conditions:
-        //!     1) dividend/ret==0
+        //!     1) dividend%ret==0
         //!     2) ret<=maxDivisor
         template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-        ALPAKA_FN_HOST auto nextDivisorLowerOrEqual(T const& maxDivisor, T const& dividend) -> T
+        ALPAKA_FN_HOST auto nextDivisorLowerOrEqual(T const& dividend, T const& maxDivisor) -> T
         {
-            T divisor(maxDivisor);
-
             core::assertValueUnsigned(dividend);
             core::assertValueUnsigned(maxDivisor);
-            ALPAKA_ASSERT(dividend <= maxDivisor);
+            ALPAKA_ASSERT(dividend >= maxDivisor);
 
-            while((dividend % divisor) != 0)
-            {
+            T divisor = maxDivisor;
+            while(dividend % divisor != 0)
                 --divisor;
-            }
-
             return divisor;
         }
         //! \param val The value to find divisors of.
@@ -124,7 +117,7 @@ namespace alpaka
     //!     the number of elements computed per thread.
     //! \param accDevProps
     //!     The maxima for the work division.
-    //! \param requireBlockThreadExtentToDivideGridThreadExtent
+    //! \param blockThreadMustDivideGridThreadExtent
     //!     If this is true, the grid thread extent will be multiples of the corresponding block thread extent.
     //!     NOTE: If this is true and gridThreadExtent is prime (or otherwise bad chosen) in a dimension, the block
     //!     thread extent will be one in this dimension.
@@ -133,15 +126,16 @@ namespace alpaka
     template<typename TDim, typename TIdx>
     ALPAKA_FN_HOST auto subDivideGridElems(
         Vec<TDim, TIdx> const& gridElemExtent,
-        Vec<TDim, TIdx> threadElemExtent,
+        Vec<TDim, TIdx> const& threadElemExtent,
         AccDevProps<TDim, TIdx> const& accDevProps,
-        bool requireBlockThreadExtentToDivideGridThreadExtent = true,
+        bool blockThreadMustDivideGridThreadExtent = true,
         GridBlockExtentSubDivRestrictions gridBlockExtentSubDivRestrictions
         = GridBlockExtentSubDivRestrictions::Unrestricted) -> WorkDivMembers<TDim, TIdx>
     {
-        ///////////////////////////////////////////////////////////////////
-        // Check that the input data is valid.
-        for(typename TDim::value_type i(0); i < TDim::value; ++i)
+        using Vec = Vec<TDim, TIdx>;
+        using DimLoopInd = typename TDim::value_type;
+
+        for(DimLoopInd i(0); i < TDim::value; ++i)
         {
             ALPAKA_ASSERT(gridElemExtent[i] >= 1);
             ALPAKA_ASSERT(threadElemExtent[i] >= 1);
@@ -150,177 +144,117 @@ namespace alpaka
         ALPAKA_ASSERT(threadElemExtent.prod() <= accDevProps.m_threadElemCountMax);
         ALPAKA_ASSERT(isValidAccDevProps(accDevProps));
 
-        ///////////////////////////////////////////////////////////////////
-        // Handle the given threadElemExtent. After this only the blockThreadExtent has to be optimized.
-
-        // Restrict the thread elem extent with the grid elem extent.
-        for(typename TDim::value_type i(0); i < TDim::value; ++i)
+        // Handle threadElemExtent and compute gridThreadExtent. Afterwards, only the blockThreadExtent has to be
+        // optimized.
+        auto const clippedThreadElemExtent = elementwise_min(threadElemExtent, gridElemExtent);
+        auto const gridThreadExtent = [&]
         {
-            threadElemExtent[i] = std::min(threadElemExtent[i], gridElemExtent[i]);
-        }
-
-        // Calculate the grid thread extent.
-        auto gridThreadExtent = Vec<TDim, TIdx>::zeros();
-        for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-        {
-            gridThreadExtent[i] = static_cast<TIdx>(
-                std::ceil(static_cast<double>(gridElemExtent[i]) / static_cast<double>(threadElemExtent[i])));
-        }
+            Vec r;
+            for(DimLoopInd i(0u); i < TDim::value; ++i)
+                r[i] = core::divCeil(gridElemExtent[i], clippedThreadElemExtent[i]);
+            return r;
+        }();
 
         ///////////////////////////////////////////////////////////////////
         // Try to calculate an optimal blockThreadExtent.
 
-        // Initialize the block thread extent with the maximum possible.
-        auto blockThreadExtent = accDevProps.m_blockThreadExtentMax;
-
-        // Restrict the max block thread extent with the grid thread extent.
+        // Restrict the max block thread extent from the maximum possible to the grid thread extent.
         // This removes dimensions not required in the grid thread extent.
         // This has to be done before the blockThreadCountMax clipping to get the maximum correctly.
-        for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-        {
-            blockThreadExtent[i] = std::min(blockThreadExtent[i], gridThreadExtent[i]);
-        }
+        auto blockThreadExtent = elementwise_min(accDevProps.m_blockThreadExtentMax, gridThreadExtent);
 
         // For equal block thread extent, restrict it to its minimum component.
         // For example (512, 256, 1024) will get (256, 256, 256).
         if(gridBlockExtentSubDivRestrictions == GridBlockExtentSubDivRestrictions::EqualExtent)
-        {
-            auto const minBlockThreadExtent = blockThreadExtent.min();
-            for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-            {
-                blockThreadExtent[i] = minBlockThreadExtent;
-            }
-        }
+            blockThreadExtent = Vec::all(blockThreadExtent.min());
 
-        auto const& blockThreadCountMax(accDevProps.m_blockThreadCountMax);
-        // Adjust blockThreadExtent if its product is too large.
+        // Make the blockThreadExtent product smaller or equal to the accelerator's limit.
+        auto const& blockThreadCountMax = accDevProps.m_blockThreadCountMax;
         if(blockThreadExtent.prod() > blockThreadCountMax)
         {
-            // Satisfy the following equation:
-            // blockThreadCountMax >= blockThreadExtent.prod()
-            // For example 1024 >= 512 * 512 * 1024
-
-            // For equal block thread extent this is easily the nth root of blockThreadCountMax.
-            if(gridBlockExtentSubDivRestrictions == GridBlockExtentSubDivRestrictions::EqualExtent)
+            switch(gridBlockExtentSubDivRestrictions)
             {
-                double const fNthRoot(
-                    std::pow(static_cast<double>(blockThreadCountMax), 1.0 / static_cast<double>(TDim::value)));
-                TIdx const nthRoot(static_cast<TIdx>(fNthRoot));
-                for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-                {
-                    blockThreadExtent[i] = nthRoot;
-                }
-            }
-            else if(gridBlockExtentSubDivRestrictions == GridBlockExtentSubDivRestrictions::CloseToEqualExtent)
-            {
+            case GridBlockExtentSubDivRestrictions::EqualExtent:
+                blockThreadExtent = Vec::all(core::nthRootFloor(blockThreadCountMax, TIdx{TDim::value}));
+                break;
+            case GridBlockExtentSubDivRestrictions::CloseToEqualExtent:
                 // Very primitive clipping. Just halve the largest value until it fits.
                 while(blockThreadExtent.prod() > blockThreadCountMax)
-                {
-                    auto const maxElemIdx = blockThreadExtent.maxElem();
-                    blockThreadExtent[maxElemIdx] = blockThreadExtent[maxElemIdx] / static_cast<TIdx>(2u);
-                }
-            }
-            else
-            {
-                // Very primitive clipping. Just halve the smallest value until it fits.
+                    blockThreadExtent[blockThreadExtent.maxElem()] /= TIdx{2};
+                break;
+            case GridBlockExtentSubDivRestrictions::Unrestricted:
+                // Very primitive clipping. Just halve the smallest value (which is not 1) until it fits.
                 while(blockThreadExtent.prod() > blockThreadCountMax)
                 {
-                    // Compute the minimum element index but ignore ones.
-                    // Ones compare always larger to everything else.
-                    auto const minElemIdx = static_cast<TIdx>(std::distance(
-                        &blockThreadExtent[0u],
-                        std::min_element(
-                            &blockThreadExtent[0u],
-                            &blockThreadExtent[TDim::value - 1u],
-                            [](TIdx const& a, TIdx const& b)
-                            {
-                                // This first case is redundant.
-                                /*if((a == 1u) && (b == 1u))
-                                {
-                                    return false;
-                                }
-                                else */
-                                if(a == static_cast<TIdx>(1u))
-                                {
-                                    return false;
-                                }
-                                else if(b == static_cast<TIdx>(1u))
-                                {
-                                    return true;
-                                }
-                                else
-                                {
-                                    return a < b;
-                                }
-                            })));
-                    blockThreadExtent[minElemIdx] = blockThreadExtent[minElemIdx] / static_cast<TIdx>(2u);
+                    auto const it = std::min_element(
+                        blockThreadExtent.begin(),
+                        blockThreadExtent.end() - 1, //! \todo why omit the last element?
+                        [](TIdx const& a, TIdx const& b)
+                        {
+                            if(a == TIdx{1})
+                                return false;
+                            if(b == TIdx{1})
+                                return true;
+                            return a < b;
+                        });
+                    *it /= TIdx{2};
                 }
+                break;
             }
         }
 
         // Make the block thread extent divide the grid thread extent.
-        if(requireBlockThreadExtentToDivideGridThreadExtent)
+        if(blockThreadMustDivideGridThreadExtent)
         {
-            if(gridBlockExtentSubDivRestrictions == GridBlockExtentSubDivRestrictions::EqualExtent)
+            switch(gridBlockExtentSubDivRestrictions)
             {
-                // For equal size block extent we have to compute the gcd of all grid thread extent that is less then
-                // the current maximal block thread extent. For this we compute the divisors of all grid thread extent
-                // less then the current maximal block thread extent.
-                std::array<std::set<TIdx>, TDim::value> gridThreadExtentDivisors;
-                for(typename TDim::value_type i(0u); i < TDim::value; ++i)
+            case GridBlockExtentSubDivRestrictions::EqualExtent:
                 {
-                    gridThreadExtentDivisors[i]
-                        = detail::allDivisorsLessOrEqual(gridThreadExtent[i], blockThreadExtent[i]);
+                    // For equal size block extent we have to compute the gcd of all grid thread extent that is less
+                    // then the current maximal block thread extent. For this we compute the divisors of all grid
+                    // thread extent less then the current maximal block thread extent.
+                    std::array<std::set<TIdx>, TDim::value> gridThreadExtentDivisors;
+                    for(DimLoopInd i(0u); i < TDim::value; ++i)
+                    {
+                        gridThreadExtentDivisors[i]
+                            = detail::allDivisorsLessOrEqual(gridThreadExtent[i], blockThreadExtent[i]);
+                    }
+                    // The maximal common divisor of all block thread extent is the optimal solution.
+                    std::set<TIdx> intersects[2u];
+                    for(DimLoopInd i(1u); i < TDim::value; ++i)
+                    {
+                        intersects[(i - 1u) % 2u] = gridThreadExtentDivisors[0];
+                        intersects[(i) % 2u].clear();
+                        set_intersection(
+                            std::begin(intersects[(i - 1u) % 2u]),
+                            std::end(intersects[(i - 1u) % 2u]),
+                            std::begin(gridThreadExtentDivisors[i]),
+                            std::end(gridThreadExtentDivisors[i]),
+                            std::inserter(intersects[i % 2], std::begin(intersects[i % 2u])));
+                    }
+                    TIdx const maxCommonDivisor = *(--std::end(intersects[(TDim::value - 1) % 2u]));
+                    blockThreadExtent = Vec::all(maxCommonDivisor);
+                    break;
                 }
-                // The maximal common divisor of all block thread extent is the optimal solution.
-                std::set<TIdx> intersects[2u];
-                for(typename TDim::value_type i(1u); i < TDim::value; ++i)
-                {
-                    intersects[(i - 1u) % 2u] = gridThreadExtentDivisors[0];
-                    intersects[(i) % 2u].clear();
-                    set_intersection(
-                        std::begin(intersects[(i - 1u) % 2u]),
-                        std::end(intersects[(i - 1u) % 2u]),
-                        std::begin(gridThreadExtentDivisors[i]),
-                        std::end(gridThreadExtentDivisors[i]),
-                        std::inserter(intersects[i % 2], std::begin(intersects[i % 2u])));
-                }
-                TIdx const maxCommonDivisor(*(--std::end(intersects[(TDim::value - 1) % 2u])));
-                for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-                {
-                    blockThreadExtent[i] = maxCommonDivisor;
-                }
-            }
-            else if(gridBlockExtentSubDivRestrictions == GridBlockExtentSubDivRestrictions::CloseToEqualExtent)
-            {
-                for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-                {
-                    blockThreadExtent[i] = detail::nextDivisorLowerOrEqual(blockThreadExtent[i], gridThreadExtent[i]);
-                }
-            }
-            else
-            {
-                for(typename TDim::value_type i(0u); i < TDim::value; ++i)
-                {
-                    blockThreadExtent[i] = detail::nextDivisorLowerOrEqual(blockThreadExtent[i], gridThreadExtent[i]);
-                }
+            case GridBlockExtentSubDivRestrictions::CloseToEqualExtent:
+                [[fallthrough]];
+            case GridBlockExtentSubDivRestrictions::Unrestricted:
+                for(DimLoopInd i(0u); i < TDim::value; ++i)
+                    blockThreadExtent[i] = detail::nextDivisorLowerOrEqual(gridThreadExtent[i], blockThreadExtent[i]);
+                break;
             }
         }
 
-        ///////////////////////////////////////////////////////////////////
-        // Compute the gridBlockExtent.
-
-        // Set the grid block extent (rounded to the next integer not less then the quotient.
-        auto gridBlockExtent = Vec<TDim, TIdx>::ones();
-        for(typename TDim::value_type i(0u); i < TDim::value; ++i)
+        // grid blocks extent = grid thread / block thread extent. quotient is rounded up.
+        auto const gridBlockExtent = [&]
         {
-            gridBlockExtent[i] = static_cast<TIdx>(
-                std::ceil(static_cast<double>(gridThreadExtent[i]) / static_cast<double>(blockThreadExtent[i])));
-        }
+            Vec r;
+            for(DimLoopInd i = 0; i < TDim::value; ++i)
+                r[i] = core::divCeil(gridThreadExtent[i], blockThreadExtent[i]);
+            return r;
+        }();
 
-        ///////////////////////////////////////////////////////////////////
-        // Return the final work division.
-        return WorkDivMembers<TDim, TIdx>(gridBlockExtent, blockThreadExtent, threadElemExtent);
+        return WorkDivMembers<TDim, TIdx>(gridBlockExtent, blockThreadExtent, clippedThreadElemExtent);
     }
 
     //! \tparam TAcc The accelerator for which this work division has to be valid.
@@ -333,19 +267,23 @@ namespace alpaka
     //!     The full extent of elements in the grid.
     //! \param threadElemExtents
     //!     the number of elements computed per thread.
-    //! \param requireBlockThreadExtentToDivideGridThreadExtent
+    //! \param blockThreadMustDivideGridThreadExtent
     //!     If this is true, the grid thread extent will be multiples of the corresponding block thread extent.
     //!     NOTE: If this is true and gridThreadExtent is prime (or otherwise bad chosen) in a dimension, the block
     //!     thread extent will be one in this dimension.
     //! \param gridBlockExtentSubDivRestrictions
     //!     The grid block extent subdivision restrictions.
     //! \return The work division.
-    template<typename TAcc, typename TGridElemExtent, typename TThreadElemExtent, typename TDev>
+    template<
+        typename TAcc,
+        typename TDev,
+        typename TGridElemExtent = Vec<Dim<TAcc>, Idx<TAcc>>,
+        typename TThreadElemExtent = Vec<Dim<TAcc>, Idx<TAcc>>>
     ALPAKA_FN_HOST auto getValidWorkDiv(
         [[maybe_unused]] TDev const& dev,
-        [[maybe_unused]] TGridElemExtent const& gridElemExtent = TGridElemExtent(),
-        [[maybe_unused]] TThreadElemExtent const& threadElemExtents = TThreadElemExtent(),
-        [[maybe_unused]] bool requireBlockThreadExtentToDivideGridThreadExtent = true,
+        [[maybe_unused]] TGridElemExtent const& gridElemExtent = Vec<Dim<TAcc>, Idx<TAcc>>::ones(),
+        [[maybe_unused]] TThreadElemExtent const& threadElemExtents = Vec<Dim<TAcc>, Idx<TAcc>>::ones(),
+        [[maybe_unused]] bool blockThreadMustDivideGridThreadExtent = true,
         [[maybe_unused]] GridBlockExtentSubDivRestrictions gridBlockExtentSubDivRestrictions
         = GridBlockExtentSubDivRestrictions::Unrestricted)
         -> WorkDivMembers<Dim<TGridElemExtent>, Idx<TGridElemExtent>>
@@ -365,7 +303,7 @@ namespace alpaka
 
         if constexpr(Dim<TGridElemExtent>::value == 0)
         {
-            const auto zero = Vec<DimInt<0>, Idx<TAcc>>{};
+            auto const zero = Vec<DimInt<0>, Idx<TAcc>>{};
             ALPAKA_ASSERT(gridElemExtent == zero);
             ALPAKA_ASSERT(threadElemExtents == zero);
             return WorkDivMembers<DimInt<0>, Idx<TAcc>>{zero, zero, zero};
@@ -375,7 +313,7 @@ namespace alpaka
                 getExtentVec(gridElemExtent),
                 getExtentVec(threadElemExtents),
                 getAccDevProps<TAcc>(dev),
-                requireBlockThreadExtentToDivideGridThreadExtent,
+                blockThreadMustDivideGridThreadExtent,
                 gridBlockExtentSubDivRestrictions);
         using V [[maybe_unused]] = Vec<Dim<TGridElemExtent>, Idx<TGridElemExtent>>;
         ALPAKA_UNREACHABLE(WorkDivMembers<Dim<TGridElemExtent>, Idx<TGridElemExtent>>{V{}, V{}, V{}});

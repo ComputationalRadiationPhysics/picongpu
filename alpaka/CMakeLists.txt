@@ -1,19 +1,14 @@
 #
-# Copyright 2022 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
+# SPDX-License-Identifier: MPL-2.0
 #
 
 ################################################################################
 # Required CMake version
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.22)
 
-cmake_policy(SET CMP0091 OLD)
+cmake_policy(SET CMP0091 NEW)
 
 include(CMakePrintHelpers)
 
@@ -41,13 +36,18 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(alpaka_BUILD_EXAMPLES "Build the examples" OFF)
 
-option(BUILD_TESTING "Build the testing tree." OFF)
+# Enable the test infrastructure only if alpaka is the top-level project
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    option(alpaka_ENABLE_WERROR "Treat all warnings as errors." OFF)
+    option(BUILD_TESTING "Build the testing tree." OFF)
+    include(CTest)
+endif()
 
 option(alpaka_INSTALL_TEST_HEADER "Install headers of the namespace alpaka::test. Attention, headers are not designed for production code, see documentation." OFF)
-include(CTest)
 
 include(CMakeDependentOption)
 cmake_dependent_option(alpaka_CHECK_HEADERS "Check all alpaka headers as part of the tests whether they can be compiled standalone." OFF BUILD_TESTING OFF)
+cmake_dependent_option(alpaka_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON BUILD_TESTING OFF)
 
 ################################################################################
 # Internal variables.
@@ -80,10 +80,17 @@ set(_alpaka_INCLUDE_DIRECTORY "${_alpaka_ROOT_DIR}/include")
 set(_alpaka_SUFFIXED_INCLUDE_DIR "${_alpaka_INCLUDE_DIRECTORY}/alpaka")
 
 # the sequential accelerator is required for the tests and examples
-if(NOT DEFINED alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE AND (alpaka_BUILD_EXAMPLES OR BUILD_TESTING))
-  option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "enable alpaka serial accelerator" ON)
+if(alpaka_BUILD_EXAMPLES OR BUILD_TESTING)
+  if (NOT (alpaka_ACC_GPU_CUDA_ONLY_MODE OR alpaka_ACC_GPU_HIP_ONLY_MODE))
+    if (NOT DEFINED alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)
+      option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "enable alpaka serial accelerator" ON)
+    elseif(NOT alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)
+      set(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE ON CACHE BOOL "enable alpaka serial accelerator" FORCE)
+    endif()
+  else() #CUDA or HIP-only mode
+    message(WARNING "CUDA/HIP-only mode enabled: not enabling alpaka serial accelerator (required for examples and tests)")
+  endif()
 endif()
-
 include(${_alpaka_ROOT_DIR}/cmake/alpakaCommon.cmake)
 
 # Add all the source and include files in all recursive subdirectories and group them accordingly.
@@ -123,7 +130,7 @@ endif()
 # These flags are set in cmake/alpakaCommon.cmake but are visible in this scope
 # since alpakaCommon.cmake is included.
 
-if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     if(alpaka_ACC_GPU_HIP_ENABLE)
         # export HIPCC flags to parent scope in case alpaka is another project's subdirectory
         set(HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} PARENT_SCOPE)
@@ -135,10 +142,14 @@ endif()
 ################################################################################
 # Add subdirectories
 
+add_subdirectory(thirdParty)
+
 if(alpaka_BUILD_EXAMPLES)
     add_subdirectory("example/")
 endif()
-if(BUILD_TESTING)
+
+# Only build the tests if alpaka is the top-level project and BUILD_TESTING is ON
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory("test/")
 endif()
 
@@ -146,7 +157,7 @@ endif()
 # Installation.
 
 # Do not install if alpaka is used as a CMake subdirectory
-if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CMakePackageConfigHelpers)
     include(GNUInstallDirs)
 

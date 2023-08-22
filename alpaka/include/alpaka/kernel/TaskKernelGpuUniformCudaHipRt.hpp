@@ -1,20 +1,42 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Jan Stephan, Andrea Bocci, Bernhard
  * Manfred Gruber, Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
+
+#include "alpaka/acc/AccGpuUniformCudaHipRt.hpp"
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/core/RemoveRestrict.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/workdiv/WorkDivHelpers.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
+
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
+#    include <iostream>
+#endif
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
 #    if !defined(ALPAKA_HOST_ONLY)
 
-#        include <alpaka/core/BoostPredef.hpp>
+#        include "alpaka/core/BoostPredef.hpp"
 
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
 #            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -24,82 +46,40 @@
 #            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #        endif
 
-// Specialized traits.
-#        include <alpaka/acc/Traits.hpp>
-#        include <alpaka/dev/Traits.hpp>
-#        include <alpaka/dim/Traits.hpp>
-#        include <alpaka/idx/Traits.hpp>
-#        include <alpaka/pltf/Traits.hpp>
-#        include <alpaka/queue/Traits.hpp>
-
-// Backend specific includes.
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#            include <alpaka/core/Cuda.hpp>
-#        else
-#            include <alpaka/core/Hip.hpp>
-#        endif
-
-// Implementation details.
-#        include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
-#        include <alpaka/core/Decay.hpp>
-#        include <alpaka/core/DemangleTypeNames.hpp>
-#        include <alpaka/core/RemoveRestrict.hpp>
-#        include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#        include <alpaka/kernel/Traits.hpp>
-#        include <alpaka/queue/QueueUniformCudaHipRtBlocking.hpp>
-#        include <alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp>
-#        include <alpaka/workdiv/WorkDivMembers.hpp>
-
-#        if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#            include <alpaka/acc/Traits.hpp>
-#            include <alpaka/dev/Traits.hpp>
-#            include <alpaka/workdiv/WorkDivHelpers.hpp>
-#        endif
-
-#        include <alpaka/core/BoostPredef.hpp>
-
-#        include <stdexcept>
-#        include <tuple>
-#        include <type_traits>
-#        if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#            include <iostream>
-#        endif
-
 namespace alpaka
 {
-    namespace uniform_cuda_hip
+    namespace detail
     {
-        namespace detail
+        //! The GPU CUDA/HIP kernel entry point.
+        // \NOTE: 'A __global__ function or function template cannot have a trailing return type.'
+        // We have put the function into a shallow namespace and gave it a short name, so the mangled name in the
+        // profiler (e.g. ncu) is as shorter as possible.
+        template<typename TKernelFnObj, typename TApi, typename TAcc, typename TDim, typename TIdx, typename... TArgs>
+        __global__ void gpuKernel(
+            Vec<TDim, TIdx> const threadElemExtent,
+            TKernelFnObj const kernelFnObj,
+            TArgs... args)
         {
-            //! The GPU CUDA/HIP kernel entry point.
-            // \NOTE: 'A __global__ function or function template cannot have a trailing return type.'
-            template<
-                typename TApi,
-                typename TAcc,
-                typename TDim,
-                typename TIdx,
-                typename TKernelFnObj,
-                typename... TArgs>
-            __global__ void uniformCudaHipKernel(
-                Vec<TDim, TIdx> const threadElemExtent,
-                TKernelFnObj const kernelFnObj,
-                TArgs... args)
-            {
 #        if BOOST_ARCH_PTX && (BOOST_ARCH_PTX < BOOST_VERSION_NUMBER(2, 0, 0))
 #            error "Device capability >= 2.0 is required!"
 #        endif
 
-                const TAcc acc(threadElemExtent);
+            const TAcc acc(threadElemExtent);
 
 // with clang it is not possible to query std::result_of for a pure device lambda created on the host side
 #        if !(BOOST_COMP_CLANG_CUDA && BOOST_COMP_CLANG)
-                static_assert(
-                    std::is_same_v<decltype(kernelFnObj(const_cast<TAcc const&>(acc), args...)), void>,
-                    "The TKernelFnObj is required to return void!");
+            static_assert(
+                std::is_same_v<decltype(kernelFnObj(const_cast<TAcc const&>(acc), args...)), void>,
+                "The TKernelFnObj is required to return void!");
 #        endif
-                kernelFnObj(const_cast<TAcc const&>(acc), args...);
-            }
+            kernelFnObj(const_cast<TAcc const&>(acc), args...);
+        }
+    } // namespace detail
 
+    namespace uniform_cuda_hip
+    {
+        namespace detail
+        {
             template<typename TDim, typename TIdx>
             ALPAKA_FN_HOST auto checkVecOnly3Dim(Vec<TDim, TIdx> const& vec) -> void
             {
@@ -181,9 +161,9 @@ namespace alpaka
 
         //! The CPU CUDA/HIP execution task platform type trait specialization.
         template<typename TApi, typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct PltfType<TaskKernelGpuUniformCudaHipRt<TApi, TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
+        struct PlatformType<TaskKernelGpuUniformCudaHipRt<TApi, TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            using type = PltfUniformCudaHipRt<TApi>;
+            using type = PlatformUniformCudaHipRt<TApi>;
         };
 
         //! The GPU CUDA/HIP execution task idx type trait specialization.
@@ -253,18 +233,13 @@ namespace alpaka
                 std::cout << __func__ << " BlockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
                           << std::endl;
 #        endif
-                auto kernelName = uniform_cuda_hip::detail::uniformCudaHipKernel<
-                    TApi,
-                    TAcc,
-                    TDim,
-                    TIdx,
-                    TKernelFnObj,
-                    remove_restrict_t<std::decay_t<TArgs>>...>;
+                auto kernelName = alpaka::detail::
+                    gpuKernel<TKernelFnObj, TApi, TAcc, TDim, TIdx, remove_restrict_t<std::decay_t<TArgs>>...>;
 
 #        if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 // Log the function attributes.
                 typename TApi::FuncAttributes_t funcAttrs;
-                TApi::funcGetAttributes(&funcAttrs, kernelName);
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::funcGetAttributes(&funcAttrs, kernelName));
                 std::cout << __func__ << " binaryVersion: " << funcAttrs.binaryVersion
                           << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
                           << " localSizeBytes: " << funcAttrs.localSizeBytes << " B"
@@ -367,17 +342,12 @@ namespace alpaka
                           << std::endl;
 #        endif
 
-                auto kernelName = uniform_cuda_hip::detail::uniformCudaHipKernel<
-                    TApi,
-                    TAcc,
-                    TDim,
-                    TIdx,
-                    TKernelFnObj,
-                    remove_restrict_t<std::decay_t<TArgs>>...>;
+                auto kernelName = alpaka::detail::
+                    gpuKernel<TKernelFnObj, TApi, TAcc, TDim, TIdx, remove_restrict_t<std::decay_t<TArgs>>...>;
 #        if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 // Log the function attributes.
                 typename TApi::FuncAttributes_t funcAttrs;
-                TApi::funcGetAttributes(&funcAttrs, kernelName);
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::funcGetAttributes(&funcAttrs, kernelName));
                 std::cout << __func__ << " binaryVersion: " << funcAttrs.binaryVersion
                           << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
                           << " localSizeBytes: " << funcAttrs.localSizeBytes << " B"

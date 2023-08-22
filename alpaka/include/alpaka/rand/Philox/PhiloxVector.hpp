@@ -1,16 +1,11 @@
 /* Copyright 2022 Jiri Vyskocil, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/rand/Philox/MultiplyAndSplit64to32.hpp>
-#include <alpaka/rand/Philox/PhiloxBaseTraits.hpp>
+#include "alpaka/rand/Philox/MultiplyAndSplit64to32.hpp"
+#include "alpaka/rand/Philox/PhiloxBaseTraits.hpp"
 
 #include <utility>
 
@@ -90,10 +85,6 @@ namespace alpaka::rand::engine
             this->skipSubsequence(subsequence);
             skip(offset);
             nextVector();
-        }
-
-        ALPAKA_FN_HOST_ACC PhiloxVector(PhiloxVector const& other) : state{other.state}
-        {
         }
 
         /** Get the next vector of random numbers

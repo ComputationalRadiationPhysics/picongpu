@@ -1,17 +1,12 @@
-/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/dim/TestDims.hpp>
-#include <alpaka/test/idx/TestIdxs.hpp>
+#include "alpaka/alpaka.hpp"
+#include "alpaka/test/dim/TestDims.hpp"
+#include "alpaka/test/idx/TestIdxs.hpp"
 
 #include <iosfwd>
 #include <tuple>
@@ -46,13 +41,6 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccCpuThreadsIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
-        template<typename TDim, typename TIdx>
-        using AccCpuFibersIfAvailableElseInt = AccCpuFibers<TDim, TIdx>;
-#else
-        template<typename TDim, typename TIdx>
-        using AccCpuFibersIfAvailableElseInt = int;
-#endif
 #if defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
         template<typename TDim, typename TIdx>
         using AccCpuTbbIfAvailableElseInt = AccCpuTbbBlocks<TDim, TIdx>;
@@ -74,49 +62,6 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccCpuOmp2ThreadsIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) && !defined(TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION)                         \
-    && !(                                                                                                             \
-        BOOST_COMP_GNUC                                                                                               \
-        && (((BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(11, 0, 0)) /* tests excluded because of GCC10 Oacc / Omp5 target \
-                                                                   symbol bug with multiple units */                  \
-             && (defined(TEST_UNIT_BLOCK_SHARED) || defined(TEST_UNIT_BLOCK_SYNC) || defined(TEST_UNIT_WARP)          \
-                 || defined(TEST_UNIT_INTRINSIC) || defined(TEST_UNIT_KERNEL) || defined(TEST_UNIT_MEM_VIEW)))        \
-            || defined(TEST_UNIT_MATH) /* because of static const members */                                          \
-            ))                                                                                                        \
-    && !(                                                                                                             \
-        !defined(ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST)                                                                    \
-        && (defined(TEST_UNIT_ATOMIC) /* clang nvptx atomic ICEs */                                                   \
-            ))
-        template<typename TDim, typename TIdx>
-        using AccOmp5IfAvailableElseInt = AccOmp5<TDim, TIdx>;
-#else
-        template<typename TDim, typename TIdx>
-        using AccOmp5IfAvailableElseInt = int;
-#endif
-#if defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED) && !(defined(TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION))                       \
-    && !(                                                                                                             \
-        defined(TEST_UNIT_TIME) /*no clock in OpenACC*/                                                               \
-        || defined(TEST_UNIT_BLOCK_SYNC) /*TODO: maybe atomics not working*/)                                         \
-    && !(                                                                                                             \
-        BOOST_COMP_GNUC                                                                                               \
-        && (((BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(11, 0, 0)) /* tests excluded because of GCC10 Oacc / Omp5 target \
-                                                                   symbol bug with multiple units */                  \
-             && (defined(TEST_UNIT_BLOCK_SHARED) || defined(TEST_UNIT_WARP) || defined(TEST_UNIT_INTRINSIC)           \
-                 || defined(TEST_UNIT_KERNEL) || defined(TEST_UNIT_MEM_VIEW)))                                        \
-            || defined(TEST_UNIT_MATH) /* because of static const members */                                          \
-            || defined(TEST_UNIT_MEM_BUF) /* actually works, but hangs when ran by ctest */                           \
-            ))                                                                                                        \
-    && !(                                                                                                             \
-        BOOST_COMP_PGI                                                                                                \
-        && ((!defined(ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST))                                                              \
-            && (defined(TEST_UNIT_MATH) /* 21.7: nvc++ fmod no acc device info */                                     \
-                )))
-        template<typename TDim, typename TIdx>
-        using AccOaccIfAvailableElseInt = AccOacc<TDim, TIdx>;
-#else
-        template<typename TDim, typename TIdx>
-        using AccOaccIfAvailableElseInt = int;
-#endif
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA || defined(ALPAKA_HOST_ONLY))
         template<typename TDim, typename TIdx>
         using AccGpuCudaRtIfAvailableElseInt = AccGpuCudaRt<TDim, TIdx>;
@@ -132,30 +77,23 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccGpuHipRtIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_CPU)
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_CPU)
         template<typename TDim, typename TIdx>
-        using AccCpuSyclIntelIfAvailableElseInt = alpaka::experimental::AccCpuSyclIntel<TDim, TIdx>;
+        using AccCpuSyclIfAvailableElseInt = alpaka::AccCpuSycl<TDim, TIdx>;
 #else
         template<typename TDim, typename TIdx>
-        using AccCpuSyclIntelIfAvailableElseInt = int;
+        using AccCpuSyclIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_FPGA)
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_FPGA)
         template<typename TDim, typename TIdx>
-        using AccFpgaSyclIntelIfAvailableElseInt = alpaka::experimental::AccFpgaSyclIntel<TDim, TIdx>;
+        using AccFpgaSyclIntelIfAvailableElseInt = alpaka::AccFpgaSyclIntel<TDim, TIdx>;
 #else
         template<typename TDim, typename TIdx>
         using AccFpgaSyclIntelIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_XILINX)
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_GPU)
         template<typename TDim, typename TIdx>
-        using AccFpgaSyclXilinxIfAvailableElseInt = alpaka::experimental::AccFpgaSyclXilinx<TDim, TIdx>;
-#else
-        template<typename TDim, typename TIdx>
-        using AccFpgaSyclXilinxIfAvailableElseInt = int;
-#endif
-#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_GPU)
-        template<typename TDim, typename TIdx>
-        using AccGpuSyclIntelIfAvailableElseInt = alpaka::experimental::AccGpuSyclIntel<TDim, TIdx>;
+        using AccGpuSyclIntelIfAvailableElseInt = alpaka::AccGpuSyclIntel<TDim, TIdx>;
 #else
         template<typename TDim, typename TIdx>
         using AccGpuSyclIntelIfAvailableElseInt = int;
@@ -166,17 +104,13 @@ namespace alpaka::test
         using EnabledAccsElseInt = std::tuple<
             AccCpuSerialIfAvailableElseInt<TDim, TIdx>,
             AccCpuThreadsIfAvailableElseInt<TDim, TIdx>,
-            AccCpuFibersIfAvailableElseInt<TDim, TIdx>,
             AccCpuTbbIfAvailableElseInt<TDim, TIdx>,
             AccCpuOmp2BlocksIfAvailableElseInt<TDim, TIdx>,
             AccCpuOmp2ThreadsIfAvailableElseInt<TDim, TIdx>,
-            AccOmp5IfAvailableElseInt<TDim, TIdx>,
-            AccOaccIfAvailableElseInt<TDim, TIdx>,
             AccGpuCudaRtIfAvailableElseInt<TDim, TIdx>,
             AccGpuHipRtIfAvailableElseInt<TDim, TIdx>,
-            AccCpuSyclIntelIfAvailableElseInt<TDim, TIdx>,
+            AccCpuSyclIfAvailableElseInt<TDim, TIdx>,
             AccFpgaSyclIntelIfAvailableElseInt<TDim, TIdx>,
-            AccFpgaSyclXilinxIfAvailableElseInt<TDim, TIdx>,
             AccGpuSyclIntelIfAvailableElseInt<TDim, TIdx>>;
     } // namespace detail
 
@@ -220,7 +154,7 @@ namespace alpaka::test
         //!         tuple<Dim3,Idx1>,
         //!         ...,
         //!         tuple<DimN,IdxN>>
-        using TestDimIdxTuples = meta::CartesianProduct<std::tuple, TestDims, TestIdxs>;
+        using TestDimIdxTuples = meta::CartesianProduct<std::tuple, NonZeroTestDims, TestIdxs>;
 
         template<typename TList>
         using ApplyEnabledAccs = meta::Apply<TList, EnabledAccs>;

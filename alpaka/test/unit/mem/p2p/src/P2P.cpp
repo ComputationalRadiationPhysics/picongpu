@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/mem/buf/Traits.hpp>
@@ -14,7 +9,8 @@
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <numeric>
 #include <type_traits>
@@ -23,21 +19,21 @@ template<typename TAcc>
 static auto testP2P(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
 {
     using Dev = alpaka::Dev<TAcc>;
-    using Pltf = alpaka::Pltf<Dev>;
     using Queue = alpaka::test::DefaultQueue<Dev>;
 
     using Elem = std::uint32_t;
     using Idx = alpaka::Idx<TAcc>;
 
-    if(alpaka::getDevCount<Pltf>() < 2)
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    if(alpaka::getDevCount(platformAcc) < 2)
     {
         std::cerr << "No two devices found to test peer-to-peer copy." << std::endl;
         CHECK(true);
         return;
     }
 
-    Dev const dev0 = alpaka::getDevByIdx<Pltf>(0u);
-    Dev const dev1 = alpaka::getDevByIdx<Pltf>(1u);
+    Dev const dev0 = alpaka::getDevByIdx(platformAcc, 0);
+    Dev const dev1 = alpaka::getDevByIdx(platformAcc, 1);
     Queue queue0(dev0);
     Queue queue1(dev1);
 
@@ -58,11 +54,6 @@ static auto testP2P(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& ext
 
 TEMPLATE_LIST_TEST_CASE("memP2PTest", "[memP2P]", alpaka::test::TestAccs)
 {
-#if defined(ALPAKA_CI) && BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7, 2, 0)                                            \
-    && BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(8, 0, 0) && defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED)
-    std::cerr << "Currently, memP2P is not working with gcc7.2 / gcc7.3 on CI." << std::endl;
-    CHECK(true);
-#else
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
@@ -71,5 +62,4 @@ TEMPLATE_LIST_TEST_CASE("memP2PTest", "[memP2P]", alpaka::test::TestAccs)
         = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
 
     testP2P<Acc>(extent);
-#endif
 }

@@ -1,18 +1,5 @@
 /* Copyright 2019 Jonas Schenke
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * SPDX-License-Identifier: ISC
  */
 
 #pragma once
@@ -27,7 +14,7 @@ template<typename T, typename TBuf = T>
 class Iterator
 {
 protected:
-    const TBuf* mData;
+    TBuf const* mData;
     uint64_t mIndex;
     const uint64_t mMaximum;
 
@@ -37,7 +24,7 @@ public:
     //! \param data A pointer to the data.
     //! \param index The index.
     //! \param maximum The first index outside of the iterator memory.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const TBuf* data, uint32_t index, uint64_t maximum)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(TBuf const* data, uint32_t index, uint64_t maximum)
         : mData(data)
         , mIndex(index)
         , mMaximum(maximum)
@@ -47,14 +34,14 @@ public:
     //! Constructor.
     //!
     //! \param other The other iterator object.
-    Iterator(const Iterator& other) = default;
+    Iterator(Iterator const& other) = default;
 
     //! Compare operator.
     //!
     //! \param other The other object.
     //!
     //! Returns true if objects are equal and false otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator==(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator==(Iterator const& other) const -> bool
     {
         return (this->mData == other.mData) && (this->mIndex == other.mIndex) && (this->mMaximum == other.mMaximum);
     }
@@ -64,7 +51,7 @@ public:
     //! \param other The other object.
     //!
     //! Returns false if objects are equal and true otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator!=(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator!=(Iterator const& other) const -> bool
     {
         return !operator==(other);
     }
@@ -75,7 +62,7 @@ public:
     //!
     //! Returns false if the other object is equal or smaller and true
     //! otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<(Iterator const& other) const -> bool
     {
         return mIndex < other.mIndex;
     }
@@ -85,7 +72,7 @@ public:
     //! \param other The other object.
     //!
     //! Returns false if the other object is equal or bigger and true otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>(Iterator const& other) const -> bool
     {
         return mIndex > other.mIndex;
     }
@@ -95,7 +82,7 @@ public:
     //! \param other The other object.
     //!
     //! Returns true if the other object is equal or bigger and false otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<=(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator<=(Iterator const& other) const -> bool
     {
         return mIndex <= other.mIndex;
     }
@@ -106,7 +93,7 @@ public:
     //!
     //! Returns true if the other object is equal or smaller and false
     //! otherwise.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>=(const Iterator& other) const -> bool
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator>=(Iterator const& other) const -> bool
     {
         return mIndex >= other.mIndex;
     }
@@ -137,7 +124,7 @@ public:
     //! \param gridSize The grid size.
     //! \param n The problem size.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorCpu(const TAcc& acc, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
+    IteratorCpu(TAcc const& acc, TBuf const* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
         : Iterator<T, TBuf>(
             data,
             static_cast<uint32_t>((n * linearizedIndex) / alpaka::math::min(acc, static_cast<uint64_t>(gridSize), n)),
@@ -258,7 +245,7 @@ public:
     //! \param gridSize The grid size.
     //! \param n The problem size.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorGpu(const TAcc&, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
+    IteratorGpu(TAcc const&, TBuf const* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
         : Iterator<T, TBuf>(data, linearizedIndex, n)
         , mGridSize(gridSize)
     {

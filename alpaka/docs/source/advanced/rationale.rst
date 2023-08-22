@@ -156,7 +156,6 @@ This can be seen in the source listing showing a simple AXPY computation with Op
    }
 
 Only one line of the function body, line 13, is the algorithm itself, while all surrounding lines represent the parallelization strategy.
-In *OpenACC* the parallelization and the algorithm are similarly combined.
 
 *CUDA*, *OpenCL* and other libraries allow, at least to some degree, to separate the algorithm from the parallelization strategy.
 They define the concept of a kernel representing the algorithm itself which is then parallelized depending on the underlying hardware.
@@ -212,13 +211,14 @@ Requirements
 - User kernels should be implemented independent of the accelerator.
 - A user kernel has to have access to accelerator methods (synchronization within blocks, index retrieval, ...).
 - For usage with CUDA, the kernel methods have to be attributed with ``__device__ __host__``.
-- The user kernel has to fulfill std::is_trivially_copyable because only such objects can be copied into CUDA device memory.
+- The user kernel has to fulfill ``std::is_trivially_copyable`` because only such objects can be copied into CUDA device memory.
   A trivially copyable class is a class that
   #. Has no non-trivial copy constructors(this also requires no virtual functions or virtual bases)
   #. Has no non-trivial move constructors
   #. Has no non-trivial copy assignment operators
   #. Has no non-trivial move assignment operators
   #. Has a trivial destructor
+- For the same reason all kernel parameters have to fulfill ``std::is_trivially_copyable``, too.
 
 Implementation Variants
 +++++++++++++++++++++++

@@ -1,11 +1,6 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
- * Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Sergei Bastrakov, René Widera, Jan Stephan,
+ *                Bernhard Manfred Gruber, Antonio Di Pilato, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/atomic/Traits.hpp>
@@ -13,7 +8,8 @@
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <climits>
 #include <type_traits>
@@ -49,7 +45,7 @@ ALPAKA_FN_ACC auto testAtomicAdd(TAcc const& acc, bool* success, T operandOrig) 
     }
     {
         operand = operandOrig;
-        T const ret = alpaka::atomicAdd(acc, &operand, value);
+        T const ret = alpaka::atomicAdd(acc, &operand, value, alpaka::hierarchy::Threads{});
         ALPAKA_CHECK(*success, equals(operandOrig, ret));
         ALPAKA_CHECK(*success, equals(operand, reference));
     }
@@ -305,8 +301,12 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
+        if constexpr(std::is_unsigned_v<T>)
+        {
+            // atomicInc / atomicDec are implemented only for unsigned integer types
+            testAtomicInc(acc, success, operandOrig);
+            testAtomicDec(acc, success, operandOrig);
+        }
 
         testAtomicAnd(acc, success, operandOrig);
         testAtomicOr(acc, success, operandOrig);
@@ -337,438 +337,31 @@ public:
         // testAtomicAnd(acc, success, operandOrig);
         // testAtomicOr(acc, success, operandOrig);
         // testAtomicXor(acc, success, operandOrig);
-        // testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc, bool* success, int operandOrig) const
-        -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
 
         testAtomicCas(acc, success, operandOrig);
     }
 };
 
-// NOTE: unsigned int is the only type supported by all atomic CUDA operations.
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, unsigned int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc, bool* success, unsigned int operandOrig)
-        const -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
+#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
 
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, unsigned long int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        bool* success,
-        unsigned long int operandOrig) const -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-#    if ULONG_MAX == ULLONG_MAX // LP64
-#        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-#        endif
-#    endif
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-#    if ULONG_MAX == ULLONG_MAX // LP64
-#        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-#        endif
-#    endif
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, unsigned long long int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        bool* success,
-        unsigned long long int operandOrig) const -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-#    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-#    endif
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-#    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-#    endif
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, float>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc, bool* success, float operandOrig) const
-        -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicAnd(acc, success, operandOrig);
-        // testAtomicOr(acc, success, operandOrig);
-        // testAtomicXor(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuCudaRt<TDim, TIdx>, double>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc, bool* success, double operandOrig) const
-        -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicAnd(acc, success, operandOrig);
-        // testAtomicOr(acc, success, operandOrig);
-        // testAtomicXor(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx, typename T>
+template<typename TApi, typename TDim, typename TIdx, typename T>
 class AtomicTestKernel<
-    alpaka::AccGpuCudaRt<TDim, TIdx>,
+    alpaka::AccGpuUniformCudaHipRt<TApi, TDim, TIdx>,
     T,
-    std::enable_if_t<!alpaka::meta::Contains<
-        std::tuple<int, unsigned, unsigned long, unsigned long long, float, double>,
-        T>::value>>
+    std::enable_if_t<sizeof(T) != 4u && sizeof(T) != 8u>>
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuCudaRt<TDim, TIdx> const& /* acc */,
+        alpaka::AccGpuUniformCudaHipRt<TApi, TDim, TIdx> const& /* acc */,
         bool* success,
         T /* operandOrig */) const -> void
     {
-        // All other types are not supported by CUDA atomic operations.
+        // All other types are not supported by CUDA/HIP atomic operations.
         ALPAKA_CHECK(*success, true);
     }
 };
-#endif
 
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuHipRt<TDim, TIdx>, int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& acc, bool* success, int operandOrig) const
-        -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-// NOTE: unsigned int is the only type supported by all atomic HIP operations.
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuHipRt<TDim, TIdx>, unsigned int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& acc, bool* success, unsigned int operandOrig)
-        const -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuHipRt<TDim, TIdx>, unsigned long int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        bool* success,
-        unsigned long int operandOrig) const -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-#    if ULONG_MAX == ULLONG_MAX // LP64
-#        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-#        endif
-#    endif
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-#    if ULONG_MAX == ULLONG_MAX // LP64
-#        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-#        endif
-#    endif
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuHipRt<TDim, TIdx>, unsigned long long int>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(
-        alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        bool* success,
-        unsigned long long int operandOrig) const -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-#    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-#    endif
-
-        testAtomicExch(acc, success, operandOrig);
-
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
-
-#    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
-        testAtomicAnd(acc, success, operandOrig);
-        testAtomicOr(acc, success, operandOrig);
-        testAtomicXor(acc, success, operandOrig);
-#    endif
-
-        testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuHipRt<TDim, TIdx>, float>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& acc, bool* success, float operandOrig) const
-        -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicAnd(acc, success, operandOrig);
-        // testAtomicOr(acc, success, operandOrig);
-        // testAtomicXor(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuHipRt<TDim, TIdx>, double>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& acc, bool* success, double operandOrig) const
-        -> void
-    {
-        testAtomicAdd(acc, success, operandOrig);
-        testAtomicSub(acc, success, operandOrig);
-
-        testAtomicMin(acc, success, operandOrig);
-        testAtomicMax(acc, success, operandOrig);
-
-        testAtomicExch(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicAnd(acc, success, operandOrig);
-        // testAtomicOr(acc, success, operandOrig);
-        // testAtomicXor(acc, success, operandOrig);
-
-        // Not supported
-        // testAtomicCas(acc, success, operandOrig);
-    }
-};
-
-template<typename TDim, typename TIdx, typename T>
-class AtomicTestKernel<
-    alpaka::AccGpuHipRt<TDim, TIdx>,
-    T,
-    std::enable_if_t<!alpaka::meta::Contains<
-        std::tuple<int, unsigned, unsigned long, unsigned long long, float, double>,
-        T>::value>>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& /* acc */, bool* success, T /* operandOrig */)
-        const -> void
-    {
-        // All other types are not supported by HIP atomic operations.
-        ALPAKA_CHECK(*success, true);
-    }
-};
-#endif
-
-#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-template<typename TDim, typename TIdx, typename T>
-class AtomicTestKernel<
-    alpaka::AccOacc<TDim, TIdx>,
-    T,
-    std::enable_if_t<sizeof(T) <= 2>> // disable 8-bit and 16-bit tests
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccOacc<TDim, TIdx> const& /* acc */, bool* success, T /* operandOrig */)
-        const -> void
-    {
-        // All other types are not supported by Oacc atomic operations.
-        ALPAKA_CHECK(*success, true);
-    }
-};
 #endif
 
 template<typename TAcc, typename T>
@@ -794,16 +387,27 @@ TEMPLATE_LIST_TEST_CASE("atomicOperationsWorking", "[atomic]", TestAccs)
 {
     using Acc = TestType;
 
-    TestAtomicOperations<Acc, unsigned char>::testAtomicOperations();
-    TestAtomicOperations<Acc, char>::testAtomicOperations();
-    TestAtomicOperations<Acc, unsigned short>::testAtomicOperations();
-    TestAtomicOperations<Acc, short>::testAtomicOperations();
+    // According to the CUDA 12.1 Programming Guide, Section 7.14. Atomic Functions, an atomic function performs a
+    // read-modify-write atomic operation on one 32-bit or 64-bit word residing in global or shared memory.
+    // Some operations require a compute capability of 5.0, 6.0, or higher; on older devices they can be emulated with
+    // an atomicCAS loop.
+
+    // According to SYCL 2020 rev. 7, Section 4.15.3. Atomic references, the template parameter T must be one of the
+    // following types:
+    //   - int, unsigned int,
+    //   - long, unsigned long,
+    //   - long long, unsigned long long,
+    //   - float, or double.
+    // In addition, the type T must satisfy one of the following conditions:
+    //  - sizeof(T) == 4, or
+    //  - sizeof(T) == 8 and the code containing the atomic_ref was submitted to a device that has aspect::atomic64.
 
     TestAtomicOperations<Acc, unsigned int>::testAtomicOperations();
     TestAtomicOperations<Acc, int>::testAtomicOperations();
 
     TestAtomicOperations<Acc, unsigned long>::testAtomicOperations();
     TestAtomicOperations<Acc, long>::testAtomicOperations();
+
     TestAtomicOperations<Acc, unsigned long long>::testAtomicOperations();
     TestAtomicOperations<Acc, long long>::testAtomicOperations();
 

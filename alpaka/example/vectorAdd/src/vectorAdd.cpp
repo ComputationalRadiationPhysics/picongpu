@@ -1,18 +1,6 @@
-/* Copyright 2020 Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan, Luca Ferragina,
+ *                Aurora Perego
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -83,14 +71,13 @@ auto main() -> int
     // - AccGpuCudaRt
     // - AccGpuHipRt
     // - AccCpuThreads
-    // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
-    // - AccOmp5
     // - AccCpuTbbBlocks
     // - AccCpuSerial
     // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
     using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using DevAcc = alpaka::Dev<Acc>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
@@ -100,7 +87,8 @@ auto main() -> int
     using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 
     // Select a device
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    auto const platform = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platform, 0);
 
     // Create a queue on the device
     QueueAcc queue(devAcc);
@@ -123,7 +111,8 @@ auto main() -> int
 
     // Get the host device for allocating memory on the host.
     using DevHost = alpaka::DevCpu;
-    auto const devHost = alpaka::getDevByIdx<DevHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
     // Allocate 3 host memory buffers
     using BufHost = alpaka::Buf<DevHost, Data, Dim, Idx>;
@@ -149,7 +138,7 @@ auto main() -> int
     }
 
     // Allocate 3 buffers on the accelerator
-    using BufAcc = alpaka::Buf<Acc, Data, Dim, Idx>;
+    using BufAcc = alpaka::Buf<DevAcc, Data, Dim, Idx>;
     BufAcc bufAccA(alpaka::allocBuf<Data, Idx>(devAcc, extent));
     BufAcc bufAccB(alpaka::allocBuf<Data, Idx>(devAcc, extent));
     BufAcc bufAccC(alpaka::allocBuf<Data, Idx>(devAcc, extent));
@@ -173,10 +162,10 @@ auto main() -> int
 
     // Enqueue the kernel execution task
     {
-        const auto beginT = std::chrono::high_resolution_clock::now();
+        auto const beginT = std::chrono::high_resolution_clock::now();
         alpaka::enqueue(queue, taskKernel);
         alpaka::wait(queue); // wait in case we are using an asynchronous queue to time actual kernel runtime
-        const auto endT = std::chrono::high_resolution_clock::now();
+        auto const endT = std::chrono::high_resolution_clock::now();
         std::cout << "Time for kernel execution: " << std::chrono::duration<double>(endT - beginT).count() << 's'
                   << std::endl;
     }
@@ -186,7 +175,7 @@ auto main() -> int
         auto beginT = std::chrono::high_resolution_clock::now();
         alpaka::memcpy(queue, bufHostC, bufAccC);
         alpaka::wait(queue);
-        const auto endT = std::chrono::high_resolution_clock::now();
+        auto const endT = std::chrono::high_resolution_clock::now();
         std::cout << "Time for HtoD copy: " << std::chrono::duration<double>(endT - beginT).count() << 's'
                   << std::endl;
     }

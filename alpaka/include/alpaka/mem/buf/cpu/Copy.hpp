@@ -1,21 +1,16 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan, Bernhard
  * Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/dim/DimIntegralConst.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/meta/Integral.hpp>
-#include <alpaka/meta/NdLoop.hpp>
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/meta/Integral.hpp"
+#include "alpaka/meta/NdLoop.hpp"
 
 #include <cstring>
 
@@ -39,30 +34,8 @@ namespace alpaka
             using SrcSize = Idx<TViewSrc>;
             using Elem = alpaka::Elem<TViewSrc>;
 
-            static_assert(!std::is_const_v<TViewDst>, "The destination view can not be const!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<TViewSrc>::value,
-                "The source and the destination view are required to have the same dimensionality!");
-            static_assert(
-                Dim<TViewDst>::value == Dim<TExtent>::value,
-                "The views and the extent are required to have the same dimensionality!");
-            static_assert(
-                Dim<TViewDst>::value == TDim::value,
-                "The destination view and the input TDim are required to have the same dimensionality!");
-
-            static_assert(
-                meta::IsIntegralSuperset<DstSize, ExtentSize>::value,
-                "The destination view and the extent are required to have compatible idx type!");
-            static_assert(
-                meta::IsIntegralSuperset<SrcSize, ExtentSize>::value,
-                "The source view and the extent are required to have compatible idx type!");
-
-            static_assert(
-                std::is_same_v<alpaka::Elem<TViewDst>, std::remove_const_t<alpaka::Elem<TViewSrc>>>,
-                "The source and the destination view are required to have the same element type!");
-
-            TaskCopyCpuBase(TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
+            template<typename TViewFwd>
+            TaskCopyCpuBase(TViewFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
                 : m_extent(getExtentVec(extent))
                 , m_extentWidthBytes(m_extent[TDim::value - 1u] * static_cast<ExtentSize>(sizeof(Elem)))
 #if(!defined(NDEBUG)) || (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
@@ -156,7 +129,7 @@ namespace alpaka
         //! The CPU device 1D memory copy task.
         template<typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyCpu<DimInt<1u>, TViewDst, TViewSrc, TExtent>
-            : public TaskCopyCpuBase<DimInt<1u>, TViewDst, TViewSrc, TExtent>
+            : TaskCopyCpuBase<DimInt<1u>, TViewDst, TViewSrc, TExtent>
         {
             using TaskCopyCpuBase<DimInt<1u>, TViewDst, TViewSrc, TExtent>::TaskCopyCpuBase;
 
@@ -183,36 +156,10 @@ namespace alpaka
         template<typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyCpu<DimInt<0u>, TViewDst, TViewSrc, TExtent>
         {
-            using ExtentSize = Idx<TExtent>;
-            using Scalar = Vec<DimInt<0u>, ExtentSize>;
-            using DstSize = Idx<TViewDst>;
-            using SrcSize = Idx<TViewSrc>;
             using Elem = alpaka::Elem<TViewSrc>;
 
-            static_assert(!std::is_const_v<TViewDst>, "The destination view can not be const!");
-
-            static_assert(
-                Dim<TViewDst>::value == Dim<TViewSrc>::value,
-                "The source and the destination view are required to have the same dimensionality!");
-            static_assert(
-                Dim<TViewDst>::value == Dim<TExtent>::value,
-                "The views and the extent are required to have the same dimensionality!");
-            static_assert(
-                Dim<TViewDst>::value == 0u,
-                "The destination view and the input TDim are required to have the same dimensionality!");
-
-            static_assert(
-                meta::IsIntegralSuperset<DstSize, ExtentSize>::value,
-                "The destination view and the extent are required to have compatible idx type!");
-            static_assert(
-                meta::IsIntegralSuperset<SrcSize, ExtentSize>::value,
-                "The source view and the extent are required to have compatible idx type!");
-
-            static_assert(
-                std::is_same_v<alpaka::Elem<TViewDst>, std::remove_const_t<alpaka::Elem<TViewSrc>>>,
-                "The source and the destination view are required to have the same element type!");
-
-            TaskCopyCpu(TViewDst& viewDst, TViewSrc const& viewSrc, [[maybe_unused]] TExtent const& extent)
+            template<typename TViewDstFwd>
+            TaskCopyCpu(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, [[maybe_unused]] TExtent const& extent)
                 : m_dstMemNative(reinterpret_cast<std::uint8_t*>(getPtrNative(viewDst)))
                 , m_srcMemNative(reinterpret_cast<std::uint8_t const*>(getPtrNative(viewSrc)))
             {
@@ -225,6 +172,7 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             ALPAKA_FN_HOST auto printDebug() const -> void
             {
+                using Scalar = Vec<DimInt<0u>, Idx<TExtent>>;
                 std::cout << __func__ << " e: " << Scalar() << " ewb: " << sizeof(Elem) << " de: " << Scalar()
                           << " dptr: " << reinterpret_cast<void*>(m_dstMemNative) << " dpitchb: " << Scalar()
                           << " se: " << Scalar() << " sptr: " << reinterpret_cast<void const*>(m_srcMemNative)
@@ -232,7 +180,7 @@ namespace alpaka
             }
 #endif
 
-            ALPAKA_FN_HOST auto operator()() const -> void
+            ALPAKA_FN_HOST auto operator()() const noexcept(ALPAKA_DEBUG < ALPAKA_DEBUG_FULL) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -258,13 +206,14 @@ namespace alpaka
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevCpu, DevCpu>
         {
-            template<typename TExtent, typename TViewSrc, typename TViewDst>
+            template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
-                TViewDst& viewDst,
+                TViewDstFwd&& viewDst,
                 TViewSrc const& viewSrc,
-                TExtent const& extent) -> alpaka::detail::TaskCopyCpu<TDim, TViewDst, TViewSrc, TExtent>
+                TExtent const& extent)
+                -> alpaka::detail::TaskCopyCpu<TDim, std::remove_reference_t<TViewDstFwd>, TViewSrc, TExtent>
             {
-                return alpaka::detail::TaskCopyCpu<TDim, TViewDst, TViewSrc, TExtent>(viewDst, viewSrc, extent);
+                return {std::forward<TViewDstFwd>(viewDst), viewSrc, extent};
             }
         };
     } // namespace trait

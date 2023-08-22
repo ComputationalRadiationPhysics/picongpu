@@ -1,33 +1,29 @@
-/* Copyright 2022 Jan Stephan, Antonio Di Pilato
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Andrea Bocci, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/event/Traits.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/traits/Traits.hpp"
+#include "alpaka/wait/Traits.hpp"
+
+#include <algorithm>
+#include <exception>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/event/Traits.hpp>
-#    include <alpaka/queue/Traits.hpp>
-#    include <alpaka/wait/Traits.hpp>
+#    include <sycl/sycl.hpp>
 
-#    include <CL/sycl.hpp>
-
-#    include <algorithm>
-#    include <exception>
-#    include <memory>
-#    include <mutex>
-#    include <shared_mutex>
-#    include <type_traits>
-#    include <utility>
-#    include <vector>
-
-namespace alpaka::experimental::detail
+namespace alpaka::detail
 {
     template<typename T, typename = void>
     inline constexpr auto is_sycl_task = false;
@@ -88,7 +84,7 @@ namespace alpaka::experimental::detail
                 old_end,
                 [](sycl::event ev) {
                     return ev.get_info<sycl::info::event::command_execution_status>()
-                        == sycl::info::event_command_status::complete;
+                           == sycl::info::event_command_status::complete;
                 });
 
             m_dependencies.erase(new_end, old_end);
@@ -106,7 +102,7 @@ namespace alpaka::experimental::detail
         {
             std::shared_lock<std::shared_mutex> lock{m_mutex};
             return m_last_event.get_info<sycl::info::event::command_execution_status>()
-                == sycl::info::event_command_status::complete;
+                   == sycl::info::event_command_status::complete;
         }
 
         auto wait() -> void
@@ -130,19 +126,24 @@ namespace alpaka::experimental::detail
                 clean_dependencies();
 
                 // Execute task
-                m_last_event = m_queue.submit(
-                    [this, &task](sycl::handler& cgh)
-                    {
-                        if(!m_dependencies.empty())
-                            cgh.depends_on(m_dependencies);
+                if constexpr(is_sycl_task<TTask> && !is_sycl_kernel<TTask>) // Copy / Fill
+                {
+                    m_last_event = task(m_queue, m_dependencies); // Will call queue.{copy, fill} internally
+                }
+                else
+                {
+                    m_last_event = m_queue.submit(
+                        [this, &task](sycl::handler& cgh)
+                        {
+                            if(!m_dependencies.empty())
+                                cgh.depends_on(m_dependencies);
 
-                        if constexpr(is_sycl_kernel<TTask>) // Kernel
-                            task(cgh, m_fence_dummy); // Will call cgh.parallel_for internally
-                        else if constexpr(is_sycl_task<TTask>) // Copy / Fill
-                            task(cgh); // Will call cgh.{copy, fill} internally
-                        else // Host
-                            cgh.host_task(task);
-                    });
+                            if constexpr(is_sycl_kernel<TTask>) // Kernel
+                                task(cgh); // Will call cgh.parallel_for internally
+                            else // Host
+                                cgh.host_task(task);
+                        });
+                }
 
                 m_dependencies.clear();
             }
@@ -158,7 +159,6 @@ namespace alpaka::experimental::detail
 
         std::vector<sycl::event> m_dependencies;
         sycl::event m_last_event;
-        sycl::buffer<int, 1> m_fence_dummy{sycl::range<1>{1}};
         std::shared_mutex mutable m_mutex;
 
     private:
@@ -171,16 +171,16 @@ namespace alpaka::experimental::detail
     public:
         QueueGenericSyclBase(TDev const& dev)
             : m_dev{dev}
-            , m_impl{std::make_shared<detail::QueueGenericSyclImpl>(
+            , m_spQueueImpl{std::make_shared<detail::QueueGenericSyclImpl>(
                   dev.getNativeHandle().second,
                   dev.getNativeHandle().first)}
         {
-            m_dev.m_impl->register_queue(m_impl);
+            m_dev.m_impl->register_queue(m_spQueueImpl);
         }
 
         friend auto operator==(QueueGenericSyclBase const& lhs, QueueGenericSyclBase const& rhs) -> bool
         {
-            return (lhs.m_dev == rhs.m_dev) && (lhs.m_impl == rhs.m_impl);
+            return (lhs.m_dev == rhs.m_dev) && (lhs.m_spQueueImpl == rhs.m_spQueueImpl);
         }
 
         friend auto operator!=(QueueGenericSyclBase const& lhs, QueueGenericSyclBase const& rhs) -> bool
@@ -190,15 +190,15 @@ namespace alpaka::experimental::detail
 
         [[nodiscard]] auto getNativeHandle() const noexcept
         {
-            return m_impl->getNativeHandle();
+            return m_spQueueImpl->getNativeHandle();
         }
 
         TDev m_dev;
-        std::shared_ptr<detail::QueueGenericSyclImpl> m_impl;
+        std::shared_ptr<detail::QueueGenericSyclImpl> m_spQueueImpl;
     };
-} // namespace alpaka::experimental::detail
+} // namespace alpaka::detail
 
-namespace alpaka::experimental
+namespace alpaka
 {
     template<typename TDev>
     class EventGenericSycl;
@@ -208,16 +208,16 @@ namespace alpaka::trait
 {
     //! The SYCL blocking queue device type trait specialization.
     template<typename TDev, bool TBlocking>
-    struct DevType<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>>
+    struct DevType<detail::QueueGenericSyclBase<TDev, TBlocking>>
     {
         using type = TDev;
     };
 
     //! The SYCL blocking queue device get trait specialization.
     template<typename TDev, bool TBlocking>
-    struct GetDev<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>>
+    struct GetDev<detail::QueueGenericSyclBase<TDev, TBlocking>>
     {
-        static auto getDev(experimental::detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
+        static auto getDev(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
             return queue.m_dev;
@@ -226,31 +226,30 @@ namespace alpaka::trait
 
     //! The SYCL blocking queue event type trait specialization.
     template<typename TDev, bool TBlocking>
-    struct EventType<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>>
+    struct EventType<detail::QueueGenericSyclBase<TDev, TBlocking>>
     {
-        using type = experimental::EventGenericSycl<TDev>;
+        using type = EventGenericSycl<TDev>;
     };
 
     //! The SYCL blocking queue enqueue trait specialization.
     template<typename TDev, bool TBlocking, typename TTask>
-    struct Enqueue<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>, TTask>
+    struct Enqueue<detail::QueueGenericSyclBase<TDev, TBlocking>, TTask>
     {
-        static auto enqueue(experimental::detail::QueueGenericSyclBase<TDev, TBlocking>& queue, TTask const& task)
-            -> void
+        static auto enqueue(detail::QueueGenericSyclBase<TDev, TBlocking>& queue, TTask const& task) -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            queue.m_impl->template enqueue<TBlocking>(task);
+            queue.m_spQueueImpl->template enqueue<TBlocking>(task);
         }
     };
 
     //! The SYCL blocking queue test trait specialization.
     template<typename TDev, bool TBlocking>
-    struct Empty<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>>
+    struct Empty<detail::QueueGenericSyclBase<TDev, TBlocking>>
     {
-        static auto empty(experimental::detail::QueueGenericSyclBase<TDev, TBlocking> const& queue) -> bool
+        static auto empty(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue) -> bool
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            return queue.m_impl->empty();
+            return queue.m_spQueueImpl->empty();
         }
     };
 
@@ -259,22 +258,20 @@ namespace alpaka::trait
     //! Blocks execution of the calling thread until the queue has finished processing all previously requested
     //! tasks (kernels, data copies, ...)
     template<typename TDev, bool TBlocking>
-    struct CurrentThreadWaitFor<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>>
+    struct CurrentThreadWaitFor<detail::QueueGenericSyclBase<TDev, TBlocking>>
     {
-        static auto currentThreadWaitFor(experimental::detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
-            -> void
+        static auto currentThreadWaitFor(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue) -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            queue.m_impl->wait();
+            queue.m_spQueueImpl->wait();
         }
     };
 
     //! The SYCL queue native handle trait specialization.
     template<typename TDev, bool TBlocking>
-    struct NativeHandle<experimental::detail::QueueGenericSyclBase<TDev, TBlocking>>
+    struct NativeHandle<detail::QueueGenericSyclBase<TDev, TBlocking>>
     {
-        [[nodiscard]] static auto getNativeHandle(
-            experimental::detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
+        [[nodiscard]] static auto getNativeHandle(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
         {
             return queue.getNativeHandle();
         }

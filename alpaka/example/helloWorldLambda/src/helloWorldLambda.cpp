@@ -1,18 +1,5 @@
-/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* Copyright 2023 Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -69,10 +56,8 @@ auto main() -> int
     // - AccGpuCudaRt
     // - AccGpuHipRt
     // - AccCpuThreads
-    // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
-    // - AccOmp5
     // - AccCpuTbbBlocks
     // - AccCpuSerial
     // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
@@ -86,15 +71,16 @@ auto main() -> int
     using Queue = alpaka::Queue<Acc, QueueProperty>;
 
     // Select a device
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Create a queue on the device
     Queue queue(devAcc);
 
     // Define the work division
     using Vec = alpaka::Vec<Dim, Idx>;
-    Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
-    Vec const threadsPerGrid(Vec::all(static_cast<Idx>(8)));
+    auto const elementsPerThread = Vec::all(static_cast<Idx>(1));
+    auto const threadsPerGrid = Vec{4, 2, 4};
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     WorkDiv const workDiv = alpaka::getValidWorkDiv<Acc>(
         devAcc,

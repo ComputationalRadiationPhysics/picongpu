@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
@@ -12,7 +7,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -80,18 +76,19 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 
     using Val = float;
     using DevAcc = alpaka::Dev<Acc>;
-    using PltfAcc = alpaka::Pltf<DevAcc>;
+    using PlatformAcc = alpaka::Platform<DevAcc>;
     using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
-    using PltfHost = alpaka::PltfCpu;
 
     // Create the kernel function object.
     AxpyKernel kernel;
 
     // Get the host device.
-    auto const devHost = alpaka::getDevByIdx<PltfHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
     // Select a device to execute on.
-    auto const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
@@ -108,12 +105,13 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 
     std::cout << "AxpyKernel("
               << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << typeid(kernel).name() << ", workDiv: " << workDiv << ")" << std::endl;
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
 
-    // Allocate host memory buffers.
-    auto memBufHostX = alpaka::allocBuf<Val, Idx>(devHost, extent);
-    auto memBufHostOrigY = alpaka::allocBuf<Val, Idx>(devHost, extent);
-    auto memBufHostY = alpaka::allocBuf<Val, Idx>(devHost, extent);
+    // Allocate host memory buffers in pinned memory.
+    auto memBufHostX = alpaka::allocMappedBufIfSupported<PlatformAcc, Val, Idx>(devHost, platformAcc, extent);
+    auto memBufHostOrigY = alpaka::allocMappedBufIfSupported<PlatformAcc, Val, Idx>(devHost, platformAcc, extent);
+    auto memBufHostY = alpaka::allocMappedBufIfSupported<PlatformAcc, Val, Idx>(devHost, platformAcc, extent);
     Val* const pBufHostX = alpaka::getPtrNative(memBufHostX);
     Val* const pBufHostOrigY = alpaka::getPtrNative(memBufHostOrigY);
     Val* const pBufHostY = alpaka::getPtrNative(memBufHostY);
@@ -123,7 +121,7 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     std::random_device rd{};
     auto const seed = rd();
     std::default_random_engine eng{seed};
-    std::uniform_real_distribution<Val> dist(0.0, 1.0);
+    std::uniform_real_distribution<Val> dist(Val{0}, Val{1});
     std::cout << "using seed: " << seed << "\n";
     // Initialize the host input vectors
     for(Idx i(0); i < numElements; ++i)

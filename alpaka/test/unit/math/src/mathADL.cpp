@@ -1,10 +1,5 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include "Buffer.hpp"
@@ -17,7 +12,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <cmath>
 
@@ -29,19 +25,27 @@ namespace custom
     {
         Abs,
         Acos,
+        Acosh,
         Arg,
         Asin,
+        Asinh,
         Atan,
+        Atanh,
         Atan2,
         Cbrt,
         Ceil,
         Conj,
+        Copysign,
         Cos,
+        Cosh,
         Erf,
         Exp,
         Floor,
+        Fma,
         Fmod,
         Log,
+        Log2,
+        Log10,
         Max,
         Min,
         Pow,
@@ -51,19 +55,17 @@ namespace custom
         Llround,
         Rsqrt,
         Sin,
+        Sinh,
         Sincos,
         Sqrt,
         Tan,
+        Tanh,
         Trunc,
 
         Arg1 = 1024,
         Arg2 = 2048,
         Arg3 = 4096,
     };
-
-    // struct Custom
-    //{
-    //};
 
     ALPAKA_FN_HOST_ACC auto abs(Custom c);
     ALPAKA_FN_HOST_ACC auto abs(Custom c)
@@ -75,6 +77,12 @@ namespace custom
     ALPAKA_FN_HOST_ACC auto acos(Custom c)
     {
         return Custom::Acos | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto acosh(Custom c);
+    ALPAKA_FN_HOST_ACC auto acosh(Custom c)
+    {
+        return Custom::Acosh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto arg(Custom c);
@@ -89,10 +97,22 @@ namespace custom
         return Custom::Asin | c;
     }
 
+    ALPAKA_FN_HOST_ACC auto asinh(Custom c);
+    ALPAKA_FN_HOST_ACC auto asinh(Custom c)
+    {
+        return Custom::Asinh | c;
+    }
+
     ALPAKA_FN_HOST_ACC auto atan(Custom c);
     ALPAKA_FN_HOST_ACC auto atan(Custom c)
     {
         return Custom::Atan | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto atanh(Custom c);
+    ALPAKA_FN_HOST_ACC auto atanh(Custom c)
+    {
+        return Custom::Atanh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto atan2(Custom a, Custom b);
@@ -119,10 +139,22 @@ namespace custom
         return Custom::Conj | c;
     }
 
+    ALPAKA_FN_HOST_ACC auto copysign(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto copysign(Custom a, Custom b)
+    {
+        return Custom::Copysign | a | b;
+    }
+
     ALPAKA_FN_HOST_ACC auto cos(Custom c);
     ALPAKA_FN_HOST_ACC auto cos(Custom c)
     {
         return Custom::Cos | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto cosh(Custom c);
+    ALPAKA_FN_HOST_ACC auto cosh(Custom c)
+    {
+        return Custom::Cosh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto erf(Custom c);
@@ -143,6 +175,12 @@ namespace custom
         return Custom::Floor | c;
     }
 
+    ALPAKA_FN_HOST_ACC auto fma(Custom a, Custom b, Custom c);
+    ALPAKA_FN_HOST_ACC auto fma(Custom a, Custom b, Custom c)
+    {
+        return Custom::Fma | a | b | c;
+    }
+
     ALPAKA_FN_HOST_ACC auto fmod(Custom a, Custom b);
     ALPAKA_FN_HOST_ACC auto fmod(Custom a, Custom b)
     {
@@ -153,6 +191,18 @@ namespace custom
     ALPAKA_FN_HOST_ACC auto log(Custom c)
     {
         return Custom::Log | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto log2(Custom c);
+    ALPAKA_FN_HOST_ACC auto log2(Custom c)
+    {
+        return Custom::Log2 | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto log10(Custom c);
+    ALPAKA_FN_HOST_ACC auto log10(Custom c)
+    {
+        return Custom::Log10 | c;
     }
 
     ALPAKA_FN_HOST_ACC auto max(Custom a, Custom b);
@@ -209,6 +259,12 @@ namespace custom
         return Custom::Sin | c;
     }
 
+    ALPAKA_FN_HOST_ACC auto sinh(Custom c);
+    ALPAKA_FN_HOST_ACC auto sinh(Custom c)
+    {
+        return Custom::Sinh | c;
+    }
+
     ALPAKA_FN_HOST_ACC void sincos(Custom c, Custom& a, Custom& b);
     ALPAKA_FN_HOST_ACC void sincos(Custom c, Custom& a, Custom& b)
     {
@@ -228,6 +284,12 @@ namespace custom
         return Custom::Tan | c;
     }
 
+    ALPAKA_FN_HOST_ACC auto tanh(Custom c);
+    ALPAKA_FN_HOST_ACC auto tanh(Custom c)
+    {
+        return Custom::Tanh | c;
+    }
+
     ALPAKA_FN_HOST_ACC auto trunc(Custom c);
     ALPAKA_FN_HOST_ACC auto trunc(Custom c)
     {
@@ -244,29 +306,41 @@ struct AdlKernel
 
         ALPAKA_CHECK(*success, alpaka::math::abs(acc, Custom::Arg1) == (Custom::Abs | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::acos(acc, Custom::Arg1) == (Custom::Acos | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::acosh(acc, Custom::Arg1) == (Custom::Acosh | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::arg(acc, Custom::Arg1) == (Custom::Arg | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::asin(acc, Custom::Arg1) == (Custom::Asin | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::asinh(acc, Custom::Arg1) == (Custom::Asinh | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::atan(acc, Custom::Arg1) == (Custom::Atan | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::atanh(acc, Custom::Arg1) == (Custom::Atanh | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::cbrt(acc, Custom::Arg1) == (Custom::Cbrt | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::ceil(acc, Custom::Arg1) == (Custom::Ceil | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::conj(acc, Custom::Arg1) == (Custom::Conj | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::cos(acc, Custom::Arg1) == (Custom::Cos | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::cosh(acc, Custom::Arg1) == (Custom::Cosh | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::erf(acc, Custom::Arg1) == (Custom::Erf | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::exp(acc, Custom::Arg1) == (Custom::Exp | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::floor(acc, Custom::Arg1) == (Custom::Floor | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::log(acc, Custom::Arg1) == (Custom::Log | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::log2(acc, Custom::Arg1) == (Custom::Log2 | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::log10(acc, Custom::Arg1) == (Custom::Log10 | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::round(acc, Custom::Arg1) == (Custom::Round | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::lround(acc, Custom::Arg1) == (Custom::Lround | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::llround(acc, Custom::Arg1) == (Custom::Llround | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::rsqrt(acc, Custom::Arg1) == (Custom::Rsqrt | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::sin(acc, Custom::Arg1) == (Custom::Sin | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::sinh(acc, Custom::Arg1) == (Custom::Sinh | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::sqrt(acc, Custom::Arg1) == (Custom::Sqrt | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::tan(acc, Custom::Arg1) == (Custom::Tan | Custom::Arg1));
+        ALPAKA_CHECK(*success, alpaka::math::tanh(acc, Custom::Arg1) == (Custom::Tanh | Custom::Arg1));
         ALPAKA_CHECK(*success, alpaka::math::trunc(acc, Custom::Arg1) == (Custom::Trunc | Custom::Arg1));
 
         ALPAKA_CHECK(
             *success,
             alpaka::math::atan2(acc, Custom::Arg1, Custom::Arg2) == (Custom::Atan2 | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(
+            *success,
+            alpaka::math::copysign(acc, Custom::Arg1, Custom::Arg2)
+                == (Custom::Copysign | Custom::Arg1 | Custom::Arg2));
         ALPAKA_CHECK(
             *success,
             alpaka::math::fmod(acc, Custom::Arg1, Custom::Arg2) == (Custom::Fmod | Custom::Arg1 | Custom::Arg2));
@@ -283,6 +357,11 @@ struct AdlKernel
             *success,
             alpaka::math::remainder(acc, Custom::Arg1, Custom::Arg2)
                 == (Custom::Remainder | Custom::Arg1 | Custom::Arg2));
+
+        ALPAKA_CHECK(
+            *success,
+            alpaka::math::fma(acc, Custom::Arg1, Custom::Arg2, Custom::Arg3)
+                == (Custom::Fma | Custom::Arg1 | Custom::Arg2 | Custom::Arg3));
 
         Custom a, b;
         alpaka::math::sincos(acc, Custom::Arg1, a, b);

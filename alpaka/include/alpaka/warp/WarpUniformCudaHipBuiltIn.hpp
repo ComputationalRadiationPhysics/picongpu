@@ -1,21 +1,16 @@
 /* Copyright 2022 Sergei Bastrakov, David M. Rogers, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/warp/Traits.hpp"
+
+#include <cstdint>
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/BoostPredef.hpp>
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/warp/Traits.hpp>
-
-#    include <cstdint>
 
 namespace alpaka::warp
 {
@@ -56,14 +51,7 @@ namespace alpaka::warp
 #        endif
             {
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                // Workaround for clang + CUDA 9.2 which uses the wrong PTX ISA,
-                // discussion in https://github.com/alpaka-group/alpaka/pull/1003
-                // Can't use __activemask(), so emulate with __ballot_sync()
-#            if BOOST_COMP_CLANG_CUDA && BOOST_LANG_CUDA == BOOST_VERSION_NUMBER(9, 2, 0)
-                return __ballot_sync(0xffffffff, 1);
-#            else
                 return __activemask();
-#            endif
 #        else
                 // No HIP intrinsic for it, emulate via ballot
                 return __ballot(1);

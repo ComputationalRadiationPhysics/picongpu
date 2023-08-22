@@ -1,16 +1,12 @@
 #
-# Copyright 2014-2020 Benjamin Worpitz, Axel Huebl, Jan Stephan
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Benjamin Worpitz, Axel Hübl, Jan Stephan
+# SPDX-License-Identifier: MPL-2.0
 #
 
-if((NOT alpaka_ACC_GPU_CUDA_ENABLE AND NOT alpaka_ACC_GPU_HIP_ENABLE
-   AND NOT alpaka_ACC_ANY_BT_OMP5_ENABLE AND NOT alpaka_ACC_ANY_BT_OACC_ENABLE) OR
-   (alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_SEPARABLE_COMPILATION))
+if((NOT alpaka_ACC_GPU_CUDA_ENABLE AND NOT alpaka_ACC_GPU_HIP_ENABLE AND NOT alpaka_ACC_SYCL_ENABLE) OR
+   (alpaka_ACC_GPU_CUDA_ENABLE AND (alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)) OR # OFF by default
+   (alpaka_ACC_GPU_HIP_ENABLE AND (alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)) OR  # OFF by default
+   (alpaka_ACC_SYCL_ENABLE AND NOT (alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)))  # ON by default
 
     set(_TARGET_NAME "separableCompilationTest")
 

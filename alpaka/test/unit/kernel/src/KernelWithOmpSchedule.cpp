@@ -1,10 +1,5 @@
-/* Copyright 2022 Sergei Bastrakov, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Sergei Bastrakov, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/core/BoostPredef.hpp>
@@ -13,7 +8,8 @@
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
 
@@ -56,11 +52,11 @@ struct KernelWithConstexprStaticMemberOmpScheduleChunkSize : KernelWithConstexpr
 template<alpaka::omp::Schedule::Kind TKind>
 struct KernelWithStaticMemberOmpScheduleChunkSize : KernelWithMemberOmpScheduleKind<TKind>
 {
-    static const int ompScheduleChunkSize;
+    static int const ompScheduleChunkSize;
 };
 // In this case, the member has to be defined externally
 template<alpaka::omp::Schedule::Kind TKind>
-const int KernelWithStaticMemberOmpScheduleChunkSize<TKind>::ompScheduleChunkSize = 2;
+int const KernelWithStaticMemberOmpScheduleChunkSize<TKind>::ompScheduleChunkSize = 2;
 
 // Kernel that sets the schedule chunk size via non-constexpr non-static ompScheduleChunkSize in addition to schedule
 // kind.
@@ -113,10 +109,6 @@ void testKernel()
     REQUIRE(fixture(kernelWithTrait));
 }
 
-// Disabling these tests for GCC + OMP5 & OACC because GCC does not like static
-// data members in mapped variables when offlading.
-#if !(BOOST_COMP_GNUC && (defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) || defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)))
-
 // Note: it turned out not possible to test all possible combinations as it causes several compilers to crash in CI.
 // However the following tests should cover all important cases
 
@@ -147,9 +139,8 @@ TEMPLATE_LIST_TEST_CASE("kernelWithStaticMemberOmpScheduleChunkSize", "[kernel]"
 
 TEMPLATE_LIST_TEST_CASE("kernelWithMemberOmpScheduleChunkSize", "[kernel]", alpaka::test::TestAccs)
 {
-#    if defined _OPENMP && _OPENMP >= 200805
+#if defined _OPENMP && _OPENMP >= 200805
     testKernel<TestType, KernelWithMemberOmpScheduleChunkSize<alpaka::omp::Schedule::Auto>>();
-#    endif
+#endif
     testKernel<TestType, KernelWithMemberOmpScheduleChunkSize<alpaka::omp::Schedule::Runtime>>();
 }
-#endif

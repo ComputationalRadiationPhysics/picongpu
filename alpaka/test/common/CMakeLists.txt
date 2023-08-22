@@ -1,14 +1,9 @@
 #
-# Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Benjamin Worpitz, Jan Stephan
+# SPDX-License-Identifier: MPL-2.0
 #
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.22)
 
 set(_COMMON_TARGET_NAME "common")
 set(_COMMON_COMPILE_OPTIONS_FILE "devCompileOptions.cmake")
@@ -24,21 +19,38 @@ if(MSVC)
     target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/bigobj> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/bigobj>)
 endif()
 
-if(alpaka_ACC_GPU_CUDA_ENABLE OR (alpaka_ACC_GPU_HIP_ENABLE AND HIP_PLATFORM MATCHES "nvcc"))
+if(alpaka_ACC_GPU_CUDA_ENABLE)
     # CUDA driver API is used by EventHostManualTrigger
     target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE CUDA::cuda_driver)
     target_compile_definitions(${_COMMON_TARGET_NAME} INTERFACE "CUDA_API_PER_THREAD_DEFAULT_STREAM")
 endif()
-if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
-    # nvcc supports werror starting with 10.2
-    if(CUDA_VERSION GREATER_EQUAL 10.2)
-        message(STATUS "adding -Werror=all-warnings")
+if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
+    if(alpaka_ENABLE_WERROR)
         target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Werror=all-warnings>)
     endif()
 endif()
 
 target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE alpaka::alpaka)
-target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE CatchMain)
+
+# Prevent "unsafe buffer usage" warnings from clang >= 16
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "16.0.0") OR
+   (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "2023.2.0"))
+    
+    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "-Wno-unsafe-buffer-usage")
+
+    # We have no way to determine if we are using amdclang++. So we will just decide this by checking for the HIP back-end.
+    if(alpaka_ACC_GPU_HIP_ENABLE)
+        # amdclang++-5.5 pretends to be clang-16 but doesn't know all warnings.
+        target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "-Wno-unknown-warning-option") 
+    endif()
+endif()
+
+# Prevent warnings from shady code inside Catch2
+get_target_property(alpaka_CATCH2_INCLUDE_DIRS Catch2::Catch2 INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(${_COMMON_TARGET_NAME} SYSTEM INTERFACE ${alpaka_CATCH2_INCLUDE_DIRS})
+
+# Now we can safely link to Catch2
+target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE Catch2::Catch2WithMain)
 
 if(TARGET ${_COMMON_TARGET_NAME})
     # HACK: Workaround for the limitation that files added to INTERFACE targets (target_sources) can not be marked as PUBLIC or PRIVATE but only as INTERFACE.

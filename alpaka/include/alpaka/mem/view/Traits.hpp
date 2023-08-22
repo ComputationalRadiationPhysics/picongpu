@@ -1,29 +1,28 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unreachable.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/elem/Traits.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/meta/Fold.hpp>
-#include <alpaka/offset/Traits.hpp>
-#include <alpaka/queue/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Unreachable.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/elem/Traits.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/meta/Fold.hpp"
+#include "alpaka/meta/Integral.hpp"
+#include "alpaka/offset/Traits.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <array>
 #include <iosfwd>
 #include <type_traits>
 #include <vector>
+#ifdef ALPAKA_USE_MDSPAN
+#    include <experimental/mdspan>
+#endif
 
 namespace alpaka
 {
@@ -137,9 +136,8 @@ namespace alpaka
 
     //! \return The pitch in bytes. This is the distance in bytes between two consecutive elements in the given
     //! dimension.
-    ALPAKA_NO_HOST_ACC_WARNING
     template<std::size_t Tidx, typename TView>
-    ALPAKA_FN_HOST_ACC auto getPitchBytes(TView const& view) -> Idx<TView>
+    ALPAKA_FN_HOST auto getPitchBytes(TView const& view) -> Idx<TView>
     {
         return trait::GetPitchBytes<DimInt<Tidx>, TView>::getPitchBytes(view);
     }
@@ -149,37 +147,45 @@ namespace alpaka
     //! \param view The memory view to fill.
     //! \param byte Value to set for each element of the specified view.
     //! \param extent The extent of the view to fill.
-    template<typename TExtent, typename TView>
-    ALPAKA_FN_HOST auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& extent)
+    template<typename TExtent, typename TViewFwd>
+    ALPAKA_FN_HOST auto createTaskMemset(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
     {
+        using TView = std::remove_reference_t<TViewFwd>;
+        static_assert(!std::is_const_v<TView>, "The view must not be const!");
         static_assert(
             Dim<TView>::value == Dim<TExtent>::value,
             "The view and the extent are required to have the same dimensionality!");
+        static_assert(
+            meta::IsIntegralSuperset<Idx<TView>, Idx<TExtent>>::value,
+            "The view and the extent must have compatible index types!");
 
-        return trait::CreateTaskMemset<Dim<TView>, Dev<TView>>::createTaskMemset(view, byte, extent);
+        return trait::CreateTaskMemset<Dim<TView>, Dev<TView>>::createTaskMemset(
+            std::forward<TViewFwd>(view),
+            byte,
+            extent);
     }
 
-    //! Sets the memory to the given value.
+    //! Sets the bytes of the memory of view, described by extent, to the given value.
     //!
     //! \param queue The queue to enqueue the view fill task into.
-    //! \param view The memory view to fill.
+    //! \param[in,out] view The memory view to fill. May be a temporary object.
     //! \param byte Value to set for each element of the specified view.
     //! \param extent The extent of the view to fill.
-    template<typename TExtent, typename TView, typename TQueue>
-    ALPAKA_FN_HOST auto memset(TQueue& queue, TView& view, std::uint8_t const& byte, TExtent const& extent) -> void
+    template<typename TExtent, typename TViewFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memset(TQueue& queue, TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent) -> void
     {
-        enqueue(queue, createTaskMemset(view, byte, extent));
+        enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, extent));
     }
 
-    //! Sets the whole view to the given value.
+    //! Sets each byte of the memory of the entire view to the given value.
     //!
     //! \param queue The queue to enqueue the view fill task into.
-    //! \param view The memory view to fill.
+    //! \param[in,out] view The memory view to fill. May be a temporary object.
     //! \param byte Value to set for each element of the specified view.
-    template<typename TView, typename TQueue>
-    ALPAKA_FN_HOST auto memset(TQueue& queue, TView& view, std::uint8_t const& byte) -> void
+    template<typename TViewFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memset(TQueue& queue, TViewFwd&& view, std::uint8_t const& byte) -> void
     {
-        enqueue(queue, createTaskMemset(view, byte, getExtentVec(view)));
+        enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, getExtentVec(view)));
     }
 
     //! Creates a memory copy task.
@@ -187,47 +193,64 @@ namespace alpaka
     //! \param viewDst The destination memory view.
     //! \param viewSrc The source memory view.
     //! \param extent The extent of the view to copy.
-    template<typename TExtent, typename TViewSrc, typename TViewDst>
-    ALPAKA_FN_HOST auto createTaskMemcpy(TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
+    template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
+    ALPAKA_FN_HOST auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
     {
+        using TViewDst = std::remove_reference_t<TViewDstFwd>;
+        using SrcElem = Elem<TViewSrc>;
+        using DstElem = Elem<TViewDst>;
+        using ExtentIdx = Idx<TExtent>;
+        using DstIdx = Idx<TViewDst>;
+        using SrcIdx = Idx<TViewSrc>;
+
+        static_assert(!std::is_const_v<TViewDst>, "The destination view must not be const!");
+        static_assert(!std::is_const_v<DstElem>, "The destination view's element type must not be const!");
         static_assert(
             Dim<TViewDst>::value == Dim<TViewSrc>::value,
-            "The source and the destination view are required to have the same dimensionality!");
+            "The source and the destination view must have the same dimensionality!");
         static_assert(
             Dim<TViewDst>::value == Dim<TExtent>::value,
-            "The destination view and the extent are required to have the same dimensionality!");
+            "The destination view and the extent must have the same dimensionality!");
         static_assert(
-            std::is_same_v<Elem<TViewDst>, std::remove_const_t<Elem<TViewSrc>>>,
-            "The source and the destination view are required to have the same element type!");
+            std::is_same_v<DstElem, std::remove_const_t<SrcElem>>,
+            "The source and destination view must have the same element type!");
+        static_assert(
+            meta::IsIntegralSuperset<DstIdx, ExtentIdx>::value,
+            "The destination view and the extent are required to have compatible index types!");
+        static_assert(
+            meta::IsIntegralSuperset<SrcIdx, ExtentIdx>::value,
+            "The source view and the extent are required to have compatible index types!");
 
         return trait::CreateTaskMemcpy<Dim<TViewDst>, Dev<TViewDst>, Dev<TViewSrc>>::createTaskMemcpy(
-            viewDst,
+            std::forward<TViewDstFwd>(viewDst),
             viewSrc,
             extent);
     }
 
-    //! Copies memory possibly between different memory spaces.
+    //! Copies memory from a part of viewSrc to viewDst, described by extent. Possibly copies between different memory
+    //! spaces.
     //!
     //! \param queue The queue to enqueue the view copy task into.
-    //! \param viewDst The destination memory view.
-    //! \param viewSrc The source memory view.
+    //! \param[in,out] viewDst The destination memory view. May be a temporary object.
+    //! \param viewSrc The source memory view. May be a temporary object.
     //! \param extent The extent of the view to copy.
-    template<typename TExtent, typename TViewSrc, typename TViewDst, typename TQueue>
-    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDst& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
+    template<typename TExtent, typename TViewSrc, typename TViewDstFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
         -> void
     {
-        enqueue(queue, createTaskMemcpy(viewDst, viewSrc, extent));
+        enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, extent));
     }
 
-    //! Copies the whole view possibly between different memory spaces.
+    //! Copies the entire memory of viewSrc to viewDst. Possibly copies between different memory
+    //! spaces.
     //!
     //! \param queue The queue to enqueue the view copy task into.
-    //! \param viewDst The destination memory view.
-    //! \param viewSrc The source memory view.
-    template<typename TViewSrc, typename TViewDst, typename TQueue>
-    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDst& viewDst, TViewSrc const& viewSrc) -> void
+    //! \param[in,out] viewDst The destination memory view. May be a temporary object.
+    //! \param viewSrc The source memory view. May be a temporary object.
+    template<typename TViewSrc, typename TViewDstFwd, typename TQueue>
+    ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDstFwd&& viewDst, TViewSrc const& viewSrc) -> void
     {
-        enqueue(queue, createTaskMemcpy(viewDst, viewSrc, getExtentVec(viewSrc)));
+        enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, getExtentVec(viewSrc)));
     }
 
     namespace detail
@@ -332,9 +355,8 @@ namespace alpaka
         template<std::size_t Tidx>
         struct CreatePitchBytes
         {
-            ALPAKA_NO_HOST_ACC_WARNING
             template<typename TView>
-            ALPAKA_FN_HOST_ACC static auto create(TView const& view) -> Idx<TView>
+            ALPAKA_FN_HOST static auto create(TView const& view) -> Idx<TView>
             {
                 return getPitchBytes<Tidx>(view);
             }
@@ -425,7 +447,7 @@ namespace alpaka
     template<typename TDev, typename TContainer>
     auto createView(TDev const& dev, TContainer& con)
     {
-        return createView(dev, std::data(con), getExtent(con));
+        return createView(dev, std::data(con), getExtentVec(con));
     }
 
     //! Creates a view to a contiguous container of device-accessible memory.
@@ -454,4 +476,131 @@ namespace alpaka
         return trait::CreateSubView<typename trait::DevType<TView>::type>::createSubView(view, extent, offset);
     }
 
+#ifdef ALPAKA_USE_MDSPAN
+    namespace experimental
+    {
+        // import mdspan into alpaka::experimental namespace. see: https://eel.is/c++draft/mdspan.syn
+        using std::experimental::default_accessor;
+        using std::experimental::dextents;
+        using std::experimental::extents;
+        using std::experimental::layout_left;
+        using std::experimental::layout_right;
+        using std::experimental::layout_stride;
+        using std::experimental::mdspan;
+        // import submdspan as well, which is not standardized yet
+        using std::experimental::full_extent;
+        using std::experimental::submdspan;
+
+        namespace traits
+        {
+            namespace detail
+            {
+                template<typename ElementType>
+                struct ByteIndexedAccessor
+                {
+                    using offset_policy = ByteIndexedAccessor;
+                    using element_type = ElementType;
+                    using reference = ElementType&;
+
+                    using data_handle_type
+                        = std::conditional_t<std::is_const_v<ElementType>, std::byte const*, std::byte*>;
+
+                    constexpr ByteIndexedAccessor() noexcept = default;
+
+                    ALPAKA_FN_HOST_ACC
+                    constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept
+                    {
+                        return p + i;
+                    }
+
+                    ALPAKA_FN_HOST_ACC
+                    constexpr reference access(data_handle_type p, size_t i) const noexcept
+                    {
+                        assert(i % alignof(ElementType) == 0);
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wcast-align"
+#    endif
+                        return *reinterpret_cast<ElementType*>(p + i);
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic pop
+#    endif
+                    }
+                };
+
+                template<typename TView, std::size_t... Is>
+                ALPAKA_FN_HOST auto makeExtents(TView const& view, std::index_sequence<Is...>)
+                {
+                    return std::experimental::dextents<Idx<TView>, Dim<TView>::value>{getExtent<Is>(view)...};
+                }
+
+                template<typename TView, std::size_t... Is>
+                ALPAKA_FN_HOST auto makeStrides(TView const& view, std::index_sequence<Is...>)
+                {
+                    constexpr auto fastestIndexPitch = static_cast<Idx<TView>>(sizeof(Elem<TView>));
+                    [[maybe_unused]] constexpr auto dim = Dim<TView>::value;
+                    // alpaka pitches are right-shifted by 1. We skip getPitchBytes<0> (the size in bytes of the entire
+                    // buffer) and append the element size last
+                    return std::array<Idx<TView>, dim>{
+                        (Is < dim - 1 ? getPitchBytes<Is + 1>(view) : fastestIndexPitch)...};
+                }
+            } // namespace detail
+
+            //! Customization point for getting an mdspan from a view.
+            template<typename TView, typename TSfinae = void>
+            struct GetMdSpan
+            {
+                ALPAKA_FN_HOST static auto getMdSpan(TView& view)
+                {
+                    constexpr auto dim = Dim<TView>::value;
+                    using Element = Elem<TView>;
+                    auto extents = detail::makeExtents(view, std::make_index_sequence<dim>{});
+                    auto* ptr = reinterpret_cast<std::byte*>(getPtrNative(view));
+                    auto const strides = detail::makeStrides(view, std::make_index_sequence<dim>{});
+                    layout_stride::mapping<decltype(extents)> m{extents, strides};
+                    return mdspan<Element, decltype(extents), layout_stride, detail::ByteIndexedAccessor<Element>>{
+                        ptr,
+                        m};
+                }
+
+                ALPAKA_FN_HOST static auto getMdSpanTransposed(TView& view)
+                {
+                    constexpr auto dim = Dim<TView>::value;
+                    using Element = Elem<TView>;
+                    auto extents = detail::makeExtents(view, std::make_index_sequence<dim>{});
+                    auto* ptr = reinterpret_cast<std::byte*>(getPtrNative(view));
+                    auto strides = detail::makeStrides(view, std::make_index_sequence<dim>{});
+                    std::reverse(begin(strides), end(strides));
+                    layout_stride::mapping<decltype(extents)> m{extents, strides};
+                    return mdspan<Element, decltype(extents), layout_stride, detail::ByteIndexedAccessor<Element>>{
+                        ptr,
+                        m};
+                }
+            };
+        } // namespace traits
+
+        //! Gets a std::mdspan from the given view. The memory layout is determined by the pitches of the view.
+        template<typename TView>
+        ALPAKA_FN_HOST auto getMdSpan(TView& view)
+        {
+            return traits::GetMdSpan<TView>::getMdSpan(view);
+        }
+
+        //! Gets a std::mdspan from the given view. The memory layout is determined by the reversed pitches of the
+        //! view. This effectively also reverses the extents of the view. In order words, if you create a transposed
+        //! mdspan on a 10x5 element view, the mdspan will have an iteration space of 5x10.
+        template<typename TView>
+        ALPAKA_FN_HOST auto getMdSpanTransposed(TView& view)
+        {
+            return traits::GetMdSpan<TView>::getMdSpanTransposed(view);
+        }
+
+        template<typename TElem, typename TIdx, typename TDim>
+        using MdSpan = alpaka::experimental::mdspan<
+            TElem,
+            alpaka::experimental::dextents<TIdx, TDim::value>,
+            alpaka::experimental::layout_stride,
+            alpaka::experimental::traits::detail::ByteIndexedAccessor<TElem>>;
+    } // namespace experimental
+#endif
 } // namespace alpaka

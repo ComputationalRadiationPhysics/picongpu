@@ -1,16 +1,11 @@
 /* Copyright 2022 Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/math/FloatEqualExact.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/math/FloatEqualExact.hpp"
 
 #include <cmath>
 #include <complex>
@@ -53,7 +48,7 @@ namespace alpaka
         }
 
         //! Copy constructor
-        constexpr ALPAKA_FN_HOST_ACC Complex(Complex const& other) = default;
+        constexpr Complex(Complex const& other) = default;
 
         //! Constructor from Complex of another type
         template<typename U>
@@ -75,7 +70,7 @@ namespace alpaka
         }
 
         //! Assignment
-        ALPAKA_FN_HOST_ACC Complex& operator=(Complex const&) = default;
+        Complex& operator=(Complex const&) = default;
 
         //! Get the real part
         constexpr ALPAKA_FN_HOST_ACC T real() const
@@ -290,7 +285,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator==(Complex<T> const& lhs, Complex<T> const& rhs)
     {
         return math::floatEqualExactNoWarning(lhs.real(), rhs.real())
-            && math::floatEqualExactNoWarning(lhs.imag(), rhs.imag());
+               && math::floatEqualExactNoWarning(lhs.imag(), rhs.imag());
     }
 
     //! Equality of a complex and a real number
@@ -298,7 +293,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator==(Complex<T> const& lhs, T const& rhs)
     {
         return math::floatEqualExactNoWarning(lhs.real(), rhs)
-            && math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
+               && math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
     }
 
     //! Equality of a real and a complex number
@@ -306,7 +301,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator==(T const& lhs, Complex<T> const& rhs)
     {
         return math::floatEqualExactNoWarning(lhs, rhs.real())
-            && math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
+               && math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
     }
 
     //! Inequality of two complex numbers.
@@ -323,7 +318,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator!=(Complex<T> const& lhs, T const& rhs)
     {
         return !math::floatEqualExactNoWarning(lhs.real(), rhs)
-            || !math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
+               || !math::floatEqualExactNoWarning(lhs.imag(), static_cast<T>(0));
     }
 
     //! Inequality of a real and a complex number
@@ -331,7 +326,7 @@ namespace alpaka
     constexpr ALPAKA_FN_HOST_ACC bool operator!=(T const& lhs, Complex<T> const& rhs)
     {
         return !math::floatEqualExactNoWarning(lhs, rhs.real())
-            || !math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
+               || !math::floatEqualExactNoWarning(static_cast<T>(0), rhs.imag());
     }
 
     //! @}

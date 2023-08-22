@@ -43,7 +43,7 @@ using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
 struct ScatterHeapConfig
 {
     static constexpr auto pagesize = 4096;
-    static constexpr auto accessblocks = 8;
+    static constexpr auto accessblocksize = 2u * 1024u * 1024u * 1024u;
     static constexpr auto regionsize = 16;
     static constexpr auto wastefactor = 2;
     static constexpr auto resetfreedpages = false;
@@ -83,7 +83,8 @@ auto main() -> int
 {
     constexpr auto length = 100;
 
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
     auto const devProps = alpaka::getAccDevProps<Acc>(dev);
@@ -159,7 +160,9 @@ auto main() -> int
             queue,
             alpaka::createTaskKernel<Acc>(workDiv, addArrays, length, alpaka::getPtrNative(sumsBufferAcc)));
 
-        const auto hostDev = alpaka::getDevByIdx<alpaka::DevCpu>(0);
+        auto const platformCPU = alpaka::Platform<alpaka::DevCpu>{};
+        const auto hostDev = alpaka::getDevByIdx(platformCPU, 0);
+
         auto sumsBufferHost = alpaka::allocBuf<int, Idx>(hostDev, Idx{block * grid});
         alpaka::memcpy(queue, sumsBufferHost, sumsBufferAcc, Idx{block * grid});
         alpaka::wait(queue);

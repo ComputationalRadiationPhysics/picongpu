@@ -1,10 +1,6 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber,
+ *                Sergei Bastrakov, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include "Defines.hpp"
@@ -14,7 +10,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <type_traits>
 
@@ -30,8 +27,8 @@ public:
         // (PTX kernel (float) was just empty)
         FP check_sin = alpaka::math::sin(acc, arg);
         FP check_cos = alpaka::math::cos(acc, arg);
-        FP result_sin = 0.;
-        FP result_cos = 0.;
+        auto result_sin = FP{0};
+        auto result_cos = FP{0};
         alpaka::math::sincos(acc, arg, result_sin, result_cos);
         using alpaka::test::unit::math::almost_equal;
         ALPAKA_CHECK(

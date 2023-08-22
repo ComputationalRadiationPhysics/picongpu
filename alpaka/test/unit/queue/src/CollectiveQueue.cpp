@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
@@ -18,7 +13,7 @@
 #    include <alpaka/test/queue/QueueCpuOmp2Collective.hpp>
 #    include <alpaka/test/queue/QueueTestFixture.hpp>
 
-#    include <catch2/catch.hpp>
+#    include <catch2/catch_test_macros.hpp>
 
 #    include <vector>
 
@@ -45,9 +40,10 @@ TEST_CASE("queueCollective", "[queue]")
     using Dev = alpaka::Dev<Acc>;
 
     using Queue = alpaka::QueueCpuOmp2Collective;
-    using Pltf = alpaka::Pltf<Dev>;
+    using Platform = alpaka::Platform<Dev>;
 
-    auto dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platform = Platform{};
+    auto dev = alpaka::getDevByIdx(platform, 0);
     Queue queue(dev);
 
     std::vector<int> results(4, -1);
@@ -69,10 +65,7 @@ TEST_CASE("queueCollective", "[queue]")
         alpaka::wait(queue);
     }
 
-    for(size_t i = 0; i < results.size(); ++i)
-    {
-        REQUIRE(static_cast<int>(i) == results.at(i));
-    }
+    CHECK(results == std::vector<int>{0, 1, 2, 3});
 }
 
 TEST_CASE("TestCollectiveMemcpy", "[queue]")
@@ -86,9 +79,10 @@ TEST_CASE("TestCollectiveMemcpy", "[queue]")
     using Dev = alpaka::Dev<Acc>;
 
     using Queue = alpaka::QueueCpuOmp2Collective;
-    using Pltf = alpaka::Pltf<Dev>;
+    using Platform = alpaka::Platform<Dev>;
 
-    auto dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platform = Platform{};
+    auto dev = alpaka::getDevByIdx(platform, 0);
     Queue queue(dev);
 
     std::vector<int> results(4, -1);

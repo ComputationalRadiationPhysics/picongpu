@@ -11,7 +11,7 @@ AlignConsecutiveBitFields: false
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: false
 AlignEscapedNewlines: Right
-AlignOperands: DontAlign
+AlignOperands: Align
 AlignTrailingComments: false
 AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
@@ -72,6 +72,7 @@ PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
+QualifierAlignment: Right
 ReflowComments: true
 SortIncludes: true
 SortUsingDeclarations: true
@@ -104,18 +105,18 @@ IncludeCategories:
   # Local headers (in "") above all else
   - Regex: '"([A-Za-z0-9.\/-_])+"'
     Priority: 1
-  # <alpaka/foo.hpp> after local headers
-  - Regex: '<alpaka/([A-Za-z0-9.\/-_])+>'
+  # "alpaka/foo.hpp" after local headers (occur inside alpaka)
+  - Regex: '"alpaka/([A-Za-z0-9.\/-_])+"'
     Priority: 2
+  # <alpaka/foo.hpp> after local headers (occur outside alpaka in examples and test)
+  - Regex: '<alpaka/([A-Za-z0-9.\/-_])+>'
+    Priority: 3
   # C++ standard library headers are the last group to be included
   - Regex: '<([A-Za-z0-9\/-_])+>'
-    Priority: 4
+    Priority: 5
   # Includes that made it this far are third-party headers and will be placed
   # below alpaka's includes
   - Regex: '<([A-Za-z0-9.\/-_])+>'
-    Priority: 3
+    Priority: 4
 
-# Future options - not supported in clang-format 12
-# 
-# OperandAlignmentStyle: Align
 ...

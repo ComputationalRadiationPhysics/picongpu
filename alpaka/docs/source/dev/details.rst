@@ -25,7 +25,7 @@ They allow arbitrary types as parameters, as long as they model the required con
 C++ provides a language inherent object oriented abstraction allowing to check that parameters to a function comply with the concept they are required to model.
 By defining interface classes, which model the *alpaka* concepts, the user would be able to inherit his extension classes from the interfaces he wants to model and implement the abstract virtual methods the interfaces define.
 The *alpaka* functions in turn would use the corresponding interface types as their parameter types.
-For example, the ``Buffer`` concept requires methods for getting the pitch or changing the memory pinning state.
+For example, the ``Buffer`` concept requires methods for getting the pitch or accessing the underlying memory.
 With this intrusive object oriented design pattern the ``BufCpu`` or ``BufCudaRt`` classes would have to inherit from an ``IBuffer`` interface and implement the abstract methods it declares.
 An example of this basic pattern is shown in the following source snippet:
 
@@ -34,16 +34,14 @@ An example of this basic pattern is shown in the following source snippet:
    struct IBuffer
    {
      virtual std::size_t getPitch() const = 0;
-     virtual void pin() = 0;
-     virtual void unpin() = 0;
+     virtual std::byte * data() = 0;
      ...
    };
 
    struct BufCpu : public IBuffer
    {
      virtual std::size_t getPitch() const override { ... }
-     virtual void pin() override { ... }
-     virtual void unpin() override { ... }
+     virtual std::byte * data() override { ... }
      ...
    };
 

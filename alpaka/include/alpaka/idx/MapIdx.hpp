@@ -1,16 +1,11 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Jan Stephan, Jeffrey Kelling, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Erik Zenker, Jan Stephan, Jeffrey Kelling, Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <type_traits>
 
@@ -61,16 +56,8 @@ namespace alpaka
 
                 // in-between
                 TElem hyperPlanesBefore = extent[lastIdx];
-#if BOOST_COMP_PGI && (defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) || defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED))            \
-    && !defined(TPR30645)
-                for(std::size_t a(0u); a < lastIdx - 1; ++a)
-                {
-                    const auto r = a + 1; // NVHPC does sometimes not understand, that loops which do not start at zero
-                                          // can have zero iterations
-#else
                 for(std::size_t r(1u); r < lastIdx; ++r)
                 {
-#endif
                     std::size_t const d = lastIdx - r;
                     idxNd[d] = static_cast<TElem>(idx[0u] / hyperPlanesBefore % extent[d]);
                     hyperPlanesBefore *= extent[d];

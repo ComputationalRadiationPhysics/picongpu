@@ -1,34 +1,23 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
  * Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/wait/Traits.hpp"
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/Assert.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/dim/DimIntegralConst.hpp>
-#    include <alpaka/extent/Traits.hpp>
-#    include <alpaka/mem/view/Traits.hpp>
-#    include <alpaka/queue/QueueUniformCudaHipRtBlocking.hpp>
-#    include <alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp>
-#    include <alpaka/queue/Traits.hpp>
-#    include <alpaka/wait/Traits.hpp>
-
-// Backend specific includes.
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <alpaka/core/Cuda.hpp>
-#    else
-#        include <alpaka/core/Hip.hpp>
-#    endif
-
 
 namespace alpaka
 {
@@ -47,11 +36,6 @@ namespace alpaka
                 , m_extent(extent)
                 , m_iDevice(getDev(view).getNativeHandle())
             {
-                static_assert(!std::is_const_v<TView>, "The destination view can not be const!");
-
-                static_assert(
-                    Dim<TView>::value == Dim<TExtent>::value,
-                    "The destination view and the extent are required to have the same dimensionality!");
             }
 
         protected:
@@ -70,21 +54,18 @@ namespace alpaka
         struct TaskSetUniformCudaHip<TApi, DimInt<0u>, TView, TExtent>
             : public TaskSetUniformCudaHipBase<TApi, DimInt<0u>, TView, TExtent>
         {
-            TaskSetUniformCudaHip(TView& view, std::uint8_t const& byte, TExtent const& extent)
-                : TaskSetUniformCudaHipBase<TApi, DimInt<0u>, TView, TExtent>(view, byte, extent)
+            template<typename TViewFwd>
+            TaskSetUniformCudaHip(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
+                : TaskSetUniformCudaHipBase<TApi, DimInt<0u>, TView, TExtent>(
+                    std::forward<TViewFwd>(view),
+                    byte,
+                    extent)
             {
             }
 
             template<typename TQueue>
             auto enqueue(TQueue& queue) const -> void
             {
-                static_assert(
-                    Dim<TView>::value == 0u,
-                    "The destination buffer is required to be 0-dimensional (scalar) for this specialization!");
-                static_assert(
-                    Dim<TView>::value == Dim<TExtent>::value,
-                    "The destination buffer and the extent are required to have the same dimensionality!");
-
                 // Initiate the memory set.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memsetAsync(
                     getPtrNative(this->m_view),
@@ -99,21 +80,18 @@ namespace alpaka
         struct TaskSetUniformCudaHip<TApi, DimInt<1u>, TView, TExtent>
             : public TaskSetUniformCudaHipBase<TApi, DimInt<1u>, TView, TExtent>
         {
-            TaskSetUniformCudaHip(TView& view, std::uint8_t const& byte, TExtent const& extent)
-                : TaskSetUniformCudaHipBase<TApi, DimInt<1u>, TView, TExtent>(view, byte, extent)
+            template<typename TViewFwd>
+            TaskSetUniformCudaHip(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
+                : TaskSetUniformCudaHipBase<TApi, DimInt<1u>, TView, TExtent>(
+                    std::forward<TViewFwd>(view),
+                    byte,
+                    extent)
             {
             }
 
             template<typename TQueue>
             auto enqueue(TQueue& queue) const -> void
             {
-                static_assert(
-                    Dim<TView>::value == 1u,
-                    "The destination buffer is required to be 1-dimensional for this specialization!");
-                static_assert(
-                    Dim<TView>::value == Dim<TExtent>::value,
-                    "The destination buffer and the extent are required to have the same dimensionality!");
-
                 using Idx = Idx<TExtent>;
 
                 auto& view = this->m_view;
@@ -142,21 +120,18 @@ namespace alpaka
         struct TaskSetUniformCudaHip<TApi, DimInt<2u>, TView, TExtent>
             : public TaskSetUniformCudaHipBase<TApi, DimInt<2u>, TView, TExtent>
         {
-            TaskSetUniformCudaHip(TView& view, std::uint8_t const& byte, TExtent const& extent)
-                : TaskSetUniformCudaHipBase<TApi, DimInt<2u>, TView, TExtent>(view, byte, extent)
+            template<typename TViewFwd>
+            TaskSetUniformCudaHip(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
+                : TaskSetUniformCudaHipBase<TApi, DimInt<2u>, TView, TExtent>(
+                    std::forward<TViewFwd>(view),
+                    byte,
+                    extent)
             {
             }
 
             template<typename TQueue>
             auto enqueue(TQueue& queue) const -> void
             {
-                static_assert(
-                    Dim<TView>::value == 2u,
-                    "The destination buffer is required to be 2-dimensional for this specialization!");
-                static_assert(
-                    Dim<TView>::value == Dim<TExtent>::value,
-                    "The destination buffer and the extent are required to have the same dimensionality!");
-
                 using Idx = Idx<TExtent>;
 
                 auto& view = this->m_view;
@@ -197,21 +172,18 @@ namespace alpaka
         struct TaskSetUniformCudaHip<TApi, DimInt<3u>, TView, TExtent>
             : public TaskSetUniformCudaHipBase<TApi, DimInt<3u>, TView, TExtent>
         {
-            TaskSetUniformCudaHip(TView& view, std::uint8_t const& byte, TExtent const& extent)
-                : TaskSetUniformCudaHipBase<TApi, DimInt<3u>, TView, TExtent>(view, byte, extent)
+            template<typename TViewFwd>
+            TaskSetUniformCudaHip(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
+                : TaskSetUniformCudaHipBase<TApi, DimInt<3u>, TView, TExtent>(
+                    std::forward<TViewFwd>(view),
+                    byte,
+                    extent)
             {
             }
 
             template<typename TQueue>
             auto enqueue(TQueue& queue) const -> void
             {
-                static_assert(
-                    Dim<TView>::value == 3u,
-                    "The destination buffer is required to be 3-dimensional for this specialization!");
-                static_assert(
-                    Dim<TView>::value == Dim<TExtent>::value,
-                    "The destination buffer and the extent are required to have the same dimensionality!");
-
                 using Elem = alpaka::Elem<TView>;
                 using Idx = Idx<TExtent>;
 

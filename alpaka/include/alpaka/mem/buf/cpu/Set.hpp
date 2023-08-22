@@ -1,20 +1,15 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/dim/DimIntegralConst.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/meta/Integral.hpp>
-#include <alpaka/meta/NdLoop.hpp>
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/meta/Integral.hpp"
+#include "alpaka/meta/NdLoop.hpp"
 
 #include <cstring>
 
@@ -32,20 +27,8 @@ namespace alpaka
             using DstSize = Idx<TView>;
             using Elem = alpaka::Elem<TView>;
 
-            static_assert(!std::is_const_v<TView>, "The destination view can not be const!");
-
-            static_assert(
-                Dim<TView>::value == Dim<TExtent>::value,
-                "The destination view and the extent are required to have the same dimensionality!");
-            static_assert(
-                Dim<TView>::value == TDim::value,
-                "The destination view and the input TDim are required to have the same dimensionality!");
-
-            static_assert(
-                meta::IsIntegralSuperset<DstSize, ExtentSize>::value,
-                "The view and the extent are required to have compatible idx type!");
-
-            TaskSetCpuBase(TView& view, std::uint8_t const& byte, TExtent const& extent)
+            template<typename TViewFwd>
+            TaskSetCpuBase(TViewFwd&& view, std::uint8_t const& byte, TExtent const& extent)
                 : m_byte(byte)
                 , m_extent(getExtentVec(extent))
                 , m_extentWidthBytes(m_extent[TDim::value - 1u] * static_cast<ExtentSize>(sizeof(Elem)))
@@ -151,20 +134,8 @@ namespace alpaka
             using DstSize = Idx<TView>;
             using Elem = alpaka::Elem<TView>;
 
-            static_assert(!std::is_const_v<TView>, "The destination view can not be const!");
-
-            static_assert(
-                Dim<TView>::value == Dim<TExtent>::value,
-                "The destination view and the extent are required to have the same dimensionality!");
-            static_assert(
-                Dim<TView>::value == 0u,
-                "The destination view and the input TDim are required to have the same dimensionality!");
-
-            static_assert(
-                meta::IsIntegralSuperset<DstSize, ExtentSize>::value,
-                "The view and the extent are required to have compatible idx type!");
-
-            TaskSetCpu(TView& view, std::uint8_t const& byte, [[maybe_unused]] TExtent const& extent)
+            template<typename TViewFwd>
+            TaskSetCpu(TViewFwd&& view, std::uint8_t const& byte, [[maybe_unused]] TExtent const& extent)
                 : m_byte(byte)
                 , m_dstMemNative(reinterpret_cast<std::uint8_t*>(getPtrNative(view)))
             {
@@ -182,7 +153,7 @@ namespace alpaka
             }
 #endif
 
-            ALPAKA_FN_HOST auto operator()() const -> void
+            ALPAKA_FN_HOST auto operator()() const noexcept(ALPAKA_DEBUG < ALPAKA_DEBUG_FULL) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -203,11 +174,13 @@ namespace alpaka
         template<typename TDim>
         struct CreateTaskMemset<TDim, DevCpu>
         {
-            template<typename TExtent, typename TView>
-            ALPAKA_FN_HOST static auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& extent)
-                -> alpaka::detail::TaskSetCpu<TDim, TView, TExtent>
+            template<typename TExtent, typename TViewFwd>
+            ALPAKA_FN_HOST static auto createTaskMemset(
+                TViewFwd&& view,
+                std::uint8_t const& byte,
+                TExtent const& extent) -> alpaka::detail::TaskSetCpu<TDim, std::remove_reference_t<TViewFwd>, TExtent>
             {
-                return alpaka::detail::TaskSetCpu<TDim, TView, TExtent>(view, byte, extent);
+                return {std::forward<TViewFwd>(view), byte, extent};
             }
         };
     } // namespace trait

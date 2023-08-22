@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MPL-2.0
+
+linux_clang-11_release:
+  extends: .base_clang
+  variables:
+    ALPAKA_CI_CLANG_VER: 11
+    ALPAKA_CI_STDLIB: libstdc++
+    CMAKE_BUILD_TYPE: Release
+    ALPAKA_BOOST_VERSION: 1.75.0
+    ALPAKA_CI_CMAKE_VER: 3.22.6
+    CMAKE_CXX_EXTENSIONS: "OFF"
+
+linux_clang-14_debug:
+  extends: .base_clang
+  variables:
+    ALPAKA_CI_CLANG_VER: 14
+    ALPAKA_CI_STDLIB: libstdc++ # libc++ is not compatible with TBB
+    CMAKE_BUILD_TYPE: Debug
+    ALPAKA_BOOST_VERSION: 1.80.0
+    ALPAKA_CI_CMAKE_VER: 3.23.5
+ 
+linux_clang-16_relwithdebinfo_asan_c++20:
+  extends: .base_clang
+  variables:
+    ALPAKA_CI_CLANG_VER: 16
+    ALPAKA_CI_STDLIB: libstdc++ # Don't change until https://github.com/alpaka-group/alpaka/issues/1753 is resolved.
+    CMAKE_BUILD_TYPE: RelWithDebInfo
+    ALPAKA_BOOST_VERSION: 1.81.0
+    ALPAKA_CI_CMAKE_VER: 3.25.2
+    alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: "OFF"
+    alpaka_CXX_STANDARD: 20
+    CMAKE_CXX_EXTENSIONS: "OFF"
+    ALPAKA_CI_SANITIZERS: ASan

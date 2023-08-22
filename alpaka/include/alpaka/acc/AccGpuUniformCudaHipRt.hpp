@@ -1,47 +1,42 @@
 /* Copyright 2022 Benjamin Worpitz, René Widera, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
 // Base classes.
-#    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/atomic/AtomicUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/block/sync/BlockSyncUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/core/DemangleTypeNames.hpp>
-#    include <alpaka/idx/bt/IdxBtUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/idx/gb/IdxGbUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/intrinsic/IntrinsicUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/math/MathUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/mem/fence/MemFenceUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/rand/RandUniformCudaHipRand.hpp>
-#    include <alpaka/time/TimeUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/warp/WarpUniformCudaHipBuiltIn.hpp>
-#    include <alpaka/workdiv/WorkDivUniformCudaHipBuiltIn.hpp>
+#include "alpaka/atomic/AtomicHierarchy.hpp"
+#include "alpaka/atomic/AtomicUniformCudaHipBuiltIn.hpp"
+#include "alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp"
+#include "alpaka/block/shared/st/BlockSharedMemStUniformCudaHipBuiltIn.hpp"
+#include "alpaka/block/sync/BlockSyncUniformCudaHipBuiltIn.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/idx/bt/IdxBtUniformCudaHipBuiltIn.hpp"
+#include "alpaka/idx/gb/IdxGbUniformCudaHipBuiltIn.hpp"
+#include "alpaka/intrinsic/IntrinsicUniformCudaHipBuiltIn.hpp"
+#include "alpaka/math/MathUniformCudaHipBuiltIn.hpp"
+#include "alpaka/mem/fence/MemFenceUniformCudaHipBuiltIn.hpp"
+#include "alpaka/rand/RandDefault.hpp"
+#include "alpaka/rand/RandUniformCudaHipRand.hpp"
+#include "alpaka/warp/WarpUniformCudaHipBuiltIn.hpp"
+#include "alpaka/workdiv/WorkDivUniformCudaHipBuiltIn.hpp"
 
 // Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
 
 // Implementation details.
-#    include <alpaka/core/ClipCast.hpp>
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/core/Cuda.hpp>
-#    include <alpaka/dev/DevUniformCudaHipRt.hpp>
+#include "alpaka/core/ClipCast.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
 
-#    include <typeinfo>
+#include <typeinfo>
+
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
 namespace alpaka
 {
@@ -51,35 +46,39 @@ namespace alpaka
     //! The GPU CUDA accelerator.
     //!
     //! This accelerator allows parallel kernel execution on devices supporting CUDA.
-    template<
-        typename TApi,
-        typename TDim,
-        typename TIdx>
-    class AccGpuUniformCudaHipRt :
-        public WorkDivUniformCudaHipBuiltIn<TDim, TIdx>,
-        public gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>,
-        public bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>,
-        public AtomicHierarchy<
-            AtomicUniformCudaHipBuiltIn, // grid atomics
-            AtomicUniformCudaHipBuiltIn, // block atomics
-            AtomicUniformCudaHipBuiltIn  // thread atomics
-        >,
-        public math::MathUniformCudaHipBuiltIn,
-        public BlockSharedMemDynUniformCudaHipBuiltIn,
-        public BlockSharedMemStUniformCudaHipBuiltIn,
-        public BlockSyncUniformCudaHipBuiltIn,
-        public IntrinsicUniformCudaHipBuiltIn,
-        public MemFenceUniformCudaHipBuiltIn,
-        public rand::RandUniformCudaHipRand<TApi>,
-        public TimeUniformCudaHipBuiltIn,
-        public warp::WarpUniformCudaHipBuiltIn,
-        public concepts::Implements<ConceptAcc, AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
+    template<typename TApi, typename TDim, typename TIdx>
+    class AccGpuUniformCudaHipRt final
+        : public WorkDivUniformCudaHipBuiltIn<TDim, TIdx>
+        , public gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>
+        , public bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>
+        , public AtomicHierarchy<
+              AtomicUniformCudaHipBuiltIn, // grid atomics
+              AtomicUniformCudaHipBuiltIn, // block atomics
+              AtomicUniformCudaHipBuiltIn> // thread atomics
+        , public math::MathUniformCudaHipBuiltIn
+        , public BlockSharedMemDynUniformCudaHipBuiltIn
+        , public BlockSharedMemStUniformCudaHipBuiltIn
+        , public BlockSyncUniformCudaHipBuiltIn
+        , public IntrinsicUniformCudaHipBuiltIn
+        , public MemFenceUniformCudaHipBuiltIn
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+        , public rand::RandDefault
+#    else
+        , public rand::RandUniformCudaHipRand<TApi>
+#    endif
+        , public warp::WarpUniformCudaHipBuiltIn
+        , public concepts::Implements<ConceptAcc, AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
             "Index type is not supported, consider using int or a larger type.");
 
     public:
+        AccGpuUniformCudaHipRt(AccGpuUniformCudaHipRt const&) = delete;
+        AccGpuUniformCudaHipRt(AccGpuUniformCudaHipRt&&) = delete;
+        auto operator=(AccGpuUniformCudaHipRt const&) -> AccGpuUniformCudaHipRt& = delete;
+        auto operator=(AccGpuUniformCudaHipRt&&) -> AccGpuUniformCudaHipRt& = delete;
+
         ALPAKA_FN_HOST_ACC AccGpuUniformCudaHipRt(Vec<TDim, TIdx> const& threadElemExtent)
             : WorkDivUniformCudaHipBuiltIn<TDim, TIdx>(threadElemExtent)
             , gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>()
@@ -94,8 +93,11 @@ namespace alpaka
             , BlockSharedMemStUniformCudaHipBuiltIn()
             , BlockSyncUniformCudaHipBuiltIn()
             , MemFenceUniformCudaHipBuiltIn()
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+            , rand::RandDefault()
+#    else
             , rand::RandUniformCudaHipRand<TApi>()
-            , TimeUniformCudaHipBuiltIn()
+#    endif
         {
         }
     };
@@ -224,7 +226,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return std::string("AccGpu") + TApi::name + "Rt<" + std::to_string(TDim::value) + ","
-                    + core::demangled<TIdx> + ">";
+                       + core::demangled<TIdx> + ">";
             }
         };
 
@@ -289,9 +291,9 @@ namespace alpaka
 
         //! The CPU CUDA execution task platform type trait specialization.
         template<typename TApi, typename TDim, typename TIdx>
-        struct PltfType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
+        struct PlatformType<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
         {
-            using type = PltfUniformCudaHipRt<TApi>;
+            using type = PlatformUniformCudaHipRt<TApi>;
         };
 
         //! The GPU CUDA accelerator idx type trait specialization.

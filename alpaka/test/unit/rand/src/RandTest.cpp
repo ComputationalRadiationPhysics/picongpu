@@ -1,17 +1,16 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Sergei Bastrakov, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/rand/Traits.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+#include <type_traits>
 
 class RandTestKernel
 {
@@ -61,8 +60,7 @@ public:
         auto genDefault = alpaka::rand::engine::createDefault(acc, 12345u, 6789u);
         genNumbers(acc, success, genDefault);
 
-#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#    if !defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) && !defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
+#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !defined(ALPAKA_ACC_SYCL_ENABLED)
         // TODO: These ifdefs are wrong: They will reduce the test to the
         // smallest common denominator from all enabled backends
         // std::random_device
@@ -72,7 +70,6 @@ public:
         // MersenneTwister
         auto genMersenneTwister = alpaka::rand::engine::createDefault(alpaka::rand::MersenneTwister{}, 12345u, 6789u);
         genNumbers(acc, success, genMersenneTwister);
-#    endif
 
         // TinyMersenneTwister
         auto genTinyMersenneTwister
@@ -93,4 +90,34 @@ TEMPLATE_LIST_TEST_CASE("defaultRandomGeneratorIsWorking", "[rand]", alpaka::tes
     RandTestKernel kernel;
 
     REQUIRE(fixture(kernel));
+}
+
+//! Helper trait to check if the given accelerator is HIP
+template<typename TAcc>
+struct IsAccHIP : public std::false_type
+{
+};
+
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+template<typename TDim, typename TIdx>
+struct IsAccHIP<alpaka::AccGpuHipRt<TDim, TIdx>> : public std::true_type
+{
+};
+#endif
+
+TEMPLATE_LIST_TEST_CASE("defaultRandomGeneratorIsTriviallyCopyable", "[rand]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using DefaultEngine = decltype(alpaka::rand::engine::createDefault(std::declval<Acc>(), 0u, 0u, 0u));
+    constexpr auto isEngineTriviallyCopyable = std::is_trivially_copyable_v<DefaultEngine>;
+    // For older HIP versions the internal HIPrand/ROCrand state was not trivially copyable.
+    // This causes alpaka rand state for the HIP accelerator and those versions to also not be trivially copyable.
+    // It was fixed on AMD side in https://github.com/ROCmSoftwarePlatform/rocRAND/pull/252.
+    // Thus we guard the test to skip HIP accelerator and older HIP versions.
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && (BOOST_LANG_HIP < BOOST_VERSION_NUMBER(5, 2, 0))
+    if constexpr(!IsAccHIP<Acc>::value)
+        STATIC_REQUIRE(isEngineTriviallyCopyable);
+#else
+    STATIC_REQUIRE(isEngineTriviallyCopyable);
+#endif
 }

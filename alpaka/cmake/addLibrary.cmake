@@ -1,112 +1,39 @@
 #
-# Copyright 2015-2021 Benjamin Worpitz, Maximilian Knespel, Simeon Ehrig
+# Copyright 2023 Benjamin Worpitz, Maximilian Knespel, Jan Stephan
+# SPDX-License-Identifier: MPL-2.0
 #
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-
-CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 #------------------------------------------------------------------------------
 #
-# alpaka_ADD_LIBRARY( cuda_target file0 file1 ... [STATIC | SHARED | MODULE]
-#   [EXCLUDE_FROM_ALL] [OPTIONS <nvcc-flags> ... ] )
+# alpaka_add_library(target [STATIC | SHARED | MODULE] [EXCLUDE_FROM_ALL] [<source>...])
 #
-# The position of STATIC, SHARED, MODULE, EXCLUDE_FROM_ALL options don't matter.
-# This also means you won't be able to include files with those exact same
-# case-sensitive names.
-# After OPTIONS only nvcc compiler flags are allowed though. And for readiblity
-# and portability you shouldn't completely mix STATIC, ... with the source
-# code filenames!
-# OPTIONS and the arguments thereafter are ignored if not using CUDA, they
-# won't throw an error in that case.
-MACRO(alpaka_ADD_LIBRARY libraryName)
-    # add_library( <name> [STATIC | SHARED | MODULE]
-    #              [EXCLUDE_FROM_ALL]
-    #              source1 [source2 ...] )
+# Calls add_library under the hood. Depending on the enabled back-ends, source file or target properties which cannot
+# be propagated by the alpaka::alpaka target are set here.
+#
+# Using a macro to stay in the scope (fixes lost assignment of linker command in FindHIP.cmake)
+# https://github.com/ROCm-Developer-Tools/HIP/issues/631
 
-    # traverse arguments and sort them by option and source files
-    SET( arguments ${ARGN} )
-    SET( optionsEncountered OFF )
-    UNSET( libraryType )
-    UNSET( excludeFromAll )
-    UNSET( optionArguments )
-    FOREACH( argument IN LISTS arguments )
-        # 1.) check for OPTIONS
-        IF( argument STREQUAL "OPTIONS" )
-            IF ( optionsEncountered )
-                MESSAGE( FATAL_ERROR "[alpaka_ADD_LIBRARY] OPTIONS subcommand specified more than one time. This is not allowed!" )
-            ELSE()
-                SET( optionsEncountered ON )
-            ENDIF()
-        ENDIF()
+macro(alpaka_add_library libraryName)
+    # add_library( <name> [STATIC | SHARED | MODULE] [EXCLUDE_FROM_ALL] [<source>...])
 
-        # 2.) check if inside OPTIONS, because then all other checks are
-        # unnecessary although they could give hints about wrong locations
-        # of those subcommands
-        IF( optionsEncountered )
-            LIST( APPEND optionArguments "${argument}" )
-            CONTINUE()
-        ENDIF()
+    add_library(${libraryName} ${ARGN})
 
-        # 3.) check for libraryType and EXCLUDE_FROM_ALL
-        IF( ( argument STREQUAL "STATIC" ) OR
-            ( argument STREQUAL "SHARED" ) OR
-            ( argument STREQUAL "MODULE" )
-        )
-            IF( DEFINED libraryType )
-                message( FATAL_ERROR "Setting more than one library type option ( STATIC SHARED MODULE ) not allowed!" )
-            ENDIF()
-            set( libraryType ${argument} )
-            CONTINUE()
-        ENDIF()
-        IF( argument STREQUAL "EXCLUDE_FROM_ALL" )
-            SET( excludeFromAll ${argument} )
-            CONTINUE()
-        ENDIF()
-
-        # 4.) ELSE the argument is a file name
-        list( APPEND sourceFileNames "${argument}" )
-    ENDFOREACH()
-    UNSET( optionsEncountered )
-    #message( "libraryType = ${libraryType}" )
-    #message( "sourceFileNames = ${sourceFileNames}" )
-
-    # call add_library or cuda_add_library now
-    IF( alpaka_ACC_GPU_CUDA_ENABLE )
-        ENABLE_LANGUAGE(CUDA)
-        FOREACH( _file ${ARGN} )
-            IF( ( ${_file} MATCHES "\\.cpp$" ) OR
-                ( ${_file} MATCHES "\\.cxx$" ) OR
-                ( ${_file} MATCHES "\\.cu$" )
+    if(alpaka_ACC_GPU_CUDA_ENABLE)
+        enable_language(CUDA)
+        foreach(_file ${ARGN})
+            if((${_file} MATCHES "\\.cpp$") OR
+               (${_file} MATCHES "\\.cxx$") OR
+               (${_file} MATCHES "\\.cu$")
             )
-                SET_SOURCE_FILES_PROPERTIES(${_file} PROPERTIES LANGUAGE CUDA)
-            ENDIF()
-        ENDFOREACH()
+                set_source_files_properties(${_file} PROPERTIES LANGUAGE CUDA)
+            endif()
+        endforeach()
 
-        ADD_LIBRARY(
-            ${libraryName}
-            ${libraryType}
-            ${excludeFromAll}
-            ${optionArguments}
-            ${sourceFileNames}
-            )
-    ELSE()
-        #message( "add_library( ${libraryName} ${libraryType} ${excludeFromAll} ${sourceFileNames} )" )
-        ADD_LIBRARY(
-            ${libraryName}
-            ${libraryType}
-            ${excludeFromAll}
-            ${sourceFileNames}
-        )
-    ENDIF()
-
-    # UNSET variables (not sure if necessary)
-    UNSET( libraryType )
-    UNSET( sourceFileNames )
-    UNSET( excludeFromAll )
-    UNSET( optionArguments )
-ENDMACRO()
+        # We have to set this here since CUDA_SEPARABLE_COMPILATION is not propagated by the alpaka::alpaka target.
+        if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
+            set_property(TARGET ${In_Name} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+        elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
+            set_property(TARGET ${In_Name} PROPERTY CUDA_SEPARABLE_COMPILATION OFF)
+        endif()
+    endif()
+endmacro()

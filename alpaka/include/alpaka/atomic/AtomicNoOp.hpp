@@ -1,26 +1,21 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/atomic/Traits.hpp>
+#include "alpaka/atomic/Traits.hpp"
 
 namespace alpaka
 {
-    //! The CPU fibers accelerator atomic ops.
+    //! The NoOp atomic ops.
     class AtomicNoOp
     {
     };
 
     namespace trait
     {
-        //! The CPU fibers accelerator atomic operation.
+        //! The NoOp atomic operation.
         template<typename TOp, typename T, typename THierarchy>
         struct AtomicOp<TOp, AtomicNoOp, T, THierarchy>
         {

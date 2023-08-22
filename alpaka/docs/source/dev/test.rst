@@ -53,7 +53,7 @@ Some aliases might be useful:
 
 .. code-block:: c++
     using Dev = alpaka::Dev<TestType>;
-    using Pltf = alpaka::Pltf<Dev>;
+    using Platform = alpaka::Platform<Dev>;
 
 The template parameter for ``alpaka::Dev`` is ``TestType``, which basically target the specific accelerator that corresponds
 to the backend which is executing the test.
@@ -61,7 +61,8 @@ to the backend which is executing the test.
 Since the function that must be tested has a device object as argument, it is necessary to define one:
 
 .. code-block:: c++
-    Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
+    auto const platform = Platform{};
+    Dev const dev = alpaka::getDevByIdx(platform, 0);
 
 Having all the necessary objects well defined, the function can be called and the result stored in an object:
 

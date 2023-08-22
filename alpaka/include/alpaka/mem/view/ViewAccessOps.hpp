@@ -1,45 +1,46 @@
 /* Copyright 2022 Andrea Bocci
-
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/mem/view/ViewAccessor.hpp>
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/mem/view/Traits.hpp"
 
 #include <sstream>
 #include <type_traits>
 
 namespace alpaka::internal
 {
+    template<typename T, typename SFINAE = void>
+    inline constexpr bool isView = false;
+
+    // TODO(bgruber): replace this by a concept in C++20
+    template<typename TView>
+    inline constexpr bool isView<
+        TView,
+        std::void_t<
+            Idx<TView>,
+            Dim<TView>,
+            decltype(getPtrNative(std::declval<TView>())),
+            decltype(getPitchBytes<0>(std::declval<TView>())),
+            decltype(getExtent<0>(std::declval<TView>()))>> = true;
+
     template<typename TView>
     struct ViewAccessOps
     {
+        static_assert(isView<TView>);
+
     private:
         using value_type = Elem<TView>;
         using pointer = value_type*;
         using const_pointer = value_type const*;
         using reference = value_type&;
         using const_reference = value_type const&;
+        using Idx = alpaka::Idx<TView>;
 
     public:
-        ViewAccessOps()
-        {
-            static_assert(experimental::trait::internal::IsView<TView>::value);
-        }
-
         ALPAKA_FN_HOST auto data() -> pointer
         {
             return getPtrNative(*static_cast<TView*>(this));
@@ -74,13 +75,13 @@ namespace alpaka::internal
             return data();
         }
 
-        ALPAKA_FN_HOST auto operator[](std::size_t i) -> reference
+        ALPAKA_FN_HOST auto operator[](Idx i) -> reference
         {
             static_assert(Dim<TView>::value == 1, "operator[i] is only valid for Buffers and Views of dimension 1");
             return data()[i];
         }
 
-        ALPAKA_FN_HOST auto operator[](std::size_t i) const -> const_reference
+        ALPAKA_FN_HOST auto operator[](Idx i) const -> const_reference
         {
             static_assert(Dim<TView>::value == 1, "operator[i] is only valid for Buffers and Views of dimension 1");
             return data()[i];
@@ -90,7 +91,6 @@ namespace alpaka::internal
         template<std::size_t TDim, typename TIdx>
         [[nodiscard]] ALPAKA_FN_HOST auto ptr_at([[maybe_unused]] Vec<DimInt<TDim>, TIdx> index) const -> const_pointer
         {
-            using Idx = alpaka::Idx<TView>;
             static_assert(
                 Dim<TView>::value == TDim,
                 "the index type must have the same dimensionality as the Buffer or View");
@@ -101,7 +101,7 @@ namespace alpaka::internal
             auto ptr = reinterpret_cast<uintptr_t>(data());
             if constexpr(TDim > 0)
             {
-                const auto pitchesInBytes = getPitchBytesVec(*static_cast<TView const*>(this));
+                auto const pitchesInBytes = getPitchBytesVec(*static_cast<TView const*>(this));
                 for(std::size_t i = 0u; i < TDim; i++)
                 {
                     const Idx pitch = i + 1 < TDim ? pitchesInBytes[i + 1] : static_cast<Idx>(sizeof(value_type));

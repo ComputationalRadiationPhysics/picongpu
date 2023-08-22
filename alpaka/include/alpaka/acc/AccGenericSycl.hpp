@@ -1,51 +1,47 @@
-/* Copyright 2022 Jan Stephan, Antonio Di Pilato
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jan Stephan, Antonio Di Pilato, Andrea Bocci, Luca Ferragina, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
-
 
 #pragma once
 
-#ifdef ALPAKA_ACC_SYCL_ENABLED
-
 // Base classes.
-#    include <alpaka/atomic/AtomicGenericSycl.hpp>
-#    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynGenericSycl.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStGenericSycl.hpp>
-#    include <alpaka/block/sync/BlockSyncGenericSycl.hpp>
-#    include <alpaka/idx/bt/IdxBtGenericSycl.hpp>
-#    include <alpaka/idx/gb/IdxGbGenericSycl.hpp>
-#    include <alpaka/intrinsic/IntrinsicGenericSycl.hpp>
-#    include <alpaka/math/MathGenericSycl.hpp>
-#    include <alpaka/mem/fence/MemFenceGenericSycl.hpp>
-#    include <alpaka/warp/WarpGenericSycl.hpp>
-#    include <alpaka/workdiv/WorkDivGenericSycl.hpp>
+#include "alpaka/atomic/AtomicGenericSycl.hpp"
+#include "alpaka/atomic/AtomicHierarchy.hpp"
+#include "alpaka/block/shared/dyn/BlockSharedMemDynGenericSycl.hpp"
+#include "alpaka/block/shared/st/BlockSharedMemStGenericSycl.hpp"
+#include "alpaka/block/sync/BlockSyncGenericSycl.hpp"
+#include "alpaka/idx/bt/IdxBtGenericSycl.hpp"
+#include "alpaka/idx/gb/IdxGbGenericSycl.hpp"
+#include "alpaka/intrinsic/IntrinsicGenericSycl.hpp"
+#include "alpaka/math/MathGenericSycl.hpp"
+#include "alpaka/mem/fence/MemFenceGenericSycl.hpp"
+#include "alpaka/rand/RandDefault.hpp"
+#include "alpaka/rand/RandGenericSycl.hpp"
+#include "alpaka/warp/WarpGenericSycl.hpp"
+#include "alpaka/workdiv/WorkDivGenericSycl.hpp"
 
 // Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
-#    include <alpaka/vec/Vec.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 // Implementation details.
-#    include <alpaka/core/BoostPredef.hpp>
-#    include <alpaka/core/ClipCast.hpp>
-#    include <alpaka/core/Sycl.hpp>
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/ClipCast.hpp"
+#include "alpaka/core/Sycl.hpp"
 
-#    include <CL/sycl.hpp>
+#include <cstddef>
+#include <string>
+#include <type_traits>
 
-#    include <cstddef>
-#    include <string>
-#    include <type_traits>
+#ifdef ALPAKA_ACC_SYCL_ENABLED
 
-namespace alpaka::experimental
+#    include <sycl/sycl.hpp>
+
+namespace alpaka
 {
     //! The SYCL accelerator.
     //!
@@ -62,42 +58,26 @@ namespace alpaka::experimental
         , public BlockSyncGenericSycl<TDim>
         , public IntrinsicGenericSycl
         , public MemFenceGenericSycl
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+        , public rand::RandDefault
+#    else
+        , public rand::RandGenericSycl<TDim>
+#    endif
         , public warp::WarpGenericSycl<TDim>
     {
-    public:
-#    ifdef ALPAKA_SYCL_IOSTREAM_ENABLED
-        AccGenericSycl(
-            Vec<TDim, TIdx> const& threadElemExtent,
-            sycl::nd_item<TDim::value> work_item,
-            sycl::accessor<std::byte, 1, sycl::access_mode::read_write, sycl::target::local> dyn_shared_acc,
-            sycl::accessor<std::byte, 1, sycl::access_mode::read_write, sycl::target::local> st_shared_acc,
-            sycl::accessor<int, 1, sycl::access_mode::read_write, sycl::target::global_buffer> global_fence_dummy,
-            sycl::accessor<int, 1, sycl::access_mode::read_write, sycl::target::local> local_fence_dummy,
-            sycl::stream output_stream)
-            : WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item}
-            , gb::IdxGbGenericSycl<TDim, TIdx>{work_item}
-            , bt::IdxBtGenericSycl<TDim, TIdx>{work_item}
-            , AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{}
-            , math::MathGenericSycl{}
-            , BlockSharedMemDynGenericSycl{dyn_shared_acc}
-            , BlockSharedMemStGenericSycl{st_shared_acc}
-            , BlockSyncGenericSycl<TDim>{work_item}
-            , IntrinsicGenericSycl{}
-            , MemFenceGenericSycl{global_fence_dummy, local_fence_dummy}
-            , warp::WarpGenericSycl<TDim>{work_item}
-            , cout{output_stream}
-        {
-        }
+        static_assert(TDim::value > 0, "The SYCL accelerator must have a dimension greater than zero.");
 
-        sycl::stream cout;
-#    else
+    public:
+        AccGenericSycl(AccGenericSycl const&) = delete;
+        AccGenericSycl(AccGenericSycl&&) = delete;
+        auto operator=(AccGenericSycl const&) -> AccGenericSycl& = delete;
+        auto operator=(AccGenericSycl&&) -> AccGenericSycl& = delete;
+
         AccGenericSycl(
             Vec<TDim, TIdx> const& threadElemExtent,
             sycl::nd_item<TDim::value> work_item,
-            sycl::accessor<std::byte, 1, sycl::access_mode::read_write, sycl::target::local> dyn_shared_acc,
-            sycl::accessor<std::byte, 1, sycl::access_mode::read_write, sycl::target::local> st_shared_acc,
-            sycl::accessor<int, 1, sycl::access_mode::read_write, sycl::target::global_buffer> global_fence_dummy,
-            sycl::accessor<int, 1, sycl::access_mode::read_write, sycl::target::local> local_fence_dummy)
+            sycl::local_accessor<std::byte> dyn_shared_acc,
+            sycl::local_accessor<std::byte> st_shared_acc)
             : WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item}
             , gb::IdxGbGenericSycl<TDim, TIdx>{work_item}
             , bt::IdxBtGenericSycl<TDim, TIdx>{work_item}
@@ -107,21 +87,23 @@ namespace alpaka::experimental
             , BlockSharedMemStGenericSycl{st_shared_acc}
             , BlockSyncGenericSycl<TDim>{work_item}
             , IntrinsicGenericSycl{}
-            , MemFenceGenericSycl{global_fence_dummy, local_fence_dummy}
+            , MemFenceGenericSycl{}
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+            , rand::RandDefault{}
+#    else
+            , rand::RandGenericSycl<TDim>{work_item}
+#    endif
             , warp::WarpGenericSycl<TDim>{work_item}
         {
         }
-#    endif
     };
-} // namespace alpaka::experimental
+} // namespace alpaka
 
 namespace alpaka::trait
 {
     //! The SYCL accelerator type trait specialization.
     template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
-    struct AccType<
-        TAcc<TDim, TIdx>,
-        std::enable_if_t<std::is_base_of_v<experimental::AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
+    struct AccType<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
     {
         using type = TAcc<TDim, TIdx>;
     };
@@ -130,12 +112,16 @@ namespace alpaka::trait
     template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
     struct GetAccDevProps<
         TAcc<TDim, TIdx>,
-        std::enable_if_t<std::is_base_of_v<experimental::AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
+        std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
     {
         static auto getAccDevProps(typename DevType<TAcc<TDim, TIdx>>::type const& dev) -> AccDevProps<TDim, TIdx>
         {
             auto const device = dev.getNativeHandle().first;
-            auto max_threads_dim = device.template get_info<sycl::info::device::max_work_item_sizes>();
+            auto const max_threads_dim
+                = device.template get_info<sycl::info::device::max_work_item_sizes<TDim::value>>();
+            Vec<TDim, TIdx> max_threads_dim_vec{};
+            for(int i = 0; i < static_cast<int>(TDim::value); i++)
+                max_threads_dim_vec[i] = alpaka::core::clipCast<TIdx>(max_threads_dim[i]);
             return {// m_multiProcessorCount
                     alpaka::core::clipCast<TIdx>(device.template get_info<sycl::info::device::max_compute_units>()),
                     // m_gridBlockExtentMax
@@ -147,10 +133,7 @@ namespace alpaka::trait
                     // m_gridBlockCountMax
                     std::numeric_limits<TIdx>::max(),
                     // m_blockThreadExtentMax
-                    getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
-                        alpaka::core::clipCast<TIdx>(max_threads_dim[2u]),
-                        alpaka::core::clipCast<TIdx>(max_threads_dim[1u]),
-                        alpaka::core::clipCast<TIdx>(max_threads_dim[0u]))),
+                    max_threads_dim_vec,
                     // m_blockThreadCountMax
                     alpaka::core::clipCast<TIdx>(device.template get_info<sycl::info::device::max_work_group_size>()),
                     // m_threadElemExtentMax
@@ -164,18 +147,14 @@ namespace alpaka::trait
 
     //! The SYCL accelerator dimension getter trait specialization.
     template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
-    struct DimType<
-        TAcc<TDim, TIdx>,
-        std::enable_if_t<std::is_base_of_v<experimental::AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
+    struct DimType<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
     {
         using type = TDim;
     };
 
     //! The SYCL accelerator idx type trait specialization.
     template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
-    struct IdxType<
-        TAcc<TDim, TIdx>,
-        std::enable_if_t<std::is_base_of_v<experimental::AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
+    struct IdxType<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
     {
         using type = TIdx;
     };

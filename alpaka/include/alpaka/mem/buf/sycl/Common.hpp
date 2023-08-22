@@ -1,32 +1,27 @@
 /* Copyright 2022 Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/offset/Traits.hpp"
+
+#include <cstddef>
+
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    include <alpaka/dim/Traits.hpp>
-#    include <alpaka/extent/Traits.hpp>
-#    include <alpaka/offset/Traits.hpp>
+#    include <sycl/sycl.hpp>
 
-#    include <CL/sycl.hpp>
-
-#    include <cstddef>
-
-namespace alpaka::experimental::detail
+namespace alpaka::detail
 {
     template<typename TExtent>
     inline auto make_sycl_range(TExtent const& ext, std::size_t multiplier = 1)
     {
         constexpr auto dim = Dim<TExtent>::value;
 
-        const auto width = getWidth(ext) * multiplier;
+        auto const width = getWidth(ext) * multiplier;
 
         if constexpr(dim == 1)
             return sycl::range<1>{width};
@@ -48,6 +43,6 @@ namespace alpaka::experimental::detail
         else
             return sycl::id<3>{getOffsetX(view), getOffsetY(view), getOffsetZ(view)};
     }
-} // namespace alpaka::experimental::detail
+} // namespace alpaka::detail
 
 #endif

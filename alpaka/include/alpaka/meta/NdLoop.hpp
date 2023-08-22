@@ -1,17 +1,12 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <utility>
 
@@ -19,43 +14,36 @@ namespace alpaka::meta
 {
     namespace detail
     {
-        //! N-dimensional loop iteration template.
-        template<typename TIndexSequence>
-        struct NdLoop;
-
-        //! N-dimensional loop iteration template.
-        template<>
-        struct NdLoop<std::index_sequence<>>
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<typename TIndex, typename TExtentVec, typename TFnObj>
+        ALPAKA_FN_HOST_ACC constexpr void ndLoopImpl(
+            std::index_sequence<>,
+            TIndex& idx,
+            TExtentVec const&,
+            TFnObj const& f)
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            template<typename TIndex, typename TExtentVec, typename TFnObj>
-            ALPAKA_FN_HOST_ACC static auto ndLoop(const TIndex& idx, TExtentVec const& /* extent */, TFnObj const& f)
-                -> void
-            {
-                f(idx);
-            }
-        };
+            f(idx);
+        }
 
-        //! N-dimensional loop iteration template.
-        template<std::size_t Tdim0, std::size_t... Tdims>
-        struct NdLoop<std::index_sequence<Tdim0, Tdims...>>
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<std::size_t Tdim0, std::size_t... Tdims, typename TIndex, typename TExtentVec, typename TFnObj>
+        ALPAKA_FN_HOST_ACC constexpr void ndLoopImpl(
+            std::index_sequence<Tdim0, Tdims...>,
+            TIndex& idx,
+            TExtentVec const& extent,
+            TFnObj const& f)
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            template<typename TIndex, typename TExtentVec, typename TFnObj>
-            ALPAKA_FN_HOST_ACC static auto ndLoop(TIndex& idx, TExtentVec const& extent, TFnObj const& f) -> void
-            {
-                static_assert(Dim<TIndex>::value > 0u, "The dimension given to ndLoop has to be larger than zero!");
-                static_assert(
-                    Dim<TIndex>::value == Dim<TExtentVec>::value,
-                    "The dimensions of the iteration vector and the extent vector have to be identical!");
-                static_assert(Dim<TIndex>::value > Tdim0, "The current dimension has to be in the range [0,dim-1]!");
+            static_assert(Dim<TIndex>::value > 0u, "The dimension given to ndLoop has to be larger than zero!");
+            static_assert(
+                Dim<TIndex>::value == Dim<TExtentVec>::value,
+                "The dimensions of the iteration vector and the extent vector have to be identical!");
+            static_assert(Dim<TIndex>::value > Tdim0, "The current dimension has to be in the range [0,dim-1]!");
 
-                for(idx[Tdim0] = 0u; idx[Tdim0] < extent[Tdim0]; ++idx[Tdim0])
-                {
-                    NdLoop<std::index_sequence<Tdims...>>::template ndLoop(idx, extent, f);
-                }
+            for(idx[Tdim0] = 0u; idx[Tdim0] < extent[Tdim0]; ++idx[Tdim0])
+            {
+                ndLoopImpl(std::index_sequence<Tdims...>{}, idx, extent, f);
             }
-        };
+        }
     } // namespace detail
 
     //! Loops over an n-dimensional iteration index variable calling f(idx, args...) for each iteration.
@@ -68,7 +56,7 @@ namespace alpaka::meta
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TExtentVec, typename TFnObj, std::size_t... Tdims>
     ALPAKA_FN_HOST_ACC auto ndLoop(
-        [[maybe_unused]] std::index_sequence<Tdims...> const& indexSequence,
+        [[maybe_unused]] std::index_sequence<Tdims...> indexSequence,
         TExtentVec const& extent,
         TFnObj const& f) -> void
     {
@@ -80,8 +68,7 @@ namespace alpaka::meta
             "The values in the index_sequence have to be unique!");
 
         auto idx = Vec<Dim<TExtentVec>, Idx<TExtentVec>>::zeros();
-
-        detail::NdLoop<std::index_sequence<Tdims...>>::template ndLoop(idx, extent, f);
+        detail::ndLoopImpl(std::index_sequence<Tdims...>{}, idx, extent, f);
     }
 
     //! Loops over an n-dimensional iteration index variable calling f(idx, args...) for each iteration.

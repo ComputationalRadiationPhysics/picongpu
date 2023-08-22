@@ -1,20 +1,15 @@
 /* Copyright 2022 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Concepts.hpp>
-#include <alpaka/core/Positioning.hpp>
-#include <alpaka/idx/MapIdx.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
-#include <alpaka/workdiv/Traits.hpp>
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Positioning.hpp"
+#include "alpaka/idx/MapIdx.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
+#include "alpaka/workdiv/Traits.hpp"
 
 namespace alpaka
 {
@@ -25,7 +20,7 @@ namespace alpaka
         class IdxGbLinear : public concepts::Implements<ConceptIdxGb, IdxGbLinear<TDim, TIdx>>
         {
         public:
-            IdxGbLinear(const TIdx& teamOffset = static_cast<TIdx>(0u)) : m_gridBlockIdx(teamOffset)
+            IdxGbLinear(TIdx const& teamOffset = static_cast<TIdx>(0u)) : m_gridBlockIdx(teamOffset)
             {
             }
 

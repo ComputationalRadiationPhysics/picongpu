@@ -1,18 +1,5 @@
-/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* Copyright 2023 Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -81,15 +68,13 @@ auto main() -> int
     // - AccGpuCudaRt
     // - AccGpuHipRt
     // - AccCpuThreads
-    // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
-    // - AccOmp5
     // - AccCpuTbbBlocks
     // - AccCpuSerial
     //
     // Each accelerator has strengths and weaknesses. Therefore,
-    // they need to be choosen carefully depending on the actual
+    // they need to be chosen carefully depending on the actual
     // use case. Furthermore, some accelerators only support a
     // particular workdiv, but workdiv can also be generated
     // automatically.
@@ -108,12 +93,13 @@ auto main() -> int
     // Select a device
     //
     // The accelerator only defines how something should be
-    // parallized, but a device is the real entity which will
-    // run the parallel programm. The device can be choosen
+    // parallelized, but a device is the real entity which will
+    // run the parallel program. The device can be chosen
     // by id (0 to the number of devices minus 1) or you
     // can also retrieve all devices in a vector (getDevs()).
-    // In this example the first devices is choosen.
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    // In this example the first devices is chosen.
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Create a queue on the device
     //
@@ -123,7 +109,7 @@ auto main() -> int
     // tasks will be executed. Queues are provided in
     // non-blocking and blocking variants.
     // The example queue is a blocking queue to a cpu device,
-    // but it also exists an non-blocking queue for this
+    // but it also exists as non-blocking queue for this
     // device (QueueCpuNonBlocking).
     Queue queue(devAcc);
 
@@ -156,8 +142,8 @@ auto main() -> int
     // Thus, a thread can process data element size wise with its
     // vector processing unit.
     using Vec = alpaka::Vec<Dim, Idx>;
-    Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
-    Vec const threadsPerGrid(Vec::all(static_cast<Idx>(8)));
+    auto const elementsPerThread = Vec::all(static_cast<Idx>(1));
+    auto const threadsPerGrid = Vec{4, 2, 4};
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     WorkDiv const workDiv = alpaka::getValidWorkDiv<Acc>(
         devAcc,
@@ -180,7 +166,7 @@ auto main() -> int
     // parameters.
     // The kernel execution task is enqueued into an accelerator queue.
     // The queue can be blocking or non-blocking
-    // depending on the choosen queue type (see type definitions above).
+    // depending on the chosen queue type (see type definitions above).
     // Here it is synchronous which means that the kernel is directly executed.
     alpaka::exec<Acc>(
         queue,

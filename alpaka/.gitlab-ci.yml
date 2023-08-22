@@ -1,65 +1,55 @@
+# SPDX-License-Identifier: MPL-2.0
+
 # stage description
-# Run Time Tests
-#   For HIP or other backends this is distributed round robin within the file.
-#   For CUDA version Major.X (where X is the latest patch of the major version) distributed round robin
-#   for each compiler within the file.
-#   There are exceptions for intermediate minor versions of CUDA
-#   stageRun0 = all CUDA version Major.0
-#   stageRun1 = all CUDA where minor != 0 and not latest minor version
-# Compile Tests
-#   stageCompileN = round robin distributed within the file
+# generate
+#  creates the actual test jobs via python script
+# run-tests
+#  execute the generated test jobs
+#  the ordering is mainly random
+#  the python generator can schedule some jobs on specific positions
 
 stages:
-  - stageCompile0
-  - stageRun0
-  - stageCompile1
-  - stageRun1
+  - generator
+  - run-test-jobs
 
 
 variables:
-  ALPAKA_GITLAB_CI_CONTAINER_VERSION: "1.4"
-  ALPAKA_CI_OS_NAME: "Linux"
-  alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE: "ON"
-  alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
-  alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: "OFF"
-  alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: "OFF"
-  alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
-  alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "ON"
-  alpaka_ACC_ANY_BT_OMP5_ENABLE: "OFF"
-  alpaka_ACC_ANY_BT_OACC_ENABLE: "OFF"
-  alpaka_ACC_GPU_CUDA_ENABLE: "OFF"
-  alpaka_ACC_GPU_CUDA_ONLY_MODE: "OFF"
-  alpaka_ACC_GPU_HIP_ENABLE: "OFF"
-  alpaka_ACC_GPU_HIP_ONLY_MODE: "OFF"
-  # If ALPAKA_CI_ANALYSIS is OFF compile and execute runtime tests else compile only.
-  ALPAKA_CI_ANALYSIS: "OFF"
-  ALPAKA_CI_RUN_TESTS: "ON"
-  alpaka_CI: GITLAB
-  # needs to be enabled, that test on the GPU are executed
-  ALPAKA_FORCE_RUNTIME_TEST: "ON"
-  ALPAKA_CI_SANITIZERS: ""
-  ALPAKA_CI_INSTALL_CUDA: "OFF"
-  ALPAKA_CI_INSTALL_HIP: "OFF"
-  ALPAKA_CI_CMAKE_DIR: "$HOME/cmake"
-  BOOST_ROOT: "$HOME/boost"
-  ALPAKA_CI_BOOST_LIB_DIR: "$HOME/boost_libs"
-  ALPAKA_CI_CUDA_DIR: "$HOME/cuda"
-  ALPAKA_CI_HIP_ROOT_DIR: "$HOME/hip"
+  # container version of the generated jobs
+  # should be merged with ALPAKA_GITLAB_CI_CONTAINER_VERSION
+  # see: script/job_generator/generate_job_yaml.py
+  ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION: "3.1"
 
-include:
-  - local: '/script/gitlabci/job_base.yml'
-  - local: '/script/gitlabci/job_cuda9.2.yml'
-  - local: '/script/gitlabci/job_cuda10.0.yml'
-  - local: '/script/gitlabci/job_cuda10.1.yml'
-  - local: '/script/gitlabci/job_cuda10.2.yml'
-  - local: '/script/gitlabci/job_cuda11.0.yml'
-  - local: '/script/gitlabci/job_cuda11.1.yml'
-  - local: '/script/gitlabci/job_cuda11.2.yml'
-  - local: '/script/gitlabci/job_cuda11.3.yml'
-  - local: '/script/gitlabci/job_cuda11.4.yml'
-  - local: '/script/gitlabci/job_cuda11.5.yml'
-  - local: '/script/gitlabci/job_cuda11.6.yml'
-  - local: '/script/gitlabci/job_hip4.2.yml'
-  - local: '/script/gitlabci/job_hip4.3.yml'
-  - local: '/script/gitlabci/job_hip4.5.yml'
-  - local: '/script/gitlabci/job_hip5.0.yml'
+generate:
+  stage: generator
+  # update alpine version to use newer python version
+  image: alpine:3.18
+  script:
+    - apk update && apk add python3~=3.11 py3-pip
+    - pip3 install -r script/job_generator/requirements.txt
+    # it's enough to verify one time, because --compile-only und --runtime-only generates the same job matrix and filter it
+    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --verify --compile-only -o compile_only.yml
+    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --runtime-only -o runtime.yml
+    - cat compile_only.yml
+    - cat runtime.yml
+  artifacts:
+    paths:
+      - compile_only.yml
+      - runtime.yml
+    expire_in: 1 week
+  interruptible: true
+
+run-compile-only-test:
+  stage: run-test-jobs
+  trigger:
+    include:
+      - artifact: compile_only.yml
+        job: generate
+    strategy: depend
+
+run-runtime-test:
+  stage: run-test-jobs
+  trigger:
+    include:
+      - artifact: runtime.yml
+        job: generate
+    strategy: depend

@@ -1,91 +1,40 @@
-/* Copyright 2022 Jiri Vyskocil, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jiri Vyskocil, Bernhard Manfred Gruber, Jeffrey Kelling
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/rand/Philox/MultiplyAndSplit64to32.hpp>
-#include <alpaka/rand/Philox/PhiloxConstants.hpp>
+#include "alpaka/rand/Philox/PhiloxStateless.hpp"
 
 #include <utility>
 
 
 namespace alpaka::rand::engine
 {
-    /** Philox algorithm parameters
-     *
-     * @tparam TCounterSize number of elements in the counter
-     * @tparam TWidth width of one counter element (in bits)
-     * @tparam TRounds number of S-box rounds
-     */
-    template<unsigned TCounterSize, unsigned TWidth, unsigned TRounds>
-    struct PhiloxParams
-    {
-        static unsigned constexpr counterSize = TCounterSize;
-        static unsigned constexpr width = TWidth;
-        static unsigned constexpr rounds = TRounds;
-    };
-
     /** Common class for Philox family engines
      *
-     * Checks the validity of passed-in parameters and calls the \a TBackend methods to perform N rounds of the
-     * Philox shuffle.
+     * Relies on `PhiloxStateless` to provide the PRNG and adds state to handling the counting.
      *
      * @tparam TBackend device-dependent backend, specifies the array types
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
      * @tparam TImpl engine type implementation (CRTP)
+     *
+     * static const data members are transformed into functions, because GCC
+     * assumes types with static data members to be not mappable and makes not
+     * exception for constexpr ones. This is a valid interpretation of the
+     * OpenMP <= 4.5 standard. In OpenMP >= 5.0 types with any kind of static
+     * data member are mappable.
      */
     template<typename TBackend, typename TParams, typename TImpl>
     class PhiloxBaseCommon
         : public TBackend
-        , public PhiloxConstants<TParams>
+        , public PhiloxStateless<TBackend, TParams>
     {
-        static unsigned const numRounds = TParams::rounds;
-        static unsigned const vectorSize = TParams::counterSize;
-        static unsigned const numberWidth = TParams::width;
-
-        static_assert(numRounds > 0, "Number of Philox rounds must be > 0.");
-        static_assert(vectorSize % 2 == 0, "Philox counter size must be an even number.");
-        static_assert(vectorSize <= 16, "Philox SP network is not specified for sizes > 16.");
-        static_assert(numberWidth % 8 == 0, "Philox number width in bits must be a multiple of 8.");
-
-        // static_assert(TWidth == 32 || TWidth == 64, "Philox implemented only for 32 and 64 bit numbers.");
-        static_assert(numberWidth == 32, "Philox implemented only for 32 bit numbers.");
-
     public:
-        using Counter = typename TBackend::Counter;
-        using Key = typename TBackend::Key;
+        using Counter = typename PhiloxStateless<TBackend, TParams>::Counter;
+        using Key = typename PhiloxStateless<TBackend, TParams>::Key;
 
     protected:
-        /** Single round of the Philox shuffle
-         *
-         * @param counter state of the counter
-         * @param key value of the key
-         * @return shuffled counter
-         */
-        ALPAKA_FN_HOST_ACC auto singleRound(Counter const& counter, Key const& key)
-        {
-            std::uint32_t H0, L0, H1, L1;
-            multiplyAndSplit64to32(counter[0], this->MULTIPLITER_4x32_0, H0, L0);
-            multiplyAndSplit64to32(counter[2], this->MULTIPLITER_4x32_1, H1, L1);
-            return Counter{H1 ^ counter[1] ^ key[0], L1, H0 ^ counter[3] ^ key[1], L0};
-        }
-
-        /** Bump the \a key by the Weyl sequence step parameter
-         *
-         * @param key the key to be bumped
-         * @return the bumped key
-         */
-        ALPAKA_FN_HOST_ACC auto bumpKey(Key const& key)
-        {
-            return Key{key[0] + this->WEYL_32_0, key[1] + this->WEYL_32_1};
-        }
-
         /** Advance the \a counter to the next state
          *
          * Increments the passed-in \a counter by one with a 128-bit carry.
@@ -138,28 +87,6 @@ namespace alpaka::rand::engine
             Counter temp = counter;
             counter[2] += low32Bits(subsequence);
             counter[3] += high32Bits(subsequence) + (counter[2] < temp[2] ? 1 : 0);
-        }
-
-        /** Performs N rounds of the Philox shuffle
-         *
-         * @param counter_in initial state of the counter
-         * @param key_in initial state of the key
-         * @return result of the PRNG shuffle; has the same size as the counter
-         */
-        ALPAKA_FN_HOST_ACC auto nRounds(Counter const& counter_in, Key const& key_in) -> Counter
-        {
-            Key key{key_in};
-            Counter counter = singleRound(counter_in, key);
-
-            // TODO: Consider unrolling the loop for performance
-            for(unsigned int n = 0; n < numRounds; ++n)
-            {
-                key = bumpKey(key);
-                counter = singleRound(counter, key);
-            }
-            // TODO: Should the key be returned as well??? i.e. should the original key be bumped?
-
-            return counter;
         }
     };
 } // namespace alpaka::rand::engine

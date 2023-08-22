@@ -1,49 +1,45 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-
 // Base classes.
-#    include <alpaka/atomic/AtomicCpu.hpp>
-#    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
-#    include <alpaka/block/sync/BlockSyncBarrierThread.hpp>
-#    include <alpaka/core/DemangleTypeNames.hpp>
-#    include <alpaka/idx/bt/IdxBtRefThreadIdMap.hpp>
-#    include <alpaka/idx/gb/IdxGbRef.hpp>
-#    include <alpaka/intrinsic/IntrinsicCpu.hpp>
-#    include <alpaka/math/MathStdLib.hpp>
-#    include <alpaka/mem/fence/MemFenceCpu.hpp>
-#    include <alpaka/rand/RandStdLib.hpp>
-#    include <alpaka/time/TimeStdLib.hpp>
-#    include <alpaka/warp/WarpSingleThread.hpp>
-#    include <alpaka/workdiv/WorkDivMembers.hpp>
+#include "alpaka/atomic/AtomicCpu.hpp"
+#include "alpaka/atomic/AtomicHierarchy.hpp"
+#include "alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp"
+#include "alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp"
+#include "alpaka/block/sync/BlockSyncBarrierThread.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/idx/bt/IdxBtRefThreadIdMap.hpp"
+#include "alpaka/idx/gb/IdxGbRef.hpp"
+#include "alpaka/intrinsic/IntrinsicCpu.hpp"
+#include "alpaka/math/MathStdLib.hpp"
+#include "alpaka/mem/fence/MemFenceCpu.hpp"
+#include "alpaka/rand/RandDefault.hpp"
+#include "alpaka/rand/RandStdLib.hpp"
+#include "alpaka/warp/WarpSingleThread.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
 
 // Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
 
 // Implementation details.
-#    include <alpaka/core/BoostPredef.hpp>
-#    include <alpaka/core/ClipCast.hpp>
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/DevCpu.hpp>
+#include "alpaka/acc/Tag.hpp"
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/ClipCast.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/dev/DevCpu.hpp"
 
-#    include <memory>
-#    include <thread>
-#    include <typeinfo>
+#include <memory>
+#include <thread>
+#include <typeinfo>
+
+#ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
 
 namespace alpaka
 {
@@ -54,28 +50,28 @@ namespace alpaka
     //!
     //! This accelerator allows parallel kernel execution on a CPU device.
     //! It uses std::thread to implement the parallelism.
-    template<
-        typename TDim,
-        typename TIdx>
-    class AccCpuThreads final :
-        public WorkDivMembers<TDim, TIdx>,
-        public gb::IdxGbRef<TDim, TIdx>,
-        public bt::IdxBtRefThreadIdMap<TDim, TIdx>,
-        public AtomicHierarchy<
-            AtomicCpu, // grid atomics
-            AtomicCpu, // block atomics
-            AtomicCpu  // thread atomics
-        >,
-        public math::MathStdLib,
-        public BlockSharedMemDynMember<>,
-        public BlockSharedMemStMemberMasterSync<>,
-        public BlockSyncBarrierThread<TIdx>,
-        public IntrinsicCpu,
-        public MemFenceCpu,
-        public rand::RandStdLib,
-        public TimeStdLib,
-        public warp::WarpSingleThread,
-        public concepts::Implements<ConceptAcc, AccCpuThreads<TDim, TIdx>>
+    template<typename TDim, typename TIdx>
+    class AccCpuThreads final
+        : public WorkDivMembers<TDim, TIdx>
+        , public gb::IdxGbRef<TDim, TIdx>
+        , public bt::IdxBtRefThreadIdMap<TDim, TIdx>
+        , public AtomicHierarchy<
+              AtomicCpu, // grid atomics
+              AtomicCpu, // block atomics
+              AtomicCpu> // thread atomics
+        , public math::MathStdLib
+        , public BlockSharedMemDynMember<>
+        , public BlockSharedMemStMemberMasterSync<>
+        , public BlockSyncBarrierThread<TIdx>
+        , public IntrinsicCpu
+        , public MemFenceCpu
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+        , public rand::RandDefault
+#    else
+        , public rand::RandStdLib
+#    endif
+        , public warp::WarpSingleThread
+        , public concepts::Implements<ConceptAcc, AccCpuThreads<TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
@@ -85,6 +81,11 @@ namespace alpaka
         // Partial specialization with the correct TDim and TIdx is not allowed.
         template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
         friend class ::alpaka::TaskKernelCpuThreads;
+
+        AccCpuThreads(AccCpuThreads const&) = delete;
+        AccCpuThreads(AccCpuThreads&&) = delete;
+        auto operator=(AccCpuThreads const&) -> AccCpuThreads& = delete;
+        auto operator=(AccCpuThreads&&) -> AccCpuThreads& = delete;
 
     private:
         template<typename TWorkDiv>
@@ -106,8 +107,11 @@ namespace alpaka
                   [this]() noexcept { return (m_idMasterThread == std::this_thread::get_id()); })
             , BlockSyncBarrierThread<TIdx>(getWorkDiv<Block, Threads>(workDiv).prod())
             , MemFenceCpu()
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+            , rand::RandDefault()
+#    else
             , rand::RandStdLib()
-            , TimeStdLib()
+#    endif
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -207,9 +211,9 @@ namespace alpaka
 
         //! The CPU threads execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
-        struct PltfType<AccCpuThreads<TDim, TIdx>>
+        struct PlatformType<AccCpuThreads<TDim, TIdx>>
         {
-            using type = PltfCpu;
+            using type = PlatformCpu;
         };
 
         //! The CPU threads accelerator idx type trait specialization.
@@ -217,6 +221,18 @@ namespace alpaka
         struct IdxType<AccCpuThreads<TDim, TIdx>>
         {
             using type = TIdx;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct AccToTag<alpaka::AccCpuThreads<TDim, TIdx>>
+        {
+            using type = alpaka::TagCpuThreads;
+        };
+
+        template<typename TDim, typename TIdx>
+        struct TagToAcc<alpaka::TagCpuThreads, TDim, TIdx>
+        {
+            using type = alpaka::AccCpuThreads<TDim, TIdx>;
         };
     } // namespace trait
 } // namespace alpaka

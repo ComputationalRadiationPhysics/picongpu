@@ -1,29 +1,24 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
- * Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
+ *                Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Align.hpp>
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unreachable.hpp>
-#include <alpaka/dim/DimIntegralConst.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/meta/Fold.hpp>
-#include <alpaka/meta/Functional.hpp>
-#include <alpaka/meta/IntegerSequence.hpp>
-#include <alpaka/offset/Traits.hpp>
-#include <alpaka/vec/Traits.hpp>
+#include "alpaka/core/Align.hpp"
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Unreachable.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/meta/Fold.hpp"
+#include "alpaka/meta/Functional.hpp"
+#include "alpaka/meta/IntegerSequence.hpp"
+#include "alpaka/offset/Traits.hpp"
+#include "alpaka/vec/Traits.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -98,6 +93,20 @@ namespace alpaka
         //! Value constructor.
         //! This constructor is only available if the number of parameters matches the vector idx.
         ALPAKA_NO_HOST_ACC_WARNING
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(11, 3, 0)                                              \
+    && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 4, 0)
+        // This constructor tries to avoid SFINAE, which crashes nvcc 11.3. We also need to have a first
+        // argument, so an unconstrained ctor with forwarding references does not hijack the compiler provided
+        // copy-ctor.
+        template<typename... TArgs>
+        ALPAKA_FN_HOST_ACC constexpr Vec(TVal arg0, TArgs&&... args)
+            : m_data{std::move(arg0), static_cast<TVal>(std::forward<TArgs>(args))...}
+        {
+            static_assert(
+                1 + sizeof...(TArgs) == TDim::value && (std::is_convertible_v<std::decay_t<TArgs>, TVal> && ...),
+                "Wrong number of arguments to Vec constructor or types are not convertible to TVal.");
+        }
+#else
         template<
             typename... TArgs,
             typename = std::enable_if_t<
@@ -105,6 +114,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC constexpr Vec(TArgs&&... args) : m_data{static_cast<TVal>(std::forward<TArgs>(args))...}
         {
         }
+#endif
 
         //! \brief Single value constructor.
         //!
@@ -138,7 +148,7 @@ namespace alpaka
             return m_data;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto begin() const -> const TVal*
+        ALPAKA_FN_HOST_ACC constexpr auto begin() const -> TVal const*
         {
             return m_data;
         }
@@ -148,7 +158,7 @@ namespace alpaka
             return m_data + TDim::value;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto end() const -> const TVal*
+        ALPAKA_FN_HOST_ACC constexpr auto end() const -> TVal const*
         {
             return m_data + TDim::value;
         }
@@ -245,6 +255,27 @@ namespace alpaka
             return foldrAll(meta::max<TVal>(), std::numeric_limits<TVal>::min());
         }
 
+        //! \return True if all values are true, i.e., the "logical and" of all values.
+        ALPAKA_NO_HOST_ACC_WARNING
+        [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto all() const -> bool
+        {
+            return foldrAll(std::logical_and<TVal>(), true);
+        }
+
+        //! \return True if any value is true, i.e., the "logical or" of all values.
+        ALPAKA_NO_HOST_ACC_WARNING
+        [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto any() const -> bool
+        {
+            return foldrAll(std::logical_or<TVal>(), false);
+        }
+
+        //! \return True if none of the values are true
+        ALPAKA_NO_HOST_ACC_WARNING
+        [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto none() const -> bool
+        {
+            return !foldrAll(std::logical_or<TVal>(), false);
+        }
+
         //! \return The index of the minimal element.
         [[nodiscard]] ALPAKA_FN_HOST constexpr auto minElem() const -> typename TDim::value_type
         {
@@ -276,7 +307,11 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC friend constexpr auto operator+(Vec const& p, Vec const& q) -> Vec
         {
             Vec r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
             if constexpr(TDim::value > 0)
+#endif
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] + q[i];
@@ -312,7 +347,11 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC friend constexpr auto operator*(Vec const& p, Vec const& q) -> Vec
         {
             Vec r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
             if constexpr(TDim::value > 0)
+#endif
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] * q[i];
@@ -355,7 +394,11 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC friend constexpr auto operator<(Vec const& p, Vec const& q) -> Vec<TDim, bool>
         {
             Vec<TDim, bool> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
             if constexpr(TDim::value > 0)
+#endif
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] < q[i];
@@ -368,7 +411,11 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC friend constexpr auto operator<=(Vec const& p, Vec const& q) -> Vec<TDim, bool>
         {
             Vec<TDim, bool> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
             if constexpr(TDim::value > 0)
+#endif
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] <= q[i];
@@ -381,7 +428,11 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC friend constexpr auto operator>(Vec const& p, Vec const& q) -> Vec<TDim, bool>
         {
             Vec<TDim, bool> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
             if constexpr(TDim::value > 0)
+#endif
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] > q[i];
@@ -394,10 +445,48 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC friend constexpr auto operator>=(Vec const& p, Vec const& q) -> Vec<TDim, bool>
         {
             Vec<TDim, bool> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
             if constexpr(TDim::value > 0)
+#endif
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] >= q[i];
+            }
+            return r;
+        }
+
+        //! \return The element-wise logical and relation of two vectors.
+        ALPAKA_NO_HOST_ACC_WARNING
+        ALPAKA_FN_HOST_ACC friend constexpr auto operator&&(Vec const& p, Vec const& q) -> Vec<TDim, bool>
+        {
+            Vec<TDim, bool> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
+            if constexpr(TDim::value > 0)
+#endif
+            {
+                for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                    r[i] = p[i] && q[i];
+            }
+            return r;
+        }
+
+        //! \return The element-wise logical or relation of two vectors.
+        ALPAKA_NO_HOST_ACC_WARNING
+        ALPAKA_FN_HOST_ACC friend constexpr auto operator||(Vec const& p, Vec const& q) -> Vec<TDim, bool>
+        {
+            Vec<TDim, bool> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+            if(TDim::value > 0)
+#else
+            if constexpr(TDim::value > 0)
+#endif
+            {
+                for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                    r[i] = p[i] || q[i];
             }
             return r;
         }
@@ -435,6 +524,70 @@ namespace alpaka
         // Zero sized arrays are not allowed, therefore zero-dimensional vectors have one member.
         TVal m_data[TDim::value == 0u ? 1u : TDim::value];
     };
+
+    template<typename TFirstIndex, typename... TRestIndices>
+    Vec(TFirstIndex&&, TRestIndices&&...) -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
+
+    //! Converts a Vec to a std::array
+    template<typename TDim, typename TVal>
+    ALPAKA_FN_HOST_ACC constexpr auto toArray(Vec<TDim, TVal> const& v) -> std::array<TVal, TDim::value>
+    {
+        std::array<TVal, TDim::value> a{};
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+        if(TDim::value > 0)
+#else
+        if constexpr(TDim::value > 0)
+#endif
+        {
+            for(unsigned i = 0; i < TDim::value; i++)
+                a[i] = v[i];
+        }
+        return a;
+    }
+
+    //! \return The element-wise minimum of one or more vectors.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<
+        typename TDim,
+        typename TVal,
+        typename... Vecs,
+        typename = std::enable_if_t<(std::is_same_v<Vec<TDim, TVal>, Vecs> && ...)>>
+    ALPAKA_FN_HOST_ACC constexpr auto elementwise_min(Vec<TDim, TVal> const& p, Vecs const&... qs) -> Vec<TDim, TVal>
+    {
+        Vec<TDim, TVal> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+        if(TDim::value > 0)
+#else
+        if constexpr(TDim::value > 0)
+#endif
+        {
+            for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                r[i] = std::min({p[i], qs[i]...});
+        }
+        return r;
+    }
+
+    //! \return The element-wise maximum of one or more vectors.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<
+        typename TDim,
+        typename TVal,
+        typename... Vecs,
+        typename = std::enable_if_t<(std::is_same_v<Vec<TDim, TVal>, Vecs> && ...)>>
+    ALPAKA_FN_HOST_ACC constexpr auto elementwise_max(Vec<TDim, TVal> const& p, Vecs const&... qs) -> Vec<TDim, TVal>
+    {
+        Vec<TDim, TVal> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+        if(TDim::value > 0)
+#else
+        if constexpr(TDim::value > 0)
+#endif
+        {
+            for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                r[i] = std::max({p[i], qs[i]...});
+        }
+        return r;
+    }
 
     namespace trait
     {
@@ -488,7 +641,11 @@ namespace alpaka
                 else
                 {
                     Vec<TDim, TValNew> r;
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 3, 0)
+                    if(TDim::value > 0)
+#else
                     if constexpr(TDim::value > 0)
+#endif
                     {
                         for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                             r[i] = static_cast<TValNew>(vec[i]);

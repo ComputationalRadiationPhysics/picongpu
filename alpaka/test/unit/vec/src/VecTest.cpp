@@ -1,17 +1,13 @@
-/* Copyright 2021 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/meta/ForEachType.hpp>
 #include <alpaka/test/dim/TestDims.hpp>
 #include <alpaka/vec/Vec.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <numeric>
 #include <utility>
@@ -183,82 +179,106 @@ TEST_CASE("basicVecTraits", "[vec]")
 
         // alpaka::Vec operator +
         {
-            constexpr auto vecLessEqual(vec + vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, Idx>);
+            constexpr auto result(vec + vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, Idx>);
 
-            constexpr alpaka::Vec<Dim, Idx> referenceVec(
+            constexpr alpaka::Vec<Dim, Idx> reference(
                 static_cast<Idx>(47u),
                 static_cast<Idx>(16u),
                 static_cast<Idx>(18u));
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            STATIC_REQUIRE(reference == result);
         }
 
         // alpaka::Vec operator -
         {
-            constexpr auto vecLessEqual(vec - vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, Idx>);
+            constexpr auto result(vec - vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, Idx>);
 
-            constexpr alpaka::Vec<Dim, Idx> referenceVec(
+            constexpr alpaka::Vec<Dim, Idx> reference(
                 static_cast<Idx>(-47),
                 static_cast<Idx>(0u),
                 static_cast<Idx>(12u));
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            STATIC_REQUIRE(reference == result);
         }
 
         // alpaka::Vec operator *
         {
-            constexpr auto vecLessEqual(vec * vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, Idx>);
+            constexpr auto result(vec * vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, Idx>);
 
-            constexpr alpaka::Vec<Dim, Idx> referenceVec(
+            constexpr alpaka::Vec<Dim, Idx> reference(
                 static_cast<Idx>(0u),
                 static_cast<Idx>(64u),
                 static_cast<Idx>(45u));
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            STATIC_REQUIRE(reference == result);
         }
 
         // alpaka::Vec operator <
         {
-            constexpr auto vecLessEqual(vec < vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, bool>);
+            constexpr auto result(vec < vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, bool>);
 
-            constexpr alpaka::Vec<Dim, bool> referenceVec(true, false, false);
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            constexpr alpaka::Vec<Dim, bool> reference(true, false, false);
+            STATIC_REQUIRE(reference == result);
         }
 
         // alpaka::Vec operator <=
         {
-            constexpr auto vecLessEqual(vec <= vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, bool>);
+            constexpr auto result(vec <= vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, bool>);
 
-            constexpr alpaka::Vec<Dim, bool> referenceVec(true, true, false);
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            constexpr alpaka::Vec<Dim, bool> reference(true, true, false);
+            STATIC_REQUIRE(reference == result);
         }
 
         // alpaka::Vec operator >=
         {
-            constexpr auto vecLessEqual(vec >= vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, bool>);
+            constexpr auto result(vec >= vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, bool>);
 
-            constexpr alpaka::Vec<Dim, bool> referenceVec(false, true, true);
+            constexpr alpaka::Vec<Dim, bool> reference(false, true, true);
 
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            STATIC_REQUIRE(reference == result);
         }
 
         // alpaka::Vec operator >
         {
-            constexpr auto vecLessEqual(vec > vec3);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(vecLessEqual)>>, Dim>);
-            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(vecLessEqual)>>, bool>);
+            constexpr auto result(vec > vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, bool>);
 
-            constexpr alpaka::Vec<Dim, bool> referenceVec(false, false, true);
-            STATIC_REQUIRE(referenceVec == vecLessEqual);
+            constexpr alpaka::Vec<Dim, bool> reference(false, false, true);
+            STATIC_REQUIRE(reference == result);
+        }
+
+        // alpaka::Vec elementwise_min
+        {
+            STATIC_REQUIRE(alpaka::elementwise_min(vec) == vec);
+
+            constexpr auto result = alpaka::elementwise_min(vec, vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, Idx>);
+            STATIC_REQUIRE(result == Vec{0, 8, 3});
+
+            STATIC_REQUIRE(alpaka::elementwise_min(vec, vec3, Vec{9, 7, 9}, Vec{12, 42, 12}) == Vec{0, 7, 3});
+        }
+
+        // alpaka::Vec elementwise_max
+        {
+            STATIC_REQUIRE(alpaka::elementwise_max(vec) == vec);
+
+            constexpr auto result = alpaka::elementwise_max(vec, vec3);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Dim<std::decay_t<decltype(result)>>, Dim>);
+            STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::decay_t<decltype(result)>>, Idx>);
+            STATIC_REQUIRE(result == Vec{47, 8, 15});
+
+            STATIC_REQUIRE(alpaka::elementwise_max(vec, vec3, Vec{9, 7, 9}, Vec{12, 42, 12}) == Vec{47, 42, 15});
         }
 
         // alpaka::Vec begin/end
@@ -335,7 +355,7 @@ TEST_CASE("structuredBindings", "[vec]")
 
     Vec vec{Idx{1}, Idx{2}};
 
-    const auto [y, x] = vec;
+    auto const [y, x] = vec;
     CHECK(y == 1);
     CHECK(x == 2);
 
@@ -344,4 +364,19 @@ TEST_CASE("structuredBindings", "[vec]")
     x2++;
     CHECK(vec[0] == 2);
     CHECK(vec[1] == 3);
+}
+
+TEST_CASE("deductionGuide", "[vec]")
+{
+    [[maybe_unused]] auto v1 = alpaka::Vec{1};
+    STATIC_REQUIRE(std::is_same_v<decltype(v1), alpaka::Vec<alpaka::DimInt<1>, int>>);
+
+    [[maybe_unused]] auto v2 = alpaka::Vec{1, 2};
+    STATIC_REQUIRE(std::is_same_v<decltype(v2), alpaka::Vec<alpaka::DimInt<2>, int>>);
+
+    [[maybe_unused]] auto v3 = alpaka::Vec{1, 2, 3};
+    STATIC_REQUIRE(std::is_same_v<decltype(v3), alpaka::Vec<alpaka::DimInt<3>, int>>);
+
+    [[maybe_unused]] auto v3l = alpaka::Vec{1L, 2L, 3L};
+    STATIC_REQUIRE(std::is_same_v<decltype(v3l), alpaka::Vec<alpaka::DimInt<3>, long>>);
 }

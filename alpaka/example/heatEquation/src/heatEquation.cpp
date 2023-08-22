@@ -1,18 +1,5 @@
 /* Copyright 2020 Benjamin Worpitz, Matthias Werner, Jakob Krude, Sergei Bastrakov, Bernhard Manfred Gruber
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -108,11 +95,11 @@ auto main() -> int
     using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
-    using DevHost = alpaka::DevCpu;
-
     // Select specific devices
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
-    auto const devHost = alpaka::getDevByIdx<DevHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Get valid workdiv for the given problem
     uint32_t elemPerThread = 1;
@@ -131,11 +118,10 @@ auto main() -> int
     QueueAcc queue{devAcc};
 
     // Initialize host-buffer
-    using BufHost = alpaka::Buf<DevHost, double, Dim, Idx>;
     // This buffer holds the calculated values
-    auto uNextBufHost = BufHost{alpaka::allocBuf<double, Idx>(devHost, extent)};
+    auto uNextBufHost = alpaka::allocBuf<double, Idx>(devHost, extent);
     // This buffer will hold the current values (used for the next step)
-    auto uCurrBufHost = BufHost{alpaka::allocBuf<double, Idx>(devHost, extent)};
+    auto uCurrBufHost = alpaka::allocBuf<double, Idx>(devHost, extent);
 
     double* const pCurrHost = alpaka::getPtrNative(uCurrBufHost);
     double* const pNextHost = alpaka::getPtrNative(uNextBufHost);

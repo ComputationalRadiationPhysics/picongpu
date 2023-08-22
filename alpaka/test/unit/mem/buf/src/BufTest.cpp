@@ -1,10 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/mem/buf/Traits.hpp>
@@ -13,7 +8,9 @@
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <numeric>
 #include <type_traits>
@@ -22,14 +19,14 @@ template<typename TAcc>
 static auto testBufferMutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
 {
     using Dev = alpaka::Dev<TAcc>;
-    using Pltf = alpaka::Pltf<Dev>;
     using Queue = alpaka::test::DefaultQueue<Dev>;
 
     using Elem = float;
     using Dim = alpaka::Dim<TAcc>;
     using Idx = alpaka::Idx<TAcc>;
 
-    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
     Queue queue(dev);
 
     // alpaka::malloc
@@ -45,14 +42,14 @@ template<typename TAcc>
 static auto testAsyncBufferMutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
 {
     using Dev = alpaka::Dev<TAcc>;
-    using Pltf = alpaka::Pltf<Dev>;
     using Queue = alpaka::test::DefaultQueue<Dev>;
 
     using Elem = float;
     using Dim = alpaka::Dim<TAcc>;
     using Idx = alpaka::Idx<TAcc>;
 
-    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
     Queue queue(dev);
 
     // memory is allocated when the queue reaches this point
@@ -107,7 +104,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncBasicTest", "[memBuf]", alpaka::test::TestAc
     }
     else
     {
-        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+        INFO("Stream-ordered memory buffers are not supported in this configuration.");
     }
 }
 
@@ -124,21 +121,19 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncZeroSizeTest", "[memBuf]", alpaka::test::Tes
     }
     else
     {
-        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+        INFO("Stream-ordered memory buffers are not supported in this configuration.");
     }
 }
 
 template<typename TAcc>
 static auto testBufferImmutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
 {
-    using Dev = alpaka::Dev<TAcc>;
-    using Pltf = alpaka::Pltf<Dev>;
-
     using Elem = float;
     using Dim = alpaka::Dim<TAcc>;
     using Idx = alpaka::Idx<TAcc>;
 
-    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
 
     // alpaka::malloc
     auto const buf = alpaka::allocBuf<Elem, Idx>(dev, extent);
@@ -164,14 +159,14 @@ static auto testAsyncBufferImmutable(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<
 {
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
         using Queue = alpaka::test::DefaultQueue<Dev>;
 
         using Elem = float;
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
 
-        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        auto const platformAcc = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platformAcc, 0);
         Queue queue(dev);
 
         // memory is allocated when the queue reaches this point
@@ -210,7 +205,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncConstTest", "[memBuf]", alpaka::test::TestAc
     }
     else
     {
-        INFO("Stream-ordered memory buffers are not supported in this configuration.")
+        INFO("Stream-ordered memory buffers are not supported in this configuration.");
     }
 }
 
@@ -219,9 +214,6 @@ static auto testBufferAccessorAdaptor(
     alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent,
     alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& index) -> void
 {
-    using Dev = alpaka::Dev<TAcc>;
-    using Pltf = alpaka::Pltf<Dev>;
-
     using Elem = float;
     using Dim = alpaka::Dim<TAcc>;
     using Idx = alpaka::Idx<TAcc>;
@@ -229,15 +221,16 @@ static auto testBufferAccessorAdaptor(
     // assume dimensionality up to 4
     CHECK(Dim::value <= 4);
 
-    Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
 
     // alpaka::malloc
     auto buf = alpaka::allocBuf<Elem, Idx>(dev, extent);
 
     // check that the array subscript operator access the correct element
     auto const& pitch = alpaka::getPitchBytesVec(buf);
-    INFO("buffer extent: " << extent << " elements")
-    INFO("buffer pitch: " << pitch << " bytes")
+    INFO("buffer extent: " << extent << " elements");
+    INFO("buffer pitch: " << pitch << " bytes");
     CHECK((index < extent).foldrAll(std::logical_and<bool>(), true));
 
     auto base = reinterpret_cast<uintptr_t>(std::data(buf));
@@ -257,8 +250,8 @@ static auto testBufferAccessorAdaptor(
     if constexpr(Dim::value > 0)
         expected += sizeof(Elem) * static_cast<std::size_t>(index[Dim::value - 1]);
 
-    INFO("element " << index << " expected at offset " << expected - base)
-    INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base)
+    INFO("element " << index << " expected at offset " << expected - base);
+    INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base);
     CHECK(reinterpret_cast<Elem*>(expected) == &buf[index]);
 
     // check that an out-of-bound access is detected
@@ -282,11 +275,12 @@ TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     using Idx = alpaka::Idx<Acc>;
-    using Pltf = alpaka::Pltf<alpaka::Dev<Acc>>;
     using Elem = std::size_t;
 
-    auto const devHost = alpaka::getDevByIdx<alpaka::PltfCpu>(0u);
-    auto const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
     auto const extent = alpaka::Vec<alpaka::DimInt<0>, Idx>{};
 
@@ -295,7 +289,7 @@ TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)
         auto v = alpaka::createView(devHost, &value, extent);
         alpaka::memcpy(queue, buf, v);
     };
-    auto read = [&](const auto& buf)
+    auto read = [&](auto const& buf)
     {
         Elem value{};
         auto v = alpaka::createView(devHost, &value, extent);

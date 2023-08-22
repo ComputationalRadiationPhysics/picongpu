@@ -1,10 +1,5 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
@@ -41,31 +36,36 @@ namespace alpaka
                     using Idx = typename alpaka::trait::IdxType<TAcc>::type;
 
                     // Defines using's for alpaka-buffer.
-                    using DevAcc = alpaka::Dev<TAcc>;
                     using DevHost = alpaka::DevCpu;
-                    using PltfHost = alpaka::Pltf<DevHost>;
-
+                    using PlatformHost = alpaka::Platform<DevHost>;
                     using BufHost = alpaka::Buf<DevHost, TData, Dim, Idx>;
+
+                    using DevAcc = alpaka::Dev<TAcc>;
+                    using PlatformAcc = alpaka::Platform<DevAcc>;
                     using BufAcc = alpaka::Buf<DevAcc, TData, Dim, Idx>;
 
+                    PlatformHost platformHost;
                     DevHost devHost;
 
                     BufHost hostBuffer;
                     BufAcc devBuffer;
+                    PlatformAcc platformAcc;
 
                     // Native pointer to access buffer.
                     TData* const pHostBuffer;
                     TData* const pDevBuffer;
-
 
                     // This constructor cant be used,
                     // because BufHost and BufAcc need to be initialised.
                     Buffer() = delete;
 
                     // Constructor needs to initialize all Buffer.
-                    Buffer(const DevAcc& devAcc)
-                        : devHost{alpaka::getDevByIdx<PltfHost>(0u)}
-                        , hostBuffer{alpaka::allocBuf<TData, Idx>(devHost, Tcapacity)}
+                    Buffer(DevAcc const& devAcc)
+                        : devHost{alpaka::getDevByIdx(platformHost, 0)}
+                        , hostBuffer{alpaka::allocMappedBufIfSupported<PlatformAcc, TData, Idx>(
+                              devHost,
+                              platformAcc,
+                              Tcapacity)}
                         , devBuffer{alpaka::allocBuf<TData, Idx>(devAcc, Tcapacity)}
                         , pHostBuffer{alpaka::getPtrNative(hostBuffer)}
                         , pDevBuffer{alpaka::getPtrNative(devBuffer)}
@@ -99,7 +99,7 @@ namespace alpaka
                     }
 
                     ALPAKA_FN_HOST
-                    friend auto operator<<(std::ostream& os, const Buffer& buffer) -> std::ostream&
+                    friend auto operator<<(std::ostream& os, Buffer const& buffer) -> std::ostream&
                     {
                         os << "capacity: " << capacity << "\n";
                         for(size_t i = 0; i < capacity; ++i)

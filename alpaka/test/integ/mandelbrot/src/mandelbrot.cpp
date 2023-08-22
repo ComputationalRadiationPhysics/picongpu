@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
@@ -12,7 +7,7 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -277,18 +272,19 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
 
     using Val = std::uint32_t;
     using DevAcc = alpaka::Dev<Acc>;
-    using PltfAcc = alpaka::Pltf<DevAcc>;
+    using PlatformAcc = alpaka::Platform<DevAcc>;
     using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
-    using PltfHost = alpaka::PltfCpu;
 
     // Create the kernel function object.
     MandelbrotKernel kernel;
 
     // Get the host device.
-    auto const devHost = alpaka::getDevByIdx<PltfHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
     // Select a device to execute on.
-    auto const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
+    auto const platformAcc = PlatformAcc{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
@@ -305,11 +301,12 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
 
     std::cout << "MandelbrotKernel("
               << " numRows:" << numRows << ", numCols:" << numCols << ", maxIterations:" << maxIterations
-              << ", accelerator: " << alpaka::getAccName<Acc>() << ", kernel: " << typeid(kernel).name()
-              << ", workDiv: " << workDiv << ")" << std::endl;
+              << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
 
-    // allocate host memory
-    auto bufColorHost = alpaka::allocBuf<Val, Idx>(devHost, extent);
+    // allocate host memory, potentially pinned for faster copy to/from the accelerator.
+    auto bufColorHost = alpaka::allocMappedBufIfSupported<PlatformAcc, Val, Idx>(devHost, platformAcc, extent);
 
     // Allocate the buffer on the accelerator.
     auto bufColorAcc = alpaka::allocBuf<Val, Idx>(devAcc, extent);

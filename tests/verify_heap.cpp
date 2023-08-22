@@ -447,7 +447,9 @@ void allocate(
             alpaka::getPtrNative(d_sum),
             mMC.getAllocatorHandle()));
 
-    const auto hostDev = alpaka::getDevByIdx<alpaka::Pltf<alpaka::DevCpu>>(0);
+    auto const platform = alpaka::Platform<alpaka::DevCpu>{};
+    const auto hostDev = alpaka::getDevByIdx(platform, 0);
+
     auto h_sum = alpaka::allocBuf<unsigned long long, Idx>(hostDev, Idx{1});
     auto h_nSlots = alpaka::allocBuf<unsigned long long, Idx>(hostDev, Idx{1});
 
@@ -484,7 +486,9 @@ auto verify(
 {
     dout() << "verifying on device... ";
 
-    const auto hostDev = alpaka::getDevByIdx<alpaka::Pltf<alpaka::DevCpu>>(0);
+    auto const platform = alpaka::Platform<alpaka::DevCpu>{};
+    const auto hostDev = alpaka::getDevByIdx(platform, 0);
+
     auto h_correct = alpaka::allocBuf<int, Idx>(hostDev, Idx{1});
     *alpaka::getPtrNative(h_correct) = 1;
 
@@ -615,7 +619,8 @@ void print_machine_readable(
 auto run_heap_verification(const size_t heapMB, const unsigned blocks, unsigned threads, const bool machine_readable)
     -> bool
 {
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
     auto queue = Queue{dev};
 
     auto const devProps = alpaka::getAccDevProps<Acc>(dev);
@@ -630,7 +635,7 @@ auto run_heap_verification(const size_t heapMB, const unsigned blocks, unsigned 
 
     dout() << "CreationPolicy Arguments:\n";
     dout() << "Pagesize:              " << ScatterConfig::pagesize << '\n';
-    dout() << "Accessblocks:          " << ScatterConfig::accessblocks << '\n';
+    dout() << "Accessblocksize        " << ScatterConfig::accessblocksize << '\n';
     dout() << "Regionsize:            " << ScatterConfig::regionsize << '\n';
     dout() << "Wastefactor:           " << ScatterConfig::wastefactor << '\n';
     dout() << "ResetFreedPages        " << ScatterConfig::resetfreedpages << '\n';
@@ -706,7 +711,7 @@ auto run_heap_verification(const size_t heapMB, const unsigned blocks, unsigned 
     {
         print_machine_readable(
             ScatterConfig::pagesize,
-            ScatterConfig::accessblocks,
+            ScatterConfig::accessblocksize,
             ScatterConfig::regionsize,
             ScatterConfig::wastefactor,
             ScatterConfig::resetfreedpages,

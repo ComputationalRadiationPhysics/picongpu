@@ -1,10 +1,5 @@
-/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/test/KernelExecutionFixture.hpp>
@@ -12,10 +7,12 @@
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/warp/Traits.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
 
+template<std::uint32_t TWarpSize>
 struct GetSizeTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
@@ -26,15 +23,19 @@ struct GetSizeTestKernel
     }
 };
 
+template<std::uint32_t TWarpSize, typename TAcc>
+struct alpaka::trait::WarpSize<GetSizeTestKernel<TWarpSize>, TAcc> : std::integral_constant<std::uint32_t, TWarpSize>
+{
+};
+
 TEMPLATE_LIST_TEST_CASE("getSize", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dev = alpaka::Dev<Acc>;
-    using Pltf = alpaka::Pltf<Dev>;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
-    Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
+    auto const platform = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
     auto const warpSizes = alpaka::getWarpSizes(dev);
     REQUIRE(std::any_of(
         begin(warpSizes),
@@ -42,6 +43,26 @@ TEMPLATE_LIST_TEST_CASE("getSize", "[warp]", alpaka::test::TestAccs)
         [](std::size_t ws)
         {
             alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(8));
-            return fixture(GetSizeTestKernel{}, static_cast<std::int32_t>(ws));
+            if(ws == 4)
+            {
+                return fixture(GetSizeTestKernel<4>{}, static_cast<std::int32_t>(ws));
+            }
+            else if(ws == 8)
+            {
+                return fixture(GetSizeTestKernel<8>{}, static_cast<std::int32_t>(ws));
+            }
+            else if(ws == 16)
+            {
+                return fixture(GetSizeTestKernel<16>{}, static_cast<std::int32_t>(ws));
+            }
+            else if(ws == 32)
+            {
+                return fixture(GetSizeTestKernel<32>{}, static_cast<std::int32_t>(ws));
+            }
+            else if(ws == 64)
+            {
+                return fixture(GetSizeTestKernel<64>{}, static_cast<std::int32_t>(ws));
+            }
+            return fixture(GetSizeTestKernel<0>{}, static_cast<std::int32_t>(ws));
         }));
 }

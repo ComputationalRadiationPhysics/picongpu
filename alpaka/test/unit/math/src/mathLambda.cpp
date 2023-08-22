@@ -1,10 +1,5 @@
-/** Copyright 2022 Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Sergei Bastrakov, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 // For nvcc these tests require extended lambda.
@@ -22,7 +17,7 @@
 #    include <alpaka/test/KernelExecutionFixture.hpp>
 #    include <alpaka/test/acc/TestAccs.hpp>
 
-#    include <catch2/catch.hpp>
+#    include <catch2/catch_template_test_macros.hpp>
 
 #    include <cstdint>
 #    include <tuple>
@@ -32,6 +27,7 @@ using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 // This file only has unit tests for real numbers in order to split the tests between object files
 using UnaryFunctorsReal = alpaka::test::unit::math::UnaryFunctorsReal;
 using BinaryFunctorsReal = alpaka::test::unit::math::BinaryFunctorsReal;
+using TernaryFunctorsReal = alpaka::test::unit::math::TernaryFunctorsReal;
 using UnaryFunctorsComplex = alpaka::test::unit::math::UnaryFunctorsComplex;
 using BinaryFunctorsComplex = alpaka::test::unit::math::BinaryFunctorsComplex;
 
@@ -65,6 +61,7 @@ TEMPLATE_LIST_TEST_CASE("mathOpsLambdaFloat", "[math] [operator]", TestAccs)
     auto testTemplate = LambdaMathTestTemplate<Acc, float>{};
     testTemplate.template operator()<UnaryFunctorsReal>();
     testTemplate.template operator()<BinaryFunctorsReal>();
+    testTemplate.template operator()<TernaryFunctorsReal>();
 }
 
 TEMPLATE_LIST_TEST_CASE("mathOpsLambdaDouble", "[math] [operator]", TestAccs)
@@ -73,6 +70,7 @@ TEMPLATE_LIST_TEST_CASE("mathOpsLambdaDouble", "[math] [operator]", TestAccs)
     auto testTemplate = LambdaMathTestTemplate<Acc, double>{};
     testTemplate.template operator()<UnaryFunctorsReal>();
     testTemplate.template operator()<BinaryFunctorsReal>();
+    testTemplate.template operator()<TernaryFunctorsReal>();
 }
 
 TEMPLATE_LIST_TEST_CASE("mathOpsLambdaComplexFloat", "[math] [operator]", TestAccs)

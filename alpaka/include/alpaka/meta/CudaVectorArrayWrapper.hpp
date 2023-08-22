@@ -1,22 +1,25 @@
 /* Copyright 2022 Jiří Vyskočil, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Common.hpp"
+
+#include <functional>
+#include <initializer_list>
+#include <numeric>
+#include <type_traits>
+
 #if defined(ALPAKA_ACC_GPU_HIP_ENABLED) || defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
 
-#    include <alpaka/core/Common.hpp>
+#    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        include <cuda_runtime.h>
+#    endif
 
-#    include <functional>
-#    include <initializer_list>
-#    include <numeric>
-#    include <type_traits>
+#    ifdef ALPAKA_ACC_GPU_HIP_ENABLED
+#        include <hip/hip_runtime.h>
+#    endif
 
 namespace alpaka::meta
 {
@@ -139,13 +142,35 @@ namespace alpaka::meta
             this->z = *it++;
             this->w = *it++;
         }
+        template<class Other>
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
+        {
+            static_assert(std::tuple_size_v<Other> == size, "Can only convert between vectors of same size.");
+            static_assert(
+                std::is_same_v<typename Other::value_type, value_type>,
+                "Can only convert between vectors of same element type.");
+            this->x = o[0];
+            this->y = o[1];
+            this->z = o[2];
+            this->w = o[3];
+        }
+        ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
+        {
+            std::array<value_type, size> ret;
+            ret[0] = this->x;
+            ret[1] = this->y;
+            ret[2] = this->z;
+            ret[3] = this->w;
+            return ret;
+        }
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type& operator[](int const k) noexcept
         {
             assert(k >= 0 && k < 4);
             return k == 0 ? this->x : (k == 1 ? this->y : (k == 2 ? this->z : this->w));
         }
 
-        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr const value_type& operator[](int const k) const noexcept
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type const& operator[](int const k) const noexcept
         {
             assert(k >= 0 && k < 4);
             return k == 0 ? this->x : (k == 1 ? this->y : (k == 2 ? this->z : this->w));
@@ -164,13 +189,33 @@ namespace alpaka::meta
             this->y = *it++;
             this->z = *it++;
         }
+        template<class Other>
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
+        {
+            static_assert(std::tuple_size<Other>::value == size, "Can only convert between vectors of same size.");
+            static_assert(
+                std::is_same<typename Other::value_type, value_type>::value,
+                "Can only convert between vectors of same element type.");
+            this->x = o[0];
+            this->y = o[1];
+            this->z = o[2];
+        }
+        ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
+        {
+            std::array<value_type, size> ret;
+            ret[0] = this->x;
+            ret[1] = this->y;
+            ret[2] = this->z;
+            return ret;
+        }
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type& operator[](int const k) noexcept
         {
             assert(k >= 0 && k < 3);
             return k == 0 ? this->x : (k == 1 ? this->y : this->z);
         }
 
-        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr const value_type& operator[](int const k) const noexcept
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type const& operator[](int const k) const noexcept
         {
             assert(k >= 0 && k < 3);
             return k == 0 ? this->x : (k == 1 ? this->y : this->z);
@@ -188,13 +233,31 @@ namespace alpaka::meta
             this->x = *it++;
             this->y = *it++;
         }
+        template<class Other>
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
+        {
+            static_assert(std::tuple_size<Other>::value == size, "Can only convert between vectors of same size.");
+            static_assert(
+                std::is_same<typename Other::value_type, value_type>::value,
+                "Can only convert between vectors of same element type.");
+            this->x = o[0];
+            this->y = o[1];
+        }
+        ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
+        {
+            std::array<value_type, size> ret;
+            ret[0] = this->x;
+            ret[1] = this->y;
+            return ret;
+        }
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type& operator[](int const k) noexcept
         {
             assert(k >= 0 && k < 2);
             return k == 0 ? this->x : this->y;
         }
 
-        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr const value_type& operator[](int const k) const noexcept
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type const& operator[](int const k) const noexcept
         {
             assert(k >= 0 && k < 2);
             return k == 0 ? this->x : this->y;
@@ -211,13 +274,29 @@ namespace alpaka::meta
             auto it = std::begin(init);
             this->x = *it;
         }
+        template<class Other>
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
+        {
+            static_assert(std::tuple_size<Other>::value == size, "Can only convert between vectors of same size.");
+            static_assert(
+                std::is_same<typename Other::value_type, value_type>::value,
+                "Can only convert between vectors of same element type.");
+            this->x = o[0];
+        }
+        ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
+        {
+            std::array<value_type, size> ret;
+            ret[0] = this->x;
+            return ret;
+        }
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type& operator[]([[maybe_unused]] int const k) noexcept
         {
             assert(k == 0);
             return this->x;
         }
 
-        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr const value_type& operator[](
+        ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE constexpr value_type const& operator[](
             [[maybe_unused]] int const k) const noexcept
         {
             assert(k == 0);

@@ -1,10 +1,5 @@
-/* Copyright 2020 Jeffrey Kelling, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/dev/Traits.hpp>
@@ -16,9 +11,10 @@
 #include <alpaka/test/Extent.hpp>
 #include <alpaka/test/dim/TestDims.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-TEMPLATE_LIST_TEST_CASE("mapIdxPitchBytes", "[idx]", alpaka::test::TestDims)
+TEMPLATE_LIST_TEST_CASE("mapIdxPitchBytes", "[idx]", alpaka::test::NonZeroTestDims)
 {
     using Dim = TestType;
     using Idx = std::size_t;
@@ -29,7 +25,8 @@ TEMPLATE_LIST_TEST_CASE("mapIdxPitchBytes", "[idx]", alpaka::test::TestDims)
 
     using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
     using Elem = std::uint8_t;
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
     auto parentView = alpaka::createView(devAcc, static_cast<Elem*>(nullptr), extentNd);
 
     auto const offset = Vec::all(4u);

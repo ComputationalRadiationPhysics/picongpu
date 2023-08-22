@@ -1,40 +1,35 @@
-/* Copyright 2022 Jan Stephan, Antonio Di Pilato
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Sycl.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/queue/Properties.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/queue/sycl/QueueGenericSyclBase.hpp"
+#include "alpaka/traits/Traits.hpp"
+#include "alpaka/wait/Traits.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <string>
+#include <utility>
+#include <vector>
+
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/core/Common.hpp>
-#    include <alpaka/core/Sycl.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/mem/buf/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
-#    include <alpaka/queue/Properties.hpp>
-#    include <alpaka/queue/Traits.hpp>
-#    include <alpaka/queue/sycl/QueueGenericSyclBase.hpp>
-#    include <alpaka/traits/Traits.hpp>
-#    include <alpaka/wait/Traits.hpp>
+#    include <sycl/sycl.hpp>
 
-#    include <CL/sycl.hpp>
-
-#    include <algorithm>
-#    include <cstddef>
-#    include <memory>
-#    include <mutex>
-#    include <shared_mutex>
-#    include <string>
-#    include <utility>
-#    include <vector>
-
-namespace alpaka::experimental
+namespace alpaka
 {
     template<typename TElem, typename TDim, typename TIdx, typename TDev>
     class BufGenericSycl;
@@ -109,10 +104,10 @@ namespace alpaka::experimental
     } // namespace detail
 
     //! The SYCL device handle.
-    template<typename TPltf>
+    template<typename TPlatform>
     class DevGenericSycl
-        : public concepts::Implements<ConceptCurrentThreadWaitFor, DevGenericSycl<TPltf>>
-        , public concepts::Implements<ConceptDev, DevGenericSycl<TPltf>>
+        : public concepts::Implements<ConceptCurrentThreadWaitFor, DevGenericSycl<TPlatform>>
+        , public concepts::Implements<ConceptDev, DevGenericSycl<TPlatform>>
     {
     public:
         DevGenericSycl(sycl::device device, sycl::context context)
@@ -137,15 +132,15 @@ namespace alpaka::experimental
 
         std::shared_ptr<detail::DevGenericSyclImpl> m_impl;
     };
-} // namespace alpaka::experimental
+} // namespace alpaka
 
 namespace alpaka::trait
 {
     //! The SYCL device name get trait specialization.
-    template<typename TPltf>
-    struct GetName<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct GetName<DevGenericSycl<TPlatform>>
     {
-        static auto getName(experimental::DevGenericSycl<TPltf> const& dev) -> std::string
+        static auto getName(DevGenericSycl<TPlatform> const& dev) -> std::string
         {
             auto const device = dev.getNativeHandle().first;
             return device.template get_info<sycl::info::device::name>();
@@ -153,10 +148,10 @@ namespace alpaka::trait
     };
 
     //! The SYCL device available memory get trait specialization.
-    template<typename TPltf>
-    struct GetMemBytes<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct GetMemBytes<DevGenericSycl<TPlatform>>
     {
-        static auto getMemBytes(experimental::DevGenericSycl<TPltf> const& dev) -> std::size_t
+        static auto getMemBytes(DevGenericSycl<TPlatform> const& dev) -> std::size_t
         {
             auto const device = dev.getNativeHandle().first;
             return device.template get_info<sycl::info::device::global_mem_size>();
@@ -164,83 +159,88 @@ namespace alpaka::trait
     };
 
     //! The SYCL device free memory get trait specialization.
-    template<typename TPltf>
-    struct GetFreeMemBytes<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct GetFreeMemBytes<DevGenericSycl<TPlatform>>
     {
-        static auto getFreeMemBytes(experimental::DevGenericSycl<TPltf> const& /* dev */) -> std::size_t
+        static auto getFreeMemBytes(DevGenericSycl<TPlatform> const& /* dev */) -> std::size_t
         {
-            static_assert(!sizeof(TPltf), "Querying free device memory not supported for SYCL devices.");
+            static_assert(!sizeof(TPlatform), "Querying free device memory not supported for SYCL devices.");
             return std::size_t{};
         }
     };
 
     //! The SYCL device warp size get trait specialization.
-    template<typename TPltf>
-    struct GetWarpSizes<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct GetWarpSizes<DevGenericSycl<TPlatform>>
     {
-        static auto getWarpSizes(experimental::DevGenericSycl<TPltf> const& dev) -> std::vector<std::size_t>
+        static auto getWarpSizes(DevGenericSycl<TPlatform> const& dev) -> std::vector<std::size_t>
         {
-            const auto device = dev.getNativeHandle().first;
-            return device.template get_info<sycl::info::device::sub_group_sizes>();
+            auto const device = dev.getNativeHandle().first;
+            std::vector<std::size_t> warp_sizes = device.template get_info<sycl::info::device::sub_group_sizes>();
+            // The CPU runtime supports a sub-group size of 64, but the SYCL implementation currently does not
+            auto find64 = std::find(warp_sizes.begin(), warp_sizes.end(), 64);
+            if(find64 != warp_sizes.end())
+                warp_sizes.erase(find64);
+            return warp_sizes;
         }
     };
 
     //! The SYCL device reset trait specialization.
-    template<typename TPltf>
-    struct Reset<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct Reset<DevGenericSycl<TPlatform>>
     {
-        static auto reset(experimental::DevGenericSycl<TPltf> const&) -> void
+        static auto reset(DevGenericSycl<TPlatform> const&) -> void
         {
-            static_assert(!sizeof(TPltf), "Explicit device reset not supported for SYCL devices");
+            static_assert(!sizeof(TPlatform), "Explicit device reset not supported for SYCL devices");
         }
     };
 
     //! The SYCL device native handle trait specialization.
-    template<typename TPltf>
-    struct NativeHandle<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct NativeHandle<DevGenericSycl<TPlatform>>
     {
-        [[nodiscard]] static auto getNativeHandle(experimental::DevGenericSycl<TPltf> const& dev)
+        [[nodiscard]] static auto getNativeHandle(DevGenericSycl<TPlatform> const& dev)
         {
             return dev.getNativeHandle();
         }
     };
 
     //! The SYCL device memory buffer type trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPltf>
-    struct BufType<experimental::DevGenericSycl<TPltf>, TElem, TDim, TIdx>
+    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
+    struct BufType<DevGenericSycl<TPlatform>, TElem, TDim, TIdx>
     {
-        using type = experimental::BufGenericSycl<TElem, TDim, TIdx, experimental::DevGenericSycl<TPltf>>;
+        using type = BufGenericSycl<TElem, TDim, TIdx, TPlatform>;
     };
 
     //! The SYCL device platform type trait specialization.
-    template<typename TPltf>
-    struct PltfType<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct PlatformType<DevGenericSycl<TPlatform>>
     {
-        using type = TPltf;
+        using type = TPlatform;
     };
 
     //! The thread SYCL device wait specialization.
-    template<typename TPltf>
-    struct CurrentThreadWaitFor<experimental::DevGenericSycl<TPltf>>
+    template<typename TPlatform>
+    struct CurrentThreadWaitFor<DevGenericSycl<TPlatform>>
     {
-        static auto currentThreadWaitFor(experimental::DevGenericSycl<TPltf> const& dev) -> void
+        static auto currentThreadWaitFor(DevGenericSycl<TPlatform> const& dev) -> void
         {
             dev.m_impl->wait();
         }
     };
 
     //! The SYCL blocking queue trait specialization.
-    template<typename TPltf>
-    struct QueueType<experimental::DevGenericSycl<TPltf>, Blocking>
+    template<typename TPlatform>
+    struct QueueType<DevGenericSycl<TPlatform>, Blocking>
     {
-        using type = experimental::detail::QueueGenericSyclBase<experimental::DevGenericSycl<TPltf>, true>;
+        using type = detail::QueueGenericSyclBase<DevGenericSycl<TPlatform>, true>;
     };
 
     //! The SYCL non-blocking queue trait specialization.
-    template<typename TPltf>
-    struct QueueType<experimental::DevGenericSycl<TPltf>, NonBlocking>
+    template<typename TPlatform>
+    struct QueueType<DevGenericSycl<TPlatform>, NonBlocking>
     {
-        using type = experimental::detail::QueueGenericSyclBase<experimental::DevGenericSycl<TPltf>, false>;
+        using type = detail::QueueGenericSyclBase<DevGenericSycl<TPlatform>, false>;
     };
 } // namespace alpaka::trait
 

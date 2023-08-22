@@ -1,18 +1,13 @@
 /* Copyright 2022 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/math/Traits.hpp>
-#include <alpaka/rand/RandPhilox.hpp>
-#include <alpaka/rand/Traits.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/math/Traits.hpp"
+#include "alpaka/rand/RandPhilox.hpp"
+#include "alpaka/rand/Traits.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -84,7 +79,7 @@ namespace alpaka::rand
             {
                 constexpr BitsT limit = static_cast<BitsT>(1) << std::numeric_limits<T>::digits;
                 const BitsT b = UniformUint<BitsT>()(engine);
-                const auto ret = static_cast<T>(b & (limit - 1)) / limit;
+                auto const ret = static_cast<T>(b & (limit - 1)) / limit;
                 return ret;
             }
         };
@@ -106,13 +101,13 @@ namespace alpaka::rand
         {
             static_assert(std::is_floating_point_v<T>, "Return type of NormalReal must be floating point.");
 
-            const Acc* m_acc;
+            Acc const* m_acc;
             T m_cache = std::numeric_limits<T>::quiet_NaN();
 
         public:
             /*! \warning Retains a reference to \p acc, thus must not outlive it.
              */
-            ALPAKA_FN_HOST_ACC constexpr NormalReal(const Acc& acc) : m_acc(&acc)
+            ALPAKA_FN_HOST_ACC constexpr NormalReal(Acc const& acc) : m_acc(&acc)
             {
             }
 
@@ -124,11 +119,11 @@ namespace alpaka::rand
             // b = a;
             // assert(a(e) != b(e)); // because of two engine invocations
 
-            ALPAKA_FN_HOST_ACC constexpr NormalReal(const NormalReal& other) : m_acc(other.m_acc)
+            ALPAKA_FN_HOST_ACC constexpr NormalReal(NormalReal const& other) : m_acc(other.m_acc)
             {
             }
 
-            ALPAKA_FN_HOST_ACC constexpr auto operator=(const NormalReal& other) -> NormalReal&
+            ALPAKA_FN_HOST_ACC constexpr auto operator=(NormalReal const& other) -> NormalReal&
             {
                 m_acc = other.m_acc;
                 return *this;
@@ -137,7 +132,8 @@ namespace alpaka::rand
             template<typename TEngine>
             ALPAKA_FN_HOST_ACC auto operator()(TEngine& engine) -> T
             {
-                constexpr T sigma = 1., mu = 0.;
+                constexpr auto sigma = T{1};
+                constexpr auto mu = T{0};
                 if(math::isnan(*m_acc, m_cache))
                 {
                     UniformReal<T> uni;

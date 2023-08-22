@@ -1,18 +1,13 @@
 /* Copyright 2022 Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
-#include <alpaka/workdiv/Traits.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
+#include "alpaka/workdiv/Traits.hpp"
 
 #include <iosfwd>
 
@@ -64,19 +59,24 @@ namespace alpaka
             return *this;
         }
 
+        ALPAKA_FN_HOST_ACC friend constexpr auto operator==(WorkDivMembers const& a, WorkDivMembers const& b) -> bool
+        {
+            return a.m_gridBlockExtent == b.m_gridBlockExtent && a.m_blockThreadExtent == b.m_blockThreadExtent
+                   && a.m_threadElemExtent == b.m_threadElemExtent;
+        }
+
+        ALPAKA_FN_HOST friend auto operator<<(std::ostream& os, WorkDivMembers const& workDiv) -> std::ostream&
+        {
+            return os << "{gridBlockExtent: " << workDiv.m_gridBlockExtent
+                      << ", blockThreadExtent: " << workDiv.m_blockThreadExtent
+                      << ", threadElemExtent: " << workDiv.m_threadElemExtent << "}";
+        }
+
     public:
         Vec<TDim, TIdx> m_gridBlockExtent;
         Vec<TDim, TIdx> m_blockThreadExtent;
         Vec<TDim, TIdx> m_threadElemExtent;
     };
-
-    template<typename TDim, typename TIdx>
-    ALPAKA_FN_HOST auto operator<<(std::ostream& os, WorkDivMembers<TDim, TIdx> const& workDiv) -> std::ostream&
-    {
-        return (
-            os << "{gridBlockExtent: " << workDiv.m_gridBlockExtent << ", blockThreadExtent: "
-               << workDiv.m_blockThreadExtent << ", threadElemExtent: " << workDiv.m_threadElemExtent << "}");
-    }
 
     namespace trait
     {

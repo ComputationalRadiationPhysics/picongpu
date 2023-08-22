@@ -1,27 +1,22 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
  * Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/common/QueueRegistry.hpp>
-#include <alpaka/dev/cpu/SysInfo.hpp>
-#include <alpaka/mem/buf/Traits.hpp>
-#include <alpaka/pltf/Traits.hpp>
-#include <alpaka/queue/Properties.hpp>
-#include <alpaka/queue/QueueGenericThreadsBlocking.hpp>
-#include <alpaka/queue/QueueGenericThreadsNonBlocking.hpp>
-#include <alpaka/queue/Traits.hpp>
-#include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
-#include <alpaka/traits/Traits.hpp>
-#include <alpaka/wait/Traits.hpp>
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dev/common/QueueRegistry.hpp"
+#include "alpaka/dev/cpu/SysInfo.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/queue/Properties.hpp"
+#include "alpaka/queue/QueueGenericThreadsBlocking.hpp"
+#include "alpaka/queue/QueueGenericThreadsNonBlocking.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/queue/cpu/IGenericThreadsQueue.hpp"
+#include "alpaka/traits/Traits.hpp"
+#include "alpaka/wait/Traits.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -40,10 +35,10 @@ namespace alpaka
     }
     namespace trait
     {
-        template<typename TPltf, typename TSfinae>
+        template<typename TPlatform, typename TSfinae>
         struct GetDevByIdx;
     }
-    class PltfCpu;
+    struct PlatformCpu;
 
     //! The CPU device.
     namespace cpu::detail
@@ -57,7 +52,7 @@ namespace alpaka
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevCpu>
         , public concepts::Implements<ConceptDev, DevCpu>
     {
-        friend struct trait::GetDevByIdx<PltfCpu>;
+        friend struct trait::GetDevByIdx<PlatformCpu>;
 
     protected:
         DevCpu() : m_spDevCpuImpl(std::make_shared<cpu::detail::DevCpuImpl>())
@@ -84,11 +79,6 @@ namespace alpaka
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
         {
             m_spDevCpuImpl->registerQueue(spQueue);
-        }
-
-        auto registerCleanup(cpu::detail::DevCpuImpl::CleanerFunctor c) const -> void
-        {
-            m_spDevCpuImpl->registerCleanup(c);
         }
 
         [[nodiscard]] auto getNativeHandle() const noexcept
@@ -178,9 +168,9 @@ namespace alpaka
 
         //! The CPU device platform type trait specialization.
         template<>
-        struct PltfType<DevCpu>
+        struct PlatformType<DevCpu>
         {
-            using type = PltfCpu;
+            using type = PlatformCpu;
         };
     } // namespace trait
     using QueueCpuNonBlocking = QueueGenericThreadsNonBlocking<DevCpu>;

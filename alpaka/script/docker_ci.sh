@@ -1,17 +1,14 @@
 #!/bin/bash
 
 #
-# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
+# SPDX-License-Identifier: MPL-2.0
 #
 
 source ./script/set.sh
 source ./script/docker_retry.sh
+
+ALPAKA_CI_BOOST_BRANCH="boost-${ALPAKA_BOOST_VERSION}"
 
 # runtime and compile time options
 ALPAKA_DOCKER_ENV_LIST=()
@@ -23,6 +20,7 @@ ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_ANALYSIS=${ALPAKA_CI_ANALYSIS}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_TBB_VERSION=${ALPAKA_CI_TBB_VERSION}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_BOOST_BRANCH=${ALPAKA_CI_BOOST_BRANCH}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "BOOST_ROOT=${BOOST_ROOT}")
+ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_BOOST_VERSION=${ALPAKA_BOOST_VERSION}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_BOOST_LIB_DIR=${ALPAKA_CI_BOOST_LIB_DIR}")
 if [ ! -z "${ALPAKA_CI_CLANG_VER+x}" ]
 then
@@ -72,10 +70,6 @@ if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE=${alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE}")
 fi
-if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE+x}" ]
-then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}")
-fi
 if [ ! -z "${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE}")
@@ -83,14 +77,6 @@ fi
 if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE}")
-fi
-if [ ! -z "${alpaka_ACC_ANY_BT_OMP5_ENABLE+x}" ]
-then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_ANY_BT_OMP5_ENABLE=${alpaka_ACC_ANY_BT_OMP5_ENABLE}")
-fi
-if [ ! -z "${alpaka_ACC_ANY_BT_OACC_ENABLE+x}" ]
-then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_ANY_BT_OACC_ENABLE=${alpaka_ACC_ANY_BT_OACC_ENABLE}")
 fi
 if [ ! -z "${alpaka_OFFLOAD_MAX_BLOCK_SIZE+x}" ]
 then
@@ -111,6 +97,10 @@ fi
 if [ ! -z "${alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE=${alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE}")
+fi
+if [ ! -z "${alpaka_ACC_SYCL_ENABLE+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_SYCL_ENABLE=${alpaka_ACC_SYCL_ENABLE}")
 fi
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_CUDA=${ALPAKA_CI_INSTALL_CUDA}")
 if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON" ]
@@ -137,7 +127,6 @@ then
 fi
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_TBB=${ALPAKA_CI_INSTALL_TBB}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_OMP=${ALPAKA_CI_INSTALL_OMP}")
-ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_FIBERS=${ALPAKA_CI_INSTALL_FIBERS}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_ATOMIC=${ALPAKA_CI_INSTALL_ATOMIC}")
 
 # runtime only options
@@ -189,6 +178,22 @@ fi
 if [ ! -z "${CMAKE_INSTALL_PREFIX+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
+fi
+if [ ! -z "${alpaka_USE_MDSPAN+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_USE_MDSPAN=${alpaka_USE_MDSPAN}")
+fi
+if [ ! -z "${alpaka_ENABLE_WERROR+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ENABLE_WERROR=${alpaka_ENABLE_WERROR}")
+fi
+if [ ! -z "${alpaka_SYCL_ONEAPI_CPU+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_SYCL_ONEAPI_CPU=${alpaka_SYCL_ONEAPI_CPU}")
+fi
+if [! -z "${alpaka_SYCL_ONEAPI_CPU_ISA+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_SYCL_ONEAPI_CPU_ISA=${alpaka_SYCL_ONEAPI_CPU_ISA}")
 fi
 
 docker_retry docker run -v "$(pwd)":"$(pwd)" -w "$(pwd)" "${ALPAKA_DOCKER_ENV_LIST[@]}" "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" /bin/bash -c "source ./script/install.sh && ./script/run.sh"

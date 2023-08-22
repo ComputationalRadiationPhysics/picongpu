@@ -1,15 +1,10 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
+#include "alpaka/alpaka.hpp"
 
 namespace alpaka::test
 {
@@ -44,9 +39,10 @@ namespace alpaka::test
         };
 #endif
     } // namespace trait
-    //! The queue type that should be used for the given accelerator.
-    template<typename TAcc>
-    using DefaultQueue = typename trait::DefaultQueueType<TAcc>::type;
+
+    //! The queue type that should be used for the given device.
+    template<typename TDev>
+    using DefaultQueue = typename trait::DefaultQueueType<TDev>::type;
 
     namespace trait
     {
@@ -85,123 +81,75 @@ namespace alpaka::test
         };
 #endif
 
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-
-        //! The default queue type trait specialization for the Omp5 device.
-        template<>
-        struct DefaultQueueType<DevOmp5>
-        {
-#    if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = QueueOmp5Blocking;
-#    else
-            using type = QueueOmp5Blocking;
-#    endif
-        };
-#elif defined ALPAKA_ACC_ANY_BT_OACC_ENABLED
-
-        //! The default queue type trait specialization for the OMP4 device.
-        template<>
-        struct DefaultQueueType<DevOacc>
-        {
-            using type = QueueOaccBlocking;
-        };
-#endif
-
 #ifdef ALPAKA_ACC_SYCL_ENABLED
-#    ifdef ALPAKA_SYCL_BACKEND_ONEAPI
-#        ifdef ALPAKA_SYCL_ONEAPI_CPU
+#    ifdef ALPAKA_SYCL_ONEAPI_CPU
         //! The default queue type trait specialization for the Intel CPU device.
         template<>
-        struct DefaultQueueType<alpaka::experimental::DevCpuSyclIntel>
-        {
-#            if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::experimental::QueueCpuSyclIntelBlocking;
-#            else
-            using type = alpaka::experimental::QueueCpuSyclIntelNonBlocking;
-#            endif
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueCpuSyclIntelBlocking>
-        {
-            static constexpr auto value = true;
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueCpuSyclIntelNonBlocking>
-        {
-            static constexpr auto value = false;
-        };
-#        endif
-#        ifdef ALPAKA_SYCL_ONEAPI_FPGA
-        //! The default queue type trait specialization for the Intel SYCL device.
-        template<>
-        struct DefaultQueueType<alpaka::experimental::DevFpgaSyclIntel>
-        {
-#            if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::experimental::QueueFpgaSyclIntelBlocking;
-#            else
-            using type = alpaka::experimental::QueueFpgaSyclIntelNonBlocking;
-#            endif
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueFpgaSyclIntelBlocking>
-        {
-            static constexpr auto value = true;
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueFpgaSyclIntelNonBlocking>
-        {
-            static constexpr auto value = false;
-        };
-#        endif
-#        ifdef ALPAKA_SYCL_ONEAPI_GPU
-        //! The default queue type trait specialization for the Intel CPU device.
-        template<>
-        struct DefaultQueueType<alpaka::experimental::DevGpuSyclIntel>
-        {
-#            if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::experimental::QueueGpuSyclIntelBlocking;
-#            else
-            using type = alpaka::experimental::QueueGpuSyclIntelNonBlocking;
-#            endif
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueGpuSyclIntelBlocking>
-        {
-            static constexpr auto value = true;
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueGpuSyclIntelNonBlocking>
-        {
-            static constexpr auto value = false;
-        };
-#        endif
-#    endif
-#    ifdef ALPAKA_SYCL_BACKEND_XILINX
-        //! The default queue type trait specialization for the Xilinx SYCL device.
-        template<>
-        struct DefaultQueueType<alpaka::experimental::DevFpgaSyclXilinx>
+        struct DefaultQueueType<alpaka::DevCpuSycl>
         {
 #        if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::experimental::QueueFpgaSyclXilinxBlocking;
+            using type = alpaka::QueueCpuSyclBlocking;
 #        else
-            using type = alpaka::experimental::QueueFpgaSyclXilinxNonBlocking;
+            using type = alpaka::QueueCpuSyclNonBlocking;
 #        endif
         };
 
         template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueFpgaSyclXilinxBlocking>
+        struct IsBlockingQueue<alpaka::QueueCpuSyclBlocking>
         {
             static constexpr auto value = true;
         };
 
         template<>
-        struct IsBlockingQueue<alpaka::experimental::QueueFpgaSyclXilinxNonBlocking>
+        struct IsBlockingQueue<alpaka::QueueCpuSyclNonBlocking>
+        {
+            static constexpr auto value = false;
+        };
+#    endif
+#    ifdef ALPAKA_SYCL_ONEAPI_FPGA
+        //! The default queue type trait specialization for the Intel SYCL device.
+        template<>
+        struct DefaultQueueType<alpaka::DevFpgaSyclIntel>
+        {
+#        if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
+            using type = alpaka::QueueFpgaSyclIntelBlocking;
+#        else
+            using type = alpaka::QueueFpgaSyclIntelNonBlocking;
+#        endif
+        };
+
+        template<>
+        struct IsBlockingQueue<alpaka::QueueFpgaSyclIntelBlocking>
+        {
+            static constexpr auto value = true;
+        };
+
+        template<>
+        struct IsBlockingQueue<alpaka::QueueFpgaSyclIntelNonBlocking>
+        {
+            static constexpr auto value = false;
+        };
+#    endif
+#    ifdef ALPAKA_SYCL_ONEAPI_GPU
+        //! The default queue type trait specialization for the Intel CPU device.
+        template<>
+        struct DefaultQueueType<alpaka::DevGpuSyclIntel>
+        {
+#        if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
+            using type = alpaka::QueueGpuSyclIntelBlocking;
+#        else
+            using type = alpaka::QueueGpuSyclIntelNonBlocking;
+#        endif
+        };
+
+        template<>
+        struct IsBlockingQueue<alpaka::QueueGpuSyclIntelBlocking>
+        {
+            static constexpr auto value = true;
+        };
+
+        template<>
+        struct IsBlockingQueue<alpaka::QueueGpuSyclIntelNonBlocking>
         {
             static constexpr auto value = false;
         };
@@ -226,37 +174,21 @@ namespace alpaka::test
         std::tuple<DevHipRt, QueueHipRtBlocking>,
         std::tuple<DevHipRt, QueueHipRtNonBlocking>
 #endif
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        ,
-        std::tuple<DevOmp5, QueueOmp5Blocking>,
-        std::tuple<DevOmp5, QueueOmp5NonBlocking>
-#elif defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
-        ,
-        std::tuple<DevOacc, QueueOaccBlocking>,
-        std::tuple<DevOacc, QueueOaccNonBlocking>
-#endif
 #ifdef ALPAKA_ACC_SYCL_ENABLED
-#    ifdef ALPAKA_SYCL_BACKEND_ONEAPI
-#        ifdef ALPAKA_SYCL_ONEAPI_CPU
+#    ifdef ALPAKA_SYCL_ONEAPI_CPU
         ,
-        std::tuple<alpaka::experimental::DevCpuSyclIntel, alpaka::experimental::QueueCpuSyclIntelBlocking>,
-        std::tuple<alpaka::experimental::DevCpuSyclIntel, alpaka::experimental::QueueCpuSyclIntelNonBlocking>
-#        endif
-#        ifdef ALPAKA_SYCL_ONEAPI_FPGA
-        ,
-        std::tuple<alpaka::experimental::DevFpgaSyclIntel, alpaka::experimental::QueueFpgaSyclIntelBlocking>,
-        std::tuple<alpaka::experimental::DevFpgaSyclIntel, alpaka::experimental::QueueFpgaSyclIntelNonBlocking>
-#        endif
-#        ifdef ALPAKA_SYCL_ONEAPI_GPU
-        ,
-        std::tuple<alpaka::experimental::DevGpuSyclIntel, alpaka::experimental::QueueGpuSyclIntelBlocking>,
-        std::tuple<alpaka::experimental::DevGpuSyclIntel, alpaka::experimental::QueueGpuSyclIntelNonBlocking>
-#        endif
+        std::tuple<alpaka::DevCpuSycl, alpaka::QueueCpuSyclBlocking>,
+        std::tuple<alpaka::DevCpuSycl, alpaka::QueueCpuSyclNonBlocking>
 #    endif
-#    if defined(ALPAKA_SYCL_BACKEND_XILINX)
+#    ifdef ALPAKA_SYCL_ONEAPI_FPGA
         ,
-        std::tuple<alpaka::experimental::DevFpgaSyclXilinx, alpaka::experimental::QueueFpgaSyclXilinxBlocking>,
-        std::tuple<alpaka::experimental::DevFpgaSyclXilinx, alpaka::experimental::QueueFpgaSyclXilinxNonBlocking>
+        std::tuple<alpaka::DevFpgaSyclIntel, alpaka::QueueFpgaSyclIntelBlocking>,
+        std::tuple<alpaka::DevFpgaSyclIntel, alpaka::QueueFpgaSyclIntelNonBlocking>
+#    endif
+#    ifdef ALPAKA_SYCL_ONEAPI_GPU
+        ,
+        std::tuple<alpaka::DevGpuSyclIntel, alpaka::QueueGpuSyclIntelBlocking>,
+        std::tuple<alpaka::DevGpuSyclIntel, alpaka::QueueGpuSyclIntelNonBlocking>
 #    endif
 #endif
         >;

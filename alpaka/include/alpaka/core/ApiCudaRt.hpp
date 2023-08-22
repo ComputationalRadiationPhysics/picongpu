@@ -1,18 +1,12 @@
 /* Copyright 2022 Andrea Bocci
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include <boost/predef.h>
+
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-
-#    include <alpaka/core/BoostPredef.hpp>
-
 #    include <cuda_runtime_api.h>
 
 namespace alpaka
@@ -21,7 +15,7 @@ namespace alpaka
     {
         // Names
         static constexpr char name[] = "Cuda";
-        static constexpr auto version = BOOST_LANG_CUDA;
+        static constexpr auto version = BOOST_PREDEF_MAKE_10_VVRRP(CUDART_VERSION);
 
         // Types
         using DeviceAttr_t = ::cudaDeviceAttr;
@@ -171,7 +165,7 @@ namespace alpaka
 
         static inline Error_t freeAsync([[maybe_unused]] void* devPtr, [[maybe_unused]] Stream_t stream)
         {
-#    if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(11, 2, 0)
+#    if CUDART_VERSION >= 11020
             return ::cudaFreeAsync(devPtr, stream);
 #    else
             // Not implemented.
@@ -179,7 +173,7 @@ namespace alpaka
 #    endif
         }
 
-        static inline Error_t funcGetAttributes(FuncAttributes_t* attr, const void* func)
+        static inline Error_t funcGetAttributes(FuncAttributes_t* attr, void const* func)
         {
             return ::cudaFuncGetAttributes(attr, func);
         }
@@ -187,7 +181,7 @@ namespace alpaka
         template<typename T>
         static inline Error_t funcGetAttributes(FuncAttributes_t* attr, T* func)
         {
-            return ::cudaFuncGetAttributes(attr, reinterpret_cast<const void*>(func));
+            return ::cudaFuncGetAttributes(attr, reinterpret_cast<void const*>(func));
         }
 
         static inline Error_t getDeviceCount(int* count)
@@ -200,12 +194,12 @@ namespace alpaka
             return ::cudaGetDeviceProperties(prop, device);
         }
 
-        static inline const char* getErrorName(Error_t error)
+        static inline char const* getErrorName(Error_t error)
         {
             return ::cudaGetErrorName(error);
         }
 
-        static inline const char* getErrorString(Error_t error)
+        static inline char const* getErrorString(Error_t error)
         {
             return ::cudaGetErrorString(error);
         }
@@ -215,13 +209,13 @@ namespace alpaka
             return ::cudaGetLastError();
         }
 
-        static inline Error_t getSymbolAddress(void** devPtr, const void* symbol)
+        static inline Error_t getSymbolAddress(void** devPtr, void const* symbol)
         {
             return ::cudaGetSymbolAddress(devPtr, symbol);
         }
 
         template<class T>
-        static inline Error_t getSymbolAddress(void** devPtr, const T& symbol)
+        static inline Error_t getSymbolAddress(void** devPtr, T const& symbol)
         {
             return ::cudaGetSymbolAddress(devPtr, symbol);
         }
@@ -253,7 +247,7 @@ namespace alpaka
 
         static inline Error_t launchHostFunc(Stream_t stream, HostFn_t fn, void* userData)
         {
-#    if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(10, 0, 0)
+#    if CUDART_VERSION >= 10000
             // Wrap the host function using the proper calling convention
             return ::cudaLaunchHostFunc(stream, HostFnAdaptor::hostFunction, new HostFnAdaptor{fn, userData});
 #    else
@@ -277,7 +271,7 @@ namespace alpaka
             [[maybe_unused]] size_t size,
             [[maybe_unused]] Stream_t stream)
         {
-#    if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(11, 2, 0)
+#    if CUDART_VERSION >= 11020
             return ::cudaMallocAsync(devPtr, size, stream);
 #    else
             // Not implemented.
@@ -295,7 +289,7 @@ namespace alpaka
             return ::cudaMemGetInfo(free, total);
         }
 
-        static inline Error_t memcpy(void* dst, const void* src, size_t count, MemcpyKind_t kind)
+        static inline Error_t memcpy(void* dst, void const* src, size_t count, MemcpyKind_t kind)
         {
             return ::cudaMemcpy(dst, src, count, kind);
         }
@@ -303,7 +297,7 @@ namespace alpaka
         static inline Error_t memcpy2DAsync(
             void* dst,
             size_t dpitch,
-            const void* src,
+            void const* src,
             size_t spitch,
             size_t width,
             size_t height,
@@ -313,12 +307,12 @@ namespace alpaka
             return ::cudaMemcpy2DAsync(dst, dpitch, src, spitch, width, height, kind, stream);
         }
 
-        static inline Error_t memcpy3DAsync(const Memcpy3DParms_t* p, Stream_t stream)
+        static inline Error_t memcpy3DAsync(Memcpy3DParms_t const* p, Stream_t stream)
         {
             return ::cudaMemcpy3DAsync(p, stream);
         }
 
-        static inline Error_t memcpyAsync(void* dst, const void* src, size_t count, MemcpyKind_t kind, Stream_t stream)
+        static inline Error_t memcpyAsync(void* dst, void const* src, size_t count, MemcpyKind_t kind, Stream_t stream)
         {
             return ::cudaMemcpyAsync(dst, src, count, kind, stream);
         }

@@ -1,17 +1,12 @@
-/* Copyright 2022 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber,
- * Jeffrey Kelling, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber,
+ * Jeffrey Kelling, Sergei Bastrakov, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Decay.hpp>
-#include <alpaka/math/Traits.hpp>
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/math/Traits.hpp"
 
 namespace alpaka::math
 {
@@ -25,6 +20,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library acos, implementation covered by the general template.
+    class AcoshStdLib : public concepts::Implements<ConceptMathAcosh, AcoshStdLib>
+    {
+    };
+
     //! The standard library arg, implementation covered by the general template.
     class ArgStdLib : public concepts::Implements<ConceptMathArg, ArgStdLib>
     {
@@ -35,8 +35,18 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library asinh, implementation covered by the general template.
+    class AsinhStdLib : public concepts::Implements<ConceptMathAsinh, AsinhStdLib>
+    {
+    };
+
     //! The standard library atan, implementation covered by the general template.
     class AtanStdLib : public concepts::Implements<ConceptMathAtan, AtanStdLib>
+    {
+    };
+
+    //! The standard library atanh, implementation covered by the general template.
+    class AtanhStdLib : public concepts::Implements<ConceptMathAtanh, AtanhStdLib>
     {
     };
 
@@ -60,8 +70,18 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library copysign, implementation covered by the general template.
+    class CopysignStdLib : public concepts::Implements<ConceptMathCopysign, CopysignStdLib>
+    {
+    };
+
     //! The standard library cos, implementation covered by the general template.
     class CosStdLib : public concepts::Implements<ConceptMathCos, CosStdLib>
+    {
+    };
+
+    //! The standard library cosh, implementation covered by the general template.
+    class CoshStdLib : public concepts::Implements<ConceptMathCosh, CoshStdLib>
     {
     };
 
@@ -77,6 +97,11 @@ namespace alpaka::math
 
     //! The standard library floor, implementation covered by the general template.
     class FloorStdLib : public concepts::Implements<ConceptMathFloor, FloorStdLib>
+    {
+    };
+
+    //! The standard library fma, implementation covered by the general template.
+    class FmaStdLib : public concepts::Implements<ConceptMathFma, FmaStdLib>
     {
     };
 
@@ -102,6 +127,16 @@ namespace alpaka::math
 
     //! The standard library log, implementation covered by the general template.
     class LogStdLib : public concepts::Implements<ConceptMathLog, LogStdLib>
+    {
+    };
+
+    //! The standard library log2, implementation covered by the general template.
+    class Log2StdLib : public concepts::Implements<ConceptMathLog2, Log2StdLib>
+    {
+    };
+
+    //! The standard library log10, implementation covered by the general template.
+    class Log10StdLib : public concepts::Implements<ConceptMathLog10, Log10StdLib>
     {
     };
 
@@ -140,6 +175,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library sinh, implementation covered by the general template.
+    class SinhStdLib : public concepts::Implements<ConceptMathSinh, SinhStdLib>
+    {
+    };
+
     //! The standard library sincos, implementation covered by the general template.
     class SinCosStdLib : public concepts::Implements<ConceptMathSinCos, SinCosStdLib>
     {
@@ -155,6 +195,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library tanh, implementation covered by the general template.
+    class TanhStdLib : public concepts::Implements<ConceptMathTanh, TanhStdLib>
+    {
+    };
+
     //! The standard library trunc, implementation covered by the general template.
     class TruncStdLib : public concepts::Implements<ConceptMathTrunc, TruncStdLib>
     {
@@ -164,19 +209,27 @@ namespace alpaka::math
     class MathStdLib
         : public AbsStdLib
         , public AcosStdLib
+        , public AcoshStdLib
         , public ArgStdLib
         , public AsinStdLib
+        , public AsinhStdLib
         , public AtanStdLib
+        , public AtanhStdLib
         , public Atan2StdLib
         , public CbrtStdLib
         , public CeilStdLib
         , public ConjStdLib
+        , public CopysignStdLib
         , public CosStdLib
+        , public CoshStdLib
         , public ErfStdLib
         , public ExpStdLib
         , public FloorStdLib
+        , public FmaStdLib
         , public FmodStdLib
         , public LogStdLib
+        , public Log2StdLib
+        , public Log10StdLib
         , public MaxStdLib
         , public MinStdLib
         , public PowStdLib
@@ -184,9 +237,11 @@ namespace alpaka::math
         , public RoundStdLib
         , public RsqrtStdLib
         , public SinStdLib
+        , public SinhStdLib
         , public SinCosStdLib
         , public SqrtStdLib
         , public TanStdLib
+        , public TanhStdLib
         , public TruncStdLib
         , public IsnanStdLib
         , public IsinfStdLib

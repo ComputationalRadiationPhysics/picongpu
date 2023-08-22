@@ -1,11 +1,7 @@
 #
-# Copyright 2022 Benjamin Worpitz, Erik Zenker, Axel Huebl, Jan Stephan, René Widera, Jeffrey Kelling, Andrea Bocci, Bernhard Manfred Gruber
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Benjamin Worpitz, Erik Zenker, Axel Hübl, Jan Stephan, René Widera, Jeffrey Kelling, Andrea Bocci,
+#                Bernhard Manfred Gruber, Aurora Perego
+# SPDX-License-Identifier: MPL-2.0
 #
 
 include(CMakePrintHelpers) # for easier printing of variables and properties
@@ -76,12 +72,9 @@ endif()
 
 option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "Enable the serial CPU back-end" OFF)
 option(alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE "Enable the threads CPU block thread back-end" OFF)
-option(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE "Enable the fibers CPU block thread back-end" OFF)
 option(alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE "Enable the TBB CPU grid block back-end" OFF)
 option(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block back-end" OFF)
 option(alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread back-end" OFF)
-option(alpaka_ACC_ANY_BT_OMP5_ENABLE "Enable the OpenMP 5.0 CPU block and block thread back-end" OFF)
-option(alpaka_ACC_ANY_BT_OACC_ENABLE "Enable the OpenACC block and block thread back-end" OFF)
 option(alpaka_ACC_CPU_DISABLE_ATOMIC_REF "Disable boost::atomic_ref for CPU back-ends" OFF)
 option(alpaka_ACC_SYCL_ENABLE "Enable the SYCL back-end" OFF)
 
@@ -93,11 +86,9 @@ if((alpaka_ACC_GPU_CUDA_ONLY_MODE OR alpaka_ACC_GPU_HIP_ONLY_MODE)
    AND
     (alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
     alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE OR
-    alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE OR
     alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE OR
     alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR
     alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR
-    alpaka_ACC_ANY_BT_OMP5_ENABLE OR
     alpaka_ACC_SYCL_ENABLE))
     if(alpaka_ACC_GPU_CUDA_ONLY_MODE)
         message(FATAL_ERROR "If alpaka_ACC_GPU_CUDA_ONLY_MODE is enabled, only back-ends using CUDA can be enabled! This allows to mix alpaka code with native CUDA code. However, this prevents any non-CUDA back-ends from being enabled.")
@@ -106,12 +97,6 @@ if((alpaka_ACC_GPU_CUDA_ONLY_MODE OR alpaka_ACC_GPU_HIP_ONLY_MODE)
         message(FATAL_ERROR "If alpaka_ACC_GPU_HIP_ONLY_MODE is enabled, only back-ends using HIP can be enabled!")
     endif()
     set(_alpaka_FOUND FALSE)
-elseif(alpaka_ACC_ANY_BT_OACC_ENABLE)
-    if((alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR
-       alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR
-       alpaka_ACC_ANY_BT_OMP5_ENABLE))
-       message(WARNING "If alpaka_ACC_ANY_BT_OACC_ENABLE is enabled no OpenMP backend can be enabled.")
-    endif()
 endif()
 
 # avoids CUDA+HIP conflict
@@ -142,26 +127,17 @@ if(NOT TARGET alpaka)
 
     target_compile_features(alpaka INTERFACE cxx_std_${alpaka_CXX_STANDARD})
 
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC" OR CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
-        # Workaround for STL atomic issue: https://forums.developer.nvidia.com/t/support-for-atomic-in-libstdc-missing/135403/2
-        # still appears in NVHPC 20.7
-        target_compile_definitions(alpaka INTERFACE "__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1")
-        # reports many unused variables declared by catch test macros
-        target_compile_options(alpaka INTERFACE "--diag_suppress 177")
-        # prevent NVHPC from warning about unreachable code sections. TODO: Remove this line once the
-        # alpaka_UNUSED macro has been removed (dropping support for CUDA < 11.5).
-        target_compile_options(alpaka INTERFACE "--diag_suppress 111")
-    endif()
-
     add_library(alpaka::alpaka ALIAS alpaka)
 endif()
 
-set(alpaka_OFFLOAD_MAX_BLOCK_SIZE "256" CACHE STRING "Maximum number threads per block to be suggested by any target offloading backends ANY_BT_OMP5 and ANY_BT_OACC.")
-option(alpaka_DEBUG_OFFLOAD_ASSUME_HOST "Allow host-only contructs like assert in offload code in debug mode." ON)
 set(alpaka_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB "47" CACHE STRING "Kibibytes (1024B) of memory to allocate for block shared memory for backends requiring static allocation (includes CPU_B_OMP2_T_SEQ, CPU_B_TBB_T_SEQ, CPU_B_SEQ_T_SEQ, SYCL)")
+alpaka_compiler_option(RELOCATABLE_DEVICE_CODE "Enable relocatable device code for CUDA, HIP and SYCL devices" DEFAULT)
 
-set(alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM "OFF" CACHE STRING "Whether to use OMP5 built-in directives for block-shared memory and how to treat dynamic shared memory.")
-set_property(CACHE alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM PROPERTY STRINGS "OFF;DYN_FIXED;DYN_ALLOC")
+# Random number generators
+option(alpaka_DISABLE_VENDOR_RNG "Disable the vendor specific random number generators (NVIDIA cuRAND, AMD rocRAND, Intel DPL)" OFF)
+if(alpaka_DISABLE_VENDOR_RNG)
+    target_compile_definitions(alpaka INTERFACE "ALPAKA_DISABLE_VENDOR_RNG")
+endif()
 
 #-------------------------------------------------------------------------------
 # Debug output of common variables.
@@ -175,27 +151,19 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Check supported compilers.
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.0)
-    message(FATAL_ERROR "Clang versions < 4.0 are not supported!")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+    message(FATAL_ERROR "Clang versions < 9 are not supported!")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     message(WARNING "The Intel Classic compiler (icpc) is no longer supported. Please upgrade to the Intel LLVM compiler (ipcx)!")
 endif()
 
-if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE AND (alpaka_ACC_GPU_CUDA_ENABLE OR alpaka_ACC_GPU_HIP_ENABLE))
-    message(FATAL_ERROR "Fibers and CUDA or HIP back-end can not be enabled both at the same time.")
-endif()
-
-if (alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
-    message(FATAL_ERROR "Clang versions < 6.0 do not support Boost.Fiber!")
-endif()
-
 #-------------------------------------------------------------------------------
 # Compiler settings.
 
 if(MSVC)
-    # CUDA\v9.2\include\crt/host_runtime.h(265): warning C4505: '__cudaUnregisterBinaryUtil': unreferenced local function has been removed
+    # warning C4505: '__cudaUnregisterBinaryUtil': unreferenced local function has been removed
     if(alpaka_ACC_GPU_CUDA_ONLY_MODE)
         target_compile_options(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4505>)
     endif()
@@ -218,6 +186,16 @@ else()
             target_link_libraries(alpaka INTERFACE ${RT_LIBRARY})
         endif()
     endif()
+
+    # Add debug optimization levels. CMake doesn't do this by default.
+    # Note that -Og is the recommended gcc optimization level for debug mode but is equivalent to -O1 for clang (and its derivates).
+    alpaka_set_compiler_options(HOST_DEVICE target alpaka $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Og>
+                                                          $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CUDA>>:-Xcompiler -Og>
+                                                          $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:-O0>
+                                                          $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Od>)
+    
+    target_link_options(alpaka INTERFACE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-Og>
+                                         $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:-O0>) 
 endif()
 
 #-------------------------------------------------------------------------------
@@ -230,13 +208,12 @@ if(${alpaka_DEBUG} GREATER 1)
 endif()
 
 find_package(Boost ${_alpaka_BOOST_MIN_VER} REQUIRED
-             OPTIONAL_COMPONENTS atomic fiber)
+             OPTIONAL_COMPONENTS atomic)
 
 target_link_libraries(alpaka INTERFACE Boost::headers)
 
 if(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE OR
-   alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE OR
    alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
@@ -270,12 +247,6 @@ if(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
     endif()
 endif()
 
-if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-    if(NOT Boost_FIBER_FOUND)
-        message(FATAL_ERROR "Optional alpaka dependency Boost.Fiber could not be found!")
-    endif()
-endif()
-
 if(${alpaka_DEBUG} GREATER 1)
     message(STATUS "Boost in:")
     cmake_print_variables(BOOST_ROOT)
@@ -303,8 +274,6 @@ if(${alpaka_DEBUG} GREATER 1)
     cmake_print_variables(Boost_INCLUDE_DIRS)
     cmake_print_variables(Boost_LIBRARY_DIRS)
     cmake_print_variables(Boost_LIBRARIES)
-    cmake_print_variables(Boost_FIBER_FOUND)
-    cmake_print_variables(Boost_FIBER_LIBRARY)
     cmake_print_variables(Boost_CONTEXT_FOUND)
     cmake_print_variables(Boost_CONTEXT_LIBRARY)
     cmake_print_variables(Boost_SYSTEM_FOUND)
@@ -356,39 +325,25 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Find OpenMP.
-if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR alpaka_ACC_ANY_BT_OMP5_ENABLE)
-    find_package(OpenMP)
+if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
+    if(APPLE)
+        # Starting from Xcode 14.3.1 our self-compiled OpenMP libraries are no longer visible by default. We need to specify a few paths first.
+        find_package(OpenMP COMPONENTS CXX)
+        if(NOT OpenMP_CXX_FOUND)
+            execute_process(COMMAND brew --prefix libomp
+                            OUTPUT_VARIABLE HOMEBREW_LIBOMP_PREFIX
+                            OUTPUT_STRIP_TRAILING_WHITESPACE)
+            set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${HOMEBREW_LIBOMP_PREFIX}/include")
+            set(OpenMP_CXX_LIB_NAMES "omp")
+            set(OpenMP_omp_LIBRARY ${HOMEBREW_LIBOMP_PREFIX}/lib/libomp.dylib)
 
-    if(OpenMP_CXX_FOUND)
-        if(alpaka_ACC_ANY_BT_OMP5_ENABLED)
-            if(OpenMP_CXX_VERSION VERSION_LESS 5.0)
-                message(FATAL_ERROR "alpaka_ACC_ANY_BT_OMP5_ENABLE requires compiler support for OpenMP 5.0.")
-
-                if((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 12.0.5))
-                    message(FATAL_ERROR "The OpenMP 5.0 back-end requires Xcode 12.5 or later")
-                elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 11.0))
-                    message(FATAL_ERROR "The OpenMP 5.0 back-end requires clang 11.0 or later")
-                endif()
-            endif()
+            find_package(OpenMP REQUIRED COMPONENTS CXX)
         endif()
-
         target_link_libraries(alpaka INTERFACE OpenMP::OpenMP_CXX)
-
-        # Clang versions support OpenMP 5.0 only when given the corresponding flag
-        if(alpaka_ACC_ANY_BT_OMP5_ENABLE)
-            target_link_options(alpaka INTERFACE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fopenmp-version=50>)
-        endif()
     else()
-        message(FATAL_ERROR "Optional alpaka dependency OpenMP could not be found!")
+        find_package(OpenMP REQUIRED COMPONENTS CXX)
+        target_link_libraries(alpaka INTERFACE OpenMP::OpenMP_CXX)
     endif()
-endif()
-
-if(alpaka_ACC_ANY_BT_OACC_ENABLE)
-   find_package(OpenACC)
-   if(OpenACC_CXX_FOUND)
-      target_compile_options(alpaka INTERFACE ${OpenACC_CXX_OPTIONS})
-      target_link_options(alpaka INTERFACE ${OpenACC_CXX_OPTIONS})
-   endif()
 endif()
 
 #-------------------------------------------------------------------------------
@@ -402,7 +357,7 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
     if(CMAKE_CUDA_COMPILER)
         if(NOT CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
             # Use user selected CMake CXX compiler or CMAKE_CUDA_HOST_COMPILER as cuda host compiler to avoid fallback to the default system CXX host compiler.
-            # CMAKE_CUDA_HOST_COMPILER is reset by check_language(CUDA) therefore definition passed by the user via -DCMAKE_CUDA_HOST_COMPILER are
+            # CMAKE_CUDA_HOST_COMPILER is reset by check_language(CUDA) therefore definitions passed by the user via -DCMAKE_CUDA_HOST_COMPILER are
             # ignored by CMake (looks like a CMake bug).
             if(_alpaka_CUDA_HOST_COMPILER)
                 set(CMAKE_CUDA_HOST_COMPILER ${_alpaka_CUDA_HOST_COMPILER})
@@ -414,10 +369,6 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
         enable_language(CUDA)
         find_package(CUDAToolkit REQUIRED)
 
-        if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-            message(FATAL_ERROR "CUDA cannot be used together with Boost.Fiber!")
-        endif()
-
         target_compile_features(alpaka INTERFACE cuda_std_${alpaka_CXX_STANDARD})
 
         alpaka_compiler_option(CUDA_SHOW_REGISTER "Show kernel registers and create device ASM" DEFAULT)
@@ -427,23 +378,18 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
         if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
             message(STATUS "clang is used as CUDA compiler")
 
+            if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 14.0)
+                # clang-14 is the first version to fully support CUDA 11.x
+                message(FATAL_ERROR "clang as CUDA compiler requires at least clang-14.")
+            else()
+                message(WARNING "If you are using CUDA 11.3 please note of the following issue: https://github.com/alpaka-group/alpaka/issues/1857")
+            endif()
+
             if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
                 message(FATAL_ERROR "Clang as a CUDA compiler does not support OpenMP 2!")
             endif()
-            if(alpaka_ACC_ANY_BT_OMP5_ENABLE)
-                message(FATAL_ERROR "Clang as a CUDA compiler does not support OpenMP 5!")
-            endif()
 
-            # libstdc++ since version 7 when GNU extensions are enabled (e.g. -std=gnu++11)
-            # uses `__CUDACC__` to avoid defining overloads using non-standard `__float128`.
-            # This is fixed in clang-11: https://github.com/llvm/llvm-project/commit/8e20516540444618ad32dd11e835c05804053697
-            if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.0)
-                target_compile_definitions(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:__CUDACC__>)
-            endif()
-
-            if(CMAKE_CUDA_COMPILER_VERSION GREATER_EQUAL 11.0)
-                target_compile_options(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-unknown-cuda-version>)
-            endif()
+            target_compile_options(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-unknown-cuda-version>)
 
             # This flag silences the warning produced by the Dummy.cpp files:
             # clang: warning: argument unused during compilation: '--cuda-gpu-arch=sm_XX'
@@ -484,13 +430,12 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             if(alpaka_CUDA_EXPT_EXTENDED_LAMBDA STREQUAL ON)
                 alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
             endif()
-            # This is mandatory because with c++17 many standard library functions we rely on are constexpr (std::min, std::multiplies, ...)
+            # This is mandatory because with C++17 many standard library functions we rely on are constexpr (std::min, std::multiplies, ...)
             alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
-            if((CMAKE_BUILD_TYPE STREQUAL "Debug") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-g>)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>)
-            endif()
+            # CMake automatically sets '-g' in debug mode
+            alpaka_set_compiler_options(DEVICE target alpaka $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CUDA>>:-G> # -G overrides -lineinfo
+                                                             $<$<AND:$<CONFIG:RelWithDebInfo>,$<COMPILE_LANGUAGE:CUDA>>:-g -lineinfo>)
 
             if(alpaka_FAST_MATH STREQUAL ON)
                 alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>)
@@ -506,9 +451,16 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
                 alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas=-v>)
             endif()
 
-            if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR alpaka_ACC_ANY_BT_OMP5_ENABLE)
+            if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
                 if(NOT MSVC)
                     alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp>)
+
+                    # See https://github.com/alpaka-group/alpaka/issues/1755
+                    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND
+                       (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 13))
+                       message(STATUS "clang >= 13 detected. Force-setting OpenMP to version 4.5.")
+                       alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp-version=45>)
+                    endif()
                 else()
                     alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/openmp>)
                 endif()
@@ -537,8 +489,10 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             endif()
         endif()
 
-        target_link_libraries(alpaka INTERFACE CUDA::cudart)
-        target_include_directories(alpaka SYSTEM INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        if(NOT alpaka_DISABLE_VENDOR_RNG)
+            # Use cuRAND random number generators
+            target_link_libraries(alpaka INTERFACE CUDA::cudart CUDA::curand)
+        endif()
     else()
         message(FATAL_ERROR "Optional alpaka dependency CUDA could not be found!")
     endif()
@@ -549,8 +503,8 @@ endif()
 if(alpaka_ACC_GPU_HIP_ENABLE)
 
     # supported HIP version range
-    set(_alpaka_HIP_MIN_VER 4.0)
-    set(_alpaka_HIP_MAX_VER 5.0)
+    set(_alpaka_HIP_MIN_VER 5.0)
+    set(_alpaka_HIP_MAX_VER 5.5)
     find_package(hip "${_alpaka_HIP_MAX_VER}")
     if(NOT TARGET hip)
         message(STATUS "Could not find HIP v${_alpaka_HIP_MAX_VER}. Now searching for HIP v${_alpaka_HIP_MIN_VER}")
@@ -568,25 +522,34 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
             alpaka_set_compiler_options(DEVICE target alpaka "-ffast-math")
         endif()
 
-        # hiprand requires ROCm implementation of random numbers by rocrand
-        # hip::hiprand is currently not expressing this dependency
-        find_package(rocrand REQUIRED CONFIG
-                HINTS "${HIP_ROOT_DIR}/rocrand"
-                HINTS "/opt/rocm/rocrand")
-        if(rocrand_FOUND)
-            target_link_libraries(alpaka INTERFACE roc::rocrand)
-        else()
-            MESSAGE(FATAL_ERROR "Could not find rocRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/rocrand).")
+        if(NOT alpaka_DISABLE_VENDOR_RNG)
+            # hiprand requires ROCm implementation of random numbers by rocrand
+            # hip::hiprand is currently not expressing this dependency
+            find_package(rocrand REQUIRED CONFIG
+                    HINTS "${HIP_ROOT_DIR}/rocrand"
+                    HINTS "/opt/rocm/rocrand")
+            if(rocrand_FOUND)
+                target_link_libraries(alpaka INTERFACE roc::rocrand)
+            else()
+                MESSAGE(FATAL_ERROR "Could not find rocRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/rocrand).")
+            endif()
+
+            # HIP random numbers
+            find_package(hiprand REQUIRED CONFIG
+                    HINTS "${HIP_ROOT_DIR}/hiprand"
+                    HINTS "/opt/rocm/hiprand")
+            if(hiprand_FOUND)
+                target_link_libraries(alpaka INTERFACE hip::hiprand)
+            else()
+                MESSAGE(FATAL_ERROR "Could not find hipRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/hiprand).")
+            endif()
         endif()
 
-        # # HIP random numbers
-        find_package(hiprand REQUIRED CONFIG
-                HINTS "${HIP_ROOT_DIR}/hiprand"
-                HINTS "/opt/rocm/hiprand")
-        if(hiprand_FOUND)
-            target_link_libraries(alpaka INTERFACE hip::hiprand)
-        else()
-            MESSAGE(FATAL_ERROR "Could not find hipRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/hiprand).")
+        if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
+            alpaka_set_compiler_options(DEVICE target alpaka "-fgpu-rdc")
+            target_link_options(alpaka INTERFACE "-fgpu-rdc" "--hip-link")
+        elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
+            alpaka_set_compiler_options(DEVICE target alpaka "-fno-gpu-rdc")
         endif()
 
         alpaka_set_compiler_options(HOST_DEVICE target alpaka -std=c++${alpaka_CXX_STANDARD})
@@ -595,53 +558,32 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
             alpaka_set_compiler_options(HOST_DEVICE target alpaka -save-temps)
         endif()
     endif()
-
 endif() # HIP
 
 #-------------------------------------------------------------------------------
 # SYCL settings
 if(alpaka_ACC_SYCL_ENABLE)
-    # Possible SYCL platforms
-    cmake_dependent_option(alpaka_SYCL_PLATFORM_ONEAPI "Enable Intel oneAPI platform for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
-    cmake_dependent_option(alpaka_SYCL_PLATFORM_XILINX "Enable Xilinx platform for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
-    # Possible oneAPI targets
-    cmake_dependent_option(alpaka_SYCL_ONEAPI_CPU "Enable oneAPI CPU targets for the SYCL back-end" OFF "alpaka_SYCL_PLATFORM_ONEAPI" OFF)
-    cmake_dependent_option(alpaka_SYCL_ONEAPI_FPGA "Enable oneAPI FPGA targets for the SYCL back-end" OFF "alpaka_SYCL_PLATFORM_ONEAPI" OFF)
-    cmake_dependent_option(alpaka_SYCL_ONEAPI_GPU "Enable oneAPI GPU targets for the SYCL back-end" OFF "alpaka_SYCL_PLATFORM_ONEAPI" OFF)
-    # Intel FPGA emulation / simulation
-    if(alpaka_SYCL_ONEAPI_FPGA)
-        set(alpaka_SYCL_ONEAPI_FPGA_MODE "emulation" CACHE STRING "Synthesis type for oneAPI FPGA targets")
-        set_property(CACHE alpaka_SYCL_ONEAPI_FPGA_MODE PROPERTY STRINGS "emulation;simulation;hardware")
-    endif()
-    # Xilinx FPGA emulation / synthesis
-    if(alpaka_SYCL_PLATFORM_XILINX)
-        set(alpaka_SYCL_XILINX_FPGA_MODE "simulation" CACHE STRING "Synthesis type for Xilinx FPGA targets")
-        set_property(CACHE alpaka_SYCL_XILINX_FPGA_MODE PROPERTY STRINGS "simulation;hardware")
-    endif()
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "IntelLLVM")
+        # Possible oneAPI targets
+        cmake_dependent_option(alpaka_SYCL_ONEAPI_CPU "Enable oneAPI CPU targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
+        cmake_dependent_option(alpaka_SYCL_ONEAPI_FPGA "Enable oneAPI FPGA targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
+        cmake_dependent_option(alpaka_SYCL_ONEAPI_GPU "Enable oneAPI GPU targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
+        # Intel FPGA emulation / simulation
+        if(alpaka_SYCL_ONEAPI_FPGA)
+            set(alpaka_SYCL_ONEAPI_FPGA_MODE "emulation" CACHE STRING "Synthesis type for oneAPI FPGA targets")
+            set_property(CACHE alpaka_SYCL_ONEAPI_FPGA_MODE PROPERTY STRINGS "emulation;simulation;hardware")
+        endif()
 
-    # Enable device-side printing to stdout
-    cmake_dependent_option(alpaka_SYCL_ENABLE_IOSTREAM "Enable device-side printing to stdout" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
-    if(BUILD_TESTING)
-        set(alpaka_SYCL_ENABLE_IOSTREAM ON CACHE BOOL "Enable device-side printing to stdout" FORCE)
-    endif()
+        alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl")
+        target_link_options(alpaka INTERFACE "-fsycl")
+        alpaka_set_compiler_options(HOST_DEVICE target alpaka "-sycl-std=2020")
 
-    if(NOT (alpaka_SYCL_PLATFORM_ONEAPI OR alpaka_SYCL_PLATFORM_XILINX))
-        message(FATAL_ERROR "You must specify at least one SYCL platform!")
-    endif()
+        #-----------------------------------------------------------------------------------------------------------------
+        # Determine SYCL targets
+        set(alpaka_SYCL_ONEAPI_CPU_TARGET "spir64_x86_64")
+        set(alpaka_SYCL_ONEAPI_FPGA_TARGET "spir64_fpga")
+        set(alpaka_SYCL_ONEAPI_GPU_TARGET ${alpaka_SYCL_ONEAPI_GPU_DEVICES})
 
-    alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl")
-    target_link_options(alpaka INTERFACE "-fsycl")
-    alpaka_set_compiler_options(HOST_DEVICE target alpaka "-sycl-std=2020")
-
-    #-----------------------------------------------------------------------------------------------------------------
-    # Determine SYCL targets
-    set(alpaka_SYCL_ONEAPI_CPU_TARGET "spir64_x86_64")
-    set(alpaka_SYCL_ONEAPI_FPGA_TARGET "spir64_fpga")
-    set(alpaka_SYCL_ONEAPI_GPU_TARGET "spir64_gen")
-    set(alpaka_SYCL_XILINX_FPGA_HARDWARE_EMULATION_TARGET "fpga64_hls_hw_emu")
-    set(alpaka_SYCL_XILINX_FPGA_HARDWARE_TARGET "fpga64_hls_hw")
-
-    if(alpaka_SYCL_PLATFORM_ONEAPI)
         if(alpaka_SYCL_ONEAPI_CPU)
             list(APPEND alpaka_SYCL_TARGETS ${alpaka_SYCL_ONEAPI_CPU_TARGET})
         endif()
@@ -657,82 +599,79 @@ if(alpaka_ACC_SYCL_ENABLE)
         if(NOT alpaka_SYCL_TARGETS)
             message(FATAL_ERROR "You must specify at least one oneAPI hardware target!")
         endif()
-    endif()
 
-    if(alpaka_SYCL_PLATFORM_XILINX)
-        if(alpaka_SYCL_XILINX_FPGA_MODE STREQUAL "simulation")
-            list(APPEND alpaka_SYCL_TARGETS ${alpaka_SYCL_XILINX_FPGA_HARDWARE_EMULATION_TARGET})
-        elseif(alpaka_SYCL_XILINX_FPGA_MODE STREQUAL "hardware")
-            list(APPEND alpaka_SYCL_TARGETS ${alpaka_SYCL_XILINX_FPGA_HARDWARE_TARGET})
-        else()
-            message(FATAL_ERROR "You must specify at least one Xilinx FPGA target!")
-        endif()
-    endif()
-
-    list(JOIN alpaka_SYCL_TARGETS "," alpaka_SYCL_TARGETS_CONCAT)
-    alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
-    target_link_options(alpaka INTERFACE "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
-    
-    #-----------------------------------------------------------------------------------------------------------------
-    # Determine actual hardware to compile for 
-    if(alpaka_SYCL_ONEAPI_CPU)
-        set(alpaka_SYCL_ONEAPI_CPU_ISA "avx2" CACHE STRING "Intel ISA to compile for")
-        set_property(CACHE alpaka_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse4.2;avx;avx2;avx512")
-
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_CPU")
-        target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${alpaka_SYCL_ONEAPI_CPU_TARGET} \"-march=${alpaka_SYCL_ONEAPI_CPU_ISA}\"")
-    endif()
-
-    if(alpaka_SYCL_ONEAPI_FPGA)
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_FPGA")
-        # try to come as close to -fintelfpga as possible with the following two flags
-        alpaka_set_compiler_options(DEVICE target alpaka "-fintelfpga")
-
-        if(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
-            target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
-            alpaka_set_compiler_options(DEVICE target alpaka "-Xsemulator")
-            target_link_options(alpaka INTERFACE "-Xsemulator")
-        elseif(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "simulation")
-            alpaka_set_compiler_options(DEVICE target alpaka "-Xssimulation")
-            target_link_options(alpaka INTERFACE "-Xssimulation")
-        elseif(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "hardware")
-            alpaka_set_compiler_options(DEVICE target alpaka "-Xshardware")
-            target_link_options(alpaka INTERFACE "-Xshardware")
-        endif()
-
-        if(NOT alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
-            set(alpaka_SYCL_ONEAPI_FPGA_BOARD "pac_a10" CACHE STRING "Intel FPGA board to compile for")
-            set_property(CACHE alpaka_SYCL_ONEAPI_FPGA_BOARD PROPERTY STRINGS "pac_a10;pac_s10;pac_s10_usm")
-
-            set(alpaka_SYCL_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
-            set_property(CACHE alpaka_SYCL_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
-            target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${alpaka_SYCL_ONEAPI_FPGA_TARGET} \"-board=${alpaka_SYCL_ONEAPI_FPGA_BSP}:${alpaka_SYCL_ONEAPI_FPGA_BOARD}\"")
-        endif()
-
-    endif()
-
-    if(alpaka_SYCL_ONEAPI_GPU)
-        # Create a drop-down list (in cmake-gui) of valid Intel GPU targets. On the command line the user can specifiy
-        # additional targets, such as ranges: "Gen8-Gen12LP" or lists: "icclp;skl".
-        set(alpaka_SYCL_ONEAPI_GPU_DEVICES "bdw" CACHE STRING "Intel GPU devices / generations to compile for")
-        set_property(CACHE alpaka_SYCL_ONEAPI_GPU_DEVICES
-                     PROPERTY STRINGS "bdw;skl;kbl;cfl;bxt;glk;icllp;lkf;ehl;tgllp;rkl;adls;adlp;dg1;xe_hp_sdv;Gen8;Gen9;Gen11;Gen12LP;XE_HP_CORE")
-        # If the user has given us a list turn all ';' into ',' to pacify the Intel OpenCL compiler.
-        string(REPLACE alpaka_ONEAPI_GPU_DEVICES REPLACE ";" ",")
+        list(JOIN alpaka_SYCL_TARGETS "," alpaka_SYCL_TARGETS_CONCAT)
+        alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
+        target_link_options(alpaka INTERFACE "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
         
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
-        target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${alpaka_SYCL_ONEAPI_GPU_TARGET} \"-device ${alpaka_SYCL_ONEAPI_GPU_DEVICES}\"")
+        #-----------------------------------------------------------------------------------------------------------------
+        # Determine actual hardware to compile for 
+        if(alpaka_SYCL_ONEAPI_CPU)
+            set(alpaka_SYCL_ONEAPI_CPU_ISA "avx2" CACHE STRING "Intel ISA to compile for")
+            set_property(CACHE alpaka_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse4.2;avx;avx2;avx512")
+
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_CPU")
+            target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${alpaka_SYCL_ONEAPI_CPU_TARGET} \"-march=${alpaka_SYCL_ONEAPI_CPU_ISA}\"")
+        endif()
+
+        if(alpaka_SYCL_ONEAPI_FPGA)
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_FPGA")
+            alpaka_set_compiler_options(DEVICE target alpaka "-fintelfpga")
+
+            if(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
+                target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
+                alpaka_set_compiler_options(DEVICE target alpaka "-Xsemulator")
+                target_link_options(alpaka INTERFACE "-Xsemulator")
+            elseif(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "simulation")
+                alpaka_set_compiler_options(DEVICE target alpaka "-Xssimulation")
+                target_link_options(alpaka INTERFACE "-Xssimulation")
+            elseif(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "hardware")
+                alpaka_set_compiler_options(DEVICE target alpaka "-Xshardware")
+                target_link_options(alpaka INTERFACE "-Xshardware")
+            endif()
+
+            if(NOT alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
+                set(alpaka_SYCL_ONEAPI_FPGA_BOARD "pac_a10" CACHE STRING "Intel FPGA board to compile for")
+                set_property(CACHE alpaka_SYCL_ONEAPI_FPGA_BOARD PROPERTY STRINGS "pac_a10;pac_s10;pac_s10_usm")
+
+                set(alpaka_SYCL_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
+                set_property(CACHE alpaka_SYCL_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
+                target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${alpaka_SYCL_ONEAPI_FPGA_TARGET} \"-board=${alpaka_SYCL_ONEAPI_FPGA_BSP}:${alpaka_SYCL_ONEAPI_FPGA_BOARD}\"")
+            endif()
+        endif()
+
+        if(alpaka_SYCL_ONEAPI_GPU)
+            # Create a drop-down list (in cmake-gui) of valid Intel GPU targets. On the command line the user can specifiy
+            # additional targets, such as ranges: "Gen8-Gen12LP" or lists: "icllp;skl".
+            set(alpaka_SYCL_ONEAPI_GPU_DEVICES "intel_gpu_pvc" CACHE STRING "Intel GPU devices / generations to compile for")
+            set_property(CACHE alpaka_SYCL_ONEAPI_GPU_DEVICES
+                        PROPERTY STRINGS "intel_gpu_pvc;intel_gpu_acm_g12;intel_gpu_acm_g11;intel_gpu_acm_g10;intel_gpu_dg1;intel_gpu_adl_n;intel_gpu_adl_p;intel_gpu_rpl_s;intel_gpu_adl_s;intel_gpu_rkl;intel_gpu_tgllp;intel_gpu_icllp;intel_gpu_cml;intel_gpu_aml;intel_gpu_whl;intel_gpu_glk;intel_gpu_apl;intel_gpu_cfl;intel_gpu_kbl;intel_gpu_skl;intel_gpu_bdw")
+            # If the user has given us a list turn all ';' into ',' to pacify the Intel OpenCL compiler.
+            string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
+            
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
+        endif()
+
+        #-----------------------------------------------------------------------------------------------------------------
+        # Generic SYCL options
+        alpaka_set_compiler_options(DEVICE target alpaka "-fsycl-unnamed-lambda") # Compiler default but made explicit here
+
+        if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
+            alpaka_set_compiler_options(DEVICE target alpaka "-fsycl-rdc")
+            target_link_options(alpaka INTERFACE "-fsycl-rdc")
+        elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
+            alpaka_set_compiler_options(DEVICE target alpaka "-fno-sycl-rdc")
+            target_link_options(alpaka INTERFACE "-fno-sycl-rdc")
+        endif()
+    else()
+        message(FATAL_ERROR "alpaka currently does not support SYCL implementations other than oneAPI.")
     endif()
 
-    #-----------------------------------------------------------------------------------------------------------------
-    # Generic SYCL options
-    if(alpaka_SYCL_ENABLE_IOSTREAM)
-        set(alpaka_SYCL_IOSTREAM_KIB "64" CACHE STRING "Kibibytes (1024B) of memory to allocate per block for SYCL's on-device iostream")
-
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_IOSTREAM_ENABLED")
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_IOSTREAM_KIB=${alpaka_SYCL_IOSTREAM_KIB}")
+    if(NOT alpaka_DISABLE_VENDOR_RNG)
+        # Use oneDPL random number generators
+        find_package(oneDPL REQUIRED)
+        target_link_libraries(alpaka INTERFACE oneDPL)
     endif()
-    alpaka_set_compiler_options(DEVICE target alpaka "-fsycl-unnamed-lambda") # Compiler default but made explicit here
 endif()
 
 #-------------------------------------------------------------------------------
@@ -756,11 +695,6 @@ if(alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED")
     message(STATUS alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
 endif()
-if(alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-    target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED")
-    target_link_libraries(alpaka INTERFACE Boost::fiber)
-    message(STATUS alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
-endif()
 if(alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED")
     message(STATUS alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLED)
@@ -773,14 +707,6 @@ if(alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED")
     message(STATUS alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLED)
 endif()
-if(alpaka_ACC_ANY_BT_OMP5_ENABLE)
-    target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_ANY_BT_OMP5_ENABLED")
-    message(STATUS alpaka_ACC_ANY_BT_OMP5_ENABLED)
-endif()
-if(alpaka_ACC_ANY_BT_OACC_ENABLE)
-    target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_ANY_BT_OACC_ENABLED")
-    message(STATUS alpaka_ACC_ANY_BT_OACC_ENABLE)
-endif()
 if(alpaka_ACC_GPU_CUDA_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_GPU_CUDA_ENABLED")
     message(STATUS alpaka_ACC_GPU_CUDA_ENABLED)
@@ -792,22 +718,15 @@ endif()
 
 if(alpaka_ACC_SYCL_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_SYCL_ENABLED")
-    if(alpaka_SYCL_PLATFORM_ONEAPI)
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_BACKEND_ONEAPI")
-        if(alpaka_SYCL_ONEAPI_CPU)
-            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_CPU")
-        endif()
-        if(alpaka_SYCL_ONEAPI_FPGA)
-            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_FPGA")
-        endif()
-        if(alpaka_SYCL_ONEAPI_GPU)
-            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_GPU")
-        endif()
-    endif()
 
-    if(alpaka_SYCL_PLATFORM_XILINX)
-        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_BACKEND_XILINX")
+    if(alpaka_SYCL_ONEAPI_CPU)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_CPU")
+    endif()
+    if(alpaka_SYCL_ONEAPI_FPGA)
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_FPGA")
+    endif()
+    if(alpaka_SYCL_ONEAPI_GPU)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_GPU")
     endif()
 
     message(STATUS alpaka_ACC_SYCL_ENABLED)
@@ -890,4 +809,63 @@ if(alpaka_COMPILER_OPTIONS_DEVICE OR alpaka_COMPILER_OPTIONS_DEVICE)
         message("    ${alpaka_COMPILER_OPTIONS_DEVICE}")
     endif()
     message("")
+endif()
+
+#-------------------------------------------------------------------------------
+# Include mdspan
+
+set(alpaka_USE_MDSPAN "OFF" CACHE STRING "Use std::mdspan with alpaka")
+set_property(CACHE alpaka_USE_MDSPAN PROPERTY STRINGS "SYSTEM;FETCH;OFF")
+
+if (alpaka_USE_MDSPAN STREQUAL "SYSTEM")
+    find_package(mdspan REQUIRED)
+    target_link_libraries(alpaka INTERFACE std::mdspan)
+    target_compile_definitions(alpaka INTERFACE ALPAKA_USE_MDSPAN)
+elseif (alpaka_USE_MDSPAN STREQUAL "FETCH")
+    include(FetchContent)
+    FetchContent_Declare(
+        mdspan
+        GIT_REPOSITORY https://github.com/kokkos/mdspan.git
+        GIT_TAG 973ef6415a6396e5f0a55cb4c99afd1d1d541681
+    )
+    # we don't use FetchContent_MakeAvailable(mdspan) since it would also install mdspan
+    # see also: https://stackoverflow.com/questions/65527126/how-to-disable-installation-a-fetchcontent-dependency
+    FetchContent_GetProperties(mdspan)
+    if(NOT mdspan_POPULATED)
+        FetchContent_Populate(mdspan)
+        if(${CMAKE_VERSION} VERSION_LESS "3.25.0")
+            add_subdirectory(${mdspan_SOURCE_DIR} ${mdspan_BINARY_DIR} EXCLUDE_FROM_ALL)
+        else()
+            add_subdirectory(${mdspan_SOURCE_DIR} ${mdspan_BINARY_DIR} EXCLUDE_FROM_ALL SYSTEM)
+        endif()
+    endif()
+    if(${CMAKE_VERSION} VERSION_LESS "3.25.0")
+        get_target_property(mdspan_include_dir std::mdspan INTERFACE_INCLUDE_DIRECTORIES)
+        target_include_directories(alpaka SYSTEM INTERFACE ${mdspan_include_dir})
+    else()
+        target_link_libraries(alpaka INTERFACE std::mdspan)
+    endif()
+    target_compile_definitions(alpaka INTERFACE ALPAKA_USE_MDSPAN)
+elseif (alpaka_USE_MDSPAN STREQUAL "OFF")
+else()
+    message(FATAL_ERROR "Invalid option for alpaka_USE_MDSPAN")
+endif()
+
+if (NOT alpaka_USE_MDSPAN STREQUAL "OFF")
+    if (MSVC AND (alpaka_CXX_STANDARD LESS 20))
+        message(WARNING "std::mdspan on MSVC requires C++20. Please enable C++20 via alpaka_CXX_STANDARD. Use of std::mdspan has been disabled.")
+        set(alpaka_USE_MDSPAN "OFF" CACHE STRING "Use std::mdspan with alpaka" FORCE)
+    endif ()
+
+    if (alpaka_ACC_GPU_CUDA_ENABLE AND (CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA") AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+        # this issue actually only occurs when the host compiler (not the CXX compiler) is clang, but cmake does not let us query the host compiler id
+        # see: https://gitlab.kitware.com/cmake/cmake/-/issues/20901
+        message(WARNING "std::mdspan does not work with nvcc and clang as host compiler. Use of std::mdspan has been disabled.")
+        set(alpaka_USE_MDSPAN "OFF" CACHE STRING "Use std::mdspan with alpaka" FORCE)
+    endif ()
+
+    if (alpaka_ACC_GPU_CUDA_ENABLE AND (NOT alpaka_CUDA_EXPT_EXTENDED_LAMBDA STREQUAL ON))
+        message(WARNING "std::mdspan requires nvcc's extended lambdas. Use of std::mdspan has been disabled.")
+        set(alpaka_USE_MDSPAN "OFF" CACHE STRING "Use std::mdspan with alpaka" FORCE)
+    endif()
 endif()

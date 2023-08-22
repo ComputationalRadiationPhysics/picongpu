@@ -1,10 +1,6 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
@@ -12,7 +8,8 @@
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <functional>
 #include <iostream>
@@ -103,7 +100,7 @@ public:
             for(TIndex k3(0); k3 < blockThreadExtentVal; ++k3)
             {
                 dotProduct += pBlockSharedA[blockThreadIdxY * blockThreadExtentX + k3]
-                    * pBlockSharedB[k3 * blockThreadExtentY + blockThreadIdxX];
+                              * pBlockSharedB[k3 * blockThreadExtentY + blockThreadIdxX];
             }
 
             // Synchronize to make sure that the preceding computation is done before loading the next blocks of A and
@@ -166,23 +163,23 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     using Val = std::uint32_t;
     using Vec2 = alpaka::Vec<Dim, Idx>;
     using DevAcc = alpaka::Dev<Acc>;
-    using PltfAcc = alpaka::Pltf<DevAcc>;
+    using PlatformAcc = alpaka::Platform<DevAcc>;
     using QueueAcc = alpaka::test::DefaultQueue<alpaka::Dev<Acc>>;
-    using PltfHost = alpaka::PltfCpu;
-    using DevHost = alpaka::Dev<PltfHost>;
     using QueueHost = alpaka::QueueCpuNonBlocking;
 
     // Create the kernel function object.
     MatMulKernel kernel;
 
     // Get the host device.
-    DevHost const devHost = alpaka::getDevByIdx<PltfHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
     // Get a queue on the host device.
     QueueHost queueHost(devHost);
 
     // Select a device to execute on.
-    DevAcc const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Get a queue on the accelerator device.
     QueueAcc queueAcc(devAcc);
@@ -205,7 +202,8 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
 
     std::cout << "MatMulKernel("
               << "m:" << m << ", n:" << n << ", k:" << k << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << typeid(kernel).name() << ", workDiv: " << workDiv << ")" << std::endl;
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
 
     // Allocate the A and B matrices as std::vectors because this allows them to be filled with uint32_t(1).
     // alpaka::set only supports setting all bytes leading to a value of 16843009 in all elements.
@@ -219,7 +217,7 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     auto bufBHost = alpaka::createView(devHost, bufBHost1d.data(), extentB);
 
     // Allocate C and set it to zero.
-    auto bufCHost = alpaka::allocBuf<Val, Idx>(devHost, extentC);
+    auto bufCHost = alpaka::allocMappedBufIfSupported<PlatformAcc, Val, Idx>(devHost, platformAcc, extentC);
     alpaka::memset(queueHost, bufCHost, 0u);
 
     // Allocate the buffers on the accelerator.

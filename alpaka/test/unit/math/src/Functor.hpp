@@ -1,10 +1,5 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Sergei Bastrakov
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
@@ -88,6 +83,22 @@ namespace alpaka
             return STD_OP(typename StdLibType<TArg1>::type(arg1), typename StdLibType<TArg2>::type(arg2));            \
         }                                                                                                             \
                                                                                                                       \
+        ALPAKA_NO_HOST_ACC_WARNING                                                                                    \
+        template<                                                                                                     \
+            typename TAcc = std::nullptr_t,                                                                           \
+            typename TArg1,                                                                                           \
+            typename TArg2,                                                                                           \
+            typename TArg3, /* SFINAE: Enables if called from host. */                                                \
+            typename std::enable_if_t<std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                 \
+        ALPAKA_FN_HOST auto execute(TAcc const& /* acc */, TArg1 const& arg1, TArg2 const& arg2, TArg3 const& arg3)   \
+            const                                                                                                     \
+        {                                                                                                             \
+            return STD_OP(                                                                                            \
+                typename StdLibType<TArg1>::type(arg1),                                                               \
+                typename StdLibType<TArg2>::type(arg2),                                                               \
+                typename StdLibType<TArg3>::type(arg3));                                                              \
+        }                                                                                                             \
+                                                                                                                      \
         /* assigns args by arity */                                                                                   \
         ALPAKA_NO_HOST_ACC_WARNING                                                                                    \
         template<typename T, typename TAcc = std::nullptr_t>                                                          \
@@ -102,6 +113,14 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto operator()(ArgsItem<T, Arity::Binary> const& args, TAcc const& acc = nullptr) const   \
         {                                                                                                             \
             return execute(acc, args.arg[0], args.arg[1]);                                                            \
+        }                                                                                                             \
+                                                                                                                      \
+        /* assigns args by arity */                                                                                   \
+        ALPAKA_NO_HOST_ACC_WARNING                                                                                    \
+        template<typename T, typename TAcc = std::nullptr_t>                                                          \
+        ALPAKA_FN_HOST_ACC auto operator()(ArgsItem<T, Arity::Ternary> const& args, TAcc const& acc = nullptr) const  \
+        {                                                                                                             \
+            return execute(acc, args.arg[0], args.arg[1], args.arg[2]);                                               \
         }                                                                                                             \
                                                                                                                       \
         friend std::ostream& operator<<(std::ostream& out, const NAME& /* op */)                                      \
@@ -121,6 +140,13 @@ namespace alpaka
                     alpaka::math::acos,
                     Range::OneNeighbourhood)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpAcosh,
+                    Arity::Unary,
+                    std::acosh,
+                    alpaka::math::acosh,
+                    Range::PositiveOnly)
+
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpArg, Arity::Unary, std::arg, alpaka::math::arg, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
@@ -130,13 +156,29 @@ namespace alpaka
                     alpaka::math::asin,
                     Range::OneNeighbourhood)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpAsinh,
+                    Arity::Unary,
+                    std::asinh,
+                    alpaka::math::asinh,
+                    Range::Unrestricted)
+
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpAtan, Arity::Unary, std::atan, alpaka::math::atan, Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpAtanh,
+                    Arity::Unary,
+                    std::atanh,
+                    alpaka::math::atanh,
+                    Range::OneNeighbourhood)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpCbrt, Arity::Unary, std::cbrt, alpaka::math::cbrt, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpCeil, Arity::Unary, std::ceil, alpaka::math::ceil, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpCos, Arity::Unary, std::cos, alpaka::math::cos, Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpCosh, Arity::Unary, std::cosh, alpaka::math::cosh, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpErf, Arity::Unary, std::erf, alpaka::math::erf, Range::Unrestricted)
 
@@ -150,6 +192,15 @@ namespace alpaka
                     Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpLog, Arity::Unary, std::log, alpaka::math::log, Range::PositiveOnly)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpLog2, Arity::Unary, std::log2, alpaka::math::log2, Range::PositiveOnly)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpLog10,
+                    Arity::Unary,
+                    std::log10,
+                    alpaka::math::log10,
+                    Range::PositiveOnly)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpRound,
@@ -168,6 +219,8 @@ namespace alpaka
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpSin, Arity::Unary, std::sin, alpaka::math::sin, Range::Unrestricted)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpSinh, Arity::Unary, std::sinh, alpaka::math::sinh, Range::Unrestricted)
+
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpSqrt,
                     Arity::Unary,
@@ -176,6 +229,8 @@ namespace alpaka
                     Range::PositiveAndZero)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(OpTan, Arity::Unary, std::tan, alpaka::math::tan, Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpTanh, Arity::Unary, std::tanh, alpaka::math::tanh, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpTrunc,
@@ -203,6 +258,14 @@ namespace alpaka
                     alpaka::math::atan2,
                     Range::NotZero,
                     Range::NotZero)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpCopysign,
+                    Arity::Binary,
+                    std::copysign,
+                    alpaka::math::copysign,
+                    Range::Unrestricted,
+                    Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpFmod,
@@ -244,32 +307,53 @@ namespace alpaka
                     Range::Unrestricted,
                     Range::NotZero)
 
-                // Binary functors to be used only for real types
-                using BinaryFunctorsReal = std::tuple<OpAtan2, OpFmod, OpMax, OpMin, OpPow, OpRemainder>;
+                // All ternary operators.
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpFma,
+                    Arity::Ternary,
+                    std::fma,
+                    alpaka::math::fma,
+                    Range::Unrestricted,
+                    Range::Unrestricted,
+                    Range::Unrestricted)
 
                 // Unary functors to be used only for real types
                 using UnaryFunctorsReal = std::tuple<
                     OpAbs,
                     OpAcos,
+                    OpAcosh,
                     OpArg,
                     OpAsin,
+                    OpAsinh,
                     OpAtan,
+                    OpAtanh,
                     OpCbrt,
                     OpCeil,
                     OpCos,
+                    OpCosh,
                     OpErf,
                     OpExp,
                     OpFloor,
                     OpLog,
+                    OpLog2,
+                    OpLog10,
                     OpRound,
                     OpRsqrt,
                     OpSin,
+                    OpSinh,
                     OpSqrt,
                     OpTan,
+                    OpTanh,
                     OpTrunc,
                     OpIsnan,
                     OpIsinf,
                     OpIsfinite>;
+
+                // Binary functors to be used only for real types
+                using BinaryFunctorsReal = std::tuple<OpAtan2, OpCopysign, OpFmod, OpMax, OpMin, OpPow, OpRemainder>;
+
+                // Ternary functors to be used only for real types
+                using TernaryFunctorsReal = std::tuple<OpFma>;
 
                 // For complex numbers also test arithmetic operations
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
@@ -317,24 +401,31 @@ namespace alpaka
                     Range::PositiveOnly,
                     Range::Unrestricted)
 
-                // Binary functors to be used for complex types
-                using BinaryFunctorsComplex = std::tuple<OpDivides, OpMinus, OpMultiplies, OpPlus, OpPowComplex>;
-
                 // Unary functors to be used for both real and complex types
                 using UnaryFunctorsComplex = std::tuple<
                     OpAbs,
                     OpAcos,
+                    OpAcosh,
                     OpArg,
                     OpAsin,
+                    OpAsinh,
                     OpAtan,
+                    OpAtanh,
                     OpConj,
                     OpCos,
+                    OpCosh,
                     OpExp,
                     OpLog,
+                    OpLog10,
                     OpRsqrt,
                     OpSin,
+                    OpSinh,
                     OpSqrt,
-                    OpTan>;
+                    OpTan,
+                    OpTanh>;
+
+                // Binary functors to be used for complex types
+                using BinaryFunctorsComplex = std::tuple<OpDivides, OpMinus, OpMultiplies, OpPlus, OpPowComplex>;
 
             } // namespace math
         } // namespace unit

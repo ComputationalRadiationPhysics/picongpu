@@ -1,16 +1,12 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber, Sergei Bastrakov,
+ * Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Concepts.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Concepts.hpp"
 
 #include <cmath>
 #include <complex>
@@ -22,12 +18,6 @@ namespace alpaka::math
 {
     namespace constants
     {
-        /* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because
-        these /  clang versions incorrectly warn about a missing 'extern'. */
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wmissing-variable-declarations"
-#endif
 #ifdef __cpp_lib_math_constants
         inline constexpr double e = std::numbers::e;
         inline constexpr double log2e = std::numbers::log2e;
@@ -137,9 +127,6 @@ namespace alpaka::math
 #    endif
 
 #endif
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic pop
-#endif
     } // namespace constants
 
     struct ConceptMathAbs
@@ -147,6 +134,10 @@ namespace alpaka::math
     };
 
     struct ConceptMathAcos
+    {
+    };
+
+    struct ConceptMathAcosh
     {
     };
 
@@ -158,7 +149,15 @@ namespace alpaka::math
     {
     };
 
+    struct ConceptMathAsinh
+    {
+    };
+
     struct ConceptMathAtan
+    {
+    };
+
+    struct ConceptMathAtanh
     {
     };
 
@@ -178,7 +177,15 @@ namespace alpaka::math
     {
     };
 
+    struct ConceptMathCopysign
+    {
+    };
+
     struct ConceptMathCos
+    {
+    };
+
+    struct ConceptMathCosh
     {
     };
 
@@ -191,6 +198,10 @@ namespace alpaka::math
     };
 
     struct ConceptMathFloor
+    {
+    };
+
+    struct ConceptMathFma
     {
     };
 
@@ -211,6 +222,14 @@ namespace alpaka::math
     };
 
     struct ConceptMathLog
+    {
+    };
+
+    struct ConceptMathLog2
+    {
+    };
+
+    struct ConceptMathLog10
     {
     };
 
@@ -242,6 +261,10 @@ namespace alpaka::math
     {
     };
 
+    struct ConceptMathSinh
+    {
+    };
+
     struct ConceptMathSinCos
     {
     };
@@ -251,6 +274,10 @@ namespace alpaka::math
     };
 
     struct ConceptMathTan
+    {
+    };
+
+    struct ConceptMathTanh
     {
     };
 
@@ -287,6 +314,19 @@ namespace alpaka::math
             }
         };
 
+        //! The acosh trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Acosh
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find acosh(TArg) in the namespace of your type.
+                using std::acosh;
+                return acosh(arg);
+            }
+        };
+
         //! The arg trait.
         template<typename T, typename TArgument, typename TSfinae = void>
         struct Arg
@@ -316,6 +356,19 @@ namespace alpaka::math
             }
         };
 
+        //! The asin trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Asinh
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find asin(TArg) in the namespace of your type.
+                using std::asinh;
+                return asinh(arg);
+            }
+        };
+
         //! The atan trait.
         template<typename T, typename TArg, typename TSfinae = void>
         struct Atan
@@ -326,6 +379,19 @@ namespace alpaka::math
                 // backend and we could not find atan(TArg) in the namespace of your type.
                 using std::atan;
                 return atan(arg);
+            }
+        };
+
+        //! The atanh trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Atanh
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find atanh(TArg) in the namespace of your type.
+                using std::atanh;
+                return atanh(arg);
             }
         };
 
@@ -381,6 +447,19 @@ namespace alpaka::math
             }
         };
 
+        //! The copysign trait.
+        template<typename T, typename TMag, typename TSgn, typename TSfinae = void>
+        struct Copysign
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TMag const& mag, TSgn const& sgn)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find copysign(TMag, TSgn) in the namespace of your type.
+                using std::copysign;
+                return copysign(mag, sgn);
+            }
+        };
+
         //! The cos trait.
         template<typename T, typename TArg, typename TSfinae = void>
         struct Cos
@@ -391,6 +470,19 @@ namespace alpaka::math
                 // backend and we could not find cos(TArg) in the namespace of your type.
                 using std::cos;
                 return cos(arg);
+            }
+        };
+
+        //! The cosh trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Cosh
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find cos(TArg) in the namespace of your type.
+                using std::cosh;
+                return cosh(arg);
             }
         };
 
@@ -429,6 +521,19 @@ namespace alpaka::math
                 // backend and we could not find floor(TArg) in the namespace of your type.
                 using std::floor;
                 return floor(arg);
+            }
+        };
+
+        //! The fma trait.
+        template<typename T, typename Tx, typename Ty, typename Tz, typename TSfinae = void>
+        struct Fma
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, Tx const& x, Ty const& y, Tz const& z)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find fma(Tx, Ty, Tz) in the namespace of your type.
+                using std::fma;
+                return fma(x, y, z);
             }
         };
 
@@ -494,6 +599,32 @@ namespace alpaka::math
                 // backend and we could not find log(TArg) in the namespace of your type.
                 using std::log;
                 return log(arg);
+            }
+        };
+
+        //! The bas 2 log trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Log2
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find log2(TArg) in the namespace of your type.
+                using std::log2;
+                return log2(arg);
+            }
+        };
+
+        //! The base 10 log trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Log10
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find log10(TArg) in the namespace of your type.
+                using std::log10;
+                return log10(arg);
             }
         };
 
@@ -626,6 +757,19 @@ namespace alpaka::math
             }
         };
 
+        //! The sin trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Sinh
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find sin(TArg) in the namespace of your type.
+                using std::sinh;
+                return sinh(arg);
+            }
+        };
+
         namespace detail
         {
             //! Fallback implementation when no better ADL match was found
@@ -679,6 +823,19 @@ namespace alpaka::math
             }
         };
 
+        //! The tanh trait.
+        template<typename T, typename TArg, typename TSfinae = void>
+        struct Tanh
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(T const& /* ctx */, TArg const& arg)
+            {
+                // This is an ADL call. If you get a compile error here then your type is not supported by the
+                // backend and we could not find tanh(TArg) in the namespace of your type.
+                using std::tanh;
+                return tanh(arg);
+            }
+        };
+
         //! The trunc trait.
         template<typename T, typename TArg, typename TSfinae = void>
         struct Trunc
@@ -724,6 +881,23 @@ namespace alpaka::math
         return trait::Acos<ImplementationBase, TArg>{}(acos_ctx, arg);
     }
 
+    //! Computes the principal value of the hyperbolic arc cosine.
+    //!
+    //! The valid real argument range is [1.0, Inf]. For other values
+    //! the result may depend on the backend and compilation options, will
+    //! likely be NaN.
+    //!
+    //! \tparam TArg The arg type.
+    //! \param acosh_ctx The object specializing Acos.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto acosh(T const& acosh_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathAcosh, T>;
+        return trait::Acosh<ImplementationBase, TArg>{}(acosh_ctx, arg);
+    }
+
     //! Computes the complex argument of the value.
     //!
     //! \tparam T The type of the object specializing Arg.
@@ -755,6 +929,19 @@ namespace alpaka::math
         return trait::Asin<ImplementationBase, TArg>{}(asin_ctx, arg);
     }
 
+    //! Computes the principal value of the hyperbolic arc sine.
+    //!
+    //! \tparam TArg The arg type.
+    //! \param asinh_ctx The object specializing Asin.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto asinh(T const& asinh_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathAsinh, T>;
+        return trait::Asinh<ImplementationBase, TArg>{}(asinh_ctx, arg);
+    }
+
     //! Computes the principal value of the arc tangent.
     //!
     //! \tparam TArg The arg type.
@@ -766,6 +953,23 @@ namespace alpaka::math
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan, T>;
         return trait::Atan<ImplementationBase, TArg>{}(atan_ctx, arg);
+    }
+
+    //! Computes the principal value of the hyperbolic arc tangent.
+    //!
+    //! The valid real argument range is [-1.0, 1.0]. For other values
+    //! the result may depend on the backend and compilation options, will
+    //! likely be NaN.
+
+    //! \tparam TArg The arg type.
+    //! \param atanh_ctx The object specializing Atanh.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto atanh(T const& atanh_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathAtanh, T>;
+        return trait::Atanh<ImplementationBase, TArg>{}(atanh_ctx, arg);
     }
 
     //! Computes the arc tangent of y/x using the signs of arguments to determine the correct quadrant.
@@ -826,6 +1030,22 @@ namespace alpaka::math
         return trait::Conj<ImplementationBase, TArg>{}(conj_ctx, arg);
     }
 
+    //! Creates a value with the magnitude of mag and the sign of sgn.
+    //!
+    //! \tparam T The type of the object specializing Copysign.
+    //! \tparam TMag The mag type.
+    //! \tparam TSgn The sgn type.
+    //! \param copysign_ctx The object specializing Copysign.
+    //! \param mag The mag.
+    //! \param sgn The sgn.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TMag, typename TSgn>
+    ALPAKA_FN_HOST_ACC auto copysign(T const& copysign_ctx, TMag const& mag, TSgn const& sgn)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathCopysign, T>;
+        return trait::Copysign<ImplementationBase, TMag, TSgn>{}(copysign_ctx, mag, sgn);
+    }
+
     //! Computes the cosine (measured in radians).
     //!
     //! \tparam T The type of the object specializing Cos.
@@ -838,6 +1058,20 @@ namespace alpaka::math
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMathCos, T>;
         return trait::Cos<ImplementationBase, TArg>{}(cos_ctx, arg);
+    }
+
+    //! Computes the hyperbolic cosine (measured in radians).
+    //!
+    //! \tparam T The type of the object specializing Cos.
+    //! \tparam TArg The arg type.
+    //! \param cosh_ctx The object specializing Cos.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto cosh(T const& cosh_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathCosh, T>;
+        return trait::Cosh<ImplementationBase, TArg>{}(cosh_ctx, arg);
     }
 
     //! Computes the error function of arg.
@@ -880,6 +1114,24 @@ namespace alpaka::math
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMathFloor, T>;
         return trait::Floor<ImplementationBase, TArg>{}(floor_ctx, arg);
+    }
+
+    //! Computes x * y + z as if to infinite precision and rounded only once to fit the result type.
+    //!
+    //! \tparam T The type of the object specializing Fma.
+    //! \tparam Tx The type of the first argument.
+    //! \tparam Ty The type of the second argument.
+    //! \tparam Tz The type of the third argument.
+    //! \param fma_ctx The object specializing .
+    //! \param x The first argument.
+    //! \param y The second argument.
+    //! \param z The third argument.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename Tx, typename Ty, typename Tz>
+    ALPAKA_FN_HOST_ACC auto fma(T const& fma_ctx, Tx const& x, Ty const& y, Tz const& z)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathFma, T>;
+        return trait::Fma<ImplementationBase, Tx, Ty, Tz>{}(fma_ctx, x, y, z);
     }
 
     //! Computes the floating-point remainder of the division operation x/y.
@@ -956,6 +1208,42 @@ namespace alpaka::math
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMathLog, T>;
         return trait::Log<ImplementationBase, TArg>{}(log_ctx, arg);
+    }
+
+    //! Computes the the natural (base 2) logarithm of arg.
+    //!
+    //! Valid real arguments are non-negative. For other values the result
+    //! may depend on the backend and compilation options, will likely
+    //! be NaN.
+    //!
+    //! \tparam T The type of the object specializing Log2.
+    //! \tparam TArg The arg type.
+    //! \param log2_ctx The object specializing Log2.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto log2(T const& log2_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathLog2, T>;
+        return trait::Log2<ImplementationBase, TArg>{}(log2_ctx, arg);
+    }
+
+    //! Computes the the natural (base 10) logarithm of arg.
+    //!
+    //! Valid real arguments are non-negative. For other values the result
+    //! may depend on the backend and compilation options, will likely
+    //! be NaN.
+    //!
+    //! \tparam T The type of the object specializing Log10.
+    //! \tparam TArg The arg type.
+    //! \param log10_ctx The object specializing Log10.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto log10(T const& log10_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathLog10, T>;
+        return trait::Log10<ImplementationBase, TArg>{}(log10_ctx, arg);
     }
 
     //! Returns the larger of two arguments.
@@ -1103,6 +1391,20 @@ namespace alpaka::math
         return trait::Sin<ImplementationBase, TArg>{}(sin_ctx, arg);
     }
 
+    //! Computes the hyperbolic sine (measured in radians).
+    //!
+    //! \tparam T The type of the object specializing Sin.
+    //! \tparam TArg The arg type.
+    //! \param sinh_ctx The object specializing Sin.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto sinh(T const& sinh_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathSinh, T>;
+        return trait::Sinh<ImplementationBase, TArg>{}(sinh_ctx, arg);
+    }
+
     //! Computes the sine and cosine (measured in radians).
     //!
     //! \tparam T The type of the object specializing SinCos.
@@ -1150,6 +1452,20 @@ namespace alpaka::math
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMathTan, T>;
         return trait::Tan<ImplementationBase, TArg>{}(tan_ctx, arg);
+    }
+
+    //! Computes the hyperbolic tangent (measured in radians).
+    //!
+    //! \tparam T The type of the object specializing Tanh.
+    //! \tparam TArg The arg type.
+    //! \param tanh_ctx The object specializing Tanh.
+    //! \param arg The arg.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TArg>
+    ALPAKA_FN_HOST_ACC auto tanh(T const& tanh_ctx, TArg const& arg)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptMathTanh, T>;
+        return trait::Tanh<ImplementationBase, TArg>{}(tanh_ctx, arg);
     }
 
     //! Computes the nearest integer not greater in magnitude than arg.

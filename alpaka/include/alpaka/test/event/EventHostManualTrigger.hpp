@@ -1,15 +1,11 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan, Jeffrey Kelling, Andrea Bocci,
+ *                Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
+#include "alpaka/alpaka.hpp"
 
 #include <condition_variable>
 #include <mutex>
@@ -61,6 +57,8 @@ namespace alpaka::test
                     m_bIsReady = true;
                 }
                 m_conditionVariable.notify_one();
+                // Give alpaka time to update into the new state, process all events and tasks.
+                std::this_thread::sleep_for(std::chrono::milliseconds(200u));
             }
 
         public:
@@ -100,6 +98,8 @@ namespace alpaka::test
         void trigger()
         {
             m_spEventImpl->trigger();
+            // Give alpaka time to update into the new state, process all events and tasks.
+            std::this_thread::sleep_for(std::chrono::milliseconds(200u));
         }
 
     public:
@@ -113,19 +113,7 @@ namespace alpaka::test
         {
             using type = test::EventHostManualTriggerCpu<DevCpu>;
         };
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        template<>
-        struct EventHostManualTriggerType<DevOmp5>
-        {
-            using type = test::EventHostManualTriggerCpu<DevOmp5>;
-        };
-#elif defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
-        template<>
-        struct EventHostManualTriggerType<DevOacc>
-        {
-            using type = test::EventHostManualTriggerCpu<DevOacc>;
-        };
-#endif
+
         //! The CPU event host manual trigger support get trait specialization.
         template<>
         struct IsEventHostManualTriggerSupported<DevCpu>
@@ -135,27 +123,6 @@ namespace alpaka::test
                 return true;
             }
         };
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        //! The Omp5 event host manual trigger support get trait specialization.
-        template<>
-        struct IsEventHostManualTriggerSupported<DevOmp5>
-        {
-            ALPAKA_FN_HOST static auto isSupported(DevOmp5 const&) -> bool
-            {
-                return true;
-            }
-        };
-#elif defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
-        //! The OpenACC event host manual trigger support get trait specialization.
-        template<>
-        struct IsEventHostManualTriggerSupported<DevOacc>
-        {
-            ALPAKA_FN_HOST static auto isSupported(DevOacc const&) -> bool
-            {
-                return true;
-            }
-        };
-#endif
     } // namespace trait
 } // namespace alpaka::test
 
@@ -190,11 +157,7 @@ namespace alpaka::trait
     {
         //
         ALPAKA_FN_HOST static auto enqueue(
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
             QueueGenericThreadsNonBlocking<TDev>& queue,
-#else
-            QueueGenericThreadsNonBlocking<TDev>&,
-#endif
             test::EventHostManualTriggerCpu<TDev>& event) -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -215,14 +178,11 @@ namespace alpaka::trait
             // and re-enqueued which would lead to deadlocks.
             ++spEventImpl->m_enqueueCount;
 
-            // Workaround: Clang can not support this when natively compiling device code. See
-            // ConcurrentExecPool.hpp.
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
             auto const enqueueCount = spEventImpl->m_enqueueCount;
 
             // Enqueue a task that only resets the events flag if it is completed.
-            queue.m_spQueueImpl->m_workerThread->enqueueTask(
-                [spEventImpl, enqueueCount]()
+            queue.m_spQueueImpl->m_workerThread.submit(
+                [spEventImpl, enqueueCount]() mutable
                 {
                     std::unique_lock<std::mutex> lk2(spEventImpl->m_mutex);
                     spEventImpl->m_conditionVariable.wait(
@@ -230,7 +190,6 @@ namespace alpaka::trait
                         [spEventImpl, enqueueCount]
                         { return (enqueueCount != spEventImpl->m_enqueueCount) || spEventImpl->m_bIsReady; });
                 });
-#endif
         }
     };
 
@@ -272,7 +231,7 @@ namespace alpaka::trait
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#    include <alpaka/core/BoostPredef.hpp>
+#    include "alpaka/core/BoostPredef.hpp"
 
 #    include <cuda.h>
 
@@ -280,7 +239,7 @@ namespace alpaka::trait
 #        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #    endif
 
-#    include <alpaka/core/Cuda.hpp>
+#    include "alpaka/core/Cuda.hpp"
 
 
 namespace alpaka::test
@@ -327,6 +286,8 @@ namespace alpaka::test
                 // Initiate the memory set.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     cudaMemset(m_devMem, static_cast<int>(1u), static_cast<size_t>(sizeof(int32_t))));
+                // Give alpaka time to update into the new state, process all events and tasks.
+                std::this_thread::sleep_for(std::chrono::milliseconds(200u));
             }
 
         public:
@@ -360,6 +321,8 @@ namespace alpaka::test
         void trigger()
         {
             m_spEventImpl->trigger();
+            // Give alpaka time to update into the new state, process all events and tasks.
+            std::this_thread::sleep_for(std::chrono::milliseconds(200u));
         }
 
     public:
@@ -379,9 +342,13 @@ namespace alpaka::test
         {
             ALPAKA_FN_HOST static auto isSupported(DevCudaRt const& dev) -> bool
             {
+#    if CUDA_VERSION < 11070
                 int result = 0;
                 cuDeviceGetAttribute(&result, CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS, dev.getNativeHandle());
                 return result != 0;
+#    else
+                return true; // Always enabled as of CUDA 11.7
+#    endif
             }
         };
     } // namespace trait
@@ -389,6 +356,24 @@ namespace alpaka::test
 
 namespace alpaka::trait
 {
+    namespace detail
+    {
+        // TODO: Replace with cuStreamWaitValue32 once support for CUDA < 12 is dropped.
+        inline auto streamWaitValue(CUstream stream, CUdeviceptr addr, cuuint32_t value, unsigned int flags)
+            -> CUresult
+        {
+            // NVIDIA introduced a new stream memory ops API with CUDA 11.7 (called v2). The corresponding CUDA
+            // functions were suffixed with `_v2`. With CUDA 12.0 v1 of the API was removed and the `_v2` removed
+            // from the new functions. So CUDA <= 11.6 and CUDA >= 12.0 share the same function signature but
+            // internally do different things.
+#    if(CUDA_VERSION < 11070) || (CUDA_VERSION >= 12000)
+            return cuStreamWaitValue32(stream, addr, value, flags);
+#    else
+            return cuStreamWaitValue32_v2(stream, addr, value, flags);
+#    endif
+        }
+    } // namespace detail
+
     //! The CPU device event device get trait specialization.
     template<>
     struct GetDev<test::EventHostManualTriggerCuda>
@@ -438,7 +423,7 @@ namespace alpaka::trait
             //   on host updates may hang. This includes synchronization between the host and
             //   the device build upon value-based CUDA queue synchronization APIs such as
             //   cuStreamWaitValue32() and cuStreamWriteValue32().
-            ALPAKA_CUDA_DRV_CHECK(cuStreamWaitValue32(
+            ALPAKA_CUDA_DRV_CHECK(detail::streamWaitValue(
                 static_cast<CUstream>(queue.getNativeHandle()),
                 reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
                 0x01010101u,
@@ -470,7 +455,7 @@ namespace alpaka::trait
             //   on host updates may hang. This includes synchronization between the host and
             //   the device build upon value-based CUDA queue synchronization APIs such as
             //   cuStreamWaitValue32() and cuStreamWriteValue32().
-            ALPAKA_CUDA_DRV_CHECK(cuStreamWaitValue32(
+            ALPAKA_CUDA_DRV_CHECK(detail::streamWaitValue(
                 static_cast<CUstream>(queue.getNativeHandle()),
                 reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
                 0x01010101u,
@@ -489,7 +474,7 @@ namespace alpaka::trait
 #        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #    endif
 
-#    include <alpaka/core/Hip.hpp>
+#    include "alpaka/core/Hip.hpp"
 
 namespace alpaka::test
 {
@@ -532,6 +517,8 @@ namespace alpaka::test
                 // Initiate the memory set.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     hipMemset(m_devMem, static_cast<int>(1u), static_cast<size_t>(sizeof(int32_t))));
+                // Give alpaka time to update into the new state, process all events and tasks.
+                std::this_thread::sleep_for(std::chrono::milliseconds(200u));
             }
 
         public:
@@ -565,6 +552,8 @@ namespace alpaka::test
         void trigger()
         {
             m_spEventImpl->trigger();
+            // Give alpaka time to update into the new state, process all events and tasks.
+            std::this_thread::sleep_for(std::chrono::milliseconds(200u));
         }
 
     public:
@@ -663,14 +652,14 @@ namespace alpaka::trait
             }
         }
     };
+
     template<>
     struct Enqueue<QueueHipRtBlocking, test::EventHostManualTriggerHip>
     {
         using TApi = alpaka::ApiHipRt;
 
-        ALPAKA_FN_HOST static auto enqueue(
-            [[maybe_unused]] QueueHipRtBlocking& queue,
-            test::EventHostManualTriggerHip& event) -> void
+        ALPAKA_FN_HOST static auto enqueue(QueueHipRtBlocking& /* queue */, test::EventHostManualTriggerHip& event)
+            -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -692,13 +681,7 @@ namespace alpaka::trait
             //   on host updates may hang. This includes synchronization between the host and
             //   the device build upon value-based HIP queue synchronization APIs such as
             //   cuStreamWaitValue32() and cuStreamWriteValue32().
-#    if BOOST_COMP_NVCC
-            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipCUResultTohipError(cuStreamWaitValue32(
-                static_cast<CUstream>(queue.getNativeHandle()),
-                reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
-                0x01010101u,
-                CU_STREAM_WAIT_VALUE_GEQ)));
-#    else
+
             // workaround for missing cuStreamWaitValue32 in HIP
             std::uint32_t hmem = 0;
             do
@@ -707,8 +690,6 @@ namespace alpaka::trait
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     hipMemcpy(&hmem, event.m_spEventImpl->m_devMem, sizeof(std::uint32_t), hipMemcpyDefault));
             } while(hmem < 0x01010101u);
-
-#    endif
         }
     };
 } // namespace alpaka::trait
@@ -719,11 +700,11 @@ namespace alpaka
 {
     namespace test
     {
-        template<typename TPltf>
+        template<typename TPlatform>
         class EventHostManualTriggerSycl
         {
         public:
-            EventHostManualTriggerSycl(experimental::DevGenericSycl<TPltf> const&)
+            EventHostManualTriggerSycl(DevGenericSycl<TPlatform> const&)
             {
             }
 
@@ -734,16 +715,16 @@ namespace alpaka
 
         namespace trait
         {
-            template<typename TPltf>
-            struct EventHostManualTriggerType<experimental::DevGenericSycl<TPltf>>
+            template<typename TPlatform>
+            struct EventHostManualTriggerType<DevGenericSycl<TPlatform>>
             {
-                using type = alpaka::test::EventHostManualTriggerSycl<TPltf>;
+                using type = alpaka::test::EventHostManualTriggerSycl<TPlatform>;
             };
 
-            template<typename TPltf>
-            struct IsEventHostManualTriggerSupported<experimental::DevGenericSycl<TPltf>>
+            template<typename TPlatform>
+            struct IsEventHostManualTriggerSupported<DevGenericSycl<TPlatform>>
             {
-                ALPAKA_FN_HOST static auto isSupported(experimental::DevGenericSycl<TPltf> const&) -> bool
+                ALPAKA_FN_HOST static auto isSupported(DevGenericSycl<TPlatform> const&) -> bool
                 {
                     return false;
                 }
@@ -753,34 +734,35 @@ namespace alpaka
 
     namespace trait
     {
-        template<typename TPltf>
+        template<typename TPlatform>
         struct Enqueue<
-            experimental::QueueGenericSyclBlocking<experimental::DevGenericSycl<TPltf>>,
-            test::EventHostManualTriggerSycl<TPltf>>
+            QueueGenericSyclBlocking<DevGenericSycl<TPlatform>>,
+            test::EventHostManualTriggerSycl<TPlatform>>
         {
             ALPAKA_FN_HOST static auto enqueue(
-                experimental::QueueGenericSyclBlocking<experimental::DevGenericSycl<TPltf>>& queue,
-                test::EventHostManualTriggerSycl<TPltf>& event) -> void
+                QueueGenericSyclBlocking<DevGenericSycl<TPlatform>>& /* queue */,
+                test::EventHostManualTriggerSycl<TPlatform>& /* event */) -> void
             {
             }
         };
 
-        template<typename TPltf>
+        template<typename TPlatform>
         struct Enqueue<
-            experimental::QueueGenericSyclNonBlocking<experimental::DevGenericSycl<TPltf>>,
-            test::EventHostManualTriggerSycl<TPltf>>
+            QueueGenericSyclNonBlocking<DevGenericSycl<TPlatform>>,
+            test::EventHostManualTriggerSycl<TPlatform>>
         {
             ALPAKA_FN_HOST static auto enqueue(
-                experimental::QueueGenericSyclNonBlocking<experimental::DevGenericSycl<TPltf>>& queue,
-                test::EventHostManualTriggerSycl<TPltf>& event) -> void
+                QueueGenericSyclNonBlocking<DevGenericSycl<TPlatform>>& /* queue */,
+                test::EventHostManualTriggerSycl<TPlatform>& /* event */) -> void
             {
             }
         };
 
-        template<typename TPltf>
-        struct IsComplete<test::EventHostManualTriggerSycl<TPltf>>
+        template<typename TPlatform>
+        struct IsComplete<test::EventHostManualTriggerSycl<TPlatform>>
         {
-            ALPAKA_FN_HOST static auto isComplete(test::EventHostManualTriggerSycl<TPltf> const& event) -> bool
+            ALPAKA_FN_HOST static auto isComplete(test::EventHostManualTriggerSycl<TPlatform> const& /* event */)
+                -> bool
             {
                 return true;
             }
