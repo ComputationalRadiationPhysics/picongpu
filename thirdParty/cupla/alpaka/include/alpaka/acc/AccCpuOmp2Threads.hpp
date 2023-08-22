@@ -1,13 +1,42 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
+
+// Base classes.
+#include "alpaka/atomic/AtomicCpu.hpp"
+#include "alpaka/atomic/AtomicHierarchy.hpp"
+#include "alpaka/atomic/AtomicOmpBuiltIn.hpp"
+#include "alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp"
+#include "alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp"
+#include "alpaka/block/sync/BlockSyncBarrierOmp.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/idx/bt/IdxBtOmp.hpp"
+#include "alpaka/idx/gb/IdxGbRef.hpp"
+#include "alpaka/intrinsic/IntrinsicCpu.hpp"
+#include "alpaka/math/MathStdLib.hpp"
+#include "alpaka/mem/fence/MemFenceOmp2Threads.hpp"
+#include "alpaka/rand/RandDefault.hpp"
+#include "alpaka/rand/RandStdLib.hpp"
+#include "alpaka/warp/WarpSingleThread.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
+
+// Specialized traits.
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+
+// Implementation details.
+#include "alpaka/acc/Tag.hpp"
+#include "alpaka/core/ClipCast.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/dev/DevCpu.hpp"
+
+#include <limits>
+#include <typeinfo>
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
 
@@ -15,40 +44,7 @@
 #        error If ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED is set, the compiler has to support OpenMP 2.0 or higher!
 #    endif
 
-// Base classes.
-#    include <alpaka/atomic/AtomicCpu.hpp>
-#    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
-#    include <alpaka/block/sync/BlockSyncBarrierOmp.hpp>
-#    include <alpaka/core/DemangleTypeNames.hpp>
-#    include <alpaka/idx/bt/IdxBtOmp.hpp>
-#    include <alpaka/idx/gb/IdxGbRef.hpp>
-#    include <alpaka/intrinsic/IntrinsicCpu.hpp>
-#    include <alpaka/math/MathStdLib.hpp>
-#    include <alpaka/mem/fence/MemFenceOmp2Threads.hpp>
-#    include <alpaka/rand/RandStdLib.hpp>
-#    include <alpaka/warp/WarpSingleThread.hpp>
-#    include <alpaka/workdiv/WorkDivMembers.hpp>
-
-// Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
-
-// Implementation details.
-#    include <alpaka/acc/Tag.hpp>
-#    include <alpaka/core/ClipCast.hpp>
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/DevCpu.hpp>
-
 #    include <omp.h>
-
-#    include <limits>
-#    include <typeinfo>
 
 namespace alpaka
 {
@@ -59,27 +55,28 @@ namespace alpaka
     //!
     //! This accelerator allows parallel kernel execution on a CPU device.
     //! It uses OpenMP 2.0 to implement the block thread parallelism.
-    template<
-        typename TDim,
-        typename TIdx>
-    class AccCpuOmp2Threads final :
-        public WorkDivMembers<TDim, TIdx>,
-        public gb::IdxGbRef<TDim, TIdx>,
-        public bt::IdxBtOmp<TDim, TIdx>,
-        public AtomicHierarchy<
-            AtomicCpu,   // grid atomics
-            AtomicOmpBuiltIn,    // block atomics
-            AtomicOmpBuiltIn     // thread atomics
-        >,
-        public math::MathStdLib,
-        public BlockSharedMemDynMember<>,
-        public BlockSharedMemStMemberMasterSync<>,
-        public BlockSyncBarrierOmp,
-        public IntrinsicCpu,
-        public MemFenceOmp2Threads,
-        public rand::RandStdLib,
-        public warp::WarpSingleThread,
-        public concepts::Implements<ConceptAcc, AccCpuOmp2Threads<TDim, TIdx>>
+    template<typename TDim, typename TIdx>
+    class AccCpuOmp2Threads final
+        : public WorkDivMembers<TDim, TIdx>
+        , public gb::IdxGbRef<TDim, TIdx>
+        , public bt::IdxBtOmp<TDim, TIdx>
+        , public AtomicHierarchy<
+              AtomicCpu, // grid atomics
+              AtomicOmpBuiltIn, // block atomics
+              AtomicOmpBuiltIn> // thread atomics
+        , public math::MathStdLib
+        , public BlockSharedMemDynMember<>
+        , public BlockSharedMemStMemberMasterSync<>
+        , public BlockSyncBarrierOmp
+        , public IntrinsicCpu
+        , public MemFenceOmp2Threads
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+        , public rand::RandDefault
+#    else
+        , public rand::RandStdLib
+#    endif
+        , public warp::WarpSingleThread
+        , public concepts::Implements<ConceptAcc, AccCpuOmp2Threads<TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
@@ -115,7 +112,11 @@ namespace alpaka
                   []() noexcept { return (::omp_get_thread_num() == 0); })
             , BlockSyncBarrierOmp()
             , MemFenceOmp2Threads()
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+            , rand::RandDefault()
+#    else
             , rand::RandStdLib()
+#    endif
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -204,9 +205,9 @@ namespace alpaka
 
         //! The CPU OpenMP 2.0 thread execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
-        struct PltfType<AccCpuOmp2Threads<TDim, TIdx>>
+        struct PlatformType<AccCpuOmp2Threads<TDim, TIdx>>
         {
-            using type = PltfCpu;
+            using type = PlatformCpu;
         };
 
         //! The CPU OpenMP 2.0 thread accelerator idx type trait specialization.

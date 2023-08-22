@@ -1,41 +1,31 @@
 /* Copyright 2022 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/queue/Properties.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/traits/Traits.hpp"
+#include "alpaka/wait/Traits.hpp"
+
+#include <cstddef>
+#include <string>
+#include <vector>
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/mem/buf/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
-#    include <alpaka/queue/Properties.hpp>
-#    include <alpaka/queue/Traits.hpp>
-#    include <alpaka/traits/Traits.hpp>
-#    include <alpaka/wait/Traits.hpp>
-
-// Backend specific includes.
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <alpaka/core/Cuda.hpp>
-#    else
-#        include <alpaka/core/Hip.hpp>
-#    endif
-
-#    include <cstddef>
-#    include <string>
-#    include <vector>
 
 namespace alpaka
 {
     namespace trait
     {
-        template<typename TPltf, typename TSfinae>
+        template<typename TPlatform, typename TSfinae>
         struct GetDevByIdx;
     }
 
@@ -52,7 +42,7 @@ namespace alpaka
     using QueueUniformCudaHipRtNonBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, false>;
 
     template<typename TApi>
-    class PltfUniformCudaHipRt;
+    struct PlatformUniformCudaHipRt;
 
     template<typename TApi, typename TElem, typename TDim, typename TIdx>
     class BufUniformCudaHipRt;
@@ -63,7 +53,7 @@ namespace alpaka
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevUniformCudaHipRt<TApi>>
         , public concepts::Implements<ConceptDev, DevUniformCudaHipRt<TApi>>
     {
-        friend struct trait::GetDevByIdx<PltfUniformCudaHipRt<TApi>>;
+        friend struct trait::GetDevByIdx<PlatformUniformCudaHipRt<TApi>>;
 
     protected:
         DevUniformCudaHipRt() = default;
@@ -189,9 +179,9 @@ namespace alpaka
 
         //! The CUDA/HIP RT device platform type trait specialization.
         template<typename TApi>
-        struct PltfType<DevUniformCudaHipRt<TApi>>
+        struct PlatformType<DevUniformCudaHipRt<TApi>>
         {
-            using type = PltfUniformCudaHipRt<TApi>;
+            using type = PlatformUniformCudaHipRt<TApi>;
         };
 
         //! The thread CUDA/HIP device wait specialization.

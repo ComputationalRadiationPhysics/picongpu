@@ -1,10 +1,5 @@
 /* Copyright 2022 Jeffrey Kelling, Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/acc/Traits.hpp>
@@ -58,7 +53,8 @@ void BlockSharedMemSharingTest(TKernel kernel)
     using Idx = alpaka::Idx<TAcc>;
     using Vec = alpaka::Vec<Dim, Idx>;
 
-    auto const devAcc = alpaka::getDevByIdx<TAcc>(0u);
+    auto const platformAcc = alpaka::Platform<TAcc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     auto const accDevProps = alpaka::getAccDevProps<TAcc>(devAcc);
     const Idx gridBlockCount = 2u;
@@ -73,8 +69,8 @@ void BlockSharedMemSharingTest(TKernel kernel)
 
     alpaka::exec<TAcc>(queue, workDiv, kernel, alpaka::getPtrNative(bufAcc));
 
-    using DevHost = alpaka::DevCpu;
-    auto const devHost = alpaka::getDevByIdx<DevHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
     auto bufHost = alpaka::allocBuf<std::uint32_t, Idx>(devHost, gridBlockCount);
 
     alpaka::memcpy(queue, bufHost, bufAcc);

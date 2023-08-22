@@ -1,22 +1,25 @@
 /* Copyright 2022 Jiří Vyskočil, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Common.hpp"
+
+#include <functional>
+#include <initializer_list>
+#include <numeric>
+#include <type_traits>
+
 #if defined(ALPAKA_ACC_GPU_HIP_ENABLED) || defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
 
-#    include <alpaka/core/Common.hpp>
+#    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        include <cuda_runtime.h>
+#    endif
 
-#    include <functional>
-#    include <initializer_list>
-#    include <numeric>
-#    include <type_traits>
+#    ifdef ALPAKA_ACC_GPU_HIP_ENABLED
+#        include <hip/hip_runtime.h>
+#    endif
 
 namespace alpaka::meta
 {

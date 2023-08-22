@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+
 name: Publish documentation to gh-pages
 
 on:

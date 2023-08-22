@@ -1,10 +1,5 @@
 /* Copyright 2022 Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/mem/view/ViewConst.hpp>
@@ -66,14 +61,12 @@ TEMPLATE_LIST_TEST_CASE("viewConstTest", "[memView]", alpaka::test::TestAccs)
 {
     using Elem = float;
     using Acc = TestType;
-
     using Dev = alpaka::Dev<Acc>;
-    using Pltf = alpaka::Pltf<Dev>;
-
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
-    auto const dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
 
     auto const extents
         = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();

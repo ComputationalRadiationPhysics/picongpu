@@ -1,10 +1,5 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/core/BoostPredef.hpp>
@@ -87,13 +82,12 @@ namespace alpaka::test
     auto testViewSubViewNoOffset() -> void
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
 
-        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
 
         auto const extentBuf
             = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
@@ -110,13 +104,12 @@ namespace alpaka::test
     auto testViewSubViewOffset() -> void
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
 
-        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
 
         auto const extentBuf
             = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
@@ -135,13 +128,12 @@ namespace alpaka::test
     auto testViewSubViewOffsetConst() -> void
     {
         using Dev = alpaka::Dev<TAcc>;
-        using Pltf = alpaka::Pltf<Dev>;
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using View = alpaka::ViewSubView<Dev, TElem, Dim, Idx>;
 
-        Dev const dev = alpaka::getDevByIdx<Pltf>(0u);
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
 
         auto const extentBuf
             = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();

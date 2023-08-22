@@ -1,16 +1,11 @@
 /* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Concepts.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Concepts.hpp"
 
 #include <cstddef>
 #include <string>
@@ -57,6 +52,10 @@ namespace alpaka
     struct ConceptGetDev;
 
     struct ConceptDev;
+
+    //! True if TDev is a device, i.e. if it implements the ConceptDev concept.
+    template<typename TDev>
+    inline constexpr bool isDevice = concepts::ImplementsConcept<ConceptDev, TDev>::value;
 
     //! \return The device this object is bound to.
     template<typename T>

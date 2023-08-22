@@ -73,9 +73,12 @@ namespace cupla
                 {
                     auto& device = Device<DeviceType>::get();
 
-                    std::unique_ptr<BufType> bufPtr(new BufType(
-                        ::alpaka::allocMappedBufIfSupported<::alpaka::Pltf<T_MappedDeviceType>, uint8_t, MemSizeType>(
+                    using Platform = alpaka::Platform<T_MappedDeviceType>;
+                    auto const platform = alpaka::Platform<Acc>{};
+                    std::unique_ptr<BufType> bufPtr(
+                        new BufType(::alpaka::allocMappedBufIfSupported<Platform, uint8_t, MemSizeType>(
                             device.current(),
+                            platform,
                             extent)));
 
                     uint8_t* nativePtr = ::alpaka::getPtrNative(*bufPtr);

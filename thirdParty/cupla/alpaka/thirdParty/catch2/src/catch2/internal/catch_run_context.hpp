@@ -68,12 +68,21 @@ namespace Catch {
                     ResultWas::OfType resultType,
                     AssertionReaction &reaction ) override;
 
-        bool sectionStarted( SectionInfo const& sectionInfo, Counts& assertions ) override;
+        bool sectionStarted( StringRef sectionName,
+                             SourceLineInfo const& sectionLineInfo,
+                             Counts& assertions ) override;
 
-        void sectionEnded( SectionEndInfo const& endInfo ) override;
-        void sectionEndedEarly( SectionEndInfo const& endInfo ) override;
+        void sectionEnded( SectionEndInfo&& endInfo ) override;
+        void sectionEndedEarly( SectionEndInfo&& endInfo ) override;
 
-        auto acquireGeneratorTracker( StringRef generatorName, SourceLineInfo const& lineInfo ) -> IGeneratorTracker& override;
+        IGeneratorTracker*
+        acquireGeneratorTracker( StringRef generatorName,
+                                 SourceLineInfo const& lineInfo ) override;
+        IGeneratorTracker* createGeneratorTracker(
+            StringRef generatorName,
+            SourceLineInfo lineInfo,
+            Generators::GeneratorBasePtr&& generator ) override;
+
 
         void benchmarkPreparing( StringRef name ) override;
         void benchmarkStarting( BenchmarkInfo const& info ) override;
@@ -83,7 +92,7 @@ namespace Catch {
         void pushScopedMessage( MessageInfo const& message ) override;
         void popScopedMessage( MessageInfo const& message ) override;
 
-        void emplaceUnscopedMessage( MessageBuilder const& builder ) override;
+        void emplaceUnscopedMessage( MessageBuilder&& builder ) override;
 
         std::string getCurrentTestName() const override;
 

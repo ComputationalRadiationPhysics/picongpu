@@ -38,8 +38,8 @@ For more information see [LICENSE.md](LICENSE.md).
 Dependencies
 ------------
 
-- **cmake 3.18.0**
-- **[alpaka 0.9.X](https://github.com/alpaka-group/alpaka/)**
+- **cmake 3.22.0** or higher (depends on the used alpaka version)
+- **[alpaka 1.0.0](eba6db5d8efc3c2585470085e76ba3dcab510e49)** or newer  
   - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage

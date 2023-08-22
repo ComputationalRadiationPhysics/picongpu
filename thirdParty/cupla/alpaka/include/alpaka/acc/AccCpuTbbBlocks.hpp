@@ -1,47 +1,43 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
-
 // Base classes.
-#    include <alpaka/atomic/AtomicCpu.hpp>
-#    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/atomic/AtomicNoOp.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStMember.hpp>
-#    include <alpaka/block/sync/BlockSyncNoOp.hpp>
-#    include <alpaka/core/DemangleTypeNames.hpp>
-#    include <alpaka/idx/bt/IdxBtZero.hpp>
-#    include <alpaka/idx/gb/IdxGbRef.hpp>
-#    include <alpaka/intrinsic/IntrinsicCpu.hpp>
-#    include <alpaka/math/MathStdLib.hpp>
-#    include <alpaka/mem/fence/MemFenceCpu.hpp>
-#    include <alpaka/rand/RandStdLib.hpp>
-#    include <alpaka/warp/WarpSingleThread.hpp>
-#    include <alpaka/workdiv/WorkDivMembers.hpp>
+#include "alpaka/atomic/AtomicCpu.hpp"
+#include "alpaka/atomic/AtomicHierarchy.hpp"
+#include "alpaka/atomic/AtomicNoOp.hpp"
+#include "alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp"
+#include "alpaka/block/shared/st/BlockSharedMemStMember.hpp"
+#include "alpaka/block/sync/BlockSyncNoOp.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/idx/bt/IdxBtZero.hpp"
+#include "alpaka/idx/gb/IdxGbRef.hpp"
+#include "alpaka/intrinsic/IntrinsicCpu.hpp"
+#include "alpaka/math/MathStdLib.hpp"
+#include "alpaka/mem/fence/MemFenceCpu.hpp"
+#include "alpaka/rand/RandDefault.hpp"
+#include "alpaka/rand/RandStdLib.hpp"
+#include "alpaka/warp/WarpSingleThread.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
 
 // Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
 
 // Implementation details.
-#    include <alpaka/acc/Tag.hpp>
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/DevCpu.hpp>
+#include "alpaka/acc/Tag.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/dev/DevCpu.hpp"
 
-#    include <memory>
-#    include <typeinfo>
+#include <memory>
+#include <typeinfo>
+
+#ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
 
 namespace alpaka
 {
@@ -49,27 +45,28 @@ namespace alpaka
     class TaskKernelCpuTbbBlocks;
 
     //! The CPU TBB block accelerator.
-    template<
-        typename TDim,
-        typename TIdx>
-    class AccCpuTbbBlocks final :
-        public WorkDivMembers<TDim, TIdx>,
-        public gb::IdxGbRef<TDim, TIdx>,
-        public bt::IdxBtZero<TDim, TIdx>,
-        public AtomicHierarchy<
-            AtomicCpu, // grid atomics
-            AtomicCpu, // block atomics
-            AtomicNoOp         // thread atomics
-        >,
-        public math::MathStdLib,
-        public BlockSharedMemDynMember<>,
-        public BlockSharedMemStMember<>,
-        public BlockSyncNoOp,
-        public IntrinsicCpu,
-        public MemFenceCpu,
-        public rand::RandStdLib,
-        public warp::WarpSingleThread,
-        public concepts::Implements<ConceptAcc, AccCpuTbbBlocks<TDim, TIdx>>
+    template<typename TDim, typename TIdx>
+    class AccCpuTbbBlocks final
+        : public WorkDivMembers<TDim, TIdx>
+        , public gb::IdxGbRef<TDim, TIdx>
+        , public bt::IdxBtZero<TDim, TIdx>
+        , public AtomicHierarchy<
+              AtomicCpu, // grid atomics
+              AtomicCpu, // block atomics
+              AtomicNoOp> // thread atomics
+        , public math::MathStdLib
+        , public BlockSharedMemDynMember<>
+        , public BlockSharedMemStMember<>
+        , public BlockSyncNoOp
+        , public IntrinsicCpu
+        , public MemFenceCpu
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+        , public rand::RandDefault
+#    else
+        , public rand::RandStdLib
+#    endif
+        , public warp::WarpSingleThread
+        , public concepts::Implements<ConceptAcc, AccCpuTbbBlocks<TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
@@ -101,7 +98,11 @@ namespace alpaka
             , BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity())
             , BlockSyncNoOp()
             , MemFenceCpu()
+#    ifdef ALPAKA_DISABLE_VENDOR_RNG
+            , rand::RandDefault()
+#    else
             , rand::RandStdLib()
+#    endif
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -185,9 +186,9 @@ namespace alpaka
 
         //! The CPU TBB block execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
-        struct PltfType<AccCpuTbbBlocks<TDim, TIdx>>
+        struct PlatformType<AccCpuTbbBlocks<TDim, TIdx>>
         {
-            using type = PltfCpu;
+            using type = PlatformCpu;
         };
 
         //! The CPU TBB block accelerator idx type trait specialization.

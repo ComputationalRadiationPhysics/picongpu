@@ -1,17 +1,12 @@
 /* Copyright 2022 Andrea Bocci
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#include <boost/predef.h>
 
-#    include <boost/predef.h>
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #    include <cuda_runtime_api.h>
 
 namespace alpaka
@@ -220,7 +215,7 @@ namespace alpaka
         }
 
         template<class T>
-        static inline Error_t getSymbolAddress(void** devPtr, const T& symbol)
+        static inline Error_t getSymbolAddress(void** devPtr, T const& symbol)
         {
             return ::cudaGetSymbolAddress(devPtr, symbol);
         }

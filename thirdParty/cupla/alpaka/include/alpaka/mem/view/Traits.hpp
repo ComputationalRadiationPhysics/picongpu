@@ -1,30 +1,28 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unreachable.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/elem/Traits.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/meta/Fold.hpp>
-#include <alpaka/meta/Integral.hpp>
-#include <alpaka/offset/Traits.hpp>
-#include <alpaka/queue/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Unreachable.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/elem/Traits.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/meta/Fold.hpp"
+#include "alpaka/meta/Integral.hpp"
+#include "alpaka/offset/Traits.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <array>
 #include <iosfwd>
 #include <type_traits>
 #include <vector>
+#ifdef ALPAKA_USE_MDSPAN
+#    include <experimental/mdspan>
+#endif
 
 namespace alpaka
 {
@@ -478,4 +476,131 @@ namespace alpaka
         return trait::CreateSubView<typename trait::DevType<TView>::type>::createSubView(view, extent, offset);
     }
 
+#ifdef ALPAKA_USE_MDSPAN
+    namespace experimental
+    {
+        // import mdspan into alpaka::experimental namespace. see: https://eel.is/c++draft/mdspan.syn
+        using std::experimental::default_accessor;
+        using std::experimental::dextents;
+        using std::experimental::extents;
+        using std::experimental::layout_left;
+        using std::experimental::layout_right;
+        using std::experimental::layout_stride;
+        using std::experimental::mdspan;
+        // import submdspan as well, which is not standardized yet
+        using std::experimental::full_extent;
+        using std::experimental::submdspan;
+
+        namespace traits
+        {
+            namespace detail
+            {
+                template<typename ElementType>
+                struct ByteIndexedAccessor
+                {
+                    using offset_policy = ByteIndexedAccessor;
+                    using element_type = ElementType;
+                    using reference = ElementType&;
+
+                    using data_handle_type
+                        = std::conditional_t<std::is_const_v<ElementType>, std::byte const*, std::byte*>;
+
+                    constexpr ByteIndexedAccessor() noexcept = default;
+
+                    ALPAKA_FN_HOST_ACC
+                    constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept
+                    {
+                        return p + i;
+                    }
+
+                    ALPAKA_FN_HOST_ACC
+                    constexpr reference access(data_handle_type p, size_t i) const noexcept
+                    {
+                        assert(i % alignof(ElementType) == 0);
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wcast-align"
+#    endif
+                        return *reinterpret_cast<ElementType*>(p + i);
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic pop
+#    endif
+                    }
+                };
+
+                template<typename TView, std::size_t... Is>
+                ALPAKA_FN_HOST auto makeExtents(TView const& view, std::index_sequence<Is...>)
+                {
+                    return std::experimental::dextents<Idx<TView>, Dim<TView>::value>{getExtent<Is>(view)...};
+                }
+
+                template<typename TView, std::size_t... Is>
+                ALPAKA_FN_HOST auto makeStrides(TView const& view, std::index_sequence<Is...>)
+                {
+                    constexpr auto fastestIndexPitch = static_cast<Idx<TView>>(sizeof(Elem<TView>));
+                    [[maybe_unused]] constexpr auto dim = Dim<TView>::value;
+                    // alpaka pitches are right-shifted by 1. We skip getPitchBytes<0> (the size in bytes of the entire
+                    // buffer) and append the element size last
+                    return std::array<Idx<TView>, dim>{
+                        (Is < dim - 1 ? getPitchBytes<Is + 1>(view) : fastestIndexPitch)...};
+                }
+            } // namespace detail
+
+            //! Customization point for getting an mdspan from a view.
+            template<typename TView, typename TSfinae = void>
+            struct GetMdSpan
+            {
+                ALPAKA_FN_HOST static auto getMdSpan(TView& view)
+                {
+                    constexpr auto dim = Dim<TView>::value;
+                    using Element = Elem<TView>;
+                    auto extents = detail::makeExtents(view, std::make_index_sequence<dim>{});
+                    auto* ptr = reinterpret_cast<std::byte*>(getPtrNative(view));
+                    auto const strides = detail::makeStrides(view, std::make_index_sequence<dim>{});
+                    layout_stride::mapping<decltype(extents)> m{extents, strides};
+                    return mdspan<Element, decltype(extents), layout_stride, detail::ByteIndexedAccessor<Element>>{
+                        ptr,
+                        m};
+                }
+
+                ALPAKA_FN_HOST static auto getMdSpanTransposed(TView& view)
+                {
+                    constexpr auto dim = Dim<TView>::value;
+                    using Element = Elem<TView>;
+                    auto extents = detail::makeExtents(view, std::make_index_sequence<dim>{});
+                    auto* ptr = reinterpret_cast<std::byte*>(getPtrNative(view));
+                    auto strides = detail::makeStrides(view, std::make_index_sequence<dim>{});
+                    std::reverse(begin(strides), end(strides));
+                    layout_stride::mapping<decltype(extents)> m{extents, strides};
+                    return mdspan<Element, decltype(extents), layout_stride, detail::ByteIndexedAccessor<Element>>{
+                        ptr,
+                        m};
+                }
+            };
+        } // namespace traits
+
+        //! Gets a std::mdspan from the given view. The memory layout is determined by the pitches of the view.
+        template<typename TView>
+        ALPAKA_FN_HOST auto getMdSpan(TView& view)
+        {
+            return traits::GetMdSpan<TView>::getMdSpan(view);
+        }
+
+        //! Gets a std::mdspan from the given view. The memory layout is determined by the reversed pitches of the
+        //! view. This effectively also reverses the extents of the view. In order words, if you create a transposed
+        //! mdspan on a 10x5 element view, the mdspan will have an iteration space of 5x10.
+        template<typename TView>
+        ALPAKA_FN_HOST auto getMdSpanTransposed(TView& view)
+        {
+            return traits::GetMdSpan<TView>::getMdSpanTransposed(view);
+        }
+
+        template<typename TElem, typename TIdx, typename TDim>
+        using MdSpan = alpaka::experimental::mdspan<
+            TElem,
+            alpaka::experimental::dextents<TIdx, TDim::value>,
+            alpaka::experimental::layout_stride,
+            alpaka::experimental::traits::detail::ByteIndexedAccessor<TElem>>;
+    } // namespace experimental
+#endif
 } // namespace alpaka

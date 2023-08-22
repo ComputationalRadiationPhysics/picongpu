@@ -1,10 +1,5 @@
 /* Copyright 2022 Andrea Bocci, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
@@ -40,16 +35,20 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     using Device = alpaka::Dev<TestType>;
     using DeviceQueue = alpaka::Queue<Device, alpaka::NonBlocking>;
 
+    auto const platformAcc = alpaka::Platform<TestType>{};
+
     using Host = alpaka::DevCpu;
     using HostQueue = alpaka::Queue<Host, alpaka::Blocking>;
 
     // CPU host
-    auto const host = alpaka::getDevByIdx<Host>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const host = alpaka::getDevByIdx(platformHost, 0);
     INFO("using alpaka device: " << alpaka::getName(host));
     HostQueue hostQueue(host);
 
     // host buffer
-    auto h_buffer1 = alpaka::allocMappedBufIfSupported<alpaka::Pltf<Device>, int, Idx>(host, Vec1D{Idx{42}});
+    auto h_buffer1
+        = alpaka::allocMappedBufIfSupported<alpaka::Platform<Device>, int, Idx>(host, platformAcc, Vec1D{Idx{42}});
     INFO(
         "host buffer allocated at " << alpaka::getPtrNative(h_buffer1) << " with "
                                     << alpaka::getExtentProduct(h_buffer1) << " element(s)");
@@ -86,7 +85,7 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     CHECK(expected1 == *alpaka::getPtrNative(h_buffer1));
 
     // GPU device
-    auto const device = alpaka::getDevByIdx<Device>(0u);
+    auto const device = alpaka::getDevByIdx(platformAcc, 0);
     INFO("using alpaka device: " << alpaka::getName(device));
     DeviceQueue deviceQueue(device);
 

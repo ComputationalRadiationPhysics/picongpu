@@ -1,18 +1,5 @@
-/* Copyright 2022 Jeffrey Kelling
- *
- * This file exemplifies usage of alpaka.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* Copyright 2023 Jeffrey Kelling, Jan Stephan
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -37,6 +24,9 @@ public:
     template<class TAcc>
     using Counter = typename Gen<TAcc>::Counter;
 
+    template<typename TAcc, typename TElem>
+    using Mdspan = alpaka::experimental::MdSpan<TElem, alpaka::Idx<TAcc>, alpaka::Dim<TAcc>>;
+
 private:
     template<unsigned int I>
     struct ElemLoop
@@ -45,15 +35,14 @@ private:
         template<typename TAcc, typename TElem>
         static ALPAKA_FN_ACC auto elemLoop(
             TAcc const& acc,
-            alpaka::experimental::
-                BufferAccessor<TAcc, TElem, alpaka::Dim<TAcc>::value, alpaka::experimental::WriteAccess> dst,
+            Mdspan<TAcc, TElem> dst,
             Key<TAcc> const& key,
             Vec<TAcc> const& threadElemExtent,
             Vec<TAcc>& threadFirstElemIdx) -> void
         {
             auto const threadLastElemIdx = threadFirstElemIdx[I] + threadElemExtent[I];
             auto const threadLastElemIdxClipped
-                = (dst.extents[I] > threadLastElemIdx) ? threadLastElemIdx : dst.extents[I];
+                = (dst.extent(I) > threadLastElemIdx) ? threadLastElemIdx : dst.extent(I);
 
             constexpr auto Dim = alpaka::Dim<TAcc>::value;
 
@@ -76,7 +65,7 @@ private:
                     c[Dim - 1] = threadFirstElemIdx[Dim - 1];
                     auto const random = Gen<TAcc>::generate(c, key);
                     // to make use of the whole random vector we would need to ensure numElement[0] % 4 == 0
-                    dst[threadFirstElemIdx] = TElem(random[0]);
+                    dst(alpaka::toArray(threadFirstElemIdx)) = TElem(random[0]);
                 }
             }
             threadFirstElemIdx[I] = firstElem;
@@ -93,11 +82,7 @@ public:
     //! \param extent The matrix dimension in elements.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename TElem>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const& acc,
-        alpaka::experimental::BufferAccessor<TAcc, TElem, alpaka::Dim<TAcc>::value, alpaka::experimental::WriteAccess>
-            dst,
-        Key<TAcc> const& key) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, Mdspan<TAcc, TElem> dst, Key<TAcc> const& key) const -> void
     {
         constexpr auto Dim = alpaka::Dim<TAcc>::value;
         static_assert(Dim <= 4, "The CounterBasedRngKernel expects at most 4-dimensional indices!");
@@ -130,7 +115,6 @@ auto main() -> int
     // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
-    // - AccOmp5
     // - AccCpuTbbBlocks
     // - AccCpuSerial
     // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
@@ -138,8 +122,6 @@ auto main() -> int
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     using AccHost = alpaka::AccCpuSerial<Dim, Idx>;
-    // Get the host device for allocating memory on the host.
-    using DevHost = alpaka::DevCpu;
 
     // Defines the synchronization behavior of a queue
     //
@@ -149,8 +131,10 @@ auto main() -> int
     using QueueHost = alpaka::Queue<AccHost, QueueProperty>;
 
     // Select a device
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
-    auto const devHost = alpaka::getDevByIdx<AccHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Create a queue on the device
     QueueAcc queueAcc(devAcc);
@@ -179,9 +163,8 @@ auto main() -> int
     using Data = std::uint32_t;
 
     // Allocate 3 host memory buffers
-    using BufHost = alpaka::Buf<DevHost, Data, Dim, Idx>;
-    BufHost bufHost(alpaka::allocBuf<Data, Idx>(devHost, extent));
-    BufHost bufHostDev(alpaka::allocBuf<Data, Idx>(devHost, extent));
+    auto bufHost(alpaka::allocBuf<Data, Idx>(devHost, extent));
+    auto bufHostDev(alpaka::allocBuf<Data, Idx>(devHost, extent));
 
     // Initialize the host input vectors A and B
     Data* const pBufHost(alpaka::getPtrNative(bufHost));
@@ -198,12 +181,12 @@ auto main() -> int
     auto const taskKernelAcc = alpaka::createTaskKernel<Acc>(
         workDivAcc,
         CounterBasedRngKernel(),
-        alpaka::experimental::writeAccess(bufAcc),
+        alpaka::experimental::getMdSpan(bufAcc),
         key);
     auto const taskKernelHost = alpaka::createTaskKernel<AccHost>(
         workDivHost,
         CounterBasedRngKernel(),
-        alpaka::experimental::writeAccess(bufHost),
+        alpaka::experimental::getMdSpan(bufHost),
         key);
 
     // Enqueue the kernel execution task
@@ -221,11 +204,11 @@ auto main() -> int
     int falseResults = 0;
     int const maxPrintFalseResults = extent[2] * 2;
 
-    auto aHost = alpaka::experimental::readAccess(bufHost);
-    auto aAcc = alpaka::experimental::readAccess(bufHostDev);
-    for(Idx z = 0; z < aHost.extents[0]; ++z)
-        for(Idx y = 0; y < aHost.extents[1]; ++y)
-            for(Idx x = 0; x < aHost.extents[2]; ++x)
+    auto aHost = alpaka::experimental::getMdSpan(bufHost);
+    auto aAcc = alpaka::experimental::getMdSpan(bufHostDev);
+    for(Idx z = 0; z < aHost.extent(0); ++z)
+        for(Idx y = 0; y < aHost.extent(1); ++y)
+            for(Idx x = 0; x < aHost.extent(2); ++x)
             {
                 Data const& valHost(aHost(z, y, x));
                 Data const& valAcc(aAcc(z, y, x));

@@ -1,14 +1,9 @@
 #
 # Copyright 2021 Jan Stephan
-#
-# This file is part of Alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# SPDX-License-Identifier: MPL-2.0
 #
 
-set(_TARGET_NAME "FenceTest")
+set(_TARGET_NAME "fenceTest")
 
 append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
 

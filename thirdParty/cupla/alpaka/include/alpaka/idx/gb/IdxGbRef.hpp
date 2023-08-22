@@ -1,19 +1,14 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Concepts.hpp>
-#include <alpaka/core/Positioning.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Positioning.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 namespace alpaka
 {

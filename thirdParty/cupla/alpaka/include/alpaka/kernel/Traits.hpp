@@ -1,26 +1,20 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber,
+ *                Andrea Bocci, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Debug.hpp>
-#include <alpaka/core/DemangleTypeNames.hpp>
-#include <alpaka/core/OmpSchedule.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/queue/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-#    include <alpaka/workdiv/Traits.hpp>
-#endif
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Debug.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/core/OmpSchedule.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
+#include "alpaka/workdiv/Traits.hpp"
 
 #include <type_traits>
 
@@ -74,6 +68,21 @@ namespace alpaka
                 return 0u;
             }
         };
+
+        //! The trait for getting the warp size required by a kernel.
+        //!
+        //! \tparam TKernelFnObj The kernel function object.
+        //! \tparam TAcc The accelerator.
+        //!
+        //! The default implementation returns 0, which lets the accelerator compiler and runtime choose the warp size.
+        template<typename TKernelFnObj, typename TAcc, typename TSfinae = void>
+        struct WarpSize : std::integral_constant<std::uint32_t, 0>
+        {
+        };
+
+        //! This is a shortcut for the trait defined above
+        template<typename TKernelFnObj, typename TAcc>
+        inline constexpr std::uint32_t warpSize = WarpSize<TKernelFnObj, TAcc>::value;
 
         //! The trait for getting the schedule to use when a kernel is run using the CpuOmp2Blocks accelerator.
         //!

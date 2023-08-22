@@ -39,11 +39,10 @@ namespace Catch {
                         ResultWas::OfType type ):
             m_info(macroName, lineInfo, type) {}
 
-
         template<typename T>
-        MessageBuilder& operator << ( T const& value ) {
+        MessageBuilder&& operator << ( T const& value ) && {
             m_stream << value;
-            return *this;
+            return CATCH_MOVE(*this);
         }
 
         MessageInfo m_info;
@@ -51,7 +50,7 @@ namespace Catch {
 
     class ScopedMessage {
     public:
-        explicit ScopedMessage( MessageBuilder const& builder );
+        explicit ScopedMessage( MessageBuilder&& builder );
         ScopedMessage( ScopedMessage& duplicate ) = delete;
         ScopedMessage( ScopedMessage&& old ) noexcept;
         ~ScopedMessage();
@@ -98,7 +97,10 @@ namespace Catch {
 
 ///////////////////////////////////////////////////////////////////////////////
 #define INTERNAL_CATCH_CAPTURE( varName, macroName, ... ) \
-    Catch::Capturer varName( macroName, CATCH_INTERNAL_LINEINFO, Catch::ResultWas::Info, #__VA_ARGS__ ); \
+    Catch::Capturer varName( macroName##_catch_sr,        \
+                             CATCH_INTERNAL_LINEINFO,     \
+                             Catch::ResultWas::Info,      \
+                             #__VA_ARGS__##_catch_sr );   \
     varName.captureValues( 0, __VA_ARGS__ )
 
 ///////////////////////////////////////////////////////////////////////////////

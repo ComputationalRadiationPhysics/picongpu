@@ -1,21 +1,16 @@
 /* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/acc/Traits.hpp>
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Utility.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/vec/Vec.hpp>
-#include <alpaka/workdiv/WorkDivMembers.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Utility.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/vec/Vec.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
 
 #include <algorithm>
 #include <array>

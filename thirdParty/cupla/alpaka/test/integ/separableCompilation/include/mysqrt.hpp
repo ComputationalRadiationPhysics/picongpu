@@ -1,12 +1,7 @@
-/* Copyright 2019 Benjamin Worpitz
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Luca Ferragina, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
 
-ALPAKA_FN_HOST_ACC auto mysqrt(double x) -> double;
+ALPAKA_FN_HOST_ACC ALPAKA_FN_EXTERN auto mysqrt(float x) noexcept -> float;

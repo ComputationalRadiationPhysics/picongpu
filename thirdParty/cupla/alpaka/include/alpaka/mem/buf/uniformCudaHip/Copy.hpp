@@ -1,35 +1,27 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
  * Bernhard Manfred Gruber, Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
+
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
+
+#include <cstdint>
+#include <set>
+#include <tuple>
+#include <type_traits>
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/Assert.hpp>
-#    include <alpaka/dev/DevCpu.hpp>
-#    include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#    include <alpaka/dim/DimIntegralConst.hpp>
-#    include <alpaka/extent/Traits.hpp>
-#    include <alpaka/mem/view/Traits.hpp>
-#    include <alpaka/queue/QueueUniformCudaHipRtBlocking.hpp>
-#    include <alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp>
-// Backend specific includes.
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <alpaka/core/Cuda.hpp>
-#    else
-#        include <alpaka/core/Hip.hpp>
-#    endif
-
-#    include <cstdint>
-#    include <set>
-#    include <tuple>
-#    include <type_traits>
 
 namespace alpaka
 {

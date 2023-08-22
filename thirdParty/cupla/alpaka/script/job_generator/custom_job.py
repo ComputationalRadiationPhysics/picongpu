@@ -1,4 +1,7 @@
-"""Add custom jobs. For example loaded from a yaml file."""
+"""Copyright 2023 Simeon Ehrig
+SPDX-License-Identifier: MPL-2.0
+
+Add custom jobs. For example loaded from a yaml file."""
 
 from genericpath import isfile
 import os, yaml

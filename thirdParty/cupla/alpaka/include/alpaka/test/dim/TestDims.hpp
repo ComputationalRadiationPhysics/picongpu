@@ -1,16 +1,13 @@
-/* Copyright 2022 Benjamin Worpitz, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/dim/DimIntegralConst.hpp>
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/meta/Filter.hpp"
+#include "alpaka/meta/NonZero.hpp"
 
 #include <tuple>
 
@@ -22,10 +19,16 @@ namespace alpaka::test
         DimInt<1u>,
         DimInt<2u>,
         DimInt<3u>
-    // The CUDA & HIP accelerators do not currently support 4D buffers and 4D acceleration.
+    // CUDA, HIP and SYCL accelerators do not support 4D buffers and 4D acceleration.
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !defined(ALPAKA_ACC_SYCL_ENABLED)
         ,
         DimInt<4u>
 #endif
         >;
+
+    //! A std::tuple holding non-zero dimensions.
+    //!
+    //! NonZeroTestDims = std::tuple<Dim1, Dim2, ... DimN>
+    using NonZeroTestDims = meta::Filter<TestDims, meta::NonZero>;
+
 } // namespace alpaka::test

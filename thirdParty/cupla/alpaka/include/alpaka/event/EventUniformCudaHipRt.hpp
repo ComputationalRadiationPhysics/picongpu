@@ -1,35 +1,24 @@
 /* Copyright 2022 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/event/Traits.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
+#include "alpaka/wait/Traits.hpp"
+
+#include <functional>
+#include <memory>
+#include <stdexcept>
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/event/Traits.hpp>
-#    include <alpaka/wait/Traits.hpp>
-
-// Backend specific includes.
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <alpaka/core/Cuda.hpp>
-#    else
-#        include <alpaka/core/Hip.hpp>
-#    endif
-
-#    include <alpaka/queue/QueueUniformCudaHipRtBlocking.hpp>
-#    include <alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp>
-
-#    include <functional>
-#    include <memory>
-#    include <stdexcept>
 
 namespace alpaka
 {
@@ -95,7 +84,7 @@ namespace alpaka
         , public concepts::Implements<ConceptGetDev, EventUniformCudaHipRt<TApi>>
     {
     public:
-        ALPAKA_FN_HOST EventUniformCudaHipRt<TApi>(DevUniformCudaHipRt<TApi> const& dev, bool bBusyWait = true)
+        ALPAKA_FN_HOST EventUniformCudaHipRt(DevUniformCudaHipRt<TApi> const& dev, bool bBusyWait = true)
             : m_spEventImpl(std::make_shared<uniform_cuda_hip::detail::EventUniformCudaHipImpl<TApi>>(dev, bBusyWait))
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;

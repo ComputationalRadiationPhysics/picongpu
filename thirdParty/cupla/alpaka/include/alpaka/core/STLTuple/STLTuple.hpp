@@ -32,7 +32,7 @@
 // clang-format off
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
+#include "alpaka/core/BoostPredef.hpp"
 
 // suppress warnings as this is third-party code
 #if BOOST_COMP_CLANG

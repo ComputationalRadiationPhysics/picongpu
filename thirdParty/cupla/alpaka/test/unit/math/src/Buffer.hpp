@@ -1,10 +1,5 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
@@ -42,17 +37,19 @@ namespace alpaka
 
                     // Defines using's for alpaka-buffer.
                     using DevHost = alpaka::DevCpu;
-                    using PltfHost = alpaka::Pltf<DevHost>;
+                    using PlatformHost = alpaka::Platform<DevHost>;
                     using BufHost = alpaka::Buf<DevHost, TData, Dim, Idx>;
 
                     using DevAcc = alpaka::Dev<TAcc>;
-                    using PltfAcc = alpaka::Pltf<DevAcc>;
+                    using PlatformAcc = alpaka::Platform<DevAcc>;
                     using BufAcc = alpaka::Buf<DevAcc, TData, Dim, Idx>;
 
+                    PlatformHost platformHost;
                     DevHost devHost;
 
                     BufHost hostBuffer;
                     BufAcc devBuffer;
+                    PlatformAcc platformAcc;
 
                     // Native pointer to access buffer.
                     TData* const pHostBuffer;
@@ -64,8 +61,11 @@ namespace alpaka
 
                     // Constructor needs to initialize all Buffer.
                     Buffer(DevAcc const& devAcc)
-                        : devHost{alpaka::getDevByIdx<PltfHost>(0u)}
-                        , hostBuffer{alpaka::allocMappedBufIfSupported<PltfAcc, TData, Idx>(devHost, Tcapacity)}
+                        : devHost{alpaka::getDevByIdx(platformHost, 0)}
+                        , hostBuffer{alpaka::allocMappedBufIfSupported<PlatformAcc, TData, Idx>(
+                              devHost,
+                              platformAcc,
+                              Tcapacity)}
                         , devBuffer{alpaka::allocBuf<TData, Idx>(devAcc, Tcapacity)}
                         , pHostBuffer{alpaka::getPtrNative(hostBuffer)}
                         , pDevBuffer{alpaka::getPtrNative(devBuffer)}

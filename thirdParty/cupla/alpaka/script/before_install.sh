@@ -1,42 +1,28 @@
 #!/bin/bash
 
 #
-# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan, Simeon Ehrig
+# SPDX-License-Identifier: MPL-2.0
 #
 
 source ./script/set.sh
 
+# because of the strict abort conditions, a variable needs to be defined, if we read from
+# this statement avoids additional checks later in the scripts
+if [ -z "${LD_LIBRARY_PATH+x}" ]
+then
+    export LD_LIBRARY_PATH=""
+fi
+
 #-------------------------------------------------------------------------------
 # gcc
+# TODO(sehrig): remove me, if the job generator is used
 if [ ! -z "${ALPAKA_CI_GCC_VER+x}" ]
 then
     ALPAKA_CI_GCC_VER_SEMANTIC=( ${ALPAKA_CI_GCC_VER//./ } )
     export ALPAKA_CI_GCC_VER_MAJOR="${ALPAKA_CI_GCC_VER_SEMANTIC[0]}"
     echo ALPAKA_CI_GCC_VER_MAJOR: "${ALPAKA_CI_GCC_VER_MAJOR}"
-
-    if [[ "$(cat /etc/os-release)" == *"20.04"* ]]
-    then
-        if (( "${ALPAKA_CI_GCC_VER_MAJOR}" <= 6 ))
-        then
-            echo "Ubuntu 20.04 does not provide gcc-6 and older anymore."
-            exit 1
-        fi
-    fi
 fi
-
-#-------------------------------------------------------------------------------
-# Boost.
-echo $ALPAKA_CI_BOOST_BRANCH
-ALPAKA_CI_BOOST_BRANCH_MAJOR=${ALPAKA_CI_BOOST_BRANCH:6:1}
-echo ALPAKA_CI_BOOST_BRANCH_MAJOR: "${ALPAKA_CI_BOOST_BRANCH_MAJOR}"
-ALPAKA_CI_BOOST_BRANCH_MINOR=${ALPAKA_CI_BOOST_BRANCH:8:2}
-echo ALPAKA_CI_BOOST_BRANCH_MINOR: "${ALPAKA_CI_BOOST_BRANCH_MINOR}"
 
 export ALPAKA_CI_INSTALL_ATOMIC="OFF"
 # If the variable is not set, the backend will most probably be used by default so we install Boost.Atomic
@@ -85,26 +71,6 @@ export ALPAKA_CI_INSTALL_OMP="OFF"
 if [ "$ALPAKA_CI_OS_NAME" = "macOS"  ]
 then
     export ALPAKA_CI_INSTALL_OMP="ON"
-fi
-
-# nvcc does not recognize GCC-9 builtins from avx512fintrin.h in Release
-#   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=76731
-#   https://github.com/tensorflow/tensorflow/issues/10220
-if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON"  ]
-then
-    if [[ "${CXX}" == "g++"* ]]
-    then
-        if (( "${ALPAKA_CI_GCC_VER_MAJOR}" == 9 ))
-        then
-            if [ "${CMAKE_CUDA_COMPILER}" == "nvcc" ]
-            then
-                if [ "${CMAKE_BUILD_TYPE}" == "Release" ]
-                then
-                    export CMAKE_BUILD_TYPE=Debug
-                fi
-            fi
-        fi
-    fi
 fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]

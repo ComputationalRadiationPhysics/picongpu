@@ -26,7 +26,7 @@ The following example shows a minimal example of a ``CMakeLists.txt`` that uses 
 .. code-block:: cmake
    :caption: CMakeLists.txt
 
-   cmake_minimum_required(VERSION 3.18)
+   cmake_minimum_required(VERSION 3.22)
 
    set(_TARGET_NAME myProject)
    project(${_TARGET_NAME})
@@ -63,7 +63,7 @@ The ``add_subdirectory`` method does not require alpaka to be installed. Instead
 .. code-block:: cmake
    :caption: CMakeLists.txt
 
-   cmake_minimum_required(VERSION 3.18)
+   cmake_minimum_required(VERSION 3.22)
 
    set(_TARGET_NAME myProject)
    project(${_TARGET_NAME})

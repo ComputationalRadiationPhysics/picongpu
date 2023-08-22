@@ -1,10 +1,5 @@
-/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Mutsuo Saito, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2011 - 2023 Mutsuo Saito, Makoto Matsumoto, Axel Hübl, Benjamin Worpitz, Bernhard Manfred Gruber
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 // clang-format off
 #ifndef TINYMT32_H
@@ -25,7 +20,7 @@
  * LICENSE.txt
  */
 
-#include <alpaka/core/BoostPredef.hpp>
+#include "alpaka/core/BoostPredef.hpp"
 
 #include <cstdint>
 /* work-around for glibc < 2.18 according to bug

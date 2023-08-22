@@ -1,39 +1,34 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, René Widera, Felice Pantaleo, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
-
 // Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/dim/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
 
 // Implementation details.
-#    include <alpaka/acc/AccCpuTbbBlocks.hpp>
-#    include <alpaka/core/Decay.hpp>
-#    include <alpaka/dev/DevCpu.hpp>
-#    include <alpaka/idx/MapIdx.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/meta/NdLoop.hpp>
-#    include <alpaka/workdiv/WorkDivMembers.hpp>
+#include "alpaka/acc/AccCpuTbbBlocks.hpp"
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/idx/MapIdx.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/meta/NdLoop.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
 
-#    include <functional>
-#    include <stdexcept>
-#    include <tuple>
-#    include <type_traits>
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#        include <iostream>
-#    endif
+#include <functional>
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
+#    include <iostream>
+#endif
+
+#ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
 
 #    include <tbb/blocked_range.h>
 #    include <tbb/parallel_for.h>
@@ -143,9 +138,9 @@ namespace alpaka
 
         //! The CPU TBB block execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct PltfType<TaskKernelCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        struct PlatformType<TaskKernelCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            using type = PltfCpu;
+            using type = PlatformCpu;
         };
 
         //! The CPU TBB block execution task idx type trait specialization.

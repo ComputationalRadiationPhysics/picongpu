@@ -1,10 +1,5 @@
-/* Copyright 2022 Sergei Bastrakov, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Sergei Bastrakov, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/core/BoostPredef.hpp>
@@ -114,10 +109,6 @@ void testKernel()
     REQUIRE(fixture(kernelWithTrait));
 }
 
-// Disabling these tests for GCC + OMP5 & OACC because GCC does not like static
-// data members in mapped variables when offlading.
-#if !(BOOST_COMP_GNUC && (defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) || defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)))
-
 // Note: it turned out not possible to test all possible combinations as it causes several compilers to crash in CI.
 // However the following tests should cover all important cases
 
@@ -148,9 +139,8 @@ TEMPLATE_LIST_TEST_CASE("kernelWithStaticMemberOmpScheduleChunkSize", "[kernel]"
 
 TEMPLATE_LIST_TEST_CASE("kernelWithMemberOmpScheduleChunkSize", "[kernel]", alpaka::test::TestAccs)
 {
-#    if defined _OPENMP && _OPENMP >= 200805
+#if defined _OPENMP && _OPENMP >= 200805
     testKernel<TestType, KernelWithMemberOmpScheduleChunkSize<alpaka::omp::Schedule::Auto>>();
-#    endif
+#endif
     testKernel<TestType, KernelWithMemberOmpScheduleChunkSize<alpaka::omp::Schedule::Runtime>>();
 }
-#endif

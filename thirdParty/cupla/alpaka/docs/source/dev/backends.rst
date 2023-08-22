@@ -242,7 +242,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaGetDevice                   | n/a (no current device)                                               |
     +---------------------------------+-----------------------------------------------------------------------+
-    | cudaGetDeviceCount              | std::sizet alpaka::getDevCount< TPltf >()                             |
+    | cudaGetDeviceCount              | std::sizet alpaka::getDevCount< TPlatform >()                         |
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaGetDeviceFlags              | --                                                                    |
     +---------------------------------+-----------------------------------------------------------------------+
@@ -363,7 +363,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaGetSymbolSize          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaHostAlloc              | alpaka::allocMappedBuf<TPltf, TElement>(host, extents) 1D, 2D, 3D supported!               |
+    | cudaHostAlloc              | alpaka::allocMappedBuf<TPlatform, TElement>(host, extents) 1D, 2D, 3D supported!           |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaHostGetDevicePointer   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -383,7 +383,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocAsync            | alpaka::allocAsyncBuf<TElement>(queue, extents1D)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMallocHost             | alpaka::allocMappedBuf<TPltf, TElement>(host, extents) 1D, 2D, 3D supported!               |
+    | cudaMallocHost             | alpaka::allocMappedBuf<TPlatform, TElement>(host, extents) 1D, 2D, 3D supported!           |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocManaged          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+

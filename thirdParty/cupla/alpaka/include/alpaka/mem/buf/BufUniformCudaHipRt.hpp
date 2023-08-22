@@ -1,31 +1,26 @@
 /* Copyright 2022 Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
  * Bernhard Manfred Gruber, Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/mem/view/ViewAccessOps.hpp"
+#include "alpaka/meta/DependentFalseType.hpp"
+#include "alpaka/vec/Vec.hpp"
+
+#include <functional>
+#include <memory>
+#include <type_traits>
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/Assert.hpp>
-#    include <alpaka/core/Cuda.hpp>
-#    include <alpaka/core/Hip.hpp>
-#    include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/dim/DimIntegralConst.hpp>
-#    include <alpaka/mem/buf/Traits.hpp>
-#    include <alpaka/mem/view/ViewAccessOps.hpp>
-#    include <alpaka/meta/DependentFalseType.hpp>
-#    include <alpaka/vec/Vec.hpp>
-
-#    include <functional>
-#    include <memory>
-#    include <type_traits>
 
 namespace alpaka
 {
@@ -306,11 +301,13 @@ namespace alpaka
 
         //! The pinned/mapped memory allocation trait specialization for the CUDA/HIP devices.
         template<typename TApi, typename TElem, typename TDim, typename TIdx>
-        struct BufAllocMapped<PltfUniformCudaHipRt<TApi>, TElem, TDim, TIdx>
+        struct BufAllocMapped<PlatformUniformCudaHipRt<TApi>, TElem, TDim, TIdx>
         {
             template<typename TExtent>
-            ALPAKA_FN_HOST static auto allocMappedBuf(DevCpu const& host, TExtent const& extent)
-                -> BufCpu<TElem, TDim, TIdx>
+            ALPAKA_FN_HOST static auto allocMappedBuf(
+                DevCpu const& host,
+                PlatformUniformCudaHipRt<TApi> const& /*platform*/,
+                TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -329,7 +326,7 @@ namespace alpaka
 
         //! The pinned/mapped memory allocation capability trait specialization.
         template<typename TApi>
-        struct HasMappedBufSupport<PltfUniformCudaHipRt<TApi>> : public std::true_type
+        struct HasMappedBufSupport<PlatformUniformCudaHipRt<TApi>> : public std::true_type
         {
         };
 
@@ -382,7 +379,7 @@ namespace alpaka
     } // namespace trait
 } // namespace alpaka
 
-#    include <alpaka/mem/buf/uniformCudaHip/Copy.hpp>
-#    include <alpaka/mem/buf/uniformCudaHip/Set.hpp>
+#    include "alpaka/mem/buf/uniformCudaHip/Copy.hpp"
+#    include "alpaka/mem/buf/uniformCudaHip/Set.hpp"
 
 #endif
