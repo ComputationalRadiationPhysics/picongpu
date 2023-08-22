@@ -21,6 +21,14 @@ parser = argparse.ArgumentParser(description="Starts the test suite."
                                  " passed. Please refer to the Data.py"
                                  " documentation for more information.")
 
+parser.add_argument("-d", help="Main path of the simulation, if this"
+                    " is specified, no other one must be specified.",
+                    dest="direction",
+                    type=str,
+                    const=None,
+                    nargs="?",
+                    default=None)
+
 parser.add_argument("-r", help="Path of the folder where the results"
                     " of the test-suite should be saved",
                     dest="result",
@@ -61,10 +69,20 @@ parser.add_argument("-j", help="Path of the folder to the json files"
                     nargs="?",
                     default=None)
 
+parser.add_argument("-c", help="Path of the folder to the cmake files"
+                    " if used.",
+                    dest="cmake",
+                    type=str,
+                    const=None,
+                    nargs="?",
+                    default=None)
+
 args = parser.parse_args()
 
 # start testsuite with all parameter
-manager.run_testsuite(dataDirection=args.data,
+manager.run_testsuite(direction=args.direction,
+                      dataDirection=args.data,
                       paramDirection=args.param,
                       jsonDirection=args.json,
-                      resultDirection=args.result)
+                      resultDirection=args.result,
+                      cmakeDirection=args.cmake)

@@ -9,12 +9,14 @@ License: GPLv3+
 from . import dataReader
 from . import jsonReader
 from . import paramReader
+from . import cmakeFlagReader as cmakeReader
 import testsuite._checkData as cD
 
 
 def mainsearch(dataDirection: str = None,
                paramDirection: str = None,
-               jsonDirection: str = None):
+               jsonDirection: str = None,
+               cmakeDirection: str = None):
 
     json = {}
     param = {}
@@ -37,10 +39,22 @@ def mainsearch(dataDirection: str = None,
 
         params = cD.checkVariables(variable="param_Parameter")
 
+        if (cD.checkExistVariables(variable="cmakeDirection") or
+                cmakeDirection is not None):
+
+            cR = cmakeReader.CMAKEFlagReader(direction=cmakeDirection,
+                                             directiontype="cmakeDirection")
+            for parameter in params:
+                try:
+                    param[parameter] = cR.getValue(parameter)
+                except Exception:
+                    pass
+
         pR = paramReader.ParamReader(direction=paramDirection,
                                      directiontype="paramDirection")
         for parameter in params:
-            param[parameter] = pR.getValue(parameter)
+            if parameter not in param:
+                param[parameter] = pR.getValue(parameter)
 
     # read .data values
     if (cD.checkExistVariables(variable="dataDirection") or
