@@ -19,6 +19,8 @@
 import os
 import subprocess
 import sys
+import sphinx_rtd_theme
+
 python_libs = os.path.abspath('../../lib/python')
 sys.path.insert(0, python_libs)
 
@@ -90,11 +92,11 @@ breathe_domain_by_extension = {
     "loader":   "cpp"
 }
 
+html_theme = "sphinx_rtd_theme"
+
 if on_rtd:
     subprocess.call('cd ..; doxygen', shell=True)
 else:
-    import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain templates here, relative to this directory.
