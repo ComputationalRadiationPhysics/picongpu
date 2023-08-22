@@ -1,19 +1,14 @@
 /* Copyright 2022 Jiří Vyskočil, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/meta/IsArrayOrVector.hpp>
-#include <alpaka/rand/Philox/PhiloxSingle.hpp>
-#include <alpaka/rand/Philox/PhiloxVector.hpp>
-#include <alpaka/rand/Traits.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/meta/IsArrayOrVector.hpp"
+#include "alpaka/rand/Philox/PhiloxSingle.hpp"
+#include "alpaka/rand/Philox/PhiloxVector.hpp"
+#include "alpaka/rand/Traits.hpp"
 
 #include <cstdint>
 #include <limits>

@@ -2,18 +2,14 @@
 
 #
 # Copyright 2022 Benjamin Worpitz, René Widera, Axel Huebl, Bernhard Manfred Gruber, Andrea Bocci, Jan Stephan
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# SPDX-License-Identifier: MPL-2.0
 #
 
 source ./script/travis_retry.sh
 source ./script/set.sh
 
 : "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
+: "${ALPAKA_BOOST_VERSION?'ALPAKA_BOOST_VERSION must be specified'}"
 : "${ALPAKA_CI_BOOST_LIB_DIR?'ALPAKA_CI_BOOST_LIB_DIR must be specified'}"
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
@@ -27,6 +23,22 @@ if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     : "${ALPAKA_CI_CL_VER?'ALPAKA_CI_CL_VER must be specified'}"
 fi
+
+if [ -z ${ALPAKA_CI_STDLIB+x} ]
+then
+    ALPAKA_CI_STDLIB=""
+fi
+
+if [ "${CXX}" != "icpc" ] && [ "${ALPAKA_CI_STDLIB}" != "libc++" ]
+then
+    if agc-manager -e boost@${ALPAKA_BOOST_VERSION} ; then
+        export BOOST_ROOT=$(agc-manager -b boost@${ALPAKA_BOOST_VERSION})
+        export ALPAKA_CI_BOOST_LIB_DIR=${BOOST_ROOT}
+        return
+    fi
+fi
+
+ALPAKA_CI_BOOST_BRANCH="boost-${ALPAKA_BOOST_VERSION}"
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
@@ -49,13 +61,7 @@ fi
 # Set the toolset based on the compiler
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
-    if [ "$ALPAKA_CI_CL_VER" = "2017" ]
-    then
-        TOOLSET="msvc-14.1"
-    elif [ "$ALPAKA_CI_CL_VER" = "2019" ]
-    then
-        TOOLSET="msvc-14.2"
-    elif [ "$ALPAKA_CI_CL_VER" = "2022" ]
+    if [ "$ALPAKA_CI_CL_VER" = "2022" ]
     then
         TOOLSET="msvc-14.3"
     fi

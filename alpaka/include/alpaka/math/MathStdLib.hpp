@@ -1,17 +1,12 @@
-/* Copyright 2022 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber,
- * Jeffrey Kelling, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber,
+ * Jeffrey Kelling, Sergei Bastrakov, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Decay.hpp>
-#include <alpaka/math/Traits.hpp>
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/math/Traits.hpp"
 
 namespace alpaka::math
 {
@@ -75,6 +70,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library copysign, implementation covered by the general template.
+    class CopysignStdLib : public concepts::Implements<ConceptMathCopysign, CopysignStdLib>
+    {
+    };
+
     //! The standard library cos, implementation covered by the general template.
     class CosStdLib : public concepts::Implements<ConceptMathCos, CosStdLib>
     {
@@ -100,6 +100,11 @@ namespace alpaka::math
     {
     };
 
+    //! The standard library fma, implementation covered by the general template.
+    class FmaStdLib : public concepts::Implements<ConceptMathFma, FmaStdLib>
+    {
+    };
+
     //! The standard library fmod, implementation covered by the general template.
     class FmodStdLib : public concepts::Implements<ConceptMathFmod, FmodStdLib>
     {
@@ -122,6 +127,16 @@ namespace alpaka::math
 
     //! The standard library log, implementation covered by the general template.
     class LogStdLib : public concepts::Implements<ConceptMathLog, LogStdLib>
+    {
+    };
+
+    //! The standard library log2, implementation covered by the general template.
+    class Log2StdLib : public concepts::Implements<ConceptMathLog2, Log2StdLib>
+    {
+    };
+
+    //! The standard library log10, implementation covered by the general template.
+    class Log10StdLib : public concepts::Implements<ConceptMathLog10, Log10StdLib>
     {
     };
 
@@ -204,13 +219,17 @@ namespace alpaka::math
         , public CbrtStdLib
         , public CeilStdLib
         , public ConjStdLib
+        , public CopysignStdLib
         , public CosStdLib
         , public CoshStdLib
         , public ErfStdLib
         , public ExpStdLib
         , public FloorStdLib
+        , public FmaStdLib
         , public FmodStdLib
         , public LogStdLib
+        , public Log2StdLib
+        , public Log10StdLib
         , public MaxStdLib
         , public MinStdLib
         , public PowStdLib

@@ -1,10 +1,5 @@
-/* Copyright 2022 David M. Rogers, Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 David M. Rogers, Jan Stephan, Andrea Bocci, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/math/FloatEqualExact.hpp>
@@ -40,6 +35,7 @@ struct ShflSingleThreadWarpTestKernel
     }
 };
 
+template<std::uint32_t TWarpSize>
 struct ShflMultipleThreadWarpTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
@@ -92,15 +88,20 @@ struct ShflMultipleThreadWarpTestKernel
     }
 };
 
+template<std::uint32_t TWarpSize, typename TAcc>
+struct alpaka::trait::WarpSize<ShflMultipleThreadWarpTestKernel<TWarpSize>, TAcc>
+    : std::integral_constant<std::uint32_t, TWarpSize>
+{
+};
+
 TEMPLATE_LIST_TEST_CASE("shfl", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dev = alpaka::Dev<Acc>;
-    using Pltf = alpaka::Pltf<Dev>;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
-    Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
+    auto const platform = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
     auto const warpExtents = alpaka::getWarpSizes(dev);
     for(auto const warpExtent : warpExtents)
     {
@@ -112,10 +113,6 @@ TEMPLATE_LIST_TEST_CASE("shfl", "[warp]", alpaka::test::TestAccs)
         }
         else
         {
-            // Work around gcc 7.5 trying and failing to offload for OpenMP 4.0
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 5, 0)) && defined ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-            return;
-#else
             using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
             auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
             // Enforce one warp per thread block
@@ -124,9 +121,26 @@ TEMPLATE_LIST_TEST_CASE("shfl", "[warp]", alpaka::test::TestAccs)
             auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
             auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
             auto fixture = ExecutionFixture{workDiv};
-            ShflMultipleThreadWarpTestKernel kernel;
-            REQUIRE(fixture(kernel));
-#endif
+            if(warpExtent == 4)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<4>{}));
+            }
+            else if(warpExtent == 8)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<8>{}));
+            }
+            else if(warpExtent == 16)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<16>{}));
+            }
+            else if(warpExtent == 32)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<32>{}));
+            }
+            else if(warpExtent == 64)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<64>{}));
+            }
         }
     }
 }

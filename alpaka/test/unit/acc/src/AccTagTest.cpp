@@ -1,10 +1,5 @@
-/* Copyright 2022 Simeon Ehrig, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Simeon Ehrig, Jan Stephan, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
@@ -26,37 +21,23 @@ using TagList = std::tuple<
     alpaka::TagCpuTbbBlocks,
     alpaka::TagCpuOmp2Blocks,
     alpaka::TagCpuOmp2Threads,
-    alpaka::TagOmp5,
-    alpaka::TagOacc,
     alpaka::TagGpuCudaRt,
     alpaka::TagGpuHipRt,
-    alpaka::TagCpuSyclIntel,
+    alpaka::TagCpuSycl,
     alpaka::TagFpgaSyclIntel,
-    alpaka::TagFpgaSyclXilinx,
     alpaka::TagGpuSyclIntel>;
 
-// to many acc's triggers a compiler error in nvc++: error: excessive recursion at instantiation of class
-// looks like, that a buffer is not big enough
-#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-using AccToTagMap = std::tuple<
-    std::pair<alpaka::test::detail::AccCpuSerialIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuSerial>,
-    std::pair<alpaka::test::detail::AccOaccIfAvailableElseInt<Dim, Idx>, alpaka::TagOacc>>;
-#else
 using AccToTagMap = std::tuple<
     std::pair<alpaka::test::detail::AccCpuSerialIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuSerial>,
     std::pair<alpaka::test::detail::AccCpuThreadsIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuThreads>,
     std::pair<alpaka::test::detail::AccCpuTbbIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuTbbBlocks>,
     std::pair<alpaka::test::detail::AccCpuOmp2BlocksIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuOmp2Blocks>,
     std::pair<alpaka::test::detail::AccCpuOmp2ThreadsIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuOmp2Threads>,
-    std::pair<alpaka::test::detail::AccOmp5IfAvailableElseInt<Dim, Idx>, alpaka::TagOmp5>,
-    std::pair<alpaka::test::detail::AccOaccIfAvailableElseInt<Dim, Idx>, alpaka::TagOacc>,
     std::pair<alpaka::test::detail::AccGpuCudaRtIfAvailableElseInt<Dim, Idx>, alpaka::TagGpuCudaRt>,
     std::pair<alpaka::test::detail::AccGpuHipRtIfAvailableElseInt<Dim, Idx>, alpaka::TagGpuHipRt>,
-    std::pair<alpaka::test::detail::AccCpuSyclIntelIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuSyclIntel>,
+    std::pair<alpaka::test::detail::AccCpuSyclIfAvailableElseInt<Dim, Idx>, alpaka::TagCpuSycl>,
     std::pair<alpaka::test::detail::AccFpgaSyclIntelIfAvailableElseInt<Dim, Idx>, alpaka::TagFpgaSyclIntel>,
-    std::pair<alpaka::test::detail::AccFpgaSyclXilinxIfAvailableElseInt<Dim, Idx>, alpaka::TagFpgaSyclXilinx>,
     std::pair<alpaka::test::detail::AccGpuSyclIntelIfAvailableElseInt<Dim, Idx>, alpaka::TagGpuSyclIntel>>;
-#endif
 
 using AccTagTestMatrix = alpaka::meta::CartesianProduct<std::tuple, AccToTagMap, TagList>;
 
@@ -217,11 +198,12 @@ TEMPLATE_LIST_TEST_CASE("kernel specialization with tags", "[acc][tag]", TestAcc
     using TestAcc = TestType;
     using QueueProperty = alpaka::Blocking;
     using Queue = alpaka::Queue<TestAcc, QueueProperty>;
-    auto const devAcc = alpaka::getDevByIdx<TestAcc>(0u);
+    auto const platformAcc = alpaka::Platform<TestAcc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
     Queue queue(devAcc);
 
-    using PltfHost = alpaka::PltfCpu;
-    auto const devHost = alpaka::getDevByIdx<PltfHost>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
     using Vec = alpaka::Vec<alpaka::DimInt<1>, int>;
     Vec extents(Vec::all(1));

@@ -38,7 +38,9 @@ struct AlpakaStream : Stream<T>
     virtual void init_arrays(T initA, T initB, T initC) override;
     virtual void read_arrays(std::vector<T>& a, std::vector<T>& b, std::vector<T>& c) override;
 
-    using DevHost = alpaka::DevCpu;
+    using PlatformHost = alpaka::PlatformCpu;
+    using DevHost = alpaka::Dev<PlatformHost>;
+    using PlatformAcc = alpaka::Platform<Acc>;
     using DevAcc = alpaka::Dev<Acc>;
     using BufHost = alpaka::Buf<alpaka::DevCpu, T, Dim, Idx>;
     using BufAcc = alpaka::Buf<Acc, T, Dim, Idx>;
@@ -48,7 +50,9 @@ struct AlpakaStream : Stream<T>
 
 private:
     Idx arraySize;
+    PlatformHost platformHost;
     DevHost devHost;
+    PlatformAcc platformAcc;
     DevAcc devAcc;
     BufHost sums;
     BufAcc d_a;

@@ -1,16 +1,11 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Jan Stephan, René Widera, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/core/Debug.hpp>
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Debug.hpp"
 
 // Boost.Uuid errors with VS2017 when intrin.h is not included
 #if defined(_MSC_VER) && _MSC_VER >= 1910
@@ -81,8 +76,12 @@
 //! Macro defining the inline function attribute.
 #if BOOST_LANG_CUDA || BOOST_LANG_HIP
 #    define ALPAKA_FN_INLINE __forceinline__
+#elif BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+// TODO: With C++20 [[msvc::forceinline]] can be used.
+#    define ALPAKA_FN_INLINE __forceinline
 #else
-#    define ALPAKA_FN_INLINE inline
+// For gcc, clang, and clang-based compilers like Intel icpx
+#    define ALPAKA_FN_INLINE [[gnu::always_inline]] inline
 #endif
 
 //! This macro defines a variable lying in global accelerator device memory.
@@ -117,6 +116,8 @@
 #if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
     || BOOST_LANG_HIP)
 #    define ALPAKA_STATIC_ACC_MEM_GLOBAL __device__
+#elif defined(ALPAKA_ACC_SYCL_ENABLED)
+#    define ALPAKA_STATIC_ACC_MEM_GLOBAL _Pragma("GCC error \"The SYCL backend does not support global device variables.\""))
 #else
 #    define ALPAKA_STATIC_ACC_MEM_GLOBAL
 #endif
@@ -153,6 +154,8 @@
 #if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
     || BOOST_LANG_HIP)
 #    define ALPAKA_STATIC_ACC_MEM_CONSTANT __constant__
+#elif defined(ALPAKA_ACC_SYCL_ENABLED)
+#    define ALPAKA_STATIC_ACC_MEM_CONSTANT _Pragma("GCC error \"The SYCL backend does not support global device constants.\""))
 #else
 #    define ALPAKA_STATIC_ACC_MEM_CONSTANT
 #endif

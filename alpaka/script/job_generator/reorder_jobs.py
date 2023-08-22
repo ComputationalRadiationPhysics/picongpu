@@ -1,4 +1,7 @@
-"""Functions to modify order of the job list.
+"""Copyright 2023 Simeon Ehrig
+SPDX-License-Identifier: MPL-2.0
+
+Functions to modify order of the job list.
 """
 
 from typing import List, Dict, Tuple

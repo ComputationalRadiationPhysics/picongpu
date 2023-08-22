@@ -22,7 +22,7 @@
 # Required cmake version.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.18.0)
+cmake_minimum_required(VERSION 3.22.0)
 
 ################################################################################
 # Setup project information
@@ -58,7 +58,7 @@ option(cupla_BUILD_EXAMPLES "Build examples" OFF)
 ################################################################################
 
 # the min and max. supported alpaka version is also copied to the cuplaConfig.cmake
-set(_CUPLA_MIN_ALPAKA_VERSION 0.9.0)
+set(_CUPLA_MIN_ALPAKA_VERSION 1.0.0)
 set(_CUPLA_MAX_ALPAKA_VERSION 1.0.0)
 
 # do not search for alpaka if it already exists

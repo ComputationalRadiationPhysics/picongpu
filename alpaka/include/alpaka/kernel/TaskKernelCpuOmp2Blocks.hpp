@@ -1,13 +1,33 @@
 /* Copyright 2022 Benjamin Worpitz, Bert Wesarg, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
+
+// Specialized traits.
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+
+// Implementation details.
+#include "alpaka/acc/AccCpuOmp2Blocks.hpp"
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/core/OmpSchedule.hpp"
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/idx/MapIdx.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
+
+#include <functional>
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
+#    include <iostream>
+#endif
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
 
@@ -15,32 +35,7 @@
 #        error If ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED is set, the compiler has to support OpenMP 2.0 or higher!
 #    endif
 
-// Specialized traits.
-#    include <alpaka/acc/Traits.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/dim/Traits.hpp>
-#    include <alpaka/idx/Traits.hpp>
-#    include <alpaka/pltf/Traits.hpp>
-
-// Implementation details.
-#    include <alpaka/acc/AccCpuOmp2Blocks.hpp>
-#    include <alpaka/core/Decay.hpp>
-#    include <alpaka/core/OmpSchedule.hpp>
-#    include <alpaka/dev/DevCpu.hpp>
-#    include <alpaka/idx/MapIdx.hpp>
-#    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/workdiv/WorkDivMembers.hpp>
-
 #    include <omp.h>
-
-#    include <functional>
-#    include <stdexcept>
-#    include <tuple>
-#    include <type_traits>
-#    include <utility>
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#        include <iostream>
-#    endif
 
 namespace alpaka
 {
@@ -940,9 +935,9 @@ namespace alpaka
 
         //! The CPU OpenMP 2.0 grid block execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct PltfType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        struct PlatformType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            using type = PltfCpu;
+            using type = PlatformCpu;
         };
 
         //! The CPU OpenMP 2.0 block execution task idx type trait specialization.

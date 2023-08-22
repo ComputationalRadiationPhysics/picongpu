@@ -1,13 +1,23 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
+
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/event/EventCpu.hpp"
+#include "alpaka/event/Traits.hpp"
+#include "alpaka/kernel/TaskKernelCpuOmp2Blocks.hpp"
+#include "alpaka/queue/QueueCpuBlocking.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/queue/cpu/ICpuQueue.hpp"
+#include "alpaka/test/event/EventHostManualTrigger.hpp"
+#include "alpaka/test/queue/Queue.hpp"
+#include "alpaka/wait/Traits.hpp"
+
+#include <atomic>
+#include <mutex>
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
 
@@ -15,22 +25,7 @@
 #        error If ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED is set, the compiler has to support OpenMP 2.0 or higher!
 #    endif
 
-#    include <alpaka/dev/DevCpu.hpp>
-#    include <alpaka/dev/Traits.hpp>
-#    include <alpaka/event/EventCpu.hpp>
-#    include <alpaka/event/Traits.hpp>
-#    include <alpaka/kernel/TaskKernelCpuOmp2Blocks.hpp>
-#    include <alpaka/queue/QueueCpuBlocking.hpp>
-#    include <alpaka/queue/Traits.hpp>
-#    include <alpaka/queue/cpu/ICpuQueue.hpp>
-#    include <alpaka/test/event/EventHostManualTrigger.hpp>
-#    include <alpaka/test/queue/Queue.hpp>
-#    include <alpaka/wait/Traits.hpp>
-
 #    include <omp.h>
-
-#    include <atomic>
-#    include <mutex>
 
 namespace alpaka
 {
@@ -43,30 +38,35 @@ namespace alpaka
 #        pragma clang diagnostic ignored "-Wweak-vtables"
 #    endif
         //! The CPU collective device queue implementation.
-        class QueueCpuOmp2CollectiveImpl final : public cpu::ICpuQueue
+        struct QueueCpuOmp2CollectiveImpl final : cpu::ICpuQueue
 #    if BOOST_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
         {
-        public:
-            QueueCpuOmp2CollectiveImpl(DevCpu const& dev) noexcept : m_dev(dev), m_uCurrentlyExecutingTask(0u)
+            explicit QueueCpuOmp2CollectiveImpl(DevCpu const& dev) noexcept : m_dev(dev), blockingQueue(dev)
             {
             }
-            QueueCpuOmp2CollectiveImpl(QueueCpuOmp2CollectiveImpl const&) = delete;
-            auto operator=(QueueCpuOmp2CollectiveImpl const&) -> QueueCpuOmp2CollectiveImpl& = delete;
+
             void enqueue(EventCpu& ev) final
             {
                 alpaka::enqueue(*this, ev);
             }
+
             void wait(EventCpu const& ev) final
             {
                 alpaka::wait(*this, ev);
             }
 
-        public:
+            void busyWaitUntilBlockingQueueEmpty()
+            {
+                while(!empty(blockingQueue))
+                    ;
+            }
+
             DevCpu const m_dev; //!< The device this queue is bound to.
             std::mutex mutable m_mutex;
-            std::atomic<uint32_t> m_uCurrentlyExecutingTask;
+            QueueCpuBlocking blockingQueue;
+            std::atomic<uint32_t> m_uCurrentlyExecutingTask = 0;
         };
     } // namespace cpu::detail
 
@@ -77,32 +77,32 @@ namespace alpaka
     // This queue is an example for a user provided queue and the behavior is strongly coupled
     // to the user workflows.
     //
-    // Within a OpenMP parallel region kernel will be performed collectively.
-    // All other operations will be performed from one thread (it is not defined which thread).
+    // Within an OpenMP parallel region kernel will be performed collectively.
+    // All other operations will be performed from one thread (it is not defined which thread) and there will be no
+    // implicit synchronization between other operations within the parallel OpenMP parallel region. Operations
+    // executed within a OpenMP parallel region will be executed after already queued tasks before the parallel region
+    // was created.
     //
-    // Outside of a OpenMP parallel region the queue behaves like QueueCpuBlocking.
-    class QueueCpuOmp2Collective final
-        : public concepts::Implements<ConceptCurrentThreadWaitFor, QueueCpuOmp2Collective>
+    // Outside of an OpenMP parallel region the queue behaves like QueueCpuBlocking.
+    struct QueueCpuOmp2Collective final : concepts::Implements<ConceptCurrentThreadWaitFor, QueueCpuOmp2Collective>
     {
-    public:
-        QueueCpuOmp2Collective(DevCpu const& dev)
+        explicit QueueCpuOmp2Collective(DevCpu const& dev)
             : m_spQueueImpl(std::make_shared<cpu::detail::QueueCpuOmp2CollectiveImpl>(dev))
-            , m_spBlockingQueue(std::make_shared<QueueCpuBlocking>(dev))
         {
             dev.registerQueue(m_spQueueImpl);
         }
+
         auto operator==(QueueCpuOmp2Collective const& rhs) const -> bool
         {
-            return m_spQueueImpl == rhs.m_spQueueImpl && m_spBlockingQueue == rhs.m_spBlockingQueue;
+            return m_spQueueImpl == rhs.m_spQueueImpl;
         }
+
         auto operator!=(QueueCpuOmp2Collective const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
 
-    public:
         std::shared_ptr<cpu::detail::QueueCpuOmp2CollectiveImpl> m_spQueueImpl;
-        std::shared_ptr<QueueCpuBlocking> m_spBlockingQueue;
     };
 
     namespace trait
@@ -113,6 +113,7 @@ namespace alpaka
         {
             using type = DevCpu;
         };
+
         //! The CPU blocking device queue device get trait specialization.
         template<>
         struct GetDev<QueueCpuOmp2Collective>
@@ -139,21 +140,17 @@ namespace alpaka
             {
                 if(::omp_in_parallel() != 0)
                 {
-                    // wait for all tasks en-queued before the parallel region
-                    while(!empty(*queue.m_spBlockingQueue))
-                    {
-                    }
-                    queue.m_spQueueImpl->m_uCurrentlyExecutingTask += 1u;
-
+                    // wait for all tasks enqueued before the parallel region
+                    queue.m_spQueueImpl->busyWaitUntilBlockingQueueEmpty();
+                    ++queue.m_spQueueImpl->m_uCurrentlyExecutingTask;
 #    pragma omp single nowait
                     task();
-
-                    queue.m_spQueueImpl->m_uCurrentlyExecutingTask -= 1u;
+                    --queue.m_spQueueImpl->m_uCurrentlyExecutingTask;
                 }
                 else
                 {
                     std::lock_guard<std::mutex> lk(queue.m_spQueueImpl->m_mutex);
-                    alpaka::enqueue(*queue.m_spBlockingQueue, task);
+                    alpaka::enqueue(queue.m_spQueueImpl->blockingQueue, task);
                 }
             }
         };
@@ -164,7 +161,8 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto empty(QueueCpuOmp2Collective const& queue) -> bool
             {
-                return queue.m_spQueueImpl->m_uCurrentlyExecutingTask == 0u && alpaka::empty(*queue.m_spBlockingQueue);
+                return queue.m_spQueueImpl->m_uCurrentlyExecutingTask == 0u
+                       && alpaka::empty(queue.m_spQueueImpl->blockingQueue);
             }
         };
 
@@ -179,6 +177,7 @@ namespace alpaka
 #    pragma omp barrier
             }
         };
+
         //! The CPU OpenMP2 collective device queue enqueue trait specialization.
         template<>
         struct Enqueue<QueueCpuOmp2Collective, EventCpu>
@@ -190,14 +189,12 @@ namespace alpaka
                 if(::omp_in_parallel() != 0)
                 {
                     // wait for all tasks en-queued before the parallel region
-                    while(!empty(*queue.m_spBlockingQueue))
-                    {
-                    }
+                    queue.m_spQueueImpl->busyWaitUntilBlockingQueueEmpty();
 #    pragma omp barrier
                 }
                 else
                 {
-                    alpaka::enqueue(*queue.m_spBlockingQueue, event);
+                    alpaka::enqueue(queue.m_spQueueImpl->blockingQueue, event);
                 }
             }
         };
@@ -207,27 +204,22 @@ namespace alpaka
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct Enqueue<QueueCpuOmp2Collective, TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-        private:
-            using Task = TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>;
-
-        public:
-            ALPAKA_FN_HOST static auto enqueue(QueueCpuOmp2Collective& queue, Task const& task) -> void
+            ALPAKA_FN_HOST static auto enqueue(
+                QueueCpuOmp2Collective& queue,
+                TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void
             {
                 if(::omp_in_parallel() != 0)
                 {
-                    while(!empty(*queue.m_spBlockingQueue))
-                    {
-                    }
-                    // execute within an OpenMP parallel region
-                    queue.m_spQueueImpl->m_uCurrentlyExecutingTask += 1u;
+                    queue.m_spQueueImpl->busyWaitUntilBlockingQueueEmpty();
+                    ++queue.m_spQueueImpl->m_uCurrentlyExecutingTask;
                     // execute task within an OpenMP parallel region
                     task();
-                    queue.m_spQueueImpl->m_uCurrentlyExecutingTask -= 1u;
+                    --queue.m_spQueueImpl->m_uCurrentlyExecutingTask;
                 }
                 else
                 {
                     std::lock_guard<std::mutex> lk(queue.m_spQueueImpl->m_mutex);
-                    alpaka::enqueue(*queue.m_spBlockingQueue, task);
+                    alpaka::enqueue(queue.m_spQueueImpl->blockingQueue, task);
                 }
             }
         };
@@ -235,11 +227,10 @@ namespace alpaka
         template<>
         struct Enqueue<QueueCpuOmp2Collective, test::EventHostManualTriggerCpu<>>
         {
-            //
             ALPAKA_FN_HOST static auto enqueue(QueueCpuOmp2Collective&, test::EventHostManualTriggerCpu<>&) -> void
             {
-                // EventHostManualTriggerCpu are not supported for together with the queue QueueCpuOmp2Collective
-                // but a specialization is needed to path the EventTests
+                // EventHostManualTriggerCpu are not supported for together with the queue
+                // QueueCpuOmp2Collective but a specialization is needed to path the EventTests
             }
         };
 
@@ -255,19 +246,16 @@ namespace alpaka
                 if(::omp_in_parallel() != 0)
                 {
                     // wait for all tasks en-queued before the parallel region
-                    while(!empty(*queue.m_spBlockingQueue))
-                    {
-                    }
+                    queue.m_spQueueImpl->busyWaitUntilBlockingQueueEmpty();
 #    pragma omp barrier
                 }
                 else
                 {
                     std::lock_guard<std::mutex> lk(queue.m_spQueueImpl->m_mutex);
-                    wait(*queue.m_spBlockingQueue);
+                    wait(queue.m_spQueueImpl->blockingQueue);
                 }
             }
         };
-
 
         //! The CPU OpenMP2 collective device queue event wait trait specialization.
         template<>
@@ -278,6 +266,7 @@ namespace alpaka
 #    pragma omp barrier
             }
         };
+
         //! The CPU OpenMP2 collective queue event wait trait specialization.
         template<>
         struct WaiterWaitFor<QueueCpuOmp2Collective, EventCpu>
@@ -287,28 +276,22 @@ namespace alpaka
                 if(::omp_in_parallel() != 0)
                 {
                     // wait for all tasks en-queued before the parallel region
-                    while(!empty(*queue.m_spBlockingQueue))
-                    {
-                    }
+                    queue.m_spQueueImpl->busyWaitUntilBlockingQueueEmpty();
                     wait(queue);
                 }
                 else
-                    wait(*queue.m_spBlockingQueue, event);
+                    wait(queue.m_spQueueImpl->blockingQueue, event);
             }
         };
     } // namespace trait
-    //! The test specifics.
-    namespace test::trait
+
+    //! The blocking queue trait specialization for a OpenMP2 collective CPU queue.
+    template<>
+    struct test::trait::IsBlockingQueue<QueueCpuOmp2Collective> : std::true_type
     {
-        //! The blocking queue trait specialization for a OpenMP2 collective CPU queue.
-        template<>
-        struct IsBlockingQueue<QueueCpuOmp2Collective>
-        {
-            static constexpr bool value = true;
-        };
-    } // namespace test::trait
+    };
 } // namespace alpaka
 
-#    include <alpaka/event/EventCpu.hpp>
+#    include "alpaka/event/EventCpu.hpp"
 
 #endif

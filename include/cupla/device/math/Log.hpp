@@ -37,6 +37,14 @@ namespace cupla
                 //! Computes the natural (base e) logarithm.
                 CUPLA_UNARY_MATH_FN(log, alpaka::math::ConceptMathLog, Log)
 
+#if ALPAKA_VERSION >= BOOST_VERSION_NUMBER(1, 0, 0)
+                //! Computes the natural (base 2) logarithm.
+                CUPLA_UNARY_MATH_FN(log2, alpaka::math::ConceptMathLog2, Log2)
+
+                //! Computes the natural (base 10) logarithm.
+                CUPLA_UNARY_MATH_FN(log10, alpaka::math::ConceptMathLog10, Log10)
+#endif
+
             } // namespace math
         } // namespace device
     } // namespace CUPLA_ACCELERATOR_NAMESPACE

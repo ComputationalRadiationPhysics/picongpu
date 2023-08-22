@@ -1,19 +1,16 @@
 /* Copyright 2022 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/atomic/Traits.hpp>
-#include <alpaka/core/BoostPredef.hpp>
+#include "alpaka/atomic/Traits.hpp"
+#include "alpaka/core/BoostPredef.hpp"
 
 #include <array>
 #include <mutex>
+
+#ifdef ALPAKA_DISABLE_ATOMIC_ATOMICREF
 
 namespace alpaka
 {
@@ -60,17 +57,17 @@ namespace alpaka
             constexpr size_t hashTableSize = THashTableSize == 0u ? 1u : nextPowerOf2(THashTableSize);
 
             size_t const hashedAddr = hash(ptr) & (hashTableSize - 1u);
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wexit-time-destructors"
-#endif
+#    if BOOST_COMP_CLANG
+#        pragma clang diagnostic push
+#        pragma clang diagnostic ignored "-Wexit-time-destructors"
+#    endif
             static std::array<
                 std::mutex,
                 hashTableSize>
                 m_mtxAtomic; //!< The mutex protecting access for an atomic operation.
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic pop
-#endif
+#    if BOOST_COMP_CLANG
+#        pragma clang diagnostic pop
+#    endif
             return m_mtxAtomic[hashedAddr];
         }
     };
@@ -101,3 +98,5 @@ namespace alpaka
         };
     } // namespace trait
 } // namespace alpaka
+
+#endif

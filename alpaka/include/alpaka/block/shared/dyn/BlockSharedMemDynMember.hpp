@@ -1,18 +1,13 @@
-/* Copyright 2022 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/block/shared/dyn/BlockSharedDynMemberAllocKiB.hpp>
-#include <alpaka/block/shared/dyn/Traits.hpp>
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/core/Vectorize.hpp>
+#include "alpaka/block/shared/dyn/BlockSharedDynMemberAllocKiB.hpp"
+#include "alpaka/block/shared/dyn/Traits.hpp"
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/core/Vectorize.hpp"
 
 #include <array>
 #include <cstdint>
@@ -24,7 +19,7 @@ namespace alpaka
     {
         //! "namespace" for static constexpr members that should be in BlockSharedMemDynMember
         //! but cannot be because having a static const member breaks GCC 10
-        //! OpenMP target and OpenACC: type not mappable.
+        //! OpenMP target: type not mappable.
         template<std::size_t TStaticAllocKiB>
         struct BlockSharedMemDynMemberStatic
         {

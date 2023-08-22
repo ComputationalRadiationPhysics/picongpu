@@ -1,10 +1,5 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
@@ -72,4 +67,12 @@
 #if defined(BOOST_COMP_PGI) && defined(BOOST_COMP_PGI_EMULATED)
 #    undef BOOST_COMP_PGI
 #    define BOOST_COMP_PGI BOOST_COMP_PGI_EMULATED
+#endif
+
+// Intel LLVM compiler detection
+#if !defined(BOOST_COMP_ICPX)
+#    if defined(SYCL_LANGUAGE_VERSION) && defined(__INTEL_LLVM_COMPILER)
+// The version string for icpx 2023.1.0 is 20230100. In Boost.Predef this becomes (53,1,0).
+#        define BOOST_COMP_ICPX BOOST_PREDEF_MAKE_YYYYMMDD(__INTEL_LLVM_COMPILER)
+#    endif
 #endif

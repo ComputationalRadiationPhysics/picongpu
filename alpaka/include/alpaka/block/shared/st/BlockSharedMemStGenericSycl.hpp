@@ -1,25 +1,20 @@
-/* Copyright 2022 Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Jan Stephan, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
-
 
 #pragma once
 
+#include "alpaka/block/shared/st/Traits.hpp"
+#include "alpaka/block/shared/st/detail/BlockSharedMemStMemberImpl.hpp"
+
+#include <cstddef>
+#include <cstdint>
+
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    include <alpaka/block/shared/st/Traits.hpp>
-#    include <alpaka/block/shared/st/detail/BlockSharedMemStMemberImpl.hpp>
+#    include <sycl/sycl.hpp>
 
-#    include <CL/sycl.hpp>
-
-#    include <cstdint>
-
-namespace alpaka::experimental
+namespace alpaka
 {
     //! The generic SYCL shared memory allocator.
     class BlockSharedMemStGenericSycl
@@ -27,8 +22,7 @@ namespace alpaka::experimental
         , public concepts::Implements<ConceptBlockSharedSt, BlockSharedMemStGenericSycl>
     {
     public:
-        BlockSharedMemStGenericSycl(
-            sycl::accessor<std::byte, 1, sycl::access_mode::read_write, sycl::target::local> accessor)
+        BlockSharedMemStGenericSycl(sycl::local_accessor<std::byte> accessor)
             : BlockSharedMemStMemberImpl(
                 reinterpret_cast<std::uint8_t*>(accessor.get_pointer().get()),
                 accessor.size())
@@ -37,16 +31,16 @@ namespace alpaka::experimental
         }
 
     private:
-        sycl::accessor<std::byte, 1, sycl::access_mode::read_write, sycl::target::local> m_accessor;
+        sycl::local_accessor<std::byte> m_accessor;
     };
-} // namespace alpaka::experimental
+} // namespace alpaka
 
 namespace alpaka::trait
 {
     template<typename T, std::size_t TUniqueId>
-    struct DeclareSharedVar<T, TUniqueId, experimental::BlockSharedMemStGenericSycl>
+    struct DeclareSharedVar<T, TUniqueId, BlockSharedMemStGenericSycl>
     {
-        static auto declareVar(experimental::BlockSharedMemStGenericSycl const& smem) -> T&
+        static auto declareVar(BlockSharedMemStGenericSycl const& smem) -> T&
         {
             auto* data = smem.template getVarPtr<T>(TUniqueId);
 
@@ -61,9 +55,9 @@ namespace alpaka::trait
     };
 
     template<>
-    struct FreeSharedVars<experimental::BlockSharedMemStGenericSycl>
+    struct FreeSharedVars<BlockSharedMemStGenericSycl>
     {
-        static auto freeVars(experimental::BlockSharedMemStGenericSycl const&) -> void
+        static auto freeVars(BlockSharedMemStGenericSycl const&) -> void
         {
             // shared memory block data will be reused
         }

@@ -1,10 +1,5 @@
 /* Copyright 2022 Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/acc/AccDevProps.hpp>
@@ -25,7 +20,8 @@ namespace
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
 
-        auto const dev = alpaka::getDevByIdx<TAcc>(0u);
+        auto const platform = alpaka::Platform<TAcc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
         auto const gridThreadExtent = alpaka::Vec<Dim, Idx>::all(10);
         auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
         auto const workDiv = alpaka::getValidWorkDiv<TAcc>(
@@ -54,7 +50,8 @@ TEMPLATE_LIST_TEST_CASE("subDivideGridElems.2D.examples", "[workDiv]", alpaka::t
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     if constexpr(Dim::value == 2)
     {
-        auto const dev = alpaka::getDevByIdx<Acc>(0u);
+        auto const platform = alpaka::Platform<Acc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
         auto props = alpaka::getAccDevProps<Acc>(dev);
         props.m_gridBlockExtentMax = Vec{1024, 1024};
         props.m_gridBlockCountMax = 1024 * 1024;
@@ -123,7 +120,8 @@ TEMPLATE_LIST_TEST_CASE("getValidWorkDiv.1D.withIdx", "[workDiv]", alpaka::test:
     using Vec = alpaka::Vec<Dim, Idx>;
     if constexpr(Dim::value == 1)
     {
-        auto const dev = alpaka::getDevByIdx<Acc>(0u);
+        auto const platform = alpaka::Platform<Acc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
         // test that we can call getValidWorkDiv with the Idx type directly instead of a Vec
         auto const ref = alpaka::getValidWorkDiv<Acc>(dev, Vec{256}, Vec{13});
         CHECK(alpaka::getValidWorkDiv<Acc>(dev, Idx{256}, Idx{13}) == ref);
@@ -133,10 +131,9 @@ TEMPLATE_LIST_TEST_CASE("getValidWorkDiv.1D.withIdx", "[workDiv]", alpaka::test:
 TEMPLATE_LIST_TEST_CASE("isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dev = alpaka::Dev<Acc>;
-    using Pltf = alpaka::Pltf<Dev>;
 
-    Dev dev = alpaka::getDevByIdx<Pltf>(0u);
+    auto const platform = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
     auto const workDiv = getWorkDiv<Acc>();
     // Test both overloads
     REQUIRE(alpaka::isValidWorkDiv(alpaka::getAccDevProps<Acc>(dev), workDiv));

@@ -53,6 +53,25 @@ namespace cupla
                 //! Computes the arc tangent of y/x using the signs of arguments to determine the correct quadrant.
                 CUPLA_BINARY_MATH_FN(atan2, alpaka::math::ConceptMathAtan2, Atan2)
 
+#if ALPAKA_VERSION >= BOOST_VERSION_NUMBER(1, 0, 0)
+                //! Computes the hyperbolic sine.
+                CUPLA_UNARY_MATH_FN(sinh, alpaka::math::ConceptMathSinh, Sinh)
+
+                //! Computes the hyperbolic cosine.
+                CUPLA_UNARY_MATH_FN(cosh, alpaka::math::ConceptMathCosh, Cosh)
+
+                //! Computes the hyperbolic tangent.
+                CUPLA_UNARY_MATH_FN(tanh, alpaka::math::ConceptMathTanh, Tanh)
+
+                //! Computes the hyperbolic arc sine.
+                CUPLA_UNARY_MATH_FN(asinh, alpaka::math::ConceptMathAsin, Asinh)
+
+                //! Computes the hyperbolic arc cosine.
+                CUPLA_UNARY_MATH_FN(acosh, alpaka::math::ConceptMathAcosh, Acosh)
+
+                //! Computes the hyperbolic arc tangent.
+                CUPLA_UNARY_MATH_FN(atanh, alpaka::math::ConceptMathAtanh, Atanh)
+#endif
             } // namespace math
         } // namespace device
     } // namespace CUPLA_ACCELERATOR_NAMESPACE

@@ -1,20 +1,15 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/dim/DimIntegralConst.hpp>
-#include <alpaka/extent/Traits.hpp>
-#include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/meta/Integral.hpp>
-#include <alpaka/meta/NdLoop.hpp>
+#include "alpaka/core/Assert.hpp"
+#include "alpaka/dim/DimIntegralConst.hpp"
+#include "alpaka/extent/Traits.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/meta/Integral.hpp"
+#include "alpaka/meta/NdLoop.hpp"
 
 #include <cstring>
 
@@ -158,7 +153,7 @@ namespace alpaka
             }
 #endif
 
-            ALPAKA_FN_HOST auto operator()() const -> void
+            ALPAKA_FN_HOST auto operator()() const noexcept(ALPAKA_DEBUG < ALPAKA_DEBUG_FULL) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 

@@ -1,24 +1,19 @@
 /* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/acc/AccDevProps.hpp>
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Concepts.hpp>
-#include <alpaka/core/DemangleTypeNames.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/kernel/Traits.hpp>
-#include <alpaka/pltf/Traits.hpp>
-#include <alpaka/queue/Traits.hpp>
+#include "alpaka/acc/AccDevProps.hpp"
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/queue/Traits.hpp"
 
 #include <string>
 #include <type_traits>
@@ -29,6 +24,11 @@ namespace alpaka
     struct ConceptAcc
     {
     };
+
+    //! True if TAcc is an accelerator, i.e. if it implements the ConceptAcc concept.
+    template<typename TAcc>
+    inline constexpr bool isAccelerator = concepts::ImplementsConcept<ConceptAcc, TAcc>::value;
+
     //! The accelerator traits.
     namespace trait
     {
@@ -79,7 +79,7 @@ namespace alpaka
         template<typename TAcc, typename TProperty>
         struct QueueType<TAcc, TProperty, std::enable_if_t<concepts::ImplementsConcept<ConceptAcc, TAcc>::value>>
         {
-            using type = typename QueueType<typename alpaka::trait::PltfType<TAcc>::type, TProperty>::type;
+            using type = typename QueueType<typename alpaka::trait::PlatformType<TAcc>::type, TProperty>::type;
         };
     } // namespace trait
 } // namespace alpaka

@@ -1,10 +1,5 @@
 /* Copyright 2022 Andrea Bocci, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 // make sure the CPU_B_SEQ_T_SEQ backend is always available
@@ -43,11 +38,9 @@ using TestAccs = alpaka::test::EnabledAccs<Dim1D, Idx>;
 TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
 {
     using DeviceAcc = TestType;
-    using Device = alpaka::Dev<DeviceAcc>;
     using DeviceQueue = alpaka::Queue<DeviceAcc, alpaka::NonBlocking>;
 
     using HostAcc = alpaka::AccCpuSerial<Dim1D, Idx>;
-    using Host = alpaka::DevCpu;
     using HostQueue = alpaka::Queue<HostAcc, alpaka::Blocking>;
 
     // check that a Scalar extent has exactly 1 element
@@ -56,7 +49,8 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
     CHECK(scalar.prod() == 1u);
 
     // CPU host
-    auto const host = alpaka::getDevByIdx<Host>(0u);
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const host = alpaka::getDevByIdx(platformHost, 0);
     INFO("Using alpaka accelerator: " << alpaka::getAccName<HostAcc>());
     HostQueue hostQueue(host);
 
@@ -98,7 +92,8 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
     CHECK(expected1 == *h_buffer1);
 
     // GPU device
-    auto const device = alpaka::getDevByIdx<Device>(0u);
+    auto const platformAcc = alpaka::Platform<DeviceAcc>{};
+    auto const device = alpaka::getDevByIdx(platformAcc, 0);
     INFO("Using alpaka accelerator: " << alpaka::getAccName<DeviceAcc>());
     DeviceQueue deviceQueue(device);
 

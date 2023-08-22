@@ -1,21 +1,17 @@
-/* Copyright 2022 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber,
+ *                Jan Stephan, Andrea Bocci, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/dev/DevCpu.hpp>
-#include <alpaka/dev/DevOacc.hpp>
-#include <alpaka/dev/DevOmp5.hpp>
-#include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/mem/view/ViewAccessOps.hpp>
-#include <alpaka/vec/Vec.hpp>
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/dev/DevGenericSycl.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/mem/view/ViewAccessOps.hpp"
+#include "alpaka/meta/DependentFalseType.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <type_traits>
 #include <utility>
@@ -185,35 +181,14 @@ namespace alpaka
         };
 #endif
 
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        //! The Omp5 device CreateStaticDevMemView trait specialization.
-        template<>
-        struct CreateStaticDevMemView<DevOmp5>
+#if defined(ALPAKA_ACC_SYCL_ENABLED)
+        //! The SYCL device CreateStaticDevMemView trait specialization.
+        template<typename TPlatform>
+        struct CreateStaticDevMemView<DevGenericSycl<TPlatform>>
         {
-            template<typename TElem, typename TExtent>
-            static auto createStaticDevMemView(TElem* pMem, DevOmp5 const& dev, TExtent const& extent)
-            {
-                return alpaka::ViewPlainPtr<DevOmp5, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
-                    dev.mapStatic(pMem, extent),
-                    dev,
-                    extent);
-            }
-        };
-#endif
-
-#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-        //! The Oacc device CreateStaticDevMemView trait specialization.
-        template<>
-        struct CreateStaticDevMemView<DevOacc>
-        {
-            template<typename TElem, typename TExtent>
-            static auto createStaticDevMemView(TElem* pMem, DevOacc const& dev, TExtent const& extent)
-            {
-                return alpaka::ViewPlainPtr<DevOacc, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
-                    dev.mapStatic(pMem, extent),
-                    dev,
-                    extent);
-            }
+            static_assert(
+                meta::DependentFalseType<TPlatform>::value,
+                "The SYCL backend does not support global device variables.");
         };
 #endif
 
@@ -254,41 +229,27 @@ namespace alpaka
         };
 #endif
 
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        //! The Omp5 device CreateViewPlainPtr trait specialization.
-        //! \todo What ist this for? Does this exist in OMP5?
-        template<>
-        struct CreateViewPlainPtr<DevOmp5>
+#if defined(ALPAKA_ACC_SYCL_ENABLED)
+        //! The SYCL device CreateViewPlainPtr trait specialization.
+        template<typename TPlatform>
+        struct CreateViewPlainPtr<DevGenericSycl<TPlatform>>
         {
             template<typename TElem, typename TExtent, typename TPitch>
-            static auto createViewPlainPtr(DevOmp5 const& dev, TElem* pMem, TExtent const& extent, TPitch const& pitch)
+            static auto createViewPlainPtr(
+                DevGenericSycl<TPlatform> const& dev,
+                TElem* pMem,
+                TExtent const& extent,
+                TPitch const& pitch)
             {
-                return alpaka::ViewPlainPtr<DevOmp5, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
-                    pMem,
-                    dev,
-                    extent,
-                    pitch);
+                return alpaka::
+                    ViewPlainPtr<DevGenericSycl<TPlatform>, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
+                        pMem,
+                        dev,
+                        extent,
+                        pitch);
             }
         };
 #endif
-
-#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-        //! The Oacc device CreateViewPlainPtr trait specialization.
-        template<>
-        struct CreateViewPlainPtr<DevOacc>
-        {
-            template<typename TElem, typename TExtent, typename TPitch>
-            static auto createViewPlainPtr(DevOacc const& dev, TElem* pMem, TExtent const& extent, TPitch const& pitch)
-            {
-                return alpaka::ViewPlainPtr<DevOacc, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
-                    pMem,
-                    dev,
-                    extent,
-                    pitch);
-            }
-        };
-#endif
-
         //! The ViewPlainPtr offset get trait specialization.
         template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
         struct GetOffset<TIdxIntegralConst, ViewPlainPtr<TDev, TElem, TDim, TIdx>>

@@ -1,40 +1,31 @@
-/* Copyright 2022 Jiri Vyskocil, Bernhard Manfred Gruber, Jeffrey Kelling
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jiří Vyskočil, Bernhard Manfred Gruber, Jeffrey Kelling, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/rand/Philox/PhiloxBaseCommon.hpp>
-#include <alpaka/rand/Philox/PhiloxBaseStdArray.hpp>
-#include <alpaka/rand/Philox/PhiloxStateless.hpp>
-#include <alpaka/rand/Philox/PhiloxStatelessKeyedBase.hpp>
+#include "alpaka/rand/Philox/PhiloxBaseCommon.hpp"
+#include "alpaka/rand/Philox/PhiloxBaseCudaArray.hpp"
+#include "alpaka/rand/Philox/PhiloxBaseStdArray.hpp"
+#include "alpaka/rand/Philox/PhiloxStateless.hpp"
+#include "alpaka/rand/Philox/PhiloxStatelessKeyedBase.hpp"
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#    include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
-#    include <alpaka/rand/Philox/PhiloxBaseCudaArray.hpp>
+namespace alpaka
+{
+    template<typename TApi, typename TDim, typename TIdx>
+    class AccGpuUniformCudaHipRt;
+}
 #endif
 
 namespace alpaka::rand::engine::trait
 {
-#if BOOST_COMP_CLANG
-    /* TODO: Remove the following pragmas once support for clang 6 is removed. They are necessary because these
-    /  clang versions incorrectly warn about a missing 'extern'. */
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wmissing-variable-declarations"
-#endif
     template<typename TAcc>
     constexpr inline bool isGPU = false;
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
     template<typename TApi, typename TDim, typename TIdx>
     constexpr inline bool isGPU<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>> = true;
-#endif
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic pop
 #endif
 
     /** Selection of default backend
