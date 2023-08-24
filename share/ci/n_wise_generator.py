@@ -124,18 +124,11 @@ def is_valid_combination(row):
         if is_clang_cuda:
             if not is_cuda:
                 return False
-            # clang cuda containers shipped without clang-11 and clang-12
-            # https://codebase.helmholtz.cloud/crp/alpaka-group-container/-/issues/28#note_3118676
-            if v_compiler == 11 or v_compiler == 12:
+            # alpaka version 1.X enforces at least clang 14 to compile CUDA
+            # code with clang
+            if v_compiler < 14:
                 return False
-            # native CMake CUDA compile is not supporting clang 8
-            if v_compiler == 8:
-                return False
-            if v_cuda == 10.0 and v_compiler >= 8:
-                return True
-            if v_cuda == 10.1 and v_compiler >= 9:
-                return True
-            if 11.0 <= v_cuda <= 11.6 and v_compiler >= 11:
+            if 11.0 <= v_cuda <= 11.6:
                 return True
 
             return False
