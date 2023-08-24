@@ -40,7 +40,7 @@ namespace picongpu
                 struct PlaneWave
                 {
                     //! Get text name of the incident field profile
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return "PlaneWave";
                     }

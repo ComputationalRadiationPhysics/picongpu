@@ -227,7 +227,7 @@ namespace pmacc
          * @return DataSpace with relative offsets
          */
         template<unsigned DIM>
-        static HDINLINE DataSpace<DIM> getRelativeDirections(uint32_t direction)
+        HDINLINE static DataSpace<DIM> getRelativeDirections(uint32_t direction)
         {
             DataSpace<DIM> tmp;
 

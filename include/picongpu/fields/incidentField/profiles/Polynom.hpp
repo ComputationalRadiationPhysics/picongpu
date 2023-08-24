@@ -40,7 +40,7 @@ namespace picongpu
                 struct Polynom
                 {
                     //! Get text name of the incident field profile
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return "Polynom";
                     }
@@ -126,7 +126,7 @@ namespace picongpu
 
                     private:
                         //! Get polynomial value for unitless time variable tau in [0.0, 2.0]
-                        static HDINLINE float_X polynomial(float_X const tau)
+                        HDINLINE static float_X polynomial(float_X const tau)
                         {
                             auto result = 0.0_X;
                             if(tau >= 0.0_X && tau <= 1.0_X)

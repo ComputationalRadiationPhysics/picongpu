@@ -49,7 +49,7 @@ namespace pmacc
 
             /** This can be constructed with either the RNGBox (like the RNGHandle) or from an RNGHandle instance */
             template<class T_RNGBoxOrHandle>
-            explicit HINLINE Random(const T_RNGBoxOrHandle& rngBox) : RNGHandle(rngBox)
+            HINLINE explicit Random(const T_RNGBoxOrHandle& rngBox) : RNGHandle(rngBox)
             {
             }
 

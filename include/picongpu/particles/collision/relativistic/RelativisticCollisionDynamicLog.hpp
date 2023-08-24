@@ -120,7 +120,7 @@ namespace picongpu
                     }
 
                     //! get the name of the functor
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return "RelativisticCollisionDynamicLog";
                     }

@@ -53,7 +53,7 @@ namespace pmacc
         /**
          * Copy constructor
          */
-        constexpr HDINLINE Selection(const Selection&) = default;
+        HDINLINE constexpr Selection(const Selection&) = default;
 
         /**
          * Constructor

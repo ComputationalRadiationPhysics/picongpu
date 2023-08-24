@@ -96,7 +96,7 @@ namespace pmacc
                         && offsetof(StateType, s2) == offsetof(curandStateMRG32k3a, s2),
                     Incompatible_structs);
 
-                static DINLINE void AssignState(StateType& dest, curandStateMRG32k3a const& src)
+                DINLINE static void AssignState(StateType& dest, curandStateMRG32k3a const& src)
                 {
                     // Check if we can do this cast
                     dest = reinterpret_cast<StateType const&>(src);

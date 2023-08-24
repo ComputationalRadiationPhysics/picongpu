@@ -320,7 +320,7 @@ namespace picongpu
                 struct GaussianPulse
                 {
                     //! Get text name of the incident field profile
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         // This template is used for both Gaussian and PulseFrontTilt, distinguish based on tilt value
                         using TiltParam = detail::TiltParam<T_Params>;

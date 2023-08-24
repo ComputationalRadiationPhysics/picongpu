@@ -49,14 +49,14 @@ namespace pmacc
                  * @return reference to shared memory
                  */
                 template<typename T_Acc>
-                static DINLINE T_Type& get(T_Acc const& acc)
+                DINLINE static T_Type& get(T_Acc const& acc)
                 {
                     auto& smem = ::alpaka::declareSharedVar<T_Type, T_uniqueId>(acc);
                     return smem;
                 }
 
                 template<typename T_Acc, uint32_t T_numSuggestedWorkers>
-                static DINLINE T_Type& get(pmacc::lockstep::Worker<T_Acc, T_numSuggestedWorkers> const& worker)
+                DINLINE static T_Type& get(pmacc::lockstep::Worker<T_Acc, T_numSuggestedWorkers> const& worker)
                 {
                     auto& smem = ::alpaka::declareSharedVar<T_Type, T_uniqueId>(worker.getAcc());
                     return smem;

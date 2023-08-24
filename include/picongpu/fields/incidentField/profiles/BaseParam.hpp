@@ -81,7 +81,7 @@ namespace picongpu
                         // Some utility that is not part of public interface
                     private:
                         //! Return z direction in 3d or 0 in 2d
-                        static constexpr HDINLINE float_64 getDirectionZ()
+                        HDINLINE static constexpr float_64 getDirectionZ()
                         {
                             if constexpr(simDim == 3)
                                 return Params::DIRECTION_Z;
@@ -89,7 +89,7 @@ namespace picongpu
                         }
 
                         //! Return z focus position in 3d or 0 in 2d
-                        static constexpr HINLINE float_64 getFocusPositionZ()
+                        HINLINE static constexpr float_64 getFocusPositionZ()
                         {
                             if constexpr(simDim == 3)
                                 return Params::FOCUS_POSITION_Z_SI;

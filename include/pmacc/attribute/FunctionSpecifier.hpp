@@ -26,10 +26,17 @@
 #include <cupla/types.hpp>
 
 
+/** Function qualifiers
+ *
+ * Function qualifier should stay left hand side of keyword e.g. 'static', 'constexpr', 'explicit' or the return type
+ * definition.
+ * @{
+ */
 #define HDINLINE ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
 #define DINLINE ALPAKA_FN_ACC ALPAKA_FN_INLINE
 #define DEVICEONLY ALPAKA_FN_ACC
 #define HINLINE ALPAKA_FN_HOST ALPAKA_FN_INLINE
+/** @} */
 
 /**
  * CUDA architecture version (aka PTX ISA level)

@@ -500,7 +500,7 @@ namespace picongpu
                 struct DispersivePulse
                 {
                     //! Get text name of the incident field profile
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return "DispersivePulse";
                     }

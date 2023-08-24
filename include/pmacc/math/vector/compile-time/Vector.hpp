@@ -139,7 +139,7 @@ namespace pmacc
                  *
                  *  @return RT_type runtime vector with same value type
                  */
-                static HDINLINE RT_type toRT()
+                HDINLINE static RT_type toRT()
                 {
                     math::Vector<type, dim> result;
                     math::CT::detail::VectorFromCT<dim>()(result, This());

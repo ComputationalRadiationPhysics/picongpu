@@ -61,7 +61,7 @@ namespace picongpu
                         return unitDimension;
                     }
 
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return "boundElectronDensity";
                     }
