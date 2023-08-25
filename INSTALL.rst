@@ -12,7 +12,7 @@
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera
 
 Overview
 --------
@@ -31,7 +31,7 @@ Mandatory
 
 Compiler
 """"""""
-- C++17 supporting compiler, e.g. GCC 9+ or Clang 10+
+- C++17 supporting compiler, e.g. GCC 9+ or Clang 11+
 - if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
 - *note:* be sure to build all libraries/dependencies with the *same* compiler version
 - *Debian/Ubuntu:*
