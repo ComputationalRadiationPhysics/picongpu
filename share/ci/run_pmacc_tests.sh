@@ -45,7 +45,7 @@ get_backend_flags()
         if [ $num_options -eq 2 ] ; then
             result+=" -DCMAKE_CUDA_ARCHITECTURES=\"${backend_cfg[1]}\""
         else
-            result+=" -DCMAKE_CUDA_ARCHITECTURES=35"
+            result+=" -DCMAKE_CUDA_ARCHITECTURES=52"
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
