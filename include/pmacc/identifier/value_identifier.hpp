@@ -49,7 +49,7 @@
  */
 #define value_identifier(in_type, name, in_default)                                                                   \
     identifier(                                                                                                       \
-        name, using type = in_type; static HDINLINE type getValue()                                                   \
+        name, using type = in_type; HDINLINE static type getValue()                                                   \
         { return in_default; } static std::string getName() { return std::string(#name); })
 
 /** getValue() is defined constexpr
@@ -57,5 +57,5 @@
  */
 #define value_identifier_constexpr(in_type, name, in_default)                                                         \
     identifier(                                                                                                       \
-        name, using type = in_type; static constexpr HDINLINE type getValue()                                         \
+        name, using type = in_type; HDINLINE static constexpr type getValue()                                         \
         { return in_default; } static std::string getName() { return std::string(#name); })

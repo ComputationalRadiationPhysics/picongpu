@@ -1,10 +1,5 @@
 /* Copyright 2022 Jiří Vyskočil, René Widera, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: ISC
  */
 
 #include <alpaka/alpaka.hpp>
@@ -37,11 +32,15 @@ struct Box
     using Idx = std::size_t;
     using Vec = alpaka::Vec<Dim, Idx>;
     using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
-    using Host = alpaka::DevCpu;
+    using PlatformHost = alpaka::PlatformCpu;
+    using Host = alpaka::Dev<PlatformHost>;
+    using PlatformAcc = alpaka::Platform<Acc>;
     using QueueProperty = alpaka::Blocking;
     using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 
+    PlatformHost hostPlatform;
+    PlatformAcc accPlatform;
     QueueAcc queue; ///< default accelerator queue
 
     // buffers holding the PRNG states
@@ -63,25 +62,25 @@ struct Box
     BufAcc bufAccResult; ///< device side results buffer
 
     Box()
-        : queue{alpaka::getDevByIdx<Acc>(Idx{0})}
+        : queue{alpaka::getDevByIdx(accPlatform, 0)}
         , extentRand{static_cast<Idx>(NUM_POINTS)} // One PRNG state per "point".
         , workdivRand{alpaka::getValidWorkDiv<Acc>(
-              alpaka::getDevByIdx<Acc>(Idx{0}),
+              alpaka::getDevByIdx(accPlatform, 0),
               extentRand,
               Vec(Idx{1}),
               false,
               alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)}
-        , bufHostRand{alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Host>(0u), extentRand)}
-        , bufAccRand{alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Acc>(0u), extentRand)}
+        , bufHostRand{alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentRand)}
+        , bufAccRand{alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentRand)}
         , extentResult{static_cast<Idx>((NUM_POINTS * NUM_ROLLS))} // Store all "rolls" for each "point"
         , workdivResult{alpaka::getValidWorkDiv<Acc>(
-              alpaka::getDevByIdx<Acc>(Idx{0}),
+              alpaka::getDevByIdx(accPlatform, 0),
               extentResult,
               Vec(static_cast<Idx>(NUM_ROLLS)), // One thread per "point"; each performs NUM_ROLLS "rolls"
               false,
               alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)}
-        , bufHostResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Host>(0u), extentResult)}
-        , bufAccResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), extentResult)}
+        , bufHostResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentResult)}
+        , bufAccResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentResult)}
     {
     }
 };

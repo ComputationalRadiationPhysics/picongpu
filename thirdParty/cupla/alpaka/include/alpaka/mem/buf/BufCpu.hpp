@@ -1,34 +1,22 @@
 /* Copyright 2022 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Vectorize.hpp>
-#include <alpaka/dev/DevCpu.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/mem/buf/Traits.hpp>
-#include <alpaka/mem/view/ViewAccessOps.hpp>
-#include <alpaka/vec/Vec.hpp>
-
-// Backend specific includes.
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#    include <alpaka/core/ApiCudaRt.hpp>
-#    include <alpaka/core/Cuda.hpp>
-#endif
-
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#    include <alpaka/core/ApiHipRt.hpp>
-#    include <alpaka/core/Hip.hpp>
-#endif
-
-#include <alpaka/mem/alloc/AllocCpuAligned.hpp>
-#include <alpaka/meta/DependentFalseType.hpp>
+#include "alpaka/core/ApiCudaRt.hpp"
+#include "alpaka/core/ApiHipRt.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/core/Vectorize.hpp"
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/mem/alloc/AllocCpuAligned.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/mem/view/ViewAccessOps.hpp"
+#include "alpaka/meta/DependentFalseType.hpp"
+#include "alpaka/platform/PlatformCpu.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <functional>
 #include <memory>
@@ -257,10 +245,10 @@ namespace alpaka
                 using Allocator = AllocCpuAligned<std::integral_constant<std::size_t, alignment>>;
                 static_assert(std::is_empty_v<Allocator>, "AllocCpuAligned is expected to be stateless");
                 auto* memPtr = alpaka::malloc<TElem>(Allocator{}, static_cast<std::size_t>(getExtentProduct(extent)));
-                auto deleter = [queue = std::move(queue)](TElem* ptr) mutable
+                auto deleter = [l_queue = std::move(queue)](TElem* ptr) mutable
                 {
                     alpaka::enqueue(
-                        queue,
+                        l_queue,
                         [ptr]()
                         {
                             // free the memory
@@ -280,11 +268,13 @@ namespace alpaka
 
         //! The pinned/mapped memory allocation trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
-        struct BufAllocMapped<PltfCpu, TElem, TDim, TIdx>
+        struct BufAllocMapped<PlatformCpu, TElem, TDim, TIdx>
         {
             template<typename TExtent>
-            ALPAKA_FN_HOST static auto allocMappedBuf(DevCpu const& host, TExtent const& extent)
-                -> BufCpu<TElem, TDim, TIdx>
+            ALPAKA_FN_HOST static auto allocMappedBuf(
+                DevCpu const& host,
+                PlatformCpu const& /*platform*/,
+                TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
             {
                 // Allocate standard host memory.
                 return allocBuf<TElem, TIdx>(host, extent);
@@ -293,7 +283,7 @@ namespace alpaka
 
         //! The pinned/mapped memory allocation capability trait specialization.
         template<>
-        struct HasMappedBufSupport<PltfCpu> : public std::true_type
+        struct HasMappedBufSupport<PlatformCpu> : public std::true_type
         {
         };
 
@@ -316,5 +306,5 @@ namespace alpaka
     } // namespace trait
 } // namespace alpaka
 
-#include <alpaka/mem/buf/cpu/Copy.hpp>
-#include <alpaka/mem/buf/cpu/Set.hpp>
+#include "alpaka/mem/buf/cpu/Copy.hpp"
+#include "alpaka/mem/buf/cpu/Set.hpp"

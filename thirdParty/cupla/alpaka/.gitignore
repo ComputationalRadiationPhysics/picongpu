@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+
 /docs/doxygen/*
 /docs/source/_build
 /docs/cheatsheet/cheatsheet.pdf
@@ -51,3 +53,7 @@ __pycache__
 
 # default name of the job_generator.py output
 jobs.yml
+
+# pipenv files
+Pipfile
+Pipfile.lock

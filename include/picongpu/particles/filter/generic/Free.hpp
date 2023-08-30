@@ -102,7 +102,7 @@ namespace picongpu
                         return acc::Free<Functor>(*static_cast<Functor const*>(this));
                     }
 
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         // provide the name from the user functor
                         return Functor::name;

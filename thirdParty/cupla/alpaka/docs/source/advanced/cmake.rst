@@ -14,7 +14,6 @@ Alpaka configures a lot of its functionality at compile time. Therefore a lot of
    * :ref:`Intel TBB <intel-tbb>`
    * :ref:`OpenMP 2 Grid Block <openmp2-grid-block>`
    * :ref:`OpenMP 2 Block Thread <openmp2-block-thread>`
-   * :ref:`OpenMP 5 <openmp5>`
    * :ref:`CUDA <cuda>`
    * :ref:`HIP <hip>`
 
@@ -77,6 +76,15 @@ alpaka_DEBUG_OFFLOAD_ASSUME_HOST
   .. code-block::
 
      Allow host-only contructs like assert in offload code in debug mode.
+
+alpaka_USE_MDSPAN
+  .. code-block::
+
+     Enable/Disable the use of `std::experimental::mdspan`:
+
+     "OFF" - Disable mdspan
+     "SYSTEM" - Enable mdspan and acquire it via `find_package` from your system
+     "FETCH" - Enable mdspan and download it via CMake's `FetchContent` from GitHub. The dependency will not be installed when you install alpaka.
 
 .. _cpu-serial:
 
@@ -145,58 +153,6 @@ alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE
   .. code-block::
 
      Enable the OpenMP 2.0 CPU block thread back-end.
-
-.. _openmp5:
-
-OpenMP 5
---------
-
-alpaka_ACC_ANY_BT_OMP5_ENABLE
-  .. code-block::
-
-     Enable the OpenMP 5.0 any target block and block thread back-end.
-
-
-alpaka_OFFLOAD_MAX_BLOCK_SIZE
-  .. code-block::
-
-     Maximum number threads per block to be suggested by any target offloading backends
-     ANY_BT_OMP5 and ANY_BT_OACC.
-
-
-CMAKE_CXX_FLAGS
-  Target architecture and some compiler specific flags have to be set manually:
-  
-  * Clang / AOMP / rocmClang
-    
-    * x86: `-fopenmp -fopenmp-targets=x86_64-pc-linux-gnu`
-      
-    * ppc64le: `-fopenmp -fopenmp-targets=ppc64le-pc-linux-gnu`
-      
-    * hsa: `-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=<arch>`
-      
-      A list of AMD GPU architectures can be found `here <https://llvm.org/docs/AMDGPUUsage.html#processors>`_.
-      
-    * nvptx: `-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda`
-
-    CMake actually sets `-fopenmp` automatically, but OpenMP support is
-    detected after the detected compiler is tested, which fails with
-    `-fopenmp-targets=` being present alone.
-      
-  * GCC
-    
-    * host: `-foffload=disable`
-      
-      At run time set the environment variable `OMP_TARGET_OFFLOAD=DISABLED`
-      
-    * nvptx: `-foffload=nvptx-none`
-      
-  * NVHPC
-    
-    * host: `-ta=host` or `-ta=multicore`
-      
-    * nvptx: `-ta=tesla`
-
 
 .. _cuda:
 

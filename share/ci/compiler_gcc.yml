@@ -10,6 +10,7 @@
   script:
     - apt update
     - apt install -y curl libjpeg-dev
+    - source $CI_PROJECT_DIR/share/ci/install/cmake.sh
     - source $CI_PROJECT_DIR/share/ci/install/gcc.sh
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile

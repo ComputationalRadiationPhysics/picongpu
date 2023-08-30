@@ -1,16 +1,11 @@
 /* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Concepts.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/core/Concepts.hpp"
 
 namespace alpaka
 {
@@ -31,6 +26,10 @@ namespace alpaka
     } // namespace trait
 
     //! Waits the thread for the completion of the given awaited action to complete.
+    //!
+    //! Special Handling for events:
+    //!   If the event is re-enqueued wait() will terminate when the re-enqueued event will be ready and previously
+    //!   enqueued states of the event will be ignored.
     template<typename TAwaited>
     ALPAKA_FN_HOST auto wait(TAwaited const& awaited) -> void
     {
@@ -39,6 +38,10 @@ namespace alpaka
     }
 
     //! The waiter waits for the given awaited action to complete.
+    //!
+    //! Special Handling if \p waiter is a queue and \p awaited an event:
+    //!   The \p waiter waits for the event state to become ready based on the recently captured event state at the
+    //!   time of the API call even if the event is being re-enqueued later.
     template<typename TWaiter, typename TAwaited>
     ALPAKA_FN_HOST auto wait(TWaiter& waiter, TAwaited const& awaited) -> void
     {

@@ -1,10 +1,5 @@
-/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci, Aurora Perego
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/test/KernelExecutionFixture.hpp>
@@ -31,6 +26,7 @@ struct BallotSingleThreadWarpTestKernel
     }
 };
 
+template<std::uint32_t TWarpSize>
 struct BallotMultipleThreadWarpTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
@@ -70,15 +66,20 @@ struct BallotMultipleThreadWarpTestKernel
     }
 };
 
+template<std::uint32_t TWarpSize, typename TAcc>
+struct alpaka::trait::WarpSize<BallotMultipleThreadWarpTestKernel<TWarpSize>, TAcc>
+    : std::integral_constant<std::uint32_t, TWarpSize>
+{
+};
+
 TEMPLATE_LIST_TEST_CASE("ballot", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dev = alpaka::Dev<Acc>;
-    using Pltf = alpaka::Pltf<Dev>;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
-    Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
+    auto const platform = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
     auto const warpExtents = alpaka::getWarpSizes(dev);
     for(auto const warpExtent : warpExtents)
     {
@@ -90,10 +91,6 @@ TEMPLATE_LIST_TEST_CASE("ballot", "[warp]", alpaka::test::TestAccs)
         }
         else
         {
-            // Work around gcc 7.5 trying and failing to offload for OpenMP 4.0
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 5, 0)) && defined ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-            return;
-#else
             using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
             auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
             // Enforce one warp per thread block
@@ -102,9 +99,26 @@ TEMPLATE_LIST_TEST_CASE("ballot", "[warp]", alpaka::test::TestAccs)
             auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
             auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
             auto fixture = ExecutionFixture{workDiv};
-            BallotMultipleThreadWarpTestKernel kernel;
-            REQUIRE(fixture(kernel));
-#endif
+            if(warpExtent == 4)
+            {
+                REQUIRE(fixture(BallotMultipleThreadWarpTestKernel<4>{}));
+            }
+            else if(warpExtent == 8)
+            {
+                REQUIRE(fixture(BallotMultipleThreadWarpTestKernel<8>{}));
+            }
+            else if(warpExtent == 16)
+            {
+                REQUIRE(fixture(BallotMultipleThreadWarpTestKernel<16>{}));
+            }
+            else if(warpExtent == 32)
+            {
+                REQUIRE(fixture(BallotMultipleThreadWarpTestKernel<32>{}));
+            }
+            else if(warpExtent == 64)
+            {
+                REQUIRE(fixture(BallotMultipleThreadWarpTestKernel<64>{}));
+            }
         }
     }
 }

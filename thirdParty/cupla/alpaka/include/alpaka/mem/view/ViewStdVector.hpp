@@ -1,10 +1,5 @@
 /* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 /* TODO: Once C++20 is available remove this file and replace with a generic ContiguousContainer solution based on
@@ -12,10 +7,10 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/dev/DevCpu.hpp>
-#include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/pltf/PltfCpu.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/platform/PlatformCpu.hpp"
 
 #include <vector>
 
@@ -34,7 +29,7 @@ namespace alpaka::trait
     {
         ALPAKA_FN_HOST static auto getDev(std::vector<TElem, TAllocator> const& /* view */) -> DevCpu
         {
-            return getDevByIdx<PltfCpu>(0u);
+            return getDevByIdx(PlatformCpu{}, 0u);
         }
     };
 

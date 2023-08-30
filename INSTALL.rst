@@ -12,7 +12,7 @@
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera
 
 Overview
 --------
@@ -31,7 +31,7 @@ Mandatory
 
 Compiler
 """"""""
-- C++17 supporting compiler, e.g. GCC 9+ or Clang 10+
+- C++17 supporting compiler, e.g. GCC 9+ or Clang 11+
 - if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
 - *note:* be sure to build all libraries/dependencies with the *same* compiler version
 - *Debian/Ubuntu:*
@@ -49,7 +49,7 @@ Compiler
 
 CMake
 """""
-- 3.18.0 or higher
+- 3.22.0 or higher
 - *Debian/Ubuntu:* ``sudo apt-get install cmake file cmake-curses-gui``
 - *Arch Linux:* ``sudo pacman --sync cmake``
 - *Spack:* ``spack install cmake``
@@ -107,7 +107,7 @@ alpaka 1.0.X-dev
 """"""""""""""""
 - `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
 
-cupla 0.4.X-dev
+cupla 0.5.X-dev
 """""""""""""""
 - `cupla <https://github.com/alpaka-group/cupla>`_ is included in the PIConGPU source code
 
@@ -246,7 +246,7 @@ c-blosc for openPMD API with ADIOS2
 
 ISAAC
 """""
-- 1.4.0+
+- 1.6.0+
 - requires *boost* (header only), *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself)
 - enables live in situ visualization, see more here `Plugin description <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC>`_
 - *Spack:* ``spack install isaac``

@@ -1,10 +1,5 @@
-/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2022 Jakob Krude, Benjamin Worpitz, Bernhard Manfred Gruber, Sergei Bastrakov, Jan Stephan
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include "Buffer.hpp"
@@ -68,17 +63,15 @@ struct TestTemplate
     {
         std::random_device rd{};
         auto const seed = rd();
-        std::cout << "testing"
-                  << " acc:" << alpaka::core::demangled<TAcc> << " data type:"
-                  << alpaka::core::demangled<TData> << " functor:"
-                  << alpaka::core::demangled<TWrappedFunctor> << " seed:" << seed << std::endl;
+        INFO(
+            "testing"
+            << " acc:" << alpaka::core::demangled<TAcc> << " data type:"
+            << alpaka::core::demangled<TData> << " functor:" << alpaka::core::demangled<TWrappedFunctor> << " seed:"
+            << seed);
 
         // SETUP (defines and initialising)
-        // DevAcc and DevHost are defined in Buffer.hpp too.
+        // DevAcc is defined in Buffer.hpp too.
         using DevAcc = alpaka::Dev<TAcc>;
-        using DevHost = alpaka::DevCpu;
-        using PltfAcc = alpaka::Pltf<DevAcc>;
-        using PltfHost = alpaka::Pltf<DevHost>;
 
         using Dim = alpaka::DimInt<1u>;
         using Idx = std::size_t;
@@ -95,8 +88,10 @@ struct TestTemplate
         static constexpr size_t elementsPerThread = 1u;
         static constexpr size_t sizeExtent = 1u;
 
-        DevAcc const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
-        DevHost const devHost = alpaka::getDevByIdx<PltfHost>(0u);
+        auto const platformAcc = alpaka::Platform<TAcc>{};
+        auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
+        auto const platformHost = alpaka::PlatformCpu{};
+        auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
         QueueAcc queue{devAcc};
 
@@ -142,8 +137,8 @@ struct TestTemplate
 #endif
         for(size_t i = 0; i < Args::capacity; ++i)
         {
-            INFO("Idx i: " << i);
             TData std_result = functor(args(i));
+            INFO("Idx i: " << i << " computed : " << results(i) << " vs expected: " << std_result);
             REQUIRE(isApproxEqual(results(i), std_result));
         }
     }

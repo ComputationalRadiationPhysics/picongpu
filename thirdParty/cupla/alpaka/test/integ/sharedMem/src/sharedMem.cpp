@@ -1,10 +1,6 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/alpaka.hpp>
@@ -121,7 +117,6 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     using TnumUselessWork = std::integral_constant<Idx, 100>;
 
     using DevAcc = alpaka::Dev<Acc>;
-    using PltfAcc = alpaka::Pltf<DevAcc>;
     using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
 
 
@@ -129,7 +124,8 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     SharedMemKernel<TnumUselessWork, Val> kernel;
 
     // Select a device to execute on.
-    auto const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
@@ -143,8 +139,9 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
         alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
 
     std::cout << "SharedMemKernel("
-              << " accelerator: " << alpaka::getAccName<Acc>() << ", kernel: " << typeid(kernel).name()
-              << ", workDiv: " << workDiv << ")" << std::endl;
+              << " accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
 
     Idx const gridBlocksCount(alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(workDiv)[0u]);
     Idx const blockThreadCount(alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(workDiv)[0u]);

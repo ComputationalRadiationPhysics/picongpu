@@ -34,7 +34,7 @@ using Idx = std::size_t;
 struct ScatterConfig
 {
     static constexpr auto pagesize = 4096;
-    static constexpr auto accessblocksize = 8;
+    static constexpr auto accessblocksize = 2u * 1024u * 1024u * 1024u;
     static constexpr auto regionsize = 16;
     static constexpr auto wastefactor = 2;
     static constexpr auto resetfreedpages = false;
@@ -76,7 +76,8 @@ void test1D()
         // mallocMC::ReservePoolPolicies::CudaSetLimits,
         mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>>;
 
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
     constexpr auto N = 16;
@@ -147,7 +148,8 @@ void test2D()
         mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
         mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>>;
 
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
     constexpr auto N = 8;
@@ -232,7 +234,8 @@ void test3D()
         mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
         mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>>;
 
-    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto const platform = alpaka::Platform<Acc>{};
+    const auto dev = alpaka::getDevByIdx(platform, 0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
     constexpr auto N = 4;

@@ -80,8 +80,9 @@ A kernel is a special function object which has to conform to the following requ
 * it has to fulfill the ``std::is_trivially_copyable`` trait (has to be copyable via memcpy)
 * the ``operator()`` is the kernel entry point
   * it has to be an accelerator executable function
-  * it has to return ``void``.
-  * its first argument has to be the accelerator (templated for arbitrary accelerator back-ends).
+  * it has to return ``void``
+  * its first argument has to be the accelerator (templated for arbitrary accelerator back-ends)
+  * all other arguments must fulfill ``std::is_trivially_copyable``
 
 The following code snippet shows a basic example of a kernel function object.
 
@@ -152,9 +153,9 @@ atomic functions instead.
 The ``alpaka::mem_fence`` function can be used inside an alpaka kernel to issue a memory fence instruction. This
 guarantees the following **for the local thread**  and regardless of global or shared memory:
 
-  * All loads that occur before the fence will happen before all loads occuring after the fence, i.e. no *LoadLoad*
+  * All loads that occur before the fence will happen before all loads occurring after the fence, i.e. no *LoadLoad*
     reordering.
-  * All stores that occur before the fence will happen before all stores occuring after the fence, i.e. no *StoreStore*
+  * All stores that occur before the fence will happen before all stores occurring after the fence, i.e. no *StoreStore*
     reordering.
   * The order of stores will be visible to other threads inside the scope (but not necessarily their results).
 
@@ -213,39 +214,6 @@ It does not return raw pointers but reference counted memory buffer objects that
 Additionally the memory buffer objects know their extents, their pitches as well as the device they reside on.
 This allows buffers that possibly reside on different devices with different pitches to be copied only by providing the buffer objects as well as the extents of the region to copy (``alpaka::memcpy(bufDevA, bufDevB, copyExtents``).
 
-Accessors
-`````````
-
-An accessor is an interface to access the data stored by a buffer or, more generally, a view.
-Accessors take care of the multidimensionality of their underlying buffers when indexed, including pitched allocations.
-It is created via one of the following calls:
-
-.. code-block:: cpp
-
-   auto accessor = alpaka::experimental::access(buffer);      // read/write
-   auto accessor = alpaka::experimental::readAccess(buffer);  // read
-   auto accessor = alpaka::experimental::writeAccess(buffer); // write
-
-Accessors have many template parameters and users are advised to use the ``BufferAccessor`` convenience alias to get the type of an accessor for a buffer of a given accelerator.
-Example kernel with 3D accessor:
-
-.. code-block:: c++
-
-   struct Kernel {
-      template<typename Acc>
-      ALPAKA_FN_ACC void operator()(Acc const & acc,
-         alpaka::experimental::BufferAccessor<Acc, float, 3, alpaka::experimental::WriteAccess> data) const {
-         ...
-         for(Idx z = 0; z < data.extents[0];  ++z)
-             for(Idx y = 0; y < data.extents[1]; ++y)
-                 for(Idx x = 0; x < data.extents[2];  ++x)
-                     data(z, y, x) = 42.0f;
-      }
-   };
-   ...
-   alpaka::exec<Acc>(queue, workDiv, kernel, alpaka::experimental::writeAccess(buffer));
-
-
 Kernel Execution
 ````````````````
 
@@ -263,12 +231,13 @@ The following source code listing shows the execution of a kernel by enqueuing t
    using Queue = alpaka::QueueCpuNonBlocking;
 
    // Select a device to execute on.
-   auto devAcc(alpaka::getDevByIdx<alpaka::PltfCpu>(0));
+   auto platformAcc = alpaka::Platform<Acc>{};
+   auto devAcc = alpaka::getDevByIdx(platformAcc, 0);
    // Create a queue to enqueue the execution into.
    Queue queue(devAcc);
 
    // Create a 1-dimensional work division with 256 blocks a 16 threads.
-   auto const workDiv(alpaka::WorkDivMembers<Dim, Idx>(256u, 16u);
+   auto const workDiv = alpaka::WorkDivMembers<Dim, Idx>(256u, 16u);
    // Create an instance of the kernel function object.
    MyKernel kernel;
    // Enqueue the execution task into the queue.

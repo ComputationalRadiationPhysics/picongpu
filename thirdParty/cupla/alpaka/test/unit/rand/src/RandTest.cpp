@@ -1,11 +1,6 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber,
- *                Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Sergei Bastrakov, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/rand/Traits.hpp>
@@ -65,8 +60,7 @@ public:
         auto genDefault = alpaka::rand::engine::createDefault(acc, 12345u, 6789u);
         genNumbers(acc, success, genDefault);
 
-#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#    if !defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) && !defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
+#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !defined(ALPAKA_ACC_SYCL_ENABLED)
         // TODO: These ifdefs are wrong: They will reduce the test to the
         // smallest common denominator from all enabled backends
         // std::random_device
@@ -76,7 +70,6 @@ public:
         // MersenneTwister
         auto genMersenneTwister = alpaka::rand::engine::createDefault(alpaka::rand::MersenneTwister{}, 12345u, 6789u);
         genNumbers(acc, success, genMersenneTwister);
-#    endif
 
         // TinyMersenneTwister
         auto genTinyMersenneTwister

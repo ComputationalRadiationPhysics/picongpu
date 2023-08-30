@@ -132,6 +132,10 @@ One of them or none is also possible.
 
   You can test your regex offline before creating and pushing a commit. The ``job_generator.py`` provides the ``--filter`` and ``--reorder`` flags that do the same thing as the lines starting with ``CI_FILTER`` and ``CI_REORDER`` in the commit message.
 
+.. hint::
+
+  Each time the job generator runs it checks whether the container images exist. This is done by a request to the container registry which takes a lot of time. Therefore you can skip the check with the ``--no-image-check`` argument to speed up checking filters and reordering regex strings.
+
 Develop new Feature for the alpaka-job-coverage Library
 *******************************************************
 

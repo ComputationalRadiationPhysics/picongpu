@@ -72,7 +72,7 @@ namespace picongpu
                     return acc::All{};
                 }
 
-                static HINLINE std::string getName()
+                HINLINE static std::string getName()
                 {
                     return std::string("all");
                 }

@@ -1,14 +1,9 @@
 /* Copyright 2019 Benjamin Worpitz
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
-#include <alpaka/alpaka.hpp>
+#include "alpaka/alpaka.hpp"
 
 #include <tuple>
 
@@ -19,13 +14,13 @@ namespace alpaka::test
     {
         using Dev = std::tuple_element_t<0, TDevQueue>;
         using Queue = std::tuple_element_t<1, TDevQueue>;
+        using Platform = alpaka::Platform<Dev>;
 
-        using Pltf = alpaka::Pltf<Dev>;
-
-        QueueTestFixture() : m_dev(getDevByIdx<Pltf>(0u)), m_queue(m_dev)
+        QueueTestFixture() : m_dev(getDevByIdx(m_platform, 0)), m_queue(m_dev)
         {
         }
 
+        Platform m_platform;
         Dev m_dev;
         Queue m_queue;
     };

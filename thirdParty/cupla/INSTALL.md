@@ -3,7 +3,7 @@
 ## Requirements
 
 
-- **cmake**  3.18.0 or higher
+- **cmake**  3.22.0 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
@@ -47,6 +47,7 @@ The CMake argument `cupla_ALPAKA_PROVIDER` controls which `alpaka` is used. If t
 
 The installation of `cupla` requires an installed version of `alpaka`. You can install the `alpaka` version in the `cupla` directory (recommended) or install `aplaka` directly from [source](https://github.com/alpaka-group/alpaka). **Attention**, there is no warning if you overwrite an existing `alpaka` installation.
 
+
 ```bash
 cd <path/to/alpaka>
 mkdir build && cd build
@@ -75,7 +76,7 @@ cmake .. -Dcupla_BUILD_EXAMPLES=ON -Dcupla_ALPAKA_PROVIDER="external"
 If cupla is installed, you can use it via `find_package()` in your project:
 
 ```cmake
-cmake_minimum_required(VERSION 3.18.0)
+cmake_minimum_required(VERSION 3.22.0)
 project(exampleProject)
 
 find_package(cupla)
@@ -88,7 +89,7 @@ cupla_add_executable(${PROJECT_NAME} main.cpp)
 For the method `add_subdirectory()` you have to copy the `cupla` project folder into your project. After that you can add `cupla` to your project and use it.
 
 ```cmake
-cmake_minimum_required(VERSION 3.18.0)
+cmake_minimum_required(VERSION 3.22.0)
 project(exampleProject)
 
 # requires, that cupla is located in the root directory of your project

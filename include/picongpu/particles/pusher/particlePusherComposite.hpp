@@ -98,7 +98,7 @@ namespace picongpu
              *
              * @param currentStep current time iteration
              */
-            static HDINLINE uint32_t activePusherIdx(uint32_t const currentStep)
+            HDINLINE static uint32_t activePusherIdx(uint32_t const currentStep)
             {
                 return ActivationFunctor{}(currentStep);
             }

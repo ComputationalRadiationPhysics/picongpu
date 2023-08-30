@@ -85,13 +85,9 @@ def is_valid_combination(row):
         os_version = get_version(row[2]) if n >= 3 else 0
 
         if is_cuda and os_name == "ubuntu":
-            if os_version < 20.04 and v_cuda >= 11.0:
+            # CI container version 3.1 do not support ubuntu 18.04 anymore
+            if os_version < 20.04:
                 return False
-            elif os_version > 18.04 and v_cuda < 11.0:
-                return False
-
-        if is_hip and os_name == "ubuntu" and os_version < 20.04:
-            return False
 
         # CI nvcc image is not shipped with clang++
         # clang_cuda images can currently not be used because
@@ -102,15 +98,23 @@ def is_valid_combination(row):
         # hipcc is only valid in one combination
         if is_hip:
             if is_hipcc and is_clang:
-                if 4.3 <= v_hip < 5.0 and v_compiler == 13:
+                if 5.0 <= v_hip <= 5.2 and v_compiler == 14:
                     return True
-                if 5.0 <= v_hip < 6.0 and v_compiler == 14:
+                if 5.3 <= v_hip <= 5.4 and v_compiler == 15:
+                    return True
+                if v_hip == 5.5 and v_compiler == 16:
                     return True
             return False
 
         # hipcc should not be used without the hip backend
         if is_hipcc:
             return False
+        else:
+            # clang 16 is currently only supported via hipcc.
+            # CI container version 3.1 do not provide apt sources for
+            # clang 16.
+            if is_clang and v_compiler == 16:
+                return False
 
         # CUDA compiler requires backed `cuda`
         if (is_nvcc or is_clang_cuda) and not is_cuda:
@@ -124,19 +128,19 @@ def is_valid_combination(row):
         if is_clang_cuda:
             if not is_cuda:
                 return False
-            # clang cuda containers shipped without clang-11 and clang-12
-            # https://codebase.helmholtz.cloud/crp/alpaka-group-container/-/issues/28#note_3118676
-            if v_compiler == 11 or v_compiler == 12:
+            # alpaka version 1.X enforces at least clang 14 to compile CUDA
+            # code with clang
+            if v_compiler < 14:
                 return False
-            # native CMake CUDA compile is not supporting clang 8
-            if v_compiler == 8:
+            if 11.0 <= v_cuda < 12.0 and v_compiler == 14:
+                return True
+            # currently not supported due to an error
+            # __clang_cuda_texture_intrinsics.h:696:13:
+            # error: no template named 'texture'
+            #    texture<__DataT, __TexT,
+            #      cudaReadModeNormalizedFloat> __handle,
+            if v_cuda >= 12.0:
                 return False
-            if v_cuda == 10.0 and v_compiler >= 8:
-                return True
-            if v_cuda == 10.1 and v_compiler >= 9:
-                return True
-            if 11.0 <= v_cuda <= 11.6 and v_compiler >= 11:
-                return True
 
             return False
 
@@ -146,19 +150,27 @@ def is_valid_combination(row):
                 # for C++17 support CUDA >= 11 is required
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
-                if v_cuda >= 11.1 and v_compiler <= 10:
+                if 11.1 <= v_cuda <= 11.3 and v_compiler <= 10:
                     if v_compiler == 10:
                         # nvcc + gcc 10.3 bug see:
                         # https://github.com/alpaka-group/alpaka/issues/1297
                         return False
                     else:
                         return True
+                if 11.4 <= v_cuda <= 11.8 and v_compiler <= 11:
+                    return True
+                if 12.0 <= v_cuda <= 12.2 and v_compiler <= 12:
+                    return True
 
             if is_clang:
                 # for C++17 support CUDA >= 11 is required
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
-                if 11.1 <= v_cuda <= 11.6 and v_compiler <= 10:
+                if 11.1 <= v_cuda <= 12.0 and v_compiler <= 10:
+                    return True
+                if v_cuda == 12.1 and v_compiler == 14:
+                    return True
+                if v_cuda == 12.2 and v_compiler == 15:
                     return True
 
             return False
@@ -168,8 +180,8 @@ def is_valid_combination(row):
 
 # compiler list
 # tuple with two components (compiler name, version)
-clang_compiers = [("clang++", 10), ("clang++", 11), ("clang++", 12),
-                  ("clang++", 13), ("clang++", 14), ("clang++", 15)]
+clang_compiers = [("clang++", 11), ("clang++", 12), ("clang++", 13),
+                  ("clang++", 14), ("clang++", 15), ("clang++", 16)]
 gnu_compilers = [("g++", 9), ("g++", 10), ("g++", 11)]
 compilers = [
     clang_compiers,
@@ -201,15 +213,17 @@ compilers.append(hip_clang_compilers)
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
 backends = [("hip", 5.0), ("hip", 5.1), ("hip", 5.2),
-            ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
+            ("hip", 5.3), ("hip", 5.4), ("hip", 5.5),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
-            ("cuda", 11.3), ("cuda", 11.4),
+            ("cuda", 11.3), ("cuda", 11.4), ("cuda", 11.5),
+            ("cuda", 11.6), ("cuda", 11.7), ("cuda", 11.8),
+            ("cuda", 12.0), ("cuda", 12.1),
             ("omp2b", ), ("serial", )]
 
 boost_libs_all = ["1.74.0", "1.75.0", "1.76.0",
                   "1.77.0", "1.78.0"]
 
-operating_system = [("ubuntu", 18.04), ("ubuntu", 20.04)]
+operating_system = [("ubuntu", 20.04)]
 
 if args.limit_boost_versions:
     # select each second but keep the order

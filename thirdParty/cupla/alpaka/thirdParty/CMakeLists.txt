@@ -1,20 +1,15 @@
 #
-# Copyright 2022 Jan Stephan
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+# SPDX-License-Identifier: MPL-2.0
 #
 
 if(BUILD_TESTING)
     if(alpaka_USE_INTERNAL_CATCH2)
-        message(STATUS "Catch2: Using INTERNAL version 3.2.1")
+        message(STATUS "Catch2: Using INTERNAL version 3.3.2")
         # Force Catch2's CMake to pick up the variables we set below
         set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-        set(CATCH_CONFIG_FAST_COMPILE ON)
+        set(CATCH_CONFIG_FAST_COMPILE OFF)
         if(WIN32)
             set(CATCH_CONFIG_WINDOWS_CRTDBG ON)
         endif()
@@ -35,7 +30,7 @@ if(BUILD_TESTING)
             endif()
         endforeach()
     else()
-        find_package(Catch2 3.2.1 CONFIG REQUIRED)
+        find_package(Catch2 3.3.2 CONFIG REQUIRED)
         message(STATUS "Catch2: Found version ${Catch2_VERSION}")
     endif()
 endif()

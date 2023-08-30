@@ -1,37 +1,32 @@
 /* Copyright 2022 Felice Pantaleo, Andrea Bocci, Jan Stephan
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/atomic/Traits.hpp>
-#include <alpaka/core/BoostPredef.hpp>
-
-#if defined(ALPAKA_HAS_STD_ATOMIC_REF)
-#    include <atomic>
-#else
-#    include <boost/atomic.hpp>
-#endif
+#include "alpaka/atomic/Traits.hpp"
+#include "alpaka/core/BoostPredef.hpp"
 
 #include <array>
+#include <atomic>
 #include <type_traits>
+
+#ifndef ALPAKA_DISABLE_ATOMIC_ATOMICREF
+#    ifndef ALPAKA_HAS_STD_ATOMIC_REF
+#        include <boost/atomic.hpp>
+#    endif
 
 namespace alpaka
 {
     namespace detail
     {
-#if defined(ALPAKA_HAS_STD_ATOMIC_REF)
+#    if defined(ALPAKA_HAS_STD_ATOMIC_REF)
         template<typename T>
         using atomic_ref = std::atomic_ref<T>;
-#else
+#    else
         template<typename T>
         using atomic_ref = boost::atomic_ref<T>;
-#endif
+#    endif
     } // namespace detail
     //! The atomic ops based on atomic_ref for CPU accelerators.
     //
@@ -230,3 +225,5 @@ namespace alpaka
         };
     } // namespace trait
 } // namespace alpaka
+
+#endif

@@ -2,12 +2,7 @@
 
 #
 # Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# SPDX-License-Identifier: MPL-2.0
 #
 
 source ./script/set.sh
@@ -135,6 +130,18 @@ then
     then
         VCVARS_BAT="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
         "$VCVARS_BAT"
+    fi
+fi
+
+if [ -z "${ALPAKA_TEST_MDSPAN+x}" ];
+then
+    export alpaka_USE_MDSPAN=OFF
+else
+    if [ "${ALPAKA_TEST_MDSPAN}" == "ON" ];
+    then
+        export alpaka_USE_MDSPAN=FETCH
+    else
+	    export alpaka_USE_MDSPAN=OFF
     fi
 fi
 

@@ -108,7 +108,7 @@ namespace pmacc
          * not inside a if clauses
          */
         template<typename T_Worker>
-        static DINLINE SharedBox init(T_Worker const& worker)
+        DINLINE static SharedBox init(T_Worker const& worker)
         {
             auto& mem_sh
                 = memory::shared::allocate<T_id, memory::Array<ValueType, math::CT::volume<Size>::type::value>>(

@@ -1,20 +1,42 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Jan Stephan, Andrea Bocci, Bernhard
  * Manfred Gruber, Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
+
+#include "alpaka/acc/AccGpuUniformCudaHipRt.hpp"
+#include "alpaka/acc/Traits.hpp"
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Cuda.hpp"
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/core/Hip.hpp"
+#include "alpaka/core/RemoveRestrict.hpp"
+#include "alpaka/dev/DevUniformCudaHipRt.hpp"
+#include "alpaka/dev/Traits.hpp"
+#include "alpaka/dim/Traits.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
+#include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
+#include "alpaka/queue/Traits.hpp"
+#include "alpaka/workdiv/WorkDivHelpers.hpp"
+#include "alpaka/workdiv/WorkDivMembers.hpp"
+
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
+#    include <iostream>
+#endif
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
 #    if !defined(ALPAKA_HOST_ONLY)
 
-#        include <alpaka/core/BoostPredef.hpp>
+#        include "alpaka/core/BoostPredef.hpp"
 
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
 #            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -22,47 +44,6 @@
 
 #        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
 #            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#        endif
-
-// Specialized traits.
-#        include <alpaka/acc/Traits.hpp>
-#        include <alpaka/dev/Traits.hpp>
-#        include <alpaka/dim/Traits.hpp>
-#        include <alpaka/idx/Traits.hpp>
-#        include <alpaka/pltf/Traits.hpp>
-#        include <alpaka/queue/Traits.hpp>
-
-// Backend specific includes.
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#            include <alpaka/core/Cuda.hpp>
-#        else
-#            include <alpaka/core/Hip.hpp>
-#        endif
-
-// Implementation details.
-#        include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
-#        include <alpaka/core/Decay.hpp>
-#        include <alpaka/core/DemangleTypeNames.hpp>
-#        include <alpaka/core/RemoveRestrict.hpp>
-#        include <alpaka/dev/DevUniformCudaHipRt.hpp>
-#        include <alpaka/kernel/Traits.hpp>
-#        include <alpaka/queue/QueueUniformCudaHipRtBlocking.hpp>
-#        include <alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp>
-#        include <alpaka/workdiv/WorkDivMembers.hpp>
-
-#        if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#            include <alpaka/acc/Traits.hpp>
-#            include <alpaka/dev/Traits.hpp>
-#            include <alpaka/workdiv/WorkDivHelpers.hpp>
-#        endif
-
-#        include <alpaka/core/BoostPredef.hpp>
-
-#        include <stdexcept>
-#        include <tuple>
-#        include <type_traits>
-#        if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#            include <iostream>
 #        endif
 
 namespace alpaka
@@ -180,9 +161,9 @@ namespace alpaka
 
         //! The CPU CUDA/HIP execution task platform type trait specialization.
         template<typename TApi, typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct PltfType<TaskKernelGpuUniformCudaHipRt<TApi, TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
+        struct PlatformType<TaskKernelGpuUniformCudaHipRt<TApi, TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            using type = PltfUniformCudaHipRt<TApi>;
+            using type = PlatformUniformCudaHipRt<TApi>;
         };
 
         //! The GPU CUDA/HIP execution task idx type trait specialization.
@@ -258,7 +239,7 @@ namespace alpaka
 #        if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 // Log the function attributes.
                 typename TApi::FuncAttributes_t funcAttrs;
-                TApi::funcGetAttributes(&funcAttrs, kernelName);
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::funcGetAttributes(&funcAttrs, kernelName));
                 std::cout << __func__ << " binaryVersion: " << funcAttrs.binaryVersion
                           << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
                           << " localSizeBytes: " << funcAttrs.localSizeBytes << " B"
@@ -366,7 +347,7 @@ namespace alpaka
 #        if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 // Log the function attributes.
                 typename TApi::FuncAttributes_t funcAttrs;
-                TApi::funcGetAttributes(&funcAttrs, kernelName);
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::funcGetAttributes(&funcAttrs, kernelName));
                 std::cout << __func__ << " binaryVersion: " << funcAttrs.binaryVersion
                           << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
                           << " localSizeBytes: " << funcAttrs.localSizeBytes << " B"

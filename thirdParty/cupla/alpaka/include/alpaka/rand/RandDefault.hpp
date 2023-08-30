@@ -1,18 +1,13 @@
 /* Copyright 2022 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/math/Traits.hpp>
-#include <alpaka/rand/RandPhilox.hpp>
-#include <alpaka/rand/Traits.hpp>
+#include "alpaka/core/Common.hpp"
+#include "alpaka/math/Traits.hpp"
+#include "alpaka/rand/RandPhilox.hpp"
+#include "alpaka/rand/Traits.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -137,7 +132,8 @@ namespace alpaka::rand
             template<typename TEngine>
             ALPAKA_FN_HOST_ACC auto operator()(TEngine& engine) -> T
             {
-                constexpr T sigma = 1., mu = 0.;
+                constexpr auto sigma = T{1};
+                constexpr auto mu = T{0};
                 if(math::isnan(*m_acc, m_cache))
                 {
                     UniformReal<T> uni;

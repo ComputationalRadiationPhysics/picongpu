@@ -1,19 +1,14 @@
 /* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber
- *
- * This file is part of Alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/idx/Accessors.hpp>
-#include <alpaka/idx/MapIdx.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/mem/buf/Traits.hpp>
-#include <alpaka/meta/Fold.hpp>
+#include "alpaka/idx/Accessors.hpp"
+#include "alpaka/idx/MapIdx.hpp"
+#include "alpaka/idx/Traits.hpp"
+#include "alpaka/mem/buf/Traits.hpp"
+#include "alpaka/meta/Fold.hpp"
 
 namespace alpaka
 {

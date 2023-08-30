@@ -62,8 +62,6 @@ namespace cupla
                     }
                     else
                     {
-                        using Pltf = ::alpaka::Pltf<DeviceType>;
-
                         const int numDevices = count();
                         if(idx >= numDevices)
                         {
@@ -75,13 +73,10 @@ namespace cupla
 
                         std::unique_ptr<DeviceType> dev;
 
+                        auto const platform = alpaka::Platform<DeviceType>{};
                         try
                         {
-                            /* device id is not in the list
-                             *
-                             * select device with idx
-                             */
-                            dev.reset(new DeviceType(alpaka::getDevByIdx<Pltf>(idx)));
+                            dev.reset(new DeviceType(alpaka::getDevByIdx(platform, idx)));
                         }
                         catch(const std::runtime_error& e)
                         {
@@ -128,8 +123,8 @@ namespace cupla
 
                 auto count() -> int
                 {
-                    using Pltf = ::alpaka::Pltf<DeviceType>;
-                    return static_cast<int>(::alpaka::getDevCount<Pltf>());
+                    auto const platform = alpaka::Platform<Acc>{};
+                    return static_cast<int>(::alpaka::getDevCount(platform));
                 }
 
             protected:

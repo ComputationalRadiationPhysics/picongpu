@@ -1,23 +1,18 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bert Wesarg, Valentin Gehrke, René Widera,
+/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bert Wesarg, Valentin Gehrke, René Widera,
  * Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling, Sergei Bastrakov
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/core/Concepts.hpp>
-#include <alpaka/core/CudaHipCommon.hpp>
-#include <alpaka/core/Decay.hpp>
-#include <alpaka/core/UniformCudaHip.hpp>
-#include <alpaka/core/Unreachable.hpp>
-#include <alpaka/math/Complex.hpp>
-#include <alpaka/math/Traits.hpp>
+#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Concepts.hpp"
+#include "alpaka/core/CudaHipCommon.hpp"
+#include "alpaka/core/Decay.hpp"
+#include "alpaka/core/UniformCudaHip.hpp"
+#include "alpaka/core/Unreachable.hpp"
+#include "alpaka/math/Complex.hpp"
+#include "alpaka/math/Traits.hpp"
 
 #include <type_traits>
 
@@ -85,6 +80,12 @@ namespace alpaka::math
     {
     };
 
+    //! The CUDA built in copysign.
+    class CopysignUniformCudaHipBuiltIn
+        : public concepts::Implements<ConceptMathCopysign, CopysignUniformCudaHipBuiltIn>
+    {
+    };
+
     //! The CUDA built in cos.
     class CosUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathCos, CosUniformCudaHipBuiltIn>
     {
@@ -107,6 +108,11 @@ namespace alpaka::math
 
     //! The CUDA built in floor.
     class FloorUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathFloor, FloorUniformCudaHipBuiltIn>
+    {
+    };
+
+    //! The CUDA built in fma.
+    class FmaUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathFma, FmaUniformCudaHipBuiltIn>
     {
     };
 
@@ -133,6 +139,16 @@ namespace alpaka::math
 
     // ! The CUDA built in log.
     class LogUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathLog, LogUniformCudaHipBuiltIn>
+    {
+    };
+
+    // ! The CUDA built in log2.
+    class Log2UniformCudaHipBuiltIn : public concepts::Implements<ConceptMathLog2, Log2UniformCudaHipBuiltIn>
+    {
+    };
+
+    // ! The CUDA built in log10.
+    class Log10UniformCudaHipBuiltIn : public concepts::Implements<ConceptMathLog10, Log10UniformCudaHipBuiltIn>
     {
     };
 
@@ -216,13 +232,17 @@ namespace alpaka::math
         , public CbrtUniformCudaHipBuiltIn
         , public CeilUniformCudaHipBuiltIn
         , public ConjUniformCudaHipBuiltIn
+        , public CopysignUniformCudaHipBuiltIn
         , public CosUniformCudaHipBuiltIn
         , public CoshUniformCudaHipBuiltIn
         , public ErfUniformCudaHipBuiltIn
         , public ExpUniformCudaHipBuiltIn
         , public FloorUniformCudaHipBuiltIn
+        , public FmaUniformCudaHipBuiltIn
         , public FmodUniformCudaHipBuiltIn
         , public LogUniformCudaHipBuiltIn
+        , public Log2UniformCudaHipBuiltIn
+        , public Log10UniformCudaHipBuiltIn
         , public MaxUniformCudaHipBuiltIn
         , public MinUniformCudaHipBuiltIn
         , public PowUniformCudaHipBuiltIn
@@ -581,6 +601,30 @@ namespace alpaka::math
             }
         };
 
+        //! The CUDA copysign trait specialization for real types.
+        template<typename TMag, typename TSgn>
+        struct Copysign<
+            CopysignUniformCudaHipBuiltIn,
+            TMag,
+            TSgn,
+            std::enable_if_t<std::is_floating_point_v<TMag> && std::is_floating_point_v<TSgn>>>
+        {
+            __host__ __device__ auto operator()(
+                CopysignUniformCudaHipBuiltIn const& /* copysign_ctx */,
+                TMag const& mag,
+                TSgn const& sgn)
+            {
+                if constexpr(is_decayed_v<TMag, float> && is_decayed_v<TSgn, float>)
+                    return ::copysignf(mag, sgn);
+                else if constexpr(is_decayed_v<TMag, double> || is_decayed_v<TSgn, double>)
+                    return ::copysign(mag, sgn);
+                else
+                    static_assert(!sizeof(TMag), "Unsupported data type");
+
+                ALPAKA_UNREACHABLE(TMag{});
+            }
+        };
+
         //! The CUDA cos trait specialization for real types.
         template<typename TArg>
         struct Cos<CosUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
@@ -707,6 +751,37 @@ namespace alpaka::math
             }
         };
 
+        //! The CUDA fma trait specialization.
+        template<typename Tx, typename Ty, typename Tz>
+        struct Fma<
+            FmaUniformCudaHipBuiltIn,
+            Tx,
+            Ty,
+            Tz,
+            std::enable_if_t<
+                std::is_floating_point_v<Tx> && std::is_floating_point_v<Ty> && std::is_floating_point_v<Tz>>>
+        {
+            __host__ __device__ auto operator()(
+                FmaUniformCudaHipBuiltIn const& /* fma_ctx */,
+                Tx const& x,
+                Ty const& y,
+                Tz const& z)
+            {
+                if constexpr(is_decayed_v<Tx, float> && is_decayed_v<Ty, float> && is_decayed_v<Tz, float>)
+                    return ::fmaf(x, y, z);
+                else if constexpr(is_decayed_v<Tx, double> || is_decayed_v<Ty, double> || is_decayed_v<Tz, double>)
+                    return ::fma(x, y, z);
+                else
+                    static_assert(!sizeof(Tx), "Unsupported data type");
+
+                using Ret [[maybe_unused]] = std::conditional_t<
+                    is_decayed_v<Tx, float> && is_decayed_v<Ty, float> && is_decayed_v<Tz, float>,
+                    float,
+                    double>;
+                ALPAKA_UNREACHABLE(Ret{});
+            }
+        };
+
         //! The CUDA fmod trait specialization.
         template<typename Tx, typename Ty>
         struct Fmod<
@@ -791,6 +866,52 @@ namespace alpaka::math
                 // Branch cut along the negative real axis (same as for std::complex),
                 // principal value of ln(z) = ln(|z|) + i * arg(z)
                 return log(ctx, abs(ctx, argument)) + Complex<T>{0.0, 1.0} * arg(ctx, argument);
+            }
+        };
+
+        //! The CUDA log2 trait specialization for real types.
+        template<typename TArg>
+        struct Log2<Log2UniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+        {
+            __host__ __device__ auto operator()(Log2UniformCudaHipBuiltIn const& /* log2_ctx */, TArg const& arg)
+            {
+                if constexpr(is_decayed_v<TArg, float>)
+                    return ::log2f(arg);
+                else if constexpr(is_decayed_v<TArg, double>)
+                    return ::log2(arg);
+                else
+                    static_assert(!sizeof(TArg), "Unsupported data type");
+
+                ALPAKA_UNREACHABLE(TArg{});
+            }
+        };
+
+        //! The CUDA log10 trait specialization for real types.
+        template<typename TArg>
+        struct Log10<Log10UniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+        {
+            __host__ __device__ auto operator()(Log10UniformCudaHipBuiltIn const& /* log10_ctx */, TArg const& arg)
+            {
+                if constexpr(is_decayed_v<TArg, float>)
+                    return ::log10f(arg);
+                else if constexpr(is_decayed_v<TArg, double>)
+                    return ::log10(arg);
+                else
+                    static_assert(!sizeof(TArg), "Unsupported data type");
+
+                ALPAKA_UNREACHABLE(TArg{});
+            }
+        };
+
+        //! The CUDA log10 trait specialization for complex types.
+        template<typename T>
+        struct Log10<Log10UniformCudaHipBuiltIn, Complex<T>>
+        {
+            //! Take context as original (accelerator) type, since we call other math functions
+            template<typename TCtx>
+            __host__ __device__ auto operator()(TCtx const& ctx, Complex<T> const& argument)
+            {
+                return log(ctx, argument) / log(ctx, static_cast<T>(10));
             }
         };
 

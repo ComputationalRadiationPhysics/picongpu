@@ -44,19 +44,19 @@ namespace pmacc::particles::algorithm
         struct Forward
         {
             template<typename T_ParBox>
-            static DINLINE auto getFirst(T_ParBox& pb, DataSpace<T_ParBox::Dim> const& superCellIdx)
+            DINLINE static auto getFirst(T_ParBox& pb, DataSpace<T_ParBox::Dim> const& superCellIdx)
             {
                 return pb.getFirstFrame(superCellIdx);
             }
 
             template<typename T_ParBox>
-            static DINLINE auto next(T_ParBox& pb, typename T_ParBox::FramePtr const& framePtr)
+            DINLINE static auto next(T_ParBox& pb, typename T_ParBox::FramePtr const& framePtr)
             {
                 return pb.getNextFrame(framePtr);
             }
 
             template<typename T_ForEach>
-            static DINLINE auto createCtx(T_ForEach& forEachParticleInFrame)
+            DINLINE static auto createCtx(T_ForEach& forEachParticleInFrame)
             {
                 return lockstep::makeVar<uint32_t>(forEachParticleInFrame, 0u);
             }
@@ -66,19 +66,19 @@ namespace pmacc::particles::algorithm
         struct Reverse
         {
             template<typename T_ParBox>
-            static DINLINE auto getFirst(T_ParBox& pb, DataSpace<T_ParBox::Dim> const& superCellIdx)
+            DINLINE static auto getFirst(T_ParBox& pb, DataSpace<T_ParBox::Dim> const& superCellIdx)
             {
                 return pb.getLastFrame(superCellIdx);
             }
 
             template<typename T_ParBox>
-            static DINLINE auto next(T_ParBox& pb, typename T_ParBox::FramePtr const& framePtr)
+            DINLINE static auto next(T_ParBox& pb, typename T_ParBox::FramePtr const& framePtr)
             {
                 return pb.getPreviousFrame(framePtr);
             }
 
             template<typename T_ForEach>
-            static DINLINE auto createCtx(T_ForEach& forEachParticleInFrame)
+            DINLINE static auto createCtx(T_ForEach& forEachParticleInFrame)
             {
                 return lockstep::makeVar<lcellId_t>(forEachParticleInFrame, lcellId_t(0u));
             }

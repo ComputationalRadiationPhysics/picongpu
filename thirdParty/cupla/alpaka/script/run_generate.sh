@@ -1,13 +1,8 @@
 #!/bin/bash
 
 #
-# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
-#
-# This file is part of alpaka.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# Copyright 2023 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
+# SPDX-License-Identifier: MPL-2.0
 #
 
 source ./script/set.sh
@@ -89,13 +84,13 @@ cd build/
     "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE)" \
     "$(env2cmake alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE)" \
     "$(env2cmake alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)" \
-    "$(env2cmake alpaka_ACC_ANY_BT_OMP5_ENABLE)" "$(env2cmake alpaka_ACC_ANY_BT_OACC_ENABLE)" \
     "$(env2cmake alpaka_OFFLOAD_MAX_BLOCK_SIZE)" "$(env2cmake alpaka_DEBUG_OFFLOAD_ASSUME_HOST)" \
     "$(env2cmake TBB_DIR)" \
     "$(env2cmake alpaka_ACC_GPU_CUDA_ENABLE)" "$(env2cmake alpaka_ACC_GPU_CUDA_ONLY_MODE)" "$(env2cmake CMAKE_CUDA_ARCHITECTURES)" "$(env2cmake CMAKE_CUDA_COMPILER)" "$(env2cmake CMAKE_CUDA_FLAGS)" \
     "$(env2cmake alpaka_CUDA_FAST_MATH)" "$(env2cmake alpaka_CUDA_FTZ)" "$(env2cmake alpaka_CUDA_SHOW_REGISTER)" "$(env2cmake alpaka_CUDA_KEEP_FILES)" "$(env2cmake alpaka_CUDA_EXPT_EXTENDED_LAMBDA)" "$(env2cmake CMAKE_CUDA_SEPARABLE_COMPILATION)" \
     "$(env2cmake GPU_TARGETS)" "$(env2cmake alpaka_ACC_GPU_HIP_ENABLE)" "$(env2cmake alpaka_ACC_GPU_HIP_ONLY_MODE)" \
-    "$(env2cmake alpaka_DEBUG)" "$(env2cmake alpaka_CI)" "$(env2cmake alpaka_CHECK_HEADERS)" "$(env2cmake alpaka_CXX_STANDARD)" "$(env2cmake CMAKE_INSTALL_PREFIX)" \
+    "$(env2cmake alpaka_ACC_SYCL_ENABLE)" "$(env2cmake alpaka_SYCL_ONEAPI_CPU)" "$(env2cmake alpaka_SYCL_ONEAPI_CPU_ISA)" \
+    "$(env2cmake alpaka_DEBUG)" "$(env2cmake alpaka_CI)" "$(env2cmake alpaka_CHECK_HEADERS)" "$(env2cmake alpaka_CXX_STANDARD)" "$(env2cmake alpaka_USE_MDSPAN)" "$(env2cmake CMAKE_INSTALL_PREFIX)" \
     ".."
 
 cd ..

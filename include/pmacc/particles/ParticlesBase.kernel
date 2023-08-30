@@ -623,7 +623,7 @@ namespace pmacc
          * accelerator.
          */
         template<typename T_Idx>
-        static DINLINE bool isValidSupercellIdx(T_Idx const& supercellIdx, T_Idx const& numSupercells)
+        DINLINE static bool isValidSupercellIdx(T_Idx const& supercellIdx, T_Idx const& numSupercells)
         {
             for(uint32_t d = 0; d < T_Idx::dim; d++)
                 if((supercellIdx[d] < 0) || (supercellIdx[d] >= numSupercells[d]))

@@ -117,7 +117,7 @@ namespace picongpu
                             rng);
                     }
 
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         // we provide the name from the param class
                         return Functor::name;

@@ -1,5 +1,5 @@
 .base_gcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:2.0
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:3.1
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     ALPAKA_ACCS: "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE
@@ -11,9 +11,11 @@
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
     - x86_64
+    - cpuonly
+  interruptible: true
 
 .base_clang:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-clang:2.0
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu20.04:3.1
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     ALPAKA_ACCS: "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE
@@ -25,6 +27,8 @@
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
     - x86_64
+    - cpuonly
+  interruptible: true
 
 .base_cuda:
   variables:
@@ -39,6 +43,7 @@
   tags:
     - cuda
     - intel
+  interruptible: true
 
 .base_cuda_clang:
   variables:
@@ -55,6 +60,7 @@
   tags:
     - cuda
     - intel
+  interruptible: true
 
 .base_hip:
   variables:
@@ -70,3 +76,4 @@
   tags:
     - amd
     - rocm
+  interruptible: true

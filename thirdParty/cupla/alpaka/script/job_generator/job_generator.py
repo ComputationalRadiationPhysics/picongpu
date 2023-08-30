@@ -1,11 +1,16 @@
-"""Generate GitLab-CI test jobs yaml for the vikunja CI."""
+"""Copyright 2023 Simeon Ehrig
+SPDX-License-Identifier: MPL-2.0
+
+Generate GitLab-CI test jobs yaml for the vikunja CI."""
+
 import argparse
-import sys, os
+import sys, os, random
 from typing import List, Dict, Tuple
 from collections import OrderedDict
 
 import alpaka_job_coverage as ajc
 from alpaka_job_coverage.globals import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from alpaka_globals import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from alpaka_job_coverage.util import filter_job_list, reorder_job_list
 
 from versions import (
@@ -16,8 +21,18 @@ from versions import (
 from alpaka_filter import alpaka_post_filter
 from custom_job import add_custom_jobs
 from reorder_jobs import reorder_jobs
-from generate_job_yaml import generate_job_yaml_list, write_job_yaml
-from verify import verify
+from generate_job_yaml import (
+    generate_job_yaml_list,
+    write_job_yaml,
+    distribute_to_waves,
+    JOB_COMPILE_ONLY,
+    JOB_RUNTIME,
+    JOB_UNKNOWN,
+    WAVE_GROUP_NAMES,
+)
+from job_modifier import add_job_parameters
+from verify import verify, verify_parameters
+from util import print_warn
 
 
 def get_args() -> argparse.Namespace:
@@ -72,6 +87,20 @@ def get_args() -> argparse.Namespace:
         "behavior that all NVCC jobs are executed first and then all GCC jobs.",
     )
 
+    parser.add_argument(
+        "--compile-only", action="store_true", help="Generate only compile only jobs."
+    )
+
+    parser.add_argument(
+        "--runtime-only", action="store_true", help="Generate only runtime jobs."
+    )
+
+    parser.add_argument(
+        "--no-image-check",
+        action="store_false",
+        help="Disable registry check for existing Docker image.",
+    )
+
     return parser.parse_args()
 
 
@@ -83,24 +112,37 @@ if __name__ == "__main__":
     enable_clang_cuda = True
     parameters[HOST_COMPILER] = get_compiler_versions(clang_cuda=enable_clang_cuda)
     parameters[DEVICE_COMPILER] = get_compiler_versions(clang_cuda=enable_clang_cuda)
+    # TODO(SimeonEhrig): remove GCC and Clang from DEVICE_COMPILER to disable CPU accelerator
+    # Backends
+    parameters[DEVICE_COMPILER] = list(
+        filter(
+            lambda compiler: compiler[NAME] != GCC and compiler[NAME] != CLANG,
+            parameters[DEVICE_COMPILER],
+        )
+    )
+
     parameters[BACKENDS] = get_backend_matrix()
     parameters[CMAKE] = get_sw_tuple_list(CMAKE)
     parameters[BOOST] = get_sw_tuple_list(BOOST)
     parameters[UBUNTU] = get_sw_tuple_list(UBUNTU)
     parameters[CXX_STANDARD] = get_sw_tuple_list(CXX_STANDARD)
+    parameters[BUILD_TYPE] = get_sw_tuple_list(BUILD_TYPE)
+    parameters[JOB_EXECUTION_TYPE] = get_sw_tuple_list(JOB_EXECUTION_TYPE)
+    parameters[MDSPAN] = get_sw_tuple_list(MDSPAN)
 
-    # TODO: uncomment me, if not all entries in parameter are empty
-    # job_matrix: List[Dict[str, Tuple[str, str]]] = ajc.create_job_list(
-    #    parameters=parameters,
-    #    post_filter=alpaka_post_filter,
-    #    pair_size=2,
-    # )
-    job_matrix: List[Dict[str, Tuple[str, str]]] = []
+    # print a warning, if a parameter value is not supported by the ajc-library
+    verify_parameters(parameters)
+
+    job_matrix: List[Dict[str, Tuple[str, str]]] = ajc.create_job_list(
+        parameters=parameters,
+        post_filter=alpaka_post_filter,
+        pair_size=2,
+    )
+
+    add_job_parameters(job_matrix)
 
     if args.print_combinations or args.all:
         print(f"number of combinations before reorder: {len(job_matrix)}")
-
-    # TODO: add function here to decide, if job only compiles or also execute the tests
 
     ajc.shuffle_job_matrix(job_matrix)
     reorder_jobs(job_matrix)
@@ -116,9 +158,14 @@ if __name__ == "__main__":
             sys.exit(1)
 
     job_matrix_yaml = generate_job_yaml_list(
-        job_matrix=job_matrix, container_version=args.version
+        job_matrix=job_matrix,
+        container_version=args.version,
+        online_check=args.no_image_check,
     )
+
     add_custom_jobs(job_matrix_yaml, args.version)
+    # shuffle jobs to better utilize the special runner
+    random.Random(42).shuffle(job_matrix_yaml)
 
     filter_regix = args.filter
     reorder_regix = args.reorder
@@ -145,7 +192,26 @@ if __name__ == "__main__":
     if reorder_regix:
         job_matrix_yaml = reorder_job_list(job_matrix_yaml, reorder_regix)
 
-    wave_job_matrix = ajc.distribute_to_waves(job_matrix_yaml, 10)
+    # wave_job_matrix = ajc.distribute_to_waves(job_matrix_yaml, 10)
+    wave_job_matrix = distribute_to_waves(job_matrix_yaml, {JOB_COMPILE_ONLY: 20})
+
+    if wave_job_matrix[JOB_UNKNOWN]:
+        print_warn('Generator distributed jobs of type "JOB_UNKNOWN"')
+        for wave in wave_job_matrix[JOB_UNKNOWN]:
+            for job in wave:
+                print(job)
+
+    if args.compile_only:
+        wave_job_matrix = {JOB_COMPILE_ONLY: wave_job_matrix[JOB_COMPILE_ONLY]}
+        for wave_name in WAVE_GROUP_NAMES:
+            if not wave_name in wave_job_matrix:
+                wave_job_matrix[wave_name] = []
+
+    if args.runtime_only:
+        wave_job_matrix = {JOB_RUNTIME: wave_job_matrix[JOB_RUNTIME]}
+        for wave_name in WAVE_GROUP_NAMES:
+            if not wave_name in wave_job_matrix:
+                wave_job_matrix[wave_name] = []
 
     write_job_yaml(
         job_matrix=wave_job_matrix,

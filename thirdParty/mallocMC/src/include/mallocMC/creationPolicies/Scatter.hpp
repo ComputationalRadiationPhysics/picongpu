@@ -1284,7 +1284,9 @@ namespace mallocMC
                         slotSize,
                         alpaka::getPtrNative(d_slots)));
 
-                const auto hostDev = alpaka::getDevByIdx<alpaka::Pltf<alpaka::DevCpu>>(0);
+                auto const platform = alpaka::Platform<alpaka::DevCpu>{};
+                const auto hostDev = alpaka::getDevByIdx(platform, 0);
+
                 auto h_slots = alpaka::allocBuf<unsigned, int>(hostDev, 1);
                 alpaka::memcpy(queue, h_slots, d_slots, 1);
                 alpaka::wait(queue);

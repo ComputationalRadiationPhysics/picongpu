@@ -14,6 +14,7 @@
     # CI_GPU_ARCH architecture of the hosted GPU is provided by the CI
     GPU_TARGETS: ${CI_GPU_ARCH}
   script:
+    - source $CI_PROJECT_DIR/share/ci/install/cmake.sh
     - export PATH="$PATH:/opt/rocm/llvm/bin/"
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/rocrand/lib/"
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/hiprand/lib/"

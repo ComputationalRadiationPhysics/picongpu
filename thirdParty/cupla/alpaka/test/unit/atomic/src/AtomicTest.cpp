@@ -1,11 +1,6 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
- * Antonio Di Pilato
- *
- * This file is part of alpaka.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Sergei Bastrakov, René Widera, Jan Stephan,
+ *                Bernhard Manfred Gruber, Antonio Di Pilato, Andrea Bocci
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #include <alpaka/atomic/Traits.hpp>
@@ -306,8 +301,12 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-        testAtomicInc(acc, success, operandOrig);
-        testAtomicDec(acc, success, operandOrig);
+        if constexpr(std::is_unsigned_v<T>)
+        {
+            // atomicInc / atomicDec are implemented only for unsigned integer types
+            testAtomicInc(acc, success, operandOrig);
+            testAtomicDec(acc, success, operandOrig);
+        }
 
         testAtomicAnd(acc, success, operandOrig);
         testAtomicOr(acc, success, operandOrig);
@@ -365,23 +364,6 @@ public:
 
 #endif
 
-#if defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
-
-template<typename TDim, typename TIdx, typename T>
-class AtomicTestKernel<alpaka::AccOacc<TDim, TIdx>, T, std::enable_if_t<sizeof(T) != 4u && sizeof(T) != 8u>>
-{
-public:
-    ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccOacc<TDim, TIdx> const& /* acc */, bool* success, T /* operandOrig */)
-        const -> void
-    {
-        // All other types are not supported by OpenACC atomic operations.
-        ALPAKA_CHECK(*success, true);
-    }
-};
-
-#endif
-
 template<typename TAcc, typename T>
 struct TestAtomicOperations
 {
@@ -405,16 +387,27 @@ TEMPLATE_LIST_TEST_CASE("atomicOperationsWorking", "[atomic]", TestAccs)
 {
     using Acc = TestType;
 
-    TestAtomicOperations<Acc, unsigned char>::testAtomicOperations();
-    TestAtomicOperations<Acc, char>::testAtomicOperations();
-    TestAtomicOperations<Acc, unsigned short>::testAtomicOperations();
-    TestAtomicOperations<Acc, short>::testAtomicOperations();
+    // According to the CUDA 12.1 Programming Guide, Section 7.14. Atomic Functions, an atomic function performs a
+    // read-modify-write atomic operation on one 32-bit or 64-bit word residing in global or shared memory.
+    // Some operations require a compute capability of 5.0, 6.0, or higher; on older devices they can be emulated with
+    // an atomicCAS loop.
+
+    // According to SYCL 2020 rev. 7, Section 4.15.3. Atomic references, the template parameter T must be one of the
+    // following types:
+    //   - int, unsigned int,
+    //   - long, unsigned long,
+    //   - long long, unsigned long long,
+    //   - float, or double.
+    // In addition, the type T must satisfy one of the following conditions:
+    //  - sizeof(T) == 4, or
+    //  - sizeof(T) == 8 and the code containing the atomic_ref was submitted to a device that has aspect::atomic64.
 
     TestAtomicOperations<Acc, unsigned int>::testAtomicOperations();
     TestAtomicOperations<Acc, int>::testAtomicOperations();
 
     TestAtomicOperations<Acc, unsigned long>::testAtomicOperations();
     TestAtomicOperations<Acc, long>::testAtomicOperations();
+
     TestAtomicOperations<Acc, unsigned long long>::testAtomicOperations();
     TestAtomicOperations<Acc, long long>::testAtomicOperations();
 

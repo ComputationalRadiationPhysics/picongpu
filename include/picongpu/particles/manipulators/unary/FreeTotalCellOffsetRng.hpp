@@ -130,7 +130,7 @@ namespace picongpu
                             rng);
                     }
 
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return Functor::name;
                     }
