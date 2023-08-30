@@ -28,10 +28,8 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes_adjusted
 #SBATCH --ntasks=!TBG_tasks_adjusted
-#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --gpus-per-node=!TBG_devicesPerNode
 #SBATCH --mem-per-gpu=!TBG_memPerDevice
-#SBATCH --ntasks-per-gpu=1
-#SBATCH --gpu-bind=closest
 #SBATCH --gres=gpu:!TBG_devicesPerNode
 
 #SBATCH --mail-type=!TBG_mailSettings
@@ -64,9 +62,6 @@
 # but one core (= core 0) is reserved for system processes
 # called low-noise mode - see LUMI-G documentation
 .TBG_coresPerGPU=7
-
-# Assign one OpenMP thread per available core per GPU (=task)
-export OMP_NUM_THREADS=!TBG_coresPerGPU
 
 # required GPUs per node for the current job
 .TBG_devicesPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi)
@@ -118,6 +113,26 @@ else
     run_cuda_memtest=0
 fi
 
+
+cat << EOF > select_gpu
+#!/bin/bash
+
+env
+export ROCR_VISIBLE_DEVICES=\$SLURM_LOCALID
+exec "\$@"
+EOF
+
+chmod +x ./select_gpu
+
+CPU_BIND="mask_cpu:7e000000000000,7e00000000000000"
+CPU_BIND="${CPU_BIND},7e0000,7e000000"
+CPU_BIND="${CPU_BIND},7e,7e00"
+CPU_BIND="${CPU_BIND},7e00000000,7e0000000000"
+
+export OMP_NUM_THREADS=6
+export MPICH_GPU_SUPPORT_ENABLED=1
+
+
 # test if cuda_memtest binary is available and we have the node exclusive
 if [ $run_cuda_memtest -eq 1 ] ; then
     touch bad_nodes.txt
@@ -160,8 +175,11 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     # Run PIConGPU
     echo "Start PIConGPU."
     test $n_broken_nodes -ne 0 && exclude_nodes="-x./bad_nodes.txt"
-    srun -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+
+    srun --cpu-bind=${CPU_BIND}  -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 ./select_gpu !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
 else
     echo "Job stopped because of previous issues."
     echo "Job stopped because of previous issues." >&2
 fi
+
+rm -rf ./select_gpu
