@@ -19,7 +19,7 @@ module switch modenv/ml
 
 # load CUDA/9.2.88-GCC-7.3.0-2.30, also loads GCC/7.3.0-2.30, zlib, OpenMPI and others
 module load fosscuda/2018b
-module load CMake/3.15.0-GCCcore-7.3.0
+module load CMake
 module load libpng/1.6.34-GCCcore-7.3.0
 
 printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"

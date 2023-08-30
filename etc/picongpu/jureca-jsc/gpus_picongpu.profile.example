@@ -25,7 +25,7 @@ jutil env activate -p $proj
 module purge
 module load GCC/7.3.0
 module load CUDA/9.2.88
-module load CMake/3.15.0
+module load CMake
 module load MVAPICH2/2.3-GDR
 module load Python/3.6.6
 

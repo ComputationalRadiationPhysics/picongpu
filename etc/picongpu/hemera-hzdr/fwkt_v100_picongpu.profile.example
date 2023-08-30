@@ -31,7 +31,7 @@ module load libfabric/1.11.1-co79
 module load c-blosc/1.14.4
 module load adios2/2.7.1-cuda115
 module load openpmd/0.14.3-cuda115
-module load cmake/3.20.2
+module load cmake/3.26.1
 
 module load libpng/1.6.35
 module load pngwriter/0.7.0

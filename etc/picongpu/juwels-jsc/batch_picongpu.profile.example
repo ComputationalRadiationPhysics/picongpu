@@ -35,7 +35,7 @@ fi
 #
 module purge
 module load Intel/2020.2.254-GCC-9.3.0
-module load CMake/3.18.0
+module load CMake
 module load IntelMPI/2019.8.254
 module load Python/3.8.5
 
