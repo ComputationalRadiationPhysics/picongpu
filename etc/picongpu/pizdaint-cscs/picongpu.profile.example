@@ -40,7 +40,7 @@ export CXX=$(which CC)
 export CRAY_CPU_TARGET=x86-64
 
 # Libraries ###################################################################
-module load CMake/3.15.0
+module load CMake
 
 module load cray-mpich/7.6.0
 module load cray-hdf5-parallel/1.10.0.3

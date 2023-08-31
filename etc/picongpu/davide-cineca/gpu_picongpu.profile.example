@@ -21,7 +21,7 @@ export proj=$(groups | awk '{print $2}')
 #
 module purge
 module load gnu/6.4.0
-module load cmake/3.15.0
+module load cmake
 module load cuda/9.2.88
 module load openmpi/3.1.0--gnu--6.4.0
 module load boost/1.68.0--openmpi--3.1.0--gnu--6.4.0

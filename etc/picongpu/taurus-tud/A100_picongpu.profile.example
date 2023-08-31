@@ -21,7 +21,7 @@ module switch modenv/hiera
 module load foss/2021a
 module load CUDA/11.6.0
 module load HDF5/1.10.7
-module load CMake/3.20.1
+module load CMake
 module load libpng/1.6.37
 module load freetype/2.10.4
 

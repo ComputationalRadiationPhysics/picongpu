@@ -25,7 +25,7 @@ module purge
 module load dgx
 module swap PrgEnv-intel PrgEnv-gnu
 module load cuda openmpi
-module load cmake/3.18.2
+module load cmake
 module load boost/1.70.0
 
 # Other Software ##############################################################

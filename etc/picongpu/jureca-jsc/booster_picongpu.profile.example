@@ -25,7 +25,7 @@ jutil env activate -p $proj
 module purge
 module load Architecture/KNL
 module load Intel/2019.0.117-GCC-7.3.0
-module load CMake/3.15.0
+module load CMake
 module load IntelMPI/2018.4.274
 module load Python/3.6.6
 module load Boost/1.68.0-Python-3.6.6

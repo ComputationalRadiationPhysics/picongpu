@@ -35,7 +35,7 @@ fi
 module purge
 module load GCC/9.3.0
 module load CUDA/11.0
-module load CMake/3.18.0
+module load CMake
 module load ParaStationMPI/5.4.7-1
 module load mpi-settings/CUDA
 module load Python/3.8.5
