@@ -1464,10 +1464,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 pmacc::math::UInt64<simDim> recordOffsetDims = params->window.localDimensions.offset;
                 pmacc::math::UInt64<simDim> recordGlobalSizeDims = params->window.globalDimensions.size;
 
-                std::cout << "record: flobalOffset" << recordOffsetDims.toString()
-                          << " glbalsize=" << recordGlobalSizeDims.toString()
-                          << " local=" << recordLocalSizeDims.toString() << std::endl;
-
                 /* Patch for non-domain-bound fields
                  * Allow for the output of reduced 1d PML buffer
                  */
