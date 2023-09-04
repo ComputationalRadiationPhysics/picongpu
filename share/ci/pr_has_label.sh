@@ -5,7 +5,7 @@ set -o pipefail
 
 github_group_repo="ComputationalRadiationPhysics/picongpu"
 
-pr_id=$(echo "$CI_BUILD_REF_NAME" | cut -d"/" -f1 | cut -d"-" -f2)
+pr_id=$(echo "$CI_COMMIT_REF_NAME" | cut -d"/" -f1 | cut -d"-" -f2)
 # used a token without any rights from psychocoderHPC to avoid API query limitations
 curl_data=$(curl -u psychocoderHPC:$GITHUB_TOKEN -X GET https://api.github.com/repos/${github_group_repo}/pulls/${pr_id} 2>/dev/null)
 # get the destination branch

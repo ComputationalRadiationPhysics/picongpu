@@ -25,6 +25,8 @@ if [ "$has_label" == "0" ] ; then
   echo "  script:"
   echo "    - echo \"CI action - 'CI:no-compile' -> skip compile/runtime tests\""
   exit 0
+else
+  echo "Label 'CI:no-compile' for the current CI job not set." >&2
 fi
 
 folders=()
