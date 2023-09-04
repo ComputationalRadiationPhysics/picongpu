@@ -202,6 +202,7 @@ Active Team
 ### Maintainers* and core developers
 
 - Dr. Sergei Bastrakov*
+- Finn-Ole Carstens
 - Dr. Alexander Debus
 - Dr. Marco Garten*
 - Dr. Axel Huebl*
