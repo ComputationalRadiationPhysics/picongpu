@@ -10,6 +10,7 @@ from picongpu.pypicongpu.species.constant import ElementProperties
 import unittest
 
 from picongpu.pypicongpu.species.util import Element
+import typeguard
 
 
 class TestElementProperties(unittest.TestCase):
@@ -47,10 +48,10 @@ class TestElementProperties(unittest.TestCase):
         # now passes
         ep.check()
 
-    def test_typesaftey(self):
+    def test_typesafety(self):
         """typesafety is ensured"""
         ep = ElementProperties()
 
         for invalid in [None, "H", 1, [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 ep.element = invalid

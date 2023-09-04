@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species import Species
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu.species.attribute import Position, Weighting, Momentum
 from picongpu.pypicongpu.species.constant import \
@@ -71,19 +72,19 @@ class TestSpecies(unittest.TestCase):
         species = self.species
 
         for invalid_name in [None, [], {}, 123]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 species.name = invalid_name
 
         invalid_attr_lists = [None, {}, set(), [DummyConstant()],
                               DummyAttribute()]
         for invalid_attr_list in invalid_attr_lists:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 species.attributes = invalid_attr_list
 
         invalid_const_lists = [None, {}, set(), [DummyAttribute()],
                                DummyConstant()]
         for invalid_const_list in invalid_const_lists:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 species.constants = invalid_const_list
 
     def test_mandatory_attribute_position(self):
@@ -190,9 +191,9 @@ class TestSpecies(unittest.TestCase):
         species = self.species
         self.assertEqual([], species.constants)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             species.get_constant_by_type("string")
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             # only children of Constant() are accepted
             species.get_constant_by_type(object)
 
@@ -213,9 +214,9 @@ class TestSpecies(unittest.TestCase):
         species = self.species
         self.assertEqual([], species.constants)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             species.has_constant_of_type("density")
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             # only children of Constant() are accepted
             species.has_constant_of_type(object)
 

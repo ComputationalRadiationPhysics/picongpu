@@ -9,14 +9,13 @@ from ..pypicongpu import grid
 from ..pypicongpu import util
 
 import picmistandard
-from typeguard import typechecked
-import typing
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
     def __init__(self,
-                 picongpu_n_gpus: typing.Optional[typing.List[int]] = None,
+                 picongpu_n_gpus: list[int] | None = None,
                  **kw):
         """overwriting PICMI init to extract gpu distribution for PIConGPU
         :param picongpu_n_gpus: number of gpus for each dimension

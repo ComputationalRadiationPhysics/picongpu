@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.operation.momentum import Temperature
 
 import unittest
+import typeguard
 
 
 class TestTemperature(unittest.TestCase):
@@ -45,7 +46,7 @@ class TestTemperature(unittest.TestCase):
         """invalid types are rejected"""
         t = Temperature()
         for invalid in [None, "asd", {}, []]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 t.temperature_kev = invalid
 
         # work

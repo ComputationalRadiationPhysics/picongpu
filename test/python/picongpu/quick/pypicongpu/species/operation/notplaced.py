@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.operation import NotPlaced
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Weighting
@@ -36,7 +37,7 @@ class TestNotPlaced(unittest.TestCase):
         np = NotPlaced()
 
         for invalid_species in ["s", [], {"species1"}, 1, None, {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 np.species = invalid_species
 
     def test_empty(self):

@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.rendering import RenderedObject
 
 import unittest
+import typeguard
 from picongpu.pypicongpu.solver import YeeSolver
 from picongpu.pypicongpu import Simulation
 import jsonschema
@@ -242,9 +243,9 @@ class TestRenderedObject(unittest.TestCase):
 
         # (B) invalid requests are rejected
         # wrong argument types
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             RenderedObject.check_context_for_type("YeeSolver", context_correct)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             RenderedObject.check_context_for_type(YeeSolver, "{}")
 
         # types without schema

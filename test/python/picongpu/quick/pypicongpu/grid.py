@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.grid import Grid3D, BoundaryCondition
 
 import unittest
+import typeguard
 
 
 class TestGrid3D(unittest.TestCase):
@@ -41,25 +42,25 @@ class TestGrid3D(unittest.TestCase):
     def test_types(self):
         """test raising errors if types are wrong"""
         g = self.g
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_size_x_si = "54.3"
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_size_y_si = "2"
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_size_z_si = "126"
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_cnt_x = 11.1
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_cnt_y = 11.412
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_cnt_z = 16781123173.12637183
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.boundary_condition_x = "open"
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.boundary_condition_y = 1
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.boundary_condition_z = {}
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             # list not accepted - tuple needed
             g.n_gpus = [1, 1, 1]
 
@@ -96,25 +97,25 @@ class TestGrid3D(unittest.TestCase):
         """test if None as content fails"""
         # check that mandatory arguments can't be none
         g = self.g
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_size_x_si = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_size_y_si = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_size_z_si = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_cnt_x = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_cnt_y = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.cell_cnt_x = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.boundary_condition_x = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.boundary_condition_y = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.boundary_condition_z = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             g.n_gpus = None
 
     def test_get_rendering_context(self):

@@ -9,12 +9,12 @@ from picongpu.pypicongpu.species.operation.momentum import Drift
 
 import unittest
 
-from typeguard import typechecked
+import typeguard
 import itertools
 import math
 
 
-@typechecked
+@typeguard.typechecked
 class TestDrift(unittest.TestCase):
     def test_passthru(self):
         """values are present in output"""
@@ -39,11 +39,11 @@ class TestDrift(unittest.TestCase):
         drift = Drift()
 
         for invalid in [[], None, 0, tuple([0]), [1, 2, 3], (0, 1)]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 drift.direction_normalized = invalid
 
         for invalid in [[], None, "1", (1, 2, 3), tuple([0]), (0, 1)]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 drift.gamma = invalid
 
     def test_invalid_gamma(self):

@@ -36,9 +36,12 @@ class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
             # at the simulation class though
             util.unsupported("cfl", self.cfl)
 
-        util.unsupported("l_nodal", self.l_nodal)
         util.unsupported("source smoother", self.source_smoother)
         util.unsupported("level of subcycling", self.subcycling)
         util.unsupported("galilean velocity", self.galilean_velocity)
+        util.unsupported("divE cleaning", self.divE_cleaning)
+        util.unsupported("divB cleaning", self.divB_cleaning)
+        util.unsupported("pml divE cleaning", self.pml_divE_cleaning)
+        util.unsupported("pml divB cleaning", self.pml_divB_cleaning)
 
         return solver_by_method[self.method]

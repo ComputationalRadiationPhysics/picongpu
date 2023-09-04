@@ -10,6 +10,7 @@ from picongpu.pypicongpu.species.util import Element
 import unittest
 from picongpu.pypicongpu.rendering import RenderedObject
 import re
+import typeguard
 
 
 class TestElement(unittest.TestCase):
@@ -29,7 +30,7 @@ class TestElement(unittest.TestCase):
                              Element.get_by_openpmd_name(name))
 
         for invalid_type in [[], None, 3]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 Element.get_by_openpmd_name(invalid_type)
 
         for unknown_name in ["", " H", "abc"]:

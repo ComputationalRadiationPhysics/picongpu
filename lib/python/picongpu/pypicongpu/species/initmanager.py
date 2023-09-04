@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from typeguard import typechecked, check_type
+import typeguard
 import typing
 from .. import util
 from .species import Species
@@ -17,7 +17,7 @@ from functools import reduce
 from ..rendering import RenderedObject
 
 
-@typechecked
+@typeguard.typechecked
 class InitManager(RenderedObject):
     """
     Helper to manage species translation to PIConGPU
@@ -334,12 +334,10 @@ class InitManager(RenderedObject):
                 required_attrs = constant.get_attribute_dependencies()
 
                 # perform more rigerous typechecks than typeguard
-                check_type("required attributes",
-                           typing.List[type],
-                           required_attrs)
+                typeguard.check_type(required_attrs, list[type])
                 for required_attr in required_attrs:
                     if not issubclass(required_attr, Attribute):
-                        raise TypeError(
+                        raise typeguard.TypeCheckError(
                             "required attribute must be attribute type, "
                             "got: {}".format(required_attr))
 
@@ -366,13 +364,11 @@ class InitManager(RenderedObject):
         for species in self.all_species:
             for constant in species.constants:
                 required_constants = constant.get_constant_dependencies()
-                check_type("required constants",
-                           typing.List[type],
-                           required_constants)
+                typeguard.check_type(required_constants, list[type])
 
                 for required_constant in required_constants:
                     if not issubclass(required_constant, Constant):
-                        raise TypeError(
+                        raise typeguard.TypeCheckError(
                             "required constants must be of Constant type, "
                             "got: {}".format(required_constant))
 

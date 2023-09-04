@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.runner import Runner
 
 import unittest
+import typeguard
 
 from picongpu import picmi
 
@@ -129,11 +130,11 @@ class TestRunner(unittest.TestCase):
             Runner(self.sim, run_dir=lambda x: x)
 
         r = Runner(self.sim)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             r.setup_dir = 1
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             r.run_dir = []
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             r.scratch_dir = {}
 
     def test_dir_collision(self):

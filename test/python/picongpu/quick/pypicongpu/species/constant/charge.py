@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.constant import Charge
 
 import unittest
+import typeguard
 
 
 class TestCharge(unittest.TestCase):
@@ -23,7 +24,7 @@ class TestCharge(unittest.TestCase):
         """types are checked"""
         c = Charge()
         for invalid in [None, [], {}, "1"]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 c.charge_si = invalid
 
     def test_rendering(self):
