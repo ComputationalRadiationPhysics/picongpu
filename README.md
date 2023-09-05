@@ -202,6 +202,7 @@ Active Team
 ### Maintainers* and core developers
 
 - Dr. Sergei Bastrakov*
+- Finn-Ole Carstens
 - Dr. Alexander Debus
 - Dr. Marco Garten*
 - Dr. Axel Huebl*
@@ -224,7 +225,7 @@ Stefan Tietze, Marija Vranic, Ph.D., Benjamin Worpitz, Erik Zenker,
 Sophie Rudat, Sebastian Starke, Alexander Matthes, Kseniia Bastrakova, 
 Bernhard Manfred Gruber, Jakob Trojok, Anton Lebedev, Nils Prinz,
 Felix Meyer, Lennert Sprenger, Manhui Wang, Maxence Thevenet, Ilja Goethel,
-Finn-Ole Carstens, Mika Soren Voß, Lei Bifeng, Andrei Berceanu, Felix Meyer,
+Mika Soren Voß, Lei Bifeng, Andrei Berceanu, Felix Meyer,
 Lennert Sprenger and Nico Wrobel.
 
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
