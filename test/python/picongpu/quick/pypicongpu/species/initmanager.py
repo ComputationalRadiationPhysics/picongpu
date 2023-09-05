@@ -18,11 +18,11 @@ from picongpu.pypicongpu.species.operation import \
     SimpleDensity, SimpleMomentum, NotPlaced, densityprofile
 
 import typing
-from typeguard import typechecked
+import typeguard
 
 
 class TestInitManager(unittest.TestCase):
-    @typechecked
+    @typeguard.typechecked
     class ConstantWithDependencies(species.constant.Constant):
         def __init__(self, dependencies=[]):
             if type(dependencies) is not list:
@@ -734,7 +734,7 @@ class TestInitManager(unittest.TestCase):
             initmgr.all_operations = \
                 [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 initmgr.bake()
 
     def test_constant_constant_dependencies_ok(self):
@@ -863,7 +863,7 @@ class TestInitManager(unittest.TestCase):
             initmgr.all_operations = \
                 [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 initmgr.bake()
 
     def test_set_bound_electrons_passthrough(self):

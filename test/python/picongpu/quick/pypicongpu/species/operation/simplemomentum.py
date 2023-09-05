@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.operation import SimpleMomentum
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu.species.operation.momentum import Temperature, Drift
 from picongpu.pypicongpu.species import Species
@@ -88,26 +89,26 @@ class TestSimpleMomentum(unittest.TestCase):
     def test_types(self):
         """typesafety is ensured"""
         for invalid in [1, "", [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 self.sm.temperature = invalid
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 self.sm.drift = invalid
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 self.sm.species = invalid
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             self.sm.temperature = self.drift
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             self.sm.temperature = self.species
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             self.sm.drift = self.temperature
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             self.sm.drift = self.species
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             self.sm.species = self.temperature
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             self.sm.species = self.drift
 
     def test_optional(self):

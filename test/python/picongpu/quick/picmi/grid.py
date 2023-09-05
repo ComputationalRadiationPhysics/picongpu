@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu import picmi
 
 import unittest
+import typeguard
 
 
 class TestCartesian3DGrid(unittest.TestCase):
@@ -42,9 +43,10 @@ class TestCartesian3DGrid(unittest.TestCase):
 
     def test_n_gpus_type(self):
         """test wrong input type for picongpu_n_gpus"""
-        for not_ngpus_type in [1, 1., 1.2, "abc", tuple([1])]:
-            with self.assertRaisesRegex(TypeError,
-                                        ".*type.*picongpu_n_gpus.*"):
+        for i, not_ngpus_type in enumerate([1, 1., 1.2, "abc", tuple([1])]):
+            with self.assertRaisesRegex(typeguard.TypeCheckError,
+                                        ".*argument \"picongpu_n_gpus\""
+                                        "(.*) did not match any element.*"):
                 picmi.Cartesian3DGrid(
                     number_of_cells=[192, 2048, 12],
                     lower_bound=[0, 0, 0],

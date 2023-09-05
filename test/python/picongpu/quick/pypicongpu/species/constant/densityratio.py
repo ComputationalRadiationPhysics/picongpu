@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.constant import DensityRatio
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu.species.constant import Constant
 
@@ -31,7 +32,7 @@ class TestDensityRatio(unittest.TestCase):
         """type safety ensured"""
         dr = DensityRatio()
         for invalid in [None, "asbd", [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 dr.ratio = invalid
 
         # note: type ok, value might not -> not checked here

@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu import picmi
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu import species
 from copy import deepcopy
@@ -112,7 +113,7 @@ class TestPicmiSpecies(unittest.TestCase):
         """arg type is checked"""
         picmi_s = picmi.Species(name="any", mass=1, charge=2)
         for invalid_species in [[], None, picmi_s, "name"]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 picmi_s.get_independent_operations(invalid_species)
 
     def test_get_independent_operations_different_name(self):
@@ -429,7 +430,7 @@ class TestPicmiSpecies(unittest.TestCase):
     def test_fully_ionized_typesafety(self):
         """picongpu_fully_ioinized is type safe"""
         for invalid in [1, "yes", [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 picmi.Species(name="x",
                               picongpu_fully_ionized=invalid)
 
@@ -439,7 +440,7 @@ class TestPicmiSpecies(unittest.TestCase):
                                       picongpu_fully_ionized=True)
 
         for invalid in [0, "no", [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 picmi_species.picongpu_fully_ionized = invalid
 
         # None is allowed as value in general (but not in constructor)
@@ -448,7 +449,7 @@ class TestPicmiSpecies(unittest.TestCase):
     def test_ionization_electron_explicit_types(self):
         """explicit electron specification requires a PICMI species"""
         for invalid in [[], {}, "electron"]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 picmi.Species(name="ion",
                               picongpu_ionization_electrons=invalid)
 

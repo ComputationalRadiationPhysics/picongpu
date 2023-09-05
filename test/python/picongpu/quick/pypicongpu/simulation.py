@@ -11,12 +11,12 @@ from picongpu.pypicongpu import grid, solver, species
 from picongpu.pypicongpu import rendering
 
 import unittest
+import typeguard
 
-from typeguard import typechecked
 from copy import deepcopy
 
 
-@typechecked
+@typeguard.typechecked
 def helper_get_species(name: str) -> species.Species:
     spec = species.Species()
     spec.name = name
@@ -73,11 +73,11 @@ class TestSimulation(unittest.TestCase):
 
     def test_types(self):
         s = self.s
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             s.delta_t_si = "1"
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             s.time_steps = 14.3
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             s.grid = [42, 13, 37]
 
     def test_mandatory(self):
@@ -89,11 +89,11 @@ class TestSimulation(unittest.TestCase):
         # option 2. is tested below:
 
         s = self.s
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             s.delta_t_si = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             s.time_steps = None
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             s.grid = None
 
     def test_species_collision(self):

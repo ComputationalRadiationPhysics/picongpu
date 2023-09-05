@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.operation import SimpleDensity, Operation
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.operation import densityprofile
@@ -96,15 +97,15 @@ class TestSimpleDensity(unittest.TestCase):
     def test_typesafety(self):
         """typesafety enforced"""
         for invalid_pcc in [None, [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 self.sd.ppc = invalid_pcc
 
         for invalid_profile in [None, [], {}, 1, "3"]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 self.sd.profile = invalid_profile
 
         for invalid_set in [None, {self.species1: 2}, 1, {1, 2}, "3"]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 self.sd.species = invalid_set
 
     def test_empty(self):

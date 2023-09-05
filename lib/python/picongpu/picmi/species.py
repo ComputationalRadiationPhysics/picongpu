@@ -9,13 +9,13 @@ from ..pypicongpu import util, species
 
 import picmistandard
 
-from typeguard import typechecked, check_type
+import typeguard
 import typing
 import logging
 from scipy import constants as consts
 
 
-@typechecked
+@typeguard.typechecked
 class Species(picmistandard.PICMI_Species):
     """PICMI object for a (single) particle species"""
 
@@ -46,9 +46,8 @@ class Species(picmistandard.PICMI_Species):
         # class. Typically this picmi species object is only available as
         # "picmi.Species()", and the resolution fails.
         # Hence, the type is checked manually here.
-        check_type("picongpu_ionization_electrons",
-                   picongpu_ionization_electrons,
-                   typing.Optional[Species])
+        typeguard.check_type(picongpu_ionization_electrons,
+                             typing.Optional[Species])
         self.picongpu_ionization_electrons = picongpu_ionization_electrons
 
         super().__init__(**kw)

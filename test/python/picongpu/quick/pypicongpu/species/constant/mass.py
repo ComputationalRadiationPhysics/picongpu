@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.constant import Mass
 
 import unittest
+import typeguard
 
 
 class TestMass(unittest.TestCase):
@@ -30,7 +31,7 @@ class TestMass(unittest.TestCase):
         """types are checked"""
         m = Mass()
         for invalid in [None, "1", [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 m.mass_si = invalid
 
     def test_values(self):

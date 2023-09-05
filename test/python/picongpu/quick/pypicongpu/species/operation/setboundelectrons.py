@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species.operation import SetBoundElectrons
 
 import unittest
+import typeguard
 
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.constant import Ionizers
@@ -34,11 +35,11 @@ class TestSetBoundElectrons(unittest.TestCase):
         """typesafety is ensured"""
         sbe = SetBoundElectrons()
         for invalid_species in [None, 1, "a", []]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 sbe.species = invalid_species
 
         for invalid_number in [None, "a", [], self.species1, 2.3]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 sbe.bound_electrons = invalid_number
 
         # works:

@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.pypicongpu.output import Auto
 
 import unittest
+import typeguard
 
 
 class TestAuto(unittest.TestCase):
@@ -29,7 +30,7 @@ class TestAuto(unittest.TestCase):
 
         invalid_periods = [13.2, [], "2", None, {}, (1)]
         for invalid_period in invalid_periods:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 a.period = invalid_periods
         # ok
         a.period = 17

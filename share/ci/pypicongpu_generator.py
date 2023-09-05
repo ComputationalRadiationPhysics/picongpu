@@ -295,7 +295,7 @@ def print_job_yaml(test_pkg_versions: Dict[str, List[str]]):
 
 
 # Python versions to test
-PYTHON_VERSIONS: List[str] = ["3.9", "3.10", "3.11"]
+PYTHON_VERSIONS: List[str] = ["3.10", "3.11"]
 # Define, which dependencies should be explicit tests.
 # The key is the name of the package, and function returns the versions to
 # test.

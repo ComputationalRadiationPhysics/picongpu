@@ -9,6 +9,7 @@ from picongpu.pypicongpu.species.operation.densityprofile import \
     Uniform, DensityProfile
 
 import unittest
+import typeguard
 
 
 class TestUniform(unittest.TestCase):
@@ -28,7 +29,7 @@ class TestUniform(unittest.TestCase):
         u = Uniform()
 
         for invalid in [None, "1", [], {}]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 u.density_si = invalid
 
     def test_check(self):

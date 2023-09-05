@@ -1,6 +1,6 @@
 """
 This file is part of the PIConGPU.
-Copyright 2021-2023 PIConGPU contributors
+Copyright 2021-2022 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus
 License: GPLv3+
 """
@@ -10,6 +10,8 @@ from picongpu.pypicongpu.laser import GaussianLaser
 import unittest
 import logging
 import copy
+
+import typeguard
 
 """ @file we only test for types here, test for values errors is done in the
    custom picmi-objects"""
@@ -36,43 +38,43 @@ class TestGaussianLaser(unittest.TestCase):
         """invalid types are rejected"""
         laser = GaussianLaser()
         for not_float in [None, [], {}, "1"]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.wavelength = not_float
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.waist = not_float
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.duration = not_float
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.phase = not_float
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.E0 = not_float
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.pulse_init = not_float
 
         for not_position_vector in [1, 1., None, ["string"]]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.focus_pos = not_position_vector
 
         for not_polarization_type in [1, 1.3, None, "", []]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.polarization_type = not_polarization_type
 
         for not_direction_vector in [1, 1.3, None, "", ["string"]]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.polarization_direction = not_direction_vector
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.propagation_direction = not_direction_vector
 
         for invalid_list in [None, 1.2, "1.2", ["string"]]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.laguerre_modes = invalid_list
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.laguerre_phases = invalid_list
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.polarization_direction = invalid_list
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.propagation_direction = invalid_list
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 laser.huygens_surface_positions = invalid_list
 
     def test_polarization_type(self):

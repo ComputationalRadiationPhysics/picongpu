@@ -9,8 +9,9 @@ from picongpu import picmi
 
 import unittest
 
-from typeguard import typechecked
+import typeguard
 import typing
+
 from picongpu.pypicongpu import species
 from copy import deepcopy
 import logging
@@ -20,7 +21,7 @@ import os
 import pathlib
 
 
-@typechecked
+@typeguard.typechecked
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     # sets delta_[x,y,z] implicitly by providing bounding box+cell count
     return picmi.Cartesian3DGrid(
@@ -33,7 +34,7 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
         upper_boundary_conditions=["open", "open", "periodic"])
 
 
-@typechecked
+@typeguard.typechecked
 def get_sim_cfl_helper(
         delta_t: typing.Optional[float],
         cfl: typing.Optional[float],
