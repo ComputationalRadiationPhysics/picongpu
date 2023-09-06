@@ -1,0 +1,29 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.plasmaramp.PlasmaRamp",
+    "description": "Any plasma ramp. Consists of (1) the type of plasma ramp used and (2) the actual data for that plasma ramp.",
+    "type": "object",
+    "required": ["type", "data"],
+    "unevaluatedProperties": false,
+    "properties": {
+        "type": {
+            "description": "Enum-equivalent of selected type. Note that only one entry should be marked as true, and all others as false, but that is not enforced by the schema.",
+            "type": "object",
+            "required": [
+                "exponential",
+                "none"
+            ],
+            "unevaluatedProperties": false,
+            "properties": {
+                "exponential": {"type": "boolean"},
+                "none": {"type": "boolean"}
+            }
+        },
+        "data": {
+            "description": "data as provided by plasma ramp (schema)",
+            "anyOf": [
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.exponential.Exponential"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.none.None"}
+            ]
+        }
+    }
+}

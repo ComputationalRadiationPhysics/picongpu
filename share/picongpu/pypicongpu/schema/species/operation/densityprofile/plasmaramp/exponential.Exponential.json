@@ -1,0 +1,22 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.exponential.Exponential",
+    "type": "object",
+    "description": "Describes an exponential plasma ramp.",
+    "unevaluatedProperties": false,
+    "required": [
+        "PlasmaLength",
+        "PlasmaCutoff"
+    ],
+    "properties": {
+        "PlasmaLength" : {
+            "type" : "number",
+            "description": "length scale of expoential decay of pre-foil plasma density",
+            "exclusiveMinimum": 0
+        },
+        "PlasmaCutoff" : {
+            "type" : "number",
+            "description": "cutoff length for exponential decay of pre-foil density",
+            "exclusiveMinimum": 0
+        }
+    }
+}

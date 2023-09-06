@@ -1,5 +1,5 @@
-/* Copyright 2013-2023 Axel Huebl, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Marco Garten
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Marco Garten, Brian Marre, Kristin Tippey
  *
  * This file is part of PIConGPU.
  *
@@ -37,33 +37,80 @@ namespace picongpu
          *
          * unit: ELEMENTS/m^3
          */
+        //! @todo find way to compute on the fly, Brian Marre, 2023
         constexpr float_64 BASE_DENSITY_SI = 1.e25;
     } // namespace SI
 
-    namespace densityProfiles
+    namespace densityProfiles::pypicongpu
     {
-        namespace pypicongpu {
-            {{#species_initmanager.operations.simple_density}}
-                /**
-                 * generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
-                 *
-                 * (Note: This profile assumes ratio to be 1. The correct ratio is applied in the initpipeline by CreateDensity.)
-                 */
-                struct init_{{{placed_species_initial.typename}}}_functor
+        {{#species_initmanager.operations.simple_density}}
+            /**
+             * generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
+             *
+             * (Note: This profile assumes ratio to be 1. The correct ratio is applied in the initpipeline by CreateDensity.)
+             */
+            struct init_{{{placed_species_initial.typename}}}_functor
+            {
+                HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
                 {
-                    HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
-                    {
-                        // TODO: respect bounding box
+                    //! @todo respect bounding box, Brian Marre, 2023
 
-                        {{#profile.type.uniform}}
-                            // note: right hand side is double
-                            return {{{profile.data.density_si}}} / SI::BASE_DENSITY_SI;
-                        {{/profile.type.uniform}}
-                    }
-                };
+                    // a species has always only exactly one profile, so only one of the following blocks below will be present
+                    {{#profile.type.uniform}}
+                        return static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
+                    {{/profile.type.uniform}}
 
-                using init_{{{placed_species_initial.typename}}} = FreeFormulaImpl<init_{{{placed_species_initial.typename}}}_functor>;
-            {{/species_initmanager.operations.simple_density}}
-        } // namespace pypicongpu
-    } // namespace densityProfiles
+                    {{#profile.type.foil}}
+                        float_64 const y = position_SI.y(); // m
+
+                        // begin & end plateau of foil
+                        constexpr float_64 y0 = {{{profile.data.y_value_front_foil_si}}}:
+                        constexpr float_64 y1 = y0 + {{{profile.data.thickness_foil_si}}};
+
+                        // prePlasma ramp
+                        {{#profile.data.pre_foil_plasmaRamp.type.exponential}}
+                            // exponential pre-expanded density ramp before plateau of foil
+                            constexpr float_64 prePlasmaLength = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaLength}}};
+                            constexpr float_64 prePlasmaCutoff = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaCutoff}}};
+
+                            // prefoil upramp
+                            if((y < y0) &&  y > y0 - prePlasmaCutoff)
+                                dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
+                                    * math::exp((y - y0) / prePlasmaLength);
+                        {{/profile.data.pre_foil_plasmaRamp.type.exponential}}
+
+                        {{#profile.data.pre_foil_plasmaRamp.type.none}}
+                            // no prePlasma ramp
+                        {{/profile.data.pre_foil_plasmaRamp.type.none}}
+
+                        // postPlasma ramp
+                        {{#profile.data.post_foil_plasmaRamp.type.exponential}}
+                            // exponential pre-expanded density ramp after plateau of foil
+                            constexpr float_64 postPlasmaLength = {{{profile.data.post_foil_plasmaRamp.data.PlasmaLength}}};
+                            constexpr float_64 postPlasmaCutoff = {{{profile.data.post_foil_plasmaRamp.data.PlasmaCutoff}}};
+    
+                        // postfoil downramp
+                            if(y > y1 && y < y1 + postPlasmaCutoff)
+                                dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
+                                    * math::exp((y1 - y) / postPlasmaLength);
+                        {{/profile.data.post_foil_plasmaRamp.type.exponential}}
+
+                        {{#profile.data.post_foil_plasmaRamp.type.none}}
+                            // no postPlasma ramp
+                        {{/profile.data.post_foil_plasmaRamp.type.none}}
+
+                        // foil plateau
+                        if(y >= y0 && y <= y1)
+                            dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
+
+                        // safety check: all parts of the function MUST be > 0
+                        dens *= float_64(dens >= 0.0);
+                        return dens;
+                    {{/profile.type.foil}}
+                }
+            };
+
+            using init_{{{placed_species_initial.typename}}} = FreeFormulaImpl<init_{{{placed_species_initial.typename}}}_functor>;
+        {{/species_initmanager.operations.simple_density}}
+    } // namespace densityProfiles::pypicongpu
 } // namespace picongpu

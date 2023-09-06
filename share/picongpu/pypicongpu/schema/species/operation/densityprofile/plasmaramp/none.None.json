@@ -1,0 +1,8 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.none.None_",
+    "type": "object",
+    "description": "Describes no plasma ramp.",
+    "unevaluatedProperties": false,
+    "required": [],
+    "properties": {}
+}

@@ -64,6 +64,7 @@ class TestDensityProfile(unittest.TestCase):
         self.assertEqual(context["type"],
                          {
                              "uniform": True,
+                             "foil": False
                          })
 
         # is actually validated against "DensityProfile" schema

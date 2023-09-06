@@ -1,0 +1,36 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.foil.Foil",
+    "type": "object",
+    "description": "Describes a foil target.",
+    "unevaluatedProperties": false,
+    "required": [
+        "density_si",
+        "y_value_front_foil_si",
+        "thickness_foil_si",
+        "pre_foil_plasmaRamp",
+        "post_foil_plasmaRamp"
+    ],
+    "properties": {
+        "density_si": {
+            "type": "number",
+            "description": "density in kg * m^-3",
+            "exclusiveMinimum": 0
+        },
+        "y_value_front_foil_si" : {
+            "type" : "number",
+            "description": "y-postion of front surface of foil in m",
+            "minimum": 0
+        },
+        "thickness_foil_si": {
+            "type": "number",
+            "description": "thickness of the foil in m",
+            "exclusiveMinimum": 0
+        },
+        "pre_foil_plasmaRamp": {
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.plasmaramp.PlasmaRamp"
+        },
+        "post_foil_plasmaRamp": {
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.plasmaramp.PlasmaRamp"
+        }
+    }
+}
