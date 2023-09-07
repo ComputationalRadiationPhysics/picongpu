@@ -1,0 +1,96 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
+#pragma once
+
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+
+#include <pmacc/math/operation.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+
+#include <limits>
+
+#ifndef PARAM_VX
+#    define PARAM_VX 1
+#endif
+#ifndef PARAM_VY
+#    define PARAM_VY 0
+#endif
+#ifndef PARAM_VZ
+#    define PARAM_VZ 0
+#endif
+
+namespace picongpu
+{
+    namespace particles
+    {
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *
+         *  unit: none */
+        constexpr float_X MIN_WEIGHTING = std::numeric_limits<float_X>::min();
+
+        namespace manipulators
+        {
+            /** Define Lorentz factor of initial particle drift. */
+            struct DriftParam
+            {
+                static constexpr float_64 gamma = 22.366272; // beta: 0.999
+                static constexpr auto driftDirection = float3_X(PARAM_VX, PARAM_VY, PARAM_VZ);
+            };
+            using AssignDrift = unary::Drift<DriftParam, pmacc::math::operation::Assign>;
+
+        } // namespace manipulators
+
+
+        namespace startPosition
+        {
+            // Place particle near cell boundary in order to have a boundary crossing after one timestep.
+            struct OnePositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 1u;
+
+                static constexpr auto inCellOffset = float3_X(0.9, 0.8, 0.7);
+            };
+            using OnePosition = OnePositionImpl<OnePositionParameter>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
+
+    } // namespace particles
+} // namespace picongpu
