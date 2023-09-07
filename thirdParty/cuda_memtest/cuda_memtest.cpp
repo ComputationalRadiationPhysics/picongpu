@@ -153,18 +153,18 @@ thread_func(void* _arg)
     }
 
     unsigned int tot_num_blocks_old = tot_num_blocks;
-    apiError_t err;
 
     // Try to allocate tot_num_blocks memory, if this fails we reduce the number of blocks
     // until we find a valid number of blocks which can be allocated.
     do{
         // reset error
-        MEMTEST_API_PREFIX(GetLastError());
+        CUERR(MEMTEST_API_PREFIX(GetLastError()));
         DEBUG_PRINTF("Trying to allocate %d MB\n", tot_num_blocks);
         if (tot_num_blocks <= 0){
             FPRINTF("ERROR: cannot allocate any memory from GPU\n");
             exit(ERR_GENERAL);
         }
+        apiError_t err;
         if(useMappedMemory)
         {
             //create cuda mapped memory
