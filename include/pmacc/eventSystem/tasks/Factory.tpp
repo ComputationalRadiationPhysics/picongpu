@@ -157,15 +157,7 @@ namespace pmacc
         const TYPE& value,
         ITask* registeringTask)
     {
-        /* sizeof(TYPE)<256 use fast set method for small data and slow method for big data
-         * the rest of 256bytes are reserved for other kernel parameter
-         */
-        enum
-        {
-            isSmall = (sizeof(TYPE) <= 128)
-        }; // if we use const variable the compiler create warnings
-
-        auto* task = new TaskSetValue<TYPE, DIM, isSmall>(dst, value);
+        auto* task = new TaskSetValue<TYPE, DIM>(dst, value);
 
         return startTask(*task, registeringTask);
     }
