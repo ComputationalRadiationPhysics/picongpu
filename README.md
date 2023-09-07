@@ -170,8 +170,8 @@ Test10 [Memory stress test]
 First a kernel is launched to write a pattern.
 Then we exit the kernel so that the memory can be flushed. Then we start a new kernel to read
 and check if the value matches the pattern. An error is recorded if it does not match for each 
-memory location. In the same kernel, the compliment of the pattern is written after the checking. 
-The third kernel is launched to read the value again and checks against the compliment of the pattern. 
+memory location. In the same kernel, the complement of the pattern is written after the checking. 
+The third kernel is launched to read the value again and checks against the complement of the pattern. 
 
 ### Detailed Description
 
@@ -222,7 +222,7 @@ Test 7 `[Random number sequence]`
 
 Test 8 `[Modulo 20, random pattern]`  
 	A random pattern is generated. This pattern is used to set every 20th memory location
-	in memory. The rest of the memory location is set to the complimemnt of the pattern.
+	in memory. The rest of the memory location is set to the complement of the pattern.
 	Repeat this for 20 times and each time the memory location to set the pattern is shifted right.
 
 Test 9 `[Bit fade test, 90 min, 2 patterns]`  
@@ -235,7 +235,7 @@ Test 10 `[memory stress test]`
 	Stress memory as much as we can. A random pattern is generated and a kernel of large grid size
 	and block size is launched to set all memory to the pattern. A new read and write kernel is launched
 	immediately after the previous write kernel to check if there is any errors in memory and set the
-	memory to the compliment. This process is repeated for 1000 times for one pattern. The kernel is 
+	memory to the complement. This process is repeated for 1000 times for one pattern. The kernel is 
 	written as to achieve the maximum bandwidth between the global memory and GPU.
 	This will increase the chance of catching software error. In practice, we found this test quite useful 
 	to flush hardware errors as well.
