@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Felix Schmitt, Axel Huebl, Sergei Bastrakov
+/* Copyright 2013-2023 Rene Widera, Felix Schmitt, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *

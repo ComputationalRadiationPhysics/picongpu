@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Alexander Grund, Rene Widera
+/* Copyright 2016-2023 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *

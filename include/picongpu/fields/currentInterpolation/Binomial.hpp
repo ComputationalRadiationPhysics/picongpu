@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Axel Huebl, Benjamin Worpitz, Klaus Steiniger, Sergei Bastrakov
+/* Copyright 2015-2023 Axel Huebl, Benjamin Worpitz, Klaus Steiniger, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *

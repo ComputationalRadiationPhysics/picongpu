@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2022 Rene Widera
+# Copyright 2013-2023 Rene Widera
 #
 # This file is part of PIConGPU.
 #

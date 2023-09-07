@@ -6,7 +6,7 @@ This file is part of PIConGPU.
 It is supposed to give an estimate for the memory requirement of a PIConGPU
 simulation per device.
 
-Copyright 2018-2022 PIConGPU contributors
+Copyright 2018-2023 PIConGPU contributors
 Authors: Marco Garten, Sergei Bastrakov
 License: GPLv3+
 """

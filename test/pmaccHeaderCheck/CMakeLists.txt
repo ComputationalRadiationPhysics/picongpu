@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2020 Benjamin Worpitz, Axel Huebl, Jan Stephan, Rene Widera
+# Copyright 2014-2023 Benjamin Worpitz, Axel Huebl, Jan Stephan, Rene Widera
 #
 # This file is part of PIConGPU.
 #

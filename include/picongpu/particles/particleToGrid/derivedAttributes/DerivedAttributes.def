@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Axel Huebl, Richard Pausch, Pawel Ordyna
+/* Copyright 2015-2023 Axel Huebl, Richard Pausch, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *

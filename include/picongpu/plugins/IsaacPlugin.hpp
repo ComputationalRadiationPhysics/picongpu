@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 Alexander Matthes, Pawel Ordyna, Richard Pausch
+ * Copyright 2013-2023 Alexander Matthes, Pawel Ordyna, Richard Pausch
  *
  * This file is part of PIConGPU.
  *

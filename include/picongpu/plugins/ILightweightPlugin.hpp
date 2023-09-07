@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Felix Schmitt
+/* Copyright 2014-2023 Felix Schmitt
  *
  * This file is part of PIConGPU.
  *

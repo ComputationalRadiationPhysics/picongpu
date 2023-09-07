@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Pawel Ordyna, Sergei Bastrakov
+/* Copyright 2021-2023 Pawel Ordyna, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *

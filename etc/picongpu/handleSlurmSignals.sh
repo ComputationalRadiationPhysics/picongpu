@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2021-2022 Rene Widera
+# Copyright 2021-2023 Rene Widera
 #
 # This file is part of PIConGPU.
 #

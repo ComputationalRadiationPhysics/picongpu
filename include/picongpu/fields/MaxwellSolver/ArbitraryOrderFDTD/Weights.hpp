@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Klaus Steiniger, Sergei Bastrakov, Brian Marre
+/* Copyright 2020-2023 Klaus Steiniger, Sergei Bastrakov, Brian Marre
  *
  * This file is part of PIConGPU.
  *

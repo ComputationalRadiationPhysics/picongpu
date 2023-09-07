@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Alexander Grund, Axel Huebl
+/* Copyright 2013-2023 Rene Widera, Alexander Grund, Axel Huebl
  *
  * This file is part of PMacc.
  *

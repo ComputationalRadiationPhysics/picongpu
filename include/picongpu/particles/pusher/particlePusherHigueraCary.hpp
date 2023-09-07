@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger
+/* Copyright 2013-2023 Heiko Burau, Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *

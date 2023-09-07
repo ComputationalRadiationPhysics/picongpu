@@ -1,6 +1,6 @@
 """
 This file is part of the PIConGPU.
-Copyright 2021-2022 PIConGPU contributors
+Copyright 2021-2023 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus
 License: GPLv3+
 """

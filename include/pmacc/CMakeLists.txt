@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2022 Erik Zenker, Alexander Grund
+# Copyright 2015-2023 Erik Zenker, Alexander Grund
 #
 # This file is part of PMacc.
 #

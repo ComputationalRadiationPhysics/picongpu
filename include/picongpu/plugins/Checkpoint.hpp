@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Rene Widera, Franz Poeschel
+/* Copyright 2017-2023 Rene Widera, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *

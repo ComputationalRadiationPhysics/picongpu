@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Felix Schmitt, Heiko Burau,
+/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.

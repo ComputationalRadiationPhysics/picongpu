@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Rene Widera, Axel Huebl
+/* Copyright 2017-2023 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Bernhard Manfred Gruber
+/* Copyright 2021-2023 Bernhard Manfred Gruber
  *
  * This file is part of PMacc.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Felix Schmitt, Alexander Grund
+/* Copyright 2013-2023 Rene Widera, Felix Schmitt, Alexander Grund
  *
  * This file is part of PMacc.
  *
