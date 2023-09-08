@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Alexander Grund, Sergei Bastrakov
+/* Copyright 2015-2023 Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *

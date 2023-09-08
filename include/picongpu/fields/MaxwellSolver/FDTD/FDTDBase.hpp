@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
+/* Copyright 2019-2023 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.

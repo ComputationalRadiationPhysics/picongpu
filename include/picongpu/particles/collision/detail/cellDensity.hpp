@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Pawel Ordyna
+/* Copyright 2020-2023 Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *

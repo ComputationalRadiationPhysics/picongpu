@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Franz Poeschel
+/* Copyright 2021-2023 Franz Poeschel
  *
  * This file is part of PIConGPU.
  *

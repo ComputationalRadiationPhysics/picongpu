@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019-2022 Axel Huebl, Rene Widera
+# Copyright 2019-2023 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #

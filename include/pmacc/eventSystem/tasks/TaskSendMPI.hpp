@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2023 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.

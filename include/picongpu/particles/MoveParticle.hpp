@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
  *                     Marco Garten, Alexander Grund, Richard Pausch,
  *                     Lennert Sprenger
  *

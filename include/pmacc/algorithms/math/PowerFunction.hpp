@@ -1,4 +1,4 @@
-/* Copyright 2022 Brian Marre, Rene Widera, Richard Pausch
+/* Copyright 2022-2023 Brian Marre, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Marco Garten, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2023 Marco Garten, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Erik Zenker
+/* Copyright 2016-2023 Erik Zenker
  *
  * This file is part of PMacc.
  *

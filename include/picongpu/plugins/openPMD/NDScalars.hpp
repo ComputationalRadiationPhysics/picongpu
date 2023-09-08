@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Alexander Grund, Franz Poeschel
+/* Copyright 2016-2023 Alexander Grund, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *

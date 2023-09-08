@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Felix Schmitt, Conrad Schumann,
+/* Copyright 2014-2023 Felix Schmitt, Conrad Schumann,
  *                     Alexander Grund, Axel Huebl
  *
  * This file is part of PMacc.

@@ -1,4 +1,4 @@
-/* Copyright 2022 Fabia Dietrich, Klaus Steiniger, Richard Pausch
+/* Copyright 2022-2023 Fabia Dietrich, Klaus Steiniger, Richard Pausch
  *
  * This file is part of PIConGPU.
  *

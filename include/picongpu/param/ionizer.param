@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Marco Garten, Axel Huebl
+/* Copyright 2014-2023 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *

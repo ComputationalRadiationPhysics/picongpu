@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Bernhard Manfred Gruber
+/* Copyright 2013-2023 Rene Widera, Bernhard Manfred Gruber
  *
  * This file is part of PMacc.
  *

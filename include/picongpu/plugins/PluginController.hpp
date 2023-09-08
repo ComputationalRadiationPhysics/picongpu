@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Benjamin Schneider, Felix Schmitt,
+/* Copyright 2013-2023 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz, Erik Zenker, Finn-Ole Carstens,
  *                     Franz Poeschel

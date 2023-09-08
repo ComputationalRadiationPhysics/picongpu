@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2023 Heiko Burau, Rene Widera, Richard Pausch,
  *                     Alexander Debus, Benjamin Worpitz, Finn-Ole Carstens
  *
  * This file is part of PMacc.

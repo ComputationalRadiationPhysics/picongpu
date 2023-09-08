@@ -1,5 +1,5 @@
 #!/bin/bash -l
-# Copyright 2013-2022 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2023 Axel Huebl, Richard Pausch, Rene Widera
 #
 # This file is part of PIConGPU.
 #

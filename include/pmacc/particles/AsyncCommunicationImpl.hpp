@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2023 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of PMacc.
  *
