@@ -99,10 +99,14 @@ namespace pmacc
      *
      * T_ValueType  = data type (e.g. float, float2)
      * T_dim   = dimension of the GridBuffer
-     * T_isSmallValue = true if T_ValueType can be send via kernel parameter (on cupla T_ValueType must be smaller than
-     * 256 byte)
+     * T_isLess128ByteAndTrivillyCopyable = true if T_ValueType can be send via kernel parameter (on cupla T_ValueType
+     * must be <= 128 byte) and must be trivially copyable
      */
-    template<class T_ValueType, unsigned T_dim, bool T_isSmallValue>
+    template<
+        class T_ValueType,
+        unsigned T_dim,
+        bool T_isLess128ByteAndTrivillayCopyable
+        = sizeof(T_ValueType) <= 128 && std::is_trivially_copyable_v<T_ValueType>>
     class TaskSetValue;
 
     template<class T_ValueType, unsigned T_dim>
