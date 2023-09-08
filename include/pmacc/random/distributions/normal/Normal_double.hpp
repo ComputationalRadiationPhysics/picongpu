@@ -21,15 +21,16 @@
 
 #pragma once
 
-#include "pmacc/algorithms/math.hpp"
-#include "pmacc/random/distributions/Normal.hpp"
-#include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/random/distributions/misc/MullerBox.hpp"
-#include "pmacc/random/methods/MRG32k3aMin.hpp"
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/types.hpp"
+#ifndef ALPAKA_DISABLE_VENDOR_RNG
+#    include "pmacc/algorithms/math.hpp"
+#    include "pmacc/random/distributions/Normal.hpp"
+#    include "pmacc/random/distributions/Uniform.hpp"
+#    include "pmacc/random/distributions/misc/MullerBox.hpp"
+#    include "pmacc/random/methods/MRG32k3aMin.hpp"
+#    include "pmacc/random/methods/XorMin.hpp"
+#    include "pmacc/types.hpp"
 
-#include <type_traits>
+#    include <type_traits>
 
 
 namespace pmacc
@@ -43,7 +44,7 @@ namespace pmacc
 /* XorMin and MRG32k3aMin uses the alpaka RNG as fallback for CPU accelerators
  * therefore we are not allowed to add a specialization for those RNG methods
  */
-#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#    if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
                 //! specialization for XorMin
                 template<typename T_Acc>
                 struct Normal<double, methods::XorMin<T_Acc>, void> : public MullerBox<double, methods::XorMin<T_Acc>>
@@ -56,8 +57,9 @@ namespace pmacc
                     : public MullerBox<double, methods::MRG32k3aMin<T_Acc>>
                 {
                 };
-#endif
+#    endif
             } // namespace detail
         } // namespace distributions
     } // namespace random
 } // namespace pmacc
+#endif
