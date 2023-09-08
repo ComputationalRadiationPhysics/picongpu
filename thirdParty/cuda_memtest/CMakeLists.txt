@@ -21,6 +21,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 set(CUDA_MEMTEST_BACKEND "cuda" CACHE STRING "Select the backend API used for the test.")
 set_property(CACHE CUDA_MEMTEST_BACKEND PROPERTY STRINGS "cuda;hip")
 
+option(CUDA_MEMTEST_ADD_RPATH "Add RPATH's to binaries." ON)
+
 ################################################################################
 # CMake policies
 #
@@ -138,6 +140,20 @@ endif()
 
 if(NOT MSVC)
     target_link_libraries(cuda_memtest PRIVATE Threads::Threads)
+endif()
+
+## annotate with RPATH's
+if(CUDA_MEMTEST_ADD_RPATH)
+    if(NOT DEFINED CMAKE_INSTALL_RPATH)
+        if(APPLE)
+            set_target_properties(cuda_memtest PROPERTIES INSTALL_RPATH "@loader_path")
+        elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+            set_target_properties(cuda_memtest PROPERTIES INSTALL_RPATH "$ORIGIN")
+        endif()
+    endif()
+    if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+        set_target_properties(cuda_memtest PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
+    endif()
 endif()
 
 ################################################################################
