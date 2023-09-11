@@ -165,8 +165,6 @@ Optional, *clean up* your feature branch. That can be *dangerous*:
   profile)
 - Go to your *GitHub* page and open a *pull request*, e.g. by clicking on
   *compare & review*
-- Select `ComputationalRadiationPhysics:dev` instead of the default `master`
-  branch
 - Add additional updates (if requested to do so) by `push`-ing to your branch
   again. This will update the *pull request*.
 
@@ -190,8 +188,8 @@ changes there.
 
 ### Keep track of updates
 
-We consider it a **best practice** *not to modify* neither your **master** nor your
-**dev** branch at all. Instead you can use it to `pull --ff-only` new updates from
+We consider it a **best practice** *not to modify* your **dev** branch at all.  
+Instead you can use it to `pull --ff-only` new updates from
 the original repository. Take care to **switch to dev** by `git checkout dev` to start
 **new feature branches** from **dev**.
 
