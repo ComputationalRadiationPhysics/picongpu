@@ -70,7 +70,6 @@
 #include <pmacc/pluginSystem/toSlice.hpp>
 #include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/static_assert.hpp>
-#include <pmacc/traits/Limits.hpp>
 
 #include <boost/mpl/placeholders.hpp>
 
@@ -87,6 +86,7 @@
 #include <cstdlib> // getenv
 #include <exception>
 #include <iostream>
+#include <limits>
 #include <list>
 #include <sstream>
 #include <string>
@@ -984,7 +984,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 , m_id(id)
                 , m_cellDescription(cellDescription)
                 , outputDirectory("openPMD")
-                , lastSpeciesSyncStep(pmacc::traits::limits::Max<uint32_t>::value)
+                , lastSpeciesSyncStep(std::numeric_limits<uint32_t>::max())
             {
                 GridController<simDim>& gc = Environment<simDim>::get().GridController();
                 /* It is important that we never change the mpi_pos after this point
