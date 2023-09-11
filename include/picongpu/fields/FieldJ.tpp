@@ -83,6 +83,9 @@ namespace picongpu
         auto const originGuard = math::max(LowerMarginShapes::toRT(), interpolationLowerMargin);
         auto const endGuard = math::max(UpperMarginShapes::toRT(), interpolationUpperMargin);
 
+        // Type to generate a unique send tag from
+        auto const sendCommTag = pmacc::traits::getUniqueId<uint32_t>();
+
         /*go over all directions*/
         for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
         {
@@ -110,9 +113,6 @@ namespace picongpu
                     break;
                 };
             }
-            // Type to generate a unique send tag from
-            struct SendTag;
-            auto const sendCommTag = pmacc::traits::GetUniqueTypeId<SendTag, uint32_t>::uid();
             buffer.addExchangeBuffer(i, guardingCells, sendCommTag);
         }
 
@@ -123,6 +123,8 @@ namespace picongpu
         if(originRecvGuard != DataSpace<simDim>::create(0) || endRecvGuard != DataSpace<simDim>::create(0))
         {
             fieldJrecv = std::make_unique<Buffer>(buffer.getDeviceBuffer(), cellDescription.getGridLayout());
+            // Type to generate a unique receive tag from
+            auto const recvCommTag = pmacc::traits::getUniqueId<uint32_t>();
 
             /*go over all directions*/
             for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
@@ -135,9 +137,6 @@ namespace picongpu
                 DataSpace<simDim> guardingCells;
                 for(uint32_t d = 0; d < simDim; ++d)
                     guardingCells[d] = (relativMask[d] == -1 ? originRecvGuard[d] : endRecvGuard[d]);
-                // Type to generate a unique receive tag from
-                struct RecvTag;
-                auto const recvCommTag = pmacc::traits::GetUniqueTypeId<RecvTag, uint32_t>::uid();
                 fieldJrecv->addExchange(GUARD, i, guardingCells, recvCommTag);
             }
         }

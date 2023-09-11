@@ -63,12 +63,12 @@ namespace picongpu
         , m_slotId(slotId)
     {
         /* Since this class is instantiated for each temporary field slot,
-         * use getNextId( ) directly to get unique tags for each instance.
+         * use getUniqueId( ) directly to get unique tags for each instance.
          *
          * Warning: this usage relies on the same order of calls to getNextId() on all MPI ranks
          */
-        m_commTagScatter = pmacc::traits::getNextId();
-        m_commTagGather = pmacc::traits::getNextId();
+        m_commTagScatter = pmacc::traits::getUniqueId();
+        m_commTagGather = pmacc::traits::getUniqueId();
 
         using Buffer = GridBuffer<ValueType, simDim>;
         fieldTmp = std::make_unique<Buffer>(cellDescription.getGridLayout());

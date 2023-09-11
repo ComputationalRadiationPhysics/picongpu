@@ -98,6 +98,8 @@ namespace picongpu
             const DataSpace<simDim> originGuard(LowerMargin().toRT());
             const DataSpace<simDim> endGuard(UpperMargin().toRT());
 
+            auto const commTag = pmacc::traits::getUniqueId<uint32_t>();
+
             /*go over all directions*/
             for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
             {
@@ -109,7 +111,6 @@ namespace picongpu
                 DataSpace<simDim> guardingCells;
                 for(uint32_t d = 0; d < simDim; ++d)
                     guardingCells[d] = (relativeMask[d] == -1 ? originGuard[d] : endGuard[d]);
-                auto const commTag = pmacc::traits::GetUniqueTypeId<DerivedField>::uid();
                 buffer->addExchange(GUARD, i, guardingCells, commTag);
             }
         }

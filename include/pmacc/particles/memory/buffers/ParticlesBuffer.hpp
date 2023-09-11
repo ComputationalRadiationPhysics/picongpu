@@ -143,6 +143,7 @@ namespace pmacc
             : superCellSize(superCellSize)
             , gridSize(layout)
             , m_deviceHeap(deviceHeap)
+            , exchangeMemoryIndexerTag(traits::getUniqueId<uint32_t>())
         {
             exchangeMemoryIndexer = std::make_unique<GridBuffer<BorderFrameIndex, DIM1>>(DataSpace<DIM1>(0));
             framesExchanges = std::make_unique<GridBuffer<FrameType, DIM1, FrameTypeBorder>>(DataSpace<DIM1>(0));
@@ -176,15 +177,12 @@ namespace pmacc
             framesExchanges
                 ->addExchangeBuffer(receive, DataSpace<DIM1>(numFrameTypeBorders), communicationTag, true, false);
 
-            /* Generate a new tag from this type
-             *
-             * The tag is the same each time this method is called (per instantiation of this template).
-             * Here it is fine, as there is the only instance object, and
-             * exchangeMemoryIndexer->addExchangeBuffer() requires the same tag on each call
-             */
-            auto const newTag = traits::GetUniqueTypeId<ParticlesBuffer, uint32_t>::uid();
-            exchangeMemoryIndexer
-                ->addExchangeBuffer(receive, DataSpace<DIM1>(numFrameTypeBorders), newTag, true, false);
+            exchangeMemoryIndexer->addExchangeBuffer(
+                receive,
+                DataSpace<DIM1>(numFrameTypeBorders),
+                exchangeMemoryIndexerTag,
+                true,
+                false);
         }
 
         /**
@@ -323,5 +321,7 @@ namespace pmacc
         DataSpace<DIM> superCellSize;
         DataSpace<DIM> gridSize;
         std::shared_ptr<DeviceHeap> m_deviceHeap;
+        // tag used to communicate the exchange memory indexer data via MPI
+        uint32_t exchangeMemoryIndexerTag;
     };
 } // namespace pmacc

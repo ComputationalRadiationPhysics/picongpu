@@ -37,7 +37,8 @@ namespace pmacc
          *
          * Warning: is not thread-safe.
          */
-        inline uint64_t getNextId();
+        template<typename T_ResultType = uint64_t>
+        static T_ResultType getUniqueId();
 
         namespace detail
         {
@@ -67,25 +68,52 @@ namespace pmacc
              * the run-time access is not.
              */
             template<typename T_Type>
-            const uint64_t TypeId<T_Type>::id = getNextId();
+            const uint64_t TypeId<T_Type>::id = getUniqueId<uint64_t>();
 
+            /** check if a value can be represented by the type
+             *
+             * @tparam T_ResultType type to cast the result to
+             */
+            template<typename T_ResultType>
+            static void idRangeCheck(uint64_t id)
+            {
+                constexpr uint64_t maxValue = std::numeric_limits<T_ResultType>::max();
+
+                /* if `id` is out of range than throw an error */
+                if(id > maxValue)
+                {
+                    std::stringstream sId;
+                    sId << id;
+                    std::stringstream sMax;
+                    sMax << maxValue;
+                    throw std::runtime_error(
+                        "generated id is out of range [ id = " + sId.str() + std::string(", largest allowed  id = ")
+                        + sMax.str() + std::string(" ]"));
+                }
+            }
         } // namespace detail
 
         /** Get next available type id
          *
-         * \warning is not thread-safe.
-         * \warning when using it to generate matching tags from multiple MPI ranks, ensure the same call order.
+         * @warning is not thread-safe.
+         * @warning when using it to generate matching tags from multiple MPI ranks, ensure the same call order.
          *          For type-unique ids, GetUniqueTypeId<> is preferable as it is not dependent on the call order
          */
-        uint64_t getNextId()
+        template<typename T_ResultType>
+        static T_ResultType getUniqueId()
         {
-            return ++detail::counter();
+            uint64_t id = ++detail::counter();
+            detail::idRangeCheck<T_ResultType>(id);
+            return static_cast<T_ResultType>(id);
         }
 
         /** Get a unique id of a type
          *
          * - get a unique id of a type at runtime
          * - the id of a type is equal on each instance of a process
+         *
+         * @warning If you use different binaries compiled by different compilers within one MPI context the id will
+         * not match between MPI ranks.
          *
          * @tparam T_Type any object (class or typename)
          * @tparam T_ResultType result type
@@ -103,18 +131,7 @@ namespace pmacc
             static const ResultType uid(uint64_t maxValue = std::numeric_limits<ResultType>::max())
             {
                 const uint64_t id = detail::TypeId<Type>::id;
-
-                /* if `id` is out of range than throw an error */
-                if(id > maxValue)
-                {
-                    std::stringstream sId;
-                    sId << id;
-                    std::stringstream sMax;
-                    sMax << maxValue;
-                    throw std::runtime_error(
-                        "generated id is out of range [ id = " + sId.str() + std::string(", largest allowed  id = ")
-                        + sMax.str() + std::string(" ]"));
-                }
+                detail::idRangeCheck<T_ResultType>(id);
                 return static_cast<ResultType>(id);
             }
         };
