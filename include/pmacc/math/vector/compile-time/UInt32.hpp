@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/math/vector/Vector.hpp"
-#include "pmacc/traits/Limits.hpp"
 
 #include <cstdint>
 
