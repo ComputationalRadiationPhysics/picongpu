@@ -103,10 +103,6 @@ namespace picongpu::fields::incidentField
                 // rayleigh length in propagation direction
                 static constexpr float_X rayleighLength
                     = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
-
-                // unit: UNIT_TIME
-                static constexpr float_X INIT_TIME
-                    = static_cast<float_X>((Params::PULSE_INIT * Params::PULSE_DURATION_SI) / UNIT_TIME);
             };
 
 
@@ -227,7 +223,7 @@ namespace picongpu::fields::incidentField
                     // a time of PULSE_INIT * PULSE_DURATION = INIT_TIME.
                     // we shift the complete pulse for the half of this time to start with
                     // the front of the laser pulse.
-                    constexpr auto mue = 0.5_X * Unitless::INIT_TIME;
+                    constexpr auto mue = -LongitudinalEnvelope::TIME_SHIFT;
                     auto const phase
                         = Unitless::w * (time - mue - focusPos / SPEED_OF_LIGHT) + Unitless::LASER_PHASE + phaseShift;
 
@@ -314,10 +310,14 @@ namespace picongpu::fields::incidentField
             };
         } // namespace detail
 
+
         template<typename T_Param>
         struct GaussianPulseEnvelope : public detail::BaseParamUnitless<T_Param>
         {
+            using Base = typename detail::BaseParamUnitless<T_Param>;
             using Unitless = detail::BaseParamUnitless<T_Param>;
+
+            static constexpr float_X TIME_SHIFT = -Base::PULSE_INIT * Base::PULSE_DURATION;
 
             HDINLINE static float_X getEnvelope(float_X const time)
             {

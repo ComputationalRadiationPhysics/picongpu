@@ -44,6 +44,7 @@ namespace picongpu::fields::incidentField
             }
         };
 
+
         namespace detail
         {
             /** Unitless exponential ramp with prepulse parameters (envelope part)
@@ -113,8 +114,9 @@ namespace picongpu::fields::incidentField
                     "pulse "
                     "would give more than half of the pulse amplitude. This is not a Gaussian pulse at all "
                     "anymore - probably some of the parameters are different from what you think!?");
-                static constexpr float_X INIT_TIME
-                    = static_cast<float_X>((TIME_PEAKPULSE + Params::RAMP_INIT * Base::PULSE_DURATION) / UNIT_TIME);
+                //                static constexpr float_X INIT_TIME
+                //                    = static_cast<float_X>((TIME_PEAKPULSE + Params::RAMP_INIT *
+                //                    Base::PULSE_DURATION) / UNIT_TIME);
 
                 /* a symmetric pulse will be initialized at generation plane for
                  * a time of RAMP_INIT * PULSE_DURATION + LASER_NOFOCUS_CONSTANT = INIT_TIME.
@@ -136,97 +138,6 @@ namespace picongpu::fields::incidentField
             {
                 //! User SI parameters
                 using Params = T_Params;
-            };
-
-            template<typename T_Params>
-            struct ExpRampWithPrepulseLongitudinal : public ExpRampWithPrepulsesLongitudinalUnitless<T_Params>
-            {
-            public:
-                using Unitless = ExpRampWithPrepulsesLongitudinalUnitless<T_Params>;
-                HDINLINE static float_X getEnvelope(float_X const runTime)
-                {
-                    constexpr auto int_ratio_prepule = Unitless::INT_RATIO_PREPULSE;
-                    constexpr auto int_ratio_point_1 = Unitless::INT_RATIO_POINT_1;
-                    constexpr auto int_ratio_point_2 = Unitless::INT_RATIO_POINT_2;
-                    constexpr auto int_ratio_point_3 = Unitless::INT_RATIO_POINT_3;
-                    auto const AMP_PREPULSE = math::sqrt(int_ratio_prepule);
-                    auto const AMP_1 = math::sqrt(int_ratio_point_1);
-                    auto const AMP_2 = math::sqrt(int_ratio_point_2);
-                    auto const AMP_3 = math::sqrt(int_ratio_point_3);
-
-                    auto env = 0.0_X;
-                    bool const before_preupramp = runTime < Unitless::time_start_init;
-                    bool const before_start = runTime < Unitless::TIME_1;
-                    bool const before_peakpulse = runTime < Unitless::endUpramp;
-                    bool const during_first_exp = (Unitless::TIME_1 < runTime) && (runTime < Unitless::TIME_2);
-                    bool const after_peakpulse = Unitless::startDownramp <= runTime;
-
-                    if(before_preupramp)
-                        env = 0._X;
-                    else if(before_start)
-                    {
-                        env = AMP_1 * gauss(runTime - Unitless::TIME_1);
-                    }
-                    else if(before_peakpulse)
-                    {
-                        float_X const ramp_when_peakpulse
-                            = extrapolateExpo(Unitless::TIME_2, AMP_2, Unitless::TIME_3, AMP_3, Unitless::endUpramp);
-
-                        // This check exists in original laser, but can't print from device
-                        // if(ramp_when_peakpulse > 0.5_X)
-                        //{
-                        //    log<picLog::PHYSICS>(
-                        //        "Attention, the intensities of the laser upramp are very large! "
-                        //        "The extrapolation of the last exponential to the time of "
-                        //        "the peakpulse gives more than half of the amplitude of "
-                        //        "the peak Gaussian. This is not a Gaussian at all anymore, "
-                        //        "and physically very unplausible, check the params for misunderstandings!");
-                        //}
-
-                        env += (1._X - ramp_when_peakpulse) * gauss(runTime - Unitless::endUpramp);
-                        env += AMP_PREPULSE * gauss(runTime - Unitless::TIME_PREPULSE);
-                        if(during_first_exp)
-                            env += extrapolateExpo(Unitless::TIME_1, AMP_1, Unitless::TIME_2, AMP_2, runTime);
-                        else
-                            env += extrapolateExpo(Unitless::TIME_2, AMP_2, Unitless::TIME_3, AMP_3, runTime);
-                    }
-                    else if(!after_peakpulse)
-                        env = 1.0_X;
-                    else // after startDownramp
-                        env = gauss(runTime - Unitless::startDownramp);
-                    return env;
-                }
-
-                HINLINE static std::string getName()
-                {
-                    return "ExpRampWithPrepulse";
-                }
-
-            private:
-                /** takes time t relative to the center of the Gaussian and returns value
-                 * between 0 and 1, i.e. as multiple of the max value.
-                 * use as: amp_t = amp_0 * gauss( t - t_0 )
-                 */
-                HDINLINE static float_X gauss(float_X const t)
-                {
-                    auto const exponent = t / Unitless::PULSE_DURATION;
-                    return math::exp(-0.25_X * exponent * exponent);
-                }
-
-                /** get value of exponential curve through two points at given t
-                 * t/t1/t2 given as float_X, since the envelope doesn't need the accuracy
-                 */
-                HDINLINE static float_X extrapolateExpo(
-                    float_X const t1,
-                    float_X const a1,
-                    float_X const t2,
-                    float_X const a2,
-                    float_X const t)
-                {
-                    auto const log1 = (t2 - t) * math::log(a1);
-                    auto const log2 = (t - t1) * math::log(a2);
-                    return math::exp((log1 + log2) / (t2 - t1));
-                }
             };
 
 
@@ -284,6 +195,100 @@ namespace picongpu::fields::incidentField
                 }
             };
         } // namespace detail
+
+        template<typename T_Params>
+        struct ExpRampWithPrepulseLongitudinal : public detail::ExpRampWithPrepulsesLongitudinalUnitless<T_Params>
+        {
+        public:
+            using Unitless = detail::ExpRampWithPrepulsesLongitudinalUnitless<T_Params>;
+
+            static constexpr float_X TIME_SHIFT = Unitless::time_start_init;
+
+            HDINLINE static float_X getEnvelope(float_X const runTime)
+            {
+                constexpr auto int_ratio_prepule = Unitless::INT_RATIO_PREPULSE;
+                constexpr auto int_ratio_point_1 = Unitless::INT_RATIO_POINT_1;
+                constexpr auto int_ratio_point_2 = Unitless::INT_RATIO_POINT_2;
+                constexpr auto int_ratio_point_3 = Unitless::INT_RATIO_POINT_3;
+                auto const AMP_PREPULSE = math::sqrt(int_ratio_prepule);
+                auto const AMP_1 = math::sqrt(int_ratio_point_1);
+                auto const AMP_2 = math::sqrt(int_ratio_point_2);
+                auto const AMP_3 = math::sqrt(int_ratio_point_3);
+
+                auto env = 0.0_X;
+                bool const before_preupramp = runTime < Unitless::time_start_init;
+                bool const before_start = runTime < Unitless::TIME_1;
+                bool const before_peakpulse = runTime < Unitless::endUpramp;
+                bool const during_first_exp = (Unitless::TIME_1 < runTime) && (runTime < Unitless::TIME_2);
+                bool const after_peakpulse = Unitless::startDownramp <= runTime;
+
+                if(before_preupramp)
+                    env = 0._X;
+                else if(before_start)
+                {
+                    env = AMP_1 * gauss(runTime - Unitless::TIME_1);
+                }
+                else if(before_peakpulse)
+                {
+                    float_X const ramp_when_peakpulse
+                        = extrapolateExpo(Unitless::TIME_2, AMP_2, Unitless::TIME_3, AMP_3, Unitless::endUpramp);
+
+                    // This check exists in original laser, but can't print from device
+                    // if(ramp_when_peakpulse > 0.5_X)
+                    //{
+                    //    log<picLog::PHYSICS>(
+                    //        "Attention, the intensities of the laser upramp are very large! "
+                    //        "The extrapolation of the last exponential to the time of "
+                    //        "the peakpulse gives more than half of the amplitude of "
+                    //        "the peak Gaussian. This is not a Gaussian at all anymore, "
+                    //        "and physically very unplausible, check the params for misunderstandings!");
+                    //}
+
+                    env += (1._X - ramp_when_peakpulse) * gauss(runTime - Unitless::endUpramp);
+                    env += AMP_PREPULSE * gauss(runTime - Unitless::TIME_PREPULSE);
+                    if(during_first_exp)
+                        env += extrapolateExpo(Unitless::TIME_1, AMP_1, Unitless::TIME_2, AMP_2, runTime);
+                    else
+                        env += extrapolateExpo(Unitless::TIME_2, AMP_2, Unitless::TIME_3, AMP_3, runTime);
+                }
+                else if(!after_peakpulse)
+                    env = 1.0_X;
+                else // after startDownramp
+                    env = gauss(runTime - Unitless::startDownramp);
+                return env;
+            }
+
+            HINLINE static std::string getName()
+            {
+                return "ExpRampWithPrepulse";
+            }
+
+        private:
+            /** takes time t relative to the center of the Gaussian and returns value
+             * between 0 and 1, i.e. as multiple of the max value.
+             * use as: amp_t = amp_0 * gauss( t - t_0 )
+             */
+            HDINLINE static float_X gauss(float_X const t)
+            {
+                auto const exponent = t / Unitless::PULSE_DURATION;
+                return math::exp(-0.25_X * exponent * exponent);
+            }
+
+            /** get value of exponential curve through two points at given t
+             * t/t1/t2 given as float_X, since the envelope doesn't need the accuracy
+             */
+            HDINLINE static float_X extrapolateExpo(
+                float_X const t1,
+                float_X const a1,
+                float_X const t2,
+                float_X const a2,
+                float_X const t)
+            {
+                auto const log1 = (t2 - t) * math::log(a1);
+                auto const log2 = (t - t1) * math::log(a2);
+                return math::exp((log1 + log2) / (t2 - t1));
+            }
+        };
     } // namespace profiles
 
     namespace detail

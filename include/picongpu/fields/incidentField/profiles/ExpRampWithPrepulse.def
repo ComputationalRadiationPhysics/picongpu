@@ -32,7 +32,7 @@ namespace picongpu
             {
                 namespace defaults
                 {
-                    struct ExpRampWithPrepulseParam : public BaseParam
+                    struct ExpRampWithPrepulseLongitudinalParam : public BaseParam
                     {
                         /** Intensities of prepulse and exponential preramp
                          *
@@ -62,6 +62,17 @@ namespace picongpu
                         static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
                             = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
 
+
+                        /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_DURATION before
+                         * plateau and half at the end of the plateau
+                         *
+                         * unit: none
+                         */
+                        static constexpr float_64 RAMP_INIT = 16.0;
+                    };
+
+                    struct ExpRampWithPrepulseParam : public ExpRampWithPrepulseLongitudinalParam
+                    {
                         /** Beam waist: distance from the axis where the pulse intensity (E^2)
                          *              decreases to its 1/e^2-th part,
                          *              at the focus position of the laser
@@ -75,14 +86,8 @@ namespace picongpu
                          */
                         static constexpr float_64 W0_AXIS_1_SI = 4.246e-6;
                         static constexpr float_64 W0_AXIS_2_SI = W0_AXIS_1_SI;
-
-                        /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_DURATION before
-                         * plateau and half at the end of the plateau after TIME_DELAY_SI
-                         *
-                         * unit: none
-                         */
-                        static constexpr float_64 RAMP_INIT = 16.0;
                     };
+
                 } // namespace defaults
 
                 /** Wavepacket with spatial Gaussian envelope and adjustable temporal shape.
@@ -127,6 +132,9 @@ namespace picongpu
                  */
                 template<typename T_Params = defaults::ExpRampWithPrepulseParam>
                 struct ExpRampWithPrepulse;
+
+                template<typename T_Params = defaults::ExpRampWithPrepulseLongitudinalParam>
+                struct ExpRampWithPrepulseLongitudinal;
             } // namespace profiles
         } // namespace incidentField
     } // namespace fields

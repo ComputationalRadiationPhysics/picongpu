@@ -74,6 +74,10 @@
 #    define PARAM_PULSE_DURATION_SI 5.e-15
 #endif
 
+#ifndef PARAM_LASERPROFILE
+#    define PARAM_LASERPROFILE GaussianProfile
+#endif
+
 namespace picongpu
 {
     namespace fields
@@ -247,11 +251,53 @@ namespace picongpu
                 /** @} */
             };
 
+
+            //! Laser Profile is taking plane wave param configuration and is overwriting only a few settings
+            struct ExpRampWithPrepulseEnvelopeParam : public LwfaGaussianPulseBaseParams
+            {
+                /** Stretch temporal profile by a constant plateau between the up and downramp
+                 *  unit: seconds */
+                static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 0.0;
+
+                /** Intensities of prepulse and exponential preramp
+                 *
+                 * @{
+                 */
+                static constexpr float_X INT_RATIO_PREPULSE = 0.;
+                static constexpr float_X INT_RATIO_POINT_1 = 1.e-8;
+                static constexpr float_X INT_RATIO_POINT_2 = 1.e-4;
+                static constexpr float_X INT_RATIO_POINT_3 = 1.e-4;
+                /** @} */
+
+                /** Time-positions of prepulse and preramps points
+                 *
+                 * @{
+                 */
+                static constexpr float_64 TIME_PREPULSE_SI = -950.0e-15;
+                static constexpr float_64 TIME_PEAKPULSE_SI = 0.0e-15;
+                static constexpr float_64 TIME_POINT_1_SI = -1000.0e-15;
+                static constexpr float_64 TIME_POINT_2_SI = -300.0e-15;
+                static constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
+                /** @} */
+
+                /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_DURATION before
+                 * plateau and half at the end of the plateau
+                 *
+                 * unit: none
+                 */
+                static constexpr float_64 RAMP_INIT = 16.0;
+            };
+
+            using GaussianProfile = profiles::GaussianPulse<GaussianPulseParam>;
+            using GaussianBeamWithContrastCurve = profiles::GaussianPulse<
+                GaussianPulseParam,
+                profiles::ExpRampWithPrepulseLongitudinal<ExpRampWithPrepulseEnvelopeParam>>;
+
             /**@{*/
             //! Incident field profile types along each boundary, these 6 types (or aliases) are required.
             using XMin = profiles::None;
             using XMax = profiles::None;
-            using YMin = profiles::GaussianPulse<GaussianPulseParam>;
+            using YMin = PARAM_LASERPROFILE;
             using YMax = profiles::None;
             using ZMin = profiles::None;
             using ZMax = profiles::None;
