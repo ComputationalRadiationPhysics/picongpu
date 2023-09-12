@@ -1,11 +1,9 @@
 PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 ============================================================
 
-[![Code Status master](https://gitlab.com/hzdr/crp/picongpu/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/picongpu/pipelines/master/latest)
 [![Code Status dev](https://gitlab.com/hzdr/crp/picongpu/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/picongpu/pipelines/dev/latest)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
-[![GitHub commits since last release](https://img.shields.io/github/commits-since/ComputationalRadiationPhysics/picongpu/latest/dev.svg)](https://github.com/ComputationalRadiationPhysics/picongpu/compare/master...dev)
 [![Language](https://img.shields.io/badge/language-C%2B%2B17-orange.svg)](https://isocpp.org/)
 [![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
@@ -119,28 +117,24 @@ See our notes in [INSTALL.rst](INSTALL.rst).
 Users
 -----
 
-Dear User, please be aware that this is an **open beta release**!
-We hereby emphasize that we are still actively developing PIConGPU at great
+Dear User, we hereby emphasize that we are still actively developing PIConGPU at great
 speed and do, from time to time, break backwards compatibility.
 
-When using this software, please stick to the `master` branch containing the
-latest *stable* release. It also contains a file `CHANGELOG.md` with the
+When using this software, please stick to the latest release or use the `dev` branch containing the
+latest changes. It also contains a file `CHANGELOG.md` with the
 latest changes (and how to update your simulations). Read it first before
 updating between two versions! Also, we add a git `tag` according to a version
-number for each release in `master`.
+number for each release.
 
 For any questions regarding the usage of PIConGPU please **do not** contact the
 developers and maintainers directly.
 
-Instead, please sign up to our **PIConGPU-Users** mailing list so we can
-distribute and archive user questions:
-[Subscribe (select "Feed" on bottom left)](https://cg.hzdr.de/Lists/picongpu-users/List.html).
+Instead, please [open an issue on GitHub](https://github.com/ComputationalRadiationPhysics/picongpu/issues/new).
 
 Before you post a question, browse the PIConGPU
 [documentation](https://github.com/ComputationalRadiationPhysics/picongpu/search?l=markdown),
-[wiki](https://github.com/ComputationalRadiationPhysics/picongpu/wiki),
-[issue tracker](https://github.com/ComputationalRadiationPhysics/picongpu/issues) and the
-[mailing list history](https://cg.hzdr.de/Lists/picongpu-users/List.html)
+[wiki](https://github.com/ComputationalRadiationPhysics/picongpu/wiki) and the
+[issue tracker](https://github.com/ComputationalRadiationPhysics/picongpu/issues)
 to see if your question has been answered, already.
 
 PIConGPU is a collaborative project.
@@ -156,13 +150,9 @@ Feel free to visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more abo
 Software Upgrades
 -----------------
 
-PIConGPU follows a
-[master - dev](http://nvie.com/posts/a-successful-git-branching-model/)
-development model. That means our latest stable release is shipped in a branch
-called `master` while new and frequent changes to the code are incooporated
-in the development branch `dev`.
+PIConGPU ships new and frequent changes to the code in the development branch `dev`.
 
-Every time we update the *master* branch, we publish a new release
+From time to time we publish a new release
 of PIConGPU. Before you pull the changes in, please read our
 [ChangeLog](CHANGELOG.md)!
 You may have to update some of your simulation `.param` and `.cfg` files by
@@ -171,9 +161,8 @@ in input files. Additionally, a full description of new features and fixed bugs
 in comparison to the previous release is provided in that file.
 
 In case you decide to use *new, potentially buggy and experimental* features
-from our `dev` branch, be aware that support is very limited and you must
-participate or at least follow the development yourself. Syntax changes
-and in-development bugs will *not* be announced outside of their according pull
+from our `dev` branch, be aware that you must participate or at least follow the development yourself. 
+Syntax changes and in-development bugs will *not* be announced outside of their according pull
 requests and issues.
 
 Before drafting a new release, we open a new `release-*` branch from `dev` with
