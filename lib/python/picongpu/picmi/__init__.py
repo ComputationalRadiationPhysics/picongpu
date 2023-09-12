@@ -9,6 +9,7 @@ from .gaussian_laser import GaussianLaser
 from .species import Species
 from .layout import PseudoRandomLayout
 from .distribution import UniformDistribution
+from .distribution import FoilDistribution
 from . import constants
 
 import picmistandard
@@ -26,6 +27,7 @@ __all__ = [
     "Species",
     "PseudoRandomLayout",
     "UniformDistribution",
+    "FoilDistribution",
     "constants",
 ]
 

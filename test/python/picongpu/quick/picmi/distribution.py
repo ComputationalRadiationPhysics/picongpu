@@ -284,3 +284,203 @@ class TestPicmiGaussianBunchDistribution(unittest.TestCase):
                                0.025316589084272104)
         self.assertAlmostEqual(drift.direction_normalized[2],
                                0.9628446315744488)
+
+
+class TestPicmiFoilDistribution(unittest.TestCase,
+                                HelperTestPicmiBoundaries):
+    def _get_distribution(self, lower_bound, upper_bound):
+        return picmi.FoilDistribution(
+            density=1716273,
+            front=1.,
+            thicknes=2.,
+            exponential_pre_plasma_length=3.,
+            exponential_pre_plasma_cutoff=4.,
+            exponential_post_plasma_length=5.,
+            exponential_post_plasma_cutoff=6.,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound)
+
+    def test_full(self):
+        """full paramset"""
+        foil = picmi.FoilDistribution(
+            density=42.42,
+            front=1.,
+            thickness=2.,
+            exponential_pre_plasma_length=3.,
+            exponential_pre_plasma_cutoff=4.,
+            exponential_post_plasma_length=5.,
+            exponential_post_plasma_cutoff=6.,
+            lower_bound=[111, 222, 333],
+            upper_bound=[444, 555, 666])
+
+        pypic = foil.get_as_pypicongpu()
+        self.assertTrue(
+            isinstance(pypic, species.operation.densityprofile.Foil))
+
+        self.assertEqual(42.42, pypic.density_si)
+        self.assertEqual(1., pypic.y_value_front_foil_si)
+        self.assertEqual(2., pypic.thickness_foil_si)
+        self.assertEqual(3., pypic.pre_foil_plasmaRamp.PlasmaLength)
+        self.assertEqual(4., pypic.pre_foil_plasmaRamp.PlasmaCutoff)
+        self.assertEqual(5., pypic.post_foil_plasmaRamp.PlasmaLength)
+        self.assertEqual(6., pypic.post_foil_plasmaRamp.PlasmaCutoff)
+
+        # @todo repect bounding boxes, Brian Marre, 2023
+        # self.assertEqual((111, 222, 333), pypic.lower_bound)
+        # self.assertEqual((444, 555, 666), pypic.upper_bound)
+
+    def test_density_zero(self):
+        """density set to zero is not accepted"""
+        foil = picmi.FoilDistribution(density=0, thickness=1., front=2.)
+        with self.assertRaisesRegex(ValueError, ".*density must be > 0.*"):
+            foil.get_as_pypicongpu().get_generic_profile_rendering_context()
+
+    def test_front_zero(self):
+        """front set to zero is accepted"""
+        foil = picmi.FoilDistribution(density=1., thickness=2., front=0)
+        pypic = foil.get_as_pypicongpu()
+        # no error:
+        self.assertEqual(0, pypic.y_value_front_foil_si)
+
+    def test_thickness_zero(self):
+        """thickness set to zero is accepted"""
+        foil = picmi.FoilDistribution(density=1., thickness=0, front=2.)
+        pypic = foil.get_as_pypicongpu()
+        # no error
+        self.assertEqual(0, pypic.thickness_foil_si)
+
+    def _get_test_foils(self, cutoff, length):
+        """
+        helper function generating preRamp only, postRamp only
+        and (pre+post ramp foil) with given cutoffs and lengths
+        """
+        foil_pre = picmi.FoilDistribution(
+            density=1.,
+            thickness=2.,
+            front=3.,
+            exponential_pre_plasma_cutoff=cutoff,
+            exponential_pre_plasma_length=length,
+            exponential_post_plasma_cutoff=None,
+            exponential_post_plasma_length=None)
+
+        foil_post = picmi.FoilDistribution(
+            density=1.,
+            thickness=2.,
+            front=3.,
+            exponential_pre_plasma_cutoff=None,
+            exponential_pre_plasma_length=None,
+            exponential_post_plasma_cutoff=cutoff,
+            exponential_post_plasma_length=length)
+
+        foil_both = picmi.FoilDistribution(
+            density=1.,
+            thickness=2.,
+            front=3.,
+            exponential_pre_plasma_cutoff=cutoff,
+            exponential_pre_plasma_length=length,
+            exponential_post_plasma_cutoff=cutoff,
+            exponential_post_plasma_length=length)
+
+        testFoils = [foil_pre, foil_post, foil_both]
+        return testFoils
+
+    def test_cutoff_zero(self):
+        """cutoff set to zero is accepted"""
+        testCases = self._get_test_foils(0, 1.)
+
+        for entry in testCases:
+            pypic = entry.get_as_pypicongpu()
+            # no error:
+            self.assertEqual(1., pypic.density_si)
+            self.assertEqual(2., pypic.thickness_foil_si)
+            self.assertEqual(3., pypic.y_value_front_foil_si)
+
+    def test_cutoff_below_zero(self):
+        """length below zero is not accepted"""
+
+        testCases = self._get_test_foils(-1., 1.)
+
+        for i, entry in enumerate(testCases):
+            with self.assertRaisesRegex(
+                    ValueError, ".*PlasmaCutoff must be >=0.*"):
+                entry.get_as_pypicongpu() \
+                    .get_generic_profile_rendering_context()
+
+    def test_length_zero(self):
+        """length set to zero is not accepted"""
+        testCases = self._get_test_foils(1., 0)
+
+        for entry in testCases:
+            with self.assertRaisesRegex(
+                    ValueError, ".*PlasmaLength must be >0.*"):
+                entry.get_as_pypicongpu() \
+                    .get_generic_profile_rendering_context()
+
+    def test_length_below_zero(self):
+        """length below zero is not accepted"""
+
+        testCases = self._get_test_foils(1., -1.)
+
+        for entry in testCases:
+            with self.assertRaisesRegex(
+                    ValueError, ".*PlasmaLength must be >0.*"):
+                entry.get_as_pypicongpu() \
+                    .get_generic_profile_rendering_context()
+
+    def test_setting_noPlasmaRamps(self):
+        testCases = self._get_test_foils(None, 1.)
+
+        for entry in testCases:
+            with self.assertRaisesRegex(
+                    ValueError, "either both exponential_(pre|post)_plasma_"
+                    "length and exponential_(pre|post)_plasma_cutoff must be"
+                    " set to none or neither!"):
+                entry.get_as_pypicongpu() \
+                    .get_generic_profile_rendering_context()
+
+        testCases = self._get_test_foils(1., None)
+        for entry in testCases:
+            with self.assertRaisesRegex(
+                    ValueError, "either both exponential_(pre|post)_plasma_"
+                    "length and exponential_(pre|post)_plasma_cutoff must be"
+                    " set to none or neither!"):
+                entry.get_as_pypicongpu() \
+                    .get_generic_profile_rendering_context()
+
+    def test_mandatory(self):
+        """check that mandatory must be given"""
+        # type of exception is not checked
+        with self.assertRaises(Exception):
+            picmi.FoilDistribution().get_as_pypicongpu()
+
+        # density, thickness and front are only required param
+        picmi.FoilDistribution(
+            density=3.14, thickness=1., front=3.).get_as_pypicongpu()
+
+    def test_drift(self):
+        """drift is correctly translated"""
+        # no drift
+        foil = picmi.FoilDistribution(
+            density=1.,
+            front=2.,
+            thickness=3.,
+            directed_velocity=[0, 0, 0])
+        drift = foil.get_picongpu_drift()
+        self.assertEqual(None, drift)
+
+        # some drift
+        # uses velocity
+        foil = picmi.FoilDistribution(
+            density=1,
+            front=2.,
+            thickness=3.,
+            directed_velocity=[278487224.0, 103784563.0, 1283345.0])
+        drift = foil.get_picongpu_drift()
+        self.assertNotEqual(None, drift)
+        self.assertAlmostEqual(drift.gamma, 7.6208808298928865)
+        self.assertAlmostEqual(drift.direction_normalized[0],
+                               0.9370354841199405)
+        self.assertAlmostEqual(drift.direction_normalized[1],
+                               0.34920746753855203)
+        self.assertAlmostEqual(drift.direction_normalized[2],
+                               0.004318114799291135)

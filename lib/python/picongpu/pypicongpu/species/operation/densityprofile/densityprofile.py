@@ -26,7 +26,7 @@ class DensityProfile(RenderedObject):
         check self, overwritten by child class
 
         Perform checks if own parameters are valid.
-        On error raise, if everthing is okay pass silently.
+        On error raise, if everything is okay pass silently.
         """
         raise NotImplementedError()
 
@@ -75,7 +75,7 @@ class DensityProfile(RenderedObject):
 
         - get_generic_profile_rendering_context()
 
-            - implemented in parent ProfileDensity
+            - implemented in parent densityprofile
             - returned representation is generic for *any profile*
               (i.e. contains meta information which type is actually used)
             - passes information from get_rendering_context() through
@@ -84,8 +84,10 @@ class DensityProfile(RenderedObject):
         """
         # import here to avoid circular inclusion
         from .uniform import Uniform
+        from .foil import Foil
         template_name_by_type = {
             Uniform: "uniform",
+            Foil: "foil"
         }
         if self.__class__ not in template_name_by_type:
             raise RuntimeError("unkown type: {}".format(self.__class__))
