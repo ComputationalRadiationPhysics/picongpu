@@ -17,69 +17,65 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 import numpy as np
-import h5py
+import openpmd_api as io
 
 
 class RadiationData:
-    def __init__(self, filename):
+    def __init__(self, filename, timestep):
         """
-        Open references to hdf5 file to access radiation data.
+        Open references to an openPMD-api series or file to access radiation data.
 
-        This constructor opens h5py references to the radiation data
+        This constructor opens openPMD-api references to the radiation data
         and thus allows easy access to the complex amplitudes from the
         Lienard-Wiechert potential.
 
         Key-Argument:
         filename: string
-                  path and name of the hdf5 radiation data file
-
+                  path and name of the openPMD-api series or file
+        timestep: int
+                  PIC iteration to read radiation data from
         """
-        # set hdf5 file
+        # set openPMD-api file
         self.filename = filename
-        self.h5_file = h5py.File(filename, "r")
+        self.rad_series = io.Series(filename, io.Access_Type.read_only)
+
         # extract time step
-        self.timestep = self.get_timestep()
+        self.timestep = timestep
+        if (not self.timestep in self.rad_series.iterations):
+            raise Exception("The selected timestep {} ".format(self.timestep) +
+                            "is not available in the series.")
+        self.iteration = self.rad_series.iterations[self.timestep]
 
         # Amplitude
-        detectorAmplitude = self.h5_file[("/data/{}/DetectorMesh/" +
-                                          "Amplitude").format(self.timestep)]
+        detectorAmplitude = self.iteration.meshes["Amplitude"]
         # A_x
-        self.h5_Ax_Re = detectorAmplitude["x_Re"]
-        self.h5_Ax_Im = detectorAmplitude["x_Im"]
+        self.Ax_Re = detectorAmplitude["x_Re"].load_chunk()
+        self.Ax_Im = detectorAmplitude["x_Im"].load_chunk()
         # A_y
-        self.h5_Ay_Re = detectorAmplitude["y_Re"]
-        self.h5_Ay_Im = detectorAmplitude["y_Im"]
+        self.Ay_Re = detectorAmplitude["y_Re"].load_chunk()
+        self.Ay_Im = detectorAmplitude["y_Im"].load_chunk()
         # A_z
-        self.h5_Az_Re = detectorAmplitude["z_Re"]
-        self.h5_Az_Im = detectorAmplitude["z_Im"]
+        self.Az_Re = detectorAmplitude["z_Re"].load_chunk()
+        self.Az_Im = detectorAmplitude["z_Im"].load_chunk()
 
         # conversion factor for spectra from PIC units to SI units
-        self.convert_to_SI = detectorAmplitude["x_Re"].attrs['unitSI']
+        self.convert_to_SI = detectorAmplitude["x_Re"].unit_SI
 
-    def get_timestep(self):
-        """Returns simulation timestep of the hdf5 data."""
-        # this is a workaround till openPMD is implemented
-        str_timestep = self.filename.split("_")[-4]
-        if str_timestep.isdigit():
-            return int(str_timestep)
-        else:
-            raise Exception("Could not extract timestep from " +
-                            "filename (\"{}\") - ".format(self.filename) +
-                            "Extracted: {}".format(str_timestep))
+        self.rad_series.flush()
 
     def get_Amplitude_x(self):
         """Returns the complex amplitudes in x-axis."""
-        return ((self.h5_Ax_Re[...] + 1j * self.h5_Ax_Im[...])[:, :, 0] *
+        return ((self.Ax_Re[...] + 1j * self.Ax_Im[...])[:, :, 0] *
                 np.sqrt(self.convert_to_SI))
 
     def get_Amplitude_y(self):
         """Returns the complex amplitudes in y-axis."""
-        return ((self.h5_Ay_Re[...] + 1j * self.h5_Ay_Im[...])[:, :, 0] *
+        return ((self.Ay_Re[...] + 1j * self.Ay_Im[...])[:, :, 0] *
                 np.sqrt(self.convert_to_SI))
 
     def get_Amplitude_z(self):
         """Returns the complex amplitudes in z-axis."""
-        return ((self.h5_Az_Re[...] + 1j * self.h5_Az_Im[...])[:, :, 0] *
+        return ((self.Az_Re[...] + 1j * self.Az_Im[...])[:, :, 0] *
                 np.sqrt(self.convert_to_SI))
 
     def get_Spectra(self):
@@ -102,19 +98,28 @@ class RadiationData:
 
     def get_omega(self):
         """Returns frequency 'omega' of spectrum in [s^-1]."""
-        omega_h = self.h5_file["/data/{}/".format(self.timestep) +
-                               "DetectorMesh/DetectorFrequency/omega"]
-        return omega_h[0, :, 0] * omega_h.attrs['unitSI']
+        omega_h = self.iteration.meshes["DetectorFrequency"]["omega"]
+        omega = omega_h[0, :, 0]
+        omega_unitSI = omega_h.unit_SI
+        self.rad_series.flush()
+        return omega * omega_unitSI
 
     def get_vector_n(self):
         """Returns the unit vector 'n' of the observation directions."""
-        n_h = self.h5_file["/data/{}/".format(self.timestep) +
-                           "DetectorMesh/DetectorDirection/"]
-        n_x = n_h['x'][:, 0, 0] * n_h['x'].attrs['unitSI']
-        n_y = n_h['y'][:, 0, 0] * n_h['y'].attrs['unitSI']
-        n_z = n_h['z'][:, 0, 0] * n_h['z'].attrs['unitSI']
+        n_h = self.iteration.meshes["DetectorDirection"]
+        n_x = n_h['x'][:, 0, 0]
+        n_x_unitSI = n_h['x'].unit_SI
+
+        n_y = n_h['y'][:, 0, 0]
+        n_y_unitSI = n_h['y'].unit_SI
+
+        n_z = n_h['z'][:, 0, 0]
+        n_z_unit_SI = n_h['z'].unit_SI
+
+        self.rad_series.flush()
+
         n_vec = np.empty((len(n_x), 3))
-        n_vec[:, 0] = n_x
-        n_vec[:, 1] = n_y
-        n_vec[:, 2] = n_z
+        n_vec[:, 0] = n_x * n_x_unitSI
+        n_vec[:, 1] = n_y * n_y_unitSI
+        n_vec[:, 2] = n_z * n_z_unit_SI
         return n_vec
