@@ -100,7 +100,7 @@ namespace picongpu
             T_ParBox pb,
             T_Mapping mapper) const
         {
-            constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+            constexpr int frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
             PMACC_CONSTEXPR_CAPTURE uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             using FramePtr = typename T_ParBox::FramePtr;
@@ -108,8 +108,15 @@ namespace picongpu
             using ParticleType = typename FrameType::ParticleType;
             DataSpace<simDim> const superCells(mapper.getGridSuperCells());
 
-            PMACC_SMEM(worker, frame, FramePtr);
+            // 1 == true, 0 == false, bool is not supported due to atomic usage
             PMACC_SMEM(worker, finished, int);
+            PMACC_SMEM(worker, destFrames, memory::Array<FramePtr, 2u>);
+            /* Points to the next free slot within the frame.
+             * In case the value is larger than number of slots within a frame destFrame[1] must be used
+             *
+             * valid range: [0;num slot per frame * 2)
+             */
+            PMACC_SMEM(worker, destCounter, int);
 
             DataSpace<simDim> const superCellIdx(
                 mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -119,13 +126,11 @@ namespace picongpu
 
             auto forEachCellInSuperCell = lockstep::makeForEach<cellsPerSupercell>(worker);
 
-            auto forEachParticle = lockstep::makeForEach<frameSize>(worker);
-
             /* number of particles to create for each cell (virtual worker) */
             auto numParsPerCellCtx = lockstep::makeVar<uint32_t>(forEachCellInSuperCell, 0u);
             auto onlyMaster = lockstep::makeMaster(worker);
 
-            /* reset shared memory flag if a virtual worker needs to create a particle */
+            /* by default notify that there is no particle to create */
             onlyMaster([&]() { finished = 1; });
 
             worker.sync();
@@ -155,11 +160,10 @@ namespace picongpu
                             = posFunctor.template numberOfMacroParticles<ParticleType>(realParticlesPerCell);
 
                     if(numParsPerCell > 0)
-                        kernel::atomicAllExch(
-                            worker,
-                            &finished,
-                            0,
-                            ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
+                    {
+                        // notify that at least one worker is creating a particle
+                        kernel::atomicAllExch(worker, &finished, 0, ::alpaka::hierarchy::Threads{});
+                    }
 
                     return posFunctor;
                 },
@@ -173,71 +177,126 @@ namespace picongpu
             onlyMaster(
                 [&]()
                 {
-                    frame = pb.getEmptyFrame(worker);
-                    pb.setAsLastFrame(worker, frame, superCellIdx);
+                    auto& superCell = pb.getSuperCell(superCellIdx);
+                    int numParticlesLastFrame = static_cast<int>(superCell.getSizeLastFrame());
+                    if(numParticlesLastFrame != frameSize && numParticlesLastFrame != 0)
+                    {
+                        // reuse the last frame if exists and not full
+                        destCounter = numParticlesLastFrame;
+                        destFrames[0] = pb.getLastFrame(superCellIdx);
+                        destFrames[1] = FramePtr();
+                    }
+                    else
+                    {
+                        destCounter = 0;
+                        for(int i = 0; i < 2; ++i)
+                            destFrames[i] = FramePtr{};
+                    }
                 });
+
+            worker.sync();
 
             // distribute the particles within the cell
             do
             {
-                // wait that master updates the current used frame
+                /* Old value of the destination counter is stored to check if a worker
+                 * later requests slots for more particles.
+                 */
+                int oldDestCount = destCounter;
+
                 worker.sync();
 
-                onlyMaster([&]() { finished = 1; });
-
-                worker.sync();
-
-                forEachParticle(
-                    [&](uint32_t const idx, uint32_t& numParsPerCell, auto& positionFunctor)
+                auto destParticleIdxCtx = forEachCellInSuperCell(
+                    [&](uint32_t const idx, uint32_t& numParsPerCell)
                     {
+                        int destParticleIdx = -1;
                         if(numParsPerCell > 0u)
                         {
-                            auto particle = frame[idx];
-
-                            /** we now initialize all attributes of the new particle to their default values
-                             *   some attributes, such as the position, localCellIdx, weighting or the
-                             *   multiMask (@see AttrToIgnore) of the particle will be set individually
-                             *   in the following lines since they are already known at this point.
-                             */
-                            {
-                                using ParticleAttrList = typename FrameType::ValueTypeSeq;
-                                using AttrToIgnore = pmacc::mp_list<position<>, multiMask, localCellIdx, weighting>;
-                                using ParticleCleanedAttrList =
-                                    typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
-
-                                meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<boost::mpl::_1>>
-                                    setToDefault;
-                                setToDefault(particle);
-                            }
-                            particle[multiMask_] = 1;
-                            particle[localCellIdx_] = idx;
-                            // initialize position and weighting
-                            positionFunctor(worker, particle);
-
+                            destParticleIdx
+                                = cupla::atomicAdd(worker.getAcc(), &destCounter, 1, ::alpaka::hierarchy::Threads{});
                             numParsPerCell--;
-                            if(numParsPerCell > 0)
-                                kernel::atomicAllExch(
-                                    worker,
-                                    &finished,
-                                    0,
-                                    ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
                         }
+                        return destParticleIdx;
                     },
-                    numParsPerCellCtx,
-                    positionFunctorCtx);
+                    numParsPerCellCtx);
 
                 worker.sync();
 
                 onlyMaster(
                     [&]()
                     {
-                        if(finished == 0)
+                        if(oldDestCount == destCounter)
                         {
-                            frame = pb.getEmptyFrame(worker);
-                            pb.setAsLastFrame(worker, frame, superCellIdx);
+                            finished = 1;
+                        }
+                        else
+                        {
+                            // provide frames to safely store all new particles
+                            for(int i = 0; i < 2; ++i)
+                                if(!destFrames[i].isValid() && destCounter > i * frameSize)
+                                {
+                                    destFrames[i] = pb.getEmptyFrame(worker);
+                                    pb.setAsLastFrame(worker, destFrames[i], superCellIdx);
+                                }
                         }
                     });
-            } while(finished == 0);
+
+                worker.sync();
+                if(!finished)
+                {
+                    forEachCellInSuperCell(
+                        [&](uint32_t const idx, int& destParticleIdx, auto& positionFunctor)
+                        {
+                            if(destParticleIdx != -1)
+                            {
+                                // select first or second frame depending on the destination index
+                                int frameIdx = destParticleIdx / frameSize;
+                                destParticleIdx -= frameIdx * frameSize;
+
+                                auto particle = destFrames[frameIdx][destParticleIdx];
+
+                                /** we now initialize all attributes of the new particle to their default values
+                                 *   some attributes, such as the position, localCellIdx, weighting or the
+                                 *   multiMask (@see AttrToIgnore) of the particle will be set individually
+                                 *   in the following lines since they are already known at this point.
+                                 */
+                                {
+                                    using ParticleAttrList = typename FrameType::ValueTypeSeq;
+                                    using AttrToIgnore
+                                        = pmacc::mp_list<position<>, multiMask, localCellIdx, weighting>;
+                                    using ParticleCleanedAttrList =
+                                        typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
+
+                                    meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<boost::mpl::_1>>
+                                        setToDefault;
+                                    setToDefault(particle);
+                                }
+                                particle[multiMask_] = 1;
+                                particle[localCellIdx_] = idx;
+                                // initialize position and weighting
+                                positionFunctor(worker, particle);
+                            }
+                        },
+                        destParticleIdxCtx,
+                        positionFunctorCtx);
+
+                    worker.sync();
+
+                    onlyMaster(
+                        [&]()
+                        {
+                            if(destCounter >= frameSize)
+                            {
+                                // reuse the not full second frame in the next round as first frame and invalidate
+                                // second frame
+                                destFrames[0] = destFrames[1];
+                                destFrames[1] = FramePtr{};
+                                destCounter -= frameSize;
+                            }
+                        });
+                    worker.sync();
+                }
+            } while(finished != 1);
         }
     };
 
