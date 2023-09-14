@@ -112,6 +112,8 @@ namespace picongpu::fields::incidentField
              * We always take tilt value from the unitless params and apply the tilt (which can be 0).
              *
              * @tparam T_Params parameters
+             * @tparam T_LongitudinalEnvelope class providing a static method getEnvelope(time)
+             *  that defines laser temporal envelope.
              */
             template<typename T_Params, typename T_LongitudinalEnvelope>
             struct GaussianPulseFunctorIncidentE
@@ -206,10 +208,18 @@ namespace picongpu::fields::incidentField
                 {
                     // transform to 3d internal coordinate system
                     float3_X pos = this->getInternalCoordinates(totalCellIdx);
-                    auto const time = this->getCurrentTime(totalCellIdx);
+                    auto time = this->getCurrentTime(totalCellIdx);
                     if(time < 0.0_X)
                         return 0.0_X;
 
+                    // A time shift provided by the envelope class.
+                    // For example when the envelope is a Gaussian pulse:
+                    // a symmetric pulse will be initialized at generation plane for
+                    // a time of PULSE_INIT * PULSE_DURATION = INIT_TIME.
+                    // we shift the complete pulse for the half of this time to start with
+                    // the front of the laser pulse.
+                    constexpr auto timeshift = LongitudinalEnvelope::TIME_SHIFT;
+                    time += timeshift;
                     // calculate focus position relative to the current point in the propagation direction
                     auto const focusRelativeToOrigin = this->focus - this->origin;
 
@@ -219,13 +229,9 @@ namespace picongpu::fields::incidentField
                         * math::sqrt(1.0_X
                                      + (focusPos / Unitless::rayleighLength) * (focusPos / Unitless::rayleighLength));
 
-                    // a symmetric pulse will be initialized at generation plane for
-                    // a time of PULSE_INIT * PULSE_DURATION = INIT_TIME.
-                    // we shift the complete pulse for the half of this time to start with
-                    // the front of the laser pulse.
-                    constexpr auto mue = -LongitudinalEnvelope::TIME_SHIFT;
+
                     auto const phase
-                        = Unitless::w * (time - mue - focusPos / SPEED_OF_LIGHT) + Unitless::LASER_PHASE + phaseShift;
+                        = Unitless::w * (time - focusPos / SPEED_OF_LIGHT) + Unitless::LASER_PHASE + phaseShift;
 
                     // Apply tilt if needed
                     if constexpr(Unitless::TILT_AXIS_1 || Unitless::TILT_AXIS_2)
@@ -263,10 +269,10 @@ namespace picongpu::fields::incidentField
                                 - pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * r
                                 + (2._X * float_X(m) + 1._X) * xi + phase + typename Unitless::LAGUERREPHASES_t{}[m]);
                     }
+                    // time shifted by the distance (in propagation direction) to the point where the current wavefront
+                    // is crossing the beam axis.
+                    auto const shiftedTime = time - r / SPEED_OF_LIGHT;
 
-                    auto const shiftedTime
-                        = (r - focusPos - phase / pmacc::math::Pi<float_X>::doubleValue * Unitless::WAVE_LENGTH)
-                        / SPEED_OF_LIGHT;
                     etrans *= LongitudinalEnvelope::getEnvelope(shiftedTime);
 
                     auto etrans_norm = 0.0_X;
@@ -311,13 +317,17 @@ namespace picongpu::fields::incidentField
         } // namespace detail
 
 
+        /** Gaussian temporal laser envelope
+         *
+         * @tparam T_Param param class
+         */
         template<typename T_Param>
         struct GaussianPulseEnvelope : public detail::BaseParamUnitless<T_Param>
         {
             using Base = typename detail::BaseParamUnitless<T_Param>;
             using Unitless = detail::BaseParamUnitless<T_Param>;
 
-            static constexpr float_X TIME_SHIFT = -Base::PULSE_INIT * Base::PULSE_DURATION;
+            static constexpr float_X TIME_SHIFT = -0.5_X * Base::PULSE_INIT * Base::PULSE_DURATION;
 
             HDINLINE static float_X getEnvelope(float_X const time)
             {
@@ -331,6 +341,7 @@ namespace picongpu::fields::incidentField
                 return "GaussianPulse";
             }
         };
+
 
         template<typename T_Params, typename T_LongitudinalEnvelope>
         struct GaussianPulse

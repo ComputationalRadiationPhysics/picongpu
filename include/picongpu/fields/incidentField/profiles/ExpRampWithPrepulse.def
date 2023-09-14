@@ -32,6 +32,9 @@ namespace picongpu
             {
                 namespace defaults
                 {
+                    /** Default param set for ExpRampWithPrepulse temporal envelope
+                     *
+                     */
                     struct ExpRampWithPrepulseLongitudinalParam : public BaseParam
                     {
                         /** Intensities of prepulse and exponential preramp
@@ -71,6 +74,11 @@ namespace picongpu
                         static constexpr float_64 RAMP_INIT = 16.0;
                     };
 
+                    /** Default param set for ExpRampWithPrepulse profile
+                     *
+                     * This profile is deprecated, use GaussianPulse profile (Gaussian beam) with the
+                     * ExpRampWithPrepulseLongitudinal temporal envelope.
+                     */
                     struct ExpRampWithPrepulseParam : public ExpRampWithPrepulseLongitudinalParam
                     {
                         /** Beam waist: distance from the axis where the pulse intensity (E^2)
@@ -91,6 +99,9 @@ namespace picongpu
                 } // namespace defaults
 
                 /** Wavepacket with spatial Gaussian envelope and adjustable temporal shape.
+                 *
+                 * Note: This profile is deprecated, use GaussianPulse profile (Gaussian beam) with the
+                 * ExpRampWithPrepulseLongitudinal temporal envelope.
                  *
                  * Allows defining a prepulse and two regions of exponential preramp with
                  * independent slopes. The definition works by specifying three (t, intensity)-
@@ -133,6 +144,12 @@ namespace picongpu
                 template<typename T_Params = defaults::ExpRampWithPrepulseParam>
                 struct ExpRampWithPrepulse;
 
+
+                /** The temporal envelope part of ExpRampWithPrepulse
+                 *
+                 *  To be used with GaussianPulse (Gaussian beam) for focusing.
+                 * @tparam T_Params param class, see defaults namespace for reference
+                 */
                 template<typename T_Params = defaults::ExpRampWithPrepulseLongitudinalParam>
                 struct ExpRampWithPrepulseLongitudinal;
             } // namespace profiles

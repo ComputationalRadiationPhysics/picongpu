@@ -191,7 +191,7 @@ namespace picongpu::fields::incidentField
                 {
                     auto const runTimeShifted = time + Unitless::time_start_init;
                     auto const phase = Unitless::w * runTimeShifted + Unitless::LASER_PHASE + phaseShift;
-                    return math::sin(phase) * Unitless::AMPLITUDE * Envelope::getEnvelope(runTimeShifted);
+                    return math::cos(phase) * Unitless::AMPLITUDE * Envelope::getEnvelope(runTimeShifted);
                 }
             };
         } // namespace detail

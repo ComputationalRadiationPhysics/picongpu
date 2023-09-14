@@ -81,9 +81,11 @@ namespace picongpu::fields::incidentField::profiles
      * @tparam T_Params class parameter to configure the GaussianPulse profile,
      *                  see members of defaults::GaussianPulseParam
      *                  for required members
+     * @tparam T_LongitudinalEnvelope class providing a static method getEnvelope(time)
+     *  that defines laser temporal envelope. The default is a Gaussian pulse.
      */
     template<
         typename T_Params = defaults::GaussianPulseParam,
-        typename T_LongitudinalEnvelope = GaussianPulseEnvelope<BaseParam>>
+        typename T_LongitudinalEnvelope = GaussianPulseEnvelope<T_Params>>
     struct GaussianPulse;
 } // namespace picongpu::fields::incidentField::profiles
