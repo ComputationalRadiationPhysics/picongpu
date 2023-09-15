@@ -47,7 +47,7 @@ namespace picongpu
                         static constexpr float_X sigmaSquared = sigma * sigma;
 
 
-                        static HDINLINE constexpr float_X getFactor(const float_X& time)
+                        HDINLINE static constexpr float_X getFactor(const float_X& time)
                         {
                             if((time >= startTime || !T_ParamClass::limitStart)
                                && (time <= endTime || !T_ParamClass::limitEnd))

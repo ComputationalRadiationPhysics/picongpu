@@ -167,7 +167,7 @@ namespace picongpu
                         T_Functors::operator()(worker, localSupercellOffset)...);
                 }
 
-                static HINLINE std::string getName()
+                HINLINE static std::string getName()
                 {
                     return std::string("StartAttributes");
                 }

@@ -31,7 +31,7 @@ namespace picongpu
                 struct SqrtWrapper
                 {
                     template<typename... T_Args>
-                    static HDINLINE float_X getFactor(T_Args&&... args)
+                    HDINLINE static float_X getFactor(T_Args&&... args)
                     {
                         return math::sqrt(T_StaticFunctor::getFactor(args...));
                     }

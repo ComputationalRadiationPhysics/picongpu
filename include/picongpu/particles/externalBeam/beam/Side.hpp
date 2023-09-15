@@ -130,20 +130,20 @@ namespace picongpu::particles::externalBeam::beam
 
         //! Twist coordinates from sim to beam order for run time vectors (does not change data in memory)
         template<typename T_Vector>
-        static HDINLINE auto twistSimToBeam(T_Vector& vector)
+        HDINLINE static auto twistSimToBeam(T_Vector& vector)
         {
             return pmacc::math::twistComponents<SimAxesInBeamOrder>(vector);
         }
         //! Twist coordinates from beam to sim order for run time vectors (does not change memory layout)
         template<typename T_Vector>
-        static HDINLINE auto twistBeamToSim(T_Vector& vector)
+        HDINLINE static auto twistBeamToSim(T_Vector& vector)
         {
             return pmacc::math::twistComponents<BeamAxesInSimOrder>(vector);
         }
 
         //! Rotate vector from sim to beam  system (includes orientation and not is not only twisting coordinates)
         template<typename T_Vector>
-        static HDINLINE auto rotateSimToBeam(T_Vector const& vector)
+        HDINLINE static auto rotateSimToBeam(T_Vector const& vector)
         {
             T_Vector result = T_Vector::create(0.0);
             auto twisted = twistSimToBeam(vector);
@@ -165,7 +165,7 @@ namespace picongpu::particles::externalBeam::beam
 
         //! Rotate vector from beam to sim system (includes orientation and not is not only twisting coordinates)
         template<typename T_Vector>
-        static HDINLINE auto rotateBeamToSim(T_Vector const& vector)
+        HDINLINE static auto rotateBeamToSim(T_Vector const& vector)
         {
             T_Vector result = T_Vector::create(0.0);
             using ComponentType = typename T_Vector::type;
@@ -186,7 +186,7 @@ namespace picongpu::particles::externalBeam::beam
 
         //! Transform offsets (like a cell index) from sim to beam coordinates
         template<typename T_Vector>
-        static HDINLINE T_Vector transformOffsetSimToBeam(T_Vector const& vector, T_Vector const& volumeSize)
+        HDINLINE static T_Vector transformOffsetSimToBeam(T_Vector const& vector, T_Vector const& volumeSize)
         {
             T_Vector result = rotateSimToBeam(vector);
             for(uint32_t i = 1u; i < T_Vector::dim; i++)
@@ -196,7 +196,7 @@ namespace picongpu::particles::externalBeam::beam
 
         //! Transform offsets (like a cell index) from beam to sim coordinates
         template<typename T_Vector>
-        static HDINLINE T_Vector transformOffsetBeamToSim(T_Vector const& vector, T_Vector const& volumeSize)
+        HDINLINE static T_Vector transformOffsetBeamToSim(T_Vector const& vector, T_Vector const& volumeSize)
         {
             T_Vector result = rotateBeamToSim(vector);
             for(uint32_t i = 1u; i < T_Vector::dim; i++)

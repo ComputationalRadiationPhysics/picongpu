@@ -37,7 +37,7 @@ namespace picongpu
                     {
                         static constexpr float_X startTime = T_ParamClass::startTime_SI / UNIT_TIME;
                         static constexpr float_X endTime = T_ParamClass::endTime_SI / UNIT_TIME;
-                        static HDINLINE constexpr float_X getFactor(const float_X& time)
+                        HDINLINE static constexpr float_X getFactor(const float_X& time)
                         {
                             if((time >= startTime || !T_ParamClass::limitStart)
                                && (time <= endTime || !T_ParamClass::limitEnd))

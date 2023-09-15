@@ -36,7 +36,7 @@ namespace picongpu
                     {
                         using ParamClass = T_ParamClass;
 
-                        static HDINLINE float_X getFactor(float_X const& x, float_X const& y)
+                        HDINLINE static float_X getFactor(float_X const& x, float_X const& y)
                         {
                             constexpr float_X s_x = ParamClass::sigmaX_SI / UNIT_LENGTH;
                             constexpr float_X s_y = ParamClass::sigmaY_SI / UNIT_LENGTH;

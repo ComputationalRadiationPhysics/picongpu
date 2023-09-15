@@ -34,7 +34,7 @@ namespace picongpu
                 { //! Homogeneous beam profile.
                     struct ConstProfile
                     {
-                        static HDINLINE constexpr float_X getFactor(const float_X& positionX, const float_X& positionY)
+                        HDINLINE static constexpr float_X getFactor(const float_X& positionX, const float_X& positionY)
                         {
                             return float_X(1.0);
                         }
