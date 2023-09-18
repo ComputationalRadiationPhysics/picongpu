@@ -49,16 +49,17 @@ class RadiationData:
         # Amplitude
         detectorAmplitude = self.iteration.meshes["Amplitude"]
         # A_x
-        self.Ax_Re = detectorAmplitude["x_Re"].load_chunk()
-        self.Ax_Im = detectorAmplitude["x_Im"].load_chunk()
+        self.Ax_Re = detectorAmplitude["x_Re"][:, :, :]
+        self.Ax_Im = detectorAmplitude["x_Im"][:, :, :]
         # A_y
-        self.Ay_Re = detectorAmplitude["y_Re"].load_chunk()
-        self.Ay_Im = detectorAmplitude["y_Im"].load_chunk()
+        self.Ay_Re = detectorAmplitude["y_Re"][:, :, :]
+        self.Ay_Im = detectorAmplitude["y_Im"][:, :, :]
         # A_z
-        self.Az_Re = detectorAmplitude["z_Re"].load_chunk()
-        self.Az_Im = detectorAmplitude["z_Im"].load_chunk()
+        self.Az_Re = detectorAmplitude["z_Re"][:, :, :]
+        self.Az_Im = detectorAmplitude["z_Im"][:, :, :]
 
         # conversion factor for spectra from PIC units to SI units
+        # The value for unit_SI is consistent across all Amplitude datasets
         self.convert_to_SI = detectorAmplitude["x_Re"].unit_SI
 
         self.rad_series.flush()
