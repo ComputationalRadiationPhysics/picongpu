@@ -96,7 +96,7 @@ namespace picongpu
                             return 0.0;
                         }
 
-                        /** SFINAE detection if the user parameter define the variable TIME_DELAY_SI
+                        /** SFINAE deduction if the user parameter define the variable TIME_DELAY_SI
                          *
                          * This allows that time delay can be an optional variable a user must only define if needed.
                          * The default if it is not defined is 0.

@@ -113,7 +113,7 @@ namespace picongpu
             };
             namespace detail
             {
-                /** SFINAE dedection if the user parameter define the variable FOCUS_ORIGIN_*
+                /** SFINAE deduction if the user parameter define the variable FOCUS_ORIGIN_*
                  *
                  * This allows that focus origin can be an optional variable a user must only define if needed.
                  * The default if it is not defined is Origin::Zero
