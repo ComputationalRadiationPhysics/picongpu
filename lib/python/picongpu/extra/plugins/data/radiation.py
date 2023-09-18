@@ -23,7 +23,8 @@ import openpmd_api as io
 class RadiationData:
     def __init__(self, filename, timestep):
         """
-        Open references to an openPMD-api series or file to access radiation data.
+        Open references to an openPMD-api series or file to access radiation
+        data.
 
         This constructor opens openPMD-api references to the radiation data
         and thus allows easy access to the complex amplitudes from the
@@ -41,9 +42,9 @@ class RadiationData:
 
         # extract time step
         self.timestep = timestep
-        if (not self.timestep in self.rad_series.iterations):
-            raise Exception("The selected timestep {} ".format(self.timestep) +
-                            "is not available in the series.")
+        if (self.timestep not in self.rad_series.iterations):
+            raise Exception("The selected timestep {} ".format(self.timestep)
+                            + "is not available in the series.")
         self.iteration = self.rad_series.iterations[self.timestep]
 
         # Amplitude
