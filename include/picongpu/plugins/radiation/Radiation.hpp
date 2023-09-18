@@ -145,9 +145,9 @@ namespace picongpu
 
                 std::optional<::openPMD::Series> m_series;
                 std::string openPMDSuffix
-                    = "_%T_0_0_0." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+                    = "_%T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::ADIOS);
                 std::string openPMDExtensionCheckpointing
-                    = openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+                    = openPMD::getDefaultExtension(openPMD::ExtensionPreference::ADIOS);
                 std::string openPMDConfig = "{}";
                 std::string openPMDCheckpointConfig = "{}";
                 bool writeDistributedAmplitudes = false;
