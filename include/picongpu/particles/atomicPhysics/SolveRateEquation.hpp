@@ -756,8 +756,7 @@ namespace picongpu
                 pmacc::DataSpace<simDim> const supercellIdx(
                     mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
 
-                /// todo: express framesize better, not via supercell size
-                constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                constexpr uint32_t frameSize = T_IonBox::frameSize;
 
                 auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
                 auto onlyMaster = lockstep::makeMaster(worker);

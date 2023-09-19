@@ -100,8 +100,8 @@ namespace picongpu
             T_ParBox pb,
             T_Mapping mapper) const
         {
-            constexpr int frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
-            PMACC_CONSTEXPR_CAPTURE uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+            constexpr int frameSize = T_ParBox::frameSize;
+            constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             using FramePtr = typename T_ParBox::FramePtr;
             using FrameType = typename T_ParBox::FrameType;

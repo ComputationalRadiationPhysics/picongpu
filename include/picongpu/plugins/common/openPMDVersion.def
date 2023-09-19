@@ -40,7 +40,7 @@ namespace picongpu
          *
          * @attention If the version is changed please update openPMDWriter::checkIOFileVersionRestartCompatibility().
          */
-        static constexpr int picongpuIOVersionMajor = 2;
+        static constexpr int picongpuIOVersionMajor = 3;
 
         /** PIConGPU's IO minor file version.
          *

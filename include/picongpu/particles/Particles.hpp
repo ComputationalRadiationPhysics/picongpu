@@ -76,6 +76,7 @@ namespace picongpu
         : public ParticlesBase<
               ParticleDescription<
                   T_Name,
+                  std::integral_constant<uint32_t, numFrameSlots>,
                   SuperCellSize,
                   T_Attributes,
                   T_Flags,
@@ -96,6 +97,7 @@ namespace picongpu
     public:
         using SpeciesParticleDescription = pmacc::ParticleDescription<
             T_Name,
+            std::integral_constant<uint32_t, numFrameSlots>,
             SuperCellSize,
             T_Attributes,
             T_Flags,
@@ -268,4 +270,20 @@ namespace pmacc
         };
 
     } // namespace traits
+    namespace lockstep
+    {
+        //! Specialization to create a lockstep worker configuration out of a particle species.
+        template<typename T_Name, typename T_Flags, typename T_Attributes>
+        HDINLINE auto makeWorkerCfg(picongpu::Particles<T_Name, T_Flags, T_Attributes> const&)
+        {
+            return makeWorkerCfg<picongpu::Particles<T_Name, T_Flags, T_Attributes>::FrameType::frameSize>();
+        }
+
+        //! Specialization to create a lockstep worker configuration out of a shared pointer to a particle species.
+        template<typename T_Name, typename T_Flags, typename T_Attributes>
+        HDINLINE auto makeWorkerCfg(std::shared_ptr<picongpu::Particles<T_Name, T_Flags, T_Attributes>> const&)
+        {
+            return makeWorkerCfg<picongpu::Particles<T_Name, T_Flags, T_Attributes>::FrameType::frameSize>();
+        }
+    } // namespace lockstep
 } // namespace pmacc

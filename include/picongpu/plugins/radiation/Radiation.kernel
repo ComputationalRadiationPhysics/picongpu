@@ -104,7 +104,7 @@ namespace picongpu
                 {
                     namespace po = boost::program_options;
                     using Amplitude = picongpu::plugins::radiation::Amplitude<>;
-                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t frameSize = ParBox::frameSize;
 
                     using FrameType = typename ParBox::FrameType;
                     using FramePtr = typename ParBox::FramePtr;
@@ -120,24 +120,23 @@ namespace picongpu
                      * through all particles and calculates the radiation for one direction
                      * for all frequencies
                      */
-                    constexpr int blockSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
                     // vectorial part of the integrand in the Jackson formula
-                    PMACC_SMEM(worker, real_amplitude_s, memory::Array<vector_64, blockSize>);
+                    PMACC_SMEM(worker, real_amplitude_s, memory::Array<vector_64, frameSize>);
 
                     // retarded time
-                    PMACC_SMEM(worker, t_ret_s, memory::Array<picongpu::float_X, blockSize>);
+                    PMACC_SMEM(worker, t_ret_s, memory::Array<picongpu::float_X, frameSize>);
 
                     // storage for macro particle weighting needed if
                     // the coherent and incoherent radiation of a single
                     // macro-particle needs to be considered
-                    PMACC_SMEM(worker, radWeighting_s, memory::Array<float_X, blockSize>);
+                    PMACC_SMEM(worker, radWeighting_s, memory::Array<float_X, frameSize>);
 
                     // particle counter used if not all particles are considered for
                     // radiation calculation
                     PMACC_SMEM(worker, counter_s, int);
 
-                    PMACC_SMEM(worker, lowpass_s, memory::Array<NyquistLowPass, blockSize>);
+                    PMACC_SMEM(worker, lowpass_s, memory::Array<NyquistLowPass, frameSize>);
 
 
                     int const theta_idx = cupla::blockIdx(worker.getAcc()).x; // determine theta

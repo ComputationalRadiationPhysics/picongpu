@@ -34,11 +34,6 @@ namespace pmacc
     class TaskSendParticlesExchange : public MPITask
     {
     public:
-        enum
-        {
-            Dim = ParBase::Dim,
-        };
-
         TaskSendParticlesExchange(ParBase& parBase, uint32_t exchange)
             : parBase(parBase)
             , state(Constructor)

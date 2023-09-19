@@ -103,7 +103,7 @@ namespace pmacc
                         typedef typename Mapping::SuperCellSize SuperCellSize;
 
 
-                        const int particlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                        const int particlesPerFrame = T_SrcBox::frameSize;
                         int localIdxs[particlesPerFrame];
 
                         const DataSpace<Mapping::Dim> superCellIdx = mapper.getSuperCellIndex(blockIndex);

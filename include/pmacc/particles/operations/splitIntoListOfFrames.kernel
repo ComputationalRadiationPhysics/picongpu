@@ -93,10 +93,10 @@ namespace pmacc
                         using SrcFrameType = T_SrcFrame;
                         using DestFrameType = typename T_DestBox::FrameType;
                         using DestFramePtr = typename T_DestBox::FramePtr;
-                        using SuperCellSize = typename DestFrameType::SuperCellSize;
+                        using SuperCellSize = typename T_CellDescription::SuperCellSize;
 
                         constexpr uint32_t numDims = T_DestBox::Dim;
-                        constexpr uint32_t particlesPerFrame = math::CT::volume<SuperCellSize>::type::value;
+                        constexpr uint32_t particlesPerFrame = T_DestBox::frameSize;
 
                         PMACC_SMEM(worker, destFramePtr, memory::Array<DestFramePtr, particlesPerFrame>);
                         PMACC_SMEM(worker, sharedLinearSuperCellIds, memory::Array<int, particlesPerFrame>);
@@ -290,9 +290,6 @@ namespace pmacc
                 T_CellDescription const& cellDesc,
                 T_LogLvl const& logLvl = T_LogLvl())
             {
-                using SuperCellSize = typename T_CellDescription::SuperCellSize;
-                uint32_t const cellsInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-
                 /* counter is used to apply for work, count used frames and count loaded particles
                  * [0] -> offset for loading particles
                  * [1] -> number of loaded particles
@@ -313,10 +310,11 @@ namespace pmacc
                     log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%")
                         % (i * chunkSize) % currentChunkSize % leftOverParticles;
 
-                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                    constexpr uint32_t frameSize = T_SrcFrame::frameSize;
+                    auto workerCfg = lockstep::makeWorkerCfg<frameSize>();
 
                     PMACC_LOCKSTEP_KERNEL(detail::KernelSplitIntoListOfFrames{}, workerCfg)
-                    (math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)))(
+                    (math::float2int_ru(double(currentChunkSize) / double(frameSize)))(
                         counterBuffer.getDeviceBuffer().getDataBox(),
                         destSpecies.getDeviceParticlesBox(),
                         srcFrame,

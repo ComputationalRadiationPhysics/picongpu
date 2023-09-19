@@ -127,8 +127,7 @@ namespace picongpu
                 auto frame = electronBox.getLastFrame(superCellIdx);
                 auto particlesInSuperCell = electronBox.getSuperCell(superCellIdx).getSizeLastFrame();
 
-                /// @todo : express framesize better, not via supercell size
-                constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                constexpr uint32_t frameSize = T_ElectronBox::frameSize;
 
                 auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize>(worker);
 

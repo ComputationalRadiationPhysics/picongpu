@@ -784,8 +784,9 @@ namespace picongpu
             DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
             DataSpace<DIM2> blockSize2D(blockSize[m_transpose.x()], blockSize[m_transpose.y()]);
 
+            auto particleWorkerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
             // create image particles
-            PMACC_LOCKSTEP_KERNEL(KernelPaintParticles3D{}, workerCfg)
+            PMACC_LOCKSTEP_KERNEL(KernelPaintParticles3D{}, particleWorkerCfg)
             (mapper.getGridDim(), blockSize2D.productOfComponents() * sizeof(float_X))(
                 particles->getDeviceParticlesBox(),
                 img->getDeviceBuffer().getDataBox(),

@@ -133,7 +133,7 @@ namespace pmacc
             GridBuffer<uint64_cu, DIM1> counter(DataSpace<DIM1>(1));
 
             auto const mapper = makeAreaMapper<AREA>(cellDescription);
-            auto workerCfg = lockstep::makeWorkerCfg(typename CellDesc::SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<PBuffer::FrameType::frameSize>();
 
             PMACC_LOCKSTEP_KERNEL(KernelCountParticles{}, workerCfg)
             (mapper.getGridDim())(

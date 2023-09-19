@@ -60,7 +60,7 @@ namespace picongpu
                 auto hostBox = hostDeviceBuffer.getHostBuffer().getDataBox();
                 hostDeviceBuffer.hostToDevice();
                 auto kernel = DebyeLengthEstimateKernel{};
-                auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                auto workerCfg = lockstep::makeWorkerCfg<T_ElectronSpecies::FrameType::frameSize>();
                 PMACC_LOCKSTEP_KERNEL(kernel, workerCfg)
                 (mapper.getGridDim())(
                     electrons.getDeviceParticlesBox(),

@@ -53,7 +53,7 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg<T_SourceSpecies::FrameType::frameSize>();
                 PMACC_LOCKSTEP_KERNEL(CreateParticlesKernel{}, workerCfg)
                 (mapper.getGridDim())(
                     particleCreator,

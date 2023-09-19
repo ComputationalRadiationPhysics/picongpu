@@ -57,6 +57,7 @@ namespace picongpu
         template<typename SpeciesTmp, typename Filter, typename ParticleFilter, typename T_ParticleOffset>
         struct StrategyRunParameters
         {
+            using SpeciesType = SpeciesTmp;
             pmacc::DataConnector& dc;
             ThreadParams& params;
             SpeciesTmp& speciesTmp;
@@ -202,7 +203,8 @@ namespace picongpu
                 GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
                 auto const mapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
 
-                auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                auto workerCfg
+                    = lockstep::makeWorkerCfg<RunParameters::SpeciesType::element_type::FrameType::frameSize>();
 
                 /* this sanity check costs a little bit of time but hdf5 writing is
                  * slower */

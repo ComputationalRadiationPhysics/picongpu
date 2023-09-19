@@ -81,8 +81,8 @@ namespace picongpu
                 // stride 1u means each supercell is used
                 auto mapper = makeStrideAreaMapper<T_area, skipSuperCells + 1u>(cellDescription);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg<
-                    pmacc::math::CT::volume<SuperCellSize>::type::value * T_Strategy::workerMultiplier>();
+                auto workerCfg
+                    = pmacc::lockstep::makeWorkerCfg<T_ParticleBox::frameSize * T_Strategy::workerMultiplier>();
                 do
                 {
                     PMACC_LOCKSTEP_KERNEL(depositionKernel, workerCfg)
@@ -114,8 +114,8 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<T_area>(cellDescription);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg<
-                    pmacc::math::CT::volume<SuperCellSize>::type::value * T_Strategy::workerMultiplier>();
+                auto workerCfg
+                    = pmacc::lockstep::makeWorkerCfg<T_ParticleBox::frameSize * T_Strategy::workerMultiplier>();
                 PMACC_LOCKSTEP_KERNEL(depositionKernel, workerCfg)
                 (mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
             }

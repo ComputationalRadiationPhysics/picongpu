@@ -466,7 +466,7 @@ namespace picongpu
 
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
             auto kernel = PMACC_LOCKSTEP_KERNEL(KernelCalcEmittance{}, workerCfg)(mapper.getGridDim());
 
             // Some variables required so that it is possible for the kernel

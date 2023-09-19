@@ -71,12 +71,7 @@ namespace pmacc
         /* Policies for handling particles in guard cells */
         using HandleGuardRegion = typename ParticleDescription::HandleGuardRegion;
 
-        enum
-        {
-            Dim = MappingDesc::Dim,
-            Exchanges = traits::NumberOfExchanges<Dim>::value,
-            TileSize = math::CT::volume<typename MappingDesc::SuperCellSize>::type::value
-        };
+        static constexpr uint32_t dim = MappingDesc::Dim;
 
         /* Mark this simulation data as a particle type */
         using SimulationDataTag = ParticlesTag;
@@ -144,7 +139,7 @@ namespace pmacc
         {
             auto const mapper = mapperFactory(this->cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<FrameType::frameSize>();
 
             PMACC_LOCKSTEP_KERNEL(KernelFillGaps{}, workerCfg)
             (mapper.getGridDim())(particlesBuffer->getDeviceParticleBox(), mapper);
@@ -232,7 +227,7 @@ namespace pmacc
             ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
             auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 
-            auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<FrameType::frameSize>();
             eventSystem::startTransaction(eventSystem::getTransactionEvent());
             do
             {

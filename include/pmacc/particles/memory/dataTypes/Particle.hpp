@@ -58,8 +58,9 @@ namespace pmacc
         using FrameType = T_FrameType;
         using ValueTypeSeq = T_ValueTypeSeq;
         using Name = typename FrameType::Name;
+
+        // required to map local `cellIdx` to a cell within a supercell
         using SuperCellSize = typename FrameType::SuperCellSize;
-        using ThisType = Particle<FrameType, ValueTypeSeq>;
         using MethodsList = typename FrameType::MethodsList;
 
         /** pointer to parent frame where this particle is from
@@ -136,12 +137,12 @@ namespace pmacc
         }
 
         HDINLINE
-        ThisType& operator=(const ThisType& other) = default;
+        Particle& operator=(const Particle& other) = default;
 
     private:
         /* we disallow to assign this class*/
         template<typename T_OtherParticle>
-        HDINLINE ThisType& operator=(const T_OtherParticle& other);
+        HDINLINE Particle& operator=(const T_OtherParticle& other);
     };
 
     namespace traits

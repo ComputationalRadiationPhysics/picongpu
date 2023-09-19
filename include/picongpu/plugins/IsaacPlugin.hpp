@@ -227,21 +227,17 @@ namespace picongpu
             size_t size;
 
             ISAAC_NO_HOST_DEVICE_WARNING
-            ISAAC_HOST_DEVICE_INLINE ParticleIterator(
-                size_t size,
-                ParticlesBoxType pb,
-                FramePtr firstFrame,
-                int frameSize)
+            ISAAC_HOST_DEVICE_INLINE ParticleIterator(size_t size, ParticlesBoxType pb, FramePtr firstFrame)
                 : size(size)
                 , pb(pb)
                 , frame(firstFrame)
-                , frameSize(frameSize)
                 , i(0)
             {
             }
 
             ISAAC_HOST_DEVICE_INLINE void next()
             {
+                constexpr uint32_t frameSize = ParticlesBoxType::frameSize;
                 // iterate particles look for next frame
                 ++i;
                 if(i >= frameSize)
@@ -294,7 +290,6 @@ namespace picongpu
         private:
             ParticlesBoxType pb;
             FramePtr frame;
-            int frameSize;
             int i;
         };
 
@@ -336,7 +331,6 @@ namespace picongpu
             ISAAC_HOST_DEVICE_INLINE ParticleIterator<featureDim, ParticlesBoxType> getIterator(
                 const isaac_uint3& local_grid_coord) const
             {
-                constexpr uint32_t frameSize = pmacc::math::CT::volume<typename FrameType::SuperCellSize>::type::value;
                 DataSpace<simDim> const superCellIdx(
                     local_grid_coord.x + guarding[0],
                     local_grid_coord.y + guarding[1],
@@ -344,7 +338,7 @@ namespace picongpu
                 auto& superCell = pb[0].getSuperCell(superCellIdx);
                 size_t size = superCell.getNumParticles();
                 FramePtr currentFrame = pb[0].getFirstFrame(superCellIdx);
-                return ParticleIterator<featureDim, ParticlesBoxType>(size, pb[0], currentFrame, frameSize);
+                return ParticleIterator<featureDim, ParticlesBoxType>(size, pb[0], currentFrame);
             }
         };
 
