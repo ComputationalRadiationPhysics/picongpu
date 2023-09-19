@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov, Finn-Ole Carstens
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
