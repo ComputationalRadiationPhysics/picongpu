@@ -49,6 +49,7 @@ namespace picongpu
      * volume of a superCell must be <= 1024
      */
     using SuperCellSize = mCT::Int<16, 16>;
+    static constexpr uint32_t numFrameSlots = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription<simDim, SuperCellSize>;
