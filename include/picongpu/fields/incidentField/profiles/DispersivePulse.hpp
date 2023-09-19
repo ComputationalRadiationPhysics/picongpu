@@ -288,10 +288,12 @@ namespace picongpu
                             {
                                 Omk = static_cast<float_X>(k) * pmacc::math::Pi<float_X>::doubleValue
                                     / Unitless::INIT_TIME;
-                                E_t += 2.0_X * amp(totalCellIdx, Omk) * math::cos(phi(totalCellIdx, Omk, phaseShift))
-                                        / dt * math::cos(Omk * time)
-                                    + 2.0_X * amp(totalCellIdx, Omk) * math::sin(phi(totalCellIdx, Omk, phaseShift))
-                                        / dt * math::sin(Omk * time);
+                                float_X sinPhi, cosPhi;
+                                float_X sinOmkt, cosOmkt;
+                                pmacc::math::sincos(phi(totalCellIdx, Omk, phaseShift), sinPhi, cosPhi);
+                                pmacc::math::sincos(Omk * time, sinOmkt, cosOmkt);
+                                E_t += 2.0_X * amp(totalCellIdx, Omk) * cosPhi / dt * cosOmkt
+                                    + 2.0_X * amp(totalCellIdx, Omk) * sinPhi / dt * sinOmkt;
                             }
 
                             E_t /= static_cast<float_X>(2 * n + 1); // Normalization from DFT
@@ -484,8 +486,10 @@ namespace picongpu
                             {
                                 Omk = static_cast<float_X>(k) * pmacc::math::Pi<float_X>::doubleValue
                                     / Unitless::INIT_TIME;
-                                B_t += 2.0_X * B_Omega(axis, totalCellIdx, Omk).real() / dt * math::cos(Omk * time)
-                                    - 2.0_X * B_Omega(axis, totalCellIdx, Omk).imag() / dt * math::sin(Omk * time);
+                                float_X sinOmkt, cosOmkt;
+                                pmacc::math::sincos(Omk * time, sinOmkt, cosOmkt);
+                                B_t += 2.0_X * B_Omega(axis, totalCellIdx, Omk).real() / dt * cosOmkt
+                                    - 2.0_X * B_Omega(axis, totalCellIdx, Omk).imag() / dt * sinOmkt;
                             }
 
                             B_t /= static_cast<float_X>(2 * n + 1);
