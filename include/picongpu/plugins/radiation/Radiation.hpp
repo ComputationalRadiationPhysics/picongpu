@@ -144,8 +144,7 @@ namespace picongpu
                 static const int numberMeshRecords = 3;
 
                 std::optional<::openPMD::Series> m_series;
-                std::string openPMDSuffix
-                    = "_%T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::ADIOS);
+                std::string openPMDSuffix = "_%T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::ADIOS);
                 std::string openPMDExtensionCheckpointing
                     = openPMD::getDefaultExtension(openPMD::ExtensionPreference::ADIOS);
                 std::string openPMDConfig = "{}";
