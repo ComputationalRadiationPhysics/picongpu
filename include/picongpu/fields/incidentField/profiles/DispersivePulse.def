@@ -1,6 +1,6 @@
 /* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
- *                     Fabia Dietrich, Klaus Steiniger
+ *                     Fabia Dietrich, Klaus Steiniger, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -45,7 +45,8 @@ namespace picongpu
                          */
                         static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION after
+                         * TIME_DELAY_SI.
                          * WATCH OUT! Dispersion parameters may lead to pulse lenghtening
                          * Please ensure to choose a value high enough to cover the whole pulse,
                          * otherwise the Fourier Transformation will misbehave.

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Sergei Bastrakov
+/* Copyright 2020-2023 Sergei Bastrakov, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -113,7 +113,7 @@ namespace picongpu
             };
             namespace detail
             {
-                /** SFINAE dedection if the user parameter define the variable FOCUS_ORIGIN_*
+                /** SFINAE deduction if the user parameter define the variable FOCUS_ORIGIN_*
                  *
                  * This allows that focus origin can be an optional variable a user must only define if needed.
                  * The default if it is not defined is Origin::Zero
@@ -201,9 +201,9 @@ namespace picongpu
 
                     /** Get current time to calculate field at the given point
                      *
-                     * It accounts for both current PIC iteration and location relative to origin.
-                     * Note that the result may be negative as well, and clients may want to set
-                     * field = 0 when the returned value is negative.
+                     * It accounts for both current PIC iteration, location relative to origin and the given time
+                     * delay. Note that the result may be negative as well, and clients may want to set field = 0 when
+                     * the returned value is negative.
                      *
                      * @param totalCellIdx cell index in the total domain
                      *
@@ -215,7 +215,7 @@ namespace picongpu
                     {
                         auto const shiftFromOrigin = totalCellIdx * cellSize - origin;
                         auto const distance = pmacc::math::dot(shiftFromOrigin, getDirection());
-                        auto const timeDelay = distance / phaseVelocity;
+                        auto const timeDelay = distance / phaseVelocity + Unitless::TIME_DELAY;
                         return currentTimeOrigin - timeDelay;
                     }
 

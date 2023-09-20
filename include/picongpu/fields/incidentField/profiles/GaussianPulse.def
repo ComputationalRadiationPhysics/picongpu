@@ -60,9 +60,10 @@ namespace picongpu
                          */
                         static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION after
+                         * TIME_DELAY_SI
                          *
-                         *  unit: none
+                         * unit: none
                          */
                         static constexpr float_64 PULSE_INIT = 20.0;
 
