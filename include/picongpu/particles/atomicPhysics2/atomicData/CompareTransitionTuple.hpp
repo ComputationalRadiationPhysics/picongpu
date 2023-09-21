@@ -113,6 +113,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 throw std::runtime_error(
                     "transitions with lower and upper state being equal are not allowed in the input data set!, Z: "
                     + std::to_string(T_ConfigNumber::atomicNumber));
+                return false;
             }
         }
     };
