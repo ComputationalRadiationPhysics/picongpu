@@ -27,8 +27,6 @@
 
 namespace pmacc
 {
-    namespace ct = pmacc::math::CT;
-
     /** Define a SuperCell with guarding cells
      *
      * This object describe a SuperCell block that is surrounded by guarding cells
@@ -52,8 +50,8 @@ namespace pmacc
         using OffsetEnd = T_OffsetEnd;
         using Type = SuperCellDescription<SuperCellSize, OffsetOrigin, OffsetEnd>;
 
-        using AddFirst = typename ct::add<OffsetOrigin, SuperCellSize>::type;
-        using FullSuperCellSize = typename ct::add<AddFirst, OffsetEnd>::type;
+        using AddFirst = typename math::CT::add<OffsetOrigin, SuperCellSize>::type;
+        using FullSuperCellSize = typename math::CT::add<AddFirst, OffsetEnd>::type;
     };
 
 } // namespace pmacc
