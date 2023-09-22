@@ -460,15 +460,19 @@ Please be aware that all datasets in the openPMD output are given in the PIConGP
 
 .. code:: python
 
-   import h5py
-   f = h5py.File("e_radAmplitudes_2800_0_0_0.h5", "r")
-   omega_handler = f['/data/2800/DetectorMesh/DetectorFrequency/omega']
-   omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI']
-   f.close()
+   import openpmd_api as io
+   series = io.Series("e_radAmplitudes_%T_0_0_0.h5", io.Access_Type.read_only)
+   iteration = series.iterations[2800]
+
+   omega_handler = iteration.meshes["DetectorFrequency"]["omega"]
+   omega = omega_h[0, :, 0]
+   omega_unitSI = omega_h.unit_SI
+   series.flush()
+   omega *= omega_unitSI
 
 In order to extract the radiation data from the openPMD datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units.
 An example python script is given below.
-This currently assumes hdf5 output and will soon become openPMD agnostic.
+This currently assumes hdf5 output but any openPMD output, such as adios, will work too.
 
 .. code:: python
 
@@ -478,8 +482,8 @@ This currently assumes hdf5 output and will soon become openPMD agnostic.
 
     from picongpu.plugins.data import RadiationData
 
-    # access HDF5 radiation file
-    radData = RadiationData("./simOutput/radiationHDF5/e_radAmplitudes_2820_0_0_0.h5")
+    # access openPMD radiation file for specific time step
+    radData = RadiationData("./simOutput/radiationHDF5/e_radAmplitudes_%T_0_0_0.h5", 2820)
 
     # get frequencies
     omega = radData.get_omega()
