@@ -65,7 +65,7 @@ namespace picongpu
                  * @param mapper MappingDesction object
                  * @param freqFkt frequency functor
                  * @param simBoxSize size of simulation box
-                 * @param foilPosition position of the virtual foil to calculate the TR for in PIC units
+                 * @param foilPositionY position of the virtual foil to calculate the TR for in PIC units
                  */
                 template<
                     typename T_ParBox,
@@ -84,7 +84,7 @@ namespace picongpu
                     T_Mapping mapper,
                     transitionRadiation::frequencies::FreqFunctor freqFkt,
                     DataSpace<simDim> simBoxSize,
-                    float_X foilPosition) const
+                    float_X foilPositionY) const
                 {
                     using complex_X = alpaka::Complex<float_X>;
                     using complex_64 = alpaka::Complex<float_64>;
@@ -138,7 +138,7 @@ namespace picongpu
                     int const numSuperCells = superCellsCount.productOfComponents();
 
                     // propagation distance for the particle bunch
-                    float_X const propagationDistance = foilPosition - globalOffset[1];
+                    float_X const propagationDistance = foilPositionY - globalOffset[1];
 
 
                     /* go over all super cells on GPU
@@ -264,7 +264,7 @@ namespace picongpu
 
                                                 // only propagate particles if it is set up in
                                                 // transitionRadiation.param
-                                                if(foilPosition != 0.0)
+                                                if(foilPositionY != 0.0)
                                                     particle.propagate(propagationDistance);
 
                                                 // create calculator for TR calculations

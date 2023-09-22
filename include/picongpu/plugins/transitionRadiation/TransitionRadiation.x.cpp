@@ -132,10 +132,10 @@ namespace picongpu
                            "optional output: transition radiation as text file in readable format for the "
                            "in picongpu provided python analysis script, 1==enabled",
                            0};
-                    plugins::multi::Option<float_X> foilPositionSI
-                        = {"foilPosition",
-                           "optional parameter: absolute position of the virtual foil to calculate the transition "
-                           "radiation for [in meter]. 0==disabled",
+                    plugins::multi::Option<float_X> foilPositionYSI
+                        = {"foilPositionY",
+                           "optional parameter: absolute position (in y-direction) of the virtual foil to calculate "
+                           "the transition radiation for [in meter]. 0==disabled",
                            0};
 
                     ///! method used by plugin controller to get --help description
@@ -147,7 +147,7 @@ namespace picongpu
                         optionFileName.registerHelp(desc, masterPrefix + prefix);
                         optionFileExtention.registerHelp(desc, masterPrefix + prefix);
                         optionTextOutput.registerHelp(desc, masterPrefix + prefix);
-                        foilPositionSI.registerHelp(desc, masterPrefix + prefix);
+                        foilPositionYSI.registerHelp(desc, masterPrefix + prefix);
                     }
 
                     void expandHelp(
@@ -225,7 +225,7 @@ namespace picongpu
                 size_t m_id;
 
                 bool textOutput;
-                float_X foilPositionSI;
+                float_X foilPositionYSI;
 
             public:
                 //! Constructor
@@ -240,7 +240,7 @@ namespace picongpu
                     filenamePrefix = ParticlesType::FrameType::getName() + "_" + m_help->optionFileName.get(m_id);
                     fileExtension = m_help->optionFileExtention.get(m_id);
 
-                    foilPositionSI = m_help->foilPositionSI.get(m_id);
+                    foilPositionYSI = m_help->foilPositionYSI.get(m_id);
                     textOutput = m_help->optionTextOutput.get(m_id);
 
                     init();
@@ -542,28 +542,6 @@ namespace picongpu
 
                 void writeOpenPMDFile(uint32_t currentStep)
                 {
-                    auto buffer = std::make_unique<HostBuffer<float_X, DIM3>>(DataSpace<DIM3>(
-                        parameters::nTheta,
-                        parameters::nPhi,
-                        transitionRadiation::frequencies::nOmega));
-                    auto dataBox = buffer->getDataBox();
-
-                    for(unsigned int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver;
-                        ++index_direction)
-                    {
-                        // theta
-                        const int i = index_direction / parameters::nPhi;
-                        // phi
-                        const int j = index_direction % parameters::nPhi;
-
-                        for(unsigned int k = 0; k < transitionRadiation::frequencies::nOmega; ++k)
-                        {
-                            dataBox({static_cast<int>(i), static_cast<int>(j), static_cast<int>(k)})
-                                = static_cast<float_X>(
-                                    theTransRad[index_direction * transitionRadiation::frequencies::nOmega + k]);
-                        }
-                    }
-
                     std::stringstream filename;
                     filename << filenamePrefix << "_%T." << fileExtension;
 
@@ -577,14 +555,15 @@ namespace picongpu
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset dataset{datatype, extent};
 
-                    auto mesh = series.iterations[currentStep].meshes["transitionradiation"];
+                    auto iteration = series.writeIterations()[currentStep];
+                    auto mesh = iteration.meshes["transitionradiation"];
 
                     mesh.setAxisLabels(std::vector<std::string>{"omega index", "phi index", "theta index"});
                     mesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
                     mesh.setGridUnitSI(1);
                     mesh.setGridSpacing(std::vector<double>{1, 1, 1});
                     mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
-                    mesh.setAttribute<float_X>("foilPosition", foilPositionSI);
+                    mesh.setAttribute<float_X>("foilPositionY", foilPositionYSI);
 
                     mesh.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
                         {::openPMD::UnitDimension::L, 2.0},
@@ -598,28 +577,33 @@ namespace picongpu
                         SI::ELECTRON_CHARGE_SI * SI::ELECTRON_CHARGE_SI
                         * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * SI::SPEED_OF_LIGHT_SI)));
 
-                    auto sharedDataPtr = std::shared_ptr<float_X>{buffer->data(), [](auto const*) {}};
+                    auto span = transitionRadiation.storeChunk<float_X>(offset, extent);
+                    auto spanBuffer = span.currentBuffer();
 
-                    transitionRadiation.storeChunk(sharedDataPtr, offset, extent);
-
-                    // Omega axis
-                    auto bufferOmega = std::make_unique<HostBuffer<float_X, DIM3>>(
-                        DataSpace<DIM3>(1, 1, transitionRadiation::frequencies::nOmega));
-
-                    auto dataBoxOmega = bufferOmega->getDataBox();
-
-                    for(unsigned int i = 0; i < transitionRadiation::frequencies::nOmega; ++i)
+                    for(unsigned int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver;
+                        ++index_direction)
                     {
-                        dataBoxOmega({0, 0, static_cast<int>(i)}) = static_cast<float_X>(freqFkt(i));
+                        // theta
+                        const int i = index_direction / parameters::nPhi;
+                        // phi
+                        const int j = index_direction % parameters::nPhi;
+
+                        for(unsigned int k = 0; k < transitionRadiation::frequencies::nOmega; ++k)
+                        {
+                            const int index = (k * parameters::nPhi + j) * parameters::nTheta + i;
+                            spanBuffer[index] = static_cast<float_X>(
+                                theTransRad[index_direction * transitionRadiation::frequencies::nOmega + k]);
+                        }
                     }
 
+                    // Omega axis
                     ::openPMD::Extent extentOmega
                         = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega), 1, 1};
                     ::openPMD::Offset offsetOmega = {0, 0, 0};
                     ::openPMD::Datatype datatypeOmega = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetOmega{datatypeOmega, extentOmega};
 
-                    auto meshOmega = series.iterations[currentStep].meshes["detector omega"];
+                    auto meshOmega = iteration.meshes["detector omega"];
 
                     meshOmega.setAxisLabels(std::vector<std::string>{"omega", "", ""});
                     meshOmega.setDataOrder(::openPMD::Mesh::DataOrder::C);
@@ -635,37 +619,22 @@ namespace picongpu
 
                     omega.setUnitSI(1.0);
 
-                    auto sharedDataPtrOmega = std::shared_ptr<float_X>{bufferOmega->data(), [](auto const*) {}};
+                    auto spanOmega = omega.storeChunk<float_X>(offsetOmega, extentOmega);
+                    auto spanBufferOmega = spanOmega.currentBuffer();
 
-                    omega.storeChunk(sharedDataPtrOmega, offsetOmega, extentOmega);
-
+                    for(unsigned int i = 0; i < transitionRadiation::frequencies::nOmega; ++i)
+                    {
+                        spanBufferOmega[i] = static_cast<float_X>(freqFkt(i));
+                    }
 
                     // Phi axis
-                    auto bufferPhi = std::make_unique<HostBuffer<float_X, DIM3>>(
-                        DataSpace<DIM3>(1, transitionRadiation::parameters::nPhi, 1));
-
-                    auto dataBoxPhi = bufferPhi->getDataBox();
-
-                    if(transitionRadiation::parameters::nPhi > 1)
-                    {
-                        for(unsigned int i = 0; i < transitionRadiation::parameters::nPhi; ++i)
-                        {
-                            dataBoxPhi({0, static_cast<int>(i), 0}) = parameters::phiMin
-                                + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
-                        }
-                    }
-                    else
-                    {
-                        dataBoxPhi({0, 0, 0}) = parameters::phiMin;
-                    }
-
                     ::openPMD::Extent extentPhi
                         = {1, static_cast<unsigned long int>(transitionRadiation::parameters::nPhi), 1};
                     ::openPMD::Offset offsetPhi = {0, 0, 0};
                     ::openPMD::Datatype datatypePhi = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetPhi{datatypePhi, extentPhi};
 
-                    auto meshPhi = series.iterations[currentStep].meshes["detector phi"];
+                    auto meshPhi = iteration.meshes["detector phi"];
 
                     meshPhi.setAxisLabels(std::vector<std::string>{"", "phi", ""});
                     meshPhi.setDataOrder(::openPMD::Mesh::DataOrder::C);
@@ -678,37 +647,29 @@ namespace picongpu
 
                     phi.setUnitSI(1.0);
 
-                    auto sharedDataPtrPhi = std::shared_ptr<float_X>{bufferPhi->data(), [](auto const*) {}};
+                    auto spanPhi = phi.storeChunk<float_X>(offsetPhi, extentPhi);
+                    auto spanBufferPhi = spanPhi.currentBuffer();
 
-                    phi.storeChunk(sharedDataPtrPhi, offsetPhi, extentPhi);
-
-                    // Theta axis
-                    auto bufferTheta = std::make_unique<HostBuffer<float_X, DIM3>>(DataSpace<DIM3>(
-                        static_cast<unsigned long int>(transitionRadiation::parameters::nTheta),
-                        1,
-                        1));
-
-                    auto dataBoxTheta = bufferTheta->getDataBox();
-
-                    if(transitionRadiation::parameters::nTheta > 1)
+                    if(transitionRadiation::parameters::nPhi > 1)
                     {
-                        for(unsigned int i = 0; i < transitionRadiation::parameters::nTheta; ++i)
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::nPhi; ++i)
                         {
-                            dataBoxTheta({static_cast<int>(i), 0, 0}) = parameters::thetaMin
-                                + i * (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0);
+                            spanBufferPhi[i] = parameters::phiMin
+                                + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
                         }
                     }
                     else
                     {
-                        dataBoxTheta({0, 0, 0}) = parameters::thetaMin;
+                        spanBufferPhi[0] = parameters::phiMin;
                     }
 
+                    // Theta axis
                     ::openPMD::Extent extentTheta = {1, 1, transitionRadiation::parameters::nTheta};
                     ::openPMD::Offset offsetTheta = {0, 0, 0};
                     ::openPMD::Datatype datatypeTheta = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetTheta{datatypeTheta, extentTheta};
 
-                    auto meshTheta = series.iterations[currentStep].meshes["detector theta"];
+                    auto meshTheta = iteration.meshes["detector theta"];
 
                     meshTheta.setAxisLabels(std::vector<std::string>{"", "", "theta"});
                     meshTheta.setDataOrder(::openPMD::Mesh::DataOrder::C);
@@ -721,9 +682,21 @@ namespace picongpu
 
                     theta.setUnitSI(1.0);
 
-                    auto sharedDataPtrTheta = std::shared_ptr<float_X>{bufferTheta->data(), [](auto const*) {}};
+                    auto spanTheta = theta.storeChunk<float_X>(offsetTheta, extentTheta);
+                    auto spanBufferTheta = spanTheta.currentBuffer();
 
-                    theta.storeChunk(sharedDataPtrTheta, offsetTheta, extentTheta);
+                    if(transitionRadiation::parameters::nTheta > 1)
+                    {
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::nTheta; ++i)
+                        {
+                            spanBufferTheta[i] = parameters::thetaMin
+                                + i * (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0);
+                        }
+                    }
+                    else
+                    {
+                        spanBufferTheta[0] = parameters::thetaMin;
+                    }
 
                     series.iterations[currentStep].close();
                 }
@@ -786,7 +759,7 @@ namespace picongpu
                         *m_cellDescription,
                         freqFkt,
                         subGrid.getGlobalDomain().size,
-                        foilPositionSI / UNIT_LENGTH);
+                        foilPositionYSI / UNIT_LENGTH);
                 }
             };
 
