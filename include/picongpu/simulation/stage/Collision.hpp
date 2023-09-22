@@ -65,7 +65,7 @@ namespace picongpu
                 {
                     using result = T_Type;
 
-                    HDINLINE result operator()(T_Type& vector) const
+                    HDINLINE result operator()(T_Type vector) const
                     {
                         using ScalarType = typename T_Type::type;
                         return T_Type(math::sqrt(static_cast<ScalarType>(vector)));

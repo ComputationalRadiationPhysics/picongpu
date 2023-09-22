@@ -95,16 +95,11 @@ namespace picongpu
                  * Performs update by adding terms with the incidentField.
                  * The positions, indices and coefficients for these terms are determined by members.
                  *
-                 * @tparam T_UpdatedFieldBox updatedField box type
                  * @tparam T_CurlIncidentField curl(incidentField) functor type
                  * @tparam T_FunctorIncidentField incidentField source functor type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  */
-                template<
-                    typename T_UpdatedFieldBox,
-                    typename T_CurlIncidentField,
-                    typename T_FunctorIncidentField,
-                    uint32_t T_axis>
+                template<typename T_CurlIncidentField, typename T_FunctorIncidentField, uint32_t T_axis>
                 struct UpdateFunctor
                 {
                     /** Create an update functor instance on the host side for the given time step
@@ -144,7 +139,9 @@ namespace picongpu
                      * @param isLastUpdatedCell whether the cell is the last updated globally along each direction,
                      *                          note it is always 3d, for 2d the last element must be false
                      */
+                    template<typename T_DestFieldDataBox>
                     HDINLINE void operator()(
+                        T_DestFieldDataBox destField,
                         pmacc::DataSpace<simDim> const& beginGridIdx,
                         pmacc::DataSpace<simDim> const& updatedGridIdx,
                         pmacc::math::Vector<bool, 3u> const& isLastUpdatedCell) const
@@ -158,15 +155,12 @@ namespace picongpu
                         auto const incidentFieldShift1 = incidentFieldShiftBase + inCellShift1;
                         auto const incidentFieldShift2 = incidentFieldShiftBase + inCellShift2;
                         auto const updatedFieldShift = (updatedGridIdx - huygensSurfaceIdx)[T_axis];
-                        updatedField(updatedGridIdx) += getUpdatedFieldCorrection(
+                        destField(updatedGridIdx) += getUpdatedFieldCorrection(
                             updatedFieldShift,
                             incidentFieldShift1,
                             incidentFieldShift2,
                             isLastUpdatedCell);
                     }
-
-                    //! UpdatedField box
-                    T_UpdatedFieldBox updatedField;
 
                     //! Derivative functor along T_axis type
                     using DerivativeFunctor
@@ -436,16 +430,19 @@ namespace picongpu
                      *
                      * @tparam T_Worker lockstep worker type
                      * @tparam T_UpdateFunctor update functor type
+                     * @tparam T_DestFieldDataBox type of the destination field box
                      *
                      * @param acc alpaka accelerator
                      * @param functor update functor
+                     * @param destField destination field
                      * @param beginGridIdx begin active grid index, in the local domain with guards
                      * @param endGridIdx end active grid index, in the local domain with guards
                      */
-                    template<typename T_Worker, typename T_UpdateFunctor>
+                    template<typename T_Worker, typename T_UpdateFunctor, typename T_DestFieldDataBox>
                     HDINLINE void operator()(
                         T_Worker const& worker,
-                        T_UpdateFunctor const functor,
+                        T_UpdateFunctor const& functor,
+                        T_DestFieldDataBox destField,
                         DataSpace<simDim> beginGridIdx,
                         DataSpace<simDim> endGridIdx) const
                     {
@@ -476,7 +473,7 @@ namespace picongpu
                                         = functor.isLastLocalDomain[d] && (updatedGridIdx[d] == endGridIdx[d] - 1);
                                 }
                                 if(isInside)
-                                    functor(beginGridIdx, updatedGridIdx, isLastUpdatedCell);
+                                    functor(destField, beginGridIdx, updatedGridIdx, isLastUpdatedCell);
                             });
                     }
                 };

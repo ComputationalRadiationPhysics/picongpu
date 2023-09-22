@@ -55,7 +55,7 @@ namespace pmacc
         template<typename T_Index>
         HDINLINE ValueType operator()(const T_Index& idx) const
         {
-            return UnaryFunctor()(Base::operator()(idx));
+            return UnaryFunctor()(Base::operator[](idx));
         }
 
         template<typename T_Index>

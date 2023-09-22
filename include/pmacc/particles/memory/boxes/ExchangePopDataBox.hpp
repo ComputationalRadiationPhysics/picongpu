@@ -48,7 +48,7 @@ namespace pmacc
             PopType tmp = virtualMemory[idx];
 
             superCell = tmp.getSuperCell();
-            return TileDataBox<VALUE>(this->fixedPointer, DataSpace<DIM1>(tmp.getStartIndex()), tmp.getCount());
+            return TileDataBox<VALUE>(this->m_ptr, DataSpace<DIM1>(tmp.getStartIndex()), tmp.getCount());
         }
 
     protected:

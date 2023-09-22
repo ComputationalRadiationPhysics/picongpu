@@ -30,77 +30,83 @@ namespace pmacc
 {
     namespace detail
     {
-        template<typename T_Vector, typename T_TYPE>
-        HDINLINE auto& subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 1>)
-        {
-            return p[idx];
-        }
+        template<typename T_Extent, uint32_t T_dim>
+        struct CalcPitch;
 
-        template<typename T_Vector, typename T_TYPE>
-        HDINLINE auto* subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 2>)
+        template<typename T_Extent>
+        struct CalcPitch<T_Extent, DIM3>
         {
-            return p + idx * T_Vector::x::value;
-        }
+            using type = math::CT::Int<T_Extent::x::value, T_Extent::x::value * T_Extent::y::value>;
+        };
 
-        template<typename T_Vector, typename T_TYPE>
-        HDINLINE auto* subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 3>)
+        template<typename T_Extent>
+        struct CalcPitch<T_Extent, DIM2>
         {
-            return p + idx * (T_Vector::x::value * T_Vector::y::value);
-        }
+            using type = math::CT::Int<T_Extent::x::value>;
+        };
     } // namespace detail
 
     /** create shared memory on gpu
      *
      * @tparam T_TYPE type of memory objects
-     * @tparam T_Vector CT::Vector with size description (per dimension)
+     * @tparam T_Extent CT::Vector with size description (per dimension) in elements
      * @tparam T_id unique id for this object
      *              (is needed if more than one instance of shared memory in one kernel is used)
      * @tparam T_dim dimension of the memory (supports DIM1,DIM2 and DIM3)
      */
-    template<typename T_TYPE, typename T_Vector, uint32_t T_id = 0, uint32_t T_dim = T_Vector::dim>
+    template<typename T_Type, typename T_Extent, uint32_t T_id = 0, uint32_t T_dim = T_Extent::dim>
     struct SharedBox
     {
         static constexpr std::uint32_t Dim = T_dim;
 
-        using ValueType = T_TYPE;
+        using ValueType = T_Type;
         using RefValueType = ValueType&;
-        using Size = T_Vector;
+        using Extent = T_Extent;
 
         HDINLINE
-        SharedBox(ValueType* pointer = nullptr) : fixedPointer(pointer)
+        SharedBox(ValueType* pointer = nullptr) : m_ptr(pointer)
         {
         }
 
         HDINLINE SharedBox(SharedBox const&) = default;
-
-        using ReducedType1D = T_TYPE&;
-        using ReducedType2D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 1>::type, T_id>;
-        using ReducedType3D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 2>::type, T_id>;
-        using ReducedType
-            = std::conditional_t<Dim == 1, ReducedType1D, std::conditional_t<Dim == 2, ReducedType2D, ReducedType3D>>;
-
-        HDINLINE ReducedType operator[](const int idx) const
-        {
-            ///@todo(bgruber): inline and replace this by if constexpr in C++17
-            return {detail::subscript<T_Vector>(fixedPointer, idx, std::integral_constant<uint32_t, T_dim>{})};
-        }
 
         /*!return the first value in the box (list)
          * @return first value
          */
         HDINLINE RefValueType operator*()
         {
-            return *fixedPointer;
+            return *m_ptr;
         }
 
         HDINLINE ValueType const* getPointer() const
         {
-            return fixedPointer;
+            return m_ptr;
         }
         HDINLINE ValueType* getPointer()
         {
-            return fixedPointer;
+            return m_ptr;
         }
+
+        /** get value at the given index
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param idx n-dimansional offset relative to the origin pointer
+         * @return reference to the value
+         * @{
+         */
+        template<typename T_MemoryIdxType>
+        HDINLINE T_Type const& operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx) const
+        {
+            return *ptr(idx);
+        }
+
+        template<typename T_MemoryIdxType>
+        HDINLINE T_Type& operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx)
+        {
+            return *const_cast<T_Type*>(ptr(idx));
+        }
+
+        /** @} */
 
         /** create a shared memory box
          *
@@ -111,12 +117,33 @@ namespace pmacc
         DINLINE static SharedBox init(T_Worker const& worker)
         {
             auto& mem_sh
-                = memory::shared::allocate<T_id, memory::Array<ValueType, math::CT::volume<Size>::type::value>>(
+                = memory::shared::allocate<T_id, memory::Array<ValueType, math::CT::volume<Extent>::type::value>>(
                     worker);
             return {mem_sh.data()};
         }
 
+    private:
+        /** get the pointer of the value relative to the origin pointer m_ptr
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param idx n-dimensional offset
+         * @return pointer to value
+         */
+        HDINLINE T_Type const* ptr(DataSpace<T_dim> const& idx) const
+        {
+            // offset in elements
+            int offset = idx.x();
+
+            if constexpr(Dim >= DIM2)
+            {
+                using Pitch = typename detail::CalcPitch<Extent, Extent::dim>::type;
+                for(uint32_t d = 1u; d < T_dim; ++d)
+                    offset += idx[d] * Pitch::toRT()[d - 1];
+            }
+            return m_ptr + offset;
+        }
+
     protected:
-        PMACC_ALIGN(fixedPointer, ValueType*);
+        PMACC_ALIGN(m_ptr, ValueType*);
     };
 } // namespace pmacc

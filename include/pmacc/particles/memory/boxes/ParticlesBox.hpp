@@ -135,7 +135,7 @@ namespace pmacc
         }
 
         HDINLINE
-        FramePtr mapPtr(const FramePtr& devPtr) const
+        FramePtr mapPtr(FramePtr devPtr) const
         {
 #if(CUPLA_DEVICE_COMPILE == 1)
             return devPtr;
@@ -298,7 +298,12 @@ namespace pmacc
             return false;
         }
 
-        HDINLINE SuperCellType& getSuperCell(DataSpace<DIM> idx) const
+        HDINLINE decltype(auto) getSuperCell(DataSpace<DIM> idx) const
+        {
+            return BaseType::operator()(idx);
+        }
+
+        HDINLINE decltype(auto) getSuperCell(DataSpace<DIM> idx)
         {
             return BaseType::operator()(idx);
         }

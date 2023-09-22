@@ -211,8 +211,8 @@ namespace gol
             {
                 for(int x = 0; x < srcSize.x(); ++x)
                 {
-                    dst[y + offsetToSimNull.y()][x + offsetToSimNull.x()]
-                        = src[nodeGuardCells.y() + y][nodeGuardCells.x() + x];
+                    dst[Space{x + offsetToSimNull.x(), y + offsetToSimNull.y()}]
+                        = src[Space{nodeGuardCells.x() + x, nodeGuardCells.y() + y}];
                 }
             }
         }
