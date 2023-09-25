@@ -189,8 +189,8 @@ namespace picongpu
     HDINLINE
     FieldJ::UnitValueType FieldJ::getUnit()
     {
-        const float_64 UNIT_CURRENT_DENSITY = UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
-        return UnitValueType(UNIT_CURRENT_DENSITY, UNIT_CURRENT_DENSITY, UNIT_CURRENT_DENSITY);
+        const float_64 unitCurrentDensity = UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
+        return UnitValueType(unitCurrentDensity, unitCurrentDensity, unitCurrentDensity);
     }
 
     HINLINE
