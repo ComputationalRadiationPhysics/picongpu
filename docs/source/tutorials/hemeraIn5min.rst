@@ -146,12 +146,13 @@ If this fails, read the manual or ask a colleague.
 
 After a successfull build, run (still on the compute node, still inside your scenario directory)::
 
-  tbg -s bash -c etc/picongpu/1.cfg -t etc/picongpu/bash/mpiexec.tpl $SCRATCH/tinkering/try01/run01
+  tbg -s bash -t $PICSRC/etc/picongpu/bash/mpiexec.tpl -c /etc/picongpu/1.cfg $SCRATCH/tinkering/try01/run01
 
 - :command:`tbg`: tool provided by PIConGPU
 - ``bash``: the “submit system”, e.g. use ``sbatch`` for slurm
+- ``$PICSRC``: the path to your PIConGPU source code, automatically set when sourcing :file:`k80_picongpu.profile`
+- :file:`$PICSRC/etc/picongpu/bash/mpiexec.tpl`: options for the chosen submit system
 - :file:`etc/picongpu/1.cfg`: runtime options (number of GPUs, etc.)
-- :file:`etc/picongpu/bash/mpiexec.tpl`: options for the chosen submit system
 - :file:`$SCRATCH/tinkering/try01/run01`: not-yet-existing destination for your result files
 
 .. note::
@@ -173,6 +174,7 @@ After a successfull build, run (still on the compute node, still inside your sce
 
    Note that we not only used a different "submit system" ``sbatch``,
    but also changed the template file to :file:`etc/picongpu/hemera-hzdr/k80.tpl`.
+   (This template file is directly located in your project directory.`)
    Both profile and template file are built for the same compute device, the NVIDIA Tesla "K80" GPU.
    
 
