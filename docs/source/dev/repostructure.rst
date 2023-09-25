@@ -8,7 +8,6 @@ Repository Structure
 Branches
 --------
 
-* ``master``: the latest stable release, always tagged with a version
 * ``dev``: the development branch where all features start from and are merged to
 * ``release-X.Y.Z``: release candiate for version ``X.Y.Z`` with an upcoming release, receives updates for bug fixes and documentation such as change logs but usually no new features
 
