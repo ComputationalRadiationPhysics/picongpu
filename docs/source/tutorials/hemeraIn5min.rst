@@ -35,7 +35,7 @@ We will use the following directories:
 - :file:`~/src/picongpu`: source files from github
 - :file:`~/k80_picongpu.profile`: load the dependencies for your local environment
 - :file:`~/picongpu-projects`: scenarios to simulate
-- :file:`/bigdata/hplsim/extern/alice`: result data of the simulation runs (*scratch* storage)
+- :file:`/bigdata/hplsim/external/alice`: result data of the simulation runs (*scratch* storage)
 
 Please replace them whenever appropriate.
 
@@ -74,7 +74,7 @@ Edit the profile file using your favorite editor.
 If unsure use nano: ``nano ~/k80_picongpu.profile`` (save with :kbd:`Control-o`, exit with :kbd:`Control-x`).
 Go to the end of the file and add a new line::
 
-  export SCRATCH=/bigdata/hplsim/extern/alice
+  export SCRATCH=/bigdata/hplsim/external/alice
 
 (Please replace ``alice`` with your username.)
 
@@ -191,7 +191,7 @@ To view pretty pictures from a linux workstation you can use the following proce
   # Mount the data directory using sshfs
   sshfs -o default_permissions -o idmap=user -o uid=$(id -u) -o gid=$(id -g) hemera5:DATADIR ~/mnt/scratch/
 
-Substitute DATADIR with the full path to your data (*scratch*) directory, e.g. :file:`/bigdata/hplsim/extern/alice`.
+Substitute DATADIR with the full path to your data (*scratch*) directory, e.g. :file:`/bigdata/hplsim/external/alice`.
 
 Browse the directory using a file browser/image viewer.
 Check out :file:`~/mnt/scratch/tinkering/try01/run01/simOutput/pngElectronsYX/` for image files.
