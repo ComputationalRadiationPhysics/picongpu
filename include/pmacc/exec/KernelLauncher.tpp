@@ -74,13 +74,6 @@ namespace pmacc::exec::detail
             , m_gridExtent(DataSpace<traits::GetNComponents<T_VectorGrid>::value>(gridExtent).toDim3())
             , m_blockExtent(DataSpace<traits::GetNComponents<T_VectorBlock>::value>(blockExtent).toDim3())
         {
-#if 0
-            std::string const kernelName = typeid(m_kernel).name();
-            std::string const kernelInfo = kernelName + std::string(" [") + m_metaData.getFile() + std::string(":")
-                + std::to_string(m_metaData.getLine()) + std::string(" ]");
-
-            std::cout<<DataSpace<traits::GetNComponents<T_VectorGrid>::value>(gridExtent).toString()<<","<<DataSpace<traits::GetNComponents<T_VectorBlock>::value>(blockExtent).toString()<<" "<<kernelInfo<<std::endl;
-#endif
         }
 
         /** Enqueue the kernel functor with the given arguments for execution.
