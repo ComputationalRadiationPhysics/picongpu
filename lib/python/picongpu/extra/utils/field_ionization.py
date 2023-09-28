@@ -2,7 +2,7 @@
 
 This file is part of the PIConGPU.
 Copyright 2019-2023 PIConGPU contributors
-Authors: Marco Garten
+Authors: Marco Garten, Brian Marre
 License: GPLv3+
 """
 
@@ -93,7 +93,7 @@ class FieldIonization:
                 )
 
         nEff = np.float64(self.n_eff(Z, E_Ip))
-        D = ((4. * Z**3.) / (F * nEff**4.))**nEff
+        D = ((4. * np.exp(1.) * Z**3.) / (F * nEff**4.))**nEff
 
         rate = (F * D**2.) / (8. * np.pi * Z) \
             * np.exp(-(2. * Z**3.) / (3. * nEff**3. * F))

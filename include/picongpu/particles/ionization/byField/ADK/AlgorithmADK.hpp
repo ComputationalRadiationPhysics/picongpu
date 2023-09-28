@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Marco Garten, Jakob Trojok
+/* Copyright 2015-2023 Marco Garten, Jakob Trojok, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -93,7 +93,8 @@ namespace picongpu
                         /* effective principal quantum number (unitless) */
                         float_X const nEff = effectiveCharge / math::sqrt(float_X(2.0) * iEnergy);
                         /* nameless variable for convenience dFromADK*/
-                        float_X const dBase = float_X(4.0) * util::cube(effectiveCharge) / (eInAU * util::quad(nEff));
+                        float_X const dBase = float_X(4.0) * math::exp(1._X) * util::cube(effectiveCharge)
+                            / (eInAU * util::quad(nEff));
                         float_X const dFromADK = math::pow(dBase, nEff);
 
                         /* ionization rate (for CIRCULAR polarization)*/
