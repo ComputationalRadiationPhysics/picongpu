@@ -127,6 +127,7 @@ Leaving out the pre-factor distinguishes ``ADKCircPol`` from ``ADKLinPol``.
     .. attention::
 
         Be aware that :math:`Z` denotes the **residual ion charge** and not the proton number of the nucleus!
+        Be aware that :math:`e` in :math:`D` denotes Euler's number, not the elementary charge
 
 In the following comparison one can see the ``ADKLinPol`` ionization rates for the transition from Carbon II to III (meaning 1+ to 2+).
 For a reference the rates for Hydrogen as well as the barrier suppression field strengths :math:`F_\mathrm{BSI}` have been plotted.
