@@ -459,7 +459,7 @@ Please be aware that all datasets in the openPMD output are given in the PIConGP
 .. code:: python
 
    import openpmd_api as io
-   series = io.Series("e_radAmplitudes_%T.pb", io.Access_Type.read_only)
+   series = io.Series("e_radAmplitudes_%T.bp", io.Access_Type.read_only)
    iteration = series.iterations[2800]
 
    omega_handler = iteration.meshes["DetectorFrequency"]["omega"]
