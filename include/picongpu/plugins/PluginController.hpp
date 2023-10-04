@@ -33,7 +33,6 @@
 #include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "picongpu/plugins/output/images/Visualisation.hpp"
-#include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
 
 #include <pmacc/assert.hpp>
 /* That's an abstract plugin for image output with the possibility
@@ -47,6 +46,7 @@
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
+#    include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
 #endif
 
 #include "picongpu/plugins/ChargeConservation.hpp"
@@ -155,19 +155,13 @@ namespace picongpu
             plugins::multi::Master<CalcEmittance<boost::mpl::_1>>,
             plugins::multi::Master<BinEnergyParticles<boost::mpl::_1>>,
             CountParticles<boost::mpl::_1>,
-            PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>,
-            plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>
-#if ENABLE_OPENPMD
-            ,
-            plugins::radiation::Radiation<boost::mpl::_1>
-#endif
+            PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>
 #if(ENABLE_OPENPMD == 1)
             ,
+            plugins::radiation::Radiation<boost::mpl::_1>,
+            plugins::multi::Master<plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>>,
             plugins::multi::Master<ParticleCalorimeter<boost::mpl::_1>>,
-            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>
-#endif
-#if(ENABLE_OPENPMD == 1)
-            ,
+            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>,
             PerSuperCell<boost::mpl::_1>
 #endif
             >;

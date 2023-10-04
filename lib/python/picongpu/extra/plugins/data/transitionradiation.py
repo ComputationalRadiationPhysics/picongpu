@@ -28,7 +28,6 @@ class TransitionRadiationData(DataReader):
 
         self.data_file_prefix = "_transRad_"
         self.data_file_suffix = ".dat"
-        self.data_file_folder = "transRad/"
         self.data = None
         self.omegas = None
         self.thetas = None
@@ -66,7 +65,7 @@ class TransitionRadiationData(DataReader):
         else:
             data_file_path = os.path.join(
                 sim_output_dir,
-                self.data_file_folder + species + self.data_file_prefix +
+                species + self.data_file_prefix +
                 str(iteration) + self.data_file_suffix
             )
             if not os.path.isfile(data_file_path):
