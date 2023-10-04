@@ -148,8 +148,8 @@ parser.add_argument('--labelTheta',
 # set label c-axis
 parser.add_argument('--labelColorbar',
                     metavar='string',
-                    default="$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \\omega \\mathrm{d} \
-                               \\Omega}/$Js",
+                    default="$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \
+                             \\omega \\mathrm{d} \\Omega}/$Js",
                     help='''Label text for colorbar (c-axis) in LaTeX style.
                             [default: $\\\\frac{\\\\mathrm{d} ^2I}
                             {\\\\mathrm{d} \\\\omega \\\\mathrm{d}
@@ -162,8 +162,8 @@ parser.add_argument('--vMax',
                     metavar='float',
                     type=float,
                     default=[],
-                    help='''maximum value shown in colorbar (applied after smoothing)
-                            [default: actual maximum]''')
+                    help='''maximum value shown in colorbar (applied
+                            after smoothing) [default: actual maximum]''')
 
 # set maximum value for data
 parser.add_argument('--dataMax',
@@ -172,8 +172,8 @@ parser.add_argument('--dataMax',
                     metavar='float',
                     type=float,
                     default=[-1],
-                    help='''maximum value of data used (applied before smoothing)
-                            [default: not used]''')
+                    help='''maximum value of data used (applied
+                            before smoothing) [default: not used]''')
 
 # set on and configure smoothing of data
 parser.add_argument('--smooth',
@@ -192,9 +192,10 @@ parser.add_argument('--split',
                     metavar='float',
                     type=float,
                     default=[-1.0, -1.0],
-                    help='''select between different ranges of observation angles,
-                            param1: first index theta, param2: last index theta
-                            +1 [default: only one rang is assumed]''')
+                    help='''select between different ranges of observation
+                            angles, param1: first index theta, param2:
+                            last index theta +1
+                            [default: only one rang is assumed]''')
 
 # Default rainbow colorbar, but a black&white colorbar can be needed
 # for publications.
@@ -226,7 +227,7 @@ check arguments consistency
 '''
 
 # in the case of no outputExtend, set outExtend equal to dataExtend
-if(not args.outputExtend):
+if not args.outputExtend:
     args.outputExtend = args.dataExtend
 
 
@@ -245,7 +246,7 @@ theta_max_draw = args.outputExtend[3]
 # set flags:
 Nfiles = len(args.path2Data)
 manyFiles = False
-if(Nfiles > 1):
+if Nfiles > 1:
     manyFiles = True
 
 # set scaling function of color plot
@@ -255,7 +256,7 @@ else:
     colorNorm = None
 
 # check if extents are consistent
-if(args.logOmega):
+if args.logOmega:
     if min(omega_min_data, omega_min_draw, omega_max_data,
            omega_max_draw) <= 0:
         raise Exception("omega <= 0 is not allowed")
@@ -265,7 +266,7 @@ else:
 
 
 # set interpolation
-if(args.interpolSet):
+if args.interpolSet:
     my_interpolation = 'flat'
 else:
     my_interpolation = 'gouraud'
@@ -325,7 +326,7 @@ cdict_bw = {'red': ((0.0, 1, 1),
                      (1, 0.0, 0.0))
             }
 
-if(args.colorbarBlackAndWhite):
+if args.colorbarBlackAndWhite:
     cdict = cdict_bw
 else:
     cdict = cdict_color
@@ -340,11 +341,11 @@ for myfile in args.path2Data:
     data = np.loadtxt(myfile)
 
     # select only theta range of interest
-    if(args.split[0] != -1 and args.split[1] != -1):
+    if args.split[0] != -1 and args.split[1] != -1:
         data = data[args.split[0]:args.split[1]]
 
     # find indices for zoomed plot
-    if(args.logOmega):
+    if args.logOmega:
         omega_max_index = int((np.log(omega_max_draw)
                                - np.log(omega_min_data))
                               / (np.log(omega_max_data)
@@ -380,11 +381,11 @@ for myfile in args.path2Data:
                       omega_min_index:omega_max_index]
 
     # reduction to maximum value
-    if(args.dataMax[0] != -1):
+    if args.dataMax[0] != -1:
         dataZoomed = np.minimum(args.dataMax[0], dataZoomed)
 
     # smoothing data:
-    if(args.smooth[0] != -1):
+    if args.smooth[0] != -1:
         import smooth
         sigma_omega = args.smooth[0]
         sigma_theta = args.smooth[1]
@@ -417,7 +418,7 @@ for myfile in args.path2Data:
 
     # set omega-(x)-scale to log if needed
     shape = np.shape(dataZoomed)
-    if(args.logOmega):
+    if args.logOmega:
         SP.set_xscale('log')
         x = np.logspace(np.log10(omega_min_draw),
                         np.log10(omega_max_draw),

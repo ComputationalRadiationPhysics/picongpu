@@ -100,7 +100,7 @@ for myfile in args.path2Data:
                           (theta_max_data - theta_min_data) * data.shape[0])
 
     # plot data and selected area
-    if(first and args.visual):
+    if first and args.visual:
         # generate window
         plt.figure("Radiation Analysing Tool: selected data region")
 
