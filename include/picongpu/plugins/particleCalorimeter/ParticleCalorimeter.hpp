@@ -1,4 +1,5 @@
-/* Copyright 2016-2023 Heiko Burau, Rene Widera, Sergei Bastrakov
+/* Copyright 2016-2023 Heiko Burau, Rene Widera, Sergei Bastrakov,
+ * Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -353,7 +354,7 @@ namespace picongpu
                 this->calorimeterFrameVecY,
                 this->calorimeterFrameVecZ);
 
-            /* create folder for hdf5 files*/
+            /* create folder for openPMD files*/
             Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(this->foldername);
 
             // set how often the plugin should be executed while PIConGPU is running
@@ -527,9 +528,8 @@ namespace picongpu
             , m_cellDescription(cellDescription)
             , leftParticlesDatasetName("calorimeterLeftParticles")
         {
-            foldername = m_help->getOptionPrefix() + "/" + m_help->filter.get(m_id);
-            filenamePrefix
-                = m_help->getOptionPrefix() + "_" + m_help->fileName.get(m_id) + "_" + m_help->filter.get(m_id);
+            foldername = m_help->getOptionPrefix() + "/";
+            filenamePrefix = m_help->getOptionPrefix() + "_" + m_help->filter.get(m_id);
             filenameExtension = m_help->extension.get(m_id);
             numBinsYaw = m_help->numBinsYaw.get(m_id);
             numBinsPitch = m_help->numBinsPitch.get(m_id);
