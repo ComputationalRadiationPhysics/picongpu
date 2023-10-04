@@ -551,7 +551,7 @@ Tool                              Description
                                   Run ``plotRadiation.py --help`` for more information.
 ``radiationSyntheticDetector.py`` Reads *ASCII* radiation data and statistically analysis the spectra for a user specified region of observation angles and frequencies.
                                   This is a python script that has its own help. Run ``radiationSyntheticDetector.py --help`` for more information.
-*smooth.py*                       Python module needed by ``plotRadiation``.
+*smooth.py*                       Python module needed by ``plotRadiation.py``.
 ================================= ======================================================================================================================================
 
 
