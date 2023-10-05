@@ -195,7 +195,7 @@ parser.add_argument('--split',
                     help='''select between different ranges of observation
                             angles, param1: first index theta, param2:
                             last index theta +1
-                            [default: only one rang is assumed]''')
+                            [default: only one range is assumed]''')
 
 # Default rainbow colorbar, but a black&white colorbar can be needed
 # for publications.
