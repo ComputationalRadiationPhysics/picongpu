@@ -66,7 +66,7 @@ class particleCalorimeter:
 
         Returns
         -------
-        it : list of integers
+        it : list of integers [PIC iterations]
         """
         return self.iterations
 
@@ -76,7 +76,7 @@ class particleCalorimeter:
 
         Returns
         -------
-        yaw : ndarray
+        yaw : ndarray [degree]
         """
         return np.linspace(-self.detector_params["maxYaw[deg]"],
                            + self.detector_params["maxYaw[deg]"],
@@ -89,7 +89,7 @@ class particleCalorimeter:
 
         Returns
         -------
-        pitch : ndarray
+        pitch : ndarray [degree]
         """
         return np.linspace(-self.detector_params["maxPitch[deg]"],
                            + self.detector_params["maxPitch[deg]"],
@@ -103,7 +103,7 @@ class particleCalorimeter:
 
         Returns
         -------
-        energy : ndarray or None
+        energy : ndarray or None [keV]
         """
         if self.detector_params["N_energy"] is None:
             return None
@@ -121,7 +121,8 @@ class particleCalorimeter:
     def getData(self, iteration):
         """
         returns array of calorimeter data from
-        specified iteration
+        specified iteration. The values are the total energy
+        per bin in Joule.
 
         Parameters
         ----------
@@ -130,7 +131,7 @@ class particleCalorimeter:
 
         Returns
         -------
-        energy : ndarray
+        energy : ndarray [Joule]
                  either 2D array (without energy binning)
                  or 3D array (with energy binning)
                  size: [N_energy, N_pitch, N_yaw]
