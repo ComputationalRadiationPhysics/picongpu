@@ -172,8 +172,8 @@ plt.title("selected energy: >{:.1f} keV".format(calObj.getEnergy()[selected_ener
 
 plt.pcolormesh(calObj.getYaw(), calObj.getPitch(), calObj.getData(2000)[selected_energy_bin, :, :])
 
-plt.xlabel(calObj.detector_params["axisLabels"][-1], fontsize=18)
-plt.ylabel(calObj.detector_params["axisLabels"][-2], fontsize=18)
+plt.xlabel(calObj.detector_params["axisLabels"][-1] + r" $[^\circ]$", fontsize=18)
+plt.ylabel(calObj.detector_params["axisLabels"][-2] + r" $[^\circ]$", fontsize=18)
 
 cb = plt.colorbar()
 cb.set_label("energy", fontsize=18)
