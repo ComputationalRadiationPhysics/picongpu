@@ -70,7 +70,7 @@ namespace pmacc
          * @param pitch line pitch in bytes
          */
         template<typename T_MemoryIdxType>
-        HDINLINE PitchedBox(T_Type* pointer, math::Vector<T_MemoryIdxType, T_dim> const& extent, size_t const pitch)
+        HDINLINE PitchedBox(ValueType* pointer, math::Vector<T_MemoryIdxType, T_dim> const& extent, size_t const pitch)
             : m_ptr(pointer)
         {
             m_pitch.x() = pitch;
@@ -88,15 +88,15 @@ namespace pmacc
          * @{
          */
         template<typename T_MemoryIdxType>
-        HDINLINE T_Type const& operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx) const
+        HDINLINE ValueType const& operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx) const
         {
             return *ptr(idx);
         }
 
         template<typename T_MemoryIdxType>
-        HDINLINE T_Type& operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx)
+        HDINLINE RefValueType operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx)
         {
-            return *const_cast<T_Type*>(ptr(idx));
+            return *const_cast<ValueType*>(ptr(idx));
         }
 
         /** }@ */
@@ -109,20 +109,20 @@ namespace pmacc
          * @return pointer to value
          */
         template<typename T_MemoryIdxType>
-        HDINLINE T_Type const* ptr(math::Vector<T_MemoryIdxType, T_dim> const& idx) const
+        HDINLINE ValueType const* ptr(math::Vector<T_MemoryIdxType, T_dim> const& idx) const
         {
             /** offset in bytes
              *
              * We calculate the complete offset in bytes even if it would be possible to change the x-dimension with
              * the native types pointer, this is reducing the register footprint.
              */
-            size_t offset = sizeof(T_Type) * idx.x();
+            size_t offset = sizeof(ValueType) * idx.x();
             for(uint32_t d = 1u; d < T_dim; ++d)
                 offset += m_pitch[d - 1u] * idx[d];
-            return reinterpret_cast<T_Type const*>(reinterpret_cast<char const*>(this->m_ptr) + offset);
+            return reinterpret_cast<ValueType const*>(reinterpret_cast<char const*>(this->m_ptr) + offset);
         }
 
-        PMACC_ALIGN(m_ptr, T_Type*);
+        PMACC_ALIGN(m_ptr, ValueType*);
         PMACC_ALIGN(m_pitch, math::Vector<size_t, T_dim - 1>);
     };
 
@@ -169,14 +169,14 @@ namespace pmacc
          */
         template<typename T_MemoryIdxType>
         HDINLINE PitchedBox(
-            T_Type* pointer,
+            ValueType* pointer,
             [[maybe_unused]] math::Vector<T_MemoryIdxType, DIM1> const& extent,
             [[maybe_unused]] size_t const pitch)
             : m_ptr(pointer)
         {
         }
 
-        HDINLINE PitchedBox(T_Type* pointer) : m_ptr(pointer)
+        HDINLINE PitchedBox(ValueType* pointer) : m_ptr(pointer)
         {
         }
 
@@ -189,22 +189,22 @@ namespace pmacc
          * @return reference to the value
          * @{
          */
-        HDINLINE T_Type const& operator[](int const idx) const
+        HDINLINE ValueType const& operator[](int const idx) const
         {
             return *(m_ptr + idx);
         }
 
-        HDINLINE T_Type& operator[](int const idx)
+        HDINLINE RefValueType operator[](int const idx)
         {
             return *(m_ptr + idx);
         }
 
-        HDINLINE T_Type const& operator[](DataSpace<DIM1> const& idx) const
+        HDINLINE ValueType const& operator[](DataSpace<DIM1> const& idx) const
         {
             return *(m_ptr + idx.x());
         }
 
-        HDINLINE T_Type& operator[](DataSpace<DIM1> const& idx)
+        HDINLINE RefValueType operator[](DataSpace<DIM1> const& idx)
         {
             return *(m_ptr + idx.x());
         }
@@ -212,6 +212,6 @@ namespace pmacc
         /** @} */
 
     protected:
-        PMACC_ALIGN(m_ptr, T_Type*);
+        PMACC_ALIGN(m_ptr, ValueType*);
     };
 } // namespace pmacc

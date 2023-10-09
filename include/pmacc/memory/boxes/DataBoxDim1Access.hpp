@@ -36,7 +36,6 @@ namespace pmacc
         using Base = T_Base;
         static constexpr std::uint32_t Dim = Base::Dim;
         using ValueType = typename Base::ValueType;
-        using RefValueType = typename Base::RefValueType;
 
         HDINLINE DataBoxDim1Access(DataSpace<Dim> const& originalSize) : Base(), originalSize(originalSize)
         {
