@@ -36,8 +36,6 @@ External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
 The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
-(Currently it is fixed to use the hdf5 backend until the radiation python module is converted from ``h5py`` to ``openPMD-api``.
-Therefore, an openPMD API which supports the HDF5 backend is required.)
 
 .param files
 ^^^^^^^^^^^^
@@ -331,7 +329,7 @@ Command line flag                              Output description
                                                The first dimension in the dataset output corresponds with the parallel distribution of MPI workers.
                                                Note that instead of separate datasets for the imaginary and real parts, this output is formatted as datasets of complex
                                                number types.
-*radiationOpenPMD*                             In the folder  ``radiationOpenPMD``, openPMD files (currently hdf5) for each radiation dump and species are stored.
+*radiationOpenPMD*                             In the folder  ``radiationOpenPMD``, openPMD files for each radiation dump and species are stored.
                                                These are complex amplitudes in units used by *PIConGPU*.
                                                These are for restart purposes and for more complex data analysis.
 ============================================== ========================================================================================================================
@@ -461,7 +459,7 @@ Please be aware that all datasets in the openPMD output are given in the PIConGP
 .. code:: python
 
    import openpmd_api as io
-   series = io.Series("e_radAmplitudes_%T_0_0_0.h5", io.Access_Type.read_only)
+   series = io.Series("e_radAmplitudes_%T.bp", io.Access_Type.read_only)
    iteration = series.iterations[2800]
 
    omega_handler = iteration.meshes["DetectorFrequency"]["omega"]
@@ -472,7 +470,7 @@ Please be aware that all datasets in the openPMD output are given in the PIConGP
 
 In order to extract the radiation data from the openPMD datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units.
 An example python script is given below.
-This currently assumes hdf5 output but any openPMD output, such as adios, will work too.
+This currently assumes adios output but any openPMD output, such as hdf5, will work too.
 
 .. code:: python
 
@@ -483,7 +481,7 @@ This currently assumes hdf5 output but any openPMD output, such as adios, will w
     from picongpu.plugins.data import RadiationData
 
     # access openPMD radiation file for specific time step
-    radData = RadiationData("./simOutput/radiationHDF5/e_radAmplitudes_%T_0_0_0.h5", 2820)
+    radData = RadiationData("./simOutput/radiationOpenPMD/e_radAmplitudes_%T.bp", 2820)
 
     # get frequencies
     omega = radData.get_omega()
