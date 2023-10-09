@@ -46,13 +46,11 @@ Use :command:`git` to obtain the source and use the current ``dev`` branch and p
 
   mkdir -p ~/src
   git clone https://github.com/ComputationalRadiationPhysics/picongpu ~/src/picongpu
-  cd ~/src/picongpu
-  git checkout dev
 
 .. note::
    If you get the error ``git: command not found`` load git by invoking ``module load git`` and try again.
-   Attention: the example uses the ``dev`` branch instead of the latest stable release ``master``.
-   Due to driver changes on hemera the master branch modules configuration is outdated.
+   Attention: the example uses the ``dev`` branch instead of the latest stable release.
+   Due to driver changes on hemera the modules configuration of the last release might be outdated.
 
 Setup
 -----

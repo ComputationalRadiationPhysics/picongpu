@@ -4,7 +4,7 @@ PIConGPU Commit Rulez
 We agree on the following simple rules to make our lives easier :)
 
 - Stick to the **style** below for **commit messages**
-- **Commit compiling patches** for the *main* branches (`master` and `dev`),
+- **Commit compiling patches** for the `dev` branch,
   you can be less strict for (unshared) *topic branches*
 - Commits should be formated with clang-format-12 (version 12.0.1)
 
