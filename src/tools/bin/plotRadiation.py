@@ -32,7 +32,7 @@ Developer: Richard Pausch
 '''
 
 
-##################### check python environment #####################
+# ------ check python environment --------
 '''
 Check if the running version might cause problems. A typical problem
 is matplotlib. Several arguments for plots differ between versions.
@@ -46,26 +46,26 @@ import re
 import warnings
 import numpy as np
 from matplotlib.colors import LogNorm
+import argparse
+from matplotlib import pyplot as plt
+from matplotlib import colors as colors
+import pylab
 
 tested_matplotlib_version = ['1.2.0', '1.3.1', '2.0.0rc1']
-if not matplotlib.__version__ in tested_matplotlib_version:
+if matplotlib.__version__ not in tested_matplotlib_version:
     warning_msg = '''The matplotlib version differs from that used during
-                     development. This might cause the output to appear different.
+                     development. This might cause the output to appear
+                     different.
                      Version used: {}, tested versions {}'''.format(
                    matplotlib.__version__, tested_matplotlib_version)
     warnings.warn(warning_msg)
 
-
-
-
-##################### argsparse #####################
+# ------ argsparse --------
 '''
 The following part of the code describes the shell user interface.
 Several command line options are defined, f.e. the path to the input,
 windows or storing options, labels, etc..
 '''
-import argparse
-
 parser = argparse.ArgumentParser(
             description=__doc__,
             epilog='For further questions please contact Richard Pausch.'
@@ -76,7 +76,8 @@ parser.add_argument('path2Data',
                     metavar='Path to input file',
                     type=argparse.FileType('r'),
                     nargs='+',
-                    help='location of input file (giving several files is possible)')
+                    help='location of input file (giving several \
+                    files is possible)')
 
 # Default windows, but pdf version can be switched on.
 parser.add_argument('--pdf',
@@ -84,15 +85,17 @@ parser.add_argument('--pdf',
                     action='store_true',
                     help='store output as pdf instead of using window')
 
-# gives destination of  output (for several input files, a number will be added)
+# gives destination of  output (for several input files,
+# a number will be added)
 parser.add_argument('--output',
                     '-o',
                     dest='outputName',
                     metavar='path', nargs='?',
                     default='SpectraOutput',
-                    help='''Path for output  if --pdf was chosen. [default=SpectraOutput]
-                            For many input files: file name will be added between output
-                            name and .dat''')
+                    help='''Path for output  if --pdf was chosen. \
+                    [default=SpectraOutput]
+                    For many input files: file name will be added \
+                    between output name and .dat''')
 
 # extend of the input data
 parser.add_argument('--dataExtend',
@@ -130,26 +133,27 @@ parser.add_argument('--logOmega',
 parser.add_argument('--labelOmega',
                     '-x',
                     metavar='string',
-                    default='$\omega/\omega_0$',
+                    default='$\\omega/\\omega_0$',
                     help='''Label text for omega axis (x-axis) in LaTeX style.
-                            [default: $\omega/\omega_0$]''')
+                            [default: $\\omega/\\omega_0$]''')
 
 # set label y-axis
 parser.add_argument('--labelTheta',
                     '-y',
                     metavar='string',
-                    default='$\\theta/^\circ$',
+                    default='$\\theta/^\\circ$',
                     help='''Label text for theta axis (y-axis) in LaTeX style.
-                            [default: $\\\\theta/^\circ$]''')
+                            [default: $\\\\theta/^\\circ$]''')
 
 # set label c-axis
 parser.add_argument('--labelColorbar',
                     metavar='string',
-                    default="$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \\omega \\mathrm{d} \
-                               \\Omega}/$Js",
-                    help='''Label text for colorbar (c-axis) in LaTeX style. [default:
-                            $\\\\frac{\\\\mathrm{d} ^2I}{\\\\mathrm{d} \\\\omega
-                            \\\\mathrm{d} \\\\Omega}/$Js$]''')
+                    default="$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \
+                             \\omega \\mathrm{d} \\Omega}/$Js",
+                    help='''Label text for colorbar (c-axis) in LaTeX style.
+                            [default: $\\\\frac{\\\\mathrm{d} ^2I}
+                            {\\\\mathrm{d} \\\\omega \\\\mathrm{d}
+                            \\\\Omega}/$Js$]''')
 
 # set maximum value for colorbar
 parser.add_argument('--vMax',
@@ -158,8 +162,8 @@ parser.add_argument('--vMax',
                     metavar='float',
                     type=float,
                     default=[],
-                    help='''maximum value shown in colorbar (applied after smoothing)
-                            [default: actual maximum]''')
+                    help='''maximum value shown in colorbar (applied
+                            after smoothing) [default: actual maximum]''')
 
 # set maximum value for data
 parser.add_argument('--dataMax',
@@ -168,8 +172,8 @@ parser.add_argument('--dataMax',
                     metavar='float',
                     type=float,
                     default=[-1],
-                    help='''maximum value of data used (applied before smoothing)
-                            [default: not used]''')
+                    help='''maximum value of data used (applied
+                            before smoothing) [default: not used]''')
 
 # set on and configure smoothing of data
 parser.add_argument('--smooth',
@@ -188,31 +192,34 @@ parser.add_argument('--split',
                     metavar='float',
                     type=float,
                     default=[-1.0, -1.0],
-                    help='''select between different ranges of observation angles,
-                            param1: first index theta, param2: last index theta +1
-                            [default: only one rang is assumed]''')
+                    help='''select between different ranges of observation
+                            angles, param1: first index theta, param2:
+                            last index theta +1
+                            [default: only one range is assumed]''')
 
-# Default rainbow colorbar, but a black&white colorbar can be need for publications.
+# Default rainbow colorbar, but a black&white colorbar can be needed
+# for publications.
 parser.add_argument('--bw',
                     dest='colorbarBlackAndWhite',
                     action='store_true',
-                    help='''use black and white colorbar instead of using rainbow colors''')
+                    help='''use black and white colorbar instead of using
+                            rainbow colors''')
 
 
-# Default gouraud color interpolation, but a flat/nearest interpolation can be need for tests.
+# Default gouraud color interpolation, but a flat/nearest interpolation can
+# be need for tests.
 parser.add_argument('--nearest',
                     dest='interpolSet',
                     action='store_true',
-                    help='''use flat/nearest interpolation instead of gouraud''')
+                    help='''use flat/nearest interpolation instead of
+                            gouraud''')
 
 
 # get arguments and store them in args
 args = parser.parse_args()
 
 
-
-
-##################### work with program arguments #####################
+# ------ work with program arguments ------
 '''
 fill arguments not set yet
 rename arguments  for easier use
@@ -220,7 +227,7 @@ check arguments consistency
 '''
 
 # in the case of no outputExtend, set outExtend equal to dataExtend
-if(not args.outputExtend):
+if not args.outputExtend:
     args.outputExtend = args.dataExtend
 
 
@@ -239,7 +246,7 @@ theta_max_draw = args.outputExtend[3]
 # set flags:
 Nfiles = len(args.path2Data)
 manyFiles = False
-if(Nfiles>1):
+if Nfiles > 1:
     manyFiles = True
 
 # set scaling function of color plot
@@ -249,8 +256,9 @@ else:
     colorNorm = None
 
 # check if extents are consistent
-if(args.logOmega):
-    if min(omega_min_data, omega_min_draw, omega_max_data, omega_max_draw) <= 0:
+if args.logOmega:
+    if min(omega_min_data, omega_min_draw, omega_max_data,
+           omega_max_draw) <= 0:
         raise Exception("omega <= 0 is not allowed")
 else:
     if min(omega_min_data, omega_min_draw, omega_max_data, omega_max_draw) < 0:
@@ -258,35 +266,30 @@ else:
 
 
 # set interpolation
-if(args.interpolSet):
+if args.interpolSet:
     my_interpolation = 'flat'
 else:
     my_interpolation = 'gouraud'
 
 
-
-##################### setup graphic output #####################
+# ------ setup graphic output -------
 
 if args.outputPDF:
     matplotlib.use('Agg')
-
-from matplotlib import pyplot as plt
-from matplotlib import colors as colors
-import pylab
 
 # X-window/pdf size
 window_width = 14.4
 window_height = 9
 
 # font sizes
-tickfontsize=28
-labelfontsize=39
-labelfontsize_colorbar=45
-exponentsize=18
+tickfontsize = 28
+labelfontsize = 39
+labelfontsize_colorbar = 45
+exponentsize = 18
 
 # distance between ticks and label
-pylab.rcParams['xtick.major.pad']='10'
-pylab.rcParams['ytick.major.pad']='10'
+pylab.rcParams['xtick.major.pad'] = '10'
+pylab.rcParams['ytick.major.pad'] = '10'
 
 
 # create my color map
@@ -294,20 +297,20 @@ cdict_color = {'red': ((0.0, 1, 1),
                        (0.03, 0, 0),
                        (0.35, 0, 0),
                        (0.66, 1, 1),
-                       (0.89,1, 1),
+                       (0.89, 1, 1),
                        (1, 0.5, 0.5)),
                'green': ((0.0, 1, 1),
                          (0.03, 0, 0),
-                         (0.125,0, 0),
-                         (0.375,1, 1),
-                         (0.64,1, 1),
-                         (0.91,0,0),
+                         (0.125, 0, 0),
+                         (0.375, 1, 1),
+                         (0.64, 1, 1),
+                         (0.91, 0, 0),
                          (1, 0, 0)),
                'blue': ((0.0, 1, 1),
                         (0.03, 0.8, 0.8),
                         (0.11, 1, 1),
                         (0.34, 1, 1),
-                        (0.65,0, 0),
+                        (0.65, 0, 0),
                         (1, 0, 0))
                }
 
@@ -323,55 +326,66 @@ cdict_bw = {'red': ((0.0, 1, 1),
                      (1, 0.0, 0.0))
             }
 
-if(args.colorbarBlackAndWhite):
+if args.colorbarBlackAndWhite:
     cdict = cdict_bw
 else:
     cdict = cdict_color
 
-my_cmap = colors.LinearSegmentedColormap('my_colormap',cdict,256)
+my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 256)
 
 
-
-##################### run through all files and create spectral plots #####################
+# ------- run through all files and create spectral plots -------
 
 for myfile in args.path2Data:
     # load ascii data files
     data = np.loadtxt(myfile)
 
     # select only theta range of interest
-    if(args.split[0] != -1 and args.split[1] != -1):
-        data = data[ args.split[0]:args.split[1] ]
+    if args.split[0] != -1 and args.split[1] != -1:
+        data = data[args.split[0]:args.split[1]]
 
     # find indices for zoomed plot
-    if(args.logOmega):
-        omega_max_index = int((np.log(omega_max_draw) - np.log(omega_min_data)) /
-                              (np.log(omega_max_data) - np.log(omega_min_data)) * data.shape[1])
-        omega_min_index = int((np.log(omega_min_draw) - np.log(omega_min_data)) /
-                              (np.log(omega_max_data) - np.log(omega_min_data)) * data.shape[1])
-        theta_max_index = int((theta_max_draw - theta_min_data)/(theta_max_data -
-                                             theta_min_data) * data.shape[0])
-        theta_min_index = int((theta_min_draw - theta_min_data)/(theta_max_data -
-                                            theta_min_data) * data.shape[0])
+    if args.logOmega:
+        omega_max_index = int((np.log(omega_max_draw)
+                               - np.log(omega_min_data))
+                              / (np.log(omega_max_data)
+                                 - np.log(omega_min_data))
+                              * data.shape[1])
+        omega_min_index = int((np.log(omega_min_draw)
+                               - np.log(omega_min_data))
+                              / (np.log(omega_max_data)
+                                 - np.log(omega_min_data))
+                              * data.shape[1])
+        theta_max_index = int((theta_max_draw - theta_min_data)
+                              / (theta_max_data - theta_min_data)
+                              * data.shape[0])
+        theta_min_index = int((theta_min_draw - theta_min_data)
+                              / (theta_max_data - theta_min_data)
+                              * data.shape[0])
     else:
-        omega_max_index = int((omega_max_draw - omega_min_data) /
-                              (omega_max_data - omega_min_data) * data.shape[1])
-        omega_min_index = int((omega_min_draw - omega_min_data) /
-                              (omega_max_data - omega_min_data) * data.shape[1])
-        theta_max_index = int((theta_max_draw - theta_min_data) /
-                              (theta_max_data - theta_min_data) * data.shape[0])
-        theta_min_index = int((theta_min_draw - theta_min_data) /
-                              (theta_max_data - theta_min_data) * data.shape[0])
+        omega_max_index = int((omega_max_draw - omega_min_data)
+                              / (omega_max_data - omega_min_data)
+                              * data.shape[1])
+        omega_min_index = int((omega_min_draw - omega_min_data)
+                              / (omega_max_data - omega_min_data)
+                              * data.shape[1])
+        theta_max_index = int((theta_max_draw - theta_min_data)
+                              / (theta_max_data - theta_min_data)
+                              * data.shape[0])
+        theta_min_index = int((theta_min_draw - theta_min_data)
+                              / (theta_max_data - theta_min_data)
+                              * data.shape[0])
 
     # reduction to zoomed values
     dataZoomed = data[theta_min_index:theta_max_index,
                       omega_min_index:omega_max_index]
 
     # reduction to maximum value
-    if(args.dataMax[0] != -1):
+    if args.dataMax[0] != -1:
         dataZoomed = np.minimum(args.dataMax[0], dataZoomed)
 
-    #smoothing data:
-    if(args.smooth[0] != -1):
+    # smoothing data:
+    if args.smooth[0] != -1:
         import smooth
         sigma_omega = args.smooth[0]
         sigma_theta = args.smooth[1]
@@ -395,7 +409,7 @@ for myfile in args.path2Data:
     plt.yticks(size=tickfontsize)
     SP.set_yticks(np.linspace(theta_min_draw, theta_max_draw, 5))
 
-    #find max for colorbar
+    # find max for colorbar
     if not args.colorbarMax:
         maxData = dataZoomed.max()
         colorbarMax = maxData
@@ -404,7 +418,7 @@ for myfile in args.path2Data:
 
     # set omega-(x)-scale to log if needed
     shape = np.shape(dataZoomed)
-    if(args.logOmega):
+    if args.logOmega:
         SP.set_xscale('log')
         x = np.logspace(np.log10(omega_min_draw),
                         np.log10(omega_max_draw),
@@ -419,11 +433,11 @@ for myfile in args.path2Data:
                     shape[0])
 
     # plot data: (this is the only command that plots data)
-    cax =  SP.pcolormesh(x, y, dataZoomed,
-                         shading=my_interpolation,
-                         cmap=my_cmap,
-                         vmax=colorbarMax,
-                         norm=colorNorm)
+    cax = SP.pcolormesh(x, y, dataZoomed,
+                        shading=my_interpolation,
+                        cmap=my_cmap,
+                        vmax=colorbarMax,
+                        norm=colorNorm)
 
     # set x and y range (required after pcolormesh(?))
     plt.xlim(x[0], x[-1])
@@ -452,7 +466,6 @@ for myfile in args.path2Data:
     plt.tight_layout()
     # get name of file
     filename = os.path.basename(myfile.name)
-
 
     # store or show plot
     if args.outputPDF:

@@ -100,7 +100,7 @@ for myfile in args.path2Data:
                           (theta_max_data - theta_min_data) * data.shape[0])
 
     # plot data and selected area
-    if(first and args.visual):
+    if first and args.visual:
         # generate window
         plt.figure("Radiation Analysing Tool: selected data region")
 
@@ -112,7 +112,8 @@ for myfile in args.path2Data:
 
         # colorplot
         plt.imshow(data,
-                   extent=(omega_min_data, omega_max_data, theta_min_data, theta_max_data),
+                   extent=(omega_min_data, omega_max_data,
+                           theta_min_data, theta_max_data),
                    aspect='auto',
                    origin='lower',
                    interpolation='nearest',
@@ -125,30 +126,29 @@ for myfile in args.path2Data:
                     facecolor='black', alpha=0.3)
 
         # labels
-        fontsize=16
+        fontsize = 16
         plt.xlabel(r"$\omega$", fontsize=fontsize)
         plt.ylabel(r"$\theta$", fontsize=fontsize)
         plt.show()
 
         # only first data set, therefore switch boolean flag:
-        first=False
-
+        first = False
 
     # verbose user output to inform on loading progress and statistics
     print("file loaded:              {}".format(
           os.path.basename(myfile.name)))
 
     # regions:
-    print("shape input data:         {}".format( np.shape(data) ) )
-    print("range selected:           {}".format( (omega_min_index,
+    print("shape input data:         {}".format(np.shape(data)))
+    print("range selected:           {}".format((omega_min_index,
                                                 omega_max_index,
                                                 theta_min_index,
-                                                theta_max_index) ) )
+                                                theta_max_index)))
 
     selectedOnly = data[theta_min_index:theta_max_index,
                         omega_min_index:omega_max_index]
 
-    print("shape of data analyzed:   {}".format( np.shape(selectedOnly) ))
+    print("shape of data analyzed:   {}".format(np.shape(selectedOnly)))
     print("")
 
     # statistics:
@@ -161,10 +161,9 @@ for myfile in args.path2Data:
     print("average:     {}".format(my_avg))
     print("std:         {}".format(my_std))
     print("")
-    print("sum + error: {} +/- {}".format(my_size * my_avg, np.sqrt(my_size)*my_std))
+    print("sum + error: {} +/- {}".format(my_size * my_avg,
+                                          np.sqrt(my_size)*my_std))
 
     # finalize
     print("")
     print("")
-
-

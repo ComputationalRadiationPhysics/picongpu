@@ -543,16 +543,16 @@ Analyzing tools
 
 In ``picongp/src/tools/bin``, there are tools to analyze the radiation data after the simulation.
 
-============================== ======================================================================================================================================
-Tool                           Description
-============================== ======================================================================================================================================
-``plotRadiation``              Reads *ASCII* radiation data and plots spectra over angles as color plots.
-                               This is a python script that has its own help.
-                               Run ``plotRadiation --help`` for more information.
-``radiationSyntheticDetector`` Reads *ASCII* radiation data and statistically analysis the spectra for a user specified region of observation angles and frequencies.
-                               This is a python script that has its own help. Run ``radiationSyntheticDetector --help`` for more information.
-*smooth.py*                    Python module needed by ``plotRadiation``.
-============================== ======================================================================================================================================
+================================= ======================================================================================================================================
+Tool                              Description
+================================= ======================================================================================================================================
+``plotRadiation.py``              Reads *ASCII* radiation data and plots spectra over angles as color plots.
+                                  This is a python script that has its own help.
+                                  Run ``plotRadiation.py --help`` for more information.
+``radiationSyntheticDetector.py`` Reads *ASCII* radiation data and statistically analysis the spectra for a user specified region of observation angles and frequencies.
+                                  This is a python script that has its own help. Run ``radiationSyntheticDetector.py --help`` for more information.
+*smooth.py*                       Python module needed by ``plotRadiation.py``.
+================================= ======================================================================================================================================
 
 
 Known Issues
