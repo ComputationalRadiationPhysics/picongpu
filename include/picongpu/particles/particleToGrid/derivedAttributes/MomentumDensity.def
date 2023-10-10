@@ -77,7 +77,7 @@ namespace picongpu
                     HINLINE static std::string getName()
                     {
                         auto const componentNames = plugins::misc::getComponentNames(3);
-                        return "momentumDensity/" + componentNames[T_direction];
+                        return "momentumDensity-" + componentNames[T_direction];
                     }
 
                     /** Calculate value of the derived attribute per particle
