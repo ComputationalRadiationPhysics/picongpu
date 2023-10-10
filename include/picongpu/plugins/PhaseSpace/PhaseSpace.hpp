@@ -248,7 +248,7 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+                auto workerCfg = pmacc::lockstep::makeWorkerCfg<TParticlesBox::frameSize>();
                 auto functorBlock = FunctorBlock<Species, float_PS, num_pbins, r_dir, T_Filter>(
                     particlesBox,
                     phaseSpaceBox,

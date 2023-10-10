@@ -64,10 +64,10 @@ namespace pmacc
      * Describes DIM-dimensional buffer for particles data on the host.
      *
      * @tParam T_ParticleDescription Object which describe a frame @see ParticleDescription.hpp
-     * @tparam SuperCellSize_ TVec which descripe size of a superce
+     * @tparam T_SuperCellSize TVec which descripe size of a superce
      * @tparam DIM dimension of the buffer (1-3)
      */
-    template<typename T_ParticleDescription, class SuperCellSize_, typename T_DeviceHeap, unsigned DIM>
+    template<typename T_ParticleDescription, typename T_SuperCellSize, typename T_DeviceHeap, unsigned DIM>
     class ParticlesBuffer
     {
     public:
@@ -80,7 +80,7 @@ namespace pmacc
          */
         using BorderFrameIndex = ExchangeMemoryIndex<vint_t, DIM - 1>;
 
-        using SuperCellSize = SuperCellSize_;
+        using SuperCellSize = T_SuperCellSize;
 
         using ParticleAttributeList = MakeSeq_t<typename T_ParticleDescription::ValueTypeSeq, localCellIdx, multiMask>;
 
@@ -100,9 +100,8 @@ namespace pmacc
          *
          * a group of particles is stored as frame
          */
-        using FrameType = Frame<
-            detail::OperatorCreatePairStaticArray<pmacc::math::CT::volume<SuperCellSize>::type::value>,
-            FrameDescription>;
+        using FrameType
+            = Frame<detail::OperatorCreatePairStaticArray<T_ParticleDescription::NumSlots::value>, FrameDescription>;
 
         using FrameDescriptionBorder =
             typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeListBorder>::type;
@@ -114,11 +113,11 @@ namespace pmacc
          */
         using FrameTypeBorder = Frame<detail::OperatorCreatePairStaticArray<1U>, FrameDescriptionBorder>;
 
-        using SuperCellType = SuperCell<FrameType>;
+        using SuperCellType = SuperCell<FrameType, SuperCellSize>;
 
         using DeviceHeap = T_DeviceHeap;
         /* Type of the particle box which particle buffer create */
-        using ParticlesBoxType = ParticlesBox<FrameType, typename DeviceHeap::AllocatorHandle, DIM>;
+        using ParticlesBoxType = ParticlesBox<FrameType, typename DeviceHeap::AllocatorHandle, SuperCellSize, DIM>;
 
     private:
         /* this enum is used only for internal calculations */
@@ -324,4 +323,17 @@ namespace pmacc
         // tag used to communicate the exchange memory indexer data via MPI
         uint32_t exchangeMemoryIndexerTag;
     };
+
+    namespace lockstep
+    {
+        //! Specialization to create a lockstep worker configuration out of a particle buffer.
+        template<typename T_ParticleDescription, typename T_SuperCellSize, typename T_DeviceHeap, unsigned DIM>
+        HDINLINE auto makeWorkerCfg(ParticlesBuffer<T_ParticleDescription, T_SuperCellSize, T_DeviceHeap, DIM> const&)
+        {
+            return makeWorkerCfg<
+                ParticlesBuffer<T_ParticleDescription, T_SuperCellSize, T_DeviceHeap, DIM>::FrameType::frameSize>();
+        }
+
+    } // namespace lockstep
+
 } // namespace pmacc

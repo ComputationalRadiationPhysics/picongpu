@@ -353,7 +353,7 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
-        auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
+        auto workerCfg = pmacc::lockstep::makeWorkerCfg(*this);
 
         PMACC_LOCKSTEP_KERNEL(KernelMoveAndMarkParticles<BlockArea>{}, workerCfg)
         (mapper.getGridDim())(
@@ -422,7 +422,7 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
-        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+        auto workerCfg = lockstep::makeWorkerCfg(*this);
 
         PMACC_LOCKSTEP_KERNEL(KernelDeriveParticles{}, workerCfg)
         (mapper.getGridDim())(

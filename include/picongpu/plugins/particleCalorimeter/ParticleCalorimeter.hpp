@@ -566,7 +566,7 @@ namespace picongpu
             auto beginInternalCellsLocal = pmacc::DataSpace<simDim>::create(0);
             auto endInternalCellsLocal = beginInternalCellsLocal + subGrid.getLocalDomain().size;
 
-            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
 
             auto kernel = PMACC_LOCKSTEP_KERNEL(KernelParticleCalorimeter{}, workerCfg)(grid);
             auto unaryKernel = std::bind(
@@ -632,7 +632,7 @@ namespace picongpu
             auto const beginExternalCellsLocal = beginExternalCellsTotal - shiftTotaltoLocal;
             auto const endExternalCellsLocal = endExternalCellsTotal - shiftTotaltoLocal;
 
-            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
 
             auto kernel = PMACC_LOCKSTEP_KERNEL(KernelParticleCalorimeter{}, workerCfg)(grid);
             auto unaryKernel = std::bind(

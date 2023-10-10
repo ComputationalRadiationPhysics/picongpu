@@ -90,7 +90,7 @@ namespace picongpu
             using DestFramePtr = typename T_DestParBox::FramePtr;
             using SrcFramePtr = typename T_SrcParBox::FramePtr;
 
-            constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_SrcParBox::frameSize;
 
             PMACC_SMEM(worker, srcFrame, SrcFramePtr);
             PMACC_SMEM(worker, destFrame, DestFramePtr);

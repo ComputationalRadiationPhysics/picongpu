@@ -23,6 +23,8 @@
 
 #include <pmacc/particles/memory/dataTypes/SuperCell.hpp>
 
+#include <pmacc/math/vector/compile-time/Vector.hpp>
+
 
 namespace pmacc
 {
@@ -38,6 +40,7 @@ namespace pmacc
                     struct FrameTypeDummy
                     {
                         using SuperCellSize = T_SuperCell;
+                        static constexpr uint32_t frameSize = math::CT::volume<SuperCellSize>::type::value;
                     };
 
                     /** test a combination
@@ -48,7 +51,7 @@ namespace pmacc
                      */
                     HINLINE void operator()(uint32_t numParticlesPerCell, uint32_t particleLastFrame)
                     {
-                        pmacc::SuperCell<FrameTypeDummy> superCell;
+                        pmacc::SuperCell<FrameTypeDummy, typename FrameTypeDummy::SuperCellSize> superCell;
                         superCell.setNumParticles(numParticlesPerCell);
 
                         REQUIRE(superCell.getSizeLastFrame() == particleLastFrame);

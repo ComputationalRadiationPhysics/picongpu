@@ -73,7 +73,7 @@ namespace pmacc
         {
             using namespace particles::operations;
 
-            constexpr uint32_t frameSize = math::CT::volume<typename T_Mapping::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_ParBox::frameSize;
             constexpr uint32_t dim = T_Mapping::Dim;
 
             using FramePtr = typename T_ParBox::FramePtr;
@@ -198,7 +198,7 @@ namespace pmacc
 
             using FramePtr = typename T_ParBox::FramePtr;
 
-            constexpr uint32_t frameSize = math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_ParBox::frameSize;
             constexpr uint32_t dim = T_Mapping::Dim;
 
             DataSpace<dim> const superCellIdx(
@@ -391,7 +391,7 @@ namespace pmacc
             using FramePtr = typename ParBox::FramePtr;
 
             PMACC_CONSTEXPR_CAPTURE uint32_t dim = Mapping::Dim;
-            constexpr uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_ParBox::frameSize;
             /* number exchanges in 2D=9 and in 3D=27 */
             constexpr uint32_t numExchanges = traits::NumberOfExchanges<dim>::value;
 
@@ -655,7 +655,7 @@ namespace pmacc
             using FramePtr = typename ParticleBox::FramePtr;
 
             constexpr uint32_t dim = T_Mapping::Dim;
-            constexpr uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = ParticleBox::frameSize;
 
             DataSpace<dim> const superCellIdx
                 = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())));
@@ -730,7 +730,7 @@ namespace pmacc
             using namespace particles::operations;
 
             PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
-            constexpr uint32_t frameSize = math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_ParBox::frameSize;
 
             using FramePtr = typename T_ParBox::FramePtr;
 
@@ -870,7 +870,7 @@ namespace pmacc
             using namespace particles::operations;
 
             PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
-            constexpr uint32_t frameSize = math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_ParBox::frameSize;
 
             using FramePtr = typename T_ParBox::FramePtr;
 

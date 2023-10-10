@@ -41,8 +41,7 @@ namespace picongpu
                 constexpr float_X delta_omega
                     = (float_X) ((omega_max - omega_min) / (float_X) (N_omega - 1)); // difference beween two omega
 
-                constexpr unsigned int blocksize_omega
-                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int blocksize_omega = numFrameSlots;
                 constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
             } // namespace linear_frequencies
 
@@ -51,15 +50,13 @@ namespace picongpu
                 constexpr float_X omega_min = (SI::omega_min * UNIT_TIME);
                 constexpr float_X omega_max = (SI::omega_max * UNIT_TIME);
 
-                constexpr unsigned int blocksize_omega
-                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int blocksize_omega = numFrameSlots;
                 constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
             } // namespace log_frequencies
 
             namespace frequencies_from_list
             {
-                constexpr unsigned int blocksize_omega
-                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int blocksize_omega = numFrameSlots;
                 constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
             } // namespace frequencies_from_list
 

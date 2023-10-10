@@ -89,7 +89,7 @@ namespace picongpu
                     uint32_t const step) const
                 {
                     // Create and initialize a histogram on shared memory
-                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t frameSize = T_IonBox::frameSize;
 
                     // TODO: get this from ion species
                     // hard coded for now

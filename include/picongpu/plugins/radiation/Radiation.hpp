@@ -1211,7 +1211,7 @@ namespace picongpu
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
                     globalOffset.y() += (localSize.y() * numSlides);
 
-                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                    auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
 
                     // PIC-like kernel call of the radiation kernel
                     PMACC_LOCKSTEP_KERNEL(KernelRadiationParticles{}, workerCfg)

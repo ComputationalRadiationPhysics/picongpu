@@ -91,7 +91,7 @@ namespace picongpu
                     /* for not mixing operations::assign up with the nvidia functor assign */
                     namespace partOp = pmacc::particles::operations;
 
-                    constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr lcellId_t maxParticlesInFrame = T_ParBoxSource::frameSize;
 
                     /* use two frames to allow that all virtual workers can create new particles
                      * even if newFrameFillLvl is not zero.

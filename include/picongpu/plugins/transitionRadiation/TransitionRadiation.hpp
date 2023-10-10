@@ -83,8 +83,6 @@ namespace picongpu
             class TransitionRadiation : public ILightweightPlugin
             {
             private:
-                using SuperCellSize = MappingDesc::SuperCellSize;
-
                 using radLog = plugins::radiation::PIConGPUVerboseRadiation;
 
                 std::unique_ptr<GridBuffer<float_X, DIM1>> incTransRad;
@@ -482,7 +480,7 @@ namespace picongpu
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
                     globalOffset.y() += (localSize.y() * numSlides);
 
-                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                    auto workerCfg = lockstep::makeWorkerCfg<T_ParticlesType::FrameType::frameSize>();
                     // PIC-like kernel call of the radiation kernel
                     PMACC_LOCKSTEP_KERNEL(KernelTransRadParticles{}, workerCfg)
                     (gridDim_rad)(

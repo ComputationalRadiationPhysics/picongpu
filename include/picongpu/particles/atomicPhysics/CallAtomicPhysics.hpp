@@ -352,7 +352,7 @@ namespace picongpu
                     using Kernel = AtomicPhysicsKernel<picongpu::atomicPhysics::maxNumBins>;
                     auto kernel = Kernel{RngFactoryInt{step}, RngFactoryFloat{step}};
 
-                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                    auto workerCfg = lockstep::makeWorkerCfg<IonFrameType::frameSize>();
 
                     // macro for call of kernel, once for every super cell
                     PMACC_LOCKSTEP_KERNEL(kernel, workerCfg)

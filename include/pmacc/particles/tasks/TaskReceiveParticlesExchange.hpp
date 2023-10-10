@@ -34,12 +34,6 @@ namespace pmacc
     class TaskReceiveParticlesExchange : public MPITask
     {
     public:
-        enum
-        {
-            Dim = ParBase::Dim,
-            Exchanges = traits::NumberOfExchanges<Dim>::value
-        };
-
         TaskReceiveParticlesExchange(ParBase& parBase, uint32_t exchange)
             : parBase(parBase)
             , state(Constructor)

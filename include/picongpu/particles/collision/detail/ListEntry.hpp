@@ -170,8 +170,7 @@ namespace picongpu
                     T_Array& nppc,
                     T_Filter& filter)
                 {
-                    using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
-                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t frameSize = T_ParBox::frameSize;
 
                     for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
                     {
@@ -216,8 +215,7 @@ namespace picongpu
                     T_EntryListArray& parCellList,
                     T_Filter& filter)
                 {
-                    using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
-                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t frameSize = T_ParBox::frameSize;
                     for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
                     {
                         forEach(
@@ -247,8 +245,7 @@ namespace picongpu
                 DINLINE auto getParticle(T_ParBox& parBox, T_FramePtr frame, uint32_t particleId) ->
                     typename T_FramePtr::type::ParticleType
                 {
-                    constexpr uint32_t frameSize
-                        = pmacc::math::CT::volume<typename T_FramePtr::type::SuperCellSize>::type::value;
+                    constexpr int frameSize = T_ParBox::frameSize;
                     uint32_t const skipFrames = particleId / frameSize;
                     for(uint32_t i = 0; i < skipFrames; ++i)
                         frame = parBox.getNextFrame(frame);

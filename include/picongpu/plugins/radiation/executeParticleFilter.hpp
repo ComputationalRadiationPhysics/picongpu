@@ -38,12 +38,18 @@ namespace picongpu::plugins::radiation
      * @param species species to be filtered
      */
     template<typename T_Species>
-    inline void executeParticleFilter(std::shared_ptr<T_Species>& species, [[maybe_unused]] const uint32_t currentStep)
+    inline void executeParticleFilter(
+        [[maybe_unused]] std::shared_ptr<T_Species>& species,
+        [[maybe_unused]] const uint32_t currentStep)
     {
         constexpr bool hasRadiationFilter
             = pmacc::traits::HasIdentifier<typename T_Species::FrameType, radiationMask>::type::value;
 
         if constexpr(hasRadiationFilter)
-            particles::Manipulate<picongpu::plugins::radiation::RadiationParticleFilter, T_Species>{}(currentStep);
+        {
+            auto executeFilter
+                = particles::Manipulate<picongpu::plugins::radiation::RadiationParticleFilter, T_Species>{};
+            executeFilter(currentStep);
+        }
     }
 } // namespace picongpu::plugins::radiation

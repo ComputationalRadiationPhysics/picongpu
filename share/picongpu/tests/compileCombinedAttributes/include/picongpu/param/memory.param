@@ -50,6 +50,9 @@ namespace picongpu
      */
     using SuperCellSize = typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type;
 
+    /** number of slots for particles within a frame */
+    static constexpr uint32_t numFrameSlots = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription<simDim, SuperCellSize>;
 

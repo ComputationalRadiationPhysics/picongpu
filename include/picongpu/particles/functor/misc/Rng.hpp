@@ -74,9 +74,11 @@ namespace picongpu
                         const
                     {
                         RngHandle tmp(rngHandle);
-                        tmp.init(
-                            localSupercellOffset * SuperCellSize::toRT()
-                            + DataSpaceOperations<simDim>::template map<SuperCellSize>(worker.getWorkerIdx()));
+                        auto rngOffset = DataSpace<simDim>::create(0);
+                        rngOffset.x() = worker.getWorkerIdx();
+                        auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                        numRNGsPerSuperCell.x() = numFrameSlots;
+                        tmp.init(localSupercellOffset * numRNGsPerSuperCell + rngOffset);
                         using RandomGen = RngWrapper<T_Worker, typename RngHandle::GetRandomType<Distribution>::type>;
                         return RandomGen(worker, tmp.applyDistribution<Distribution>());
                     }

@@ -28,10 +28,12 @@
 
 namespace pmacc
 {
-    template<class T_FrameType>
+    template<typename T_FrameType, typename T_SuperCellSize>
     class SuperCell
     {
     public:
+        using SuperCellSize = T_SuperCellSize;
+
         HDINLINE SuperCell() : firstFramePtr(nullptr), lastFramePtr(nullptr)
         {
         }
@@ -74,7 +76,7 @@ namespace pmacc
             volatile
 #endif
         {
-            constexpr uint32_t frameSize = math::CT::volume<typename T_FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t frameSize = T_FrameType::frameSize;
             return numParticles ? ((numParticles - 1u) % frameSize + 1u) : 0u;
         }
 

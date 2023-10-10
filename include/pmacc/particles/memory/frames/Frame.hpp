@@ -66,18 +66,25 @@ namespace pmacc
     {
         using ParticleDescription = T_ParticleDescription;
         using Name = typename ParticleDescription::Name;
-        using SuperCellSize = typename ParticleDescription::SuperCellSize;
+        //! Number of particle slots within the frame
+        using NumSlots = typename ParticleDescription::NumSlots;
+        static constexpr uint32_t frameSize = NumSlots::value;
         using ValueTypeSeq = typename ParticleDescription::ValueTypeSeq;
         using MethodsList = typename ParticleDescription::MethodsList;
         using FlagList = typename ParticleDescription::FlagsList;
         using FrameExtensionList = typename ParticleDescription::FrameExtensionList;
-        using ThisType = Frame<T_CreatePairOperator, ParticleDescription>;
         /* definition of the MapTupel where we inherit from*/
         using BaseType = pmath::MapTuple<typename SeqToMap<ValueTypeSeq, T_CreatePairOperator>::type>;
 
         /* type of a single particle*/
-        using ParticleType = pmacc::Particle<ThisType>;
+        using ParticleType = pmacc::Particle<Frame>;
 
+        using SuperCellSize = typename ParticleDescription::SuperCellSize;
+        static_assert(
+            pmacc::math::CT::volume<SuperCellSize>::type::value <= frameSize,
+            "Cells per supercell must be <= the number of particle slots in a frame!");
+
+    public:
         /** access the Nth particle*/
         HDINLINE ParticleType operator[](const uint32_t idx)
         {

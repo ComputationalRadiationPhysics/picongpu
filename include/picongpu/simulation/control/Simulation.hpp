@@ -340,7 +340,15 @@ namespace picongpu
             const uint32_t seed = std::hash<std::string>{}(std::to_string(userSeed));
 
             using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
-            auto rngFactory = std::make_unique<RNGFactory>(Environment<simDim>::get().SubGrid().getLocalDomain().size);
+            auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+            numRNGsPerSuperCell.x() = numFrameSlots;
+            /* For each supercell a linear with numFrameSlots rng states will be created.
+             * PMacc's RNG factory does not support a class with N states per supercell therefore the x dimension of
+             * the buffer will be multiplied by numFrameSlots.
+             */
+            auto numRngStates = (Environment<simDim>::get().SubGrid().getLocalDomain().size / SuperCellSize::toRT())
+                * numRNGsPerSuperCell;
+            auto rngFactory = std::make_unique<RNGFactory>(numRngStates);
             if(Environment<simDim>::get().GridController().getGlobalRank() == 0)
             {
                 log<picLog::PHYSICS>("used Random Number Generator: %1% seed: %2%") % rngFactory->getName() % userSeed;

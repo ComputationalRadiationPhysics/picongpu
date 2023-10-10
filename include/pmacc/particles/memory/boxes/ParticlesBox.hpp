@@ -43,8 +43,8 @@ namespace pmacc
      * @tparam FRAME datatype for frames
      * @tparam DIM dimension of data (1-3)
      */
-    template<class T_Frame, typename T_DeviceHeapHandle, unsigned DIM>
-    class ParticlesBox : protected DataBox<PitchedBox<SuperCell<T_Frame>, DIM>>
+    template<class T_Frame, typename T_DeviceHeapHandle, typename T_SuperCellSize, unsigned DIM>
+    class ParticlesBox : protected DataBox<PitchedBox<SuperCell<T_Frame, T_SuperCellSize>, DIM>>
     {
     private:
         PMACC_ALIGN(m_deviceHeapHandle, T_DeviceHeapHandle);
@@ -53,10 +53,12 @@ namespace pmacc
     public:
         using FrameType = T_Frame;
         using FramePtr = FramePointer<FrameType>;
-        using SuperCellType = SuperCell<FrameType>;
-        using BaseType = DataBox<PitchedBox<SuperCell<FrameType>, DIM>>;
+        using SuperCellType = SuperCell<FrameType, T_SuperCellSize>;
+        using BaseType = DataBox<PitchedBox<SuperCell<FrameType, T_SuperCellSize>, DIM>>;
+        using SuperCellSize = T_SuperCellSize;
         using DeviceHeapHandle = T_DeviceHeapHandle;
 
+        static constexpr uint32_t frameSize = FrameType::NumSlots::value;
         static constexpr uint32_t Dim = DIM;
 
         /** default constructor
@@ -105,7 +107,7 @@ namespace pmacc
                 if(tmp != nullptr)
                 {
                     /* disable all particles since we can not assume that newly allocated memory contains zeros */
-                    for(int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
+                    for(int i = 0; i < static_cast<int>(FrameType::frameSize); ++i)
                         (*tmp)[i][multiMask_] = 0;
                     /* takes care that changed values are visible to all threads inside this block*/
                     alpaka::mem_fence(worker.getAcc(), alpaka::memory_scope::Block{});

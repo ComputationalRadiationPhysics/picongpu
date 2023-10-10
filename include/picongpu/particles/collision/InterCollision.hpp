@@ -122,8 +122,7 @@ namespace picongpu
                 {
                     using namespace pmacc::particles::operations;
 
-                    using SuperCellSize = typename T_ParBox0::FrameType::SuperCellSize;
-                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t frameSize = T_ParBox0::frameSize;
 
                     using FramePtr0 = typename T_ParBox0::FramePtr;
                     using FramePtr1 = typename T_ParBox1::FramePtr;
@@ -146,9 +145,11 @@ namespace picongpu
                     // offset of the superCell (in cells, without any guards) to the
                     // origin of the local domain
                     DataSpace<simDim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
-                    rngHandle.init(
-                        localSuperCellOffset * SuperCellSize::toRT()
-                        + DataSpaceOperations<simDim>::template map<SuperCellSize>(worker.getWorkerIdx()));
+                    auto rngOffset = DataSpace<simDim>::create(0);
+                    rngOffset.x() = worker.getWorkerIdx();
+                    auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                    numRNGsPerSuperCell.x() = numFrameSlots;
+                    rngHandle.init(localSuperCellOffset * numRNGsPerSuperCell + rngOffset);
 
                     auto accFilter0 = filter0(worker, localSuperCellOffset);
                     auto accFilter1 = filter1(worker, localSuperCellOffset);
@@ -419,7 +420,7 @@ namespace picongpu
                     //! random number generator
                     using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
                     using Kernel = typename CollisionFunctor::CallingInterKernel;
-                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+                    auto workerCfg = lockstep::makeWorkerCfg<FrameType0::frameSize>();
 
                     constexpr bool ifDebug = CollisionFunctor::ifDebug_m;
                     if constexpr(ifDebug)

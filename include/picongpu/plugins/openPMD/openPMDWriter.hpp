@@ -860,11 +860,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
                 std::string datasetName = params->openPMDSeries->meshesPath() + name;
 
+                auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                numRNGsPerSuperCell.x() = numFrameSlots;
                 // rng states are always of the domain size therefore query sizes from domain information
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-                pmacc::math::UInt64<simDim> recordLocalSizeDims = subGrid.getLocalDomain().size;
-                pmacc::math::UInt64<simDim> recordOffsetDims = subGrid.getLocalDomain().offset;
-                pmacc::math::UInt64<simDim> recordGlobalSizeDims = subGrid.getGlobalDomain().size;
+                pmacc::math::UInt64<simDim> recordLocalSizeDims{
+                    subGrid.getLocalDomain().size / SuperCellSize::toRT() * numRNGsPerSuperCell};
+                pmacc::math::UInt64<simDim> recordOffsetDims{
+                    subGrid.getLocalDomain().offset / SuperCellSize::toRT() * numRNGsPerSuperCell};
+                pmacc::math::UInt64<simDim> recordGlobalSizeDims{
+                    subGrid.getGlobalDomain().size / SuperCellSize::toRT() * numRNGsPerSuperCell};
 
                 if(recordLocalSizeDims != rngProvider->getSize())
                     throw std::runtime_error("openPMD: RNG state can't be written due to not matching size");
@@ -917,11 +922,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ::openPMD::Mesh mesh = iteration.meshes[name];
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
 
+                auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                numRNGsPerSuperCell.x() = numFrameSlots;
+
                 // rng states are always of the domain size therefore query sizes from pmacc
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                 using VecUInt64 = pmacc::math::UInt64<simDim>;
-                VecUInt64 recordLocalSizeDims = subGrid.getLocalDomain().size;
-                VecUInt64 recordOffsetDims = subGrid.getLocalDomain().offset;
+                VecUInt64 recordLocalSizeDims{
+                    subGrid.getLocalDomain().size / SuperCellSize::toRT() * numRNGsPerSuperCell};
+                VecUInt64 recordOffsetDims{
+                    subGrid.getLocalDomain().offset / SuperCellSize::toRT() * numRNGsPerSuperCell};
 
                 if(recordLocalSizeDims != rngProvider->getSize())
                     throw std::runtime_error("openPMD: RNG state can't be loaded due to not matching size");

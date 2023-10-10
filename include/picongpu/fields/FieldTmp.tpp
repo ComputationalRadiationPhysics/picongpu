@@ -181,7 +181,7 @@ namespace picongpu
         const uint32_t currentStep = Environment<>::get().SimulationDescription().getCurrentStep();
         auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep};
 
-        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+        auto workerCfg = lockstep::makeWorkerCfg<ParticlesClass::ParticlesBoxType::FrameType::frameSize>();
         do
         {
             PMACC_LOCKSTEP_KERNEL(KernelComputeSupercells<BlockArea>{}, workerCfg)

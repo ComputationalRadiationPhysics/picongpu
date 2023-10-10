@@ -205,7 +205,7 @@ namespace picongpu
             using SuperCellSize = MappingDesc::SuperCellSize;
             auto const mapper = makeAreaMapper<AREA>(*cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
             PMACC_LOCKSTEP_KERNEL(CountMakroParticle{}, workerCfg)
             (mapper.getGridDim())(
                 particles->getDeviceParticlesBox(),

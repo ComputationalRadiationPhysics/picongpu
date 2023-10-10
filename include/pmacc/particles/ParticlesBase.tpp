@@ -37,7 +37,7 @@ namespace pmacc
     {
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-        auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
+        auto workerCfg = lockstep::makeWorkerCfg<FrameType::frameSize>();
 
         PMACC_LOCKSTEP_KERNEL(KernelDeleteParticles{}, workerCfg)
         (mapper.getGridDim())(particlesBuffer->getDeviceParticleBox(), mapper);
@@ -49,7 +49,7 @@ namespace pmacc
     {
         auto const mapper = makeAreaMapper<T_area>(this->cellDescription);
 
-        auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
+        auto workerCfg = lockstep::makeWorkerCfg<FrameType::frameSize>();
 
         PMACC_LOCKSTEP_KERNEL(KernelDeleteParticles{}, workerCfg)
         (mapper.getGridDim())(particlesBuffer->getDeviceParticleBox(), mapper);
@@ -71,7 +71,7 @@ namespace pmacc
 
             particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
 
-            auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
+            auto workerCfg = lockstep::makeWorkerCfg<FrameType::frameSize>();
 
             PMACC_LOCKSTEP_KERNEL(KernelCopyGuardToExchange{}, workerCfg)
             (mapper.getGridDim())(
@@ -96,7 +96,7 @@ namespace pmacc
             {
                 ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-                auto workerCfg = lockstep::makeWorkerCfg(typename FrameType::SuperCellSize{});
+                auto workerCfg = lockstep::makeWorkerCfg<FrameType::frameSize>();
 
                 PMACC_LOCKSTEP_KERNEL(KernelInsertParticles{}, workerCfg)
                 (numParticles)(

@@ -38,11 +38,7 @@ namespace pmacc
         using HandleExchanged = typename HandleGuardRegion::HandleExchanged;
         using HandleNotExchanged = typename HandleGuardRegion::HandleNotExchanged;
 
-        enum
-        {
-            Dim = Particles::Dim,
-            Exchanges = traits::NumberOfExchanges<Dim>::value
-        };
+        static constexpr uint32_t dim = Particles::dim;
 
         TaskParticlesReceive(Particles& parBase) : parBase(parBase), state(Constructor)
         {
@@ -55,7 +51,8 @@ namespace pmacc
             HandleExchanged handleExchanged;
             HandleNotExchanged handleNotExchanged;
 
-            for(int i = 1; i < Exchanges; ++i)
+            static constexpr int32_t numExchanges = traits::NumberOfExchanges<dim>::value;
+            for(int i = 1; i < numExchanges; ++i)
             {
                 /* Start new transaction */
                 eventSystem::startTransaction(serialEvent);

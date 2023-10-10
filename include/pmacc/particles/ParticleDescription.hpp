@@ -37,7 +37,7 @@ namespace pmacc
      *
      * @tparam T_Name name of described particle (e.g. electron, ion)
      *                type must be a PMACC_CSTRING
-     * @tparam T_SuperCellSize compile time size of a super cell
+     * @tparam T_NumSlots compile time size of a super cell
      * @tparam T_ValueTypeSeq sequence or single type with value_identifier, must not have duplicates
      * @tparam T_Flags sequence or single type with identifier to add flags on a frame, must not have duplicates
      * @tparam T_MethodsList sequence or single class with particle methods
@@ -52,6 +52,7 @@ namespace pmacc
      */
     template<
         typename T_Name,
+        typename T_NumSlots,
         typename T_SuperCellSize,
         typename T_ValueTypeSeq,
         typename T_Flags = mp_list<>,
@@ -62,20 +63,13 @@ namespace pmacc
     struct ParticleDescription
     {
         using Name = T_Name;
+        using NumSlots = T_NumSlots;
         using SuperCellSize = T_SuperCellSize;
         using ValueTypeSeq = ToSeq<T_ValueTypeSeq>;
         using FlagsList = ToSeq<T_Flags>;
         using HandleGuardRegion = T_HandleGuardRegion;
         using MethodsList = ToSeq<T_MethodsList>;
         using FrameExtensionList = ToSeq<T_FrameExtensionList>;
-        using ThisType = ParticleDescription<
-            Name,
-            SuperCellSize,
-            ValueTypeSeq,
-            FlagsList,
-            HandleGuardRegion,
-            MethodsList,
-            FrameExtensionList>;
 
         // Compile-time check uniqueness of attributes and flags
         PMACC_CASSERT_MSG(
@@ -99,6 +93,7 @@ namespace pmacc
         using OldParticleDescription = T_OldParticleDescription;
         using type = ParticleDescription<
             typename OldParticleDescription::Name,
+            typename OldParticleDescription::NumSlots,
             typename OldParticleDescription::SuperCellSize,
             ToSeq<T_NewValueTypeSeq>,
             typename OldParticleDescription::FlagsList,
@@ -119,6 +114,7 @@ namespace pmacc
         using OldParticleDescription = T_OldParticleDescription;
         using type = ParticleDescription<
             typename OldParticleDescription::Name,
+            typename OldParticleDescription::NumSlots,
             typename OldParticleDescription::SuperCellSize,
             typename OldParticleDescription::ValueTypeSeq,
             typename OldParticleDescription::FlagsList,

@@ -79,12 +79,9 @@ namespace picongpu
         {
             using namespace pmacc::particles::operations;
 
-            using DestFrameType = T_DestFrame;
-            using SrcFrameType = typename T_SrcBox::FrameType;
             using SrcFramePtr = typename T_SrcBox::FramePtr;
 
-            constexpr uint32_t numParticlesPerFrame
-                = pmacc::math::CT::volume<typename SrcFrameType::SuperCellSize>::type::value;
+            constexpr uint32_t numParticlesPerFrame = T_SrcBox::frameSize;
 
             PMACC_SMEM(worker, srcFramePtr, SrcFramePtr);
             PMACC_SMEM(worker, localCounter, int);

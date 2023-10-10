@@ -45,8 +45,6 @@ namespace picongpu
     class CountParticles : public ISimulationPlugin
     {
     private:
-        using SuperCellSize = MappingDesc::SuperCellSize;
-
         MappingDesc* cellDescription{nullptr};
         std::string notifyPeriod;
 
