@@ -75,6 +75,7 @@
 
 #include <tuple>
 
+#include <openPMD/auxiliary/StringManip.hpp>
 #include <openPMD/openPMD.hpp>
 
 #if !defined(_WIN32)
@@ -1419,7 +1420,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ThreadParams* params,
                 uint32_t currentStep,
                 const uint32_t nComponents,
-                const std::string name,
+                std::string name,
                 FieldBuffer& buffer,
                 std::vector<float_64> unit,
                 std::vector<float_64> unitDimension,
@@ -1428,6 +1429,28 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 bool isDomainBound)
             {
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(nComponents);
+                std::optional<std::string> pathToRecordComponentSpecifiedViaMeshName = std::nullopt;
+                if(nComponents == 1)
+                {
+                    // Name might be specified e.g. as "midCurrentDensity/x", meaning that only
+                    // the x component should be written during this invocation of writeField().
+                    // If there is one component only, then check if this is the case.
+                    auto splitted = ::openPMD::auxiliary::split(name, "/");
+                    switch(splitted.size())
+                    {
+                    case 1: // No slashes found, just continue
+                        break;
+                    case 2: // Slash found
+                        name = splitted.at(0);
+                        pathToRecordComponentSpecifiedViaMeshName = splitted.at(1);
+                        break;
+                    default:
+                        throw std::runtime_error(
+                            "Internal error: Illegal mesh name '" + name
+                            + "'. The mesh name must contain either no slashes '/' at all or exactly one slash. (The "
+                              "latter case bears a special meaning.)");
+                    }
+                }
                 ::openPMD::Datatype const openPMDType = ::openPMD::determineDatatype<ComponentType>();
 
                 if(openPMDType == ::openPMD::Datatype::UNDEFINED)
@@ -1517,8 +1540,30 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
                 {
-                    ::openPMD::MeshRecordComponent mrc
-                        = mesh[nComponents > 1 ? name_lookup_tpl[d] : ::openPMD::RecordComponent::SCALAR];
+                    auto pathToRecordComponent = [&]() -> std::string
+                    {
+                        // Normally, the name of the record component is implicitly defined by the
+                        // inherent dimensionality of the mesh: x, y, z.
+                        if(nComponents > 1)
+                        {
+                            return name_lookup_tpl[d];
+                        }
+                        // But it might also have been specified as part of ::getName(),
+                        // e.g. as "C_all_momentumDensity/x".
+                        // In that case, writeField() is called multiple times for each component.
+                        else if(pathToRecordComponentSpecifiedViaMeshName.has_value())
+                        {
+                            return *pathToRecordComponentSpecifiedViaMeshName;
+                        }
+                        // If none of the above apply, the component is scalar and we use a special
+                        // openPMD-defined string to indicate that we skip the last level in the
+                        // openPMD hierarchy.
+                        else
+                        {
+                            return ::openPMD::RecordComponent::SCALAR;
+                        }
+                    }();
+                    ::openPMD::MeshRecordComponent mrc = mesh[pathToRecordComponent];
                     std::string datasetName = nComponents > 1
                         ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
                         : params->openPMDSeries->meshesPath() + name;
