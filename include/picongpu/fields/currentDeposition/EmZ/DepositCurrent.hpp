@@ -37,7 +37,7 @@ namespace picongpu
                 template<typename T_DataBox, typename T_Worker>
                 DINLINE void operator()(
                     T_Worker const& worker,
-                    const T_DataBox& fieldJ,
+                    T_DataBox fieldJ,
                     const Line<float3_X>& line,
                     const float_X chargeDensity) const
                 {
@@ -140,7 +140,7 @@ namespace picongpu
                 template<typename T_DataBox, typename T_Worker>
                 DINLINE void operator()(
                     T_Worker const& worker,
-                    const T_DataBox& fieldJ,
+                    T_DataBox fieldJ,
                     const Line<float2_X>& line,
                     const float_X chargeDensity) const
                 {

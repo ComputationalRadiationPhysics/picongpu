@@ -95,7 +95,7 @@ namespace picongpu
             ISAAC_NO_HOST_DEVICE_WARNING
             ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> operator[](const isaac_int3& nIndex) const
             {
-                auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
+                auto value = shifted(DataSpace<DIM3>(nIndex.x, nIndex.y, nIndex.z));
                 return isaac_float_dim<featureDim>(value.x(), value.y(), value.z());
             }
         };
@@ -161,7 +161,7 @@ namespace picongpu
             ISAAC_NO_HOST_DEVICE_WARNING
             ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> operator[](const isaac_int3& nIndex) const
             {
-                auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
+                auto value = shifted(DataSpace<DIM3>(nIndex.x, nIndex.y, nIndex.z));
                 return isaac_float_dim<featureDim>(value.x());
             }
         };
@@ -212,7 +212,7 @@ namespace picongpu
             ISAAC_NO_HOST_DEVICE_WARNING
             ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> operator[](const isaac_int3& nIndex) const
             {
-                auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
+                auto value = shifted(DataSpace<DIM3>(nIndex.x, nIndex.y, nIndex.z));
                 return isaac_float_dim<featureDim>(value.x(), value.y(), value.z());
             }
         };

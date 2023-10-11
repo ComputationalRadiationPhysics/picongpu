@@ -23,154 +23,195 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    template<typename TYPE, unsigned DIM>
-    class PitchedBox;
-
-    namespace detail
+    template<typename T_Type, uint32_t T_dim>
+    struct PitchedBox
     {
-        template<typename TYPE, unsigned DIM>
-        struct PitchedBoxCommon
-        {
-            static constexpr std::uint32_t Dim = DIM;
-            using ValueType = TYPE;
-            using RefValueType = ValueType&;
+        static constexpr std::uint32_t Dim = T_dim;
+        using ValueType = T_Type;
+        using RefValueType = ValueType&;
 
-            HDINLINE PitchedBoxCommon(TYPE* p = nullptr) : fixedPointer(p)
-            {
-            }
-
-            HDINLINE PitchedBoxCommon(PitchedBoxCommon const&) = default;
-
-            /*!return the first value in the box (list)
-             * @return first value
-             */
-            HDINLINE RefValueType operator*()
-            {
-                return *fixedPointer;
-            }
-
-            HDINLINE TYPE const* getPointer() const
-            {
-                return fixedPointer;
-            }
-
-            HDINLINE TYPE* getPointer()
-            {
-                return fixedPointer;
-            }
-
-        protected:
-            PMACC_ALIGN(fixedPointer, TYPE*);
-        };
-    } // namespace detail
-
-    template<typename TYPE>
-    class PitchedBox<TYPE, DIM1> : public detail::PitchedBoxCommon<TYPE, DIM1>
-    {
-        using Base = detail::PitchedBoxCommon<TYPE, DIM1>;
-
-    public:
-        using ReducedType = PitchedBox<TYPE, DIM1>;
-
-        /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox() = default;
-
-        HDINLINE PitchedBox(TYPE* pointer) : Base{pointer}
-        {
-        }
-
-        HDINLINE PitchedBox(PitchedBox const&) = default;
-
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& /*memSize*/, const size_t /*pitch*/) : Base(pointer)
-        {
-        }
-
-        HDINLINE TYPE& operator[](const int idx) const
-        {
-            return this->fixedPointer[idx];
-        }
-    };
-
-    template<typename TYPE>
-    class PitchedBox<TYPE, DIM2> : public detail::PitchedBoxCommon<TYPE, DIM2>
-    {
-        using Base = detail::PitchedBoxCommon<TYPE, DIM2>;
-
-    public:
-        using ReducedType = PitchedBox<TYPE, DIM1>;
-
-        /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox() = default;
-
-        HDINLINE PitchedBox(TYPE* pointer, size_t pitch) : Base{pointer}, pitch(pitch)
-        {
-        }
-
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& /*memSize*/, const size_t pitch)
-            : Base{pointer}
-            , pitch(pitch)
-        {
-        }
-
-        HDINLINE PitchedBox(PitchedBox const&) = default;
-
-        HDINLINE ReducedType operator[](const int idx) const
-        {
-            return ReducedType((TYPE*) ((char*) this->fixedPointer + idx * pitch));
-        }
-
-    protected:
-        PMACC_ALIGN(pitch, size_t);
-    };
-
-    template<typename TYPE>
-    class PitchedBox<TYPE, DIM3> : public detail::PitchedBoxCommon<TYPE, DIM3>
-    {
-        using Base = detail::PitchedBoxCommon<TYPE, DIM3>;
-
-    public:
-        using ReducedType = PitchedBox<TYPE, DIM2>;
-
-        /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox() = default;
-
-        HDINLINE PitchedBox(TYPE* pointer, const size_t pitch, const size_t pitch2D)
-            : Base{pointer}
-            , pitch(pitch)
-            , pitch2D(pitch2D)
-        {
-        }
-
-        /** constructor
+        /** return value the origin pointer is pointing to
          *
-         * @param pointer pointer to the origin of the physical memory
-         * @param offset offset (in elements)
-         * @param memSize size of the physical memory (in elements)
-         * @param pitch number of bytes in one line (first dimension)
+         * @return value at the current location
          */
-        ///@todo(bgruber): is this functionality not provide by DataBox::shift?
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM3>& memSize, const size_t pitch)
-            : Base{pointer}
-            , pitch(pitch)
-            , pitch2D(memSize[1] * pitch)
+        HDINLINE RefValueType operator*()
         {
+            return *this->m_ptr;
         }
 
-        HDINLINE PitchedBox(PitchedBox const&) = default;
-
-        HDINLINE ReducedType operator[](const int idx) const
+        /** get origin pointer
+         *
+         * @{
+         */
+        HDINLINE ValueType const* getPointer() const
         {
-            return ReducedType((TYPE*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch);
+            return this->m_ptr;
         }
+
+        HDINLINE ValueType* getPointer()
+        {
+            return this->m_ptr;
+        }
+        /** @} */
+
+        /*Object must init by copy a valid instance*/
+        PitchedBox() = default;
+
+        /** Constructor
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param pointer pointer to the memory
+         * @param extent extent of the memory in elements
+         * @param pitch line pitch in bytes
+         */
+        template<typename T_MemoryIdxType>
+        HDINLINE PitchedBox(ValueType* pointer, math::Vector<T_MemoryIdxType, T_dim> const& extent, size_t const pitch)
+            : m_ptr(pointer)
+        {
+            m_pitch.x() = pitch;
+            for(uint32_t d = 1; d < T_dim - 1; ++d)
+                m_pitch[d] = m_pitch[d - 1u] * static_cast<size_t>(extent[d]);
+        }
+
+        PitchedBox(PitchedBox const&) = default;
+
+        /** get value at the given index
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param idx n-dimensional offset, relative to the origin pointer
+         * @return reference to the value
+         * @{
+         */
+        template<typename T_MemoryIdxType>
+        HDINLINE ValueType const& operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx) const
+        {
+            return *ptr(idx);
+        }
+
+        template<typename T_MemoryIdxType>
+        HDINLINE RefValueType operator[](math::Vector<T_MemoryIdxType, T_dim> const& idx)
+        {
+            return *const_cast<ValueType*>(ptr(idx));
+        }
+
+        /** }@ */
 
     protected:
-        PMACC_ALIGN(pitch, size_t);
-        PMACC_ALIGN(pitch2D, size_t);
+        /** get the pointer of the value relative to the origin pointer m_ptr
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param idx n-dimensional offset
+         * @return pointer to value
+         */
+        template<typename T_MemoryIdxType>
+        HDINLINE ValueType const* ptr(math::Vector<T_MemoryIdxType, T_dim> const& idx) const
+        {
+            /** offset in bytes
+             *
+             * We calculate the complete offset in bytes even if it would be possible to change the x-dimension with
+             * the native types pointer, this is reducing the register footprint.
+             */
+            size_t offset = sizeof(ValueType) * idx.x();
+            for(uint32_t d = 1u; d < T_dim; ++d)
+                offset += m_pitch[d - 1u] * idx[d];
+            return reinterpret_cast<ValueType const*>(reinterpret_cast<char const*>(this->m_ptr) + offset);
+        }
+
+        PMACC_ALIGN(m_ptr, ValueType*);
+        PMACC_ALIGN(m_pitch, math::Vector<size_t, T_dim - 1>);
     };
 
+    template<typename T_Type>
+    struct PitchedBox<T_Type, DIM1>
+    {
+        static constexpr std::uint32_t Dim = DIM1;
+        using ValueType = T_Type;
+        using RefValueType = ValueType&;
 
+        /** return value the origin pointer is pointing to
+         *
+         * @return value at the current location
+         */
+        HDINLINE RefValueType operator*()
+        {
+            return *this->m_ptr;
+        }
+
+        /** get origin pointer
+         *
+         * @{
+         */
+        HDINLINE ValueType const* getPointer() const
+        {
+            return this->m_ptr;
+        }
+
+        HDINLINE ValueType* getPointer()
+        {
+            return this->m_ptr;
+        }
+        /** @} */
+
+        /*Object must init by copy a valid instance*/
+        PitchedBox() = default;
+
+        /** Constructor
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param pointer pointer to the memory
+         * @param extent extent of the memory in elements
+         * @param pitch line pitch in bytes
+         */
+        template<typename T_MemoryIdxType>
+        HDINLINE PitchedBox(
+            ValueType* pointer,
+            [[maybe_unused]] math::Vector<T_MemoryIdxType, DIM1> const& extent,
+            [[maybe_unused]] size_t const pitch)
+            : m_ptr(pointer)
+        {
+        }
+
+        HDINLINE PitchedBox(ValueType* pointer) : m_ptr(pointer)
+        {
+        }
+
+        PitchedBox(PitchedBox const&) = default;
+
+        /** get value at the given index
+         *
+         * @tparam T_MemoryIdxType Index type
+         * @param idx offset relative to the origin pointer
+         * @return reference to the value
+         * @{
+         */
+        HDINLINE ValueType const& operator[](int const idx) const
+        {
+            return *(m_ptr + idx);
+        }
+
+        HDINLINE RefValueType operator[](int const idx)
+        {
+            return *(m_ptr + idx);
+        }
+
+        HDINLINE ValueType const& operator[](DataSpace<DIM1> const& idx) const
+        {
+            return *(m_ptr + idx.x());
+        }
+
+        HDINLINE RefValueType operator[](DataSpace<DIM1> const& idx)
+        {
+            return *(m_ptr + idx.x());
+        }
+
+        /** @} */
+
+    protected:
+        PMACC_ALIGN(m_ptr, ValueType*);
+    };
 } // namespace pmacc

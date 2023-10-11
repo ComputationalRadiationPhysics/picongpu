@@ -213,17 +213,14 @@ namespace picongpu
 
                     // Prepare update functor type
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName());
-                    auto dataBox = updatedField.getDeviceDataBox();
                     auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName());
-                    using Functor
-                        = UpdateFunctor<decltype(dataBox), T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
+                    using Functor = UpdateFunctor<T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
                     auto functor = Functor{
                         parameters.sourceTimeIteration,
                         parameters.direction,
                         curlCoefficient,
                         incidentField.getUnit()};
-                    functor.updatedField = dataBox;
+
                     functor.isUpdatedFieldTotal = isUpdatedFieldTotal;
 
                     // Convert to the local domain indices
@@ -339,9 +336,11 @@ namespace picongpu
                     // Check that incidentField can be applied
                     checkRequirements(functor, beginLocalUserIdx);
 
+                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName());
+
                     auto workerCfg = lockstep::makeWorkerCfg(BlockSize{});
                     PMACC_LOCKSTEP_KERNEL(ApplyIncidentFieldKernel<BlockSize>{}, workerCfg)
-                    (gridBlocks)(functor, beginGridIdx, endGridIdx);
+                    (gridBlocks)(functor, updatedField.getDeviceDataBox(), beginGridIdx, endGridIdx);
                 }
 
                 /** Functor to update a field with the given incidentField normally to the given axis

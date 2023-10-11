@@ -73,7 +73,7 @@ namespace pmacc
         HDINLINE TileDataBox<VALUE> pushN(T_Worker const& worker, TYPE count, T_Hierarchy const& hierarchy)
         {
             TYPE old_addr = cupla::atomicAdd(worker.getAcc(), currentSize, count, hierarchy);
-            return TileDataBox<VALUE>(this->fixedPointer, DataSpace<DIM1>(old_addr));
+            return TileDataBox<VALUE>(this->m_ptr, DataSpace<DIM1>(old_addr));
         }
 
         /** Adds a value to the stack in an atomic operation.

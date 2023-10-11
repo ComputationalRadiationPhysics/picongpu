@@ -41,7 +41,7 @@ namespace gol
             {
                 for(int x = 0; x < dataSize.x(); ++x)
                 {
-                    float p = data[y][x];
+                    float p = data[Space(x, y)];
                     png.plot(x + 1, dataSize.y() - y, p, p, p);
                 }
             }

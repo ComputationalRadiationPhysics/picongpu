@@ -41,7 +41,7 @@ namespace pmacc
         using Base = T_Base;
         using UnaryFunctor = T_UnaryFunctor<typename Base::ValueType>;
         using ValueType = typename UnaryFunctor::result;
-        using RefValueType = ValueType;
+
         static constexpr std::uint32_t Dim = Base::Dim;
 
         HDINLINE DataBoxUnaryTransform() = default;
@@ -55,7 +55,7 @@ namespace pmacc
         template<typename T_Index>
         HDINLINE ValueType operator()(const T_Index& idx) const
         {
-            return UnaryFunctor()(Base::operator()(idx));
+            return UnaryFunctor()(Base::operator[](idx));
         }
 
         template<typename T_Index>

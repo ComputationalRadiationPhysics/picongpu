@@ -27,48 +27,31 @@
 
 namespace pmacc
 {
-    namespace detail
-    {
-        template<typename DataBox>
-        HDINLINE decltype(auto) access(const DataBox& db, DataSpace<1> const& idx = {})
-        {
-            return db[idx.x()];
-        }
-
-        template<typename DataBox>
-        HDINLINE decltype(auto) access(const DataBox& db, DataSpace<2> const& idx = {})
-        {
-            return db[idx.y()][idx.x()];
-        }
-
-        template<typename DataBox>
-        HDINLINE decltype(auto) access(const DataBox& db, DataSpace<3> const& idx = {})
-        {
-            return db[idx.z()][idx.y()][idx.x()];
-        }
-    } // namespace detail
-
     template<typename Base>
     struct DataBox : Base
     {
-        HDINLINE DataBox() = default;
+        DataBox() = default;
 
         HDINLINE DataBox(Base base) : Base{std::move(base)}
         {
         }
 
-        HDINLINE DataBox(DataBox const&) = default;
+        DataBox(DataBox const&) = default;
 
         HDINLINE decltype(auto) operator()(DataSpace<Base::Dim> const& idx = {}) const
         {
-            ///@todo(bgruber): inline and replace this by if constexpr in C++17
-            return detail::access(*this, idx);
+            return Base::operator[](idx);
+        }
+
+        HDINLINE decltype(auto) operator()(DataSpace<Base::Dim> const& idx = {})
+        {
+            return Base::operator[](idx);
         }
 
         HDINLINE DataBox shift(DataSpace<Base::Dim> const& offset) const
         {
             DataBox result(*this);
-            result.fixedPointer = &((*this)(offset));
+            result.m_ptr = const_cast<typename Base::ValueType*>(&((*this)(offset)));
             return result;
         }
     };

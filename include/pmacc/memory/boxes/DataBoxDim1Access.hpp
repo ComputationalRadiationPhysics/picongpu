@@ -36,7 +36,6 @@ namespace pmacc
         using Base = T_Base;
         static constexpr std::uint32_t Dim = Base::Dim;
         using ValueType = typename Base::ValueType;
-        using RefValueType = typename Base::RefValueType;
 
         HDINLINE DataBoxDim1Access(DataSpace<Dim> const& originalSize) : Base(), originalSize(originalSize)
         {
@@ -48,16 +47,26 @@ namespace pmacc
         {
         }
 
-        HDINLINE DataBoxDim1Access(DataBoxDim1Access const&) = default;
+        DataBoxDim1Access(DataBoxDim1Access const&) = default;
 
-        HDINLINE RefValueType operator()(DataSpace<DIM1> const& idx = {}) const
+        HDINLINE decltype(auto) operator()(DataSpace<DIM1> const& idx = {}) const
         {
             return (*this)[idx.x()];
         }
 
-        HDINLINE RefValueType operator[](const int idx) const
+        HDINLINE decltype(auto) operator()(DataSpace<DIM1> const& idx = {})
         {
-            return Base::operator()(DataSpaceOperations<Dim>::map(originalSize, idx));
+            return (*this)[idx.x()];
+        }
+
+        HDINLINE decltype(auto) operator[](const int idx) const
+        {
+            return Base::operator[](DataSpaceOperations<Dim>::map(originalSize, idx));
+        }
+
+        HDINLINE decltype(auto) operator[](const int idx)
+        {
+            return Base::operator[](DataSpaceOperations<Dim>::map(originalSize, idx));
         }
 
     private:

@@ -295,7 +295,7 @@ namespace pmacc::particles::algorithm
 
             DINLINE uint32_t numParticles() const
             {
-                auto& superCell = m_particlesBox.getSuperCell(m_superCellIdx);
+                auto const& superCell = m_particlesBox.getSuperCell(m_superCellIdx);
                 return superCell.getNumParticles();
             }
         };

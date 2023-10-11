@@ -90,7 +90,7 @@ namespace pmacc
             }
 
         protected:
-            PMACC_ALIGN8(m_rngBox, RNGBox);
+            PMACC_ALIGN(m_rngBox, RNGBox);
         };
 
     } // namespace random

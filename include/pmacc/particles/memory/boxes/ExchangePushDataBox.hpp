@@ -91,7 +91,7 @@ namespace pmacc
             tmp[0].setSuperCell(superCell);
             tmp[0].setCount(count);
             tmp[0].setStartIndex(oldSize);
-            return TileDataBox<VALUE>(this->fixedPointer, DataSpace<DIM1>(oldSize), count);
+            return TileDataBox<VALUE>(this->m_ptr, DataSpace<DIM1>(oldSize), count);
         }
 
 
