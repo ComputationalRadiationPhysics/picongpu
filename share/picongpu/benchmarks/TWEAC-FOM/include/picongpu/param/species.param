@@ -25,13 +25,6 @@
  * @see
  *   **MODELS / Hierarchy of Charge Assignment Schemes**
  *   in the online documentation for information on particle shapes.
- *
- *
- * @attention
- * The higher order shape names are redefined with release 0.6.0 in order to provide a consistent naming:
- *     * PQS is the name of the 3rd order assignment function (instead of PCS)
- *     * PCS is the name of the 4th order assignment function (instead of P4S)
- *     * P4S does not exist anymore
  */
 
 #pragma once
