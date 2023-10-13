@@ -176,6 +176,6 @@ To easily access the data, you can use our python module located in ``lib/python
     plt.ylabel(calObj.detector_params["axisLabels"][-2] + r" $[^\circ]$", fontsize=18)
 
     cb = plt.colorbar()
-    cb.set_label("energy", fontsize=18)
+    cb.set_label("energy [keV]", fontsize=18)
 
     plt.show()
