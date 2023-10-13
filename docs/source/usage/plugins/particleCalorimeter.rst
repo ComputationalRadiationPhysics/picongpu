@@ -157,25 +157,25 @@ To easily access the data, you can use our python module located in ``lib/python
 
 .. code:: python
 
-import numpy as np
-import matplotlib.pyplot as plt
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-from calorimeter import particleCalorimeter
+    from calorimeter import particleCalorimeter
 
-# setup access to data
-calObj = particleCalorimeter("./simOutput/e_calorimeter/e_calorimeter_all_%T.bp")
+    # setup access to data
+    calObj = particleCalorimeter("./simOutput/e_calorimeter/e_calorimeter_all_%T.bp")
 
-# last bin contains overflow 
-selected_energy_bin = -1
+    # last bin contains overflow
+    selected_energy_bin = -1
 
-plt.title("selected energy: >{:.1f} keV".format(calObj.getEnergy()[selected_energy_bin]), fontsize=18)
+    plt.title("selected energy: >{:.1f} keV".format(calObj.getEnergy()[selected_energy_bin]), fontsize=18)
 
-plt.pcolormesh(calObj.getYaw(), calObj.getPitch(), calObj.getData(2000)[selected_energy_bin, :, :])
+    plt.pcolormesh(calObj.getYaw(), calObj.getPitch(), calObj.getData(2000)[selected_energy_bin, :, :])
 
-plt.xlabel(calObj.detector_params["axisLabels"][-1] + r" $[^\circ]$", fontsize=18)
-plt.ylabel(calObj.detector_params["axisLabels"][-2] + r" $[^\circ]$", fontsize=18)
+    plt.xlabel(calObj.detector_params["axisLabels"][-1] + r" $[^\circ]$", fontsize=18)
+    plt.ylabel(calObj.detector_params["axisLabels"][-2] + r" $[^\circ]$", fontsize=18)
 
-cb = plt.colorbar()
-cb.set_label("energy", fontsize=18)
+    cb = plt.colorbar()
+    cb.set_label("energy", fontsize=18)
 
-plt.show()
+    plt.show()
