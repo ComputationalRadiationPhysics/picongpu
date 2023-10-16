@@ -4,7 +4,7 @@ Changelog
 0.7.0
 -----
 
-**Date:** 2023-10-XX
+**Date:** 2023-10-19
 
 C++17, lasers via incidentField, DispersivePulse laser profile, sub-stepping field solver, and [PICMI](https://picmi-standard.github.io/#) support
 
