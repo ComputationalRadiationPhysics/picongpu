@@ -128,15 +128,11 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation
             uint32_t const lowerStateClctIdx
                 = boundFreeTransitionDataBox.lowerStateCollectionIndex(transitionCollectionIndex);
 
+            float_64 const combinatorialFactor
+                = static_cast<float_64>(boundFreeTransitionDataBox.multiplicity(transitionCollectionIndex));
+
             auto const upperStateConfigNumber = atomicStateDataBox.configNumber(upperStateClctIdx);
             auto const lowerStateConfigNumber = atomicStateDataBox.configNumber(lowerStateClctIdx);
-
-            LevelVector const upperStateLevelVector = S_ConfigNumber::getLevelVector(upperStateConfigNumber);
-            LevelVector const lowerStateLevelVector = S_ConfigNumber::getLevelVector(lowerStateConfigNumber);
-
-            float_64 const combinatorialFactor = multiplicityBoundFreeTransition(
-                lowerStateLevelVector,
-                lowerStateLevelVector - upperStateLevelVector);
 
             // eV
             float_X const energyDifference = picongpu::particles::atomicPhysics2::DeltaEnergyTransition ::
@@ -175,7 +171,7 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation
             float_X const beta = betaFactor(screenedCharge); // unitless
             float_64 const w = wFactor(U, beta); // unitless
             float_X const crossSection = static_cast<float_X>(
-                scalingConstant * static_cast<float_64>(combinatorialFactor)
+                scalingConstant * combinatorialFactor
                 / static_cast<float_64>(pmacc::math::cPow(energyDifference, static_cast<uint8_t>(2u)))
                 / static_cast<float_64>(U) * math::log(static_cast<float_64>(U)) * w); // [1e6*b]
             // 1e6*b * (eV)^2 * unitless / (eV)^2 / unitless * log(unitless) * unitless

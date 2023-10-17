@@ -165,12 +165,11 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation
 
             // no overflow in float_X cast
             if(relativeTest(
-                   (multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(lowerStateClctIdx))
-                    / multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(upperStateClctIdx))),
+                   atomicStateDataBox.multiplicity(lowerStateClctIdx)
+                       / atomicStateDataBox.multiplicity(upperStateClctIdx),
                    float_64(float_X(
-                       multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(lowerStateClctIdx))
-                       / multiplicityConfigNumber<S_ConfigNumber>(
-                           atomicStateDataBox.configNumber(upperStateClctIdx)))),
+                       atomicStateDataBox.multiplicity(lowerStateClctIdx)
+                       / atomicStateDataBox.multiplicity(upperStateClctIdx))),
                    1e-7))
                 printf("atomicPhysics ERROR: overflow in multiplicityConfigNumber-ratio cast to float_X\n");
         }
@@ -283,8 +282,8 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation
                 //      different multiplicityConfigNumber for deexcitation
                 // unitless
                 ratio = static_cast<float_X>(
-                    multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(lowerStateClctIdx))
-                    / multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(upperStateClctIdx)));
+                    atomicStateDataBox.multiplicity(lowerStateClctIdx)
+                    / atomicStateDataBox.multiplicity(upperStateClctIdx));
 
                 if constexpr(picongpu::atomicPhysics2::debug::rateCalculation::DEBUG_CHECKS)
                     debugChecksMultiplicity(ratio, lowerStateClctIdx, upperStateClctIdx, atomicStateDataBox);
@@ -406,8 +405,8 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation
 
             // unitless
             float_X ratio = static_cast<float_X>(
-                multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(lowerStateClctIdx))
-                / multiplicityConfigNumber<S_ConfigNumber>(atomicStateDataBox.configNumber(upperStateClctIdx)));
+                atomicStateDataBox.multiplicity(lowerStateClctIdx)
+                / atomicStateDataBox.multiplicity(upperStateClctIdx));
 
             if constexpr(picongpu::atomicPhysics2::debug::rateCalculation::DEBUG_CHECKS)
                 debugChecksMultiplicity(ratio, lowerStateClctIdx, upperStateClctIdx, atomicStateDataBox);

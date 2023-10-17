@@ -77,11 +77,11 @@ namespace picongpu::particles::atomicPhysics2::atomicData
 
     /** gathering of all atomicPhyiscs input data
      *
-     * @tparam T_DataBoxType dataBox type used for storage
      * @tparam T_Number dataType used for number storage, typically uint32_t
      * @tparam T_Value dataType used for value storage, typically float_X
      * @tparam T_CollectionIndex dataType used for collection index, typically uint32_t
      * @tparam T_ConfigNumber dataType used for storage of configNumber
+     * @tparam T_Multiplicities dataType used for storage of T_Multiplicities, typically uint64_t
      *
      * @tparam T_electronicExcitation is channel active?
      * @tparam T_electronicDeexcitation is channel active?
@@ -139,6 +139,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         typename T_Value,
         typename T_CollectionIndex,
         typename T_ConfigNumber,
+        typename T_Multiplicities,
         bool T_electronicExcitation,
         bool T_electronicDeexcitation,
         bool T_spontaneousDeexcitation,
@@ -172,7 +173,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using S_ChargeStateDataBuffer = ChargeStateDataBuffer<TypeNumber, TypeValue, T_ConfigNumber::atomicNumber>;
         using S_ChargeStateOrgaDataBuffer
             = ChargeStateOrgaDataBuffer<TypeNumber, TypeValue, T_ConfigNumber::atomicNumber>;
-        using S_AtomicStateDataBuffer = AtomicStateDataBuffer<TypeNumber, TypeValue, T_ConfigNumber>;
+        using S_AtomicStateDataBuffer = AtomicStateDataBuffer<TypeNumber, TypeValue, T_ConfigNumber, T_Multiplicities>;
 
         template<ProcClassGroup T_ProcessClassGroup>
         using S_AtomicStateStartIndexBlockDataBuffer_UpDown
@@ -199,7 +200,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             TypeNumber,
             TypeValue,
             T_CollectionIndex,
-            typename T_ConfigNumber::DataType,
+            T_ConfigNumber,
+            T_Multiplicities,
             T_TransitionOrdering>;
         template<procClass::TransitionOrdering T_TransitionOrdering>
         using S_AutonomousTransitionDataBuffer = AutonomousTransitionDataBuffer<
@@ -215,7 +217,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using S_ChargeStateDataBox = ChargeStateDataBox<TypeNumber, TypeValue, T_ConfigNumber::atomicNumber>;
         using S_ChargeStateOrgaDataBox = ChargeStateOrgaDataBox<TypeNumber, TypeValue, T_ConfigNumber::atomicNumber>;
 
-        using S_AtomicStateDataBox = AtomicStateDataBox<TypeNumber, TypeValue, T_ConfigNumber>;
+        using S_AtomicStateDataBox = AtomicStateDataBox<TypeNumber, TypeValue, T_ConfigNumber, T_Multiplicities>;
 
         template<ProcClassGroup T_ProcessClassGroup>
         using S_AtomicStateStartIndexBlockDataBox_UpDown
@@ -245,7 +247,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             TypeNumber,
             TypeValue,
             T_CollectionIndex,
-            typename T_ConfigNumber::DataType,
+            T_ConfigNumber,
+            T_Multiplicities,
             T_TransitionOrdering>;
         template<picongpu::particles::atomicPhysics2::processClass::TransitionOrdering T_TransitionOrdering>
         using S_AutonomousTransitionDataBox = AutonomousTransitionDataBox<
