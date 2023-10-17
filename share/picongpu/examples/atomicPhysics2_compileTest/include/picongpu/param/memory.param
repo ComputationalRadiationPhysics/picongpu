@@ -50,6 +50,9 @@ namespace picongpu
      */
     using SuperCellSize = typename mCT::shrinkTo<mCT::Int<2, 2, 2>, simDim>::type;
 
+    /** number of slots for particles within a frame */
+    static constexpr uint32_t numFrameSlots = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription<simDim, SuperCellSize>;
 
@@ -71,14 +74,14 @@ namespace picongpu
 
     /** bytes reserved for species exchange buffer
      *
-     * This is the default configuration for species exchanges buffer sizes.
-     * The default exchange buffer sizes can be changed per species by adding
-     * the alias exchangeMemCfg with similar members like in DefaultExchangeMemCfg
-     * to its flag list.
+     * This is the default configuration for species exchanges buffer sizes when performing a simulation with 32bit
+     * precision (default for PIConGPU). For double precision the amount of memory used for exchanges will
+     * be automatically doubled. The default exchange buffer sizes can be changed per species by adding the alias
+     * exchangeMemCfg with similar members like in DefaultExchangeMemCfg to its flag list.
      */
     struct DefaultExchangeMemCfg
     {
-        // memory used for a direction
+        // Memory used for a direction for a simulation performed with 32bit precision.
         static constexpr uint32_t BYTES_EXCHANGE_X = 1 * 1024 * 1024; // 1 MiB
         static constexpr uint32_t BYTES_EXCHANGE_Y = 3 * 1024 * 1024; // 3 MiB
         static constexpr uint32_t BYTES_EXCHANGE_Z = 1 * 1024 * 1024; // 1 MiB
