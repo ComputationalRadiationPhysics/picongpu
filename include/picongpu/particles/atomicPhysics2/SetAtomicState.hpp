@@ -30,7 +30,7 @@ namespace picongpu::particles::atomicPhysics2
     struct SetAtomicState
     {
         template<typename T_ConfigNumber, typename T_Ion>
-        static DINLINE void op(T_Ion& ion, typename T_ConfigNumber::DataType newAtomicConfigNumber)
+        DINLINE static void op(T_Ion& ion, typename T_ConfigNumber::DataType newAtomicConfigNumber)
         {
             PMACC_DEVICE_ASSERT_MSG(
                 T_ConfigNumber::getBoundElectrons(newAtomicConfigNumber) <= T_ConfigNumber::atomicNumber,

@@ -63,7 +63,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
-            T_LocalHistogramDataBox const localHistogramBox,
+            T_LocalHistogramDataBox localHistogramBox,
             T_LocalElectronHistogramOverSubscribedDataBox localElectronHistogramOverSubscribedBox,
             T_LocalRejectionProbabilityCacheDataBox localRejectionProbabilityCacheBox) const
         {

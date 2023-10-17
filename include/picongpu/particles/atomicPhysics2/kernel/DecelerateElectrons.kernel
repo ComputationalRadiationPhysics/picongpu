@@ -70,7 +70,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_AreaMapping const areaMapping,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_ElectronBox electronBox,
-            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox) const
+            T_LocalElectronHistogramDataBox localElectronHistogramDataBox) const
         {
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));

@@ -61,7 +61,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
-            T_LocalTimeStepBox const localTimeStepBox,
+            T_LocalTimeStepBox localTimeStepBox,
             T_LocalRateCache localRateCacheBox) const
         {
             // atomicPhysics superCellFields have no guard, but areMapping includes a guard

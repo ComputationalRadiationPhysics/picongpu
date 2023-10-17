@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox ionBox,
             T_TimeStepDataBox const localTimeStepBox,
-            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
+            T_LocalElectronHistogramDataBox localElectronHistogramDataBox,
             T_ChargeStateDataDataBox const chargeStateDataDataBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox) const

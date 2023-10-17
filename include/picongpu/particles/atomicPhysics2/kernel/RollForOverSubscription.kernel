@@ -71,7 +71,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalElectronHistogramOverSubscribedDataBox const localElectronHistogramOverSubscribedBox,
             T_IonBox ionBox,
-            T_LocalRejectionProbabilityCacheDataBox const localRejectionProbabilityCacheBox) const
+            T_LocalRejectionProbabilityCacheDataBox localRejectionProbabilityCacheBox) const
         {
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
