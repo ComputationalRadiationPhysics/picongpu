@@ -55,7 +55,8 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
+            pmacc::lockstep::WorkerCfg workerCfg
+                = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
             // pointer to memory, we will only work on device, no sync required
             // init pointer to macro particles

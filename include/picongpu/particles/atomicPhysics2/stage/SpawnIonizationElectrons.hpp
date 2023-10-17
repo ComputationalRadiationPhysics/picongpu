@@ -62,7 +62,8 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
+            pmacc::lockstep::WorkerCfg workerCfg
+                = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<

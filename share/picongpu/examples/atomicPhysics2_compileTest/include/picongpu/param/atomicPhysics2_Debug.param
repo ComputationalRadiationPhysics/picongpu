@@ -98,7 +98,7 @@ namespace picongpu::atomicPhysics2::debug
     {
         //! @attention only useful if building serial and cpu only
         constexpr bool PRINT_TO_CONSOLE = false;
-    }// namespace timeStep
+    } // namespace timeStep
 
 
     namespace initIonizationElectrons
