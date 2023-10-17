@@ -50,7 +50,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
+            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
 
@@ -143,7 +143,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getChargeStateDataDataBox<false>());
             }
 
-            // currently no bound-free based non collisional processes exist
+            // currently no bound-free based non-collisional processes exist
             /// @todo implement field ionization, Brian Marre, 2023
 
             if constexpr(AtomicDataType::switchAutonomousIonization)

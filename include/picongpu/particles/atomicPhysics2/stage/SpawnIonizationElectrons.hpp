@@ -19,9 +19,9 @@
 
 /** @file recordChanges sub-stage of atomicPhysics
  *
- * create ionization macro electrons  for ionizing transitions, add delta energy of
- *  transition to interaction histogram bin for collisional transitions and update
- *  atomic configNumber.
+ * - create ionization macro electrons for ionizing transitions
+ * - add delta energy of transition to interaction histogram bin for collisional transitions
+ * - update atomic configNumber
  */
 
 #pragma once
@@ -62,7 +62,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
+            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<

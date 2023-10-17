@@ -59,7 +59,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
+            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
 
@@ -79,8 +79,9 @@ namespace picongpu::particles::atomicPhysics2::stage
                 AtomicDataType::switchElectronicExcitation || AtomicDataType::switchElectronicDeexcitation
                 || AtomicDataType::switchElectronicIonization)
             {
+                // macro for kernel call for every superCell
                 PMACC_LOCKSTEP_KERNEL(
-                    picongpu::particles::atomicPhysics2::kernel ::RecordUsedElectronHistogramWeightKernel<
+                    picongpu::particles::atomicPhysics2::kernel::RecordUsedElectronHistogramWeightKernel<
                         picongpu::atomicPhysics2::ElectronHistogram>(),
                     workerCfg)
                 (mapper.getGridDim())(

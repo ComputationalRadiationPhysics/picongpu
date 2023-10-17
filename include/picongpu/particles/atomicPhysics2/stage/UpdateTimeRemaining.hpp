@@ -50,8 +50,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                 picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>>(
                 "LocalTimeStepField");
 
-            // macro for call of kernel, see pull request #4321
-            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel ::UpdateTimeRemainingKernel(), workerCfg)
+            // macro for kernel call
+            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel::UpdateTimeRemainingKernel(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 localTimeRemainingField.getDeviceDataBox(),

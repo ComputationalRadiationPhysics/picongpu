@@ -48,7 +48,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
-            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg(MappingDesc::SuperCellSize{});
+            pmacc::lockstep::WorkerCfg workerCfg = pmacc::lockstep::makeWorkerCfg<picongpu::atomicPhysics2::ElectronHistogram::numberBins>();
 
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
@@ -59,7 +59,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                               LocalHistogramField<picongpu::atomicPhysics2::ElectronHistogram, picongpu::MappingDesc>>(
                     "Electron_localHistogramField");
 
-            // macro for call of kernel for every superCell, see pull request #4321
+            // macro for call of kernel for every superCell
             PMACC_LOCKSTEP_KERNEL(
                 picongpu::particles::atomicPhysics2::kernel::ResetDeltaWeightElectronHistogramKernel<
                     picongpu::atomicPhysics2::ElectronHistogram>(),

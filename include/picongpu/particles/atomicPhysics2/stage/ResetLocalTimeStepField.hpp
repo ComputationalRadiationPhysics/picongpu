@@ -52,9 +52,9 @@ namespace picongpu::particles::atomicPhysics2::stage
                 picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>>(
                 "LocalTimeStepField");
 
-            // macro for call of kernel, see pull request #4321
+            // macro for call of kernel
             PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel ::ResetLocalTimeStepFieldKernel(),
+                picongpu::particles::atomicPhysics2::kernel::ResetLocalTimeStepFieldKernel(),
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
