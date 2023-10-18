@@ -116,6 +116,7 @@ for their contributions to this release!
 
 **Bug Fixes:**
 - PIC:
+    - Fix missing euler number in ADK formula #4696
     - Fix incorrect assignment of Jz in 2d EmZ implementation #3892
     - Fix getExternalCellsTotal() to properly account for guard cells #4030
     - Fix incident field math around corners #4102
