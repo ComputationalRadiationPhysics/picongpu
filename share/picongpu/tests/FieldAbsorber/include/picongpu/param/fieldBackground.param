@@ -24,13 +24,17 @@
 
 #pragma once
 
+#ifndef PARAM_GRID_SIZE
+#    define PARAM_GRID_SIZE 60
+#endif
+
 namespace picongpu
 {
     class FieldBackgroundE
     {
     public:
         /* Add this additional field for pushing particles */
-        static constexpr bool InfluenceParticlePusher = true;
+        static constexpr bool InfluenceParticlePusher = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -59,7 +63,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static constexpr bool InfluenceParticlePusher = true;
+        static constexpr bool InfluenceParticlePusher = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -105,10 +109,10 @@ namespace picongpu
          */
 
         //! Conductor is oriented along y-axis with the following coordinates and size, values for 60 cells in the grid
-        static constexpr int32_t positionX = 30; // unit: cells
-        static constexpr int32_t positionY = 30; // unit: cells
+        static constexpr int32_t positionX = int32_t(.5_X * PARAM_GRID_SIZE); // unit: cells
+        static constexpr int32_t positionY = int32_t(.5_X * PARAM_GRID_SIZE); // unit: cells
         // We support non-unit source for high order field solver
-        static constexpr int32_t halfWidth = 1; // unit: cells
+        static constexpr float_X halfWidth = 1._X; // unit: cells
 
         //! Amplitude in terms of current density in SI
         float_X amplitudeSI = -2._X; // unit: A / m^2
