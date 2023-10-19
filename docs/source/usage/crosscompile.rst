@@ -32,7 +32,7 @@ Depending on the toolchain the environment variable ``RISCV_GNU_INSTALL_ROOT`` o
 
    export RISCV_GNU_INSTALL_ROOT="$(dirname $(which riscv64-unknown-linux-gnu-gcc))/.."
    export RISCV_CLANG_INSTALL_ROOT="$(dirname $(which clang))/.."
-   
+
 .. code-block:: bash
 
    # ``omp2b`` for OpenMP and ``serial`` for serial execution on one core
