@@ -1532,6 +1532,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return chargeStateDataBuffer->getHostDataBox();
             else
                 return chargeStateDataBuffer->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(chargeStateDataBuffer->getHostDataBox());
         }
 
         //! @tparam hostData true: get hostDataBox, false: get DeviceDataBox
@@ -1542,6 +1544,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return chargeStateOrgaDataBuffer->getHostDataBox();
             else
                 return chargeStateOrgaDataBuffer->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(chargeStateOrgaDataBuffer->getHostDataBox());
         }
 
         // atomic states
@@ -1554,6 +1558,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateDataBuffer->getHostDataBox();
             else
                 return atomicStateDataBuffer->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateDataBuffer->getHostDataBox());
         }
 
         //      start index orga data
@@ -1566,6 +1572,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateStartIndexBlockDataBuffer_BoundBound->getHostDataBox();
             else
                 return atomicStateStartIndexBlockDataBuffer_BoundBound->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateStartIndexBlockDataBuffer_BoundBound->getHostDataBox());
         }
 
         //! @tparam hostData true: get hostDataBox, false: get DeviceDataBox
@@ -1576,6 +1584,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateStartIndexBlockDataBuffer_BoundFree->getHostDataBox();
             else
                 return atomicStateStartIndexBlockDataBuffer_BoundFree->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateStartIndexBlockDataBuffer_BoundFree->getHostDataBox());
         }
 
         //! @tparam hostData true: get hostDataBox, false: get DeviceDataBox
@@ -1586,6 +1596,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateStartIndexBlockDataBuffer_Autonomous->getHostDataBox();
             else
                 return atomicStateStartIndexBlockDataBuffer_Autonomous->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateStartIndexBlockDataBuffer_Autonomous->getHostDataBox());
         }
 
         //      number transitions orga data
@@ -1598,6 +1610,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateNumberOfTransitionsDataBuffer_BoundBound->getHostDataBox();
             else
                 return atomicStateNumberOfTransitionsDataBuffer_BoundBound->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateNumberOfTransitionsDataBuffer_BoundBound->getHostDataBox());
         }
 
         //! @tparam hostData true: get hostDataBox, false: get DeviceDataBox
@@ -1609,6 +1623,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateNumberOfTransitionsDataBuffer_BoundFree->getHostDataBox();
             else
                 return atomicStateNumberOfTransitionsDataBuffer_BoundFree->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateNumberOfTransitionsDataBuffer_BoundFree->getHostDataBox());
         }
 
         //! @tparam hostData true: get hostDataBox, false: get DeviceDataBox
@@ -1620,6 +1636,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return atomicStateNumberOfTransitionsDataBuffer_Autonomous->getHostDataBox();
             else
                 return atomicStateNumberOfTransitionsDataBuffer_Autonomous->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(atomicStateNumberOfTransitionsDataBuffer_Autonomous->getHostDataBox());
         }
 
         // transition data
@@ -1649,6 +1667,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 else
                     return inverseBoundBoundTransitionDataBuffer->getDeviceDataBox();
             }
+            ALPAKA_UNREACHABLE(S_BoundBoundTransitionDataBuffer<T_TransitionOrdering>(0u).getHostDataBox());
         }
 
         /** bound-free transition data access
@@ -1677,6 +1696,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 else
                     return inverseBoundFreeTransitionDataBuffer->getDeviceDataBox();
             }
+            ALPAKA_UNREACHABLE(S_BoundFreeTransitionDataBuffer<T_TransitionOrdering>(0u).getHostDataBox());
         }
 
         /** autonomous transition data access
@@ -1705,6 +1725,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 else
                     return inverseAutonomousTransitionDataBuffer->getDeviceDataBox();
             }
+            ALPAKA_UNREACHABLE(S_AutonomousTransitionDataBuffer<T_TransitionOrdering>(0u).getHostDataBox());
         }
 
         // transition selection data
@@ -1716,6 +1737,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 return transitionSelectionDataBuffer->getHostDataBox();
             else
                 return transitionSelectionDataBuffer->getDeviceDataBox();
+
+            ALPAKA_UNREACHABLE(transitionSelectionDataBuffer->getHostDataBox());
         }
 
         // debug queries

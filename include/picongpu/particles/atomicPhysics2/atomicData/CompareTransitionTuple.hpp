@@ -115,6 +115,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                     + std::to_string(T_ConfigNumber::atomicNumber));
                 return false;
             }
+            ALPAKA_UNREACHABLE(false);
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::atomicData

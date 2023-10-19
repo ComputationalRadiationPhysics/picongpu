@@ -116,7 +116,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     uint32_t const transitionIndex = ion[transitionIndex_];
 
-                    float_X deltaEnergy = 0._X;
+                    [[maybe_unused]] float_X deltaEnergy = 0._X;
                     if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
                                      u8(T_ProcessClass)))
                     {
