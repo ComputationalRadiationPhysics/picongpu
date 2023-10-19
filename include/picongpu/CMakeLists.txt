@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.22.0)
 # Project
 ################################################################################
 
-project(PIConGPUapp)
+project(PIConGPUapp CXX C)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
@@ -154,17 +154,17 @@ find_package(PMacc REQUIRED CONFIG PATHS "${PIConGPUapp_SOURCE_DIR}/../pmacc")
 ################################################################################
 
 find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(HOST_LIBS ${HOST_LIBS} ${MPI_C_LIBRARIES})
-
+list(PREPEND HOST_LIBS MPI::MPI_CXX)
 
 ################################################################################
 # Find PThreads
 ################################################################################
 
+if(NOT THREADS_PREFER_PTHREAD_FLAG)
+    set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+endif()
 find_package(Threads REQUIRED)
-set(HOST_LIBS ${HOST_LIBS} ${CMAKE_THREAD_LIBS_INIT})
-
+list(PREPEND HOST_LIBS Threads::Threads)
 
 ################################################################################
 # Find math from stdlib
@@ -173,7 +173,7 @@ set(HOST_LIBS ${HOST_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # automatically added on windows
     # should not be added for Intel compiler as it has an optimized lib included
-    set(HOST_LIBS ${HOST_LIBS} m)
+    list(PREPEND HOST_LIBS m)
 endif()
 
 
@@ -183,10 +183,10 @@ endif()
 
 find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::boost)
-    set(HOST_LIBS ${HOST_LIBS} Boost::boost Boost::program_options)
+    list(PREPEND HOST_LIBS Boost::boost Boost::program_options)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(HOST_LIBS ${HOST_LIBS} ${Boost_LIBRARIES})
+    list(PREPEND HOST_LIBS ${Boost_LIBRARIES})
 endif()
 
 
@@ -315,6 +315,10 @@ if(PIC_SEARCH_openPMD)
     # find openPMD installation
     find_package(openPMD 0.14.3 CONFIG COMPONENTS MPI)
     if(openPMD_FOUND)
+        # HDF5 and ADIOS require linking against C libraries but this is not correctly
+        # exposed.
+        list(PREPEND HOST_LIBS MPI::MPI_C)
+
         if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
             message(STATUS "Found openPMD: ${openPMD_DIR}")
             add_definitions(-DENABLE_OPENPMD=1)
@@ -365,7 +369,7 @@ if(PIC_SEARCH_openPMD)
                 find_package(toml11 3.7.0 CONFIG REQUIRED)
                 message(STATUS "toml11: Found version '${toml11_VERSION}'")
             endif()
-            set(HOST_LIBS ${HOST_LIBS} openPMD::openPMD)
+            list(PREPEND HOST_LIBS openPMD::openPMD)
         else()
             message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
                            " availability of either its ADIOS2 or HDF5 backend - "
@@ -390,7 +394,7 @@ if(PIC_SEARCH_PNGwriter)
     find_package(PNGwriter 0.7.0 CONFIG)
 
     if(PNGwriter_FOUND)
-        set(HOST_LIBS ${HOST_LIBS} PNGwriter::PNGwriter)
+        list(PREPEND HOST_LIBS PNGwriter::PNGwriter)
         add_definitions(-DPIC_ENABLE_PNG=1)
         message(STATUS "Found PNGwriter: ${PNGwriter_DIR}")
     else()

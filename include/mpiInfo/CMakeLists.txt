@@ -80,20 +80,29 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
 
+################################################################################
+# Find Threads
+################################################################################
+
+# Allow users to override the "-pthread" preference.
+if(NOT THREADS_PREFER_PTHREAD_FLAG)
+     set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+endif()
+
+# WARNING: in case were we cross compile we need to add '-DDMPI_CXX_WORKS=ON` and
+# provide include flags and linker flags manually.
+find_package(Threads REQUIRED)
+if(NOT APPLE)
+    # librt: undefined reference to `clock_gettime'
+    find_library(RT_LIBRARY rt)
+endif()
+
 
 ################################################################################
 # Find MPI
 ################################################################################
 
 find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(MPIINFO_LIBS ${MPIINFO_LIBS} ${MPI_C_LIBRARIES})
-
-# bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND)
-    set(MPIINFO_LIBS ${MPIINFO_LIBS} ${MPI_CXX_LIBRARIES})
-endif(MPI_CXX_FOUND)
-
 
 ################################################################################
 # Find Boost
@@ -116,7 +125,20 @@ add_executable(mpiInfo
     mpiInfo.cpp
 )
 
-target_link_libraries(mpiInfo PRIVATE ${MPIINFO_LIBS})
+target_link_libraries(mpiInfo PRIVATE ${MPIINFO_LIBS} Threads::Threads)
+if(RT_LIBRARY AND NOT APPLE)
+    # MPI runtime libraries
+    target_link_libraries(mpiInfo PRIVATE ${RT_LIBRARY})
+endif()
+target_link_libraries(mpiInfo PRIVATE MPI::MPI_CXX)
+
+if( CMAKE_TRY_COMPILE_TARGET_TYPE STREQUAL "STATIC_LIBRARY" AND CMAKE_EXE_LINKER_FLAGS)
+    # Workaround for linker issues when linking static MPI libraries.
+    # Because of CMAKE_TRY_COMPILE_TARGET_TYPE CMake providing the statics libraries before the object file from
+    # `add_executable` therefore MPI, symbols can not be resolved. Linking the linker flags to the target again will
+    # workaround the issue.
+    target_link_libraries(mpiInfo PRIVATE ${CMAKE_EXE_LINKER_FLAGS})
+endif()
 
 ## annotate with RPATH's
 if(MPIINFO_ADD_RPATH)

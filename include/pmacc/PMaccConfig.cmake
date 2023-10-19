@@ -39,7 +39,6 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${PMacc_DIR}/../../thirdParty/cmake-modules/)
 
-
 ################################################################################
 # alpaka path
 ################################################################################
@@ -288,13 +287,33 @@ endif()
 ################################################################################
 
 find_package(MPI REQUIRED)
-target_include_directories(pmacc PUBLIC ${MPI_C_INCLUDE_PATH})
-target_link_libraries(pmacc PUBLIC ${MPI_C_LIBRARIES})
+target_link_libraries(pmacc PUBLIC MPI::MPI_CXX)
+target_link_libraries(pmacc_filesystem INTERFACE MPI::MPI_CXX)
 
-# bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND)
-    target_link_libraries(pmacc PUBLIC ${MPI_CXX_LIBRARIES})
-endif(MPI_CXX_FOUND)
+if( CMAKE_TRY_COMPILE_TARGET_TYPE STREQUAL "STATIC_LIBRARY" AND CMAKE_EXE_LINKER_FLAGS)
+    # Workaround for linker issues when linking static MPI libraries.
+    # Because of CMAKE_TRY_COMPILE_TARGET_TYPE CMake is providing the statics libraries before the object file from
+    # `add_executable` therefore MPI symbols can not be resolved. Linking the linker flaks to the target again will
+    # workaround the issue.
+    target_link_libraries(pmacc PUBLIC ${CMAKE_EXE_LINKER_FLAGS})
+endif()
+
+
+################################################################################
+# Find Threads
+################################################################################
+
+if(NOT THREADS_PREFER_PTHREAD_FLAG)
+     set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+endif()
+find_package(Threads REQUIRED)
+if(NOT APPLE)
+    # librt: undefined reference to `clock_gettime'
+    find_library(RT_LIBRARY rt)
+    if(RT_LIBRARY)
+        target_link_libraries(pmacc PUBLIC ${RT_LIBRARY})
+    endif()
+endif()
 
 
 ################################################################################
