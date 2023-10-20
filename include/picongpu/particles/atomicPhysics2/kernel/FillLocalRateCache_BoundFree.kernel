@@ -183,16 +183,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         T_ChargeStateDataDataBox,
                                         T_AtomicStateDataDataBox,
                                         T_BoundFreeTransitionDataBox>(
-                                        histogram.getBinEnergy(binIndex),
-                                        histogram.getBinWidth(binIndex),
-                                        // 1/(UNIT_LENGTH^3*eV)
-                                        histogram.getBinWeight0(binIndex) / volumeScalingFactor
-                                            / histogram.getBinWidth(binIndex),
-                                        // transitionCollectionIndex
-                                        offset + i,
-                                        chargeStateDataDataBox,
-                                        atomicStateDataDataBox,
-                                        boundFreeTransitionDataBox));
+                                            histogram.getBinEnergy(binIndex),
+                                            histogram.getBinWidth(binIndex),
+                                            // 1/(UNIT_LENGTH^3*eV)
+                                            histogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                                / histogram.getBinWidth(binIndex),
+                                            // transitionCollectionIndex
+                                            offset + i,
+                                            chargeStateDataDataBox,
+                                            atomicStateDataDataBox,
+                                            boundFreeTransitionDataBox));
                         }
                     }
                 });

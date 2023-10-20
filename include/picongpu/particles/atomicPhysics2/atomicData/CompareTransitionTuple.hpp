@@ -38,6 +38,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
      *  tertiary ascending by upper/lower charge state,
      *  quartary ascending by upper/lower atomicConfigNumber
      *
+     * depending on whether we order by lower or upper state
+     *
      * @tparam T_Number data type used for numbers
      * @tparam T_ConfigNumber dataType used for storage of configNumber
      * @tparam orderByLowerState true=^=order by by lower , false=^=upper state
@@ -86,6 +88,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                 throw std::runtime_error(
                     "transitions with lower and upper state being equal are not allowed in the input data set!, Z: "
                     + std::to_string(T_ConfigNumber::atomicNumber));
+                return false;
             }
             else
             {

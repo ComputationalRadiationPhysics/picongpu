@@ -102,7 +102,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                                      "upper state chargeState");
     }
 
-    //! version for bound-free transitions
+    //! version for autonomous transitions
     template<typename T_ConfigNumber>
     HINLINE void checkTransitionTuple(AutonomousTransitionTuple<uint64_t> transitionTuple)
     {
