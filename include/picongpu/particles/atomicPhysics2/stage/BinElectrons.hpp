@@ -51,7 +51,7 @@
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    /** @class atomicPhysics sub-stage for a species calling the kernel per superCell
+    /** atomicPhysics sub-stage for a species calling the kernel per superCell
      *
      * is called once per time step for the entire local simulation volume and for
      * every isElectron species by the atomicPhysics stage by the atomicPhysicsStage

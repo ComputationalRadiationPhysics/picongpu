@@ -54,7 +54,7 @@ namespace picongpu::particles::atomicPhysics2::stage
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
 
         //! call of kernel for every superCell
-        ALPAKA_FN_HOST void operator()(picongpu::MappingDesc const mappingDesc) const
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
         {
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);

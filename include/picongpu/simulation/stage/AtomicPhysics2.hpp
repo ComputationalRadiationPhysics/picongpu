@@ -30,6 +30,7 @@
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalElectronHistogramOverSubscribedField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRejectionProbabilityCacheField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/FixAtomicState.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/AcceptTransitionTest.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/BinElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CalculateStepLength.hpp"
@@ -145,6 +146,10 @@ namespace picongpu::simulation::stage
         //! atomic physics stage sub-stage calls
         void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
         {
+            //! fix mismatches between boundElectrons and atomicStateCollectionIndex attributes
+            using ForEachIonSpeciesFixAtomicState = pmacc::meta::ForEach<
+                SpeciesRepresentingIons,
+                particles::atomicPhysics2::stage::FixAtomicState<boost::mpl::_1>>;
             //! reset macro particle attribute accepted to false for each ion species
             using ForEachIonSpeciesResetAcceptedStatus = pmacc::meta::ForEach<
                 SpeciesRepresentingIons,
@@ -233,6 +238,7 @@ namespace picongpu::simulation::stage
             pmacc::device::Reduce deviceLocalReduce = pmacc::device::Reduce(static_cast<uint32_t>(1200u));
 
             setTimeRemaining(); // = (Delta t)_PIC
+            ForEachIonSpeciesFixAtomicState{}(mappingDesc);
 
             uint16_t counterSubStep = 0u;
             // atomicPhysics sub-stepping loop, ends when timeRemaining<=0._X

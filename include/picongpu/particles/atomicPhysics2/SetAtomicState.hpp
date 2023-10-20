@@ -29,15 +29,25 @@ namespace picongpu::particles::atomicPhysics2
 {
     struct SetAtomicState
     {
-        template<typename T_ConfigNumber, typename T_Ion>
-        DINLINE static void op(T_Ion& ion, typename T_ConfigNumber::DataType newAtomicConfigNumber)
+        template<typename T_AtomicStateDataDataBox, typename T_Ion, typename T_CollectionIndex>
+        DINLINE static void op(
+            T_AtomicStateDataDataBox const atomicStateBox,
+            T_Ion& ion,
+            T_CollectionIndex const newAtomicStateCollectionIndex)
         {
+            using ConfigNumber = typename T_AtomicStateDataDataBox::ConfigNumber;
+
+            typename T_AtomicStateDataDataBox::Idx const newAtomicConfigNumber
+                = atomicStateBox.configNumber(newAtomicStateCollectionIndex);
+
             PMACC_DEVICE_ASSERT_MSG(
-                T_ConfigNumber::getBoundElectrons(newAtomicConfigNumber) <= T_ConfigNumber::atomicNumber,
+                ConfigNumber::getBoundElectrons(newAtomicConfigNumber) <= ConfigNumber::atomicNumber,
                 "Number of bound electrons must be <= Z");
 
-            ion[atomicConfigNumber_] = newAtomicConfigNumber;
-            ion[boundElectrons_] = T_ConfigNumber::getBoundElectrons(newAtomicConfigNumber);
+            // update atomic State
+            ion[atomicStateCollectionIndex_] = newAtomicStateCollectionIndex;
+            // update charge State
+            ion[boundElectrons_] = ConfigNumber::getBoundElectrons(newAtomicConfigNumber);
         }
     };
 } // namespace picongpu::particles::atomicPhysics2

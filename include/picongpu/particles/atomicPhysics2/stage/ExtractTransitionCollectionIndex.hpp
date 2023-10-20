@@ -56,8 +56,6 @@ namespace picongpu::particles::atomicPhysics2::stage
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
-            using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
-
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
                     picongpu::MappingDesc>>("LocalTimeRemainingField");
@@ -77,8 +75,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                 // bound-bound transitions
                 PMACC_LOCKSTEP_KERNEL(
                     picongpu::particles::atomicPhysics2::kernel::ExtractTransitionCollectionIndexKernel_BoundBound<
-                        SpeciesConfigNumberType,
-                        picongpu::atomicPhysics2::ElectronHistogram::numberBins,
                         AtomicDataType::switchElectronicExcitation,
                         AtomicDataType::switchElectronicDeexcitation,
                         AtomicDataType::switchSpontaneousDeexcitation,
@@ -90,8 +86,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
-                    atomicData.template getChargeStateOrgaDataBox<false>(),
-                    atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundNumberTransitionsDataBox<false>(),
                     atomicData.template getBoundBoundStartIndexBlockDataBox<false>());
             }
@@ -101,8 +95,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                 // bound-free transitions
                 PMACC_LOCKSTEP_KERNEL(
                     picongpu::particles::atomicPhysics2::kernel::ExtractTransitionCollectionIndexKernel_BoundFree<
-                        SpeciesConfigNumberType,
-                        picongpu::atomicPhysics2::ElectronHistogram::numberBins,
                         AtomicDataType::switchElectronicExcitation,
                         AtomicDataType::switchElectronicDeexcitation,
                         AtomicDataType::switchSpontaneousDeexcitation,
@@ -114,8 +106,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
-                    atomicData.template getChargeStateOrgaDataBox<false>(),
-                    atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundFreeNumberTransitionsDataBox<false>(),
                     atomicData.template getBoundFreeStartIndexBlockDataBox<false>());
             }
@@ -125,7 +115,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                 // autonomous transitions
                 PMACC_LOCKSTEP_KERNEL(
                     picongpu::particles::atomicPhysics2::kernel::ExtractTransitionCollectionIndexKernel_Autonomous<
-                        SpeciesConfigNumberType,
                         AtomicDataType::switchElectronicExcitation,
                         AtomicDataType::switchElectronicDeexcitation,
                         AtomicDataType::switchSpontaneousDeexcitation,
@@ -137,8 +126,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
-                    atomicData.template getChargeStateOrgaDataBox<false>(),
-                    atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getAutonomousNumberTransitionsDataBox<false>(),
                     atomicData.template getAutonomousStartIndexBlockDataBox<false>());
             }

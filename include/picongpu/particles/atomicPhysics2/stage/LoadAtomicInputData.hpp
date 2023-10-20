@@ -44,7 +44,7 @@ namespace picongpu::particles::atomicPhysics2::stage
     template<typename T_IonSpecies>
     struct LoadAtomicInputData
     {
-        ALPAKA_FN_HOST void operator()(DataConnector& dataConnector) const
+        HINLINE void operator()(DataConnector& dataConnector) const
         {
             // might be alias, from here on out no more
             //! resolved type of alias T_IonSpecies

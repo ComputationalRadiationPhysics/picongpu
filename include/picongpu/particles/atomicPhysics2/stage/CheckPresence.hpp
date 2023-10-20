@@ -57,11 +57,6 @@ namespace picongpu::particles::atomicPhysics2::stage
             pmacc::lockstep::WorkerCfg workerCfg
                 = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
-            using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
-            auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
-
-            using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
-
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
                     picongpu::MappingDesc>>("LocalTimeRemainingField");
@@ -75,15 +70,13 @@ namespace picongpu::particles::atomicPhysics2::stage
                 IonSpecies::FrameType::getName() + "_localRateCacheField");
 
             PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel::CheckPresenceKernel<SpeciesConfigNumberType>(),
+                picongpu::particles::atomicPhysics2::kernel::CheckPresenceKernel(),
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 localTimeRemainingField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
-                localRateCacheField.getDeviceDataBox(),
-                atomicData.template getChargeStateOrgaDataBox<false>(),
-                atomicData.template getAtomicStateDataDataBox<false>());
+                localRateCacheField.getDeviceDataBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

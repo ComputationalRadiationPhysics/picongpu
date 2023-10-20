@@ -116,6 +116,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     uint32_t const transitionIndex = ion[transitionIndex_];
 
+                    // get delta Energy transition
                     [[maybe_unused]] float_X deltaEnergy = 0._X;
                     if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
                                      u8(T_ProcessClass)))
@@ -129,7 +130,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                 chargeStateBox...);
                     }
 
-                    typename T_AtomicStateDataBox::Idx newConfigNumber;
+                    uint32_t newAtomicStateCollectionIndex;
 
                     if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::upward>::check(u8(T_ProcessClass)))
                     {
@@ -139,18 +140,19 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             deltaEnergy = -deltaEnergy;
 
                         // new state is upper state of transition
-                        newConfigNumber
-                            = atomicStateBox.configNumber(transitionBox.upperStateCollectionIndex(transitionIndex));
+                        newAtomicStateCollectionIndex = transitionBox.upperStateCollectionIndex(transitionIndex);
                     }
                     else
                     {
                         // downward process, new state is lower state of transition
-                        newConfigNumber
-                            = atomicStateBox.configNumber(transitionBox.lowerStateCollectionIndex(transitionIndex));
+                        newAtomicStateCollectionIndex = transitionBox.lowerStateCollectionIndex(transitionIndex);
                     }
 
-                    picongpu::particles::atomicPhysics2::SetAtomicState::op<
-                        typename T_AtomicStateDataBox::ConfigNumber>(ion, newConfigNumber);
+                    // update atomic state
+                    picongpu::particles::atomicPhysics2::SetAtomicState::op(
+                        atomicStateBox,
+                        ion,
+                        newAtomicStateCollectionIndex);
 
                     // record used energy
                     if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(

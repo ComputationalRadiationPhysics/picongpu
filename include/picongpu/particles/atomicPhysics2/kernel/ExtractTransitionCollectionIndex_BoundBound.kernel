@@ -53,9 +53,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
      * In contrast a physical transitionIndex encodes the processClass, which includes
      *  direction and physical process, as well as collectionIndex.
      *
-     * @tparam T_ConfigNumber type of configNumber used for storage of atomic state by species
-     * @tparam T_numberBins number of bins in the histogram
-     *
      * @tparam electronicExcitation is channel active?
      * @tparam electronicDeexcitation is channel active?
      * @tparam spontaneousDeexcitation is channel active?
@@ -64,8 +61,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
      * @tparam fieldIonization is channel active?
      */
     template<
-        typename T_ConfigNumber,
-        uint32_t T_numberBins,
         bool T_electronicExcitation,
         bool T_electronicDeexcitation,
         bool T_spontaneousDeexcitation,
@@ -114,9 +109,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param areMapping mapping of blockIndex to block superCell index
          * @param rngFactory factory for uniformly distributed random number generator
          * @param ionBox deviceDataBox giving access to the particle frames of all local superCells
-         * @param chargeStateOrgaBox deviceDataBox giving access to charge state orga data
-         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state
-         *  property data
          * @param numberTransitionsBox deviceDataBox giving access to the number of
          *  bound-bound transitions for each atomic state
          * @param startIndexBox deviceDataBox giving access to the start index of each
@@ -127,8 +119,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
             typename T_AreaMapping,
             typename T_LocalTimeRemainingBox,
             typename T_IonBox,
-            typename T_ChargeStateOrgaDataBox,
-            typename T_AtomicStateDataDataBox,
             typename T_AtomicStateBoundBoundNumberTransitionsDataBox,
             typename T_AtomicStateBoundBoundStartIndexBlockDataBox>
         HDINLINE void operator()(
@@ -136,8 +126,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_AreaMapping const areaMapping,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox ionBox,
-            T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
-            T_AtomicStateDataDataBox const atomicStateDataDataBox,
             T_AtomicStateBoundBoundNumberTransitionsDataBox const numberTransitionsBox,
             T_AtomicStateBoundBoundStartIndexBlockDataBox const startIndexBox) const
         {
@@ -168,7 +156,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             // check whether bound-bound transition and if yes,
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
-                [&chargeStateOrgaBox, &atomicStateDataDataBox, &numberTransitionsBox, &startIndexBox](
+                [&numberTransitionsBox, &startIndexBox](
                     T_Worker const& worker,
                     auto& ion)
                 {
@@ -176,15 +164,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     if(ion[accepted_])
                         return;
 
-                    typename T_ConfigNumber::DataType const atomicStateConfigNumber
-                        = ion[atomicConfigNumber_].getConfigNumber();
-
-                    uint8_t const chargeState = T_ConfigNumber::getChargeState(atomicStateConfigNumber);
-
-                    uint32_t const atomicStateCollectionIndex = atomicStateDataDataBox.findStateCollectionIndex(
-                        atomicStateConfigNumber,
-                        chargeStateOrgaBox.numberAtomicStates(chargeState),
-                        chargeStateOrgaBox.startIndexBlockAtomicStates(chargeState));
+                    uint32_t const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
                     // usually 0 or 1, depending on active channels
                     constexpr uint32_t factorUp = S_NumberPhysical::getFactorBoundBoundUp();

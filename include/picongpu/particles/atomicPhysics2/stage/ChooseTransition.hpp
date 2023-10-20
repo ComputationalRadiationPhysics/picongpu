@@ -63,8 +63,6 @@ namespace picongpu::particles::atomicPhysics2::stage
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
-            using SpeciesConfigNumberType = typename AtomicDataType::ConfigNumber;
-
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
                     picongpu::MappingDesc>>("LocalTimeRemainingField");
@@ -74,15 +72,13 @@ namespace picongpu::particles::atomicPhysics2::stage
             RngFactoryInt rngFactory = RngFactoryInt{currentStep};
 
             PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel::ChooseTransitionKernel<SpeciesConfigNumberType>(),
+                picongpu::particles::atomicPhysics2::kernel::ChooseTransitionKernel(),
                 workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 rngFactory,
                 localTimeRemainingField.getDeviceDataBox(),
                 ions.getDeviceParticlesBox(),
-                atomicData.template getChargeStateOrgaDataBox<false>(),
-                atomicData.template getAtomicStateDataDataBox<false>(),
                 atomicData.template getTransitionSelectionDataBox<false>());
         }
     };

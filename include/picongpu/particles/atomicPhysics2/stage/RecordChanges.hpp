@@ -45,7 +45,7 @@ namespace picongpu::particles::atomicPhysics2::stage
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
 
         //! call of kernel for every superCell
-        ALPAKA_FN_HOST void operator()(picongpu::MappingDesc const mappingDesc) const
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
         {
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
@@ -91,7 +91,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             if constexpr(AtomicDataType::switchElectronicDeexcitation)
             {
                 using RecordChanges_electronicDeexcitation
-                    = picongpu::particles::atomicPhysics2 ::kernel::RecordChangesKernel<
+                    = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
                         procClass::ProcessClass::electronicDeexcitation,
                         picongpu::atomicPhysics2::ElectronHistogram>;
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicDeexcitation(), workerCfg)
@@ -109,7 +109,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             if constexpr(AtomicDataType::switchSpontaneousDeexcitation)
             {
                 using RecordChanges_spontaneousDeexcitation
-                    = picongpu::particles::atomicPhysics2::kernel ::RecordChangesKernel<
+                    = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
                         procClass::ProcessClass::spontaneousDeexcitation,
                         picongpu::atomicPhysics2::ElectronHistogram>;
 
@@ -128,7 +128,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             if constexpr(AtomicDataType::switchElectronicIonization)
             {
                 using RecordChanges_electronicIonization
-                    = picongpu::particles::atomicPhysics2::kernel ::RecordChangesKernel<
+                    = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
                         procClass::ProcessClass::electronicIonization,
                         picongpu::atomicPhysics2::ElectronHistogram>;
 
@@ -150,7 +150,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             if constexpr(AtomicDataType::switchAutonomousIonization)
             {
                 using RecordChanges_autonomousIonization
-                    = picongpu::particles::atomicPhysics2::kernel ::RecordChangesKernel<
+                    = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
                         procClass::ProcessClass::autonomousIonization,
                         picongpu::atomicPhysics2::ElectronHistogram>;
 

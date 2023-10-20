@@ -27,7 +27,6 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
-    template<typename T_ConfigNumber>
     struct CheckPresenceKernel
     {
         /** call operator
@@ -49,17 +48,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
             typename T_AreaMapping,
             typename T_LocalTimeRemainingBox,
             typename T_IonBox,
-            typename T_LocalRateCache,
-            typename T_ChargeStateOrgaDataBox,
-            typename T_AtomicStateDataDataBox>
+            typename T_LocalRateCache>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox const ionBox,
-            T_LocalRateCache localRateCacheBox,
-            T_ChargeStateOrgaDataBox const chargeStateOrgaBox,
-            T_AtomicStateDataDataBox const atomicStateDataDataBox) const
+            T_LocalRateCache localRateCacheBox) const
         {
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -79,19 +74,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
 
             forEachLocalIonBoxEntry(
-                [&rateCache, &chargeStateOrgaBox, &atomicStateDataDataBox](T_Worker const& worker, auto& ion)
+                [&rateCache](T_Worker const& worker, auto& ion)
                 {
-                    typename T_ConfigNumber::DataType const atomicStateConfigNumber
-                        = ion[atomicConfigNumber_].getConfigNumber();
-
-                    uint8_t const chargeState = T_ConfigNumber::getChargeState(atomicStateConfigNumber);
-
-                    uint32_t const atomicStateCollectionIndex = atomicStateDataDataBox.findStateCollectionIndex(
-                        atomicStateConfigNumber,
-                        chargeStateOrgaBox.numberAtomicStates(chargeState),
-                        chargeStateOrgaBox.startIndexBlockAtomicStates(chargeState));
-
-                    rateCache.setPresent(worker, atomicStateCollectionIndex, true);
+                    rateCache.setPresent(worker, ion[atomicStateCollectionIndex_], true);
                 });
         }
     };

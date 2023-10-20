@@ -147,9 +147,6 @@ namespace picongpu
      */
     alias(effectiveNuclearCharge);
 
-    //! alias for particle property, atomic state storage of ions, see also atomicPhysics2.param
-    alias(atomicConfigNumber);
-
     //! alias for particle flag, specifies atomic data storage class type to use for this species
     alias(atomicDataType);
 
@@ -207,16 +204,17 @@ namespace picongpu
      */
     alias(autonomousTransitionsFileName);
 
+    //! alias for particle flag setting electron species to spawn upon atomicPhysics ionization
     alias(ionizationElectronSpecies);
-
-    //! alias for particle flag describing atomicPhysics solver, @todo remove
-    alias(atomicPhysicsSolver);
 
     //! alias for particle flag describing atomicPhysics solver
     alias(isAtomicPhysicsIon);
 
     //! alias for particle flag, notes that a species is representing Electrons
     alias(isAtomicPhysicsElectron);
+
+    //! particle attribute, collectionIndex of atomic state of ions
+    value_identifier(uint32_t, atomicStateCollectionIndex, 0u);
 
     //! particle attribute, process class of selected atomicPhysics transition
     value_identifier(uint8_t, processClass, 0u);
@@ -229,6 +227,12 @@ namespace picongpu
 
     //! particle attribute, whether the selected transition was accepted
     value_identifier(bool, accepted, false);
+
+    //! alias for particle flag describing atomicPhysics solver, @todo remove
+    alias(atomicPhysicsSolver);
+
+    //! alias for particle property, atomic state storage of ions, see also atomicPhysics2.param, @todo remove
+    alias(atomicConfigNumber);
 
     /** Total cell index of a particle.
      *

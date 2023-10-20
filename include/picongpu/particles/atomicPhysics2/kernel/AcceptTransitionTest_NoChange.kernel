@@ -104,18 +104,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     if((ion[accepted_]) || (ion[processClass_] != u8(procClass::ProcessClass::noChange)))
                         return;
 
-                    typename T_ConfigNumber::DataType const atomicStateConfigNumber
-                        = ion[atomicConfigNumber_].getConfigNumber();
-
-                    uint8_t const chargeState = T_ConfigNumber::getChargeState(atomicStateConfigNumber);
-
-                    uint32_t const atomicStateCollectionIndex = atomicStateDataDataBox.findStateCollectionIndex(
-                        atomicStateConfigNumber,
-                        chargeStateOrgaBox.numberAtomicStates(chargeState),
-                        chargeStateOrgaBox.startIndexBlockAtomicStates(chargeState));
-
                     // 1/UNIT_TIME
-                    float_X const rate = rateCache.rate(atomicStateCollectionIndex);
+                    float_X const rate = rateCache.rate(ion[atomicStateCollectionIndex_]);
 
                     // unitless
                     float_X const probability = T_AcceptanceFunctor::probabilityNoChange(

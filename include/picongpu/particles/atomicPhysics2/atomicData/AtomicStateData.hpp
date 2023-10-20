@@ -137,14 +137,14 @@ namespace picongpu::particles::atomicPhysics2::atomicData
 
         /** returns collection index of atomic state in dataBox with given ConfigNumber
          *
-         * @attention do not use to get energy of atomic state, use getEnergy() directly instead!
+         * @attention avoid use if possible in favor of direct access using collectionIndex
          *
          * @param configNumber ... configNumber of atomic state
          * @param startIndexBlock ... start index for search, not required but faster,
          *  is available from chargeStateOrgaDataBox.startIndexBlockAtomicStates(chargeState)
          *  with chargeState available from ConfigNumber::getIonizationState(configNumber)
          * @param numberAtomicStatesForChargeState ... number of atomic states in model with charge state
-         *  of configNumber, not required but faster,
+         *  of configNumber, not required but faster, use number atomic states if unknown,
          *  is available from chargeStateOrgaDataBox.numberAtomicStates(chargeState).
          *  with chargeState available from ConfigNumber::getIonizatioState(configNumber)
          *
@@ -157,7 +157,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         {
             /// @todo replace linear search, BrianMarre, 2022
             // search for state in dataBox
-            for(uint32_t i = 0; i < numberAtomicStatesForChargeState; i++)
+            for(uint32_t i = 0; i < numberAtomicStatesForChargeState; ++i)
             {
                 if(m_boxConfigNumber(i + startIndexBlock) == configNumber)
                 {
@@ -169,6 +169,41 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             return m_numberAtomicStates;
         }
 
+        /** returns collection index of atomic state in dataBox with lowest energy in specified index range
+         *
+         * @attention only use for search within a single charge state!, does not consider ionization energies, only excitation energies
+         * @attention assumes range contains at least one atomic state
+         *
+         *
+         * @param startIndexBlock start index for search,
+         *  is available from chargeStateOrgaDataBox.startIndexBlockAtomicStates(chargeState)
+         *  with chargeState available from ConfigNumber::getIonizationState(configNumber)
+         * @param numberAtomicStatesForChargeState ... number of atomic states in model with charge state
+         *  of configNumber
+         *  is available from chargeStateOrgaDataBox.numberAtomicStates(chargeState).
+         *  with chargeState available from ConfigNumber::getIonizatioState(configNumber)
+         */
+        HDINLINE uint32_t findGroundState(
+            uint32_t const numberAtomicStatesForChargeState,
+            uint32_t const startIndexBlock) const
+        {
+            // get first state block energy
+            float_X lowestEnergy = m_boxStateEnergy(startIndexBlock);
+            uint32_t collectionIndex = startIndexBlock;
+
+            /// @todo replace linear search, BrianMarre, 2023
+            // search for state in dataBox
+            for(uint32_t i = 1; i < numberAtomicStatesForChargeState; ++i)
+            {
+                if(m_boxStateEnergy(i + startIndexBlock) < lowestEnergy)
+                {
+                    lowestEnergy = m_boxStateEnergy(i + startIndexBlock);
+                    collectionIndex = i + startIndexBlock;
+                }
+            }
+            return collectionIndex;
+        }
+
         /** returns the energy of the given state respective to the ground state of its ionization state
          *
          * @param ConfigNumber ... configNumber of atomic state
@@ -176,7 +211,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
          *  is available from chargeStateOrgaDataBox.startIndexBlockAtomicStates(chargeState)
          *  with chargeState available from ConfigNumber::getIonizationState(configNumber)
          * @param numberAtomicStatesForChargeState ... number of atomic states in model with charge state
-         *  of configNumber, not required but faster,
+         *  of configNumber, not required but faster, use number atomic states if unknown,
          *  is available from chargeStateOrgaDataBox.numberAtomicStates(chargeState).
          *  with chargeState available from ConfigNumber::getIonizatioState(configNumber)
          *
