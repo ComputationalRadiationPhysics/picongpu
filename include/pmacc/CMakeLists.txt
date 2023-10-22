@@ -62,7 +62,7 @@ set(CMAKE_CXX_STANDARD 17)
 ################################################################################
 # Directory of this file.
 ################################################################################
-set(PMACC_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(PMACC_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Normalize the path (e.g. remove ../)
 get_filename_component(PMACC_ROOT_DIR "${PMACC_ROOT_DIR}" ABSOLUTE)

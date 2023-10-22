@@ -10,6 +10,9 @@
     #  "Could NOT find MPI (missing: MPI_C_FOUND MPI_CXX_FOUND)"
     PIC_CMAKE_ARGS: "-DMPI_CXX_WORKS=ON -DMPI_CXX_VERSION=0"
     # ISAAC is not working with HIP
+    CXXFLAGS: "-I/usr/lib/x86_64-linux-gnu/openmpi/include"
+    CFLAGS: "$CXXFLAGS"
+    LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/ -lmpi"
     DISABLE_ISAAC: "yes"
     # CI_GPU_ARCH architecture of the hosted GPU is provided by the CI
     GPU_TARGETS: ${CI_GPU_ARCH}

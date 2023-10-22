@@ -73,6 +73,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    usage/python_utils
    usage/examples
    usage/workflows
+   usage/crosscompile
 
 .. toctree::
    :caption: MODELS
