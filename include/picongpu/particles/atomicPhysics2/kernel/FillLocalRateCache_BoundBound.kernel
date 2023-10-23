@@ -143,69 +143,98 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
-            forEachAtomicStateAndBin(
-                [&worker,
-                 &rateCache,
-                 &histogram,
-                 &atomicStateDataDataBox,
-                 &startIndexDataBox,
-                 &numberTransitionsDataBox,
-                 &boundBoundTransitionDataBox](uint32_t const linearIdx)
-                {
-                    uint32_t const binIndex = linearIdx / T_numberAtomicStates;
-                    uint32_t const atomicStateCollectionIndex = linearIdx % T_numberAtomicStates;
-
-                    // check if atomic state present at all
-                    if(!rateCache.present(atomicStateCollectionIndex))
-                        return;
-
-                    uint32_t numberTransitions;
-                    if constexpr(upward)
-                        numberTransitions = numberTransitionsDataBox.numberOfTransitionsUp(atomicStateCollectionIndex);
-                    else
-                        numberTransitions
-                            = numberTransitionsDataBox.numberOfTransitionsDown(atomicStateCollectionIndex);
-
-                    uint32_t offset;
-                    if constexpr(upward)
-                        offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
-                    else
-                        offset = startIndexDataBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex);
-
-                    // UNIT_LENGTH^3
-                    constexpr float_X volumeScalingFactor
-                        = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
-
-                    for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitions; i++)
+            if constexpr((upward && T_electronicExcitation) || ((!upward) && T_electronicDeexcitation))
+            {
+                forEachAtomicStateAndBin(
+                    [&worker,
+                    &rateCache,
+                    &histogram,
+                    &atomicStateDataDataBox,
+                    &startIndexDataBox,
+                    &numberTransitionsDataBox,
+                    &boundBoundTransitionDataBox](uint32_t const linearIdx)
                     {
-                        // collisional bound-bound de- or excitation
-                        if constexpr(
-                            // upward and electronic excitation channel is active
-                            (upward && T_electronicExcitation) ||
-                            // downward and electronic deexcitation channel is active
-                            ((!upward) && T_electronicDeexcitation))
+                        uint32_t const binIndex = linearIdx / T_numberAtomicStates;
+                        uint32_t const atomicStateCollectionIndex = linearIdx % T_numberAtomicStates;
+
+                        // check if atomic state present at all
+                        if(!rateCache.present(atomicStateCollectionIndex))
+                            return;
+
+                        uint32_t numberTransitions;
+                        if constexpr(upward)
+                            numberTransitions = numberTransitionsDataBox.numberOfTransitionsUp(atomicStateCollectionIndex);
+                        else
+                            numberTransitions
+                                = numberTransitionsDataBox.numberOfTransitionsDown(atomicStateCollectionIndex);
+
+                        uint32_t offset;
+                        if constexpr(upward)
+                            offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
+                        else
+                            offset = startIndexDataBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex);
+
+                        // UNIT_LENGTH^3
+                        constexpr float_X volumeScalingFactor
+                            = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+
+                        for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitions; i++)
                         {
-                            rateCache.add(
-                                worker,
-                                atomicStateCollectionIndex,
-                                -picongpu::particles::atomicPhysics2::rateCalculation:: // rate
-                                BoundBoundTransitionRates<T_numberLevels>::
-                                    template rateCollisionalBoundBoundTransition<
-                                        T_AtomicStateDataDataBox,
-                                        T_BoundBoundTransitionDataBox,
-                                        upward>(
-                                        histogram.getBinEnergy(binIndex),
-                                        histogram.getBinWidth(binIndex),
-                                        // 1/(UNIT_LENGTH^3*eV)
-                                        histogram.getBinWeight0(binIndex) / volumeScalingFactor
-                                            / histogram.getBinWidth(binIndex),
-                                        // transitionCollectionIndex
-                                        offset + i,
-                                        atomicStateDataDataBox,
-                                        boundBoundTransitionDataBox));
+                            // electronic excitation
+                            if constexpr(upward)
+                            {
+                                rateCache.add<
+                                    atomicPhyiscs2::enums::TransitionType::boundBound,
+                                    atomicPhysics2::enums::TransitionDirection::upward
+                                >(
+                                    worker,
+                                    atomicStateCollectionIndex,
+                                    // rate
+                                    picongpu::particles::atomicPhysics2::rateCalculation::
+                                    BoundBoundTransitionRates<T_numberLevels>::
+                                        template rateCollisionalBoundBoundTransition<
+                                            T_AtomicStateDataDataBox,
+                                            T_BoundBoundTransitionDataBox,
+                                            upward>(
+                                            histogram.getBinEnergy(binIndex),
+                                            histogram.getBinWidth(binIndex),
+                                            // 1/(UNIT_LENGTH^3*eV)
+                                            histogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                                / histogram.getBinWidth(binIndex),
+                                            // transitionCollectionIndex
+                                            offset + i,
+                                            atomicStateDataDataBox,
+                                            boundBoundTransitionDataBox));
+                            }
+                            // electronic deexcitation
+                            else
+                            {
+                                rateCache.add<
+                                    atomicPhyiscs2::enums::TransitionType::boundBound,
+                                    atomicPhysics2::enums::TransitionDirection::downward
+                                >(
+                                    worker,
+                                    atomicStateCollectionIndex,
+                                    // rate
+                                    picongpu::particles::atomicPhysics2::rateCalculation::
+                                    BoundBoundTransitionRates<T_numberLevels>::
+                                        template rateCollisionalBoundBoundTransition<
+                                            T_AtomicStateDataDataBox,
+                                            T_BoundBoundTransitionDataBox,
+                                            upward>(
+                                            histogram.getBinEnergy(binIndex),
+                                            histogram.getBinWidth(binIndex),
+                                            // 1/(UNIT_LENGTH^3*eV)
+                                            histogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                                / histogram.getBinWidth(binIndex),
+                                            // transitionCollectionIndex
+                                            offset + i,
+                                            atomicStateDataDataBox,
+                                            boundBoundTransitionDataBox));
+                            }
                         }
-                    }
-                });
+                    });
+            }
 
             // spontaneous radiative deexcitation
             if constexpr((!upward) and T_spontaneousDeexcitation)
@@ -229,9 +258,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                         for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitions; i++)
                         {
-                            rateCache.add(
+                            rateCache.add<
+                                atomicPhyiscs2::enums::TransitionType::boundBound,
+                                atomicPhysics2::enums::TransitionDirection::downward
+                            >(
                                 atomicStateCollectionIndex,
-                                -picongpu::particles::atomicPhysics2::rateCalculation ::BoundBoundTransitionRates<
+                                // rate
+                                picongpu::particles::atomicPhysics2::rateCalculation::BoundBoundTransitionRates<
                                     T_numberLevels>::
                                     template rateSpontaneousRadiativeDeexcitation<
                                         T_AtomicStateDataDataBox,

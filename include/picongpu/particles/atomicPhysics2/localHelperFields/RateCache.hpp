@@ -44,10 +44,14 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
 
     private:
         // partial sums of rates for each atomic state
-        float_X rateBoundBoundUpward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
-        float_X rateBoundBoundDownward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
-        float_X rateBoundFreeUpward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
-        float_X rateAutonomousDownward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        // 1/UNIT_TIME
+        float_X rateBoundBoundUpward[T_numberAtomicStates] = {0};
+        // 1/UNIT_TIME
+        float_X rateBoundBoundDownward[T_numberAtomicStates] = {0};
+        // 1/UNIT_TIME
+        float_X rateBoundFreeUpward[T_numberAtomicStates] = {0};
+        // 1/UNIT_TIME
+        float_X rateAutonomousDownward[T_numberAtomicStates] = {0};
         /// @todo add rate_boundFree_Downward for recombination, Brian Marre, 2023
 
         uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
@@ -231,6 +235,28 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
 
             // unknown combination of T_TransitionType and T_TransitionDirection
             return 0._X;
+        }
+
+        /** get chached total loss rate for an atomic state
+         *
+         * @param collectionIndex collection Index of atomic state
+         * @return rate of transition, [1/UNIT_TIME], by convention >0
+         *
+         * @attention no range checks outside a debug compile, invalid memory access on failure
+         * @attention returns invalid value if state not present
+         */
+        HDINLINE float_X totalLossRate(uint32_t const collectionIndex) const
+        {
+            if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
+                if(collectionIndex >= numberAtomicStates)
+                {
+                    printf("atomicPhysics ERROR: out of range in totalLossRate() call on rateCache\n");
+                    return 0._X;
+                }
+            return rateBoundBoundUpward[collectionIndex]
+                + rateBoundBoundDownward[collectionIndex]
+                + rateBoundFreeUpward[collectionIndex]
+                + rateAutonomousDownward[collectionIndex];
         }
 
         /** get presence status for an atomic state

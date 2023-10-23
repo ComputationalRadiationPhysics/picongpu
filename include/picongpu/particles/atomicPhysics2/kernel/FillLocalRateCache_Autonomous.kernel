@@ -138,9 +138,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitionsDown; i++)
                         {
                             // 1/UNIT_TIME
-                            rateCache.add(
+                            rateCache.add<
+                                atomicPhysics2::enums::TransitionType::autonomous,
+                                atomicPhysics2::enums::TransitionDirection::downward
+                            >(
                                 atomicStateCollectionIndex,
-                                -picongpu::particles::atomicPhysics2::rateCalculation::AutonomousTransitionRates ::
+                                picongpu::particles::atomicPhysics2::rateCalculation::AutonomousTransitionRates::
                                     template rateAutonomousIonization<T_AutonomousTransitionDataBox>(
                                         // transitionCollectionIndex
                                         offset + i,

@@ -174,10 +174,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     {
                         if constexpr(T_electronicIonization)
                         {
-                            rateCache.add(
+                            rateCache.add<
+                                atomicPhyiscs2::enums::TransitionType::boundFree,
+                                atomicPhysics2::enums::TransitionDirection::upward
+                            >(
                                 worker,
                                 atomicStateCollectionIndex,
-                                -picongpu::particles::atomicPhysics2::rateCalculation::BoundFreeTransitionRates<
+                                picongpu::particles::atomicPhysics2::rateCalculation::BoundFreeTransitionRates<
                                     T_numberLevels>::
                                     template rateCollisionalIonizationTransition<
                                         T_ChargeStateDataDataBox,
