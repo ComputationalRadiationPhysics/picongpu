@@ -22,8 +22,8 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/AutonomousTransitionRates.hpp"
 
 #include <pmacc/lockstep/ForEach.hpp>
@@ -33,7 +33,7 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     /** fill rate cache kernel
      *
@@ -50,7 +50,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
     template<
         uint32_t T_numberAtomicStates,
         bool T_autonomousIonization,
-        procClass::TransitionOrdering T_TransitionOrdering>
+        enums::TransitionOrdering T_TransitionOrdering>
     struct FillLocalRateCacheKernel_Autonomous
     {
         /** call operator
@@ -92,15 +92,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
             PMACC_CASSERT_MSG(
                 number_transitions_dataBox_not_autonomous_based,
                 u8(T_AtomicStateNumberTransitionsBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::autonomousBased));
+                    == u8(enums::ProcessClassGroup::autonomousBased));
             PMACC_CASSERT_MSG(
                 startIndex_DataBox_not_autonomous_based,
                 u8(T_AtomicStateStartIndexBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::autonomousBased));
+                    == u8(enums::ProcessClassGroup::autonomousBased));
             PMACC_CASSERT_MSG(
                 transition_dataBox_not_autonomousBased,
                 u8(T_AutonomousTransitionDataBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::autonomousBased));
+                    == u8(enums::ProcessClassGroup::autonomousBased));
             // check ordering of transition dataBox
             PMACC_CASSERT_MSG(
                 wrong_ordering_of_DataBox,

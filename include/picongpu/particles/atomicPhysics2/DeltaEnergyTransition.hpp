@@ -25,7 +25,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
 #include <pmacc/static_assert.hpp>
 
@@ -33,7 +33,7 @@
 
 namespace picongpu::particles::atomicPhysics2
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     struct DeltaEnergyTransition
     {
@@ -72,18 +72,18 @@ namespace picongpu::particles::atomicPhysics2
          *
          * @return unit: eV
          */
-        template<procClass::ProcessClassGroup T_ProcessClassGroup, typename T_ChargeStateDataBox>
+        template<enums::ProcessClassGroup T_ProcessClassGroup, typename T_ChargeStateDataBox>
         HDINLINE static float_X ionizationEnergy(
             uint8_t const lowerStateChargeState,
             uint8_t const upperStateChargeState,
             T_ChargeStateDataBox const chargeStateDataBox)
         {
-            if constexpr(u8(T_ProcessClassGroup) == u8(procClass::ProcessClassGroup::boundFreeBased))
+            if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased))
                 return ionizationEnergyHelper<T_ChargeStateDataBox>(
                     lowerStateChargeState,
                     upperStateChargeState,
                     chargeStateDataBox);
-            if constexpr(u8(T_ProcessClassGroup) == u8(procClass::ProcessClassGroup::autonomousBased))
+            if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::autonomousBased))
                 return ionizationEnergyHelper<T_ChargeStateDataBox>(
                     upperStateChargeState,
                     lowerStateChargeState,
@@ -127,10 +127,10 @@ namespace picongpu::particles::atomicPhysics2
                 atomicStateDataBox.energy(upperStateCollectionIndex)
                 - atomicStateDataBox.energy(lowerStateCollectionIndex));
 
-            constexpr procClass::ProcessClassGroup processClassGroup = T_TransitionDataBox::processClassGroup;
+            constexpr enums::ProcessClassGroup processClassGroup = T_TransitionDataBox::processClassGroup;
             constexpr bool isIonizing
-                = ((u8(processClassGroup) == u8(procClass::ProcessClassGroup::boundFreeBased))
-                   || (u8(processClassGroup) == u8(procClass::ProcessClassGroup::autonomousBased)));
+                = ((u8(processClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased))
+                   || (u8(processClassGroup) == u8(enums::ProcessClassGroup::autonomousBased)));
 
             if constexpr(isIonizing)
             {
@@ -146,12 +146,12 @@ namespace picongpu::particles::atomicPhysics2
                 uint8_t const lowerStateChargeState = ConfigNumber::getChargeState(lowerStateConfigNumber);
                 uint8_t const upperStateChargeState = ConfigNumber::getChargeState(upperStateConfigNumber);
 
-                if constexpr(u8(processClassGroup) == u8(procClass::ProcessClassGroup::boundFreeBased))
+                if constexpr(u8(processClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased))
                     deltaEnergy += DeltaEnergyTransition::ionizationEnergy<processClassGroup, T_ChargeStateDataBox...>(
                         lowerStateChargeState,
                         upperStateChargeState,
                         chargeStateDataBox...);
-                if constexpr(u8(processClassGroup) == u8(procClass::ProcessClassGroup::autonomousBased))
+                if constexpr(u8(processClassGroup) == u8(enums::ProcessClassGroup::autonomousBased))
                     deltaEnergy -= DeltaEnergyTransition::ionizationEnergy<processClassGroup, T_ChargeStateDataBox...>(
                         lowerStateChargeState,
                         upperStateChargeState,

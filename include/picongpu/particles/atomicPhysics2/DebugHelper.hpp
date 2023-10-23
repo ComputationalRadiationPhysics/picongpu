@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics2/atomicData/GetStateFromTransitionTuple.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 
@@ -30,7 +30,7 @@
 
 namespace picongpu::particles::atomicPhysics2::debug
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     //! debug only, write atomic data to console, @attention serially and cpu build only
     template<typename T_AtomicData, bool T_printTransitionData, bool T_printInverseTransitions>
@@ -147,7 +147,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             // bound-bound transitions
             auto boundBoundTransitionDataBox
                 = atomicData
-                      ->template getBoundBoundTransitionDataBox<true, procClass::TransitionOrdering::byLowerState>();
+                      ->template getBoundBoundTransitionDataBox<true, enums::TransitionOrdering::byLowerState>();
             std::cout << "bound-bound transition" << std::endl;
             std::cout << "index :(low, up), dE, C, A, \"Gaunt\"( <1>, <2>, ...)" << std::endl;
             for(uint32_t i = 0; i < numberBoundBoundTransitions; i++)
@@ -167,7 +167,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             // bound-free transitions
             auto boundFreeTransitionDataBox
                 = atomicData
-                      ->template getBoundFreeTransitionDataBox<true, procClass::TransitionOrdering::byLowerState>();
+                      ->template getBoundFreeTransitionDataBox<true, enums::TransitionOrdering::byLowerState>();
             std::cout << "bound-free transition" << std::endl;
             std::cout << "index (low, up), dE, Coeff( <1>, <2>, ...)" << std::endl;
             for(uint32_t i = 0; i < numberBoundFreeTransitions; i++)
@@ -190,7 +190,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             // autonomous transitions
             auto autonomousTransitionDataBox
                 = atomicData
-                      ->template getAutonomousTransitionDataBox<true, procClass::TransitionOrdering::byLowerState>();
+                      ->template getAutonomousTransitionDataBox<true, enums::TransitionOrdering::byLowerState>();
 
             std::cout << "autonomous transitions" << std::endl;
             std::cout << "index :(low, up), dE, rate [1/Dt_PIC]" << std::endl;
@@ -216,7 +216,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             // bound-bound transitions
             auto boundBoundTransitionDataBox
                 = atomicData
-                      ->template getBoundBoundTransitionDataBox<true, procClass::TransitionOrdering::byUpperState>();
+                      ->template getBoundBoundTransitionDataBox<true, enums::TransitionOrdering::byUpperState>();
             std::cout << "inverse bound-bound transition" << std::endl;
             std::cout << "index :(low, up), dE, C, A, \"Gaunt\"( <1>, <2>, ...)" << std::endl;
             for(uint32_t i = 0; i < numberBoundBoundTransitions; i++)
@@ -236,7 +236,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             // bound-free transitions
             auto boundFreeTransitionDataBox
                 = atomicData
-                      ->template getBoundFreeTransitionDataBox<true, procClass::TransitionOrdering::byUpperState>();
+                      ->template getBoundFreeTransitionDataBox<true, enums::TransitionOrdering::byUpperState>();
             std::cout << "inverse bound-free transition" << std::endl;
             std::cout << "index :(low, up), dE, Coeff( <1>, <2>, ...)" << std::endl;
             for(uint32_t i = 0; i < numberBoundFreeTransitions; i++)
@@ -259,7 +259,7 @@ namespace picongpu::particles::atomicPhysics2::debug
             // autonomous transitions
             auto autonomousTransitionDataBox
                 = atomicData
-                      ->template getAutonomousTransitionDataBox<true, procClass::TransitionOrdering::byUpperState>();
+                      ->template getAutonomousTransitionDataBox<true, enums::TransitionOrdering::byUpperState>();
 
             std::cout << "inverse autonomous transitions" << std::endl;
             std::cout << "index :(low, up), dE, rate" << std::endl;

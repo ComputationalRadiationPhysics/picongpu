@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file implements enum of different groups of process classes
+//! @file implements enum of different groups of physical processes
 
 #pragma once
 
@@ -26,9 +26,8 @@
 
 namespace picongpu::particles::atomicPhysics2
 {
-    namespace processClass
+    namespace enums
     {
-        //! predefined groups of processClass
         enum struct ProcessClassGroup : uint8_t
         {
             boundBoundBased = 0u,
@@ -39,37 +38,37 @@ namespace picongpu::particles::atomicPhysics2
             upward = 5u,
             downward = 6u
         };
-    } // namespace processClass
+    } // namespace enums
 
-    template<processClass::ProcessClassGroup T_ProcessClassGroup>
+    template<enums::ProcessClassGroup T_ProcessClassGroup>
     ALPAKA_FN_HOST std::string enumToString()
     {
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(processClass::ProcessClassGroup::boundBoundBased))
+            == static_cast<uint8_t>(enums::ProcessClassGroup::boundBoundBased))
             return "boundBound";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(processClass::ProcessClassGroup::boundFreeBased))
+            == static_cast<uint8_t>(enums::ProcessClassGroup::boundFreeBased))
             return "boundFree";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(processClass::ProcessClassGroup::autonomousBased))
+            == static_cast<uint8_t>(enums::ProcessClassGroup::autonomousBased))
             return "autonomous";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(processClass::ProcessClassGroup::ionizing))
+            == static_cast<uint8_t>(enums::ProcessClassGroup::ionizing))
             return "ionizing";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(processClass::ProcessClassGroup::electronicCollisional))
+            == static_cast<uint8_t>(enums::ProcessClassGroup::electronicCollisional))
             return "electronicCollisional";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(processClass::ProcessClassGroup::upward))
+            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::upward))
             return "upward";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(processClass::ProcessClassGroup::downward))
+            == static_cast<uint8_t>(enums::ProcessClassGroup::downward))
             return "downard";
         return "unknown";
     }

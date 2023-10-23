@@ -23,7 +23,7 @@
 
 #include <cstdint>
 
-namespace picongpu::particles::atomicPhysics2::processClass
+namespace picongpu::particles::atomicPhysics2::enums
 {
     /** constexpr conversion methods for processID to processClass
      *
@@ -208,4 +208,4 @@ namespace picongpu::particles::atomicPhysics2::processClass
         }
     };
 
-} // namespace picongpu::particles::atomicPhysics2::processClass
+} // namespace picongpu::particles::atomicPhysics2::enums

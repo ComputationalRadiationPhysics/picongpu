@@ -26,7 +26,7 @@
 
 namespace picongpu::particles::atomicPhysics2
 {
-    namespace processClass
+    namespace enums
     {
         //! predefined transitionOrderings
         enum struct TransitionOrdering : uint8_t
@@ -34,18 +34,18 @@ namespace picongpu::particles::atomicPhysics2
             byLowerState = 0u,
             byUpperState = 1u
         };
-    } // namespace processClass
+    } // namespace enums
 
-    template<processClass::TransitionOrdering T_TransitionOrdering>
+    template<enums::TransitionOrdering T_TransitionOrdering>
     ALPAKA_FN_HOST std::string enumToString()
     {
         if constexpr(
             static_cast<uint8_t>(T_TransitionOrdering)
-            == static_cast<uint8_t>(processClass::TransitionOrdering::byLowerState))
+            == static_cast<uint8_t>(enums::TransitionOrdering::byLowerState))
             return "byLowerState";
         if constexpr(
             static_cast<uint8_t>(T_TransitionOrdering)
-            == static_cast<uint8_t>(processClass::TransitionOrdering::byUpperState))
+            == static_cast<uint8_t>(enums::TransitionOrdering::byUpperState))
             return "byUpperState";
     }
 } // namespace picongpu::particles::atomicPhysics2

@@ -22,8 +22,8 @@
 
 #include "picongpu/particles/atomicPhysics2/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics2/atomicData/TransitionData.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/Multiplicities.hpp"
 
 #include <cstdint>
@@ -62,7 +62,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         typename T_CollectionIndex,
         typename T_ConfigNumber,
         typename T_Multiplicity,
-        picongpu::particles::atomicPhysics2::processClass::TransitionOrdering T_TransitionOrdering>
+        picongpu::particles::atomicPhysics2::enums::TransitionOrdering T_TransitionOrdering>
     class BoundFreeTransitionDataBox : public TransitionDataBox<T_Number, T_Value, T_CollectionIndex>
     {
     public:
@@ -76,7 +76,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using BoxMultiplicity = pmacc::DataBox<pmacc::PitchedBox<TypeMultiplicity, 1u>>;
 
         static constexpr auto processClassGroup
-            = picongpu::particles::atomicPhysics2::processClass::ProcessClassGroup::boundFreeBased;
+            = picongpu::particles::atomicPhysics2::enums::ProcessClassGroup::boundFreeBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:
@@ -395,7 +395,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         typename T_CollectionIndex,
         typename T_ConfigNumber,
         typename T_Multiplicity,
-        picongpu::particles::atomicPhysics2::processClass::TransitionOrdering T_TransitionOrdering>
+        picongpu::particles::atomicPhysics2::enums::TransitionOrdering T_TransitionOrdering>
     class BoundFreeTransitionDataBuffer : public TransitionDataBuffer<T_Number, T_Value, T_CollectionIndex>
     {
     public:
@@ -412,7 +412,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using BufferMultiplicity = pmacc::HostDeviceBuffer<TypeMultiplicity, 1u>;
 
         static constexpr auto processClassGroup
-            = particles::atomicPhysics2::processClass::ProcessClassGroup::boundFreeBased;
+            = particles::atomicPhysics2::enums::ProcessClassGroup::boundFreeBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:

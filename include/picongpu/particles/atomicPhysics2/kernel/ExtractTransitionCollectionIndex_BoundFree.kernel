@@ -22,9 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessIDConversion.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessIDConversion.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
@@ -33,6 +33,8 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
+
     /** @class extract transitionCollectionIndex from previously set transitionIndex
      *   for bound-free transitions is originally set by chooseTransitionKernel
      *
@@ -54,7 +56,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         bool T_fieldIonization>
     struct ExtractTransitionCollectionIndexKernel_BoundFree
     {
-        using S_NumberPhysical = picongpu::particles::atomicPhysics2::processClass::NumberPhysicalTransitions<
+        using S_NumberPhysical = picongpu::particles::atomicPhysics2::enums::NumberPhysicalTransitions<
             T_electronicExcitation,
             T_electronicDeexcitation,
             T_spontaneousDeexcitation,
@@ -63,7 +65,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_fieldIonization>;
 
         // specialization for active paths, namespaces relative to current namespace
-        using S_ProcessIDConversion = picongpu::particles::atomicPhysics2::processClass::ProcessIDConversion<
+        using S_ProcessIDConversion = picongpu::particles::atomicPhysics2::enums::ProcessIDConversion<
             T_electronicExcitation,
             T_electronicDeexcitation,
             T_spontaneousDeexcitation,
@@ -117,11 +119,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
             PMACC_CASSERT_MSG(
                 number_transition_dataBox_not_bound_free_based,
                 u8(T_AtomicStateBoundFreeNumberTransitionsDataBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::boundFreeBased));
+                    == u8(enums::ProcessClassGroup::boundFreeBased));
             PMACC_CASSERT_MSG(
                 startIndex_dataBox_not_bound_free_based,
                 u8(T_AtomicStateBoundFreeStartIndexBlockDataBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::boundFreeBased));
+                    == u8(enums::ProcessClassGroup::boundFreeBased));
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));

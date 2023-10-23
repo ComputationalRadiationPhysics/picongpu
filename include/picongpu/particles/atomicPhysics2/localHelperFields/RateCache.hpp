@@ -27,20 +27,26 @@
 
 namespace picongpu::particles::atomicPhysics2::localHelperFields
 {
-    /** @class cache of one row, column, or the diagonal of the rate matrix
+    /** cache of cummulated rates of each atomic state for each transition type and ordering
      *
      * @tparam T_numberAtomicStates number of entries in cache
      *
      * @attention invalidated every time the local electron spectrum changes
      */
     template<uint32_t T_numberAtomicStates>
-    class RateCache
+    class TransitionMapCache
     {
     public:
         static constexpr uint32_t numberAtomicStates = T_numberAtomicStates;
 
     private:
-        float_X rates[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        // partial sums of rates for each atomic state
+        float_X rateBoundBound_Upward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        float_X rateBoundBound_Downward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        float_X rateBoundFree_Upward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        float_X rateAutonomous_Downward[T_numberAtomicStates] = {0}; // unit: 1/(Dt_PIC)
+        /// @todo for recombination add rate_boundFree_Downward, Brian Marre, 2023
+
         uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
 
     public:
@@ -52,17 +58,17 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          */
-        template<typename T_Worker>
+        template<typename T_Worker, enums::TransitionType>
         HDINLINE void add(T_Worker const& worker, uint32_t const collectionIndex, float_X rate)
         {
             if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
                 {
-                    printf("atomicPhysics ERROR: out of range in add() call on RateCache\n");
+                    printf("atomicPhysics ERROR: out of range in addBoundBound_Upward() call on RateCache\n");
                     return;
                 }
 
-            cupla::atomicAdd(worker.getAcc(), &(this->rates[collectionIndex]), rate);
+            cupla::atomicAdd(worker.getAcc(), &(this->rateBoundBound_Upward[collectionIndex]), rate);
             return;
         }
 

@@ -26,7 +26,7 @@
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics2/kernel/RecordChanges.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 
 #include <cstdint>
 #include <string>
@@ -68,13 +68,13 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
-            namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+            namespace enums = picongpu::particles::atomicPhysics2::enums;
 
             if constexpr(AtomicDataType::switchElectronicExcitation)
             {
                 using RecordChanges_electronicExcitation
                     = picongpu::particles::atomicPhysics2 ::kernel::RecordChangesKernel<
-                        procClass::ProcessClass::electronicExcitation,
+                        enums::ProcessClass::electronicExcitation,
                         picongpu::atomicPhysics2::ElectronHistogram>;
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicExcitation(), workerCfg)
                 (mapper.getGridDim())(
@@ -85,14 +85,14 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byLowerState>());
+                        enums::TransitionOrdering::byLowerState>());
             }
 
             if constexpr(AtomicDataType::switchElectronicDeexcitation)
             {
                 using RecordChanges_electronicDeexcitation
                     = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
-                        procClass::ProcessClass::electronicDeexcitation,
+                        enums::ProcessClass::electronicDeexcitation,
                         picongpu::atomicPhysics2::ElectronHistogram>;
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicDeexcitation(), workerCfg)
                 (mapper.getGridDim())(
@@ -103,14 +103,14 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
 
             if constexpr(AtomicDataType::switchSpontaneousDeexcitation)
             {
                 using RecordChanges_spontaneousDeexcitation
                     = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
-                        procClass::ProcessClass::spontaneousDeexcitation,
+                        enums::ProcessClass::spontaneousDeexcitation,
                         picongpu::atomicPhysics2::ElectronHistogram>;
 
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_spontaneousDeexcitation(), workerCfg)
@@ -122,14 +122,14 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
 
             if constexpr(AtomicDataType::switchElectronicIonization)
             {
                 using RecordChanges_electronicIonization
                     = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
-                        procClass::ProcessClass::electronicIonization,
+                        enums::ProcessClass::electronicIonization,
                         picongpu::atomicPhysics2::ElectronHistogram>;
 
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_electronicIonization(), workerCfg)
@@ -140,7 +140,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData
-                        .template getBoundFreeTransitionDataBox<false, procClass::TransitionOrdering::byUpperState>(),
+                        .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byUpperState>(),
                     atomicData.template getChargeStateDataDataBox<false>());
             }
 
@@ -151,7 +151,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             {
                 using RecordChanges_autonomousIonization
                     = picongpu::particles::atomicPhysics2::kernel::RecordChangesKernel<
-                        procClass::ProcessClass::autonomousIonization,
+                        enums::ProcessClass::autonomousIonization,
                         picongpu::atomicPhysics2::ElectronHistogram>;
 
                 PMACC_LOCKSTEP_KERNEL(RecordChanges_autonomousIonization(), workerCfg)
@@ -163,7 +163,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getAutonomousTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
         }
     };

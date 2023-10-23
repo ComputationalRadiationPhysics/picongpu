@@ -23,9 +23,9 @@
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 #include "picongpu/particles/atomicPhysics2/RollElectronBin.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundBoundTransitionRates.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -61,7 +61,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         };
     } // namespace detail
 
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     /** test for accepting electronicExciation transitions
      *
@@ -116,21 +116,21 @@ namespace picongpu::particles::atomicPhysics2::kernel
             PMACC_CASSERT_MSG(
                 dataBox_does_not_contain_bound_bound_transitions,
                 u8(T_BoundBoundTransitionDataBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::boundBoundBased));
+                    == u8(enums::ProcessClassGroup::boundBoundBased));
 
             if constexpr(T_excitation)
             {
                 PMACC_CASSERT_MSG(
                     wrong_ordering_of_DataBox,
                     u8(T_BoundBoundTransitionDataBox::transitionOrdering)
-                        == u8(procClass::TransitionOrdering::byLowerState));
+                        == u8(enums::TransitionOrdering::byLowerState));
             }
             else
             {
                 PMACC_CASSERT_MSG(
                     wrong_ordering_of_DataBox,
                     u8(T_BoundBoundTransitionDataBox::transitionOrdering)
-                        == u8(procClass::TransitionOrdering::byUpperState));
+                        == u8(enums::TransitionOrdering::byUpperState));
             }
 
             pmacc::DataSpace<simDim> const superCellIdx
@@ -161,12 +161,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                  &atomicStateDataDataBox,
                  &boundBoundTransitionDataBox](T_Worker const& worker, auto& ion)
                 {
-                    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
-
                     if constexpr(T_excitation)
                     {
                         bool const notElectronicExcitation
-                            = (ion[processClass_] != u8(procClass::ProcessClass::electronicExcitation));
+                            = (ion[processClass_] != u8(enums::ProcessClass::electronicExcitation));
 
                         if((ion[accepted_]) || notElectronicExcitation)
                             return;
@@ -174,7 +172,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     else
                     {
                         bool const notElectronicDeexcitation
-                            = (ion[processClass_] != u8(procClass::ProcessClass::electronicDeexcitation));
+                            = (ion[processClass_] != u8(enums::ProcessClass::electronicDeexcitation));
 
                         if((ion[accepted_]) || notElectronicDeexcitation)
                             return;

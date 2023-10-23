@@ -28,14 +28,14 @@
 #include "picongpu/particles/atomicPhysics2/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics2/initElectrons/CoMoving.hpp"
 #include "picongpu/particles/atomicPhysics2/initElectrons/Inelastic2BodyCollisionFromCoMoving.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 
 #include <cstdint>
 
 namespace picongpu::particles::atomicPhysics2::initElectrons
 {
     //! initialization of spawned ionization electrons, generic interface
-    template<picongpu::particles::atomicPhysics2::processClass::ProcessClass processClass>
+    template<picongpu::particles::atomicPhysics2::enums::ProcessClass processClass>
     struct InitIonizationElectron
     {
         /** call operator
@@ -64,7 +64,7 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
      */
     template<>
     struct InitIonizationElectron<
-        picongpu::particles::atomicPhysics2::processClass ::ProcessClass::electronicIonization>
+        picongpu::particles::atomicPhysics2::enums ::ProcessClass::electronicIonization>
     {
         //! call operator
         template<typename T_IonParticle, typename T_ElectronParticle>
@@ -78,7 +78,7 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
     //! specialisation for autonomousIonization
     template<>
     struct InitIonizationElectron<
-        picongpu::particles::atomicPhysics2::processClass ::ProcessClass::autonomousIonization>
+        picongpu::particles::atomicPhysics2::enums ::ProcessClass::autonomousIonization>
     {
         //! call operator
         template<

@@ -38,7 +38,7 @@
 #include "picongpu/particles/atomicPhysics2/kernel/FillLocalRateCache_BoundFree.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
 
@@ -50,7 +50,7 @@
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     /** @class atomic physics sub-stage for filling transitions rates of one ion species
      *   into local rate caches in local domain
@@ -107,7 +107,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     AtomicDataType::switchElectronicExcitation,
                     AtomicDataType::switchElectronicDeexcitation,
                     AtomicDataType::switchSpontaneousDeexcitation,
-                    procClass::TransitionOrdering::byLowerState>;
+                    enums::TransitionOrdering::byLowerState>;
 
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheUpWardBoundBound(), workerCfg)
                 (mapper.getGridDim())(
@@ -120,7 +120,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getBoundBoundNumberTransitionsDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byLowerState>());
+                        enums::TransitionOrdering::byLowerState>());
             }
 
             //    downward bound-bound transition rates
@@ -133,7 +133,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     AtomicDataType::switchElectronicExcitation,
                     AtomicDataType::switchElectronicDeexcitation,
                     AtomicDataType::switchSpontaneousDeexcitation,
-                    procClass::TransitionOrdering::byUpperState>;
+                    enums::TransitionOrdering::byUpperState>;
 
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheDownWardBoundBound(), workerCfg)
                 (mapper.getGridDim())(
@@ -146,7 +146,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getBoundBoundNumberTransitionsDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
 
             //    upward bound-free transition rates
@@ -157,7 +157,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     numberAtomicStatesOfSpecies,
                     numberBins,
                     AtomicDataType::switchElectronicIonization,
-                    procClass::TransitionOrdering::byLowerState>;
+                    enums::TransitionOrdering::byLowerState>;
 
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheUpWardBoundFree(), workerCfg)
                 (mapper.getGridDim())(
@@ -170,7 +170,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getBoundFreeStartIndexBlockDataBox<false>(),
                     atomicData.template getBoundFreeNumberTransitionsDataBox<false>(),
                     atomicData
-                        .template getBoundFreeTransitionDataBox<false, procClass::TransitionOrdering::byLowerState>());
+                        .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
             }
 
             //    downward autonomous transition rates
@@ -179,7 +179,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 using FillLocalRateCacheAutonomous = kernel::FillLocalRateCacheKernel_Autonomous<
                     numberAtomicStatesOfSpecies,
                     AtomicDataType::switchAutonomousIonization,
-                    procClass::TransitionOrdering::byUpperState>;
+                    enums::TransitionOrdering::byUpperState>;
 
                 PMACC_LOCKSTEP_KERNEL(FillLocalRateCacheAutonomous(), workerCfg)
                 (mapper.getGridDim())(
@@ -190,7 +190,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAutonomousNumberTransitionsDataBox<false>(),
                     atomicData.template getAutonomousTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
         }
     };

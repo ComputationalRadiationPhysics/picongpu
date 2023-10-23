@@ -99,6 +99,7 @@ namespace picongpu::simulation::stage
          */
         using SpeciesRepresentingElectrons =
             typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsElectron<>>::type;
+
         /** list of all species of macro particles with atomicPhysics input data
          *
          * as defined in species.param, is list of types

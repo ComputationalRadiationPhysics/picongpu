@@ -21,8 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-
 #include <pmacc/lockstep/ForEach.hpp>
 
 #include <cstdint>

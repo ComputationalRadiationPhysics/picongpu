@@ -30,14 +30,14 @@
 
 #include "picongpu/particles/atomicPhysics2/kernel/SpawnIonizationMacroElectrons.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/traits/GetIonizationElectronSpecies.hpp"
 
 #include <cstdint>
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     template<typename T_IonSpecies>
     struct SpawnIonizationElectrons
@@ -83,7 +83,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             {
                 using SpawnElectrons_BoundFree
                     = picongpu::particles::atomicPhysics2::kernel::SpawnIonizationMacroElectronsKernel<
-                        procClass::ProcessClassGroup::boundFreeBased>;
+                        enums::ProcessClassGroup::boundFreeBased>;
 
                 // spawn ionization electrons for bound-free based processes
                 PMACC_LOCKSTEP_KERNEL(SpawnElectrons_BoundFree(), workerCfg)
@@ -94,7 +94,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     electrons.getDeviceParticlesBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData
-                        .template getBoundFreeTransitionDataBox<false, procClass::TransitionOrdering::byLowerState>());
+                        .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
 
                 /// @todo field ionization, Brian Marre, 2023
             }
@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             {
                 using SpawnElectrons_Autonomous
                     = picongpu::particles::atomicPhysics2::kernel ::SpawnIonizationMacroElectronsKernel<
-                        procClass::ProcessClassGroup::autonomousBased>;
+                        enums::ProcessClassGroup::autonomousBased>;
 
                 RngFactoryFloat rngFactory = RngFactoryFloat{currentStep};
 
@@ -116,7 +116,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     electrons.getDeviceParticlesBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData
-                        .template getAutonomousTransitionDataBox<false, procClass::TransitionOrdering::byUpperState>(),
+                        .template getAutonomousTransitionDataBox<false, enums::TransitionOrdering::byUpperState>(),
                     rngFactory,
                     atomicData.template getChargeStateDataDataBox<false>());
             }

@@ -33,7 +33,7 @@
 
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 #include "picongpu/particles/atomicPhysics2/atomicData/AtomicTuples.def"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundBoundTransitionRates.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundFreeTransitionRates.hpp"
 
@@ -48,7 +48,7 @@
 
 namespace picongpu::particles::atomicPhysics2::rateCalculation::debug
 {
-    using tranOrd = picongpu::particles::atomicPhysics2::processClass::TransitionOrdering;
+    using tranOrd = picongpu::particles::atomicPhysics2::enums::TransitionOrdering;
 
     /** collection of rate calculation tests
      *

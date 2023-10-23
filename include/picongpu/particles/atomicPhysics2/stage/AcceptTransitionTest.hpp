@@ -33,13 +33,13 @@
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeStepField.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 
 #include <cstdint>
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     /** @class atomic physics sub-stage calculating the rate of the chosen transition
      *  (chosen by chooseTransition sub-stage and transitionCollctionIndex as well as
@@ -134,7 +134,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byLowerState>());
+                        enums::TransitionOrdering::byLowerState>());
             }
 
             // bound-bound down
@@ -158,7 +158,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
             //      spontaneous radiative deexcitation
             if constexpr(AtomicDataType::switchSpontaneousDeexcitation)
@@ -177,7 +177,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
 
             // bound-free up
@@ -200,7 +200,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getChargeStateDataDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData
-                        .template getBoundFreeTransitionDataBox<false, procClass::TransitionOrdering::byLowerState>());
+                        .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
             }
             //      fieldIonization
             /// @todo implement field ionization, Brian Marre, 2023
@@ -223,7 +223,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     localTimeStepField.getDeviceDataBox(),
                     atomicData.template getAutonomousTransitionDataBox<
                         false,
-                        procClass::TransitionOrdering::byUpperState>());
+                        enums::TransitionOrdering::byUpperState>());
             }
         }
     };

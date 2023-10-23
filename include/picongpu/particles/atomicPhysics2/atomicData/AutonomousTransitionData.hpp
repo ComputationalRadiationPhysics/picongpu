@@ -24,8 +24,8 @@
 
 #include "picongpu/particles/atomicPhysics2/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics2/atomicData/TransitionData.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -61,7 +61,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         typename T_Value,
         typename T_CollectionIndex,
         typename T_ConfigNumberDataType,
-        picongpu::particles::atomicPhysics2::processClass::TransitionOrdering T_TransitionOrdering>
+        picongpu::particles::atomicPhysics2::enums::TransitionOrdering T_TransitionOrdering>
     class AutonomousTransitionDataBox : public TransitionDataBox<T_Number, T_Value, T_CollectionIndex>
     {
     public:
@@ -69,7 +69,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using S_AutonomousTransitionTuple = AutonomousTransitionTuple<T_ConfigNumberDataType>;
 
         static constexpr auto processClassGroup
-            = particles::atomicPhysics2::processClass::ProcessClassGroup::autonomousBased;
+            = particles::atomicPhysics2::enums::ProcessClassGroup::autonomousBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:
@@ -170,7 +170,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         typename T_Value,
         typename T_CollectionIndex,
         typename T_ConfigNumberDataType,
-        picongpu::particles::atomicPhysics2::processClass::TransitionOrdering T_TransitionOrdering>
+        picongpu::particles::atomicPhysics2::enums::TransitionOrdering T_TransitionOrdering>
     class AutonomousTransitionDataBuffer : public TransitionDataBuffer<T_Number, T_Value, T_CollectionIndex>
     {
     public:
@@ -183,7 +183,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             T_TransitionOrdering>;
 
         static constexpr auto processClassGroup
-            = particles::atomicPhysics2::processClass::ProcessClassGroup::autonomousBased;
+            = particles::atomicPhysics2::enums::ProcessClassGroup::autonomousBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:

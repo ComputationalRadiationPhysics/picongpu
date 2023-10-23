@@ -23,9 +23,9 @@
 
 #include "picongpu/particles/atomicPhysics2/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics2/SetAtomicState.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/IsProcess.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enum/IsProcess.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
@@ -34,13 +34,15 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
+
     /** update atomic state and for collisional processes add delta energy of transition
      *  to used electron histogram bin
      *
      * @tparam T_ProcessClass processClass for which to execute this kernel
      * @tparam T_Histogram type of the histogram
      */
-    template<picongpu::particles::atomicPhysics2::processClass::ProcessClass T_ProcessClass, typename T_Histogram>
+    template<picongpu::particles::atomicPhysics2::enums::ProcessClass T_ProcessClass, typename T_Histogram>
     struct RecordChangesKernel
     {
         /** call operator
@@ -76,13 +78,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_TransitionDataBox transitionBox,
             T_ChargeStateBox... chargeStateBox) const
         {
-            namespace procClass = picongpu::particles::atomicPhysics2::processClass;
-
             // check transition dataBox consistent with T_ProcessClass
             //  otherwise unphysical behaviour and/or illegal memory accesses
             PMACC_CASSERT_MSG(
                 transition_dataBox_and_processClass_inconsistent,
-                procClass::IsProcess<T_TransitionDataBox::processClassGroup>::check(u8(T_ProcessClass)));
+                enums::IsProcess<T_TransitionDataBox::processClassGroup>::check(u8(T_ProcessClass)));
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -118,7 +118,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     // get delta Energy transition
                     [[maybe_unused]] float_X deltaEnergy = 0._X;
-                    if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
+                    if constexpr(enums::IsProcess<enums::ProcessClassGroup::electronicCollisional>::check(
                                      u8(T_ProcessClass)))
                     {
                         // electronic collisional process
@@ -132,10 +132,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     uint32_t newAtomicStateCollectionIndex;
 
-                    if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::upward>::check(u8(T_ProcessClass)))
+                    if constexpr(enums::IsProcess<enums::ProcessClassGroup::upward>::check(u8(T_ProcessClass)))
                     {
                         // upward process
-                        if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
+                        if constexpr(enums::IsProcess<enums::ProcessClassGroup::electronicCollisional>::check(
                                          u8(T_ProcessClass)))
                             deltaEnergy = -deltaEnergy;
 
@@ -155,7 +155,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         newAtomicStateCollectionIndex);
 
                     // record used energy
-                    if constexpr(procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
+                    if constexpr(enums::IsProcess<enums::ProcessClassGroup::electronicCollisional>::check(
                                      u8(T_ProcessClass)))
                         electronHistogram.addDeltaEnergy(worker, ion[binIndex_], deltaEnergy);
                 });
@@ -164,5 +164,5 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
     // no change physical transition never changes anything
     template<typename T_Histogram>
-    struct RecordChangesKernel<picongpu::particles::atomicPhysics2::processClass::ProcessClass::noChange, T_Histogram>;
+    struct RecordChangesKernel<picongpu::particles::atomicPhysics2::enums::ProcessClass::noChange, T_Histogram>;
 } // namespace picongpu::particles::atomicPhysics2::kernel

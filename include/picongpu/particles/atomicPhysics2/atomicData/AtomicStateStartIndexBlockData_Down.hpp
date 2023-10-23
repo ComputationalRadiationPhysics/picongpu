@@ -21,7 +21,7 @@
 
 #include "picongpu/particles/atomicPhysics2/atomicData/DataBox.hpp"
 #include "picongpu/particles/atomicPhysics2/atomicData/DataBuffer.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -45,7 +45,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
     template<
         typename T_CollectionIndex,
         typename T_Value,
-        particles::atomicPhysics2::processClass::ProcessClassGroup T_ProcessClassGroup>
+        particles::atomicPhysics2::enums::ProcessClassGroup T_ProcessClassGroup>
     class AtomicStateStartIndexBlockDataBox_Down : public DataBox<T_CollectionIndex, T_Value>
     {
     public:
@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
     template<
         typename T_CollectionIndex,
         typename T_Value,
-        particles::atomicPhysics2::processClass::ProcessClassGroup T_ProcessClassGroup>
+        particles::atomicPhysics2::enums::ProcessClassGroup T_ProcessClassGroup>
     class AtomicStateStartIndexBlockDataBuffer_Down : public DataBuffer<T_CollectionIndex, T_Value>
     {
     public:

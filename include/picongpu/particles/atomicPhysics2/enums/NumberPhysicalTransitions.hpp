@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace picongpu::particles::atomicPhysics2::processClass
+namespace picongpu::particles::atomicPhysics2::enums
 {
     /** number of physical transitions associated with each known transition
      *
@@ -85,4 +85,4 @@ namespace picongpu::particles::atomicPhysics2::processClass
             return 0u;
         }
     };
-} // namespace picongpu::particles::atomicPhysics2::processClass
+} // namespace picongpu::particles::atomicPhysics2::enums

@@ -23,9 +23,9 @@
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 #include "picongpu/particles/atomicPhysics2/RollElectronBin.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundFreeTransitionRates.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -58,7 +58,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         };
     } // namespace detail
 
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     /** test for accepting electronicExciation transitions
      *
@@ -112,11 +112,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
             PMACC_CASSERT_MSG(
                 dataBox_does_not_contain_bound_free_transitions,
                 u8(T_BoundFreeTransitionDataBox::processClassGroup)
-                    == u8(procClass::ProcessClassGroup::boundFreeBased));
+                    == u8(enums::ProcessClassGroup::boundFreeBased));
             PMACC_CASSERT_MSG(
                 wrong_ordering_of_DataBox,
                 u8(T_BoundFreeTransitionDataBox::transitionOrdering)
-                    == u8(procClass::TransitionOrdering::byLowerState));
+                    == u8(enums::TransitionOrdering::byLowerState));
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -145,10 +145,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
             forEachLocalIonBoxEntry(
                 [&](T_Worker const& worker, auto& ion)
                 {
-                    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
 
                     bool const notElectronicIonization
-                        = (ion[processClass_] != u8(procClass::ProcessClass::electronicIonization));
+                        = (ion[processClass_] != u8(enums::ProcessClass::electronicIonization));
 
                     if(ion[accepted_] || notElectronicIonization)
                         return;

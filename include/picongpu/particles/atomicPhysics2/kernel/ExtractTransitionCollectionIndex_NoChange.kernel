@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -30,7 +30,7 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
-    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
     //! extract transitionCollectionIndex from previously set transitionIndex
     struct ExtractTransitionCollectionIndexKernel_NoChange
@@ -78,7 +78,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         return;
                     }
 
-                    ion[processClass_] = u8(procClass::ProcessClass::noChange);
+                    ion[processClass_] = u8(enums::ProcessClass::noChange);
 
                     // transitionIndex and binIndex are not relevant for no-change transitions
                     // => no need to set them

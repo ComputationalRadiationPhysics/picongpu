@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -29,6 +29,7 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
+    namespace enums = picongpu::particles::atomicPhysics2::enums;
     /** test for accepting noChange transitions
      *
      * @tparam T_ConfigNumber type of configNumber used for storage of atomic state by species
@@ -99,9 +100,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             forEachLocalIonBoxEntry(
                 [&](T_Worker const& worker, auto& ion)
                 {
-                    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
-
-                    if((ion[accepted_]) || (ion[processClass_] != u8(procClass::ProcessClass::noChange)))
+                    if((ion[accepted_]) || (ion[processClass_] != u8(enums::ProcessClass::noChange)))
                         return;
 
                     // 1/UNIT_TIME

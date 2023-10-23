@@ -22,9 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/localHelperFields/RejectionProbabilityCache.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/IsProcess.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/IsProcess.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -105,10 +105,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     uint32_t const binIndex = ion[binIndex_];
                     uint8_t const processClass = ion[processClass_];
 
-                    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+                    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
                     bool const processUsesElectronHistogramWeight
-                        = procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
+                        = enums::IsProcess<enums::ProcessClassGroup::electronicCollisional>::check(
                             processClass);
 
                     bool const usesNotOverSubcribedBin

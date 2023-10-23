@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
 #include <cstdint>
 
-namespace picongpu::particles::atomicPhysics2::processClass
+namespace picongpu::particles::atomicPhysics2::enums
 {
     //! general interface for checking for if a processClass belongs to a processClassGroup
     template<ProcessClassGroup group>
@@ -134,4 +134,4 @@ namespace picongpu::particles::atomicPhysics2::processClass
         }
     };
 
-} // namespace picongpu::particles::atomicPhysics2::processClass
+} // namespace picongpu::particles::atomicPhysics2::enums

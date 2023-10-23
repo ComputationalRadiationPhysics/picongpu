@@ -21,8 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/processClass/IsProcess.hpp"
-#include "picongpu/particles/atomicPhysics2/processClass/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/IsProcess.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -84,13 +84,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
             forEachLocalIonBoxEntry(
                 [&electronHistogram](T_Worker const& worker, auto& ion)
                 {
-                    namespace procClass = picongpu::particles::atomicPhysics2::processClass;
+                    namespace enums = picongpu::particles::atomicPhysics2::enums;
 
                     if((!ion[accepted_])
                        // not accepted transition, does not suggest changes
                        ||
                        // not an electronic collisional interaction
-                       (!procClass::IsProcess<procClass::ProcessClassGroup::electronicCollisional>::check(
+                       (!enums::IsProcess<enums::ProcessClassGroup::electronicCollisional>::check(
                            ion[processClass_])))
                         return;
 

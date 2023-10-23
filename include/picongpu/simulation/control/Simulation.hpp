@@ -45,6 +45,7 @@
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeStepField.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CreateLocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/LoadAtomicInputData.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/FixAtomicState.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
@@ -514,6 +515,13 @@ namespace picongpu
                      */
                     particles::RemoveOuterParticlesAllSpecies removeOuterParticlesAllSpecies;
                     removeOuterParticlesAllSpecies(step);
+
+                    // fix mismatches between boundElectrons and atomicStateCollectionIndex attributes
+                    using SpeciesRepresentingIons =
+                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, atomicDataType<>>::type;
+                    using ForEachIonSpeciesFixAtomicState = pmacc::meta::
+                        ForEach<SpeciesRepresentingIons, particles::atomicPhysics2::stage::FixAtomicState<boost::mpl::_1>>;
+                    ForEachIonSpeciesFixAtomicState{}(*cellDescription);
 
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);

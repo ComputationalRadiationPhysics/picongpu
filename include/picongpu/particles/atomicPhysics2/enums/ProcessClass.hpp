@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file processClass enum
+/** @file processClass enum, enum of physical processes
  *
  * @attention NumberIonizationelectrons and NumebrPhysicalTransitions must be kept consistent
  *  with the enum ProcessClass
@@ -30,7 +30,7 @@
 
 namespace picongpu::particles::atomicPhysics2
 {
-    namespace processClass
+    namespace enums
     {
         enum struct ProcessClass : uint8_t
         {
@@ -42,36 +42,31 @@ namespace picongpu::particles::atomicPhysics2
             autonomousIonization = 5u,
             fieldIonization = 6u
         };
-    } // namespace processClass
+    } // namespace enums
 
-    template<processClass::ProcessClass T_ProcessClass>
+    template<enums::ProcessClass T_ProcessClass>
     ALPAKA_FN_HOST std::string enumToString()
     {
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(processClass::ProcessClass::noChange))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::noChange))
             return "noChange";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass)
-            == static_cast<uint8_t>(processClass::ProcessClass::spontaneousDeexcitation))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::spontaneousDeexcitation))
             return "spontaneousDeexcitation";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass)
-            == static_cast<uint8_t>(processClass::ProcessClass::electronicExcitation))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::electronicExcitation))
             return "electronicExcitation";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass)
-            == static_cast<uint8_t>(processClass::ProcessClass::electronicDeexcitation))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::electronicDeexcitation))
             return "electronicDeexcitation";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass)
-            == static_cast<uint8_t>(processClass::ProcessClass::electronicIonization))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::electronicIonization))
             return "electronicIonization";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass)
-            == static_cast<uint8_t>(processClass::ProcessClass::autonomousIonization))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::autonomousIonization))
             return "autonomousIonization";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(processClass::ProcessClass::fieldIonization))
+            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::fieldIonization))
             return "fieldIonization";
         return "unknown";
     }
