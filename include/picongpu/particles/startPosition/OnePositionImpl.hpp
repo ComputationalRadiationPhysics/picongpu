@@ -58,15 +58,19 @@ namespace picongpu::particles::startPosition::acc
                 = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, weighting>::type::value;
 
             // note: m_weighting member might stay uninitialized!
-            uint32_t result(T_ParamClass::numParticlesPerCell);
 
             if constexpr(hasWeighting)
-                result = startPosition::detail::WeightMacroParticles{}(
+            {
+                return startPosition::detail::WeightMacroParticles{}(
                     realParticlesPerCell,
                     T_ParamClass::numParticlesPerCell,
                     m_weighting);
-
-            return result;
+            }
+            else
+            {
+                // note: m_weighting member might stay uninitialized!
+                return T_ParamClass::numParticlesPerCell;
+            }
         }
 
     private:
