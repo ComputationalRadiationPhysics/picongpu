@@ -28,11 +28,10 @@ namespace picongpu::particles::atomicPhysics2
 {
     namespace enums
     {
-        enum struct TransitionType : uint8_t
+        enum struct TransitionDirection : uint8_t
         {
-            boundBound = 0u,
-            boundFree = 1u,
-            autonomous = 2u
+            upward = 0u,
+            downward = 1u,
         };
     } // namespace enums
 
@@ -40,14 +39,11 @@ namespace picongpu::particles::atomicPhysics2
     ALPAKA_FN_HOST std::string enumToString()
     {
         if constexpr(
-            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::boundBound))
-            return "bound-bound";
+            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionDirection::upward))
+            return "upward";
         if constexpr(
-            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::boundFree))
-            return "bound-free";
-        if constexpr(
-            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::autonomous))
-            return "autonomous";
+            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::downward))
+            return "downward";
         return "unknown";
     }
 } // namespace picongpu::particles::atomicPhysics2T
