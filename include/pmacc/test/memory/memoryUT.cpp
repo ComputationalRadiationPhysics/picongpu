@@ -28,7 +28,7 @@
 #include <iostream> /* cout, endl */
 #include <string>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 // BOOST
 #include "pmacc/meta/Mp11.hpp"
