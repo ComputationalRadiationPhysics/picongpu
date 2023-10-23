@@ -61,15 +61,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);
 
             forEachLocalIonBoxEntry(
-                [&chargeStateOrgaBox, &atomicStateDataBox](
-                    T_Worker const& worker,
-                    auto& ion)
+                [&chargeStateOrgaBox, &atomicStateDataBox](T_Worker const& worker, auto& ion)
                 {
                     using ConfigNumber = typename T_AtomicStateDataDataBox::ConfigNumber;
 
                     uint8_t const boundElectrons = static_cast<uint8_t>(ion[boundElectrons_]);
-                    typename ConfigNumber::DataType const configNumber =
-                        atomicStateDataBox.configNumber(ion[atomicStateCollectionIndex_]);
+                    typename ConfigNumber::DataType const configNumber
+                        = atomicStateDataBox.configNumber(ion[atomicStateCollectionIndex_]);
 
                     uint8_t const atomicPhysicsBoundElectrons = ConfigNumber::getBoundElectrons(configNumber);
 

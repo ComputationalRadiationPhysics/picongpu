@@ -48,7 +48,7 @@
 
 namespace picongpu::particles::atomicPhysics2::stage
 {
-     //! @tparam T_IonSpecies ion species type
+    //! @tparam T_IonSpecies ion species type
     template<typename T_IonSpecies>
     struct FixAtomicState
     {
@@ -72,11 +72,11 @@ namespace picongpu::particles::atomicPhysics2::stage
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
             PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel::FixAtomicStateKernel(), workerCfg)
-                (mapper.getGridDim())(
-                    mapper,
-                    ions.getDeviceParticlesBox(),
-                    atomicData.template getChargeStateOrgaDataBox<false>(),
-                    atomicData.template getAtomicStateDataDataBox<false>());
+            (mapper.getGridDim())(
+                mapper,
+                ions.getDeviceParticlesBox(),
+                atomicData.template getChargeStateOrgaDataBox<false>(),
+                atomicData.template getAtomicStateDataDataBox<false>());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

@@ -78,12 +78,17 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation::debug
 
         using S_BoundBoundBuffer
             = atomicData::BoundBoundTransitionDataBuffer<uint32_t, float_X, uint32_t, uint64_t, tranOrd::byLowerState>;
-        using S_BoundFreeBuffer
-            = atomicData::BoundFreeTransitionDataBuffer<uint32_t, float_X, uint32_t, S_ConfigNumber, float_64, tranOrd::byLowerState>;
+        using S_BoundFreeBuffer = atomicData::BoundFreeTransitionDataBuffer<
+            uint32_t,
+            float_X,
+            uint32_t,
+            S_ConfigNumber,
+            float_64,
+            tranOrd::byLowerState>;
         using S_BoundBoundBox
             = atomicData::BoundBoundTransitionDataBox<uint32_t, float_X, uint32_t, uint64_t, tranOrd::byLowerState>;
-        using S_BoundFreeBox
-            = atomicData::BoundFreeTransitionDataBox<uint32_t, float_X, uint32_t, S_ConfigNumber, float_64, tranOrd::byLowerState>;
+        using S_BoundFreeBox = atomicData::
+            BoundFreeTransitionDataBox<uint32_t, float_X, uint32_t, S_ConfigNumber, float_64, tranOrd::byLowerState>;
 
         using S_ChargeStateBuffer = atomicData::ChargeStateDataBuffer<uint32_t, float_X, S_ConfigNumber::atomicNumber>;
         using S_ChargeStateBox = atomicData::ChargeStateDataBox<uint32_t, float_X, S_ConfigNumber::atomicNumber>;

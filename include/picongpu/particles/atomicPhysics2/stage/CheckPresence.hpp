@@ -69,9 +69,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                                                     LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
                 IonSpecies::FrameType::getName() + "_localRateCacheField");
 
-            PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel::CheckPresenceKernel(),
-                workerCfg)
+            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel::CheckPresenceKernel(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 localTimeRemainingField.getDeviceDataBox(),

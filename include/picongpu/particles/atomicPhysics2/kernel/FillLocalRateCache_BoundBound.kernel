@@ -189,20 +189,20 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                 worker,
                                 atomicStateCollectionIndex,
                                 -picongpu::particles::atomicPhysics2::rateCalculation:: // rate
-                                    BoundBoundTransitionRates<T_numberLevels>::
-                                        template rateCollisionalBoundBoundTransition<
-                                            T_AtomicStateDataDataBox,
-                                            T_BoundBoundTransitionDataBox,
-                                            upward>(
-                                                histogram.getBinEnergy(binIndex),
-                                                histogram.getBinWidth(binIndex),
-                                                // 1/(UNIT_LENGTH^3*eV)
-                                                histogram.getBinWeight0(binIndex) / volumeScalingFactor
-                                                    / histogram.getBinWidth(binIndex),
-                                            // transitionCollectionIndex
-                                            offset + i,
-                                            atomicStateDataDataBox,
-                                            boundBoundTransitionDataBox));
+                                BoundBoundTransitionRates<T_numberLevels>::
+                                    template rateCollisionalBoundBoundTransition<
+                                        T_AtomicStateDataDataBox,
+                                        T_BoundBoundTransitionDataBox,
+                                        upward>(
+                                        histogram.getBinEnergy(binIndex),
+                                        histogram.getBinWidth(binIndex),
+                                        // 1/(UNIT_LENGTH^3*eV)
+                                        histogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                            / histogram.getBinWidth(binIndex),
+                                        // transitionCollectionIndex
+                                        offset + i,
+                                        atomicStateDataDataBox,
+                                        boundBoundTransitionDataBox));
                         }
                     }
                 });

@@ -30,7 +30,6 @@
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalElectronHistogramOverSubscribedField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRejectionProbabilityCacheField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
-#include "picongpu/particles/atomicPhysics2/stage/FixAtomicState.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/AcceptTransitionTest.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/BinElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CalculateStepLength.hpp"
@@ -44,6 +43,7 @@
 #include "picongpu/particles/atomicPhysics2/stage/DumpSuperCellDataToConsole.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ExtractTransitionCollectionIndex.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/FillLocalRateCache.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/FixAtomicState.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RecordChanges.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RecordSuggestedChanges.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetAcceptedStatus.hpp"
@@ -147,9 +147,8 @@ namespace picongpu::simulation::stage
         void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
         {
             //! fix mismatches between boundElectrons and atomicStateCollectionIndex attributes
-            using ForEachIonSpeciesFixAtomicState = pmacc::meta::ForEach<
-                SpeciesRepresentingIons,
-                particles::atomicPhysics2::stage::FixAtomicState<boost::mpl::_1>>;
+            using ForEachIonSpeciesFixAtomicState = pmacc::meta::
+                ForEach<SpeciesRepresentingIons, particles::atomicPhysics2::stage::FixAtomicState<boost::mpl::_1>>;
             //! reset macro particle attribute accepted to false for each ion species
             using ForEachIonSpeciesResetAcceptedStatus = pmacc::meta::ForEach<
                 SpeciesRepresentingIons,

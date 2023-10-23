@@ -156,9 +156,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             // check whether bound-bound transition and if yes,
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
-                [&numberTransitionsBox, &startIndexBox](
-                    T_Worker const& worker,
-                    auto& ion)
+                [&numberTransitionsBox, &startIndexBox](T_Worker const& worker, auto& ion)
                 {
                     // reject working on already accepted ions
                     if(ion[accepted_])

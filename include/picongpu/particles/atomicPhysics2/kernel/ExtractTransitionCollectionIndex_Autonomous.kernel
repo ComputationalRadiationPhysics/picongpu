@@ -137,9 +137,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             // check whether autonomous transition and if yes,
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
-                [&numberTransitionsBox, &startIndexBox](
-                    T_Worker const& worker,
-                    auto& ion)
+                [&numberTransitionsBox, &startIndexBox](T_Worker const& worker, auto& ion)
                 {
                     if(ion[accepted_])
                         return; // already accepted ion

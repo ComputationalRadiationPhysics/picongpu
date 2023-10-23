@@ -171,7 +171,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
 
         /** returns collection index of atomic state in dataBox with lowest energy in specified index range
          *
-         * @attention only use for search within a single charge state!, does not consider ionization energies, only excitation energies
+         * @attention only use for search within a single charge state!, does not consider ionization energies, only
+         * excitation energies
          * @attention assumes range contains at least one atomic state
          *
          *
@@ -183,9 +184,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
          *  is available from chargeStateOrgaDataBox.numberAtomicStates(chargeState).
          *  with chargeState available from ConfigNumber::getIonizatioState(configNumber)
          */
-        HDINLINE uint32_t findGroundState(
-            uint32_t const numberAtomicStatesForChargeState,
-            uint32_t const startIndexBlock) const
+        HDINLINE uint32_t
+        findGroundState(uint32_t const numberAtomicStatesForChargeState, uint32_t const startIndexBlock) const
         {
             // get first state block energy
             float_X lowestEnergy = m_boxStateEnergy(startIndexBlock);

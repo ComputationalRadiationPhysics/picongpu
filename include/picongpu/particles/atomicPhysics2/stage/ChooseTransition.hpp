@@ -71,9 +71,7 @@ namespace picongpu::particles::atomicPhysics2::stage
 
             RngFactoryInt rngFactory = RngFactoryInt{currentStep};
 
-            PMACC_LOCKSTEP_KERNEL(
-                picongpu::particles::atomicPhysics2::kernel::ChooseTransitionKernel(),
-                workerCfg)
+            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel::ChooseTransitionKernel(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 rngFactory,
