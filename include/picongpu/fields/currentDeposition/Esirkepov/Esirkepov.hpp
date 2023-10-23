@@ -116,13 +116,13 @@ namespace picongpu
 
                 cptCurrent1D(
                     worker,
-                    DataSpace<simDim>(status.y(), status.z(), status.x()),
+                    DataSpace<DIM3>(status.y(), status.z(), status.x()),
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 2, 0>>(fieldJ),
                     rotateOrigin<1, 2, 0>(line),
                     cellSize.x());
                 cptCurrent1D(
                     worker,
-                    DataSpace<simDim>(status.z(), status.x(), status.y()),
+                    DataSpace<DIM3>(status.z(), status.x(), status.y()),
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<2, 0, 1>>(fieldJ),
                     rotateOrigin<2, 0, 1>(line),
                     cellSize.y());
@@ -147,7 +147,7 @@ namespace picongpu
             template<typename T_DataBox, typename T_Permutation, typename T_Worker>
             DINLINE void cptCurrent1D(
                 T_Worker const& worker,
-                const DataSpace<simDim>& parStatus,
+                const DataSpace<DIM3>& parStatus,
                 PermutatedFieldValueAccess<T_DataBox, T_Permutation> jField,
                 const Line<float3_X>& line,
 
