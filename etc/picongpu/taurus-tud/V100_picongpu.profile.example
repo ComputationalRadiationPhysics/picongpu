@@ -55,9 +55,9 @@ export PIC_BACKEND="cuda:70"
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/taurus-tud"}
 
-export PATH=$PATH:$PICSRC
-export PATH=$PATH:$PICSRC/bin
-export PATH=$PATH:$PICSRC/src/tools/bin
+export PATH=$PICSRC:$PATH
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
 
 # python not included yet
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH

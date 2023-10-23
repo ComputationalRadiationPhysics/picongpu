@@ -53,9 +53,9 @@ export PIC_BACKEND="omp2b:skylake-avx512"
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash-devServer-hzdr"}
 
-export PATH=$PATH:$PICSRC
-export PATH=$PATH:$PICSRC/bin
-export PATH=$PATH:$PICSRC/src/tools/binspa
+export PATH=$PICSRC:$PATH
+export PATH=$PICSRC/bin::$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
