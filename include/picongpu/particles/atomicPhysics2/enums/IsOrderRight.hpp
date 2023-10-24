@@ -42,7 +42,7 @@ namespace picongpu::particles::atomicPhysics2::enums
         static constexpr bool value = true;
     }
 
-    // upward case
+    // downward case
     template<>
     struct isOrderRight<TransitionOrdering::byUpperState, TransitionDirection::downward>
     {

@@ -59,12 +59,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
          *
          * @param worker object containing the device and block information, passed by PMACC_KERNEL call
          * @param areMapping mapping of blockIndex to block superCell index
-         * @param localRateCacheBox deviceDataBox containing the local rate cache of the super cell
-         * @param chargeStateDataDataBox deviceDataBox giving access to charge state property data
-         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
-         * @param startIndexDataBox deviceDataBox containing the start index of each atomic states'
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
+         * @param localRateCacheBox deviceDataBox giving access the local rate cache of all local super cells
+         * @param startIndexDataBox deviceDataBox giving access to the start index of each atomic states'
          *  block of transitions in the up-/down-ward bound-bound transition collection
-         * @param numberTransitionsDataBox deviceDataBox containing the number of transitions
+         * @param numberTransitionsDataBox deviceDataBox giving access to the number of transitions
          *   of each atomic state up- and down-ward
          * @param autonomousTransitionDataBox deviceDataBox giving access to autonomous
          *  transition property data
@@ -138,10 +137,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitionsDown; i++)
                         {
                             // 1/UNIT_TIME
-                            rateCache.add<
-                                atomicPhysics2::enums::TransitionType::autonomous,
-                                atomicPhysics2::enums::TransitionDirection::downward
-                            >(
+                            rateCache.add<atomicPhysics2::enums::TransitionDataSet::autonomousDownward>(
                                 atomicStateCollectionIndex,
                                 picongpu::particles::atomicPhysics2::rateCalculation::AutonomousTransitionRates::
                                     template rateAutonomousIonization<T_AutonomousTransitionDataBox>(

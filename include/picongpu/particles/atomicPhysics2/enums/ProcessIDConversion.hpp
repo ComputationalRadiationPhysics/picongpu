@@ -25,9 +25,9 @@
 
 namespace picongpu::particles::atomicPhysics2::enums
 {
-    /** constexpr conversion methods for processID to processClass
+    /** constexpr conversion methods for processID to TransitionDataSet
      *
-     * processID is the index of a process in the physicalTransitionSpace for each atomic state
+     * processID is the index of a transitionType and TransitionDirection combination
      *
      * Encoding is based on the following indexation, ordering level from highest to lowest,
      * [0. no change is always physical transition index 0, always present]

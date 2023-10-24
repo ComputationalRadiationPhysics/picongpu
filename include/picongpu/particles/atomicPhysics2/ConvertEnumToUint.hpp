@@ -33,4 +33,10 @@ namespace picongpu::particles::atomicPhysics2
     {
         return static_cast<uint8_t>(enumInstance);
     }
+
+    template<typename T_Enum>
+    constexpr uint32_t u32(T_Enum const enumInstance)
+    {
+        return static_cast<uint32_t>(enumInstance);
+    }
 } // namespace picongpu::particles::atomicPhysics2

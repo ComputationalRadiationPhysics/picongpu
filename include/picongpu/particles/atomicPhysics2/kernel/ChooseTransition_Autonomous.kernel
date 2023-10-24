@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particels/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessIDConversion.hpp"
@@ -54,7 +55,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         bool T_electronicIonization,
         bool T_autonomousIonization,
         bool T_fieldIonization>
-    struct ExtractTransitionCollectionIndexKernel_Autonomous
+    struct ChooseTransitionKernel_Autonomous
     {
         using S_NumberPhysical = picongpu::particles::atomicPhysics2::processClass::NumberPhysicalTransitions<
             T_electronicExcitation,
@@ -73,51 +74,58 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_autonomousIonization,
             T_fieldIonization>;
 
-        HDINLINE static void checkProcessClass(uint8_t const processClass)
-        {
-            if(processClass == static_cast<uint8_t>(255u))
-            {
-                printf("atomicPhysics ERROR: invalid processId found in autonomous "
-                       "ExtractTransitionKernel\n");
-            }
-        }
-
         /** call operator
          *
-         * called by ExtractTransitionCollectionIndex atomic physics sub-stage
+         * called by ChooseTransition atomic physics sub-stage
          *
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call
          * @param areMapping mapping of blockIndex to block superCell index
-         * @param ionBox deviceDataBox containing the particle frames of all local superCells
+         * @param rngFactory factory for uniformly distributed random number generator, for float_X [0,1)
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
          * @param numberTransitionsBox deviceDataBox giving access to the number of
          *  bound-free transitions for each atomic state
          * @param startIndexBox deviceDataBox giving access to the start index of each
          *  atomic states block of transitions
+         * @param transitionDataBox deviceDataBox giving access to autonomous
+         *  transition property data
+         * @param localRateCacheBox deviceDataBox giving access the local rate cache of all local super cells
+         * @param ionBox deviceDataBox giving access to the species particle frames of all local super cells
          */
         template<
             typename T_Worker,
             typename T_AreaMapping,
+            typename T_RngGeneratorFactoryFloat,
             typename T_LocalTimeRemainingBox,
-            typename T_IonBox,
             typename T_AtomicStateAutonomousNumberTransitionsDataBox,
-            typename T_AtomicStateAutonomousStartIndexBlockDataBox>
+            typename T_AtomicStateAutonomousStartIndexBlockDataBox,
+            typename T_AutonomousTransitionDataBox,
+            typename T_LocalRateCacheBox,
+            typename T_IonBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            T_RngGeneratorFactoryFloat rngFactory, /// const?, @todo Brian Marre, 2023
             T_LocalTimeRemainingBox const localTimeRemainingBox,
-            T_IonBox ionBox,
             T_AtomicStateAutonomousNumberTransitionsDataBox const numberTransitionsBox,
-            T_AtomicStateAutonomousStartIndexBlockDataBox const startIndexBox) const
+            T_AtomicStateAutonomousStartIndexBlockDataBox const startIndexBox,
+            T_AutonomousTransitionDataBox const transitionDataBox,
+            /// @todo we strictly speaking only need autonomousDownward dataSet, Brian Marre, 2023
+            T_LocalRateCacheBox const localRateCacheBox,
+            T_IonBox ionBox) const
         {
             // check that correct databoxes are given
             PMACC_CASSERT_MSG(
-                number_transition_dataBox_not_autonomous_based,
+                numberTransitionBox_not_autonomous_based,
                 u8(T_AtomicStateAutonomousNumberTransitionsDataBox::processClassGroup)
                     == u8(enums::ProcessClassGroup::autonomousBased));
             PMACC_CASSERT_MSG(
-                startIndex_dataBox_not_autonomous_based,
+                startIndexBox_not_autonomous_based,
                 u8(T_AtomicStateAutonomousStartIndexBlockDataBox::processClassGroup)
+                    == u8(enums::ProcessClassGroup::autonomousBased));
+            PMACC_CASSERT_MSG(
+                transitiondataBox_not_autonomous_based,
+                u8(T_AutonomousTransitionDataBox::processClassGroup)
                     == u8(enums::ProcessClassGroup::autonomousBased));
 
             pmacc::DataSpace<simDim> const superCellIdx(
@@ -134,39 +142,31 @@ namespace picongpu::particles::atomicPhysics2::kernel
             if((timeRemaining <= 0._X) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
 
-            // check whether autonomous transition and if yes,
-            //      extract transition and roll random bin
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            auto rngGenerator = rngFactory(worker, superCellFieldIdx);
+
+            // check whether autonomous transition and if yes, choose transitionIndex and processClass
             forEachLocalIonBoxEntry(
-                [&numberTransitionsBox, &startIndexBox](T_Worker const& worker, auto& ion)
+                [&numberTransitionsBox, &startIndexBox, &rateCache, &rngGenerator](T_Worker const& worker, auto& ion)
                 {
-                    if(ion[accepted_])
-                        return; // already accepted ion
+                    if(ion[accepted_]
+                        || (ion[transitionIndex_] != u32(atomicPhysics2::enums::TransitionDataSet::autonomousDownward)))
+                        return; // already accepted ion or selected transitionType not autonomousDownward
 
                     auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
                     // usually 0, 1 depending in active channels
                     constexpr uint32_t factorDown = S_NumberPhysical::getFactorAutonomous();
 
-                    uint32_t const numberPhysicalTransitionsDown
-                        = factorDown * numberTransitionsBox.numberOfTransitionsDown(atomicStateCollectionIndex);
-
+                    uint32_t const numberTransitionsDown
+                        = numberTransitionsBox.numberOfTransitionsDown(atomicStateCollectionIndex);
                     uint32_t const offset = numberTransitionsBox.offset(atomicStateCollectionIndex);
-
-                    bool const belowOffset = ion[transitionIndex_] < offset;
-                    // up-ward autonomous transitions do not exist
-                    bool const aboveRange = ion[transitionIndex_] >= offset + numberPhysicalTransitionsDown;
-                    if(belowOffset || aboveRange)
-                        return; // not a autonomous transition
-
-                    // is down-ward autonomous transition
-
-                    uint32_t const processID = (ion[transitionIndex_] - offset) % factorDown;
 
                     // debug check
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
                                      CHECK_FOR_INVALID_PROCESS_ID)
                     {
-                        checkProcessClass(S_ProcessIDConversion::getProcessClassAutonomous_Down(processID));
+                        // debug check
                     }
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
@@ -183,6 +183,19 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             processID,
                             static_cast<uint16_t>(S_ProcessIDConversion::getProcessClassAutonomous_Down(processID)),
                             startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex));
+                    }
+
+                    r = rngGenerator();
+
+                    float_X cumSum = 0._X;
+                    for (uint32_t i=0u; i < numberTransitionsDown; ++i)
+                    {
+                        cumSum = cumSum + transitionDataBox.rate(i + offset);
+                        if(r < cumSum)
+                        {
+                            ion[processClass_] =
+                            break;
+                        }
                     }
 
                     // set ion attributes

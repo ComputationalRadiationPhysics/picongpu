@@ -26,7 +26,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/kernel/ChooseTransition.kernel"
+#include "picongpu/particles/atomicPhysics2/kernel/ChooseTransitionType.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 
@@ -42,14 +42,14 @@ namespace picongpu::particles::atomicPhysics2::stage
      * @tparam T_IonSpecies ion species type
      */
     template<typename T_IonSpecies>
-    struct ChooseTransition
+    struct ChooseTransitionType
     {
         // might be alias, from here on out no more
         //! resolved type of alias T_IonSpecies
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
 
-        using DistributionInt = pmacc::random::distributions::Uniform<uint32_t>;
-        using RngFactoryInt = particles::functor::misc::Rng<DistributionInt>;
+        using DistributionFloat = pmacc::random::distributions::Uniform<float_X>;
+        using RngFactoryFloat = particles::functor::misc::Rng<DistributionFloat>;
 
         //! call of kernel for every superCell
         HINLINE void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
@@ -67,17 +67,24 @@ namespace picongpu::particles::atomicPhysics2::stage
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
                     picongpu::MappingDesc>>("LocalTimeRemainingField");
 
+            using RateCache = picongpu::particles::atomicPhysics2::localHelperFields::
+                LocalRateCacheField<picongpu::MappingDesc, IonSpecies>::entryType;
+            auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
+                LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
+                    IonSpecies::FrameType::getName() + "_localRateCacheField");
+
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
 
-            RngFactoryInt rngFactory = RngFactoryInt{currentStep};
+            RngFactoryFloat rngFactory = RngFactoryFloat{currentStep};
 
-            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics2::kernel::ChooseTransitionKernel(), workerCfg)
+            PMACC_LOCKSTEP_KERNEL(
+                picongpu::particles::atomicPhysics2::kernel::ChooseTransitionTypeKernel<RateCache>(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 rngFactory,
                 localTimeRemainingField.getDeviceDataBox(),
-                ions.getDeviceParticlesBox(),
-                atomicData.template getTransitionSelectionDataBox<false>());
+                localRateCacheField.getDeviceDataBox(),
+                ions.getDeviceParticlesBox());
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::stage

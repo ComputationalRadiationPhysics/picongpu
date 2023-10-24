@@ -72,6 +72,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
          *
          * @param worker object containing the device and block information, passed by PMACC_KERNEL call
          * @param areaMapping mapping of blockIndex to block superCell index
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
          * @param localRateCacheBox deviceDataBox giving access to the local rate cache of
          *  all local superCells
          * @param localElectronHistogramDataBox giving access to the local electron histograms
@@ -174,10 +175,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     {
                         if constexpr(T_electronicIonization)
                         {
-                            rateCache.add<
-                                atomicPhyiscs2::enums::TransitionType::boundFree,
-                                atomicPhysics2::enums::TransitionDirection::upward
-                            >(
+                            rateCache.add<atomicPhysics2::enums::TransitionDataSet::boundFreeUpward>(
                                 worker,
                                 atomicStateCollectionIndex,
                                 picongpu::particles::atomicPhysics2::rateCalculation::BoundFreeTransitionRates<

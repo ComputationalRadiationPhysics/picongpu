@@ -17,7 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file transitionType enum, enum of transition data storage groups
+/** @file transitionType enum, enum of the different sets of dataTransitions in the input data
+ *
+ * A dataTransition being a set of coefficients and an lower and upper state describing one or more physical transitions
+ * differing in physical process and direction.
+ *  For example each bound-bound transition represents, a spontaneous radiative deexcitation, an electronic deexcitation
+ *  and an electronic excitation.
+ */
 
 #pragma once
 
@@ -32,7 +38,8 @@ namespace picongpu::particles::atomicPhysics2
         {
             boundBound = 0u,
             boundFree = 1u,
-            autonomous = 2u
+            autonomous = 2u,
+            noChange = 3u
         };
     } // namespace enums
 
@@ -48,6 +55,9 @@ namespace picongpu::particles::atomicPhysics2
         if constexpr(
             static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::autonomous))
             return "autonomous";
+        if constexpr(
+            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::noChange))
+            return "noChange";
         return "unknown";
     }
 } // namespace picongpu::particles::atomicPhysics2T

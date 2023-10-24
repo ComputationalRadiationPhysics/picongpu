@@ -24,7 +24,7 @@
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundBoundTransitionRates.hpp"
 
 #include <pmacc/algorithms/math/PowerFunction.hpp>
@@ -72,6 +72,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
          *
          * @param worker object containing the device and block information, passed by PMACC_KERNEL call
          * @param areaMapping mapping of blockIndex to block superCell index
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
          * @param localRateCacheBox deviceDataBox giving access to the local rate cache of
          *  all local superCells
          * @param localElectronHistogramDataBox giving access to the local electron histograms
@@ -183,10 +184,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             // electronic excitation
                             if constexpr(upward)
                             {
-                                rateCache.add<
-                                    atomicPhyiscs2::enums::TransitionType::boundBound,
-                                    atomicPhysics2::enums::TransitionDirection::upward
-                                >(
+                                rateCache.add<atomicPhyiscs2::enums::TransitionDataSet::boundBoundUpward>(
                                     worker,
                                     atomicStateCollectionIndex,
                                     // rate
@@ -209,10 +207,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             // electronic deexcitation
                             else
                             {
-                                rateCache.add<
-                                    atomicPhyiscs2::enums::TransitionType::boundBound,
-                                    atomicPhysics2::enums::TransitionDirection::downward
-                                >(
+                                rateCache.add<atomicPhyiscs2::enums::TransitionDataSet::boundBoundDownward>(
                                     worker,
                                     atomicStateCollectionIndex,
                                     // rate
@@ -258,10 +253,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                         for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitions; i++)
                         {
-                            rateCache.add<
-                                atomicPhyiscs2::enums::TransitionType::boundBound,
-                                atomicPhysics2::enums::TransitionDirection::downward
-                            >(
+                            rateCache.add<atomicPhyiscs2::enums::TransitionDataSet::boundBoundDownward>(
                                 atomicStateCollectionIndex,
                                 // rate
                                 picongpu::particles::atomicPhysics2::rateCalculation::BoundBoundTransitionRates<

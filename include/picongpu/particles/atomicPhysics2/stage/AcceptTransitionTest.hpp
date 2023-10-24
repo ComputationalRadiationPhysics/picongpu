@@ -91,7 +91,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                 picongpu::particles::atomicPhysics2 ::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>>(
                 "LocalTimeStepField");
 
-            auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2 ::localHelperFields::
+            auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
                                                     LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
                 IonSpecies::FrameType::getName() + "_localRateCacheField");
 
