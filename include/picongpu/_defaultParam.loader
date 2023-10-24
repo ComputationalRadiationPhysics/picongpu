@@ -63,5 +63,4 @@
 #include "picongpu/param/particleCalorimeter.param"
 #include "picongpu/param/isaac.param"
 #include "picongpu/param/radiationObserver.param"
-#include "picongpu/param/particleMerger.param"
 // clang-format on
