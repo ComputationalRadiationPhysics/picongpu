@@ -43,7 +43,7 @@ namespace pmacc
                 template<typename T_Worker, typename T_Dst, typename T_Src>
                 HDINLINE void operator()(T_Worker const& worker, T_Dst& dst, T_Src const& src) const
                 {
-                    atomicOpNoRet<T_AlpakaOperation>(worker, &dst, src, T_AlpakaHierarchy{});
+                    ::alpaka::atomicOp<T_AlpakaOperation>(worker.getAcc(), &dst, src, T_AlpakaHierarchy{});
                 }
 
                 /** Execute atomic operation for pmacc::math::Vector */
@@ -63,7 +63,7 @@ namespace pmacc
                     pmacc::math::Vector<T_Type, T_dim, T_SrcAccessor, T_SrcNavigator, T_SrcStorage> const& src) const
                 {
                     for(uint32_t i = 0; i < T_dim; ++i)
-                        atomicOpNoRet<T_AlpakaOperation>(worker, &dst[i], src[i], T_AlpakaHierarchy{});
+                        ::alpaka::atomicOp<T_AlpakaOperation>(worker.getAcc(), &dst[i], src[i], T_AlpakaHierarchy{});
                 }
             };
 
