@@ -161,7 +161,7 @@ namespace picongpu
                                      { parCellList[linearIdx].shuffle(worker, rngHandle); });
 
                     auto collisionFunctorCtx = forEachFrameElem(
-                        [&](uint32_t const idx)
+                        [&](int32_t const idx)
                         {
                             uint32_t const sizeAll = parCellList[idx].size;
                             // skip particle offset counter
@@ -179,8 +179,7 @@ namespace picongpu
                                 {
                                     auto const shifted
                                         = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
-                                    auto const idxInSuperCell
-                                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                                    auto const idxInSuperCell = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
                                     collisionFunctor.coulombLogFunctor.screeningLengthSquared_m
                                         = shifted(idxInSuperCell)[0];
                                 }

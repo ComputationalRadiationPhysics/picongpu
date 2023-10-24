@@ -243,14 +243,38 @@ namespace pmacc
                 return (*this)[2];
             }
 
-            template<uint32_t shrinkedDim>
-            HDINLINE Vector<type, shrinkedDim, Accessor, Navigator> shrink(const int startIdx = 0) const
+            /** Shrink the number of elements of a vector.
+             *
+             * @tparam T_numElements New dimension of the vector.
+             * @return First T_numElements elements of the origin vector
+             */
+            template<uint32_t T_numElements>
+            HDINLINE Vector<type, T_numElements, Accessor, Navigator> shrink() const
             {
                 PMACC_CASSERT_MSG(
-                    math_Vector__shrinkedDim_DIM_must_be_lesser_or_equal_to_Vector_DIM,
-                    shrinkedDim <= dim);
-                Vector<type, shrinkedDim, Accessor, Navigator> result;
-                for(uint32_t i = 0u; i < shrinkedDim; i++)
+                    math_Vector__T_numElements_must_be_lesser_or_equal_to_Vector_DIM,
+                    T_numElements <= dim);
+                Vector<type, T_numElements, Accessor, Navigator> result;
+                for(uint32_t i = 0u; i < T_numElements; i++)
+                    result[i] = (*this)[i];
+                return result;
+            }
+
+            /** Shrink the number of elements of a vector.
+             *
+             * @tparam T_numElements New dimension of the vector.
+             * @param startIdx Index within the origin vector which will be the first element in the result.
+             * @return T_numElements elements of the origin vector starting with the index startIdx.
+             *         Indexing will wrapp around when the end of the origin vector is reached.
+             */
+            template<uint32_t T_numElements>
+            HDINLINE Vector<type, T_numElements, Accessor, Navigator> shrink(const int startIdx) const
+            {
+                PMACC_CASSERT_MSG(
+                    math_Vector_T_numElements_must_be_lesser_or_equal_to_Vector_DIM,
+                    T_numElements <= dim);
+                Vector<type, T_numElements, Accessor, Navigator> result;
+                for(uint32_t i = 0u; i < T_numElements; i++)
                     result[i] = (*this)[(startIdx + i) % dim];
                 return result;
             }
@@ -700,36 +724,109 @@ namespace pmacc
             return result;
         }
 
+        /** Give the linear index of an N-dimensional index within an N-dimensional index space.
+         *
+         * @tparam T_IntegralType vector data type (must be an integral type)
+         * @tparam T_dim dimension of the vector, should be >= 2
+         * @param size N-dimensional size of the index space (N can be one dimension less compared to idx)
+         * @param idx N-dimensional index within the index space
+         *            @attention behaviour is undefined for negative index
+         *            @attention if idx is outside of size the result will be outside of the the index domain too
+         * @return linear index within the index domain
+         *
+         * @{
+         */
         template<
-            typename T_Type,
+            typename T_IntegralType,
             typename T_Accessor,
             typename T_Navigator,
             typename T_Storage,
             typename T_OtherAccessor,
             typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE T_Type linearize(
-            const Vector<T_Type, 1, T_Accessor, T_Navigator, T_Storage>& size,
-            const Vector<T_Type, 2, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& pos)
+            typename T_OtherStorage,
+            uint32_t T_dim,
+            typename = std::enable_if_t<std::is_integral_v<T_IntegralType> && T_dim >= DIM2>>
+        HDINLINE T_IntegralType linearize(
+            const Vector<T_IntegralType, T_dim - 1u, T_Accessor, T_Navigator, T_Storage>& size,
+            const Vector<T_IntegralType, T_dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& idx)
         {
-            return pos.y() * size.x() + pos.x();
+            T_IntegralType linearIdx{idx[T_dim - 1u]};
+            for(int d = T_dim - 2; d >= 0; --d)
+                linearIdx = linearIdx * size[d] + idx[d];
+
+            return linearIdx;
         }
 
         template<
-            typename T_Type,
+            typename T_IntegralType,
             typename T_Accessor,
             typename T_Navigator,
             typename T_Storage,
             typename T_OtherAccessor,
             typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE T_Type linearize(
-            const Vector<T_Type, 2, T_Accessor, T_Navigator, T_Storage>& size,
-            const Vector<T_Type, 3, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& pos)
+            typename T_OtherStorage,
+            uint32_t T_dim,
+            typename = std::enable_if_t<std::is_integral_v<T_IntegralType>>>
+        HDINLINE T_IntegralType linearize(
+            const Vector<T_IntegralType, T_dim, T_Accessor, T_Navigator, T_Storage>& size,
+            const Vector<T_IntegralType, T_dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& idx)
         {
-            return pos.z() * size.x() * size.y() + pos.y() * size.x() + pos.x();
+            return linearize(size.template shrink<T_dim - 1u>(), idx);
         }
 
+        /** @} */
+
+        /** Maps a linear index to an N-dimensional index
+         *
+         * @tparam T_IntegralType vector data type (must be an integral type)
+         * @param size N-dimensional index space
+         * @param linearIdx Linear index within size.
+         *        @attention If linearIdx is an index outside of size the result will be outside of the index domain
+         * too.
+         * @return N-dimensional index
+         *
+         * @{
+         */
+        template<
+            typename T_IntegralType,
+            typename T_Accessor,
+            typename T_Navigator,
+            typename T_Storage,
+            uint32_t T_dim,
+            typename = std::enable_if_t<std::is_integral_v<T_IntegralType> && T_dim >= DIM2>>
+        HDINLINE auto mapToND(
+            const Vector<T_IntegralType, T_dim, T_Accessor, T_Navigator, T_Storage>& size,
+            T_IntegralType linearIdx)
+        {
+            Vector<T_IntegralType, T_dim - 1u, T_Accessor, T_Navigator, T_Storage> pitchExtents;
+            pitchExtents[0] = size[0];
+            for(uint32_t d = 1u; d < T_dim - 1u; ++d)
+                pitchExtents[d] = size[d] * pitchExtents[d - 1u];
+
+            Vector<T_IntegralType, T_dim> result;
+            for(uint32_t d = T_dim - 1u; d >= 1u; --d)
+            {
+                result[d] = linearIdx / pitchExtents[d - 1];
+                linearIdx -= pitchExtents[d - 1] * result[d];
+            }
+            result[0] = linearIdx;
+            return result;
+        }
+
+        template<
+            typename T_IntegralType,
+            typename T_Accessor,
+            typename T_Navigator,
+            typename T_Storage,
+            typename = std::enable_if_t<std::is_integral_v<T_IntegralType>>>
+        HDINLINE auto mapToND(
+            const Vector<T_IntegralType, DIM1, T_Accessor, T_Navigator, T_Storage>& size,
+            T_IntegralType linearIdx)
+        {
+            return linearIdx;
+        }
+
+        /** @} */
 
         template<typename Lhs, typename Rhs>
         HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)

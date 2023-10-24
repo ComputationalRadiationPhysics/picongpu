@@ -64,14 +64,14 @@ namespace pmacc
                     auto forEachCell = lockstep::makeForEach<T_blockSize>(worker);
 
                     forEachCell(
-                        [&](uint32_t const linearIdx)
+                        [&](int32_t const linearIdx)
                         {
                             uint32_t const linearTid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
 
                             if(linearTid >= boxSize.productOfComponents())
                                 return;
 
-                            Space2D const ownIdx = pmacc::DataSpaceOperations<Space2D::dim>::map(boxSize, linearTid);
+                            Space2D const ownIdx = pmacc::math::mapToND(boxSize, linearTid);
                             // each virtual worker needs an own instance of rand
                             T_Random vWorkerRand = rand;
                             vWorkerRand.init(ownIdx);

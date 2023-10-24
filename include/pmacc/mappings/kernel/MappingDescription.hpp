@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/math/Vector.hpp"

@@ -28,7 +28,6 @@
 #include "picongpu/fields/currentDeposition/Strategy.def"
 #include "picongpu/traits/attribute/DampedWeighting.hpp"
 
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -126,7 +125,7 @@ namespace picongpu
                 const float_X charge = attribute::getCharge(dampedWeighting, particle);
                 const floatD_X pos = particle[position_];
                 const int particleCellIdx = particle[localCellIdx_];
-                const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec>(particleCellIdx));
+                const DataSpace<simDim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
 
                 // The rest uses normal weighting
                 const float_X weighting = particle[weighting_];

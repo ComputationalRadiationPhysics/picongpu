@@ -68,8 +68,9 @@ namespace picongpu
                             bool filterResult = false;
                             if(particle.isHandleValid())
                             {
-                                DataSpace<simDim> const cellInSuperCell(
-                                    DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]));
+                                DataSpace<simDim> const cellInSuperCell = pmacc::math::mapToND(
+                                    SuperCellSize::toRT(),
+                                    static_cast<int>(particle[localCellIdx_]));
                                 filterResult = Functor::operator()(
                                     m_superCellToLocalOriginCellOffset + cellInSuperCell,
                                     particle);

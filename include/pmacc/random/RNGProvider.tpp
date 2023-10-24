@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/lockstep/lockstep.hpp"
 #include "pmacc/random/RNGProvider.hpp"
 
@@ -46,13 +45,13 @@ namespace pmacc
                     auto forEachCell = lockstep::makeForEach<T_blockSize>(worker);
 
                     forEachCell(
-                        [&](uint32_t const linearIdx)
+                        [&](int32_t const linearIdx)
                         {
                             int32_t const linearTid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
                             if(linearTid >= size.productOfComponents())
                                 return;
 
-                            T_Space const cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
+                            T_Space const cellIdx = math::mapToND(size, linearTid);
                             T_RNGMethod().init(worker, rngBox(cellIdx), seed, linearTid);
                         });
                 }

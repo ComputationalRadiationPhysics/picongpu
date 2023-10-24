@@ -177,8 +177,7 @@ namespace picongpu
                     floatD_X pos = particle[position_];
                     const int particleCellIdx = particle[localCellIdx_];
                     /* multi-dim coordinate of the local cell inside the super cell */
-                    DataSpace<TVec::dim> localCell(
-                        DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
+                    DataSpace<TVec::dim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
                     /* interpolation of E */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
                     ValueType_E eField = Field2ParticleInterpolation()(cachedE.shift(localCell), pos, fieldPosE());

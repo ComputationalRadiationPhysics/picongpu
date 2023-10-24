@@ -28,7 +28,6 @@
 #include "picongpu/plugins/transitionRadiation/GammaMask.hpp"
 #include "picongpu/plugins/transitionRadiation/Particle.hpp"
 
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
 
 #include <cstdlib>
@@ -147,7 +146,7 @@ namespace picongpu
                     {
                         // select SuperCell and add one sided guard again
                         DataSpace<simDim> const superCell
-                            = DataSpaceOperations<simDim>::map(superCellsCount, superCellIndex) + guardingSuperCells;
+                            = pmacc::math::mapToND(superCellsCount, superCellIndex) + guardingSuperCells;
 
 
                         // -guardingSuperCells remove guarding block
@@ -225,16 +224,14 @@ namespace picongpu
                                             if(saveParticleAt != -1)
                                             {
                                                 // calculate global position
-                                                lcellId_t const cellIdx = par[localCellIdx_];
+                                                int const cellIdx = par[localCellIdx_];
 
                                                 // position inside of the cell
                                                 floatD_X const pos = par[position_];
 
                                                 // calculate global position of cell
-                                                DataSpace<simDim> const globalPos(
-                                                    superCellOffset
-                                                    + DataSpaceOperations<simDim>::template map<SuperCellSize>(
-                                                        cellIdx));
+                                                DataSpace<simDim> const globalPos = superCellOffset
+                                                    + pmacc::math::mapToND(SuperCellSize::toRT(), cellIdx);
 
                                                 // add global position of cell with local position of particle in cell
                                                 float3_X particleLocation;

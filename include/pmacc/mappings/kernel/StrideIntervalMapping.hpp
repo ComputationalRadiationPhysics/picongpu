@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/mappings/kernel/MapperConcept.hpp"
 #include "pmacc/types.hpp"
 
@@ -133,9 +132,9 @@ namespace pmacc
          */
         bool next()
         {
-            int linearOffset = DataSpaceOperations<dim>::map(DataSpace<dim>::create(stride), offset);
+            int linearOffset = pmacc::math::linearize(DataSpace<dim>::create(stride), offset);
             linearOffset++;
-            offset = DataSpaceOperations<dim>::map(DataSpace<dim>::create(stride), linearOffset);
+            offset = pmacc::math::mapToND(DataSpace<dim>::create(stride), linearOffset);
             /* First check if everything is processed to have a recursion stop condition.
              * Then if the new grid dim has 0 size, immediately go to the next state.
              * This way it guarantees a valid grid dim after next() returns true.

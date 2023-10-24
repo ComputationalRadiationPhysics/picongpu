@@ -24,7 +24,6 @@
 
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/math/VectorOperations.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -70,7 +69,7 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const pmacc::math::UInt32<simDim> cellIdx(pmacc::math::MapToPos<simDim>()(SuperCellSize{}, linearCellIdx));
+            const pmacc::math::UInt32<simDim> cellIdx(pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx));
 
             const uint32_t r_bin = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];

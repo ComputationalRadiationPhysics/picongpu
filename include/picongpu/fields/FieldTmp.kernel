@@ -24,7 +24,6 @@
 #include "FieldTmp.hpp"
 #include "picongpu/algorithms/Set.hpp"
 
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/math/operation.hpp>

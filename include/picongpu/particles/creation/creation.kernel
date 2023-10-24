@@ -115,11 +115,10 @@ namespace picongpu
                     auto particleCreatorCtx = lockstep::makeVar<T_ParticleCreator>(forEachParticle);
 
                     forEachParticle(
-                        [&](uint32_t const idx, auto& destParticleCreator)
+                        [&](int32_t const idx, auto& destParticleCreator)
                         {
                             // cell index within the superCell
-                            DataSpace<simDim> const cellIdx
-                                = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                            DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
 
                             // cell offset with respect to the local domain origin (without any guarding cells
                             pmacc::math::Int<simDim> const localCellIndex = simDomainSupercellCellOffset + cellIdx;

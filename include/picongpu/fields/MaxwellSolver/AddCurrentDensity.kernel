@@ -84,11 +84,10 @@ namespace picongpu::fields::maxwellSolver
             worker.sync();
 
             lockstep::makeForEach<cellsPerSuperCell>(worker)(
-                [&](uint32_t const linearIdx)
+                [&](int32_t const linearIdx)
                 {
                     /* cell index within the superCell */
-                    DataSpace<simDim> const cellIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
                     DataSpace<simDim> const cell(blockCell + cellIdx);
 
                     currentInterpolationFunctor(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx), coeff);

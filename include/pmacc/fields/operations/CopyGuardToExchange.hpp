@@ -85,11 +85,10 @@ namespace pmacc
                     auto const numGuardSuperCells = mapper.getGuardingSuperCells();
 
                     lockstep::makeForEach<numCells>(worker)(
-                        [&](uint32_t const linearIdx)
+                        [&](int32_t const linearIdx)
                         {
                             // cell index within the superCell
-                            DataSpace<dim> const cellIdx
-                                = DataSpaceOperations<dim>::template map<SuperCellSize>(linearIdx);
+                            DataSpace<dim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
 
                             DataSpace<T_Mapping::Dim> const sourceCell(blockCell + cellIdx);
                             DataSpace<dim> targetCell(sourceCell - nullSourceCell);

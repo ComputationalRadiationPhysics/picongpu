@@ -454,10 +454,10 @@ namespace picongpu
                             = DataSpace<simDim>(cupla::blockIdx(worker.getAcc())) * SuperCellSize::toRT();
 
                         lockstep::makeForEach<planeSize>(worker)(
-                            [&](uint32_t const linearIdx)
+                            [&](int32_t const linearIdx)
                             {
-                                auto cellIdxInSuperCell
-                                    = DataSpaceOperations<simDim>::template map<T_BlockDescription>(linearIdx);
+                                auto cellIdxInSuperCell = pmacc::math::mapToND(T_BlockDescription::toRT(), linearIdx);
+
                                 auto const updatedGridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
 
                                 /* The index may be outside since the active area is not generally a multiple of block

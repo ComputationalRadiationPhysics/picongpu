@@ -79,8 +79,8 @@ namespace picongpu
                         using SuperCellSize = typename T_Particle::SuperCellSize;
 
                         int const particleCellIdx = particle[localCellIdx_];
-                        DataSpace<simDim> const cellInSuperCell(
-                            DataSpaceOperations<simDim>::template map<SuperCellSize>(particleCellIdx));
+                        DataSpace<simDim> const cellInSuperCell
+                            = pmacc::math::mapToND(SuperCellSize::toRT(), particleCellIdx);
                         DataSpace<simDim> const globalParticleOffset(globalSuperCellOffset + cellInSuperCell);
 
                         float_X const relativePosition = float_X(globalParticleOffset[Params::dimension])

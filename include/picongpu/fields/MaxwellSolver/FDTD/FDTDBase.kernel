@@ -187,10 +187,9 @@ namespace picongpu
                         constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                         // Execute the stencil functor for each cell in the supercell.
                         lockstep::makeForEach<cellsPerSuperCell>(worker)(
-                            [&](uint32_t const linearIdx)
+                            [&](int32_t const linearIdx)
                             {
-                                auto const idxInSuperCell
-                                    = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                                auto const idxInSuperCell = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
                                 auto const gridIdx = beginCellIdx + idxInSuperCell;
                                 stencilFunctor(
                                     gridIdx,

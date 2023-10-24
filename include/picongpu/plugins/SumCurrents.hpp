@@ -26,7 +26,6 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
@@ -65,10 +64,9 @@ namespace picongpu
 
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
             lockstep::makeForEach<cellsPerSuperCell>(worker)(
-                [&](uint32_t const linearIdx)
+                [&](int32_t const linearIdx)
                 {
-                    const auto cellIdxInSupercell
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                    const auto cellIdxInSupercell = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
                     const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + cellIdxInSupercell);
                     const float3_X myJ = fieldJ(cell);
                     cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});

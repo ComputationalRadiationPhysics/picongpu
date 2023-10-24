@@ -33,7 +33,6 @@
 #include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/Complex.hpp>
 #include <pmacc/math/operation.hpp>

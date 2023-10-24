@@ -348,7 +348,7 @@ namespace picongpu
                     T_PBoxShort const& pBoxShort,
                     T_FrameLong const& frameLong,
                     T_FrameShort const& frameShort,
-                    [[maybe_unused]] uint32_t linearCellIdx) const
+                    [[maybe_unused]] int32_t linearCellIdx) const
                 {
                     auto destCollisionFunctor
                         = srcCollisionFunctor(worker, localSuperCellOffset, densityLong, densityShort, sizeLong);
@@ -356,8 +356,7 @@ namespace picongpu
                     if constexpr(useScreeningLength)
                     {
                         auto const shifted = screeningLengthSquared.shift(superCellIdx * SuperCellSize::toRT());
-                        auto const idxInSuperCell
-                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearCellIdx);
+                        auto const idxInSuperCell = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
                         destCollisionFunctor.coulombLogFunctor.screeningLengthSquared_m = shifted(idxInSuperCell)[0];
                     }
 
