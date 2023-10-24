@@ -82,7 +82,6 @@ export PIC_BACKEND="cuda:80" # Nvidia A100 architecture
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/juwels-jsc"}
 
-export PATH=$PICSRC:$PATH
 export PATH=$PICSRC/bin:$PATH
 export PATH=$PICSRC/src/tools/bin:$PATH
 

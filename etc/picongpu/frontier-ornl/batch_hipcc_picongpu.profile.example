@@ -80,7 +80,6 @@ export PIC_BACKEND="hip:gfx90a"
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/frontier-ornl"}
 
-export PATH=$PICSRC:$PATH
 export PATH=$PICSRC/bin:$PATH
 export PATH=$PICSRC/src/tools/bin:$PATH
 
