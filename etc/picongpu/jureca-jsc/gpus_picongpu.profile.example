@@ -64,9 +64,8 @@ export PIC_BACKEND="cuda:37" # Nvidia K80 architecture
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/jureca-jsc"}
 
-export PATH=$PATH:$PICSRC
-export PATH=$PATH:$PICSRC/bin
-export PATH=$PATH:$PICSRC/src/tools/bin
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
