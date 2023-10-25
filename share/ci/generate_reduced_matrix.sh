@@ -33,6 +33,9 @@ folders=()
 if [ "$PIC_INPUTS" == "pmacc" ] ; then
   # create test cases for PMacc
   echo "pmacc" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version
+elif [ "$PIC_INPUTS" == "unit" ] ; then
+   # create test cases for PMacc
+   echo "unit" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version
 else
   # create test cases for PIConGPU
   for CASE in ${PIC_INPUTS}; do

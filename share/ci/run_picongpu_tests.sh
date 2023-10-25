@@ -4,7 +4,6 @@ set -e
 set -o pipefail
 
 # the default build type is Release
-# if neccesary, you can rerun the pipeline with another build type-> https://docs.gitlab.com/ee/ci/pipelines.html#manually-executing-pipelines
 # to change the build type, you must set the environment variable PIC_BUILD_TYPE
 if [[ ! -v PIC_BUILD_TYPE ]] ; then
     PIC_BUILD_TYPE=Release ;
