@@ -108,28 +108,18 @@ namespace pmacc
             {
             }
 
-            HDINLINE
-            constexpr Vector(const type x)
+            /** Constructor for N-dimensional vector
+             *
+             * @attention This constructor allows implicit casts.
+             *
+             * @param args value of each dimension, x,y,z,...
+             */
+            template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
+            HDINLINE constexpr Vector(T_Args... args)
             {
-                PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM1, dim == 1u);
-                (*this)[0] = x;
-            }
-
-            HDINLINE
-            constexpr Vector(const type x, const type y)
-            {
-                PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM2, dim == 2u);
-                (*this)[0] = x;
-                (*this)[1] = y;
-            }
-
-            HDINLINE
-            constexpr Vector(const type x, const type y, const type z)
-            {
-                PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM3, dim == 3u);
-                (*this)[0] = x;
-                (*this)[1] = y;
-                (*this)[2] = z;
+                static_assert(sizeof...(T_Args) == dim, "Number of arguments must be equal to the vector dimension.");
+                int i = 0;
+                ([&] { (*this)[i++] = args; }(), ...);
             }
 
             HDINLINE

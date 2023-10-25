@@ -25,6 +25,8 @@
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/types.hpp"
 
+#include <type_traits>
+
 namespace pmacc
 {
     /**
@@ -82,34 +84,16 @@ namespace pmacc
             }
         }
 
-        /**
-         * Constructor for DIM1-dimensional DataSpace.
+        /** Constructor for N-dimensional DataSpace.
          *
-         * @param x size of first dimension
-         */
-        HDINLINE DataSpace(int x) : BaseType(x)
-        {
-        }
-
-        /**
-         * Constructor for DIM2-dimensional DataSpace.
+         * @attention This constructor allows implicit casts.
          *
-         * @param x size of first dimension
-         * @param y size of second dimension
+         * @param args size of each dimension, x,y,z,...
          */
-        HDINLINE DataSpace(int x, int y) : BaseType(x, y)
+        template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, int> && ...)>>
+        HDINLINE constexpr DataSpace(T_Args&&... args) : BaseType(std::forward<T_Args>(args)...)
         {
-        }
-
-        /**
-         * Constructor for DIM3-dimensional DataSpace.
-         *
-         * @param x size of first dimension
-         * @param y size of second dimension
-         * @param z size of third dimension
-         */
-        HDINLINE DataSpace(int x, int y, int z) : BaseType(x, y, z)
-        {
+            static_assert(sizeof...(T_Args) == T_dim, "Number of arguments must be equal to the DataSpace dimension.");
         }
 
         HDINLINE DataSpace(const BaseType& vec) : BaseType(vec)
