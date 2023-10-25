@@ -78,7 +78,7 @@ find_package(PMacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
 # Catch2
 ###############################################################################
 
-add_subdirectory(${PMACC_ROOT_DIR}/../../thirdParty/catch2/catch_main ${CMAKE_BINARY_DIR}/catch2)
+add_subdirectory(${PMACC_ROOT_DIR}/../../thirdParty/catch2 ${CMAKE_BINARY_DIR}/catch2)
 
 
 ################################################################################
@@ -111,7 +111,7 @@ foreach(dim 2 3)
         set(testExe "${PROJECT_NAME}-${testCase}-${dim}D")
         cupla_add_executable(${testExe} ${testCaseFilepath})
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
-        target_link_libraries(${testExe} PUBLIC CatchMain)
+        target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
         add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe})
     endforeach()

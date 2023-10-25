@@ -44,7 +44,7 @@ set(_TARGET_NAME "headerCheckTest")
 # Catch2
 ###############################################################################
 
-add_subdirectory(${PMACC_ROOT_DIR}/../../thirdParty/catch2/catch_main ${CMAKE_BINARY_DIR}/catch2)
+add_subdirectory(${PMACC_ROOT_DIR}/../../thirdParty/catch2 ${CMAKE_BINARY_DIR}/catch2)
 
 #---------------------------------------------------------------------------
 # Create source files.
@@ -80,7 +80,7 @@ cupla_add_executable(
         ${_TARGET_NAME}
         ${_FILES_SOURCE})
 
-target_link_libraries(${_TARGET_NAME} PUBLIC CatchMain)
+target_link_libraries(${_TARGET_NAME} PUBLIC Catch2 Catch2WithMain)
 target_compile_definitions(${_TARGET_NAME} PRIVATE "PMACC_NO_TPP_INCLUDE")
 target_link_libraries(${_TARGET_NAME} PRIVATE pmacc::pmacc)
 
