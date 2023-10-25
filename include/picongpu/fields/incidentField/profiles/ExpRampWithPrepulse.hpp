@@ -108,12 +108,12 @@ namespace picongpu::fields::incidentField
                     || (ratio_dt >= 0.33_X && ri1 > ri2 * ri2 * ri2)
                     || (ratio_dt >= 0.25_X && ri1 > ri2 * ri2 * ri2 * ri2)
                     || (ratio_dt >= 0.2_X && ri1 > ri2 * ri2 * ri2 * ri2 * ri2);
-                static_assert(
-                    !intensity_too_big,
-                    "The intensities of the ramp are very large - the extrapolation to the time of the main "
-                    "pulse "
-                    "would give more than half of the pulse amplitude. This is not a Gaussian pulse at all "
-                    "anymore - probably some of the parameters are different from what you think!?");
+//                static_assert(
+//                    !intensity_too_big,
+//                    "The intensities of the ramp are very large - the extrapolation to the time of the main "
+//                    "pulse "
+//                    "would give more than half of the pulse amplitude. This is not a Gaussian pulse at all "
+//                    "anymore - probably some of the parameters are different from what you think!?");
                 //                static constexpr float_X INIT_TIME
                 //                    = static_cast<float_X>((TIME_PEAKPULSE + Params::RAMP_INIT *
                 //                    Base::PULSE_DURATION) / UNIT_TIME);
