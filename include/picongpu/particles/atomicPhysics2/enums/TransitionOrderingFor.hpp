@@ -17,35 +17,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file check if TransitionOrdering is compatible with TransitionDirection
+//! @file get TransitionOrdering from TransitionDirection
 
 #pragma once
 
 #include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
 
-#include <cstdint>
-
 namespace picongpu::particles::atomicPhysics2::enums
 {
     // error case, unknown is always false
-    template<TransitionOrdering T_TransitionOrdering, TransitionDirection T_TransitionDirection>
-    struct isOrderRight
-    {
-        static constexpr bool value = false;
-    }
+    template<TransitionDirection T_TransitionDirection>
+    struct TransitionOrderingFor;
 
     // upward case
     template<>
-    struct isOrderRight<TransitionOrdering::byLowerState, TransitionDirection::upward>
+    struct TransitionOrderingFor<TransitionDirection::upward>
     {
-        static constexpr bool value = true;
+        using type = TransitionOrdering::byLowerState;
     }
 
     // downward case
     template<>
-    struct isOrderRight<TransitionOrdering::byUpperState, TransitionDirection::downward>
+    struct TransitionOrderingFor<TransitionDirection::downward>
     {
-        static constexpr bool value = true;
+        using type = TransitionOrdering::byUpperState;
     }
 } // namespace picongpu::particles::atomicPhysics2::enums

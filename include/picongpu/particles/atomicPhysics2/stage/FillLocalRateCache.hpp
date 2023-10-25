@@ -173,6 +173,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                         .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
             }
 
+            /// @todo add fieldIonization, Brian Marre, 2023
+
             //    downward autonomous transition rates
             if constexpr(AtomicDataType::switchAutonomousIonization)
             {

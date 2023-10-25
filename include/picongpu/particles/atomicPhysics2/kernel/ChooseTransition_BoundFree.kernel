@@ -21,10 +21,13 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/checkForInvalidTransitionType.hpp"
+
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/ProcessIDConversion.hpp"
+
+#include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
@@ -33,87 +36,78 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
-    namespace enums = picongpu::particles::atomicPhysics2::enums;
+    namespace s_enums = picongpu::particles::atomicPhysics2::enums;
 
-    /** @class extract transitionCollectionIndex from previously set transitionIndex
-     *   for bound-free transitions is originally set by chooseTransitionKernel
+    /** choose specific transition from previously selected transitionType for bound-free transitions
      *
-     * @see ExtractTransitionCollectionIndexKernel_BoundBound.kernel for more information
+     * A transition is selected by rolling a random number r, [0,1) and comparing it to the cumulative sums of the
+     *  normalized rates of the physical transitions of the transitionType.
+     * The transition corresponding to the interval containing r is the chosen and accepted.
      *
-     * @tparam electronicExcitation is channel active?
-     * @tparam electronicDeexcitation is channel active?
-     * @tparam spontaneousDeexcitation is channel active?
-     * @tparam autonomousIonization is channel active?
-     * @tparam electonicIonization is channel active?
-     * @tparam fieldIonization is channel active?
+     * @tparam T_Histogram type of the histogram
+     * @tparam T_n_max number of levels of atomic states in input
+     * @tparam T_electronicIonization is channel active?
+     * @tparam T_fieldIonization is channel active?
      */
     template<
-        bool T_electronicExcitation,
-        bool T_electronicDeexcitation,
-        bool T_spontaneousDeexcitation,
+        typename T_Histogram,
+        uint8_t T_n_max,
         bool T_electronicIonization,
-        bool T_autonomousIonization,
         bool T_fieldIonization>
-    struct ExtractTransitionCollectionIndexKernel_BoundFree
+    struct ChooseTransitionKernel_BoundFree
     {
-        using S_NumberPhysical = picongpu::particles::atomicPhysics2::enums::NumberPhysicalTransitions<
-            T_electronicExcitation,
-            T_electronicDeexcitation,
-            T_spontaneousDeexcitation,
-            T_electronicIonization,
-            T_autonomousIonization,
-            T_fieldIonization>;
-
-        // specialization for active paths, namespaces relative to current namespace
-        using S_ProcessIDConversion = picongpu::particles::atomicPhysics2::enums::ProcessIDConversion<
-            T_electronicExcitation,
-            T_electronicDeexcitation,
-            T_spontaneousDeexcitation,
-            T_electronicIonization,
-            T_autonomousIonization,
-            T_fieldIonization>;
-
-        template<bool T_up>
-        HDINLINE static void checkProcessClass(uint8_t const processClass)
+        template<typename T_Ion>
+        HDINLINE static void printAcceptedTransitionToConsole(T_Ion ion)
         {
-            if(processClass == static_cast<uint8_t>(255u))
-            {
-                if constexpr(T_up)
-                    printf("atomicPhysics ERROR: invalid processId found in up bound-free "
-                           "ExtractTransitionKernel\n");
-                if constexpr(!T_up)
-                    printf("atomicPhysics ERROR: invalid processId found in down bound-free "
-                           "ExtractTransitionKernel\n");
-            }
+            if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                printf(" transitionIndex %u\n", ion[transitionIndex_]);
         }
 
         /** call operator
          *
-         * called by ExtractTransitionCollectionIndex atomic physics sub-stage
+         * called by ChooseTransition atomic physics sub-stage
          *
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call
          * @param areMapping mapping of blockIndex to block superCell index
-         * @param ionBox deviceDataBox giving access to the ion frames of all local superCells
+         * @param rngFactoryFloat factory for uniformly distributed random number generator, for float_X [0,1)
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
+         * @param localElectronHistogramDataBox deviceDataBox giving access to the local
+         *  electron histograms of all local superCells
          * @param numberTransitionsBox deviceDataBox giving access to the number of
          *  bound-free transitions for each atomic state
          * @param startIndexBox deviceDataBox giving access to the start index of each
-         *  atomic states block of transitions
+         * @param chargeStateDataDataBox deviceDataBox giving access to charge state property data
+         * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
+         * @param boundFreeTransitionDataBox deviceDataBox giving access to bound free transition data
+         * @param ionBox deviceDataBox giving access to the ion frames of all local superCells
          */
         template<
             typename T_Worker,
             typename T_AreaMapping,
-            typename T_LocalTimeRemainingBox,
-            typename T_IonBox,
+            typename T_RngGeneratorFactoryFloat,
+            typename T_ChargeStateDataDataBox,
+            typename T_AtomicStateDataDataBox,
             typename T_AtomicStateBoundFreeNumberTransitionsDataBox,
-            typename T_AtomicStateBoundFreeStartIndexBlockDataBox>
+            typename T_AtomicStateBoundFreeStartIndexBlockDataBox,
+            typename T_BoundFreeTransitionDataBox,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalElectronHistogramDataBox
+            typename T_LocalRateCacheBox,
+            typename T_IonBox>
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_LocalTimeRemainingBox const localTimeRemainingBox,
-            T_IonBox ionBox,
+            T_RngGeneratorFactoryFloat rngFactoryFloat,
+            T_ChargeStateDataDataBox const chargeStateDataDataBox,
+            T_AtomicStateDataDataBox const atomicStateDataDataBox,
             T_AtomicStateBoundFreeNumberTransitionsDataBox const numberTransitionsBox,
-            T_AtomicStateBoundFreeStartIndexBlockDataBox const startIndexBox) const
+            T_AtomicStateBoundFreeStartIndexBlockDataBox const startIndexBox,
+            T_BoundFreeTransitionDataBox const transitionDataBox,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_LocalElectronHistogramDataBox localElectronHistogramDataBox,
+            T_LocalRateCacheBox const localRateCacheBox,
+            T_IonBox ionBox) const
         {
             // check that correct databoxes are given
             PMACC_CASSERT_MSG(
@@ -124,6 +118,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 startIndex_dataBox_not_bound_free_based,
                 u8(T_AtomicStateBoundFreeStartIndexBlockDataBox::processClassGroup)
                     == u8(enums::ProcessClassGroup::boundFreeBased));
+            PMACC_CASSERT_MSG(
+                wrong_transition_ordering_boundFreeTransitionDataBox,
+                u8(T_BoundFreeTransitionDataBox::transitionOrdering)
+                    == u8(TransitionOrderingFor<s_enums::TransitionDirection::upward>::type));
+            PMACC_CASSERT_MSG(
+                boundFreeTransitiondataBox_not_bound_free_based,
+                u8(T_BoundFreeTransitionDataBox::processClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased));
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -139,64 +140,115 @@ namespace picongpu::particles::atomicPhysics2::kernel
             if((timeRemaining <= 0._X) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
 
+            auto rngGeneratorFloat = rngFactoryFloat(worker, superCellFieldIdx);
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
+
             // check whether bound-free transition and if yes,
             //      extract transition and roll random bin
             forEachLocalIonBoxEntry(
-                [&numberTransitionsBox, &startIndexBox](T_Worker const& worker, auto& ion)
+                [
+                    &rngGeneratorFloat,
+                    &chargeStateDataDataBox,
+                    &atomicStateDataDataBox,
+                    &numberTransitionsBox,
+                    &startIndexBox,
+                    &transitionDataBox,
+                    &electronHistogram,
+                    &rateCache
+                ](T_Worker const& worker, auto& ion)
                 {
-                    if(ion[accepted_])
-                        // already accepted ion
+                    // debug
+                    checkForInvalidTransitionType(ion);
+
+                    // reject already accepted macro-ions and other transitionTypes
+                    bool const notBoundFreeUpwardTransition
+                        = (ion[transitionIndex_] != u32(s_enums::TransitionDataSet::boundFreeUpward));
+                    if(ion[accepted_] || notBoundFreeUpwardTransition)
                         return;
 
                     auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
-                    // usually 0, 1, 2 depending in active channels
-                    constexpr uint32_t factorUp = S_NumberPhysical::getFactorBoundFreeUp();
+                    // get possible transitions' collectionIndices
+                    uint32_t const numberTransitions
+                        = numberTransitionsBox.numberOfTransitionsUp(atomicStateCollectionIndex);
+                    uint32_t const startIndexTransitionBlock
+                        = startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
 
-                    uint32_t const numberPhysicalTransitionsUp
-                        = factorUp * numberTransitionsBox.numberOfTransitionsUp(atomicStateCollectionIndex);
-
-                    uint32_t const offset = numberTransitionsBox.offset(atomicStateCollectionIndex);
-
-                    bool const belowOffset = (ion[transitionIndex_] < offset);
-                    // recombination not yet implemented, Brian Marre, 2023
-                    bool const aboveRange = (ion[transitionIndex_] >= offset + numberPhysicalTransitionsUp);
-                    if(belowOffset || aboveRange)
-                        // not a bound-free transition
-                        return;
-
-                    // up-ward bound-free transition
-                    uint32_t const processID = (ion[transitionIndex_] - offset) % factorUp;
-
-                    // check for unknown/wrong processID
-                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::
-                                     CHECK_FOR_INVALID_PROCESS_ID)
-                    {
-                        checkProcessClass<true>(S_ProcessIDConversion::getProcessClassBoundFree_Up(processID));
-                    }
-
-                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
                     {
                         printf(
-                            "state %u transitionChoice %u offset %u numberPhysicalTransitionsUp %u factorUp %u "
-                            "processID %u processClass %u startIndexBlock %u",
+                            "stateIndex %u transitionType %u startIndexTransitionBlock %u numberTransitionsDown %u ",
                             atomicStateCollectionIndex,
                             ion[transitionIndex_],
-                            offset,
-                            numberPhysicalTransitionsUp,
-                            factorUp,
-                            processID,
-                            static_cast<uint16_t>(S_ProcessIDConversion::getProcessClassBoundFree_Up(processID)),
-                            startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex));
+                            startIndexTransitionBlock,
+                            numberTransitions);
                     }
 
-                    ion[processClass_] = S_ProcessIDConversion::getProcessClassBoundFree_Up(processID);
-                    ion[transitionIndex_] = startIndexBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex)
-                        + (ion[transitionIndex_] - offset) / factorUp;
+                    // get random number
+                    r = rngGeneratorFloat();
 
-                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    // compare to cumulative sum of normalized transition rates to find choosen transition
+                    // UNIT_LENGTH^3
+                    constexpr float_X volumeScalingFactor
+                        = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+
+                    float_X cumSum = 0._X;
+
+                    // electronic Ionization
+                    if constexpr(T_electronicIonization)
                     {
-                        printf(" transitionIndex %u\n", ion[transitionIndex_]);
+                        for (uint32_t transitionID=0u; transitionID < numberTransitions; ++transitionID)
+                        {
+                            constexpr uint32_t numberBins = T_Histogram::numberBins;
+                            for(uint32_t binIndex = 0u; binIndex < numberBins; ++ibiNIndex)
+                            {
+                                // eV
+                                float_X const energy = electronHistogram.getBinEnergy(i);
+                                // eV
+                                float_X const binWidth = electronHistogram.getBinWidth(i);
+                                // 1/(UNIT_LENGTH^3 * eV)
+                                float_X const density = electronHistogram.getBinWeight0(i) / volumeScalingFactor / binWidth;
+
+                                // 1/UNIT_TIME
+                                float_X const rateTransition = picongpu::particles::atomicPhysics2::rateCalculation::
+                                    BoundFreeTransitionRates<T_n_max>::template rateCollisionalIonizationTransition<
+                                            T_ChargeStateDataDataBox,
+                                            T_AtomicStateDataDataBox,
+                                            T_BoundFreeTransitionDataBox>(
+                                        energy,
+                                        binWidth,
+                                        density,
+                                        transitionID + startIndexTransitionBlock,
+                                        chargeStateDataDataBox,
+                                        atomicStateDataDataBox,
+                                        boundFreeTransitionDataBox);
+
+                                cumSum = cumSum + rateTransition / rateCache.rate(
+                                    u32(s_enums::TransitionDataSet::boundFreeUpward),
+                                    atomicStateCollectionIndex);
+
+                                if(r < cumSum)
+                                {
+                                    // found chosen transition
+                                    ion[processClass_] = u8(picongpu::particles::atomicPhysics2::enums::
+                                        ProcessClass::electronicIonization);
+                                    ion[transitionIndex_] = transitionID + startIndexTransitionBlock;
+                                    ion[binIndex_] = binIndex;
+                                    ion[accepted_] = true;
+
+                                    // debug
+                                    printAcceptedTransitionToConsole(ion);
+
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    if constexpr(T_fieldIonization)
+                    {
+                        /// @todo implement field ionization, Brian Marre, 2023
                     }
 
                     // down-ward bound-free transition

@@ -68,7 +68,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //  -> must subtract guard to get correct superCellFieldIdx
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
-                - areaMapping.getGuardingSuperCells();
+                    - areaMapping.getGuardingSuperCells();
 
             auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
             // end kernel if superCell already finished
