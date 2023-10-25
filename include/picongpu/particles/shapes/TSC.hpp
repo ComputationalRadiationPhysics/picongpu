@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+#include <pmacc/memory/Array.hpp>
 
 #include <cstdint>
 

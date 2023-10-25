@@ -26,11 +26,13 @@
 #include <pmacc/types.hpp>
 #include <picongpu/simulation_types.hpp>
 #include "pmacc_renamings.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 
 namespace picongpu
 {
     using namespace pmacc;
+    using namespace picongpu::traits;
 }
 
 /* IMPORTANT we need to use #include <...> for local files

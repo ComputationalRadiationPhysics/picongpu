@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include <pmacc/math/Vector.hpp>
+#include "picongpu/param/dimension.param"
 
+#include <pmacc/math/Vector.hpp>
 
 namespace picongpu
 {
