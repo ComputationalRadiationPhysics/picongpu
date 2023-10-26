@@ -27,14 +27,6 @@ particleCalorimeter.param
    :path: include/picongpu/param/particleCalorimeter.param
    :no-link:
 
-particleMerger.param
-^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenfile:: particleMerger.param
-   :project: PIConGPU
-   :path: include/picongpu/param/particleMerger.param
-   :no-link:
-
 radiation.param
 ^^^^^^^^^^^^^^^
 

@@ -30,7 +30,6 @@
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/mpi/GetMPI_StructAsArray.hpp"
 #include "pmacc/traits/GetComponentsType.hpp"
-#include "pmacc/traits/GetInitializedInstance.hpp"
 #include "pmacc/traits/GetNComponents.hpp"
 
 #include <utility>
@@ -52,19 +51,6 @@ namespace pmacc
         {
             static constexpr uint32_t value = (uint32_t) pmacc::math::Vector<T_DataType, T_dim>::dim;
         };
-
-        template<typename T_Type, uint32_t T_dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
-        struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>>
-        {
-            using Type = math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>;
-            using ValueType = typename Type::type;
-
-            HDINLINE Type operator()(const ValueType value) const
-            {
-                return Type::create(value);
-            }
-        };
-
     } // namespace traits
 } // namespace pmacc
 

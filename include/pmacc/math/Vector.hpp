@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/math/ConstVector.hpp"
-#include "pmacc/math/vector/Float.hpp"
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/math/vector/UInt32.hpp"

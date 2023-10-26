@@ -26,7 +26,6 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>
-#include <pmacc/math/vector/Float.hpp>
 #include <pmacc/math/vector/Int.hpp>
 #include <pmacc/math/vector/Size_t.hpp>
 #include <pmacc/meta/ForEach.hpp>
