@@ -44,7 +44,7 @@
  */
 #ifdef _MSC_VER
 #    define PMACC_CONSTEXPR_CAPTURE static constexpr
-#elif(defined __GNUC__) && (__GNUC__ > 7)
+#elif(defined __GNUC__) && (__GNUC__ > 7) && (__GNUC__ <= 9)
 // workaround for GCC bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91377
 #    define PMACC_CONSTEXPR_CAPTURE static constexpr
 #else
