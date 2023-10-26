@@ -68,19 +68,19 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
         {
             Matrix_3x3 lorentzMatrix(0.);
 
-            /// @detail split between general and diagonal contributions not that readable
+            /// @detail split between general and diagonal contributions, not that readable
             ///     but faster than checking for every component
 
             // general contributions
             if(normBetaSquared != 0.)
             {
                 // standard case
-                for(uint32_t i = 0u; i < 3u; i++)
+                for(uint32_t j = 0u; j < 3u; j++)
                 {
-                    for(uint32_t j = 0u; j < 3u; j++)
+                    auto const beta_j = (gamma - 1.) * beta(j, static_cast<uint32_t>(0u));
+                    for(uint32_t i = 0u; i < 3u; i++)
                     {
-                        lorentzMatrix(i, j) = (gamma - 1.) * beta(i, static_cast<uint32_t>(0u))
-                            * beta(j, static_cast<uint32_t>(0u)) / normBetaSquared;
+                        lorentzMatrix(i, j) = beta_j * beta(i, static_cast<uint32_t>(0u)) / normBetaSquared;
                     }
                 }
             }
