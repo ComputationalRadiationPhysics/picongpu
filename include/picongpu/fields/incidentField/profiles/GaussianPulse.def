@@ -23,70 +23,69 @@
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
 
 
-namespace picongpu
+namespace picongpu::fields::incidentField::profiles
 {
-    namespace fields
+    namespace defaults
     {
-        namespace incidentField
+        namespace gaussianPulse
         {
-            namespace profiles
-            {
-                namespace defaults
-                {
-                    namespace gaussianPulse
-                    {
-                        //! Use only the 0th Laguerremode for a standard Gaussian
-                        static constexpr uint32_t MODENUMBER = 0;
-                        PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
-                        PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES, 0.0);
-                        // This is just an example for a more complicated set of Laguerre modes
-                        // constexpr uint32_t MODENUMBER = 12;
-                        // PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461,
-                        // -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038,
-                        // -0.00896321, -0.0160788); PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES,
-                        // 0.0, 1.0344594, -0.9384701, -2.7384883, 0.0016872, 2.4563653, -0.312892, -1.7298303,
-                        // -0.8039839, 3.0055385, -0.1503778, -9.6980362, -2.8122287);
-                    } // namespace gaussianPulse
+            //! Use only the 0th Laguerremode for a standard Gaussian
+            static constexpr uint32_t MODENUMBER = 0;
+            PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
+            PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES, 0.0);
+            // This is just an example for a more complicated set of Laguerre modes
+            // constexpr uint32_t MODENUMBER = 12;
+            // PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461,
+            // -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038,
+            // -0.00896321, -0.0160788); PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES,
+            // 0.0, 1.0344594, -0.9384701, -2.7384883, 0.0016872, 2.4563653, -0.312892, -1.7298303,
+            // -0.8039839, 3.0055385, -0.1503778, -9.6980362, -2.8122287);
+        } // namespace gaussianPulse
 
-                    struct GaussianPulseParam : public BaseParam
-                    {
-                        /** Beam waist: distance from the axis where the pulse intensity (E^2)
-                         *              decreases to its 1/e^2-th part,
-                         *              at the focus position of the laser
-                         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-                         *                             [   1.17741    ]
-                         *
-                         * unit: meter
-                         */
-                        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+        struct GaussianPulseParam : public BaseParam
+        {
+            /** Beam waist: distance from the axis where the pulse intensity (E^2)
+             *              decreases to its 1/e^2-th part,
+             *              at the focus position of the laser
+             * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+             *                             [   1.17741    ]
+             *
+             * unit: meter
+             */
+            static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
 
-                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION after
-                         * TIME_DELAY_SI
-                         *
-                         * unit: none
-                         */
-                        static constexpr float_64 PULSE_INIT = 20.0;
+            /** The laser pulse will be initialized PULSE_INIT times of the PULSE_DURATION after
+             * TIME_DELAY_SI
+             *
+             * unit: none
+             */
+            static constexpr float_64 PULSE_INIT = 20.0;
 
-                        /** Laguerre mode parameters
-                         *
-                         * @{
-                         */
-                        using LAGUERREMODES_t = gaussianPulse::LAGUERREMODES_t;
-                        using LAGUERREPHASES_t = gaussianPulse::LAGUERREPHASES_t;
-                        static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
-                        /** @} */
-                    };
-                } // namespace defaults
 
-                /** GaussianPulse laser profile with finite pulse duration tag
-                 *
-                 * @tparam T_Params class parameter to configure the GaussianPulse profile,
-                 *                  see members of defaults::GaussianPulseParam
-                 *                  for required members
-                 */
-                template<typename T_Params = defaults::GaussianPulseParam>
-                struct GaussianPulse;
-            } // namespace profiles
-        } // namespace incidentField
-    } // namespace fields
-} // namespace picongpu
+            /** Laguerre mode parameters
+             *
+             * @{
+             */
+            using LAGUERREMODES_t = gaussianPulse::LAGUERREMODES_t;
+            using LAGUERREPHASES_t = gaussianPulse::LAGUERREPHASES_t;
+            static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
+            /** @} */
+        };
+    } // namespace defaults
+
+    template<typename T_Param>
+    struct GaussianPulseEnvelope;
+
+    /** GaussianPulse laser profile with finite pulse duration tag
+     *
+     * @tparam T_Params class parameter to configure the GaussianPulse profile,
+     *                  see members of defaults::GaussianPulseParam
+     *                  for required members
+     * @tparam T_LongitudinalEnvelope class providing a static method getEnvelope(time)
+     *  that defines laser temporal envelope. The default is a Gaussian pulse.
+     */
+    template<
+        typename T_Params = defaults::GaussianPulseParam,
+        typename T_LongitudinalEnvelope = GaussianPulseEnvelope<T_Params>>
+    struct GaussianPulse;
+} // namespace picongpu::fields::incidentField::profiles

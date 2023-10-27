@@ -32,6 +32,7 @@
 flags[0]=""
 flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
 flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_IONS=1;-DPARAM_IONIZATION=1'"
+flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=GaussianBeamWithContrastCurve'"
 
 ################################################################################
 # execution
