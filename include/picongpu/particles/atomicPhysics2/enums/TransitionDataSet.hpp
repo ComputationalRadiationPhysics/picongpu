@@ -41,12 +41,12 @@ namespace picongpu::particles::atomicPhysics2::enums
      */
     enum struct TransitionDataSet : uint32_t
     {
-        boundBoundUpward,
-        boundBoundDownward,
-        boundFreeUpward,
-        autonomousDownward,
-        noChange,
-        FINAL_NUMBER_ENTRIES
+        boundBoundUpward,       // = 0
+        boundBoundDownward,     // = 1
+        boundFreeUpward,        // = 2
+        autonomousDownward,     // = 3
+        noChange,               // = 4
+        FINAL_NUMBER_ENTRIES    // = 5
     };
     constexpr uint32_t numberTransitionDataSets = u32(TransitionDataSet::FINAL_NUMBER_ENTRIES);
 
@@ -68,9 +68,6 @@ namespace picongpu::particles::atomicPhysics2
         if constexpr(
             static_cast<uint8_t>(T_TransitionDataSet) == static_cast<uint8_t>(enums::TransitionDataSet::boundFreeUpward))
             return "bound-free(upward)";
-        if constexpr(
-            static_cast<uint8_t>(T_TransitionDataSet) == static_cast<uint8_t>(enums::TransitionDataSet::boundFreeDownward))
-            return "bound-free(downward)";
         if constexpr(
             static_cast<uint8_t>(T_TransitionDataSet) == static_cast<uint8_t>(enums::TransitionDataSet::autonomousDownward))
             return "autonomous(downward)";

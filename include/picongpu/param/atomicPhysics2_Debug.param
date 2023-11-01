@@ -71,9 +71,10 @@ namespace picongpu::atomicPhysics2::debug
     {
         //! @attention only useful if building serial and cpu-only
         constexpr bool PRINT_TO_CONSOLE = false;
-
-        //! range checks in rate cache, @attention performance relevant
+        //! range checks in rate cache for atomic state collection index, @attention performance relevant
         constexpr bool COLLECTION_INDEX_RANGE_CHECKS = false;
+        //! range checks in rate cache for transition data set collection index, @attention performance relevant
+        constexpr bool TRANSITION_DATA_SET_INDEX_RANGE_CHECKS = false;
     } // namespace rateCache
 
 
@@ -90,14 +91,14 @@ namespace picongpu::atomicPhysics2::debug
     namespace timeRemaining
     {
         //! @attention only useful if building serial and cpu only
-        constexpr bool PRINT_TO_CONSOLE = true;
+        constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeRemaining
 
 
     namespace timeStep
     {
         //! @attention only useful if building serial and cpu only
-        constexpr bool PRINT_TO_CONSOLE = true;
+        constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeStep
 
 
@@ -129,31 +130,21 @@ namespace picongpu::atomicPhysics2::debug
         constexpr bool CHECK_ALL_RATE_CACHE_ENTRIES_NEGATIVE = false;
     } // namespace kernel::calculateTimeStep
 
-    namespace kernel::extractTransition
+    namespace kernel::chooseTransition
     {
         //! @attention performance relevant
-        constexpr bool CHECK_FOR_INVALID_PROCESS_ID = false;
-        //! @attention only viable serial and cpu only compile
+        constexpr bool CHECK_FOR_INVALID_TRANSITION_TYPE = false;
+        //! @attention performance relevant
         constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
-    } // namespace kernel::extractTransition
-
-    namespace kernel::acceptanceTest
-    {
-        //! @attention only viable serial and cpu only compile
-        constexpr bool PRINT_ACCEPTANCE_PROBABILITY_TO_CONSOLE = false;
-
         //! @attention performance relevant
-        constexpr bool CHECK_RATE_LIMIT = true;
-
-        //! @attention only viable serial and cpu only compile
-        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
-        //! @attention only viable serial and cpu only compile
         constexpr bool DUMP_ION_DATA_TO_CONSOLE_EACH_TRY = false;
-    } // namespace kernel::acceptanceTest
+        //! @attention performance relevant
+        constexpr bool DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED = false;
+    } // namespace kernel::chooseTransition
 
     namespace kernel::rollForOverSubscription
     {
-        constexpr bool PRINT_DEBUG_TO_CONSOLE = true;
+        constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::rollForOverSubscription
 
     namespace kernel::spawnIonizationElectrons

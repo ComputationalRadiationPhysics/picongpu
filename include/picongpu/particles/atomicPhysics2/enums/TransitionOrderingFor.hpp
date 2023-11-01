@@ -34,13 +34,13 @@ namespace picongpu::particles::atomicPhysics2::enums
     template<>
     struct TransitionOrderingFor<TransitionDirection::upward>
     {
-        using type = TransitionOrdering::byLowerState;
-    }
+        static constexpr TransitionOrdering ordering = TransitionOrdering::byLowerState;
+    };
 
     // downward case
     template<>
     struct TransitionOrderingFor<TransitionDirection::downward>
     {
-        using type = TransitionOrdering::byUpperState;
-    }
+        static constexpr TransitionOrdering ordering = TransitionOrdering::byUpperState;
+    };
 } // namespace picongpu::particles::atomicPhysics2::enums

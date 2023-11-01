@@ -23,7 +23,7 @@
 
 #include "picongpu/particles/atomicPhysics2/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics2/SetAtomicState.hpp"
-#include "picongpu/particles/atomicPhysics2/enum/IsProcess.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/IsProcess.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 

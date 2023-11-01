@@ -21,12 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/checkForInvalidTransitionType.hpp"
-
-#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrderingFor.hpp"
 
+#include "picongpu/particles/atomicPhysics2/CheckForInvalidTransitionType.hpp"
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -104,7 +104,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             PMACC_CASSERT_MSG(
                 wrong_transition_ordering_AutonomousTransitionDataBox,
                 u8(T_AutonomousTransitionDataBox::transitionOrdering)
-                    == u8(TransitionOrderingFor<s_enums::TransitionDirection::downward>::type));
+                    == u8(s_enums::TransitionOrderingFor<s_enums::TransitionDirection::downward>::ordering));
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -145,7 +145,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     // get possible transitions' collectionIndices
                     uint32_t const numberTransitionsDown
                         = numberTransitionsBox.numberOfTransitionsDown(atomicStateCollectionIndex);
-                    uint32_t const startIndexTransitionBlock = startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex)
+                    uint32_t const startIndexTransitionBlock = startIndexBox.startIndexBlockTransitionsDown(
+                        atomicStateCollectionIndex);
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
                     {
@@ -158,11 +159,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     }
 
                     // get random number
-                    r = rngGeneratorFloat();
+                    float_X const r = rngGeneratorFloat();
 
                     // compare to cumulative sum of normalized transition rates to find choosen transition
                     float_X cumSum = 0._X;
-                    for (uint32_t transitionID=0u; transitionID < numberTransitionsDown; ++i)
+                    for (uint32_t transitionID=0u; transitionID < numberTransitionsDown; ++transitionID)
                     {
                         cumSum = cumSum +
                             transitionDataBox.rate(transitionID + startIndexTransitionBlock) / rateCache.rate(
@@ -180,7 +181,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         }
                     }
 
-                    if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
                     {
                         printf(" transitionIndex %u\n", ion[transitionIndex_]);
                     }

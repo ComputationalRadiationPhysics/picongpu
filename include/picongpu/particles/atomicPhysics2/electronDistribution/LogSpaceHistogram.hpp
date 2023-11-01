@@ -157,14 +157,21 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
 
             if constexpr(picongpu::atomicPhysics2::debug::electronHistogram::RANGE_CHECKS_BIN_INDEX)
                 if(!debugCheckBinIndexInRange(binIndex))
-                    return 0u;
+                    return 0._X;
 
-            if(binIndex == 0u)
-                return 1._X / 2._X; //[eV]
+            float_X const base = computeBase();
+            float_X const exponent = static_cast<float_X>(binIndex -1u);
 
-            return (math::pow(computeBase(), static_cast<float_X>(binIndex - 1u))
-                    + math::pow(computeBase(), static_cast<float_X>(binIndex)))
-                / 2._X; // [eV]
+            // eV
+            float_X energy = 1.0_X;
+            if(binIndex != 0u)
+            {
+                // eV
+                // equivalent to b^binIndex + b^(binIndex-1)
+                energy = (base + 1) * math::pow(base, exponent);
+            }
+
+            return energy / 2._X;
         }
 
         /** get bin width
@@ -176,11 +183,17 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
          */
         HDINLINE float_X getBinWidth(uint32_t const binIndex) const
         {
-            if(binIndex == 0u)
-                return 1._X; //[eV]
-            return (
-                math::pow(LogSpaceHistogram::computeBase(), static_cast<float_X>(binIndex))
-                - math::pow(LogSpaceHistogram::computeBase(), static_cast<float_X>(binIndex - 1u))); // [eV]
+            float_X const base = computeBase();
+            float_X const exponent = static_cast<float_X>(binIndex - 1u);
+
+            float_X width = 1._X;
+            if(binIndex != 0u)
+            {
+                // [eV]
+                width = (base - 1) * math::pow(base, exponent);
+            }
+
+            return width;
         }
 
         /** get weight0 entry for given binIndex

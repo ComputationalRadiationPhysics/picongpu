@@ -131,13 +131,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                         uint32_t const numberTransitionsDown
                             = numberTransitionsDataBox.numberOfTransitionsDown(atomicStateCollectionIndex);
-
                         uint32_t offset = startIndexDataBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex);
 
                         for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitionsDown; i++)
                         {
                             // 1/UNIT_TIME
-                            rateCache.add<atomicPhysics2::enums::TransitionDataSet::autonomousDownward>(
+                            rateCache.template add<atomicPhysics2::enums::TransitionDataSet::autonomousDownward>(
                                 atomicStateCollectionIndex,
                                 picongpu::particles::atomicPhysics2::rateCalculation::AutonomousTransitionRates::
                                     template rateAutonomousIonization<T_AutonomousTransitionDataBox>(

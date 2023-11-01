@@ -35,14 +35,14 @@ namespace picongpu::particles::atomicPhysics2
         };
     } // namespace enums
 
-    template<enums::TransitionType T_TransitionType>
+    template<enums::TransitionDirection T_TransitionDirection>
     ALPAKA_FN_HOST std::string enumToString()
     {
         if constexpr(
-            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionDirection::upward))
+            static_cast<uint8_t>(T_TransitionDirection) == static_cast<uint8_t>(enums::TransitionDirection::upward))
             return "upward";
         if constexpr(
-            static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::downward))
+            static_cast<uint8_t>(T_TransitionDirection) == static_cast<uint8_t>(enums::TransitionDirection::downward))
             return "downward";
         return "unknown";
     }

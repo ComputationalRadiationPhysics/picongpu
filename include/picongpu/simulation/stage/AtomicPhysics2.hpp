@@ -47,6 +47,7 @@
 #include "picongpu/particles/atomicPhysics2/stage/ResetDeltaWeightElectronHistogram.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetLocalRateCache.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetLocalTimeStepField.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/ResetAcceptedStatus.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RollForOverSubscription.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/SpawnIonizationElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/UpdateTimeRemaining.hpp"
@@ -262,7 +263,7 @@ namespace picongpu::simulation::stage
                 // debug only
                 uint32_t counterOverSubscription = 0u;
 
-                // chooseTransition loop, ends when no histogram bin oversubscribed
+                // reject overSubscription loop, ends when no histogram bin oversubscribed
                 while(true)
                 {
                     // randomly roll transition for each not yet accepted macro ion
@@ -280,7 +281,7 @@ namespace picongpu::simulation::stage
                     // record all shared resources usage by accepted transitions
                     ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
                     // check bins for over subscription --> localElectronHistogramOverSubscribedField
-                    picongpu::particles::atomicPhysics2::stage::CheckForOverSubscription()(mappingDesc);
+                    picongpu::particles::atomicPhysics2::stage::CheckForOverSubscription{}(mappingDesc);
 
                     auto linearizedOverSubscribedBox = S_LinearizedBox<S_OverSubscribedField>(
                         localElectronHistogramOverSubscribedField.getDeviceDataBox(),
@@ -326,9 +327,9 @@ namespace picongpu::simulation::stage
                     }
 
                     if(!static_cast<bool>(deviceLocalReduce(
-                            pmacc::math::operation::Or(),
-                            linearizedOverSubscribedBox,
-                            fieldGridLayoutOverSubscription.productOfComponents())))
+                        pmacc::math::operation::Or(),
+                        linearizedOverSubscribedBox,
+                        fieldGridLayoutOverSubscription.productOfComponents())))
                     {
                         /* no superCell electron histogram marked as over subscribed in
                             *  localElectronHistogramOverSubscribedField */
@@ -336,8 +337,7 @@ namespace picongpu::simulation::stage
                     }
                     // at least one superCell electron histogram over subscribed
 
-                    // roll for overSubscription loop, ends when enough transitions have been rejected to end histogram
-                    //  oversubscription
+                    // remove overSubscription loop, ends when overSubscription ended by rejecting enough transitions
                     while(true)
                     {
                         // debug only
@@ -411,7 +411,7 @@ namespace picongpu::simulation::stage
                 // debug only
                 std::cout << "\t counterOverSubscription: " << counterOverSubscription << std::endl;
 
-                if constexpr(picongpu::atomicPhysics2::debug::kernel::acceptanceTest::
+                if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::
                                  DUMP_ION_DATA_TO_CONSOLE_ALL_ACCEPTED)
                 {
                     std::cout << "all accepted: current state:" << std::endl;

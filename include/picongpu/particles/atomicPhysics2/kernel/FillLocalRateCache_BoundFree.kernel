@@ -35,7 +35,7 @@
 
 namespace picongpu::particles::atomicPhysics2::kernel
 {
-    namespace enums = picongpu::particles::atomicPhysics2::enums;
+    namespace s_enums = picongpu::particles::atomicPhysics2::enums;
 
     /** fill rate cache kernel
      *
@@ -63,7 +63,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         uint32_t T_numberAtomicStates,
         uint32_t T_numberBins,
         bool T_electronicIonization,
-        enums::TransitionOrdering T_TransitionOrdering>
+        s_enums::TransitionOrdering T_TransitionOrdering>
     struct FillLocalRateCacheKernel_BoundFree
     {
         /** call operator
@@ -114,14 +114,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
             PMACC_CASSERT_MSG(
                 number_transitions_dataBox_not_bound_free_based,
                 u8(T_AtomicStateNumberTransitionsBox::processClassGroup)
-                    == u8(enums::ProcessClassGroup::boundFreeBased));
+                    == u8(s_enums::ProcessClassGroup::boundFreeBased));
             PMACC_CASSERT_MSG(
                 startIndex_dataBox_not_bound_free_based,
-                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased));
+                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
             PMACC_CASSERT_MSG(
                 transition_dataBox_not_boud_free_based,
                 u8(T_BoundFreeTransitionDataBox::processClassGroup)
-                    == u8(enums::ProcessClassGroup::boundFreeBased));
+                    == u8(s_enums::ProcessClassGroup::boundFreeBased));
             // check ordering of transition dataBox
             PMACC_CASSERT_MSG(
                 wrong_ordering_of_DataBox,
@@ -171,11 +171,11 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     constexpr float_X volumeScalingFactor
                         = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
 
-                    for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitionsUp; i++)
+                    for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitionsUp; ++transitionID)
                     {
                         if constexpr(T_electronicIonization)
                         {
-                            rateCache.add<atomicPhysics2::enums::TransitionDataSet::boundFreeUpward>(
+                            rateCache.template add<T_Worker, s_enums::TransitionDataSet::boundFreeUpward>(
                                 worker,
                                 atomicStateCollectionIndex,
                                 picongpu::particles::atomicPhysics2::rateCalculation::BoundFreeTransitionRates<
@@ -184,16 +184,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         T_ChargeStateDataDataBox,
                                         T_AtomicStateDataDataBox,
                                         T_BoundFreeTransitionDataBox>(
-                                        histogram.getBinEnergy(binIndex),
-                                        histogram.getBinWidth(binIndex),
-                                        // 1/(UNIT_LENGTH^3*eV)
-                                        histogram.getBinWeight0(binIndex) / volumeScalingFactor
-                                            / histogram.getBinWidth(binIndex),
-                                        // transitionCollectionIndex
-                                        offset + i,
-                                        chargeStateDataDataBox,
-                                        atomicStateDataDataBox,
-                                        boundFreeTransitionDataBox));
+                                            histogram.getBinEnergy(binIndex),
+                                            histogram.getBinWidth(binIndex),
+                                            // 1/(UNIT_LENGTH^3*eV)
+                                            histogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                                / histogram.getBinWidth(binIndex),
+                                            // transitionCollectionIndex
+                                            offset + transitionID,
+                                            chargeStateDataDataBox,
+                                            atomicStateDataDataBox,
+                                            boundFreeTransitionDataBox));
                         }
                     }
                 });

@@ -19,10 +19,12 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics2_Debug.param
+#include "picongpu/simulation_defines.hpp"
+// need: picongpu/param/atomicPhysics2_Debug.param
+
 #include "picongpu/particles/atomicPhysics2/enums/TransitionType.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/transitionDataSet.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -44,11 +46,12 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     public:
         static constexpr uint32_t numberAtomicStates = T_numberAtomicStates;
         // we do not store noChange since noChange is always reminder to 1
-        static constexpr uint32_t numberDataSets = atomicPhyiscs2::enums::numberTransitionDataSets-1u;
+        static constexpr uint32_t numberStoredDataSets = particles::atomicPhysics2::enums::numberTransitionDataSets - 1u;
+
     private:
         // partial sums of rates for each atomic state, one for each TransitionDataSet except noChange
         // 1/UNIT_TIME
-        float_X rateEntries[T_numberAtomicStates * numberDataSets] = {0};
+        float_X rateEntries[T_numberAtomicStates * numberStoredDataSets] = {0};
         uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
 
         /** get linear storage index
@@ -60,61 +63,36 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         {
             if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
             {
-                if((collectionIndex >= numberAtomicStates) || (dataSetIndex >= numberDataSets))
+                if((collectionIndex >= numberAtomicStates) || (dataSetIndex >= numberStoredDataSets))
                 {
-                    printf("atomciPhysics ERROR: out of range linearIndex() call to rateCache\n")
-                    return ;
+                    printf("atomciPhysics ERROR: out of range linearIndex() call to rateCache\n");
+                    return 0u;
                 }
             }
-            return numberDataSets * collectionIndex + dataSetIndex;
+            return numberStoredDataSets * collectionIndex + dataSetIndex;
         }
 
     public:
         /** add to cache entry, using atomics
          *
-         * @tparam T_TransitionDataSet TransitionDataSet to add rate to
-         *
          * @param worker object containing the device and block information
-         * @param collectionIndex collection Index of atomic state
+         * @param collectionIndex collection Index of atomic state to add rate to
          * @param rate rate of transition, [1/UNIT_TIME]
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          */
         template<
-            atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet,
-            typename T_Worker>
+            typename T_Worker,
+            particles::atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet>
         HDINLINE void add(T_Worker const& worker, uint32_t const collectionIndex, float_X rate)
         {
-
             PMACC_CASSERT_MSG(
                 noChange_not_allowed_as_T_TransitionDataSet,
-                u32(T_TransitionDataSet) == numberDataSets)
+                u32(T_TransitionDataSet) != u32(particles::atomicPhysics2::enums::TransitionDataSet::noChange));
             PMACC_CASSERT_MSG(
                 unknown_T_TransitionDataSet,
-                u32(T_TransitionDataSet) > numberDataSets)
+                u32(T_TransitionDataSet) < particles::atomicPhysics2::enums::numberTransitionDataSets);
 
-            constexpr uint32_t offset = offset<T_TransitionDataSet>();
-
-            cupla::atomicAdd(
-                worker.getAcc(),
-                &(this->rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))]),
-                rate);
-            return;
-        }
-
-        /** add to cache entry, no atomics
-         *
-         * @tparam T_TransitionDataSet TransitionDataSet to add rate to
-         *
-         * @param collectionIndex collection Index of atomic state
-         * @param rate rate of transition, [1/UNIT_TIME]
-         *
-         * @attention no range checks outside a debug compile, invalid memory write on failure
-         * @attention only use if only ever one thread accesses each rate cache entry!
-         */
-        template<atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet>
-        HDINLINE void add(uint32_t const collectionIndex, float_X rate)
-        {
             if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
                 {
@@ -122,12 +100,38 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                     return;
                 }
 
+            cupla::atomicAdd(
+                worker.getAcc(),
+                &(this->rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))]),
+                rate);
+        }
+
+        /** add to cache entry, no atomics
+         *
+         * @tparam T_TransitionDataSet TransitionDataSet to add rate to
+         *
+         * @param collectionIndex collection Index of atomic state to add rate to
+         * @param rate rate of transition, [1/UNIT_TIME]
+         *
+         * @attention no range checks outside a debug compile, invalid memory write on failure
+         * @attention only use if only ever one thread accesses each rate cache entry!
+         */
+        template<particles::atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet>
+        HDINLINE void add(uint32_t const collectionIndex, float_X rate)
+        {
            PMACC_CASSERT_MSG(
                 noChange_not_allowed_as_T_TransitionDataSet,
-                u32(T_TransitionDataSet) == numberDataSets)
+                u32(T_TransitionDataSet) != u32(particles::atomicPhysics2::enums::TransitionDataSet::noChange));
             PMACC_CASSERT_MSG(
                 unknown_T_TransitionDataSet,
-                u32(T_TransitionDataSet) > numberDataSets)
+                u32(T_TransitionDataSet) < particles::atomicPhysics2::enums::numberTransitionDataSets);
+
+            if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
+                if(collectionIndex >= numberAtomicStates)
+                {
+                    printf("atomicPhysics ERROR: out of range in add() call on RateCache\n");
+                    return;
+                }
 
             rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))]
                 = rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))] + rate;
@@ -137,40 +141,48 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         /** set indicator if atomic state is present
          *
          * @param worker object containing the device and block information
-         * @param collectionIndex collection Index of atomic state
+         * @param collectionIndex collection index of atomic state to set present for
          * @param status presence status to set, true =^= present, false =^= not present
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          */
+        template<typename T_Worker>
         HDINLINE void setPresent(T_Worker const& worker, uint32_t const collectionIndex, bool const status)
         {
             cupla::atomicExch(
                 worker.getAcc(),
-                &(this->m_present[linearIndex(collectionIndex, u32(T_TransitionDataSet))]),
+                &(this->m_present[collectionIndex]),
                 static_cast<uint32_t>(status));
             return;
         }
 
         /** get cached rate for an atomic state
          *
-         * @param transitionDataSetIndex colelctionIndex of transitionDataSet
-         * @param collectionIndex collection index of atomic state
+         * @param transitionDataSetIndex collectionIndex of transitionDataSet to get rate for
+         * @param collectionIndex collection index of atomic state to get rate for
          * @return rate of transition, [1/UNIT_TIME], 0 if unknown T_TransitionType T_TransitionDirection combination
          *
          * @attention no range checks outside a debug compile, invalid memory access on failure
          * @attention returns invalid value if state not present
          */
-        template<>
-        HDINLINE float_X rate(uint8_t const transitionDataSetIndex, uint32_t const collectionIndex) const
+        HDINLINE float_X rate(uint32_t const transitionDataSetIndex, uint32_t const collectionIndex) const
         {
-           PMACC_CASSERT_MSG(
-                noChange_not_allowed_as_T_TransitionDataSet,
-                u32(T_TransitionDataSet) == numberDataSets)
-            PMACC_CASSERT_MSG(
-                unknown_T_TransitionDataSet,
-                u32(T_TransitionDataSet) > numberDataSets)
+            if constexpr(picongpu::atomicPhysics2::debug::rateCache::TRANSITION_DATA_SET_INDEX_RANGE_CHECKS)
+            {
+                if (transitionDataSetIndex
+                    == u8(picongpu::particles::atomicPhysics2::enums::TransitionDataSet::noChange))
+                {
+                    printf("atomicPhysics ERROR: noChange not allowed as transitionDataSet in rate() call\n");
+                    return 0._X;
+                }
+                if (transitionDataSetIndex >= u8(picongpu::particles::atomicPhysics2::enums::numberTransitionDataSets))
+                {
+                    printf("atomicPhysics ERROR: unknown transitionDataSet index in rate() call\n");
+                    return 0._X;
+                }
+            }
 
-            return rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))];
+            return rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)];
         }
 
         /** get cached total loss rate for an atomic state
@@ -191,9 +203,10 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                 }
 
             float_X totalLossRate = 0._X;
-            for (uint8_t i=0u; i < numberDataSets; ++i)
+            for (uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < numberStoredDataSets;
+                 ++transitionDataSetIndex)
             {
-                totalLossRate += rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))]
+                totalLossRate += rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)];
             }
             return totalLossRate;
         }
@@ -210,8 +223,8 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
             if constexpr(picongpu::atomicPhysics2::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
                 {
-                    printf("atomicPhysics ERROR: out of range in rate() call on rateCache\n");
-                    return 0._X;
+                    printf("atomicPhysics ERROR: out of range in present() call on rateCache\n");
+                    return false;
                 }
 
             return m_present[collectionIndex];
@@ -222,17 +235,18 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         {
             std::cout << "rateCache" << superCellFieldIdx.toString(",", "[]")
                 << " atomicStateCollectionIndex [bb(up), bb(down), bf(up), a(down)]" << std::endl;
-            for(uint16_t i = 0u; i < numberAtomicStates; i++)
+            for(uint16_t collectionIndex = 0u; collectionIndex < numberAtomicStates; ++collectionIndex)
             {
-                if(this->present(i))
+                if(this->present(collectionIndex))
                 {
-                    std::cout << "\t" << i << "[";
-                    for (uint8_t i=0u; i < (numberDataSets-1u); ++i)
+                    std::cout << "\t" << collectionIndex << "[";
+                    for (uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < (numberStoredDataSets-1u);
+                         ++transitionDataSetIndex)
                     {
-                        std::cout << rateEntries[linearIndex(collectionIndex, i)] << ", ";
+                        std::cout << rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)] << ", ";
                     }
                     // last dataSet
-                    std::cout << rateEntries[linearIndex(collectionIndex, numberDataSets-1u)] << "]" << std::endl;
+                    std::cout << rateEntries[linearIndex(collectionIndex, numberStoredDataSets-1u)] << "]" << std::endl;
                 }
             }
         }

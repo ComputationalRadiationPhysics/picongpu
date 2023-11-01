@@ -21,12 +21,13 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics2/checkForInvalidTransitionType.hpp"
+#include "picongpu/particles/atomicPhysics2/rateCalculation/BoundFreeTransitionRates.hpp"
 
 #include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 
+#include "picongpu/particles/atomicPhysics2/CheckForInvalidTransitionType.hpp"
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -59,7 +60,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
         template<typename T_Ion>
         HDINLINE static void printAcceptedTransitionToConsole(T_Ion ion)
         {
-            if constexpr(picongpu::atomicPhysics2::debug::kernel::extractTransition::PRINT_DEBUG_TO_CONSOLE)
+            if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
                 printf(" transitionIndex %u\n", ion[transitionIndex_]);
         }
 
@@ -92,7 +93,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             typename T_AtomicStateBoundFreeStartIndexBlockDataBox,
             typename T_BoundFreeTransitionDataBox,
             typename T_LocalTimeRemainingBox,
-            typename T_LocalElectronHistogramDataBox
+            typename T_LocalElectronHistogramDataBox,
             typename T_LocalRateCacheBox,
             typename T_IonBox>
         HDINLINE void operator()(
@@ -106,7 +107,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_BoundFreeTransitionDataBox const transitionDataBox,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalElectronHistogramDataBox localElectronHistogramDataBox,
-            T_LocalRateCacheBox const localRateCacheBox,
+            T_LocalRateCacheBox localRateCacheBox,
             T_IonBox ionBox) const
         {
             // check that correct databoxes are given
@@ -119,12 +120,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 u8(T_AtomicStateBoundFreeStartIndexBlockDataBox::processClassGroup)
                     == u8(enums::ProcessClassGroup::boundFreeBased));
             PMACC_CASSERT_MSG(
-                wrong_transition_ordering_boundFreeTransitionDataBox,
-                u8(T_BoundFreeTransitionDataBox::transitionOrdering)
-                    == u8(TransitionOrderingFor<s_enums::TransitionDirection::upward>::type));
-            PMACC_CASSERT_MSG(
                 boundFreeTransitiondataBox_not_bound_free_based,
                 u8(T_BoundFreeTransitionDataBox::processClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased));
+            PMACC_CASSERT_MSG(
+                wrong_transition_ordering_boundFreeTransitionDataBox,
+                u8(T_BoundFreeTransitionDataBox::transitionOrdering)
+                    == u8(s_enums::TransitionOrderingFor<s_enums::TransitionDirection::upward>::ordering));
 
             pmacc::DataSpace<simDim> const superCellIdx(
                 areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
@@ -186,7 +187,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     }
 
                     // get random number
-                    r = rngGeneratorFloat();
+                    float_X const r = rngGeneratorFloat();
 
                     // compare to cumulative sum of normalized transition rates to find choosen transition
                     // UNIT_LENGTH^3
@@ -201,14 +202,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         for (uint32_t transitionID=0u; transitionID < numberTransitions; ++transitionID)
                         {
                             constexpr uint32_t numberBins = T_Histogram::numberBins;
-                            for(uint32_t binIndex = 0u; binIndex < numberBins; ++ibiNIndex)
+                            for(uint32_t binIndex = 0u; binIndex < numberBins; ++binIndex)
                             {
                                 // eV
-                                float_X const energy = electronHistogram.getBinEnergy(i);
+                                float_X const energy = electronHistogram.getBinEnergy(binIndex);
                                 // eV
-                                float_X const binWidth = electronHistogram.getBinWidth(i);
+                                float_X const binWidth = electronHistogram.getBinWidth(binIndex);
                                 // 1/(UNIT_LENGTH^3 * eV)
-                                float_X const density = electronHistogram.getBinWeight0(i) / volumeScalingFactor / binWidth;
+                                float_X const density = electronHistogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                    / binWidth;
 
                                 // 1/UNIT_TIME
                                 float_X const rateTransition = picongpu::particles::atomicPhysics2::rateCalculation::
@@ -222,7 +224,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         transitionID + startIndexTransitionBlock,
                                         chargeStateDataDataBox,
                                         atomicStateDataDataBox,
-                                        boundFreeTransitionDataBox);
+                                        transitionDataBox);
 
                                 cumSum = cumSum + rateTransition / rateCache.rate(
                                     u32(s_enums::TransitionDataSet::boundFreeUpward),

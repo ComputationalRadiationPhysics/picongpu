@@ -61,7 +61,6 @@ namespace picongpu::particles::atomicPhysics2::stage
                 = pmacc::lockstep::makeWorkerCfg<T_IonSpecies::FrameType::frameSize>();
 
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
-            auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
             auto& localTimeRemainingField
                 = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::LocalTimeRemainingField<
@@ -69,7 +68,7 @@ namespace picongpu::particles::atomicPhysics2::stage
             auto& localTimeStepField = *dc.get<
                 picongpu::particles::atomicPhysics2 ::localHelperFields::LocalTimeStepField<picongpu::MappingDesc>>(
                 "LocalTimeStepField");
-            using RateCache = picongpu::particles::atomicPhysics2::localHelperFields::
+            using RateCacheType = typename picongpu::particles::atomicPhysics2::localHelperFields::
                 LocalRateCacheField<picongpu::MappingDesc, IonSpecies>::entryType;
             auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
                 LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
@@ -78,14 +77,15 @@ namespace picongpu::particles::atomicPhysics2::stage
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
             RngFactoryFloat rngFactoryFloat = RngFactoryFloat{currentStep};
 
-            using ChooseTransitionTypeKernel = picongpu::particles::atomicPhysics2::kernel::ChooseTransitionTypeKernel<
-                    RateCache,
+            using ChooseTransitionTypeKernel = typename picongpu::particles::atomicPhysics2::kernel::
+                ChooseTransitionTypeKernel<
+                    RateCacheType,
                     AtomicDataType::switchElectronicExcitation,
                     AtomicDataType::switchElectronicDeexcitation,
                     AtomicDataType::switchSpontaneousDeexcitation,
                     AtomicDataType::switchAutonomousIonization,
                     AtomicDataType::switchElectronicIonization,
-                    AtomicDataType::switchFieldIonization>
+                    AtomicDataType::switchFieldIonization>;
             PMACC_LOCKSTEP_KERNEL(
                 ChooseTransitionTypeKernel(), workerCfg)
             (mapper.getGridDim())(

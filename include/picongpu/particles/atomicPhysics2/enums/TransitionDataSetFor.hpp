@@ -35,41 +35,41 @@ namespace picongpu::particles::atomicPhysics2::enums
     template<>
     struct TransitionDataSetFor<TransitionType::boundBound, TransitionDirection::upward>
     {
-        using type = TransitionDataSet::boundBoundUpward;
-    }
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundBoundUpward;
+    };
 
     //! bound-bound(downward)
     template<>
     struct TransitionDataSetFor<TransitionType::boundBound, TransitionDirection::downward>
     {
-        using type = TransitionDataSet::boundBoundUpward;
-    }
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundBoundUpward;
+    };
 
     //! bound-free(upward)
     template<>
     struct TransitionDataSetFor<TransitionType::boundFree, TransitionDirection::upward>
     {
-        using type = TransitionDataSet::boundFreeUpward;
-    }
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundFreeUpward;
+    };
 
     //! autonomous(downward)
     template<>
     struct TransitionDataSetFor<TransitionType::autonomous, TransitionDirection::upward>
     {
-        using type = TransitionDataSet::autonomousDownward;
-    }
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::autonomousDownward;
+    };
 
     //! noChange
     //@{
     template<>
     struct TransitionDataSetFor<TransitionType::noChange, TransitionDirection::upward>
     {
-        using type = TransitionDataSet::noChange;
-    }
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::noChange;
+    };
     template<>
     struct TransitionDataSetFor<TransitionType::noChange, TransitionDirection::downward>
     {
-        using type = TransitionDataSet::noChange;
-    }
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::noChange;
+    };
     //@}
 } // namespace picongpu::particles::atomicPhysics2::enums

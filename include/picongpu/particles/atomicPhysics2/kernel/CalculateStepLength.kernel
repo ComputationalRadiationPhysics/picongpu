@@ -88,15 +88,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     if(!rateCache.present(atomicStateCollectionIndex))
                         return;
 
-                    float_X const rateCacheLossRate = rateCache.totalLossRate();
+                    float_X const rateCacheLossRate = rateCache.totalLossRate(atomicStateCollectionIndex);
 
                     // 1/UNIT_TIME
-                    float_X lossRateState;
-                    if(rateCacheEntry == 0._X)
+                    float_X lossRateState = 0._X;
+                    if(rateCacheLossRate == 0._X)
                     {
                         // no loss state, for example completely ionized state, set to neutral element
                         // 1/UNIT_TIME
-                        lossRateState = 1._X / DELTA_T;
+                        lossRateState = picongpu::atomicPhysics2::timeStepAlpha / DELTA_T;
                     }
                     else
                     {
@@ -110,7 +110,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             printf("atomicPhysics ERROR: encountered negative loss rate in "
                                    "calculateStepLength kernel\n");
                             // 1/UNIT_TIME
-                            lossRateState = 1._X / DELTA_T;
+                            lossRateState =  picongpu::atomicPhysics2::timeStepAlpha / DELTA_T;
                         }
 
                     float_X const speciesStateLimitTimeStep = 1._X / (lossRateState);
