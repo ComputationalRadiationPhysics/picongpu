@@ -115,78 +115,84 @@ namespace picongpu
              */
             auto electronsObj = PMACC_CSTRING("e"){};
 
-            // Bring the species together in a tuple
-            auto speciesTuple = createTuple(electronsObj);
-
-            /**
-             * Define deposited quantity here
-             */
-            auto getParticleChargeDensity = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
+            if constexpr(std::is_same_v<
+                             boost::mpl::false_,
+                             mp_empty<pmacc::particles::meta::
+                                          FindByNameOrType<VectorAllSpecies, decltype(electronsObj)>::FilteredSeq>>)
             {
-                const float_X charge = attribute::getCharge(particle[weighting_], particle);
-                const float_X particleChargeDensity = precisionCast<float_X>(charge / CELL_VOLUME);
-                return particleChargeDensity;
-            };
+                // Bring the species together in a tuple
+                auto speciesTuple = createTuple(electronsObj);
 
-            std::array<double, 7> depositedUnits{}; // Tell user the 7 dimensional format
-            depositedUnits[SIBaseUnits::length] = -3.0;
-            depositedUnits[SIBaseUnits::electricCurrent] = 1.0;
-            depositedUnits[SIBaseUnits::time] = 1.0;
+                /**
+                 * Define deposited quantity here
+                 */
+                auto getParticleChargeDensity = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
+                {
+                    const float_X charge = attribute::getCharge(particle[weighting_], particle);
+                    const float_X particleChargeDensity = precisionCast<float_X>(charge / CELL_VOLUME);
+                    return particleChargeDensity;
+                };
 
-            // TODO enforce functor return type is same as createFunctorDescription template type
-            auto chargeDepositionData
-                = createFunctorDescription<float_X>(getParticleChargeDensity, "ChargeDensity", depositedUnits);
+                std::array<double, 7> depositedUnits{}; // Tell user the 7 dimensional format
+                depositedUnits[SIBaseUnits::length] = -3.0;
+                depositedUnits[SIBaseUnits::electricCurrent] = 1.0;
+                depositedUnits[SIBaseUnits::time] = 1.0;
+
+                // TODO enforce functor return type is same as createFunctorDescription template type
+                auto chargeDepositionData
+                    = createFunctorDescription<float_X>(getParticleChargeDensity, "ChargeDensity", depositedUnits);
 
 
-            auto getParticleCount
-                = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X { return 1.0; };
-            auto getCounts = createFunctorDescription<float_X>(getParticleCount, "Counts");
+                auto getParticleCount
+                    = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X { return 1.0; };
+                auto getCounts = createFunctorDescription<float_X>(getParticleCount, "Counts");
 
-            /**
-             * define notify period, dump frequency, normalizeByBinVolume, time averaging
-             * NNote that steps in time averaging are "notify steps" not simulation steps
-             */
-            uint32_t dataDumpNNotifies = 0u;
-            bool enableTimeAveraging = true;
-            std::string notifyPeriod = "1";
-            bool normalizeByBinVolume = true;
+                /**
+                 * define notify period, dump frequency, normalizeByBinVolume, time averaging
+                 * NNote that steps in time averaging are "notify steps" not simulation steps
+                 */
+                uint32_t dataDumpNNotifies = 0u;
+                bool enableTimeAveraging = true;
+                std::string notifyPeriod = "1";
+                bool normalizeByBinVolume = true;
 
-            /**
-             * Gives access to series, iteration and mesh to the user
-             * the iteration is already initialized as ```series.writeIterations()[currentStep];```
-             * Please dont use the series to do funky stuff with the iteration, unless you know what you are
-             * doing
-             * This is called before any other mesh data is written to openPMD
-             * Make sure to capture by copy only, as the objects in this file are not kept alive
-             */
-            auto writeOpenPMD
-                = [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
-            {
-                mesh.setAttribute("p_nbins", ax_py.getNBins());
-                // mesh.setAttribute("p_min", ax_py.getMin()); // This line throws an error in particle calorimeter
-                // mesh.setAttribute("p_max", ax_py.getMax()); // This line throws an error in particle calorimeter
-            };
+                /**
+                 * Gives access to series, iteration and mesh to the user
+                 * the iteration is already initialized as ```series.writeIterations()[currentStep];```
+                 * Please dont use the series to do funky stuff with the iteration, unless you know what you are
+                 * doing
+                 * This is called before any other mesh data is written to openPMD
+                 * Make sure to capture by copy only, as the objects in this file are not kept alive
+                 */
+                auto writeOpenPMD =
+                    [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
+                {
+                    mesh.setAttribute("p_nbins", ax_py.getNBins());
+                    // mesh.setAttribute("p_min", ax_py.getMin()); // This line throws an error in particle calorimeter
+                    // mesh.setAttribute("p_max", ax_py.getMax()); // This line throws an error in particle calorimeter
+                };
 
-            binningCreator.addBinner(
-                "chargeDensityBinning",
-                axisTuple,
-                speciesTuple,
-                chargeDepositionData,
-                notifyPeriod,
-                dataDumpNNotifies,
-                enableTimeAveraging,
-                normalizeByBinVolume,
-                writeOpenPMD);
+                binningCreator.addBinner(
+                    "chargeDensityBinning",
+                    axisTuple,
+                    speciesTuple,
+                    chargeDepositionData,
+                    notifyPeriod,
+                    dataDumpNNotifies,
+                    enableTimeAveraging,
+                    normalizeByBinVolume,
+                    writeOpenPMD);
 
-            binningCreator.addBinner(
-                "particleBinning",
-                createTuple(ax_time, ax_py),
-                speciesTuple,
-                getCounts,
-                "1",
-                2000,
-                false,
-                false);
+                binningCreator.addBinner(
+                    "particleBinning",
+                    createTuple(ax_time, ax_py),
+                    speciesTuple,
+                    getCounts,
+                    "1",
+                    2000,
+                    false,
+                    false);
+            }
         }
     } // namespace plugins::binning
 } // namespace picongpu

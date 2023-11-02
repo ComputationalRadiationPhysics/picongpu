@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <pmacc/memory/STLTuple.hpp>
 
 namespace picongpu
 {
@@ -28,20 +29,20 @@ namespace picongpu
             template<typename TFunc, typename... TArgs, std::size_t... Is>
             HDINLINE constexpr auto apply_impl(
                 TFunc&& f,
-                alpaka::core::Tuple<TArgs...>&& t,
+                pmacc::memory::tuple::Tuple<TArgs...>&& t,
                 std::index_sequence<Is...>)
             {
                 // TODO give Is as a param to f, so compiler has knowledge
-                return f(alpaka::core::get<Is>(std::forward<alpaka::core::Tuple<TArgs...>&&>(t))...);
+                return f(pmacc::memory::tuple::get<Is>(std::forward<pmacc::memory::tuple::Tuple<TArgs...>&&>(t))...);
             }
         } // namespace detail
 
         template<typename TFunc, typename... TArgs>
-        HDINLINE constexpr auto apply(TFunc&& f, alpaka::core::Tuple<TArgs...> t)
+        HDINLINE constexpr auto apply(TFunc&& f, pmacc::memory::tuple::Tuple<TArgs...> t)
         {
             return detail::apply_impl(
                 std::forward<TFunc>(f),
-                std::forward<alpaka::core::Tuple<TArgs...>&&>(t),
+                std::forward<pmacc::memory::tuple::Tuple<TArgs...>&&>(t),
                 std::make_index_sequence<sizeof...(TArgs)>{});
         }
 
@@ -53,7 +54,7 @@ namespace picongpu
                 const std::tuple<Args...>& tuple,
                 const Functor& functor)
             {
-                return alpaka::core::make_tuple(functor(std::get<Is>(tuple))...);
+                return pmacc::memory::tuple::make_tuple(functor(std::get<Is>(tuple))...);
             }
         } // namespace detail
 
@@ -70,8 +71,6 @@ namespace picongpu
         auto createTuple(Args const&... args)
         {
             return std::make_tuple(args...);
-            // return alpaka::core::Tuple<Args...>(args...);
-            // return alpaka::core::make_tuple(args...);
         }
 
     } // namespace plugins::binning

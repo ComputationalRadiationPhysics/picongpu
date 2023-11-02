@@ -32,7 +32,7 @@
 // clang-format off
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include <alpaka/core/BoostPredef.hpp>
 
 // suppress warnings as this is third-party code
 #if BOOST_COMP_CLANG
@@ -45,7 +45,8 @@
 #    pragma warning(disable : 4003) // not enough arguments for function-like macro invocation
 #endif
 
-namespace utility {
+namespace pmacc {
+namespace memory {
 namespace tuple {
 /// \struct StaticIf
 /// \brief The StaticIf struct is used to statically choose the type based on
@@ -143,7 +144,7 @@ struct ElemTypeHolder<k, Tuple<T, Ts...>> {
   template <size_t k, class... Ts>                                             \
   typename StaticIf<k == 0, CVQual                                             \
                     typename ElemTypeHolder<0, Tuple<Ts...>>::type&>::type     \
-  get(CVQual Tuple<Ts...>& t) {                                                \
+  constexpr get(CVQual Tuple<Ts...>& t) {                                                \
     static_assert(sizeof...(Ts) != 0,                                          \
                   "The requseted value is bigger than the size of the tuple"); \
     return t.head;                                                             \
@@ -163,8 +164,8 @@ TERMINATE_CONDS_TUPLE_GET()
   template <size_t k, class T, class... Ts>                                   \
   typename StaticIf<k != 0, CVQual                                            \
                     typename ElemTypeHolder<k, Tuple<T, Ts...>>::type&>::type \
-  get(CVQual Tuple<T, Ts...>& t) {                                            \
-    return utility::tuple::get<k - 1>(t.tail);                                \
+  constexpr get(CVQual Tuple<T, Ts...>& t) {                                            \
+    return pmacc::memory::tuple::get<k - 1>(t.tail);                                \
   }
 RECURSIVE_TUPLE_GET(const)
 RECURSIVE_TUPLE_GET()
@@ -241,7 +242,7 @@ struct IndexRange : RangeBuilder<MIN, MAX>::type {};
 /// \return Tuple<Args..., T>
 template <typename... Args, typename T, size_t... I>
 Tuple<Args..., T> append_base(Tuple<Args...> t, T a, IndexList<I...>) {
-  return utility::tuple::make_tuple(get<I>(t)..., a);
+  return pmacc::memory::tuple::make_tuple(get<I>(t)..., a);
 }
 
 /// append
@@ -254,7 +255,7 @@ Tuple<Args..., T> append_base(Tuple<Args...> t, T a, IndexList<I...>) {
 /// \return Tuple<Args..., T>
 template <typename... Args, typename T>
 Tuple<Args..., T> append(Tuple<Args...> t, T a) {
-  return utility::tuple::append_base(t, a, IndexRange<0, sizeof...(Args)>());
+  return pmacc::memory::tuple::append_base(t, a, IndexRange<0, sizeof...(Args)>());
 }
 
 /// append_base
@@ -273,7 +274,7 @@ Tuple<Args..., T> append(Tuple<Args...> t, T a) {
 template <typename... Args1, typename... Args2, size_t... I1, size_t... I2>
 Tuple<Args1..., Args2...> append_base(Tuple<Args1...> t1, Tuple<Args2...> t2,
                                       IndexList<I1...>, IndexList<I2...>) {
-  return utility::tuple::make_tuple(get<I1>(t1)..., get<I2>(t2)...);
+  return pmacc::memory::tuple::make_tuple(get<I1>(t1)..., get<I2>(t2)...);
 }
 
 /// append
@@ -287,12 +288,13 @@ Tuple<Args1..., Args2...> append_base(Tuple<Args1...> t1, Tuple<Args2...> t2,
 /// \return Tuple<Args1..., Args2...>
 template <typename... Args1, typename... Args2>
 Tuple<Args1..., Args2...> append(Tuple<Args1...> t1, Tuple<Args2...> t2) {
-  return utility::tuple::append_base(t1, t2, IndexRange<0, sizeof...(Args1)>(),
+  return pmacc::memory::tuple::append_base(t1, t2, IndexRange<0, sizeof...(Args1)>(),
                                      IndexRange<0, sizeof...(Args2)>());
 }
 
 }  // namespace tuple
-}  // namespace utility
+}  // namespace memory
+}  // namespace pmacc
 
 #if BOOST_COMP_CLANG
 #   pragma clang diagnostic pop
@@ -300,3 +302,4 @@ Tuple<Args1..., Args2...> append(Tuple<Args1...> t1, Tuple<Args2...> t2) {
 #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
 #    pragma warning(pop)
 #endif
+// clang-format on
