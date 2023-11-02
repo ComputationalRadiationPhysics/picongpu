@@ -6,15 +6,16 @@ Plugins
 ==================================================================================== =================================================================================
 Plugin name                                                                          short description
 ==================================================================================== =================================================================================
-:ref:`openPMD <usage-plugins-openPMD>` [#f2]_ [#f6]_                                 outputs simulation data via the openPMD API
-:ref:`energy histogram <usage-plugins-energyHistogram>` [#f6]_                       energy histograms for electrons and ions
+:ref:`binning <usage-plugins-binningPlugin>` [#f2]_ [#f6]_                           particle binning plugin to make histograms with user-defined axes and quantity
 :ref:`charge conservation <usage-plugins-chargeConservation>` [#f5]_                 maximum difference between electron charge density and div E
 :ref:`checkpoint <usage-plugins-checkpoint>` [#f2]_                                  stores the primary data of the simulation for restarts.
 :ref:`count particles <usage-plugins-countParticles>` [#f5]_                         count total number of macro particles
 :ref:`count per supercell <usage-plugins-countPerSupercell>` [#f2]_                  count macro particles *per supercell*
+:ref:`energy histogram <usage-plugins-energyHistogram>` [#f6]_                       energy histograms for electrons and ions
 :ref:`energy fields <usage-plugins-energyFields>`                                    electromagnetic field energy per time step
 :ref:`energy particles <usage-plugins-energyParticles>` [#f6]_                       kinetic and total energies summed over all electrons and/or ions
 :ref:`ISAAC <usage-plugins-ISAAC>`                                                   interactive 3D live visualization [Matthes2016]_
+:ref:`openPMD <usage-plugins-openPMD>` [#f2]_ [#f6]_                                 outputs simulation data via the openPMD API
 :ref:`particle calorimeter <usage-plugins-particleCalorimeter>` [#f2]_ [#f3]_ [#f6]_ spatially resolved, particle energy detector in infinite distance
 :ref:`phase space <usage-plugins-phaseSpace>` [#f2]_ [#f5]_ [#f6]_                   calculate 2D phase space [Huebl2014]_
 :ref:`PNG <usage-plugins-PNG>` [#f6]_                                                pictures of 2D slices

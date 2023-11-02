@@ -45,6 +45,7 @@
 
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
+#    include "picongpu/plugins/binning/BinningDispatcher.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #endif
@@ -139,6 +140,7 @@ namespace picongpu
 
 #if(ENABLE_OPENPMD == 1)
             ,
+            plugins::binning::BinningDispatcher,
             plugins::multi::Master<openPMD::openPMDWriter>
 #endif
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
@@ -157,17 +159,12 @@ namespace picongpu
             CountParticles<boost::mpl::_1>,
             PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>,
             plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>
-#if ENABLE_OPENPMD
-            ,
-            plugins::radiation::Radiation<boost::mpl::_1>
-#endif
+
 #if(ENABLE_OPENPMD == 1)
             ,
+            plugins::radiation::Radiation<boost::mpl::_1>,
             plugins::multi::Master<ParticleCalorimeter<boost::mpl::_1>>,
-            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>
-#endif
-#if(ENABLE_OPENPMD == 1)
-            ,
+            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>,
             PerSuperCell<boost::mpl::_1>
 #endif
             >;
