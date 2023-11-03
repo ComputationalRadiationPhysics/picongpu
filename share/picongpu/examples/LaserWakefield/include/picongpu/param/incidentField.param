@@ -281,11 +281,11 @@ namespace picongpu
                 /** @} */
 
                 /** Pulse duration: sigma of std. gauss for intensity (E^2)
-                     *  PREPULSE_DURATION_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-                     *                                          [    2.354820045     ]
-                     *  Info:             FWHM_of_Intensity = FWHM_Illumination
-                     *                      = what an experimentalist calls "pulse duration"
-                     *  unit: seconds (1 sigma)
+                 *  PREPULSE_DURATION_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what an experimentalist calls "pulse duration"
+                 *  unit: seconds (1 sigma)
                  */
                 static constexpr float_64 PREPULSE_DURATION_SI = LwfaGaussianPulseBaseParams::PULSE_DURATION_SI;
 

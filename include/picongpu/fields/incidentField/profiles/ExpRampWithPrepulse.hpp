@@ -72,8 +72,8 @@ namespace picongpu::fields::incidentField
                 static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5_X * LASER_NOFOCUS_CONSTANT;
 
                 /** Pulse duration
-                         *
-                         * unit: UNIT_TIME
+                 *
+                 * unit: UNIT_TIME
                  */
                 static constexpr float_X PREPULSE_DURATION
                     = static_cast<float_X>(Params::PREPULSE_DURATION_SI / UNIT_TIME);
@@ -241,8 +241,8 @@ namespace picongpu::fields::incidentField
                     //        "and physically very unplausible, check the params for misunderstandings!");
                     //}
 
-                    env += (1._X - ramp_when_peakpulse) * gauss(runTime - Unitless::endUpramp,
-                                                                Unitless::PULSE_DURATION);
+                    env += (1._X - ramp_when_peakpulse)
+                        * gauss(runTime - Unitless::endUpramp, Unitless::PULSE_DURATION);
                     env += AMP_PREPULSE * gauss(runTime - Unitless::TIME_PREPULSE, Unitless::PREPULSE_DURATION);
                     if(during_first_exp)
                         env += extrapolateExpo(Unitless::TIME_1, AMP_1, Unitless::TIME_2, AMP_2, runTime);
