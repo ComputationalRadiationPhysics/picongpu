@@ -76,7 +76,8 @@ namespace picongpu
                 std::string const& tomlFile,
                 std::vector<picongpu::toml::TomlParameter> tomlParameters,
                 std::vector<std::string> const& allowedDataSources,
-                MPI_Comm);
+                MPI_Comm comm,
+                openPMD::PluginParameters pluginParameters);
 
             /*
              * The datasources that are active at currentStep().
