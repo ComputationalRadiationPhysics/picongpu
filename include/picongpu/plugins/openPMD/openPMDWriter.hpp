@@ -455,9 +455,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 if(selfRegister)
                 {
-                    if(tomlSources.empty() && (notifyPeriod.empty() || fileName.empty()))
+                    if(tomlSources.empty() && notifyPeriod.empty())
                         throw std::runtime_error(
-                            name + ": If not defining parameter toml, then parameter period and file must be defined");
+                            name + ": Either parameter .toml XOR parameter .period must be defined.");
 
                     // check if user passed data source names are valid
                     for(auto const& dataSourceNames : source)
@@ -1101,10 +1101,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     }
                     else if(not tomlSourcesSpecified && notifyPeriodSpecified)
                     {
-                        if(m_help->fileName.empty())
-                            throw std::runtime_error("[openPMD plugin] If defining parameter period, then parameter "
-                                                     "file must also be defined");
-
                         std::string const& notifyPeriod = m_help->notifyPeriod.get(id);
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
