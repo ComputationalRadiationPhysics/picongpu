@@ -179,16 +179,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     uint32_t const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
                     // get possible transitions' collectionIndices
-                    constexpr bool upward = (u8(T_TransitionDirection) == u8(s_enums::TransitionDirection::upward));
+                    constexpr bool isUpward = (u8(T_TransitionDirection) == u8(s_enums::TransitionDirection::upward));
 
                     uint32_t numberTransitions;
-                    if constexpr(upward)
+                    if constexpr(isUpward)
                         numberTransitions = numberTransitionsBox.numberOfTransitionsUp(atomicStateCollectionIndex);
                     else
                         numberTransitions = numberTransitionsBox.numberOfTransitionsDown(atomicStateCollectionIndex);
 
                     uint32_t startIndexTransitionBlock;
-                    if constexpr(upward)
+                    if constexpr(isUpward)
                         startIndexTransitionBlock = startIndexBox.startIndexBlockTransitionsUp(
                             atomicStateCollectionIndex);
                     else
@@ -220,7 +220,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                         // collisional de-/excitation
                         constexpr bool electronicChannelActive
-                            = (T_electronicDeexcitation && !upward) || ((T_electronicExcitation && upward));
+                            = (T_electronicDeexcitation && !isUpward) || ((T_electronicExcitation && isUpward));
                         if constexpr(electronicChannelActive)
                         {
                             constexpr uint32_t numberBins = T_Histogram::numberBins;
@@ -242,7 +242,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                             template rateCollisionalBoundBoundTransition<
                                                 T_AtomicStateDataDataBox,
                                                 T_BoundBoundTransitionDataBox,
-                                                upward>(
+                                                isUpward>(
                                     energy,
                                     binWidth,
                                     density,
@@ -250,7 +250,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                     atomicStateDataDataBox,
                                     transitionDataBox);
 
-                                cumSum = cumSum + rateTransition / rateCache.rate(
+                                cumSum += rateTransition / rateCache.rate(
                                     u32(transitionDataSet),
                                     atomicStateCollectionIndex);
 
@@ -258,7 +258,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                 if(r <= cumSum)
                                 {
                                     // found chosen transition
-                                    if constexpr(upward)
+                                    if constexpr(isUpward)
                                         ion[processClass_] = u8(picongpu::particles::atomicPhysics2::enums::
                                             ProcessClass::electronicExcitation);
                                     else
@@ -277,7 +277,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         }
 
                         // spontaneousDeexcitation
-                        if constexpr(!upward && T_spontaneousDeexcitation)
+                        if constexpr(!isUpward && T_spontaneousDeexcitation)
                         {
                             // 1/UNIT_TIME
                             float_X const rateTransition = picongpu::particles::atomicPhysics2::rateCalculation::
