@@ -228,6 +228,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         }
                     });
             }
+            worker.sync();
 
             // spontaneous radiative deexcitation
             if constexpr((!upward) and T_spontaneousDeexcitation)

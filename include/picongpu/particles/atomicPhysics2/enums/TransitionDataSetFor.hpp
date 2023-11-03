@@ -54,7 +54,7 @@ namespace picongpu::particles::atomicPhysics2::enums
 
     //! autonomous(downward)
     template<>
-    struct TransitionDataSetFor<TransitionType::autonomous, TransitionDirection::upward>
+    struct TransitionDataSetFor<TransitionType::autonomous, TransitionDirection::downward>
     {
         static constexpr TransitionDataSet dataSet = TransitionDataSet::autonomousDownward;
     };
