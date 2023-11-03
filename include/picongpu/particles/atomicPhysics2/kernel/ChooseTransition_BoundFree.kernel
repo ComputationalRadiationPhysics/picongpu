@@ -163,9 +163,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     checkForInvalidTransitionType(ion);
 
                     // reject already accepted macro-ions and other transitionTypes
-                    bool const notBoundFreeUpwardTransition
+                    bool const selectedBoundFreeUpwardTransition
                         = (ion[transitionIndex_] != u32(s_enums::TransitionDataSet::boundFreeUpward));
-                    if(ion[accepted_] || notBoundFreeUpwardTransition)
+                    if(ion[accepted_] || !selectedBoundFreeUpwardTransition)
                         return;
 
                     auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
@@ -226,11 +226,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         atomicStateDataDataBox,
                                         transitionDataBox);
 
-                                cumSum = cumSum + rateTransition / rateCache.rate(
+                                cumSum += rateTransition / rateCache.rate(
                                     u32(s_enums::TransitionDataSet::boundFreeUpward),
                                     atomicStateCollectionIndex);
 
-                                if(r < cumSum)
+                                // inclusive limit, to make sure that r==1 is assigned a transition
+                                if(r <= cumSum)
                                 {
                                     // found chosen transition
                                     ion[processClass_] = u8(picongpu::particles::atomicPhysics2::enums::

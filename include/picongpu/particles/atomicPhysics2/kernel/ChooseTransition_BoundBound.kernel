@@ -170,12 +170,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     // debug
                     checkForInvalidTransitionType(ion);
 
-
-
                     // reject already accepted macro-ions and other transitionTypes
-                    bool const notBoundBoundT_TransitionDirectionTransition
+                    bool const selectedBoundBoundT_TransitionDirectionTransition
                         = (ion[transitionIndex_] != u8(transitionDataSet));
-                    if(ion[accepted_] || notBoundBoundT_TransitionDirectionTransition)
+                    if(ion[accepted_] || !selectedBoundBoundT_TransitionDirectionTransition)
                         return;
 
                     uint32_t const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
@@ -256,7 +254,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                     u32(transitionDataSet),
                                     atomicStateCollectionIndex);
 
-                                if(r < cumSum)
+                                // inclusive limit, to make sure that r==1 is assigned a transition
+                                if(r <= cumSum)
                                 {
                                     // found chosen transition
                                     if constexpr(upward)
@@ -289,11 +288,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         atomicStateDataDataBox,
                                         transitionDataBox);
 
-                            cumSum = cumSum + rateTransition / rateCache.rate(
+                            cumSum += rateTransition / rateCache.rate(
                                 u32(transitionDataSet),
                                 atomicStateCollectionIndex);
 
-                            if(r < cumSum)
+                            // inclusive limit, to make sure that r==1 is assigned a transition
+                            if(r <= cumSum)
                             {
                                 // found chosen transition
                                 ion[processClass_] = u8(picongpu::particles::atomicPhysics2::enums::ProcessClass::

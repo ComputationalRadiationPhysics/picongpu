@@ -123,7 +123,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 wrong_ordering_of_DataBox,
                 u8(T_BoundBoundTransitionDataBox::transitionOrdering) == u8(T_TransitionOrdering));
 
-            constexpr bool upward = (u8(T_TransitionOrdering) == u8(s_enums::TransitionOrdering::byLowerState));
+            constexpr bool isUpward = (u8(T_TransitionOrdering) == u8(s_enums::TransitionOrdering::byLowerState));
 
             // atomicPhysics superCellFields have no guard, but areMapping includes a guard
             //  -> must subtract guard to get correct superCellFieldIdx
@@ -144,7 +144,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
-            if constexpr((upward && T_electronicExcitation) || ((!upward) && T_electronicDeexcitation))
+            if constexpr((isUpward && T_electronicExcitation) || ((!isUpward) && T_electronicDeexcitation))
             {
                 forEachAtomicStateAndBin(
                     [&worker,
@@ -163,14 +163,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             return;
 
                         uint32_t numberTransitions;
-                        if constexpr(upward)
+                        if constexpr(isUpward)
                             numberTransitions = numberTransitionsDataBox.numberOfTransitionsUp(atomicStateCollectionIndex);
                         else
                             numberTransitions
                                 = numberTransitionsDataBox.numberOfTransitionsDown(atomicStateCollectionIndex);
 
                         uint32_t offset;
-                        if constexpr(upward)
+                        if constexpr(isUpward)
                             offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
                         else
                             offset = startIndexDataBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex);
@@ -182,7 +182,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitions; ++transitionID)
                         {
                             // electronic excitation
-                            if constexpr(upward)
+                            if constexpr(isUpward)
                             {
                                 rateCache.template add<T_Worker, s_enums::TransitionDataSet::boundBoundUpward>(
                                     worker,
@@ -193,7 +193,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                             template rateCollisionalBoundBoundTransition<
                                                 T_AtomicStateDataDataBox,
                                                 T_BoundBoundTransitionDataBox,
-                                                upward>(
+                                                isUpward>(
                                                     histogram.getBinEnergy(binIndex),
                                                     histogram.getBinWidth(binIndex),
                                                     // 1/(UNIT_LENGTH^3*eV)
@@ -215,7 +215,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                             template rateCollisionalBoundBoundTransition<
                                                 T_AtomicStateDataDataBox,
                                                 T_BoundBoundTransitionDataBox,
-                                                upward>(
+                                                isUpward>(
                                                     histogram.getBinEnergy(binIndex),
                                                     histogram.getBinWidth(binIndex),
                                                     // 1/(UNIT_LENGTH^3*eV)
@@ -231,7 +231,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             worker.sync();
 
             // spontaneous radiative deexcitation
-            if constexpr((!upward) and T_spontaneousDeexcitation)
+            if constexpr((!isUpward) and T_spontaneousDeexcitation)
             {
                 forEachAtomicState(
                     [&worker,

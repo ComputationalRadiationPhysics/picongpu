@@ -135,9 +135,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     // debug
                     checkForInvalidTransitionType(ion);
 
-                    bool const notAutonomousDownwardTransition = (
-                        ion[transitionIndex_] != u32(s_enums::TransitionDataSet::autonomousDownward));
-                    if(ion[accepted_] || notAutonomousDownwardTransition)
+                    bool const selectedAutonomousDownwardTransition = (
+                        ion[transitionIndex_] == u32(s_enums::TransitionDataSet::autonomousDownward));
+                    if(ion[accepted_] || !selectedAutonomousDownwardTransition)
                         return;
 
                     auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
@@ -165,15 +165,14 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     float_X cumSum = 0._X;
                     for (uint32_t transitionID=0u; transitionID < numberTransitionsDown; ++transitionID)
                     {
-                        cumSum = cumSum +
-                            transitionDataBox.rate(transitionID + startIndexTransitionBlock) / rateCache.rate(
-                                u32(s_enums::TransitionDataSet::autonomousDownward),
-                                atomicStateCollectionIndex);
+                        cumSum += transitionDataBox.rate(transitionID + startIndexTransitionBlock) / rateCache.rate(
+                            u32(s_enums::TransitionDataSet::autonomousDownward),
+                            atomicStateCollectionIndex);
 
-                        if(r < cumSum)
+                        // inclusive limit, to make sure that r==1 is assigned a transition
+                        if(r <= cumSum)
                         {
-                            ion[processClass_] = u8(
-                                s_enums::ProcessClass::autonomousIonization);
+                            ion[processClass_] = u8(s_enums::ProcessClass::autonomousIonization);
                             ion[transitionIndex_] = transitionID + startIndexTransitionBlock;
                             // no need to set binIndex, since not electronicCollisional process
                             ion[accepted_] = true;

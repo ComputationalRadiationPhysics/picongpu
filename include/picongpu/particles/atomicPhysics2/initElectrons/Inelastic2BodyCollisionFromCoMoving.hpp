@@ -77,10 +77,10 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
                 // standard case
                 for(uint32_t j = 0u; j < 3u; j++)
                 {
-                    auto const beta_j = (gamma - 1.) * beta(j, static_cast<uint32_t>(0u));
+                    auto const jTerm = (gamma - 1.) * beta(j, static_cast<uint32_t>(0u)) / normBetaSquared;
                     for(uint32_t i = 0u; i < 3u; i++)
                     {
-                        lorentzMatrix(i, j) = beta_j * beta(i, static_cast<uint32_t>(0u)) / normBetaSquared;
+                        lorentzMatrix(i, j) = jTerm * beta(i, static_cast<uint32_t>(0u));
                     }
                 }
             }

@@ -133,8 +133,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                     return;
                 }
 
-            rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))]
-                = rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))] + rate;
+            rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))] += rate;
             return;
         }
 

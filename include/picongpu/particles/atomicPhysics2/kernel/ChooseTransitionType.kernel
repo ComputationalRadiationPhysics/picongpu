@@ -129,9 +129,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             T_RateCache& rateCache = localRateCacheBox(superCellFieldIdx);
             auto rngGenerator = rngFactoryFloat(worker, superCellFieldIdx);
 
-            // choose transition randomly,
-            //  (processClass / transitionCollectionIndex / binIndex) are
-            //  (extracted / extracted / randomly rolled) later by a ExtractTransitionCollectionIndex_*Kernel
+            // choose transition type randomly
             forEachLocalIonBoxEntry(
                 [&rngGenerator, &rateCache, &timeStep](T_Worker const& worker, auto& ion)
                 {
@@ -151,19 +149,21 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         // check whether user activated at least one process from the transitionType
                         if(transitionTypeActive(transitionTypeID))
                         {
-                            cumSum = cumSum + timeStep * rateCache.rate(transitionTypeID, atomicStateCollectionIndex);
+                            cumSum += timeStep * rateCache.rate(transitionTypeID, atomicStateCollectionIndex);
                             if(r < cumSum)
                             {
                                 // only in between storage
                                 ion[transitionIndex_] = transitionTypeID;
-                                return;
+                                break;
                             }
                         }
                     }
                     // noChange transition as last resort transition
-                    if( r > cumSum) // and <= 1
+                    if( r >= cumSum) // and <= 1
                     {
                         ion[processClass_] = u8(s_enums::ProcessClass::noChange);
+                        // no need to set ion[transitionIndex_] since already uniquely known by processClass = noChange
+                        //  and accepted_ = true prevents it being worked on by ChooseTransitionKernels
                         ion[accepted_] = true;
                     }
                 });
