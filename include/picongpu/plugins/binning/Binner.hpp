@@ -24,6 +24,8 @@
 #include "picongpu/plugins/binning/WriteHist.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
+#include <memory>
+
 
 namespace picongpu
 {
@@ -182,11 +184,12 @@ namespace picongpu
                     auto bufferExtent = this->histBuffer->getDeviceBuffer().getDataSpace();
 
                     // allocate this only once?
-                    auto hReducedBuffer = HostBuffer<TDepositedQuantity, 1>(bufferExtent);
+                    // using a unique_ptr here since HostBuffer does not implement move semantics
+                    auto hReducedBuffer = std::make_unique<HostBuffer<TDepositedQuantity, 1>>(bufferExtent);
 
                     reduce(
                         pmacc::math::operation::Add(),
-                        hReducedBuffer.getBasePointer(),
+                        hReducedBuffer->getBasePointer(),
                         this->histBuffer->getHostBuffer().getBasePointer(),
                         bufferExtent[0], // this is a 1D dataspace, just access it?
                         mpi::reduceMethods::Reduce());
@@ -207,7 +210,7 @@ namespace picongpu
                         auto productKernel = ProductKernel<blockSize, TBinningData::getNAxes()>();
 
                         PMACC_LOCKSTEP_KERNEL(productKernel, workerCfg)
-                        (gridSize)(binningData.axisExtentsND, factor, hReducedBuffer.getDataBox());
+                        (gridSize)(binningData.axisExtentsND, factor, hReducedBuffer->getDataBox());
                     }
 
                     // @todo When doing time averaging, this normalization is not be stable across time for auto bins
@@ -226,7 +229,7 @@ namespace picongpu
                             = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
 
                         PMACC_LOCKSTEP_KERNEL(normKernel, workerCfg)
-                        (gridSize)(binningData.axisExtentsND, axisKernels, hReducedBuffer.getDataBox());
+                        (gridSize)(binningData.axisExtentsND, axisKernels, hReducedBuffer->getDataBox());
 
                         // change output dimensions
                         apply(
@@ -238,7 +241,7 @@ namespace picongpu
                     if(reduce.hasResult(mpi::reduceMethods::Reduce()))
                     {
                         histWriter(
-                            hReducedBuffer,
+                            std::move(hReducedBuffer),
                             binningData,
                             std::string("binningOpenPMD/"),
                             outputUnits,

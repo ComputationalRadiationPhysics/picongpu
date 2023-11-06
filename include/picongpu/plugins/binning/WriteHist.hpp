@@ -26,7 +26,10 @@
 #include "picongpu/plugins/binning/UnitConversion.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
+
+#include <memory>
 
 #include <openPMD/openPMD.hpp>
 
@@ -52,7 +55,7 @@ namespace picongpu
         public:
             template<typename T_Type, typename T_BinningData>
             void operator()(
-                HostBuffer<T_Type, 1u>& hReducedBuffer,
+                std::unique_ptr<HostBuffer<T_Type, 1u>> hReducedBuffer,
                 T_BinningData binningData,
                 std::string const& dir,
                 // WriteOpenPMDParams const& params,
@@ -163,8 +166,20 @@ namespace picongpu
                 record.setUnitSI(get_conversion_factor(outputUnits));
 
                 record.resetDataset({::openPMD::determineDatatype<Type>(), histExtent});
-                std::shared_ptr<Type> data(hReducedBuffer.getBasePointer(), [](auto const&) {});
-                record.storeChunk<Type>(data, histOffset, histExtent);
+#if OPENPMDAPI_VERSION_GE(0, 15, 0)
+                auto base_ptr = hReducedBuffer->getBasePointer();
+                ::openPMD::UniquePtrWithLambda<Type> data(
+                    base_ptr,
+                    [hReducedBuffer
+                     = std::make_shared<decltype(hReducedBuffer)>(std::move(hReducedBuffer))](auto const*)
+                    {
+                        /* no-op, destroy data via destructor of captured hReducedBuffer */
+                    });
+                record.storeChunk<Type>(std::move(data), histOffset, histExtent);
+#else
+                openPMD::storeChunkRaw(record, hReducedBuffer->getBasePointer(), histOffset, histExtent);
+#endif
+                series.close();
             };
         };
     } // namespace plugins::binning
