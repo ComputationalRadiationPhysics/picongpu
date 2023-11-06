@@ -4,8 +4,8 @@ file = "simData"   # replaces --openPMD.file,
                    # given value is the default
 infix = ""         # replaces --openPMD.infix,
                    # default is "%06T"
-ext = "bp"         # replaces --openPMD.ext,
-                   # given value is the default
+ext = "bp4"        # replaces --openPMD.ext,
+                   # the default is "bp4" if ADIOS2 is available, else ".h5"
 backend_config = "@./adios_config.json"    # replaces --openPMD.json,
                                            # default is "{}"
 data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationStrategy,

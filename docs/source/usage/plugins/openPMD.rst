@@ -133,12 +133,16 @@ PIConGPU command line option          description
 ``--openPMD.json``                    Set backend-specific parameters for openPMD backends in JSON format. Used in writing procedures.
 ``--checkpoint.openPMD.jsonRestart``  Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
 ``--openPMD.dataPreparationStrategy`` Strategy for preparation of particle data ('doubleBuffer' or 'mappedMemory'). Aliases 'adios' and 'hdf5' may be used respectively.
+``--openPMD.toml``                    Alternatively configure the openPMD plugin via a TOML file (see below).
 ===================================== ====================================================================================================================================================
 
 .. note::
 
    This plugin is a multi plugin.
    Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
+   Each plugin instance requires that either ``--openPMD.period`` XOR ``--openPMD.toml`` is defined.
+   If ``--openPMD.toml`` is defined, the rest of the configuration for this instance is done via the specified TOML file, no other command line parameters may be passed.
+
    In the case where an optional parameter with a default value is explicitly defined, the parameter will always be passed to the instance of the multi plugin where the parameter is not set.
    e.g.
 
