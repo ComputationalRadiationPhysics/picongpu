@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/binning/binnerPlugin.hpp"
 
 namespace picongpu
@@ -33,6 +35,23 @@ namespace picongpu
 
             /// USER CODE ENDS HERE
         }
+
+        template<typename T_Identifier>
+        struct NameOrTypeExists
+        {
+            template<typename T_Value>
+            struct HasTypeOrName
+            {
+                static constexpr bool value
+                    = std::is_same_v<
+                          T_Identifier,
+                          T_Value> || std::is_same_v<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>;
+            };
+
+            using FilteredSeq = mp_copy_if<VectorAllSpecies, HasTypeOrName>;
+
+            static constexpr bool value = !std::is_same_v<boost::mp11::mp_true, mp_empty<FilteredSeq>>;
+        };
 
         inline void binningExample(BinningCreator& binningCreator)
         {
@@ -115,10 +134,8 @@ namespace picongpu
              */
             auto electronsObj = PMACC_CSTRING("e"){};
 
-            if constexpr(std::is_same_v<
-                             boost::mpl::false_,
-                             mp_empty<pmacc::particles::meta::
-                                          FindByNameOrType<VectorAllSpecies, decltype(electronsObj)>::FilteredSeq>>)
+
+            if constexpr(NameOrTypeExists<decltype(electronsObj)>::value)
             {
                 // Bring the species together in a tuple
                 auto speciesTuple = createTuple(electronsObj);
@@ -138,7 +155,7 @@ namespace picongpu
                 depositedUnits[SIBaseUnits::electricCurrent] = 1.0;
                 depositedUnits[SIBaseUnits::time] = 1.0;
 
-                // TODO enforce functor return type is same as createFunctorDescription template type
+                // @todo enforce functor return type is same as createFunctorDescription template type
                 auto chargeDepositionData
                     = createFunctorDescription<float_X>(getParticleChargeDensity, "ChargeDensity", depositedUnits);
 
@@ -166,11 +183,7 @@ namespace picongpu
                  */
                 auto writeOpenPMD =
                     [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
-                {
-                    mesh.setAttribute("p_nbins", ax_py.getNBins());
-                    // mesh.setAttribute("p_min", ax_py.getMin()); // This line throws an error in particle calorimeter
-                    // mesh.setAttribute("p_max", ax_py.getMax()); // This line throws an error in particle calorimeter
-                };
+                { mesh.setAttribute("p_nbins", ax_py.getNBins()); };
 
                 binningCreator.addBinner(
                     "chargeDensityBinning",

@@ -18,7 +18,6 @@
  */
 
 #pragma once
-
 namespace picongpu
 {
     namespace plugins::binning
@@ -29,10 +28,14 @@ namespace picongpu
         class DomainInfo
         {
         public:
-            uint32_t currentStep; ///< Current simulation timestep
-            pmacc::DataSpace<SIMDIM> globalOffset; ///< Offset of the global domain on all GPUs
-            pmacc::DataSpace<SIMDIM> localOffset; ///< Offset of the domain simulated on current GPU
-            pmacc::DataSpace<SIMDIM> blockCellOffset; ///< Offset of domain simulated by current block wrt the border
+            /** Current simulation timestep */
+            uint32_t currentStep;
+            /** Offset of the global domain on all GPUs */
+            pmacc::DataSpace<SIMDIM> globalOffset;
+            /** Offset of the domain simulated on current GPU */
+            pmacc::DataSpace<SIMDIM> localOffset;
+            /** Offset of domain simulated by current block wrt the border */
+            pmacc::DataSpace<SIMDIM> blockCellOffset;
 
             /**
              * @param physicalSuperCellIdx supercell index relative to the border origin

@@ -36,7 +36,7 @@ namespace picongpu
         public:
             using DepositionFunctorType = typename T_DepositionData::FunctorType;
             using DepositedQuantityType = typename T_DepositionData::QuantityType;
-            // TODO infer type from functor
+            // @todo infer type from functor
             // using DepositedQuantityType = std::invoke_result_t<TDepositedQuantityFunctor, particle, worker>;
             // using DepositedQuantityType = typename decltype(std::function{quantityFunctor})::result_type;
 

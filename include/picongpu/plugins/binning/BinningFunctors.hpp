@@ -33,7 +33,8 @@ namespace picongpu
         {
             typedef void result_type;
 
-            T_HistBox histBox; ///< the full histogram data box
+            /** the full histogram data box */
+            T_HistBox histBox;
             T_DepositionFunctor quantityFunctor;
             T_AxisTuple axisTuple;
             DomainInfo domainInfo;

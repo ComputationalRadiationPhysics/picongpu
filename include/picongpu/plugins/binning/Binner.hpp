@@ -32,11 +32,11 @@ namespace picongpu
         /**
          * Functor to run on divide for time averaging
          */
-        // TODO make this generic? apply a functor on all elements of a databox? take in functor?
+        // @todo make this generic? apply a functor on all elements of a databox? take in functor?
         template<uint32_t blockSize, uint32_t nAxes>
         struct ProductKernel
         {
-            using result_type = void;
+            using ResultType = void;
 
             HINLINE
             ProductKernel()
@@ -68,20 +68,20 @@ namespace picongpu
          * Factor with picongpu units
          * User needs to deal with the units seperately
          */
-        // TODO make this more generic? databox operations with another databox?
+        // @todo make this more generic? databox operations with another databox?
         // maybe store the normalization in a buffer rather than computing it at every output timestep (memory vs ops)
         // this style vs having the members as params of operator()
         template<uint32_t blockSize, uint32_t nAxes>
         struct BinNormalizationKernel
         {
-            using result_type = void;
+            using ResultType = void;
 
             HINLINE
             BinNormalizationKernel()
             {
             }
 
-            // TODO check if type stored in histBox is same as axisKernelTuple Type
+            // @todo check if type stored in histBox is same as axisKernelTuple Type
             template<typename T_Worker, typename T_DataSpace, typename T_AxisKernelTuple, typename T_DataBox>
             HDINLINE void operator()(
                 const T_Worker& worker,
@@ -89,7 +89,7 @@ namespace picongpu
                 const T_AxisKernelTuple& axisKernelTuple,
                 T_DataBox histBox) const
             {
-                // TODO check normDataBox shape is same as histBox
+                // @todo check normDataBox shape is same as histBox
                 auto blockIdx = cupla::blockIdx(worker.getAcc()).x * blockSize;
                 auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
                 forEachElemInDataboxChunk(
@@ -145,12 +145,10 @@ namespace picongpu
 
                 /**
                  * Allocate and manage global histogram memory here, to facilitate time averaging
+                 * @todo for auto n_bins. allocate full size buffer here. dont init axisExtents yet
                  */
-
                 this->histBuffer = std::make_unique<HostDeviceBuffer<TDepositedQuantity, 1>>(
-                    binningData.axisExtentsND.productOfComponents()); // TODO for auto n_bins. allocate full size
-                                                                      // buffer here. dont init axisExtents yet
-
+                    binningData.axisExtentsND.productOfComponents());
                 this->histBuffer->getDeviceBuffer().setValue(TDepositedQuantity(0.0));
             }
 
@@ -158,7 +156,7 @@ namespace picongpu
 
             void notify(uint32_t currentStep) override
             {
-                // TODO auto range init. Init ranges and AxisKernels
+                // @todo auto range init. Init ranges and AxisKernels
                 std::apply([](auto&... tupleArgs) { ((tupleArgs.initLAK()), ...); }, binningData.axisTuple);
 
                 //  Do binning for species. Writes to histBuffer
@@ -199,7 +197,7 @@ namespace picongpu
                         TDepositedQuantity factor = 1.0 / static_cast<double>(binningData.dumpPeriod);
 
                         constexpr uint32_t blockSize = 256u;
-                        // TODO is + blocksize - 1/ blocksize a better ceil for ints
+                        // @todo is + blocksize - 1/ blocksize a better ceil for ints
                         auto gridSize = (bufferExtent[0] + blockSize - 1) / blockSize;
                         // auto gridSize = ceil(
                         //     static_cast<double>(bufferExtent[0]) /
@@ -213,10 +211,10 @@ namespace picongpu
                         (gridSize)(binningData.axisExtentsND, factor, hReducedBuffer.getDataBox());
                     }
 
-                    // TODO When doing time averaging, this normalization is not be stable across time for auto bins
+                    // @todo When doing time averaging, this normalization is not be stable across time for auto bins
                     if(binningData.normalizeByBinVolume)
                     {
-                        // TODO think about printing out the normalization too
+                        // @todo think about printing out the normalization too
                         constexpr uint32_t blockSize = 256u;
                         // ceil
                         auto gridSize = (bufferExtent[0] + blockSize - 1) / blockSize;
@@ -279,7 +277,7 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto particles = dc.get<Species>(Species::FrameType::getName());
 
-                // TODO do species filtering
+                // @todo do species filtering
 
                 TParticlesBox particlesBox = particles->getDeviceParticlesBox();
                 auto binningBox = histBuffer->getDeviceBuffer().getDataBox();

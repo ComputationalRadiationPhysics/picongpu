@@ -31,14 +31,16 @@ namespace picongpu
         namespace axis
         {
             /**
-             * @brief Holds the range in axis space over which the binning will be done
+             * @brief Holds the range in SI Units in axis space over which the binning will be done
              */
             template<typename T_Data>
             class Range
             {
             public:
-                T_Data min; ///< Minimum of binning range
-                T_Data max; ///< Maximum of binning range
+                /** Minimum of binning range in SI Units */
+                T_Data min;
+                /** Maximum of binning range in SI Units */
+                T_Data max;
                 Range(T_Data minIn, T_Data maxIn) : min{minIn}, max{maxIn}
                 {
                     PMACC_VERIFY(min < max);
@@ -46,26 +48,26 @@ namespace picongpu
             };
 
             /**
-             * @brief Holds the axis range and information on how this range is split into bins
+             * @brief Holds the axis range in SI units and information on how this range is split into bins
              */
             template<typename T_Data>
             class AxisSplitting
             {
             public:
-                Range<T_Data> m_range; ///< Range object
-                uint32_t nBins; ///< Number of bins in range
+                /** Range object in SI units */
+                Range<T_Data> m_range;
+                /** Number of bins in range */
+                uint32_t nBins;
                 AxisSplitting(Range<T_Data> range, uint32_t numBins) : m_range{range}, nBins{numBins}
                 {
                 }
             };
 
-            // how to check if particle has this attribute? at compile time. throw error
-
+            // how to check if particle has this attribute? throw error at compile time
             // Overflow bins is the resposibilty of the axis implementation. Make nBins = user_defined_n_bins + 2
             // Bins which don't have an inherent size should return a bin width of 1 to not influence normalization.
-
-            // TODO enforce some sort of interface on axis
-            // TODO mark functions which are mandatory for each type of axis
+            // @todo enforce some sort of interface on axis
+            // @todo mark functions which are mandatory for each type of axis
 
 
             /**
@@ -80,18 +82,27 @@ namespace picongpu
             public:
                 using T = T_Attribute;
                 AxisSplitting<T_Attribute> axisSplit;
-                std::string label; ///> Axis name, written out to OpenPMD
-                std::array<double, 7> units; ///> Units(Dimensionality) of the axis
-                // TODO store edges? Copmute once at the beginning and store for later to print at every iteration,
-                // also to be used in search based binning
+                /** Axis name, written out to OpenPMD */
+                std::string label;
+                /** Units(Dimensionality) of the axis */
+                std::array<double, 7> units;
+                /**
+                 * @TODO store edges? Copmute once at the beginning and store for later to print at every iteration,
+                 * also to be used in search based binning
+                 */
                 std::vector<double> binEdges;
                 struct LinearAxisKernel
                 {
-                    T_AttrFunctor
-                        getAttributeValue; ///< Function to place particle on axis, returns same type as min and max
-                    T min, max; /**< Min and max values in the range of the binning. Values outside this range are
-                                placed in overflow bins */
-                    uint32_t nBins; ///< Number of bins in range
+                    /** Function to place particle on axis, returns same type as min and max */
+                    T_AttrFunctor getAttributeValue;
+                    /**
+                     * Min and max values in the range of the binning. Values outside this range are
+                     * placed in overflow bins
+                     */
+                    T min, max;
+                    /** Number of bins in range */
+                    uint32_t nBins;
+                    /** Using type depending on whether T is integer or floating point type to avoid precision loss */
                     using ScalingType = std::
                         conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
                     ScalingType scaling;
@@ -166,10 +177,11 @@ namespace picongpu
                 {
                 }
 
+                /**
+                 * @todo auto min max n_bins
+                 */
                 void initLAK()
                 {
-                    // TODO auto min max n_bins
-
                     // do conversion to PIC units here, if not auto
                     // auto picRange = toPICUnits(axSplit.range, units);
                     auto min = toPICUnits(axisSplit.m_range.min, units);
@@ -204,8 +216,8 @@ namespace picongpu
                 std::vector<double> getBinEdgesSI()
                 {
                     auto binWidth = 1. / lAK.scaling;
-                    // n+1 edges
-                    for(size_t i = 0; i <= lAK.nBins; i++)
+                    // user_nBins+1 edges
+                    for(size_t i = 0; i <= lAK.nBins - 2; i++)
                     {
                         binEdges.emplace_back(toSIUnits(lAK.min + i * binWidth, units));
                     }

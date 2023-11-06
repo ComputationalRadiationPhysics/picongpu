@@ -1,7 +1,7 @@
 .. _usage-plugins-binningPlugin:
-=======
+#######
 Binning
-=======
+#######
 
 This binning plugin is a flexible binner for particles properties.
 Users can 
@@ -13,9 +13,27 @@ Users can
     - Write custom output to file, for example other quantites related to the simulation which the user is interested in
     - Execute multiple binnings at the same time
 
+User Input
+==========
+Users can set up their binning in the ``binningSetup.param`` file. After setup, PIConGPU needs to be recompiled.
+
+.. attention::
+
+   Unlike other plugins, the binning plugin doesn't provide any runtime configuration. To set up binning, users need to define it in the param file and then recompile.
+
+A binner is created using the ``addBinner()`` function, which describes the configuration options available to the user to set up the binning.
+Multiple binnings can be run at the same time by simply calling ``addBinner()`` multiple times with different parameters.
+
+.. doxygenclass:: picongpu::plugins::binning::BinningCreator
+    :members: addBinner
+
+A most important parts of defining a binning are the axes (the axes of the histogram which define the bins) and the deposited quantity (the quantity to be binned). 
+Both of these are described using the "Functor Description".
+
+
 Functor Description
 -------------------
-The basic building block for the binning plugin is the Functor Description object.
+The basic building block for the binning plugin is the Functor Description object, and it is used to describe both axes and the deposited quantity.
 It describes the particle properties which we find interesting and how we can calculate/get this property from the particle.
 A functor description is created using createFunctorDescription.
 
@@ -63,16 +81,8 @@ If no units are given, the quantity is assumed to be dimensionless.
 .. doxygenenum:: picongpu::traits::SIBaseUnits::SIBaseUnits_t
 
 
-User Input
-----------
-Users can set up their binning in the ``binningSetup.param`` file. After setup, PIConGPU needs to be recompiled. A binner is created using the ``addBinner()`` function.
-Multiple binnings can be run at the same time by simply calling ``addBinner()`` multiple times with different parameters.
-
-.. doxygenclass:: picongpu::plugins::binning::BinningCreator
-    :members: addBinner
-
 Axis
-^^^^
+----
 Axis is a combination of a :ref:`functor description <usage/plugins/binningPlugin:Functor Description>` and an  :ref:`axis splitting <usage/plugins/binningPlugin:Axis Splitting>`
 These are brought together by createAxis functions, depending on what kind of an axis you want.
 The name used in the functor description is used as the name of the axis for openPMD. 
@@ -93,7 +103,7 @@ Currently implemented axis types
 Binning can be done over an arbitrary number of axes, by creating a tuple of all the axes. Limited by memory depending on number of bins in each axis.
 
 Axis Splitting
-""""""""""""""
+^^^^^^^^^^^^^^
 Defines the axis range and how it is split into bins.
 In the future this plugin will support other ways to split the domain, eg. using the binWidth or by auto-selecting the parameters.
 
@@ -108,7 +118,7 @@ Range
     :members:
 
 Species
-^^^^^^^
+-------
 PIConGPU species which should be used in binning. 
 Species can be instances of a species type or a particle species name as a PMACC_CSTRING. For example, 
 
@@ -123,16 +133,16 @@ Species can be instances of a species type or a particle species name as a PMACC
 
 
 Deposited Quantity
-^^^^^^^^^^^^^^^^^^
+------------------
 Quantity to be deposited is simply a :ref:`functor description <usage/plugins/binningPlugin:Functor Description>`. 
 
 
 Notify period
-^^^^^^^^^^^^^
+-------------
 Set the periodicity of the output. Follows the period syntax defined :ref:`here <usage/plugins:period syntax>`.
 
 Dump Period
-^^^^^^^^^^^
+-----------
 Defines the number of notify steps to accumulate over. Note that this is not accumulating over actual PIC iterations, but over the notify periods.   
 If time averaging is enabled, this is also the period to do time averaging over.
 For example a value of 10 means that after every 10 notifies, an accumulated file will be written out. 
@@ -140,7 +150,7 @@ If PIConGPU exits before executing 10 notifies, then there will be no output.
 The plugin dumps on every notify if this is set to either 0 or 1.
 
 Time Averaging
-^^^^^^^^^^^^^^
+--------------
 When dumping the accumulated output, whether or not to divide by the dump period, i.e. do a time averaging.
 
 .. attention::
@@ -148,12 +158,12 @@ When dumping the accumulated output, whether or not to divide by the dump period
     The user needs to set a dump period to enable time averaging. 
 
 Normalize by Bin Volume
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 Since it is possible to have non-uniformly sized axes, it makes sense to normalize the binned quantity by the bin volume to enable a fair comparison between bins.
 
 
 writeOpenPMDFunctor
-^^^^^^^^^^^^^^^^^^^
+-------------------
 Users can also write out custom output to file, for example other quantites related to the simulation which the user is interested in.
 This is a lambda with the following signature. 
 
@@ -168,7 +178,7 @@ This is a lambda with the following signature.
 
 
 OpenPMD Output
---------------
+==============
 The binning outputs are stored in HDF5 files in ``simOutput/binningOpenPMD/`` directory.
 
 The files are named as ``<binnerOutputName>_<timestep>.h5``.

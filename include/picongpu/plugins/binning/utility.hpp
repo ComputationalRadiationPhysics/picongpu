@@ -32,7 +32,7 @@ namespace picongpu
                 pmacc::memory::tuple::Tuple<TArgs...>&& t,
                 std::index_sequence<Is...>)
             {
-                // TODO give Is as a param to f, so compiler has knowledge
+                // @todo give Is as a param to f, so compiler has knowledge
                 return f(pmacc::memory::tuple::get<Is>(std::forward<pmacc::memory::tuple::Tuple<TArgs...>&&>(t))...);
             }
         } // namespace detail

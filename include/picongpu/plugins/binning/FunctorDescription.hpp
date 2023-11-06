@@ -36,9 +36,12 @@ namespace picongpu
             using QuantityType = T_Quantity;
             using FunctorType = T_Functor;
 
-            FunctorType functor; ///< Functor which access the particle property.
-            std::string name; ///< String used in the OpenPMD output
-            std::array<double, 7> units; ///< The dimensionality of the particle property (defaults to dimensionless)
+            /** Functor which access the particle property */
+            FunctorType functor;
+            /** String used in the OpenPMD output */
+            std::string name;
+            /** The dimensionality of the particle property (defaults to dimensionless) */
+            std::array<double, 7> units;
             FunctorDescription(const FunctorType func, std::string label, const std::array<double, 7> uDimension)
                 : functor{func}
                 , name{label}
@@ -47,11 +50,13 @@ namespace picongpu
             }
         };
 
-        // TODO infer T_Quantity from T_Functor, needs particle type also, different particles may have different
-        // return types
+        /**
+         */
 
         /**
          * @brief Describes the functors, units and names for the axes and the deposited quantity
+         * @todo infer T_Quantity from T_Functor, needs particle type also, different particles may have different
+         * return types
          * @tparam QuantityType The type returned by the functor
          * @tparam FunctorType Automatically deduced type of the functor
          * @param functor Functor which access the particle property

@@ -18,12 +18,13 @@
  */
 
 #pragma once
+#include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
     namespace plugins::binning
     {
-        // TODO add where this 7D format is from
+        // @todo add where this 7D format is from
         std::array<double, 7> UnitDimensions{
             UNIT_LENGTH, // length
             UNIT_MASS, // mass
