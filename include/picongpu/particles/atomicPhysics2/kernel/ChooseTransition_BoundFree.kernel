@@ -248,14 +248,21 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             }
                         }
                     }
-
-                    if constexpr(T_fieldIonization)
-                    {
-                        /// @todo implement field ionization, Brian Marre, 2023
-                    }
-
+                    // field ionization
+                    /// @todo filed ionization, Brian Marre, 2023
                     // down-ward bound-free transition
                     /// @todo implement recombination, Brian Marre, 2023
+
+                    /* due to different order of summation the sum of rates calculated here and the precomputed sum
+                        *  from the rate cache may differ slightly. leading to a final cumSum > 1 or < 1
+                        * The case > 1 is no problem since r is limited, the case cumSum < 1 requires a last resort
+                        *  option
+                        */
+                    // last resort, choose last possible transition
+                    ion[processClass_] = u8(picongpu::particles::atomicPhysics2::enums::
+                        ProcessClass::electronicIonization);
+                    ion[transitionIndex_] = startIndexTransitionBlock + numberTransitions - 1u;
+                    ion[accepted_] = true;
                 });
         }
     };

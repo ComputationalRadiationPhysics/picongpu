@@ -173,11 +173,24 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         if(r <= cumSum)
                         {
                             ion[processClass_] = u8(s_enums::ProcessClass::autonomousIonization);
-                            ion[transitionIndex_] = transitionID + startIndexTransitionBlock;
+                            ion[transitionIndex_] = startIndexTransitionBlock + transitionID;
                             // no need to set binIndex, since not electronicCollisional process
                             ion[accepted_] = true;
                             break;
                         }
+                    }
+                    /* due to different order of summation the sum of rates calculated here and the precomputed sum
+                        *  from the rate cache may differ slightly. leading to a final cumSum > 1 or < 1
+                        * The case > 1 is no problem since r is limited, the case cumSum < 1 requires a last resort
+                        *  option
+                        */
+                    // last resort, choose last possible transition
+                    if (r > cumSum)
+                    {
+                        ion[processClass_] = u8(s_enums::ProcessClass::autonomousIonization);
+                        ion[transitionIndex_] = startIndexTransitionBlock + numberTransitionsDown - 1u;
+                        // no need to set binIndex, since not electronicCollisional process
+                        ion[accepted_] = true;
                     }
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
