@@ -140,7 +140,7 @@ namespace picongpu
 
                 // unit vector in the direction of the vector
 
-                HDINLINE cuda_vec<V, T> unit_vec(void) const
+                HDINLINE cuda_vec<V, T> unitVec(void) const
                 {
                     return *this / magnitude();
                 }

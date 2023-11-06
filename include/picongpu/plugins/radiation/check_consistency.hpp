@@ -30,7 +30,7 @@ namespace picongpu
     {
         namespace radiation
         {
-            HINLINE void check_consistency(void)
+            HINLINE void checkConsistency(void)
             {
                 using namespace parameters;
                 std::cout << " checking efficiency of radiation code: ";

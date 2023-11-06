@@ -42,7 +42,7 @@ namespace picongpu
                  *           type: vector_64
                  *
                  */
-                HDINLINE vector_64 observation_direction(const int observation_id_extern)
+                HDINLINE vector_64 observationDirection(const int observation_id_extern)
                 {
                     /** Computes observation angles along the x-y plane.
                      *  Assuming electron(s) fly in -y direction and the laser

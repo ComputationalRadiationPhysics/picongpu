@@ -91,14 +91,14 @@ Observation directions
 """"""""""""""""""""""
 
 The number of observation directions ``N_theta`` is defined in :ref:`radiation.param <usage-params-plugins>`, but the distribution of observation directions is given in :ref:`radiationObserver.param <usage-params-plugins>`)
-There, the function ``observation_direction`` defines the observation directions.
+There, the function ``observationDirection`` defines the observation directions.
 
 This function returns the x,y and z component of a **unit vector** pointing in the observation direction.
 
 .. code:: cpp
 
    DINLINE vector_64
-   observation_direction( int const observation_id_extern )
+   observationDirection( int const observation_id_extern )
    {
        /* use the scalar index const int observation_id_extern to compute an
         * observation direction (x,y,y) */

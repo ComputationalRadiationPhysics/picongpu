@@ -67,14 +67,14 @@ namespace picongpu
                  * @tparam T_shapeOrder order of charge distribution shape in PIC code used for radiation form factor
                  */
                 template<uint32_t T_shapeOrder>
-                struct radFormFactor
+                struct RadFormFactor
                 {
                     /** Construct the form factor functor for the given frequency and observation direction
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const& observerUnitVec)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const& observerUnitVec)
                         : normalizedCoherentAmplification(getNormalizedCoherentAmplification(omega, observerUnitVec))
                     {
                     }
@@ -122,15 +122,15 @@ namespace picongpu
             namespace radFormFactor_CIC_3D
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor : public radFormFactor_baseShape_3D::radFormFactor<1>
+                struct RadFormFactor : public radFormFactor_baseShape_3D::RadFormFactor<1>
                 {
                     /** Construct the form factor functor for the given frequency and observation direction
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const& observerUnitVec)
-                        : radFormFactor_baseShape_3D::radFormFactor<1>(omega, observerUnitVec)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const& observerUnitVec)
+                        : radFormFactor_baseShape_3D::RadFormFactor<1>(omega, observerUnitVec)
                     {
                     }
                 };
@@ -139,15 +139,15 @@ namespace picongpu
             namespace radFormFactor_TSC_3D
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor : public radFormFactor_baseShape_3D::radFormFactor<2>
+                struct RadFormFactor : public radFormFactor_baseShape_3D::RadFormFactor<2>
                 {
                     /** Construct the form factor functor for the given frequency and observation direction
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const& observerUnitVec)
-                        : radFormFactor_baseShape_3D::radFormFactor<2>(omega, observerUnitVec)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const& observerUnitVec)
+                        : radFormFactor_baseShape_3D::RadFormFactor<2>(omega, observerUnitVec)
                     {
                     }
                 };
@@ -156,15 +156,15 @@ namespace picongpu
             namespace radFormFactor_PCS_3D
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor : public radFormFactor_baseShape_3D::radFormFactor<3>
+                struct RadFormFactor : public radFormFactor_baseShape_3D::RadFormFactor<3>
                 {
                     /** Construct the form factor functor for the given frequency and observation direction
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const& observerUnitVec)
-                        : radFormFactor_baseShape_3D::radFormFactor<3>(omega, observerUnitVec)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const& observerUnitVec)
+                        : radFormFactor_baseShape_3D::RadFormFactor<3>(omega, observerUnitVec)
                     {
                     }
                 };
@@ -174,7 +174,7 @@ namespace picongpu
             namespace radFormFactor_CIC_1Dy
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor
+                struct RadFormFactor
                 {
                     /** Construct the form factor functor for the given frequency
                      *
@@ -182,7 +182,7 @@ namespace picongpu
                      * @param observerUnitVec unit vector of observation direction,
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const&)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
                         : normalizedCoherentAmplification(
                             util::square(pmacc::math::sinc(CELL_HEIGHT / (SPEED_OF_LIGHT * 2.0_X) * omega)))
                     {
@@ -213,7 +213,7 @@ namespace picongpu
             namespace radFormFactor_Gauss_spherical
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor
+                struct RadFormFactor
                 {
                     /** Construct the form factor functor for the given frequency
                      *
@@ -224,7 +224,7 @@ namespace picongpu
                      * @param observerUnitVec unit vector of observation direction,
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const&)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
                         : normalizedCoherentAmplification(
                             util::square(math::exp(-0.5_X * util::square(omega * 0.5_X * DELTA_T))))
                     {
@@ -253,14 +253,14 @@ namespace picongpu
             namespace radFormFactor_Gauss_cell
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor
+                struct RadFormFactor
                 {
                     /** Construct the form factor functor for the given frequency and observation direction
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction
                      */
-                    HDINLINE radFormFactor(const float_X omega, vector_64 const& observerUnitVec)
+                    HDINLINE RadFormFactor(const float_X omega, vector_64 const& observerUnitVec)
                         : normalizedCoherentAmplification(getNormalizedCoherentAmplification(omega, observerUnitVec))
                     {
                     }
@@ -303,7 +303,7 @@ namespace picongpu
             namespace radFormFactor_incoherent
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor
+                struct RadFormFactor
                 {
                     /** Construct the form factor functor for the given frequency
                      *
@@ -312,7 +312,7 @@ namespace picongpu
                      * @param observerUnitVec unit vector of observation direction,
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
-                    HDINLINE radFormFactor(const float_X, vector_64 const&)
+                    HDINLINE RadFormFactor(const float_X, vector_64 const&)
                     {
                     }
 
@@ -333,7 +333,7 @@ namespace picongpu
             namespace radFormFactor_coherent
             {
                 //! Adheres to the RadFormFactorConcept concept
-                struct radFormFactor
+                struct RadFormFactor
                 {
                     /** Construct the form factor functor for the given frequency
                      *
@@ -342,7 +342,7 @@ namespace picongpu
                      * @param observerUnitVec unit vector of observation direction,
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
-                    HDINLINE radFormFactor(const float_X, vector_64 const&)
+                    HDINLINE RadFormFactor(const float_X, vector_64 const&)
                     {
                     }
 

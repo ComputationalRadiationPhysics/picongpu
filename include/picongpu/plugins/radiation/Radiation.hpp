@@ -338,7 +338,7 @@ namespace picongpu
                         /* allocate memory for all amplitudes for temporal data collection
                          * ACCUMULATOR! Should be in double precision for numerical stability.
                          */
-                        tmp_result.resize(elements_amplitude(), Amplitude::zero());
+                        tmp_result.resize(elementsAmplitude(), Amplitude::zero());
 
                         /*only rank 0 creates a file*/
                         isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -348,7 +348,7 @@ namespace picongpu
                          * line option numJobs is > 1.
                          */
                         radiation
-                            = std::make_unique<GridBuffer<Amplitude, 2>>(DataSpace<2>(elements_amplitude(), numJobs));
+                            = std::make_unique<GridBuffer<Amplitude, 2>>(DataSpace<2>(elementsAmplitude(), numJobs));
 
                         freqInit.Init(frequencies_from_list::listLocation);
                         freqFkt = freqInit.getFunctor();
@@ -358,14 +358,14 @@ namespace picongpu
 
                         if(isMaster)
                         {
-                            timeSumArray.resize(elements_amplitude(), Amplitude::zero());
+                            timeSumArray.resize(elementsAmplitude(), Amplitude::zero());
 
                             /* save detector position / observation direction */
                             detectorPositions.resize(parameters::N_observer);
                             for(uint32_t detectorIndex = 0; detectorIndex < parameters::N_observer; ++detectorIndex)
                             {
                                 detectorPositions[detectorIndex]
-                                    = radiation_observer::observation_direction(detectorIndex);
+                                    = radiation_observer::observationDirection(detectorIndex);
                             }
 
                             /* save detector frequencies */
@@ -437,7 +437,7 @@ namespace picongpu
                     eventSystem::getTransactionEvent().waitForFinished();
 
                     auto dbox = radiation->getHostBuffer().getDataBox();
-                    int numAmp = elements_amplitude();
+                    int numAmp = elementsAmplitude();
                     // update the main result matrix (y index zero)
                     for(int resultIdx = 1; resultIdx < numJobs; ++resultIdx)
                         for(int ampIdx = 0; ampIdx < numAmp; ++ampIdx)
@@ -477,7 +477,7 @@ namespace picongpu
 
 
                 /** returns number of observers (radiation detectors) */
-                static unsigned int elements_amplitude()
+                static unsigned int elementsAmplitude()
                 {
                     return radiation_frequencies::N_omega
                         * parameters::N_observer; // storage for amplitude results on GPU
@@ -492,7 +492,7 @@ namespace picongpu
                         pmacc::math::operation::Add(),
                         tmp_result.data(),
                         radiation->getHostBuffer().getBasePointer(),
-                        elements_amplitude(),
+                        elementsAmplitude(),
                         mpi::reduceMethods::Reduce());
                 }
 
@@ -504,7 +504,7 @@ namespace picongpu
                     if(isMaster)
                     {
                         // add last amplitudes to previous amplitudes
-                        for(unsigned int i = 0; i < elements_amplitude(); ++i)
+                        for(unsigned int i = 0; i < elementsAmplitude(); ++i)
                             targetArray[i] += summandArray[i];
                     }
                 }
@@ -801,7 +801,7 @@ namespace picongpu
 
                         /* get the radiation amplitude unit */
                         Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-                        const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
+                        const picongpu::float_64 factor = UnityAmplitude.calcRadiation() * UNIT_ENERGY * UNIT_TIME;
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
@@ -884,7 +884,7 @@ namespace picongpu
 
                         /* get the radiation amplitude unit */
                         Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-                        const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
+                        const picongpu::float_64 factor = UnityAmplitude.calcRadiation() * UNIT_ENERGY * UNIT_TIME;
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
@@ -1137,7 +1137,7 @@ namespace picongpu
                                 // calculate the square of the absolute value
                                 // and write to file.
                                 outFile << values[index_omega + index_direction * radiation_frequencies::N_omega]
-                                               .calc_radiation()
+                                               .calcRadiation()
                                         * UNIT_ENERGY * UNIT_TIME
                                         << "\t";
                             }

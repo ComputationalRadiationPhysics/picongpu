@@ -145,7 +145,7 @@ namespace picongpu
                     picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(DELTA_T));
 
                     // looking direction (needed for observer) used in the thread
-                    vector_64 const look = radiation_observer::observation_direction(theta_idx);
+                    vector_64 const look = radiation_observer::observationDirection(theta_idx);
 
                     // get extent of guarding super cells (needed to ignore them)
                     DataSpace<simDim> const guardingSuperCells = mapper.getGuardingSuperCells();
@@ -299,11 +299,10 @@ namespace picongpu
                                                     particle_mass);
 
                                                 // set up amplitude calculator
-                                                using Calc_Amplitude_n_sim_1
-                                                    = Calc_Amplitude<Retarded_time_1, Old_DFT>;
+                                                using CalcAmplitudeNSim1 = CalcAmplitude<RetardedTime1, OldDFT>;
 
                                                 // calculate amplitude
-                                                Calc_Amplitude_n_sim_1 const amplitude3(particle, DELTA_T, t);
+                                                CalcAmplitudeNSim1 const amplitude3(particle, DELTA_T, t);
 
                                                 // get charge of single electron ! (weighting=1.0f)
                                                 float_X const particle_charge = frame::getCharge<FrameType>();
@@ -311,19 +310,19 @@ namespace picongpu
                                                 /* compute real amplitude of macro-particle with a charge of
                                                  * a single electron
                                                  */
-                                                real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look)
+                                                real_amplitude_s[saveParticleAt] = amplitude3.getVector(look)
                                                     * particle_charge * picongpu::float_64(DELTA_T);
 
                                                 // retarded time stored in shared memory
                                                 t_ret_s[saveParticleAt]
-                                                    = static_cast<float_X>(amplitude3.get_t_ret(look));
+                                                    = static_cast<float_X>(amplitude3.getTRet(look));
 
                                                 lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
 
                                                 /* the particle amplitude is used to include the weighting
                                                  * of the window function filter without needing more memory
                                                  */
-                                                radWindowFunction::radWindowFunction const winFkt;
+                                                radWindowFunction::RadWindowFunction const winFkt;
 
                                                 /* start with a factor of one */
                                                 float_X windowFactor = 1.0;
@@ -361,7 +360,7 @@ namespace picongpu
                                         picongpu::float_X const omega = static_cast<float_X>(freqFkt(o));
 
                                         // create a form factor functor
-                                        radFormFactor::radFormFactor const myRadFormFactor{omega, look};
+                                        radFormFactor::RadFormFactor const myRadFormFactor{omega, look};
 
                                         /* Particle loop: thread runs through loaded particle data
                                          *
