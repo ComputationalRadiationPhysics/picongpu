@@ -42,7 +42,7 @@ namespace picongpu::particles::atomicPhysics2::enums
     template<>
     struct TransitionDataSetFor<TransitionType::boundBound, TransitionDirection::downward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundBoundUpward;
+        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundBoundDownward;
     };
 
     //! bound-free(upward)

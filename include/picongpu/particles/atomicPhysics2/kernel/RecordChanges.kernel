@@ -108,6 +108,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     T_Worker const& worker,
                     auto& ion)
                 {
+                    if constexpr(picongpu::atomicPhysics2::debug::kernel::recordChanges::CHECK_FOR_ACCEPTANCE)
+                        if (!ion[accepted_])
+                            printf("atomicPhysics ERROR: non accepted ion detected in recordChanges kernel\n");
+
                     uint8_t const processClass = ion[processClass_];
 
                     // not a T_ProcessClass transition

@@ -158,7 +158,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             }
                         }
                     }
-                    // noChange transition as last resort transition
+                    // noChange transition as last resort transition, never stored in RateCache
                     if( r >= cumSum) // and <= 1
                     {
                         ion[processClass_] = u8(s_enums::ProcessClass::noChange);

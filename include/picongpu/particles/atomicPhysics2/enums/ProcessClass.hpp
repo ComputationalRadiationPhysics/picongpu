@@ -19,7 +19,7 @@
 
 /** @file processClass enum, enum of physical processes
  *
- * @attention NumberIonizationelectrons and NumebrPhysicalTransitions must be kept consistent
+ * @attention NumberIonizationelectrons and NumberPhysicalTransitions must be kept consistent
  *  with the enum ProcessClass
  */
 
