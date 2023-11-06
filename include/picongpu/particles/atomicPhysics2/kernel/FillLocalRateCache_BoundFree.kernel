@@ -72,7 +72,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
          *
          * @param worker object containing the device and block information, passed by PMACC_KERNEL call
          * @param areaMapping mapping of blockIndex to block superCell index
-         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super
+         * cells
          * @param localRateCacheBox deviceDataBox giving access to the local rate cache of
          *  all local superCells
          * @param localElectronHistogramDataBox giving access to the local electron histograms
@@ -120,8 +121,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                 u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
             PMACC_CASSERT_MSG(
                 transition_dataBox_not_boud_free_based,
-                u8(T_BoundFreeTransitionDataBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundFreeBased));
+                u8(T_BoundFreeTransitionDataBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
             // check ordering of transition dataBox
             PMACC_CASSERT_MSG(
                 wrong_ordering_of_DataBox,
@@ -171,7 +171,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     constexpr float_X volumeScalingFactor
                         = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
 
-                    for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitionsUp; ++transitionID)
+                    for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitionsUp;
+                        ++transitionID)
                     {
                         if constexpr(T_electronicIonization)
                         {
@@ -184,16 +185,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         T_ChargeStateDataDataBox,
                                         T_AtomicStateDataDataBox,
                                         T_BoundFreeTransitionDataBox>(
-                                            histogram.getBinEnergy(binIndex),
-                                            histogram.getBinWidth(binIndex),
-                                            // 1/(UNIT_LENGTH^3*eV)
-                                            histogram.getBinWeight0(binIndex) / volumeScalingFactor
-                                                / histogram.getBinWidth(binIndex),
-                                            // transitionCollectionIndex
-                                            offset + transitionID,
-                                            chargeStateDataDataBox,
-                                            atomicStateDataDataBox,
-                                            boundFreeTransitionDataBox));
+                                        histogram.getBinEnergy(binIndex),
+                                        histogram.getBinWidth(binIndex),
+                                        // 1/(UNIT_LENGTH^3*eV)
+                                        histogram.getBinWeight0(binIndex) / volumeScalingFactor
+                                            / histogram.getBinWidth(binIndex),
+                                        // transitionCollectionIndex
+                                        offset + transitionID,
+                                        chargeStateDataDataBox,
+                                        atomicStateDataDataBox,
+                                        boundFreeTransitionDataBox));
                         }
                     }
                 });

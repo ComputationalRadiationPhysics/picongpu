@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 
 namespace picongpu::particles::atomicPhysics2::enums
 {

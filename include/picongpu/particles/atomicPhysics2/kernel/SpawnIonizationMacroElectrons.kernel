@@ -24,10 +24,10 @@
 //       picongpu/param/atomicPhysics2.param
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
-#include "picongpu/particles/atomicPhysics2/initElectrons/InitIonizationElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/IsProcess.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics2/initElectrons/InitIonizationElectrons.hpp"
 
 #include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>

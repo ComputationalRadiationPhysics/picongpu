@@ -26,9 +26,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/DeltaEnergyTransition.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/initElectrons/CoMoving.hpp"
 #include "picongpu/particles/atomicPhysics2/initElectrons/Inelastic2BodyCollisionFromCoMoving.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 
 #include <cstdint>
 
@@ -63,8 +63,7 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
      * @todo implement three body inelastic collision, Brian Marre, 2023
      */
     template<>
-    struct InitIonizationElectron<
-        picongpu::particles::atomicPhysics2::enums ::ProcessClass::electronicIonization>
+    struct InitIonizationElectron<picongpu::particles::atomicPhysics2::enums ::ProcessClass::electronicIonization>
     {
         //! call operator
         template<typename T_IonParticle, typename T_ElectronParticle>
@@ -77,8 +76,7 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
 
     //! specialisation for autonomousIonization
     template<>
-    struct InitIonizationElectron<
-        picongpu::particles::atomicPhysics2::enums ::ProcessClass::autonomousIonization>
+    struct InitIonizationElectron<picongpu::particles::atomicPhysics2::enums ::ProcessClass::autonomousIonization>
     {
         //! call operator
         template<

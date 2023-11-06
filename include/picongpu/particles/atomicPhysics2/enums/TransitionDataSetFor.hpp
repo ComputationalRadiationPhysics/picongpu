@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics2/enums/TransitionType.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionType.hpp"
 
 namespace picongpu::particles::atomicPhysics2::enums
 {

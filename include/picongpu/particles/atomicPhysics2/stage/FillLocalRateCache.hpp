@@ -33,12 +33,12 @@
 
 #include "picongpu/particles/atomicPhysics2/atomicData/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics2/electronDistribution/LocalHistogramField.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/kernel/FillLocalRateCache_Autonomous.kernel"
 #include "picongpu/particles/atomicPhysics2/kernel/FillLocalRateCache_BoundBound.kernel"
 #include "picongpu/particles/atomicPhysics2/kernel/FillLocalRateCache_BoundFree.kernel"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics2/localHelperFields/LocalTimeRemainingField.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
 
@@ -118,9 +118,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundStartIndexBlockDataBox<false>(),
                     atomicData.template getBoundBoundNumberTransitionsDataBox<false>(),
-                    atomicData.template getBoundBoundTransitionDataBox<
-                        false,
-                        enums::TransitionOrdering::byLowerState>());
+                    atomicData
+                        .template getBoundBoundTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
             }
 
             //    downward bound-bound transition rates
@@ -144,9 +143,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundBoundStartIndexBlockDataBox<false>(),
                     atomicData.template getBoundBoundNumberTransitionsDataBox<false>(),
-                    atomicData.template getBoundBoundTransitionDataBox<
-                        false,
-                        enums::TransitionOrdering::byUpperState>());
+                    atomicData
+                        .template getBoundBoundTransitionDataBox<false, enums::TransitionOrdering::byUpperState>());
             }
 
             //    upward bound-free transition rates
@@ -190,9 +188,8 @@ namespace picongpu::particles::atomicPhysics2::stage
                     localRateCacheField.getDeviceDataBox(),
                     atomicData.template getAutonomousStartIndexBlockDataBox<false>(),
                     atomicData.template getAutonomousNumberTransitionsDataBox<false>(),
-                    atomicData.template getAutonomousTransitionDataBox<
-                        false,
-                        enums::TransitionOrdering::byUpperState>());
+                    atomicData
+                        .template getAutonomousTransitionDataBox<false, enums::TransitionOrdering::byUpperState>());
             }
         }
     };

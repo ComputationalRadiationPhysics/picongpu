@@ -59,7 +59,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
          *
          * @param worker object containing the device and block information, passed by PMACC_KERNEL call
          * @param areMapping mapping of blockIndex to block superCell index
-         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super
+         * cells
          * @param localRateCacheBox deviceDataBox giving access the local rate cache of all local super cells
          * @param startIndexDataBox deviceDataBox giving access to the start index of each atomic states'
          *  block of transitions in the up-/down-ward bound-bound transition collection
@@ -94,12 +95,10 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     == u8(enums::ProcessClassGroup::autonomousBased));
             PMACC_CASSERT_MSG(
                 startIndex_DataBox_not_autonomous_based,
-                u8(T_AtomicStateStartIndexBox::processClassGroup)
-                    == u8(enums::ProcessClassGroup::autonomousBased));
+                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(enums::ProcessClassGroup::autonomousBased));
             PMACC_CASSERT_MSG(
                 transition_dataBox_not_autonomousBased,
-                u8(T_AutonomousTransitionDataBox::processClassGroup)
-                    == u8(enums::ProcessClassGroup::autonomousBased));
+                u8(T_AutonomousTransitionDataBox::processClassGroup) == u8(enums::ProcessClassGroup::autonomousBased));
             // check ordering of transition dataBox
             PMACC_CASSERT_MSG(
                 wrong_ordering_of_DataBox,

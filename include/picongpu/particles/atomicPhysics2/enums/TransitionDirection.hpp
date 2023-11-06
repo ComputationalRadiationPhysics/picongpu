@@ -46,4 +46,4 @@ namespace picongpu::particles::atomicPhysics2
             return "downward";
         return "unknown";
     }
-} // namespace picongpu::particles::atomicPhysics2T
+} // namespace picongpu::particles::atomicPhysics2

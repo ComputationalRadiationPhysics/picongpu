@@ -26,7 +26,7 @@
 
 #include <cstdint>
 
-namespace picongpu::atomicPhysics2::enums
+namespace picongpu::particles::atomicPhysics2::enums
 {
     template<TransitionDataSet T_TransitionDataSet>
     struct LastResort;
@@ -35,7 +35,7 @@ namespace picongpu::atomicPhysics2::enums
     struct LastResort<TransitionDataSet::boundBoundUpward>
     {
         template<bool T_spontaneousDeexcitation>
-        static constexpr uint8_t getProcessClass()
+        static constexpr uint8_t processClass()
         {
             return u8(ProcessClass::electronicExcitation);
         }
@@ -45,7 +45,7 @@ namespace picongpu::atomicPhysics2::enums
     struct LastResort<TransitionDataSet::boundBoundDownward>
     {
         template<bool T_spontaneousDeexcitation>
-        static constexpr uint8_t getProcessClass()
+        static constexpr uint8_t processClass()
         {
             if constexpr(T_spontaneousDeexcitation)
                 return u8(ProcessClass::spontaneousDeexcitation);
@@ -57,7 +57,7 @@ namespace picongpu::atomicPhysics2::enums
     template<>
     struct LastResort<TransitionDataSet::boundFreeUpward>
     {
-        static constexpr uint8_t getProcessClass()
+        static constexpr uint8_t processClass()
         {
             return u8(ProcessClass::electronicIonization);
         }
@@ -66,9 +66,9 @@ namespace picongpu::atomicPhysics2::enums
     template<>
     struct LastResort<TransitionDataSet::autonomousDownward>
     {
-        static constexpr uint8_t getProcessClass()
+        static constexpr uint8_t processClass()
         {
             return u8(ProcessClass::autonomousIonization);
         }
     };
-} // namespace picongpu::atomicPhysics2::enums
+} // namespace picongpu::particles::atomicPhysics2::enums

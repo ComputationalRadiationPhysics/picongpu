@@ -411,8 +411,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using TypeMultiplicity = T_Multiplicity;
         using BufferMultiplicity = pmacc::HostDeviceBuffer<TypeMultiplicity, 1u>;
 
-        static constexpr auto processClassGroup
-            = particles::atomicPhysics2::enums::ProcessClassGroup::boundFreeBased;
+        static constexpr auto processClassGroup = particles::atomicPhysics2::enums::ProcessClassGroup::boundFreeBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:

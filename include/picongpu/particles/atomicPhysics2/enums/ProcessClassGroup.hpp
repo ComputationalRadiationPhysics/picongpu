@@ -56,8 +56,7 @@ namespace picongpu::particles::atomicPhysics2
             == static_cast<uint8_t>(enums::ProcessClassGroup::autonomousBased))
             return "autonomous";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(enums::ProcessClassGroup::ionizing))
+            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::ionizing))
             return "ionizing";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClassGroup)
@@ -67,8 +66,7 @@ namespace picongpu::particles::atomicPhysics2
             static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::upward))
             return "upward";
         if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(enums::ProcessClassGroup::downward))
+            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::downward))
             return "downard";
         return "unknown";
     }

@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -90,7 +90,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
          * @param areMapping mapping of blockIndex to block superCell index
          * @param rngFactoryFloat factory for uniformly distributed random number generator for float_X in [0,1)
          * @param localTimeStepBox deviceDataBox giving access to the atomic physics time
-         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super
+         * cells
          * @param localRateCacheBox deviceDataBox giving access the local rate cache of all local super cells
          * @param ionBox deviceDataBox giving access to all ion frames of a species of all local superCells
          */
@@ -144,7 +145,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     /// @todo change to compile time loop, Brian Marre, 2023
                     float_X cumSum = 0._X;
                     for(uint32_t transitionTypeID = 0u; transitionTypeID < numberRateCacheTransitionTypes;
-                         ++transitionTypeID)
+                        ++transitionTypeID)
                     {
                         // check whether user activated at least one process from the transitionType
                         if(transitionTypeActive(transitionTypeID))
@@ -159,7 +160,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         }
                     }
                     // noChange transition as last resort transition, never stored in RateCache
-                    if( r >= cumSum) // and <= 1
+                    if(r >= cumSum) // and <= 1
                     {
                         ion[processClass_] = u8(s_enums::ProcessClass::noChange);
                         // no need to set ion[transitionIndex_] since already uniquely known by processClass = noChange

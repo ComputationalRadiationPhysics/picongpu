@@ -34,8 +34,8 @@
 #include "picongpu/particles/atomicPhysics2/stage/CalculateStepLength.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CheckForOverSubscription.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/CheckPresence.hpp"
-#include "picongpu/particles/atomicPhysics2/stage/ChooseTransitionType.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ChooseTransition.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/ChooseTransitionType.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DumpAllIonsToConsole.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/DumpRateCacheToConsole.hpp"
@@ -44,10 +44,10 @@
 #include "picongpu/particles/atomicPhysics2/stage/FixAtomicState.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RecordChanges.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RecordSuggestedChanges.hpp"
+#include "picongpu/particles/atomicPhysics2/stage/ResetAcceptedStatus.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetDeltaWeightElectronHistogram.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetLocalRateCache.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/ResetLocalTimeStepField.hpp"
-#include "picongpu/particles/atomicPhysics2/stage/ResetAcceptedStatus.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/RollForOverSubscription.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/SpawnIonizationElectrons.hpp"
 #include "picongpu/particles/atomicPhysics2/stage/UpdateTimeRemaining.hpp"
@@ -171,10 +171,11 @@ namespace picongpu::simulation::stage
                 particles::atomicPhysics2::stage::CalculateStepLength<boost::mpl::_1>>;
             //! chooseTransitionType for every macro-ion
             using ForEachIonSpeciesChooseTransitionType = pmacc::meta::ForEach<
-                SpeciesRepresentingIons, particles::atomicPhysics2::stage::ChooseTransitionType<boost::mpl::_1>>;
+                SpeciesRepresentingIons,
+                particles::atomicPhysics2::stage::ChooseTransitionType<boost::mpl::_1>>;
             //! chooseTransitionType for every macro-ion
-            using ForEachIonSpeciesChooseTransition = pmacc::meta::ForEach<
-                SpeciesRepresentingIons, particles::atomicPhysics2::stage::ChooseTransition<boost::mpl::_1>>;
+            using ForEachIonSpeciesChooseTransition = pmacc::meta::
+                ForEach<SpeciesRepresentingIons, particles::atomicPhysics2::stage::ChooseTransition<boost::mpl::_1>>;
             //! record suggested changes
             using ForEachIonSpeciesRecordSuggestedChanges = pmacc::meta::ForEach<
                 SpeciesRepresentingIons,
@@ -271,7 +272,7 @@ namespace picongpu::simulation::stage
                     ForEachIonSpeciesChooseTransition{}(mappingDesc, currentStep);
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::
-                                    DUMP_ION_DATA_TO_CONSOLE_EACH_TRY)
+                                     DUMP_ION_DATA_TO_CONSOLE_EACH_TRY)
                     {
                         std::cout << "choose Transition loop try:" << std::endl;
                         ForEachIonSpeciesDumpToConsole{}(mappingDesc);
@@ -291,13 +292,13 @@ namespace picongpu::simulation::stage
                     if constexpr(picongpu::atomicPhysics2::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
                     {
                         std::cout << "\t\t a histogram oversubscribed?: "
-                                    << ((static_cast<bool>(deviceLocalReduce(
-                                            pmacc::math::operation::Or(),
-                                            linearizedOverSubscribedBox,
-                                            fieldGridLayoutOverSubscription.productOfComponents())))
-                                            ? "true"
-                                            : "false")
-                                    << std::endl;
+                                  << ((static_cast<bool>(deviceLocalReduce(
+                                          pmacc::math::operation::Or(),
+                                          linearizedOverSubscribedBox,
+                                          fieldGridLayoutOverSubscription.productOfComponents())))
+                                          ? "true"
+                                          : "false")
+                                  << std::endl;
 
                         // print LocalElectronHistogramOverSubscribedField
                         picongpu::particles::atomicPhysics2::stage::DumpSuperCellDataToConsole<
@@ -327,12 +328,12 @@ namespace picongpu::simulation::stage
                     }
 
                     if(!static_cast<bool>(deviceLocalReduce(
-                        pmacc::math::operation::Or(),
-                        linearizedOverSubscribedBox,
-                        fieldGridLayoutOverSubscription.productOfComponents())))
+                           pmacc::math::operation::Or(),
+                           linearizedOverSubscribedBox,
+                           fieldGridLayoutOverSubscription.productOfComponents())))
                     {
                         /* no superCell electron histogram marked as over subscribed in
-                            *  localElectronHistogramOverSubscribedField */
+                         *  localElectronHistogramOverSubscribedField */
                         break;
                     }
                     // at least one superCell electron histogram over subscribed
@@ -395,12 +396,12 @@ namespace picongpu::simulation::stage
                             fieldGridLayoutOverSubscription);
 
                         if(!static_cast<bool>(deviceLocalReduce(
-                                pmacc::math::operation::Or(),
-                                linearizedOverSubscribedBox,
-                                fieldGridLayoutOverSubscription.productOfComponents())))
+                               pmacc::math::operation::Or(),
+                               linearizedOverSubscribedBox,
+                               fieldGridLayoutOverSubscription.productOfComponents())))
                         {
                             /* no superCell electron histogram marked as over subscribed in
-                                *  localElectronHistogramOverSubscribedField */
+                             *  localElectronHistogramOverSubscribedField */
                             break;
                         }
                     }

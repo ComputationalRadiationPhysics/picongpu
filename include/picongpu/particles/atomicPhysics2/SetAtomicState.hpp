@@ -48,6 +48,13 @@ namespace picongpu::particles::atomicPhysics2
             ion[atomicStateCollectionIndex_] = newAtomicStateCollectionIndex;
             // update charge State
             ion[boundElectrons_] = ConfigNumber::getBoundElectrons(newAtomicConfigNumber);
+
+            // debug only
+            if(ConfigNumber::getBoundElectrons(newAtomicConfigNumber) > 20)
+            {
+                printf("atomicPhyiscs ERROR: wrong charge state\n");
+                printf("    ID %lu\n", ion[particleId_]);
+            }
         }
     };
 } // namespace picongpu::particles::atomicPhysics2

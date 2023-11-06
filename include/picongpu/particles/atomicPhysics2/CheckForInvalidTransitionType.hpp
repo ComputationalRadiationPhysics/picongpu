@@ -29,11 +29,10 @@ namespace picongpu::particles::atomicPhysics2
     template<typename T_Ion>
     HDINLINE void checkForInvalidTransitionType(T_Ion const ion)
     {
-        if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::
-            CHECK_FOR_INVALID_TRANSITION_TYPE)
+        if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::CHECK_FOR_INVALID_TRANSITION_TYPE)
         {
-            constexpr uint32_t maxValueTransitionTypeIndex = picongpu::particles::atomicPhysics2::enums::
-                numberTransitionDataSets;
+            constexpr uint32_t maxValueTransitionTypeIndex
+                = picongpu::particles::atomicPhysics2::enums::numberTransitionDataSets;
 
             if(!ion[accepted_] && (ion[transitionIndex_] >= maxValueTransitionTypeIndex))
                 printf("atomicPhyiscs ERROR: detected invalid transitionType\n");

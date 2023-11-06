@@ -160,7 +160,7 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
                     return 0._X;
 
             float_X const base = computeBase();
-            float_X const exponent = static_cast<float_X>(binIndex -1u);
+            float_X const exponent = static_cast<float_X>(binIndex - 1u);
 
             // eV
             float_X energy = 1.0_X;

@@ -65,8 +65,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         using S_BoundBoundTransitionTuple
             = BoundBoundTransitionTuple<typename S_TransitionDataBox::TypeValue, T_ConfigNumberDataType>;
 
-        static constexpr auto processClassGroup
-            = particles::atomicPhysics2::enums::ProcessClassGroup::boundBoundBased;
+        static constexpr auto processClassGroup = particles::atomicPhysics2::enums::ProcessClassGroup::boundBoundBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:
@@ -336,8 +335,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             T_ConfigNumberDataType,
             T_TransitionOrdering>;
 
-        static constexpr auto processClassGroup
-            = particles::atomicPhysics2::enums::ProcessClassGroup::boundBoundBased;
+        static constexpr auto processClassGroup = particles::atomicPhysics2::enums::ProcessClassGroup::boundBoundBased;
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:

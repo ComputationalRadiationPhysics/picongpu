@@ -36,17 +36,17 @@ namespace picongpu::particles::atomicPhysics2::enums
     /** enum of used TransitionDataSets
      *
      * @attention noChange must always be second last entry!
-     * @attention do not use custom values here, ChooseTransitionTypeKernel logic depends on continuous value assignment
-     *  starting at 0!
+     * @attention do not use custom values here, ChooseTransitionTypeKernel logic depends on continuous value
+     * assignment starting at 0!
      */
     enum struct TransitionDataSet : uint32_t
     {
-        boundBoundUpward,       // = 0
-        boundBoundDownward,     // = 1
-        boundFreeUpward,        // = 2
-        autonomousDownward,     // = 3
-        noChange,               // = 4
-        FINAL_NUMBER_ENTRIES    // = 5
+        boundBoundUpward, // = 0
+        boundBoundDownward, // = 1
+        boundFreeUpward, // = 2
+        autonomousDownward, // = 3
+        noChange, // = 4
+        FINAL_NUMBER_ENTRIES // = 5
     };
     constexpr uint32_t numberTransitionDataSets = u32(TransitionDataSet::FINAL_NUMBER_ENTRIES);
 
@@ -59,17 +59,19 @@ namespace picongpu::particles::atomicPhysics2
     {
         if constexpr(
             static_cast<uint8_t>(T_TransitionDataSet)
-                == static_cast<uint8_t>(enums::TransitionDataSet::boundBoundUpward))
+            == static_cast<uint8_t>(enums::TransitionDataSet::boundBoundUpward))
             return "bound-bound(upward)";
         if constexpr(
             static_cast<uint8_t>(T_TransitionDataSet)
-                == static_cast<uint8_t>(enums::TransitionDataSet::boundBoundDownward))
+            == static_cast<uint8_t>(enums::TransitionDataSet::boundBoundDownward))
             return "bound-bound(downward)";
         if constexpr(
-            static_cast<uint8_t>(T_TransitionDataSet) == static_cast<uint8_t>(enums::TransitionDataSet::boundFreeUpward))
+            static_cast<uint8_t>(T_TransitionDataSet)
+            == static_cast<uint8_t>(enums::TransitionDataSet::boundFreeUpward))
             return "bound-free(upward)";
         if constexpr(
-            static_cast<uint8_t>(T_TransitionDataSet) == static_cast<uint8_t>(enums::TransitionDataSet::autonomousDownward))
+            static_cast<uint8_t>(T_TransitionDataSet)
+            == static_cast<uint8_t>(enums::TransitionDataSet::autonomousDownward))
             return "autonomous(downward)";
         if constexpr(
             static_cast<uint8_t>(T_TransitionDataSet) == static_cast<uint8_t>(enums::TransitionDataSet::noChange))

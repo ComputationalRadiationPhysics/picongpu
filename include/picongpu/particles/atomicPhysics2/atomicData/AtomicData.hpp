@@ -754,8 +754,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             PMACC_CASSERT_MSG(
                 wrong_or_unknown_transitionType_in_Energy_InversionCheck,
                 ((u8(T_TransitionHostBox::processClassGroup) == u8(enums::ProcessClassGroup::boundBoundBased))
-                 || (u8(T_TransitionHostBox::processClassGroup)
-                     == u8(enums::ProcessClassGroup::autonomousBased))));
+                 || (u8(T_TransitionHostBox::processClassGroup) == u8(enums::ProcessClassGroup::autonomousBased))));
 
             uint32_t const numberTransitions = transitionHostBox.getNumberOfTransitionsTotal();
 
@@ -1209,14 +1208,13 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             S_AtomicStateNumberOfTransitionsDataBox_Down<ProcClassGroup::autonomousBased> hostBoxNumberAutonomous
                 = atomicStateNumberOfTransitionsDataBuffer_Autonomous->getHostDataBox();
 
-            using S_NumberPhysicalTransitions
-                = picongpu::particles::atomicPhysics2::enums::NumberPhysicalTransitions<
-                    electronicExcitation,
-                    electronicDeexcitation,
-                    spontaneousDeexcitation,
-                    electronicIonization,
-                    autonomousIonization,
-                    fieldIonization>;
+            using S_NumberPhysicalTransitions = picongpu::particles::atomicPhysics2::enums::NumberPhysicalTransitions<
+                electronicExcitation,
+                electronicDeexcitation,
+                spontaneousDeexcitation,
+                electronicIonization,
+                autonomousIonization,
+                fieldIonization>;
 
             TypeNumber numberPhysicalTransitionsTotal;
 
@@ -1650,8 +1648,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         template<bool hostData, enums::TransitionOrdering T_TransitionOrdering>
         S_BoundBoundTransitionDataBox<T_TransitionOrdering> getBoundBoundTransitionDataBox()
         {
-            constexpr bool byLowerState
-                = (u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState));
+            constexpr bool byLowerState = (u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState));
 
             if constexpr(byLowerState)
             {
@@ -1679,8 +1676,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         template<bool hostData, enums::TransitionOrdering T_TransitionOrdering>
         S_BoundFreeTransitionDataBox<T_TransitionOrdering> getBoundFreeTransitionDataBox()
         {
-            constexpr bool byLowerState
-                = (u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState));
+            constexpr bool byLowerState = (u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState));
 
             if constexpr(byLowerState)
             {
@@ -1708,8 +1704,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         template<bool hostData, enums::TransitionOrdering T_TransitionOrdering>
         S_AutonomousTransitionDataBox<T_TransitionOrdering> getAutonomousTransitionDataBox()
         {
-            constexpr bool byLowerState
-                = (u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState));
+            constexpr bool byLowerState = (u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState));
 
             if constexpr(byLowerState)
             {

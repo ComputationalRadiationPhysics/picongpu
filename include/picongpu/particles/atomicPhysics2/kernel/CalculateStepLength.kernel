@@ -68,7 +68,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
             //  -> must subtract guard to get correct superCellFieldIdx
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = areaMapping.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())))
-                    - areaMapping.getGuardingSuperCells();
+                - areaMapping.getGuardingSuperCells();
 
             auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
             // end kernel if superCell already finished
@@ -110,7 +110,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                             printf("atomicPhysics ERROR: encountered negative loss rate in "
                                    "calculateStepLength kernel\n");
                             // 1/UNIT_TIME
-                            lossRateState =  picongpu::atomicPhysics2::timeStepAlpha / DELTA_T;
+                            lossRateState = picongpu::atomicPhysics2::timeStepAlpha / DELTA_T;
                         }
 
                     float_X const speciesStateLimitTimeStep = 1._X / (lossRateState);

@@ -21,13 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics2/CheckForInvalidTransitionType.hpp"
+#include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionOrderingFor.hpp"
-
-#include "picongpu/particles/atomicPhysics2/CheckForInvalidTransitionType.hpp"
-#include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
@@ -62,7 +61,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
          *  atomic states block of transitions
          * @param transitionDataBox deviceDataBox giving access to autonomous
          *  transition property data
-         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super cells
+         * @param localTimeRemainingBox deviceDataBox giving access to the local time remaining of all local super
+         * cells
          * @param localRateCacheBox deviceDataBox giving access the local rate cache of all local super cells
          * @param ionBox deviceDataBox giving access to the species particle frames of all local super cells
          */
@@ -124,19 +124,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
 
             forEachLocalIonBoxEntry(
-                [
-                    &rngGeneratorFloat,
-                    &numberTransitionsBox,
-                    &startIndexBox,
-                    &transitionDataBox,
-                    &rateCache
-                ](T_Worker const& worker, auto& ion)
+                [&rngGeneratorFloat, &numberTransitionsBox, &startIndexBox, &transitionDataBox, &rateCache](
+                    T_Worker const& worker,
+                    auto& ion)
                 {
                     // debug
                     checkForInvalidTransitionType(ion);
 
-                    bool const selectedAutonomousDownwardTransition = (
-                        ion[transitionIndex_] == u32(s_enums::TransitionDataSet::autonomousDownward));
+                    bool const selectedAutonomousDownwardTransition
+                        = (ion[transitionIndex_] == u32(s_enums::TransitionDataSet::autonomousDownward));
                     if(ion[accepted_] || !selectedAutonomousDownwardTransition)
                         return;
 
@@ -145,8 +141,8 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     // get possible transitions' collectionIndices
                     uint32_t const numberTransitionsDown
                         = numberTransitionsBox.numberOfTransitionsDown(atomicStateCollectionIndex);
-                    uint32_t const startIndexTransitionBlock = startIndexBox.startIndexBlockTransitionsDown(
-                        atomicStateCollectionIndex);
+                    uint32_t const startIndexTransitionBlock
+                        = startIndexBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex);
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
                     {
@@ -167,11 +163,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     uint32_t selectedTransitionIndex = startIndexTransitionBlock + numberTransitionsDown - 1u;
 
                     float_X cumSum = 0._X;
-                    for (uint32_t transitionID=0u; transitionID < numberTransitionsDown; ++transitionID)
+                    for(uint32_t transitionID = 0u; transitionID < numberTransitionsDown; ++transitionID)
                     {
-                        cumSum += transitionDataBox.rate(transitionID + startIndexTransitionBlock) / rateCache.rate(
-                            u32(s_enums::TransitionDataSet::autonomousDownward),
-                            atomicStateCollectionIndex);
+                        cumSum += transitionDataBox.rate(transitionID + startIndexTransitionBlock)
+                            / rateCache.rate(
+                                u32(s_enums::TransitionDataSet::autonomousDownward),
+                                atomicStateCollectionIndex);
 
                         // inclusive limit, to make sure that r==1 is assigned a transition
                         if(r <= cumSum)

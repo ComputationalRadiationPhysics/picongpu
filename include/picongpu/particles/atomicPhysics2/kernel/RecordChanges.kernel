@@ -109,7 +109,7 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     auto& ion)
                 {
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::recordChanges::CHECK_FOR_ACCEPTANCE)
-                        if (!ion[accepted_])
+                        if(!ion[accepted_])
                             printf("atomicPhysics ERROR: non accepted ion detected in recordChanges kernel\n");
 
                     uint8_t const processClass = ion[processClass_];

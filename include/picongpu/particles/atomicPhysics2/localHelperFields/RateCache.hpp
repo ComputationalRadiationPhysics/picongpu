@@ -22,10 +22,10 @@
 #include "picongpu/simulation_defines.hpp"
 // need: picongpu/param/atomicPhysics2_Debug.param
 
-#include "picongpu/particles/atomicPhysics2/enums/TransitionType.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
-#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDataSet.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionDirection.hpp"
+#include "picongpu/particles/atomicPhysics2/enums/TransitionType.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/static_assert.hpp>
@@ -46,7 +46,8 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
     public:
         static constexpr uint32_t numberAtomicStates = T_numberAtomicStates;
         // we do not store noChange since noChange is always reminder to 1
-        static constexpr uint32_t numberStoredDataSets = particles::atomicPhysics2::enums::numberTransitionDataSets - 1u;
+        static constexpr uint32_t numberStoredDataSets
+            = particles::atomicPhysics2::enums::numberTransitionDataSets - 1u;
 
     private:
         // partial sums of rates for each atomic state, one for each TransitionDataSet except noChange
@@ -81,9 +82,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          */
-        template<
-            typename T_Worker,
-            particles::atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet>
+        template<typename T_Worker, particles::atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet>
         HDINLINE void add(T_Worker const& worker, uint32_t const collectionIndex, float_X rate)
         {
             PMACC_CASSERT_MSG(
@@ -119,7 +118,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         template<particles::atomicPhysics2::enums::TransitionDataSet T_TransitionDataSet>
         HDINLINE void add(uint32_t const collectionIndex, float_X rate)
         {
-           PMACC_CASSERT_MSG(
+            PMACC_CASSERT_MSG(
                 noChange_not_allowed_as_T_TransitionDataSet,
                 u32(T_TransitionDataSet) != u32(particles::atomicPhysics2::enums::TransitionDataSet::noChange));
             PMACC_CASSERT_MSG(
@@ -148,10 +147,7 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         template<typename T_Worker>
         HDINLINE void setPresent(T_Worker const& worker, uint32_t const collectionIndex, bool const status)
         {
-            cupla::atomicExch(
-                worker.getAcc(),
-                &(this->m_present[collectionIndex]),
-                static_cast<uint32_t>(status));
+            cupla::atomicExch(worker.getAcc(), &(this->m_present[collectionIndex]), static_cast<uint32_t>(status));
             return;
         }
 
@@ -168,13 +164,13 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         {
             if constexpr(picongpu::atomicPhysics2::debug::rateCache::TRANSITION_DATA_SET_INDEX_RANGE_CHECKS)
             {
-                if (transitionDataSetIndex
-                    == u8(picongpu::particles::atomicPhysics2::enums::TransitionDataSet::noChange))
+                if(transitionDataSetIndex
+                   == u8(picongpu::particles::atomicPhysics2::enums::TransitionDataSet::noChange))
                 {
                     printf("atomicPhysics ERROR: noChange not allowed as transitionDataSet in rate() call\n");
                     return 0._X;
                 }
-                if (transitionDataSetIndex >= u8(picongpu::particles::atomicPhysics2::enums::numberTransitionDataSets))
+                if(transitionDataSetIndex >= u8(picongpu::particles::atomicPhysics2::enums::numberTransitionDataSets))
                 {
                     printf("atomicPhysics ERROR: unknown transitionDataSet index in rate() call\n");
                     return 0._X;
@@ -202,8 +198,8 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
                 }
 
             float_X totalLossRate = 0._X;
-            for (uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < numberStoredDataSets;
-                 ++transitionDataSetIndex)
+            for(uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < numberStoredDataSets;
+                ++transitionDataSetIndex)
             {
                 totalLossRate += rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)];
             }
@@ -233,19 +229,20 @@ namespace picongpu::particles::atomicPhysics2::localHelperFields
         HINLINE void printToConsole(pmacc::DataSpace<picongpu::simDim> superCellFieldIdx) const
         {
             std::cout << "rateCache" << superCellFieldIdx.toString(",", "[]")
-                << " atomicStateCollectionIndex [bb(up), bb(down), bf(up), a(down)]" << std::endl;
+                      << " atomicStateCollectionIndex [bb(up), bb(down), bf(up), a(down)]" << std::endl;
             for(uint16_t collectionIndex = 0u; collectionIndex < numberAtomicStates; ++collectionIndex)
             {
                 if(this->present(collectionIndex))
                 {
                     std::cout << "\t" << collectionIndex << "[";
-                    for (uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < (numberStoredDataSets-1u);
-                         ++transitionDataSetIndex)
+                    for(uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < (numberStoredDataSets - 1u);
+                        ++transitionDataSetIndex)
                     {
                         std::cout << rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)] << ", ";
                     }
                     // last dataSet
-                    std::cout << rateEntries[linearIndex(collectionIndex, numberStoredDataSets-1u)] << "]" << std::endl;
+                    std::cout << rateEntries[linearIndex(collectionIndex, numberStoredDataSets - 1u)] << "]"
+                              << std::endl;
                 }
             }
         }

@@ -47,8 +47,7 @@ namespace picongpu::particles::atomicPhysics2
     template<enums::ProcessClass T_ProcessClass>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::noChange))
+        if constexpr(static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::noChange))
             return "noChange";
         if constexpr(
             static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::spontaneousDeexcitation))

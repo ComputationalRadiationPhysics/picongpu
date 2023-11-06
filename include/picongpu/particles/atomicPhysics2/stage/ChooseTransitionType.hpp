@@ -71,14 +71,14 @@ namespace picongpu::particles::atomicPhysics2::stage
             using RateCacheType = typename picongpu::particles::atomicPhysics2::localHelperFields::
                 LocalRateCacheField<picongpu::MappingDesc, IonSpecies>::entryType;
             auto& localRateCacheField = *dc.get<picongpu::particles::atomicPhysics2::localHelperFields::
-                LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
-                    IonSpecies::FrameType::getName() + "_localRateCacheField");
+                                                    LocalRateCacheField<picongpu::MappingDesc, IonSpecies>>(
+                IonSpecies::FrameType::getName() + "_localRateCacheField");
 
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
             RngFactoryFloat rngFactoryFloat = RngFactoryFloat{currentStep};
 
-            using ChooseTransitionTypeKernel = typename picongpu::particles::atomicPhysics2::kernel::
-                ChooseTransitionTypeKernel<
+            using ChooseTransitionTypeKernel =
+                typename picongpu::particles::atomicPhysics2::kernel::ChooseTransitionTypeKernel<
                     RateCacheType,
                     AtomicDataType::switchElectronicExcitation,
                     AtomicDataType::switchElectronicDeexcitation,
@@ -86,8 +86,7 @@ namespace picongpu::particles::atomicPhysics2::stage
                     AtomicDataType::switchAutonomousIonization,
                     AtomicDataType::switchElectronicIonization,
                     AtomicDataType::switchFieldIonization>;
-            PMACC_LOCKSTEP_KERNEL(
-                ChooseTransitionTypeKernel(), workerCfg)
+            PMACC_LOCKSTEP_KERNEL(ChooseTransitionTypeKernel(), workerCfg)
             (mapper.getGridDim())(
                 mapper,
                 rngFactoryFloat,
