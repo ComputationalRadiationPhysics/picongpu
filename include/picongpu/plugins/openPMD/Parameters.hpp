@@ -8,7 +8,7 @@ namespace picongpu::openPMD
     /*
      * No default values here since those are registered in the
      * plugins::multi::Option data members of openPMDWriter::Help.
-     * The openPMD plugin will automatically those default values here.
+     * The openPMD plugin will automatically use those default values here.
      * Ref.: openPMDWriter::Help::pluginParameters() (when using cmd line parameters)
      *       openPMDWriter::openPMDWriter()          (when using TOML configuration)
      */
