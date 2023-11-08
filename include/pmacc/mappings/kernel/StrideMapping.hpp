@@ -88,13 +88,24 @@ namespace pmacc
 
         /** Return index of a supercell to be processed by the given alpaka block
          *
+         * @tparam T_origin Which origin (CORE/BORDER/GUARD) to return supercell index relative to (default: GUARD)
          * @param blockIdx alpaka block index
          * @return mapped SuperCell index including guards
          */
+        template<uint32_t T_origin = GUARD>
         HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
             const DataSpace<DIM> blockId((blockIdx * stride) + offset);
-            return StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
+            auto result = StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
+            if constexpr(T_origin == CORE)
+            {
+                result = result - 2 * this->getGuardingSuperCells();
+            }
+            if constexpr(T_origin == BORDER)
+            {
+                result = result - this->getGuardingSuperCells();
+            }
+            return result;
         }
 
         HDINLINE DataSpace<DIM> getOffset() const
