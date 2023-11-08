@@ -99,9 +99,6 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
         template<typename T_IonParticle>
         HDINLINE static detail::LorentzBoost getLorentzBoostFromIonToLab(T_IonParticle& ion)
         {
-            // UNIT_MASS, not weighted
-            constexpr float_X mass = picongpu::traits::frame::getMass<typename T_IonParticle::FrameType>();
-
             // UNIT_MASS * UNIT_LENGTH / UNIT_TIME, weighted
             float3_X const momentum_Lab = ion[momentum_];
             // unitless
@@ -111,31 +108,38 @@ namespace picongpu::particles::atomicPhysics2::initElectrons
             float_64 const momentumSquared
                 = static_cast<float_64>(pmacc::math::l2norm2(momentum_Lab) / (weighting * weighting));
 
-            // unitless, not weighted
-            float3_64 directionVector;
+            auto beta = MatrixVector(0.);
+            float_64 gamma = 1.0;
+            float_64 normBetaSquared = 0.0;
 
-            if(momentumSquared == 0.)
-                return detail::LorentzBoost(1., MatrixVector(0.), fillLorentzMatrix(MatrixVector(0.), 1., 1.));
-            else
+            bool const isParMoving = momentumSquared != 0.;
+            if(isParMoving)
+            {
+                // UNIT_MASS, not weighted
+                constexpr float_X mass = picongpu::traits::frame::getMass<typename T_IonParticle::FrameType>();
+
+                // unitless, not weighted
+                float3_64 directionVector;
                 directionVector = static_cast<float3_64>(momentum_Lab / math::sqrt(momentumSquared) / weighting);
 
-            // UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted
-            constexpr float_64 m2c2
-                = pmacc::math::cPow(mass * picongpu::SI::SPEED_OF_LIGHT_SI / (UNIT_LENGTH / UNIT_TIME), 2u);
+                // UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted
+                constexpr float_64 m2c2
+                    = pmacc::math::cPow(mass * picongpu::SI::SPEED_OF_LIGHT_SI / (UNIT_LENGTH / UNIT_TIME), 2u);
 
-            // f( (UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted)
-            //      / (UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted)) = f(unitless, not weighted)
-            // unitless, not weighted
-            float_64 const normBetaSquared = 1. / (1. + m2c2 / momentumSquared);
-            // unitless, not weighted
-            auto const beta = MatrixVector(
-                directionVector * /* inverse direction in ion system */ (-1.) * math::sqrt(normBetaSquared));
+                // f( (UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted)
+                //      / (UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted)) = f(unitless, not weighted)
+                // unitless, not weighted
+                normBetaSquared = 1. / (1. + m2c2 / momentumSquared);
+                // unitless, not weighted
+                beta = MatrixVector(
+                    directionVector * /* inverse direction in ion system */ (-1.) * math::sqrt(normBetaSquared));
 
-            // unitless
-            float_64 const gamma = math::sqrt(momentumSquared / m2c2 + 1.);
+                // unitless
+                gamma = math::sqrt(momentumSquared / m2c2 + 1.);
 
-            // unitless
-            // lower 3x3 block of Lorentz transformation matrix for transformation from Ion-System to Lab-System
+                // unitless
+                // lower 3x3 block of Lorentz transformation matrix for transformation from Ion-System to Lab-System
+            }
             return detail::LorentzBoost(gamma, beta, fillLorentzMatrix(beta, gamma, normBetaSquared));
         }
 

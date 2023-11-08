@@ -151,35 +151,35 @@ namespace picongpu::particles::atomicPhysics2::rateCalculation
                     return 0._X;
                 }
 
-            if(energyDifference > energyElectron)
-                return 0._X;
+            float_X result = 0._X;
+            if(energyDifference <= energyElectron)
+            {
+                constexpr float_64 C = 2.3; // a fitting factor well suited for Z >= 2, unitless
+                constexpr float_64 a0 = picongpu::SI::BOHR_RADIUS; // m
+                constexpr float_64 E_R = picongpu::SI::RYDBERG_ENERGY; // eV
+                constexpr float_64 scalingConstant
+                    = C * picongpu::PI * pmacc::math::cPow(a0, 2u) / 1e-22 * pmacc::math::cPow(E_R, 2u);
+                // 10^6*b * eV^2
+                // m^2 / (m^2/10^6*b) * (eV)^2= m^2/m^2 * 10^6*b * eV^2
 
-            constexpr float_64 C = 2.3; // a fitting factor well suited for Z >= 2, unitless
-            constexpr float_64 a0 = picongpu::SI::BOHR_RADIUS; // m
-            constexpr float_64 E_R = picongpu::SI::RYDBERG_ENERGY; // eV
-            constexpr float_64 scalingConstant
-                = C * picongpu::PI * pmacc::math::cPow(a0, 2u) / 1e-22 * pmacc::math::cPow(E_R, 2u);
-            // 10^6*b * eV^2
-            // m^2 / (m^2/10^6*b) * (eV)^2= m^2/m^2 * 10^6*b * eV^2
+                uint8_t const lowerStateChargeState = S_ConfigNumber::getChargeState(lowerStateConfigNumber);
 
-            uint8_t const lowerStateChargeState = S_ConfigNumber::getChargeState(lowerStateConfigNumber);
+                /// @todo replace with screenedCharge(upperStateChargeState)?, Brian Marre, 2023
+                float_X const screenedCharge = chargeStateDataBox.screenedCharge(lowerStateChargeState) - 1._X; // [e]
 
-            /// @todo replace with screenedCharge(upperStateChargeState)?, Brian Marre, 2023
-            float_X const screenedCharge = chargeStateDataBox.screenedCharge(lowerStateChargeState) - 1._X; // [e]
+                float_X const U = energyElectron / energyDifference; // unitless
+                float_X const beta = betaFactor(screenedCharge); // unitless
+                float_64 const w = wFactor(U, beta); // unitless
+                float_X const crossSection = static_cast<float_X>(
+                    scalingConstant * combinatorialFactor
+                    / static_cast<float_64>(pmacc::math::cPow(energyDifference, 2u)) / static_cast<float_64>(U)
+                    * math::log(static_cast<float_64>(U)) * w); // [1e6*b]
+                // 1e6*b * (eV)^2 * unitless / (eV)^2 / unitless * log(unitless) * unitless
+                if(crossSection > 0._X)
+                    result = crossSection;
+            }
 
-            float_X const U = energyElectron / energyDifference; // unitless
-            float_X const beta = betaFactor(screenedCharge); // unitless
-            float_64 const w = wFactor(U, beta); // unitless
-            float_X const crossSection = static_cast<float_X>(
-                scalingConstant * combinatorialFactor
-                / static_cast<float_64>(pmacc::math::cPow(energyDifference, static_cast<uint8_t>(2u)))
-                / static_cast<float_64>(U) * math::log(static_cast<float_64>(U)) * w); // [1e6*b]
-            // 1e6*b * (eV)^2 * unitless / (eV)^2 / unitless * log(unitless) * unitless
-
-            if(crossSection < 0._X)
-                return 0._X;
-            else
-                return crossSection;
+            return result;
         }
 
         /** rate for collisional bound-free (ionization) transition of ion with free electron bin

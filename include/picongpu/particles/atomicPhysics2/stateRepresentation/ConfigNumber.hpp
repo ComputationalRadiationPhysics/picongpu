@@ -110,7 +110,7 @@ namespace picongpu::particles::atomicPhysics2::stateRepresentation
         {
             uint16_t g_n = g(n);
 
-            if(g(n) > static_cast<uint16_t>(T_atomicNumber))
+            if(g_n > static_cast<uint16_t>(T_atomicNumber))
                 g_n = static_cast<uint16_t>(T_atomicNumber);
 
             // min(g(n), T_atomicNumber) + 1u
@@ -132,7 +132,7 @@ namespace picongpu::particles::atomicPhysics2::stateRepresentation
 
             for(uint8_t i = 1u; i < n; ++i)
             {
-                result = result * static_cast<T_DataType>(ConfigNumber::numberOfOccupationNumberValuesInShell(i));
+                result *= static_cast<T_DataType>(ConfigNumber::numberOfOccupationNumberValuesInShell(i));
             }
 
             return result;
@@ -208,7 +208,7 @@ namespace picongpu::particles::atomicPhysics2::stateRepresentation
                  * since for loop starts with n=0 instead of n=1,
                  */
                 stepLength = nextStepLength(stepLength, n);
-                configNumber = configNumber + levelVector[n] * stepLength;
+                configNumber += levelVector[n] * stepLength;
             }
 
             return configNumber;

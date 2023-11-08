@@ -159,19 +159,16 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
                 if(!debugCheckBinIndexInRange(binIndex))
                     return 0._X;
 
-            float_X const base = computeBase();
-            float_X const exponent = static_cast<float_X>(binIndex - 1u);
-
-            // eV
-            float_X energy = 1.0_X;
+            float_X energy = 1._X;
             if(binIndex != 0u)
             {
-                // eV
+                auto const base = computeBase();
+                auto const exponent = static_cast<float_X>(binIndex - 1u);
                 // equivalent to b^binIndex + b^(binIndex-1)
-                energy = (base + 1) * math::pow(base, exponent);
+                energy = (base + 1.0_X) * math::pow(base, exponent);
             }
 
-            return energy / 2._X;
+            return energy / 2.0_X;
         }
 
         /** get bin width
@@ -183,14 +180,13 @@ namespace picongpu::particles::atomicPhysics2::electronDistribution
          */
         HDINLINE float_X getBinWidth(uint32_t const binIndex) const
         {
-            float_X const base = computeBase();
-            float_X const exponent = static_cast<float_X>(binIndex - 1u);
-
             float_X width = 1._X;
             if(binIndex != 0u)
             {
-                // [eV]
-                width = (base - 1) * math::pow(base, exponent);
+                auto const base = computeBase();
+                auto exponent = static_cast<float_X>(binIndex - 1u);
+                // equal to width = base^exponent + base^(exponent-1)
+                width = (base - 1.0_X) * math::pow(base, exponent);
             }
 
             return width;
