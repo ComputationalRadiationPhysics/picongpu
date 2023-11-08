@@ -112,6 +112,16 @@ namespace picongpu
                         (getDescription() + additionalDescription + printDefault).c_str());
                 }
 
+                /** Find out if a default value was specified.
+                 *
+                 * @return true If a default was specified.
+                 * @return false Otherwise.
+                 */
+                bool hasDefault() const
+                {
+                    return m_hasDefaultValue;
+                }
+
                 /** get the default value
                  *
                  * Throw an exception if there is no default value defined.

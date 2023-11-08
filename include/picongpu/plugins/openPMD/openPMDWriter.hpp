@@ -208,7 +208,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             plugins::multi::Option<std::string> notifyPeriod = {"period", "enable openPMD IO [for each n-th step]"};
             plugins::multi::Option<std::string> range
-                = {"range", "define the output range in cells for each dimension e.g. 1:10,:,42:"};
+                = {"range", "define the output range in cells for each dimension e.g. 1:10,:,42:", ":,:,:"};
 
             plugins::multi::Option<std::string> source = {"source", "data sources: ", "species_all, fields_all"};
 
@@ -216,7 +216,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             std::vector<std::string> allowedDataSources = {"species_all", "fields_all"};
 
-            plugins::multi::Option<std::string> fileName = {"file", "openPMD file basename"};
+            plugins::multi::Option<std::string> fileName = {"file", "openPMD file basename", "simData"};
 
             plugins::multi::Option<std::string> fileNameExtension
                 = {"ext",
@@ -455,9 +455,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 if(selfRegister)
                 {
-                    if(tomlSources.empty() && (notifyPeriod.empty() || fileName.empty()))
+                    if(tomlSources.empty() && notifyPeriod.empty())
                         throw std::runtime_error(
-                            name + ": If not defining parameter toml, then parameter period and file must be defined");
+                            name + ": Either parameter .toml XOR parameter .period must be defined.");
 
                     // check if user passed data source names are valid
                     for(auto const& dataSourceNames : source)
@@ -550,11 +550,25 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     {
                         auto const& cmd_param = param.commandLineParameter;
                         auto const& target = param.targetInConfigObject;
-                        if(!target.has_value() || !cmd_param->optionDefined(id))
+
+                        if(!target.has_value())
                         {
                             continue;
                         }
-                        res.*target.value() = cmd_param->get(id);
+                        else if(cmd_param->optionDefined(id))
+                        {
+                            res.** target = cmd_param->get(id);
+                        }
+                        else if(cmd_param->hasDefault())
+                        {
+                            res.** target = cmd_param->getDefault();
+                        }
+                        else
+                        {
+                            throw std::runtime_error(
+                                "[openPMD plugin] Command line parameter '" + cmd_param->getName()
+                                + "'has no default value specified and no user-specified option was passed.");
+                        }
                     }
                     return res;
                 }
@@ -1037,14 +1051,43 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                         std::string const& tomlSources = m_help->tomlSources.get(id);
 
+                        PluginParameters pluginParametersWithDefaults;
+                        for(auto const& parameter : m_help->parameters)
+                        {
+                            auto const& cmd_param = parameter.commandLineParameter;
+                            auto const& target = parameter.targetInConfigObject;
+
+                            if(target.has_value())
+                            {
+                                if(!parameter.tomlParameter.has_value())
+                                {
+                                    continue;
+                                }
+                                else if(cmd_param->hasDefault())
+                                {
+                                    pluginParametersWithDefaults.** target = cmd_param->getDefault();
+                                }
+                                else
+                                {
+                                    throw std::runtime_error(
+                                        "[openPMD plugin] Internal error: Could not initialize TOML param "
+                                        "'"
+                                        + *parameter.tomlParameter
+                                        + "' with a default value because it was not specified "
+                                          "internally. "
+                                          "This is a bug.");
+                                }
+                            }
+                        }
                         auto [emplaced, newly_inserted] = m_help->tomlDataSources.emplace(
                             std::piecewise_construct,
                             std::make_tuple(id),
                             std::make_tuple(
-                                m_help->tomlSources.get(id),
-                                m_help->tomlParameters(),
-                                m_help->allowedDataSources,
-                                mThreadParams.communicator));
+                                /* tomlFile = */ m_help->tomlSources.get(id),
+                                /* tomlParameters = */ m_help->tomlParameters(),
+                                /* allowedDataSources = */ m_help->allowedDataSources,
+                                /* comm = */ mThreadParams.communicator,
+                                /* pluginParameters = */ std::move(pluginParametersWithDefaults)));
                         if(!newly_inserted)
                         {
                             throw std::runtime_error("[openPMD plugin] Internal logic error: Tried parsing the same "
@@ -1058,10 +1101,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     }
                     else if(not tomlSourcesSpecified && notifyPeriodSpecified)
                     {
-                        if(m_help->fileName.empty())
-                            throw std::runtime_error("[openPMD plugin] If defining parameter period, then parameter "
-                                                     "file must also be defined");
-
                         std::string const& notifyPeriod = m_help->notifyPeriod.get(id);
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 

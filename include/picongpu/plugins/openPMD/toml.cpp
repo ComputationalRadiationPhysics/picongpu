@@ -275,7 +275,9 @@ namespace picongpu
             std::string const& tomlFile,
             std::vector<picongpu::toml::TomlParameter> tomlParameters,
             std::vector<std::string> const& allowedDataSources,
-            MPI_Comm comm)
+            MPI_Comm comm,
+            openPMD::PluginParameters openPMDPluginParameters_in)
+            : openPMDPluginParameters{std::move(openPMDPluginParameters_in)}
         {
             /*
              * Do NOT put the following line as part of the constructor initializers!
