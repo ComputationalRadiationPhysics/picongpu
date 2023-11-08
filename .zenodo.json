@@ -244,27 +244,6 @@
       "type":"Other"
     }
   ],
-  "grants":[
-    {
-      "acronym":"EUCALL",
-      "code":"654220",
-      "funder":{
-        "acronyms":[
-          "EC"
-        ],
-        "doi":"10.13039/501100000780",
-        "links":{
-          "self":"https://zenodo.org/api/funders/10.13039/501100000780"
-        },
-        "name":"European Commission"
-      },
-      "links":{
-        "self":"https://zenodo.org/api/grants/10.13039/501100000780::654220"
-      },
-      "program":"H2020",
-      "title":"European Cluster of Advanced Laser Light Sources"
-    }
-  ],
   "keywords":[
     "PIConGPU",
     "CUDA",
