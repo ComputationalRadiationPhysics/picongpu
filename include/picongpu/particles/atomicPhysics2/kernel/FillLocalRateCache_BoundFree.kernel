@@ -23,6 +23,7 @@
 // need unit.param, UNIT_LENGTH for normalisation
 
 #include "picongpu/particles/atomicPhysics2/ConvertEnumToUint.hpp"
+#include "picongpu/particles/atomicPhysics2/electronDistribution/CachedHistogram.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics2/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics2/rateCalculation/BoundFreeTransitionRates.hpp"
@@ -145,10 +146,17 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
+            // UNIT_LENGTH^3
+            constexpr float_X volumeScalingFactor
+                = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+
+            PMACC_SMEM(worker, cachedHistogram, CachedHistogram<T_numberBins>);
+            cachedHistogram.fill(worker, histogram, volumeScalingFactor);
+
             forEachAtomicStateAndBin(
                 [&worker,
                  &rateCache,
-                 &histogram,
+                 &cachedHistogram,
                  &chargeStateDataDataBox,
                  &atomicStateDataDataBox,
                  &startIndexDataBox,
@@ -167,9 +175,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     uint32_t offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
 
-                    // UNIT_LENGTH^3
-                    constexpr float_X volumeScalingFactor
-                        = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+                    [[maybe_unused]] auto const energy = cachedHistogram.energy[binIndex];
+                    [[maybe_unused]] auto const binWidth = cachedHistogram.binWidth[binIndex];
+                    [[maybe_unused]] auto const density = cachedHistogram.density[binIndex];
 
                     for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitionsUp;
                         ++transitionID)
@@ -185,11 +193,9 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                         T_ChargeStateDataDataBox,
                                         T_AtomicStateDataDataBox,
                                         T_BoundFreeTransitionDataBox>(
-                                        histogram.getBinEnergy(binIndex),
-                                        histogram.getBinWidth(binIndex),
-                                        // 1/(UNIT_LENGTH^3*eV)
-                                        histogram.getBinWeight0(binIndex) / volumeScalingFactor
-                                            / histogram.getBinWidth(binIndex),
+                                        energy,
+                                        binWidth,
+                                        density,
                                         // transitionCollectionIndex
                                         offset + transitionID,
                                         chargeStateDataDataBox,
