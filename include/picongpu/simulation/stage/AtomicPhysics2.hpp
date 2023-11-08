@@ -221,7 +221,8 @@ namespace picongpu::simulation::stage
                 = localElectronHistogramOverSubscribedField.getGridLayout().getDataSpaceWithoutGuarding();
 
             /// @todo find better way than hard code old value, Brian Marre, 2023
-            pmacc::device::Reduce deviceLocalReduce = pmacc::device::Reduce(static_cast<uint32_t>(1200u));
+            // `static` avoids that reduce is allocating each time step memory, which will reduce the performance.
+            static pmacc::device::Reduce deviceLocalReduce = pmacc::device::Reduce(static_cast<uint32_t>(1200u));
 
             setTimeRemaining(); // = (Delta t)_PIC
             ForEachIonSpeciesFixAtomicState{}(mappingDesc);
