@@ -148,18 +148,15 @@ namespace picongpu
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
                  * necessary after initializing the E-/B-field shared boxes in shared memory.
                  *
-                 * @param blockCell Offset of the cell from the origin of the local domain
-                 *                  <b>including guarding supercells</b> in units of cells
-                 * @param linearThreadIdx Linearized thread ID inside the block
-                 * @param localCellOffset Offset of the cell from the origin of the local
-                 *                        domain, i.e. from the @see BORDER
-                 *                        <b>without guarding supercells</b>
+                 * @param localSuperCellOffset offset (in superCells, without any guards) relative
+                 *                             to the origin of the local domain
+                 * @param rngIdx linear index rng number index within the supercell, valid range[0;numFrameSlots)
                  */
                 template<typename T_Worker>
                 DINLINE void init(
-                    T_Worker const& worker,
-                    const DataSpace<simDim>& blockCell,
-                    const DataSpace<simDim>& localCellOffset)
+                    [[maybe_unused]] T_Worker const& worker,
+                    [[maybe_unused]] const DataSpace<simDim>& localSuperCellOffset,
+                    [[maybe_unused]] const uint32_t rngIdx)
                 {
                 }
 

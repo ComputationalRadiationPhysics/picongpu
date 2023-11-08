@@ -212,21 +212,21 @@ namespace picongpu
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
                  * necessary after initializing the field shared boxes in shared memory.
                  *
-                 * @param blockCell Offset of the cell from the origin of the local domain
-                 *                  *including guarding supercells* in units of cells
-                 * @param linearThreadIdx Linearized thread ID inside the block
-                 * @param localCellOffset Offset of the cell from the origin of the local
-                 *                        domain, i.e. from the @see BORDER
-                 *                        *without guarding supercells*
+                 * @param localSuperCellOffset offset (in superCells, without any guards) relative
+                 *                             to the origin of the local domain
+                 * @param rngIdx linear index rng number index within the supercell, valid range[0;numFrameSlots)
                  */
                 template<typename T_Worker>
                 DINLINE void init(
-                    T_Worker const& worker,
-                    const DataSpace<simDim>& blockCell,
-                    const DataSpace<simDim>& localCellOffset)
+                    [[maybe_unused]] T_Worker const& worker,
+                    const DataSpace<simDim>& localSuperCellOffset,
+                    const uint32_t rngIdx)
                 {
-                    /* initialize random number generator with the local cell index in the simulation */
-                    this->randomGen.init(localCellOffset);
+                    auto rngOffset = DataSpace<simDim>::create(0);
+                    rngOffset.x() = rngIdx;
+                    auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                    numRNGsPerSuperCell.x() = FrameType::frameSize;
+                    this->randomGen.init(localSuperCellOffset * numRNGsPerSuperCell + rngOffset);
                 }
 
                 /** Determine number of new macro electrons due to ionization
