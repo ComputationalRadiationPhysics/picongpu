@@ -188,10 +188,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
                     constexpr uint32_t numberBins = T_Histogram::numberBins;
 
-                    // init with last resort, choose last possible transition
-                    uint32_t selectedTransitionIndex = startIndexTransitionBlock + numberTransitions - 1u;
-                    uint32_t selectedBinIndex = numberBins - 1u;
-
                     float_X cumSum = 0._X;
                     // electronic Ionization
                     if constexpr(T_electronicIonization)
@@ -231,8 +227,13 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                 if(r <= cumSum)
                                 {
                                     // found chosen transition
-                                    selectedTransitionIndex = transitionID + startIndexTransitionBlock;
-                                    selectedBinIndex = binIndex;
+                                    updateIon(
+                                        ion,
+                                        u8(picongpu::particles::atomicPhysics2::enums::ProcessClass::
+                                               electronicIonization),
+                                        transitionID + startIndexTransitionBlock,
+                                        binIndex);
+                                    return;
                                 }
                             }
                         }
@@ -242,15 +243,27 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     // down-ward bound-free transition
                     /// @todo implement recombination, Brian Marre, 2023
 
-                    ion[processClass_]
-                        = u8(picongpu::particles::atomicPhysics2::enums::ProcessClass::electronicIonization);
-                    ion[transitionIndex_] = selectedTransitionIndex;
-                    ion[binIndex_] = selectedBinIndex;
-                    ion[accepted_] = true;
-
-                    // debug
-                    printAcceptedTransitionToConsole(ion);
+                    // select last resort, choose last possible transition
+                    updateIon(
+                        ion,
+                        u8(picongpu::particles::atomicPhysics2::enums::ProcessClass::electronicIonization),
+                        startIndexTransitionBlock + numberTransitions - 1u,
+                        numberBins - 1u);
                 });
+        }
+
+        template<typename T_Ion>
+        HDINLINE static void updateIon(
+            T_Ion& ion,
+            uint8_t selectedProcessClass,
+            uint32_t selectedTransitionIndex,
+            uint32_t selectedBinIndex)
+        {
+            ion[processClass_] = selectedProcessClass;
+            ion[transitionIndex_] = selectedTransitionIndex;
+            ion[binIndex_] = u32(selectedBinIndex);
+            ion[accepted_] = true;
+            printAcceptedTransitionToConsole(ion);
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel

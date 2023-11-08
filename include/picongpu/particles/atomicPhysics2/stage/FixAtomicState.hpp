@@ -39,6 +39,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics2/kernel/FixAtomicState.kernel"
+#include "picongpu/particles/traits/GetAtomicDataType.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>

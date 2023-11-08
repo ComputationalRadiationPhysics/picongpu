@@ -66,6 +66,12 @@ namespace picongpu::particles::atomicPhysics2::kernel
         static constexpr s_enums::TransitionDataSet transitionDataSet
             = s_enums::TransitionDataSetFor<s_enums::TransitionType::boundBound, T_TransitionDirection>::dataSet;
 
+        // get possible transitions' collectionIndices
+        static constexpr bool isUpward = (u8(T_TransitionDirection) == u8(s_enums::TransitionDirection::upward));
+
+        static constexpr bool electronicChannelActive
+            = (T_electronicDeexcitation && !isUpward) || ((T_electronicExcitation && isUpward));
+
         template<typename T_Ion>
         HDINLINE static void printAcceptedTransitionToConsole(T_Ion ion)
         {
@@ -176,9 +182,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     uint32_t const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
-                    // get possible transitions' collectionIndices
-                    constexpr bool isUpward = (u8(T_TransitionDirection) == u8(s_enums::TransitionDirection::upward));
-
                     uint32_t numberTransitions;
                     if constexpr(isUpward)
                         numberTransitions = numberTransitionsBox.numberOfTransitionsUp(atomicStateCollectionIndex);
@@ -211,34 +214,16 @@ namespace picongpu::particles::atomicPhysics2::kernel
                     constexpr float_X volumeScalingFactor
                         = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
 
-                    constexpr bool electronicChannelActive
-                        = (T_electronicDeexcitation && !isUpward) || ((T_electronicExcitation && isUpward));
-                    constexpr int numberBins
-                        = (electronicChannelActive) ? static_cast<int>(T_Histogram::numberBins) : 0;
-
-                    /// init with last resort, last possible transition
-                    ///@{
-                    uint8_t selectedProcessClass
-                        = s_enums::LastResort<transitionDataSet>::template processClass<T_spontaneousDeexcitation>();
-                    int selectedBinIndex;
-                    if constexpr(isUpward || !T_spontaneousDeexcitation)
-                        selectedBinIndex = static_cast<int>(numberBins - 1u);
-                    else
-                        selectedBinIndex = -1;
-                    uint32_t selectedTransitionIndex = startIndexTransitionBlock + numberTransitions - 1u;
-                    ///@}
-
                     float_X cumSum = 0._X;
                     for(uint32_t transitionID = 0u; transitionID < numberTransitions; ++transitionID)
                     {
                         /// @todo cache transitionData, Brian Marre, 2023
 
                         // collisional de-/excitation
-                        [[maybe_unused]] int binIndex = 0;
                         if constexpr(electronicChannelActive)
                         {
                             // test for each bin separately
-                            for(; binIndex < numberBins; ++binIndex)
+                            for(int binIndex = 0; binIndex < T_Histogram::numberBins; ++binIndex)
                             {
                                 // eV
                                 float_X const energy = electronHistogram.getBinEnergy(u32(binIndex));
@@ -288,15 +273,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
                                 // inclusive limit, to make sure that r==1 is assigned a transition
                                 if(r <= cumSum)
                                 {
+                                    constexpr auto processClass = isUpward ? u8(s_enums::ProcessClass::electronicExcitation)
+                                                                 : u8(s_enums::ProcessClass::electronicDeexcitation);
                                     // found chosen transition
-                                    if constexpr(isUpward)
-                                        selectedProcessClass = u8(s_enums::ProcessClass::electronicExcitation);
-                                    else
-                                        selectedProcessClass = u8(s_enums::ProcessClass::electronicDeexcitation);
-                                    selectedTransitionIndex = transitionID + startIndexTransitionBlock;
-                                    selectedBinIndex = binIndex;
-
-                                    break;
+                                    updateIon(
+                                        ion,
+                                        processClass,
+                                        transitionID + startIndexTransitionBlock,
+                                        binIndex);
+                                    return;
                                 }
                             }
                         }
@@ -305,62 +290,74 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         if constexpr(!isUpward && T_spontaneousDeexcitation)
                         {
                             // only if we completed the bin-for-loop without finding a chosen transition
-                            if(binIndex == numberBins)
+
+                            // 1/UNIT_TIME
+                            float_X const rateTransition = picongpu::particles::atomicPhysics2::rateCalculation::
+                                BoundBoundTransitionRates<T_n_max>::template rateSpontaneousRadiativeDeexcitation<
+                                    T_AtomicStateDataDataBox,
+                                    T_BoundBoundTransitionDataBox>(
+                                    transitionID + startIndexTransitionBlock,
+                                    atomicStateDataDataBox,
+                                    transitionDataBox);
+
+                            cumSum
+                                += rateTransition / rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex);
+
+                            // debug only
+                            if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::
+                                             CHECK_FOR_OVERFLOWS_IN_ACCUMULATON)
                             {
-                                // 1/UNIT_TIME
-                                float_X const rateTransition = picongpu::particles::atomicPhysics2::rateCalculation::
-                                    BoundBoundTransitionRates<T_n_max>::template rateSpontaneousRadiativeDeexcitation<
-                                        T_AtomicStateDataDataBox,
-                                        T_BoundBoundTransitionDataBox>(
-                                        transitionID + startIndexTransitionBlock,
-                                        atomicStateDataDataBox,
-                                        transitionDataBox);
-
-                                cumSum += rateTransition
-                                    / rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex);
-
-                                // debug only
-                                if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::
-                                                 CHECK_FOR_OVERFLOWS_IN_ACCUMULATON)
+                                if(cumSum - 1 > 1.e5)
                                 {
-                                    if(cumSum - 1 > 1.e5)
-                                    {
-                                        printf("atomicPhyiscs ERROR: cumSum overflow in chooseTranstion_BoundBound "
-                                               "spontaneous\n");
-                                        printf("    dataSet = %u\n", u32(transitionDataSet));
-                                        printf("    stateIndex = %u\n", atomicStateCollectionIndex);
-                                        printf("    transitionID = %u\n", transitionID);
-                                        printf("    rateTransition = %f\n", rateTransition);
-                                        printf(
-                                            "    rateCache.rate = %f\n",
-                                            rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex));
-                                        printf("    (cumSum-1)*1e6 = %.8e\n", (cumSum - 1._X) * 1.e6);
-                                    }
+                                    printf("atomicPhyiscs ERROR: cumSum overflow in chooseTranstion_BoundBound "
+                                           "spontaneous\n");
+                                    printf("    dataSet = %u\n", u32(transitionDataSet));
+                                    printf("    stateIndex = %u\n", atomicStateCollectionIndex);
+                                    printf("    transitionID = %u\n", transitionID);
+                                    printf("    rateTransition = %f\n", rateTransition);
+                                    printf(
+                                        "    rateCache.rate = %f\n",
+                                        rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex));
+                                    printf("    (cumSum-1)*1e6 = %.8e\n", (cumSum - 1._X) * 1.e6);
                                 }
+                            }
 
-                                // inclusive limit, to make sure that r==1 is assigned a transition
-                                if(r <= cumSum)
-                                {
-                                    // found chosen transition
-                                    selectedProcessClass = u8(s_enums::ProcessClass::spontaneousDeexcitation);
-                                    selectedTransitionIndex = transitionID + startIndexTransitionBlock;
-                                    // ion[binIndex_] not set, since no interaction with a bin happened
-
-                                    break;
-                                }
+                            // inclusive limit, to make sure that r==1 is assigned a transition
+                            if(r <= cumSum)
+                            {
+                                // found chosen transition
+                                updateIon(
+                                    ion,
+                                    u8(s_enums::ProcessClass::spontaneousDeexcitation),
+                                    transitionID + startIndexTransitionBlock);
+                                return;
                             }
                         }
                     }
 
-                    // set to ion
-                    ion[processClass_] = selectedProcessClass;
-                    ion[transitionIndex_] = selectedTransitionIndex;
-                    if(electronicChannelActive && (selectedBinIndex != -1))
-                        ion[binIndex_] = u32(selectedBinIndex);
-                    ion[accepted_] = true;
-
-                    printAcceptedTransitionToConsole(ion);
+                    // select last resort, choose last possible transition
+                    updateIon(
+                        ion,
+                        s_enums::LastResort<transitionDataSet>::template processClass<T_spontaneousDeexcitation>(),
+                        startIndexTransitionBlock + numberTransitions - 1u,
+                        (isUpward || !T_spontaneousDeexcitation) ? static_cast<int>(T_Histogram::numberBins - 1u)
+                                                                 : -1);
                 });
+        }
+
+        template<typename T_Ion>
+        HDINLINE static void updateIon(
+            T_Ion& ion,
+            uint8_t selectedProcessClass,
+            uint32_t selectedTransitionIndex,
+            int selectedBinIndex = -1)
+        {
+            ion[processClass_] = selectedProcessClass;
+            ion[transitionIndex_] = selectedTransitionIndex;
+            if(electronicChannelActive && (selectedBinIndex != -1))
+                ion[binIndex_] = u32(selectedBinIndex);
+            ion[accepted_] = true;
+            printAcceptedTransitionToConsole(ion);
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel

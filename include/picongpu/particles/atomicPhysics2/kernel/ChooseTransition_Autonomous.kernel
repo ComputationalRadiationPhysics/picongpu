@@ -159,9 +159,6 @@ namespace picongpu::particles::atomicPhysics2::kernel
 
                     // compare to cumulative sum of normalized transition rates to find choosen transition
 
-                    // init with last resort, choose last possible transition
-                    uint32_t selectedTransitionIndex = startIndexTransitionBlock + numberTransitionsDown - 1u;
-
                     float_X cumSum = 0._X;
                     for(uint32_t transitionID = 0u; transitionID < numberTransitionsDown; ++transitionID)
                     {
@@ -173,20 +170,34 @@ namespace picongpu::particles::atomicPhysics2::kernel
                         // inclusive limit, to make sure that r==1 is assigned a transition
                         if(r <= cumSum)
                         {
-                            selectedTransitionIndex = startIndexTransitionBlock + transitionID;
+                            updateIon(
+                                ion,
+                                u8(s_enums::ProcessClass::autonomousIonization),
+                                startIndexTransitionBlock + transitionID);
+                            return;
                         }
                     }
 
-                    ion[processClass_] = u8(s_enums::ProcessClass::autonomousIonization);
-                    ion[transitionIndex_] = selectedTransitionIndex;
-                    // no need to set binIndex, since not collisional process
-                    ion[accepted_] = true;
+                    // select last resort, choose last possible transition
+                    updateIon(
+                        ion,
+                        u8(s_enums::ProcessClass::autonomousIonization),
+                        startIndexTransitionBlock + numberTransitionsDown - 1u);
 
                     if constexpr(picongpu::atomicPhysics2::debug::kernel::chooseTransition::PRINT_DEBUG_TO_CONSOLE)
                     {
                         printf(" transitionIndex %u\n", ion[transitionIndex_]);
                     }
                 });
+        }
+
+        template<typename T_Ion>
+        HDINLINE static void updateIon(T_Ion& ion, uint8_t selectedProcessClass, uint32_t selectedTransitionIndex)
+        {
+            ion[processClass_] = selectedProcessClass;
+            ion[transitionIndex_] = selectedTransitionIndex;
+            // autonomous does not require binIndex
+            ion[accepted_] = true;
         }
     };
 } // namespace picongpu::particles::atomicPhysics2::kernel
