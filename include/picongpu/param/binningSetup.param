@@ -23,6 +23,9 @@
 
 #include "picongpu/plugins/binning/binnerPlugin.hpp"
 
+#include <pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+
 namespace picongpu
 {
     namespace plugins::binning
@@ -35,23 +38,6 @@ namespace picongpu
 
             /// USER CODE ENDS HERE
         }
-
-        template<typename T_Identifier>
-        struct NameOrTypeExists
-        {
-            template<typename T_Value>
-            struct HasTypeOrName
-            {
-                static constexpr bool value
-                    = std::is_same_v<
-                          T_Identifier,
-                          T_Value> || std::is_same_v<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>;
-            };
-
-            using FilteredSeq = mp_copy_if<VectorAllSpecies, HasTypeOrName>;
-
-            static constexpr bool value = !std::is_same_v<boost::mp11::mp_true, mp_empty<FilteredSeq>>;
-        };
 
         inline void binningExample(BinningCreator& binningCreator)
         {
@@ -134,8 +120,14 @@ namespace picongpu
              */
             auto electronsObj = PMACC_CSTRING("e"){};
 
+            // type is void if species doesn't exist
+            using speciesExists = typename pmacc::particles::meta::FindByNameOrType_t<
+                VectorAllSpecies,
+                decltype(electronsObj),
+                pmacc::errorHandlerPolicies::ReturnType<void>>;
 
-            if constexpr(NameOrTypeExists<decltype(electronsObj)>::value)
+            // Check if species exists before compiling
+            if constexpr(!std::is_same_v<void, speciesExists>)
             {
                 // Bring the species together in a tuple
                 auto speciesTuple = createTuple(electronsObj);
@@ -166,11 +158,11 @@ namespace picongpu
 
                 /**
                  * define notify period, dump frequency, normalizeByBinVolume, time averaging
-                 * NNote that steps in time averaging are "notify steps" not simulation steps
+                 * Note that steps in time averaging are "notify steps" not simulation steps
                  */
                 uint32_t dataDumpNNotifies = 0u;
                 bool enableTimeAveraging = true;
-                std::string notifyPeriod = "1";
+                std::string notifyPeriod = "1:500";
                 bool normalizeByBinVolume = true;
 
                 /**
@@ -201,7 +193,7 @@ namespace picongpu
                     createTuple(ax_time, ax_py),
                     speciesTuple,
                     getCounts,
-                    "1",
+                    "1::",
                     2000,
                     false,
                     false);
