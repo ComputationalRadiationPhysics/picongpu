@@ -48,7 +48,8 @@ extensions = ['sphinx.ext.mathjax',
               'sphinxcontrib.programoutput',
               'matplotlib.sphinxext.plot_directive',
               'autoapi.extension',
-              'myst_parser']
+              'myst_parser',
+              'sphinx.ext.autosectionlabel']
 
 # enable latex physics package in math expressions
 # https://docs.mathjax.org/en/v3.1-latest/input/tex/extensions/physics.html
@@ -65,6 +66,9 @@ numfig = True
 # If False the numbering begins from 1 on each page.
 math_numfig = False
 
+# Prefix section labels with document name to allow sections with the same name
+autosectionlabel_prefix_document = True
+autosectionlabel_maxdepth = 4
 
 # napoleon autodoc config
 napoleon_include_init_with_doc = True

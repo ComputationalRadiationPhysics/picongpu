@@ -1,0 +1,203 @@
+/* Copyright 2023 Tapish Narwal
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/binning/binnerPlugin.hpp"
+
+#include <pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+
+namespace picongpu
+{
+    namespace plugins::binning
+    {
+        void binningExample(BinningCreator& binningCreator);
+
+        inline void getBinning(BinningCreator& binningCreator)
+        {
+            /// USER CODE GOES BELOW
+
+            /// USER CODE ENDS HERE
+        }
+
+        inline void binningExample(BinningCreator& binningCreator)
+        {
+            /**
+             * define axes here
+             */
+
+            /// Axis 1
+            // Define Functor
+            auto getPositionY
+                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> int
+            {
+                const int linearCellIdx = particle[localCellIdx_];
+                pmacc::DataSpace<SIMDIM> const cellIdx
+                    = pmacc::DataSpaceOperations<SIMDIM>::template map<SuperCellSize>(linearCellIdx);
+                auto relative_cellpos = domainInfo.globalOffset + domainInfo.localOffset + domainInfo.blockCellOffset;
+                auto posBin = cellIdx + relative_cellpos;
+                return posBin[1];
+            };
+
+            // Create Functor Description
+            auto cellPositionYDescription = createFunctorDescription<int>(getPositionY, "position_axisY");
+
+            // Create Axis Splitting
+            auto domain_size = Environment<SIMDIM>::get().SubGrid().getGlobalDomain().size;
+            auto rangeY = axis::Range{0, domain_size[1]};
+            auto cellY_splitting = axis::AxisSplitting(rangeY, domain_size[1]);
+
+            // Create Axis
+            auto ax_y = axis::createLinear(cellY_splitting, cellPositionYDescription);
+
+            /// Axis 2
+            // Define Functor
+            auto getMomentumY
+                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> float_X
+            { return particle[momentum_][1] / particle[weighting_]; };
+
+            // Define units
+            std::array<double, 7> momentumDimension{};
+            momentumDimension[SIBaseUnits::length] = 1.0;
+            momentumDimension[SIBaseUnits::mass] = 1.0;
+            momentumDimension[SIBaseUnits::time] = -1.0;
+
+            // Create Functor Description
+            auto momentumYDescription
+                = createFunctorDescription<float_X>(getMomentumY, "momentum_axis", momentumDimension);
+
+            // Create Axis Splitting
+            float_X momentum_range = 2.73092402064e-22;
+
+            // Create Axis
+            auto ax_py = axis::createLinear(
+                axis::AxisSplitting(axis::Range{-1._X * momentum_range, 1._X * momentum_range}, 937),
+                momentumYDescription);
+
+            /// Axis 3
+            // Define Functor
+            auto getTime
+                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
+            { return domainInfo.currentStep; };
+
+            // Define units
+            std::array<double, 7> timeDimension{};
+            momentumDimension[SIBaseUnits::time] = 1.0;
+
+            // Create Functor Description
+            auto timeDescription = createFunctorDescription<uint32_t>(getTime, "time_axis", timeDimension);
+
+            // Create Axis
+            auto ax_time
+                = axis::createLinear(axis::AxisSplitting(axis::Range<uint32_t>{0, 2000}, 2000), timeDescription);
+
+
+            // Bring the axes together in a tuple
+            auto axisTuple = createTuple(ax_y, ax_py);
+
+            /**
+             * Define the species to do binning over here
+             * create object from type
+             */
+            auto electronsObj = PMACC_CSTRING("e"){};
+
+            // type is void if species doesn't exist
+            using speciesExists = typename pmacc::particles::meta::FindByNameOrType_t<
+                VectorAllSpecies,
+                decltype(electronsObj),
+                pmacc::errorHandlerPolicies::ReturnType<void>>;
+
+            // Check if species exists before compiling
+            if constexpr(!std::is_same_v<void, speciesExists>)
+            {
+                // Bring the species together in a tuple
+                auto speciesTuple = createTuple(electronsObj);
+
+                /**
+                 * Define deposited quantity here
+                 */
+                auto getParticleChargeDensity = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
+                {
+                    const float_X charge = attribute::getCharge(particle[weighting_], particle);
+                    const float_X particleChargeDensity = precisionCast<float_X>(charge / CELL_VOLUME);
+                    return particleChargeDensity;
+                };
+
+                std::array<double, 7> depositedUnits{}; // Tell user the 7 dimensional format
+                depositedUnits[SIBaseUnits::length] = -3.0;
+                depositedUnits[SIBaseUnits::electricCurrent] = 1.0;
+                depositedUnits[SIBaseUnits::time] = 1.0;
+
+                // @todo enforce functor return type is same as createFunctorDescription template type
+                auto chargeDepositionData
+                    = createFunctorDescription<float_X>(getParticleChargeDensity, "ChargeDensity", depositedUnits);
+
+
+                auto getParticleCount
+                    = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X { return 1.0; };
+                auto getCounts = createFunctorDescription<float_X>(getParticleCount, "Counts");
+
+                /**
+                 * define notify period, dump frequency, normalizeByBinVolume, time averaging
+                 * Note that steps in time averaging are "notify steps" not simulation steps
+                 */
+                uint32_t dataDumpNNotifies = 0u;
+                bool enableTimeAveraging = true;
+                std::string notifyPeriod = "1:500";
+                bool normalizeByBinVolume = true;
+
+                /**
+                 * Gives access to series, iteration and mesh to the user
+                 * the iteration is already initialized as ```series.writeIterations()[currentStep];```
+                 * Please dont use the series to do funky stuff with the iteration, unless you know what you are
+                 * doing
+                 * This is called before any other mesh data is written to openPMD
+                 * Make sure to capture by copy only, as the objects in this file are not kept alive
+                 */
+                auto writeOpenPMD =
+                    [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
+                { mesh.setAttribute("p_nbins", ax_py.getNBins()); };
+
+                binningCreator.addBinner(
+                    "chargeDensityBinning",
+                    axisTuple,
+                    speciesTuple,
+                    chargeDepositionData,
+                    notifyPeriod,
+                    dataDumpNNotifies,
+                    enableTimeAveraging,
+                    normalizeByBinVolume,
+                    writeOpenPMD);
+
+                binningCreator.addBinner(
+                    "particleBinning",
+                    createTuple(ax_time, ax_py),
+                    speciesTuple,
+                    getCounts,
+                    "1::",
+                    2000,
+                    false,
+                    false);
+            }
+        }
+    } // namespace plugins::binning
+} // namespace picongpu
