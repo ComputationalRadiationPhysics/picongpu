@@ -50,9 +50,8 @@ namespace picongpu
             auto getPositionY
                 = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> int
             {
-                const int linearCellIdx = particle[localCellIdx_];
-                pmacc::DataSpace<SIMDIM> const cellIdx
-                    = pmacc::DataSpaceOperations<SIMDIM>::template map<SuperCellSize>(linearCellIdx);
+                int const linearCellIdx = particle[localCellIdx_];
+                DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
                 auto relative_cellpos = domainInfo.globalOffset + domainInfo.localOffset + domainInfo.blockCellOffset;
                 auto posBin = cellIdx + relative_cellpos;
                 return posBin[1];
