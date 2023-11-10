@@ -84,8 +84,8 @@ namespace picongpu
                      * range of particleCell: [DataSpace<simDim>::create(0), TVecSuperCell]
                      */
                     const int particleCellIdx = particle[localCellIdx_];
-                    const DataSpace<TVecSuperCell::dim> particleCell(
-                        DataSpaceOperations<TVecSuperCell::dim>::map(superCell, particleCellIdx));
+                    const DataSpace<TVecSuperCell::dim> particleCell
+                        = pmacc::math::mapToND(SuperCellSize::toRT(), particleCellIdx);
                     auto fieldTmpShiftToParticle = tmpBox.shift(particleCell);
 
                     /* loop around the particle's cell (according to shape) */
@@ -101,7 +101,7 @@ namespace picongpu
                         /** for the current cell i the multi dimensional index currentCell is only positive:
                          * allowed range = [DataSpace<simDim>::create(0), LowerMargin+UpperMargin]
                          */
-                        const DataSpace<simDim> currentCell = DataSpaceOperations<simDim>::map(marginSpace, i);
+                        const DataSpace<simDim> currentCell = pmacc::math::mapToND(marginSpace, i);
 
                         /** calculate the offset between the current cell i with simDim index currentCell
                          * and the cell of the particle (particleCell) in cells

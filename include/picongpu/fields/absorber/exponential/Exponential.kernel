@@ -88,11 +88,11 @@ namespace picongpu
                             auto forEachParticleInFrame = lockstep::makeForEach<cellsPerSuperCell>(worker);
 
                             forEachParticleInFrame(
-                                [&](uint32_t const linearIdx)
+                                [&](int32_t const linearIdx)
                                 {
                                     /* cell index within the superCell */
                                     DataSpace<simDim> const cellIdx
-                                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                                        = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
 
                                     DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + cellIdx);
 

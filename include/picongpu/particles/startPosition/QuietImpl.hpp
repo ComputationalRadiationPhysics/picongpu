@@ -68,7 +68,7 @@ namespace picongpu
                          *   z = [0, numParsPerCell_Z-1]
                          */
                         DataSpace<simDim> inCellCoordinate
-                            = DataSpaceOperations<simDim>::map(m_numParDirection, m_currentMacroParticles);
+                            = pmacc::math::mapToND(m_numParDirection, static_cast<int>(m_currentMacroParticles));
 
                         particle[position_]
                             = precisionCast<float_X>(inCellCoordinate) * spacing + spacing * float_X(0.5);

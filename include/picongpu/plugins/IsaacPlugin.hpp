@@ -253,11 +253,11 @@ namespace picongpu
                 auto const particle = frame[i];
 
                 // storage number in the actual frame
-                const auto frameCellNr = particle[localCellIdx_];
+                const int frameCellNr = particle[localCellIdx_];
 
                 // offset in the actual superCell = cell offset in the supercell
-                const DataSpace<simDim> frameCellOffset(
-                    DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(frameCellNr));
+                const DataSpace<simDim> frameCellOffset
+                    = pmacc::math::mapToND(MappingDesc::SuperCellSize::toRT(), frameCellNr);
 
                 // added offsets
                 float3_X const absoluteOffset(particle[position_] + float3_X(frameCellOffset));

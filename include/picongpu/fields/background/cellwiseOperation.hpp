@@ -83,11 +83,10 @@ namespace picongpu
                 DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
                 lockstep::makeForEach<cellsPerSupercell>(worker)(
-                    [&](uint32_t const linearIdx)
+                    [&](int32_t const linearIdx)
                     {
                         // cell index within the superCell
-                        DataSpace<simDim> const cellIdx
-                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                        DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
 
                         opFunctor(
                             worker,

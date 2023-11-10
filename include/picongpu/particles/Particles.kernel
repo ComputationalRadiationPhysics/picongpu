@@ -296,7 +296,7 @@ namespace picongpu
             floatD_X pos = particle[position_];
             const int particleCellIdx = particle[localCellIdx_];
 
-            DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
+            DataSpace<TVec::dim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
 
             const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
             const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;

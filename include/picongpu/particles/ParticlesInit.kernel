@@ -24,7 +24,6 @@
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
 
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
@@ -137,10 +136,10 @@ namespace picongpu
 
             // initialize the position functor for each cell in the supercell
             auto positionFunctorCtx = forEachCellInSuperCell(
-                [&](uint32_t const idx, uint32_t& numParsPerCell)
+                [&](int32_t const idx, uint32_t& numParsPerCell)
                 {
                     /* cell index within the superCell */
-                    DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
 
                     /* cell offset to the begin of the simulation */
                     DataSpace<simDim> const totalCellOffset

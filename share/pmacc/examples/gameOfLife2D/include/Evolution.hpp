@@ -22,7 +22,6 @@
 
 #include "types.hpp"
 
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -88,11 +87,10 @@ namespace gol
                 worker.sync();
 
                 lockstep::makeForEach<cellsPerSuperCell>(worker)(
-                    [&](uint32_t const linearIdx)
+                    [&](int32_t const linearIdx)
                     {
                         // cell index within the superCell
-                        DataSpace<DIM2> const cellIdx
-                            = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
+                        DataSpace<DIM2> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
 
                         Type neighbors = 0;
                         for(uint32_t i = 1; i < 9; ++i)
@@ -145,9 +143,9 @@ namespace gol
                 // convert position in unit of cells
                 Space const blockCell = block * T_Mapping::SuperCellSize::toRT();
 
-                uint32_t const globalUniqueId = DataSpaceOperations<DIM2>::map(
+                uint32_t const globalUniqueId = pmacc::math::linearize(
                     mapper.getGridSuperCells() * T_Mapping::SuperCellSize::toRT(),
-                    blockCell + DataSpaceOperations<DIM2>::template map<SuperCellSize>(worker.getWorkerIdx()));
+                    blockCell + pmacc::math::mapToND(SuperCellSize::toRT(), static_cast<int>(worker.getWorkerIdx())));
 
                 // create a random number state and generator
                 using RngMethod = random::methods::XorMin<typename T_Worker::Acc>;
@@ -160,11 +158,10 @@ namespace gol
                 Random rng(&state);
 
                 lockstep::makeForEach<cellsPerSuperCell>(worker)(
-                    [&](uint32_t const linearIdx)
+                    [&](int32_t const linearIdx)
                     {
                         // cell index within the superCell
-                        DataSpace<DIM2> const cellIdx
-                            = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
+                        DataSpace<DIM2> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
                         // write 1(white) if uniform random number 0<rng<1 is smaller than 'threshold'
                         buffWrite(blockCell + cellIdx) = static_cast<bool>(rng(worker) <= threshold);
                     });

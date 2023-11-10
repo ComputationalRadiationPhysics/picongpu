@@ -98,8 +98,7 @@ namespace picongpu
                         int32_t const linearTid = blockIdx + linearIdx;
                         if(linearTid < extentsDataspace.productOfComponents())
                         {
-                            pmacc::DataSpace<nAxes> const nDIdx
-                                = pmacc::DataSpaceOperations<nAxes>::map(extentsDataspace, linearTid);
+                            pmacc::DataSpace<nAxes> const nDIdx = pmacc::math::mapToND(extentsDataspace, linearTid);
                             float_X factor = 1.;
                             apply(
                                 [&](auto const&... tupleArgs)

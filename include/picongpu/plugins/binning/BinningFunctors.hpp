@@ -71,7 +71,7 @@ namespace picongpu
                     },
                     axisTuple);
 
-                auto const idxOneD = DataSpaceOperations<N_Axes>::map(extentsDataspace, binsDataspace);
+                auto const idxOneD = pmacc::math::linearize(extentsDataspace, binsDataspace);
 
                 cupla::atomicAdd(
                     worker.getAcc(),

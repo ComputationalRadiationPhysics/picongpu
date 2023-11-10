@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/debug/VerboseLog.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/kernel/atomic.hpp"
 #include "pmacc/lockstep.hpp"
 #include "pmacc/math/Vector.hpp"
@@ -162,12 +161,11 @@ namespace pmacc
                                     DataSpace<numDims> const particleCellOffset
                                         = srcFrame[srcParticleIdx][domainCellIdxIdentifier] - cellOffsetToTotalDomain;
                                     particlesSuperCellIdx = particleCellOffset / SuperCellSize::toRT();
-                                    linearParticlesSuperCell
-                                        = DataSpaceOperations<numDims>::map(numSuperCells, particlesSuperCellIdx);
+                                    linearParticlesSuperCell = math::linearize(numSuperCells, particlesSuperCellIdx);
                                     sharedLinearSuperCellIds[idx] = linearParticlesSuperCell;
                                     DataSpace<numDims> const localCellIdx(
                                         particleCellOffset - particlesSuperCellIdx * SuperCellSize::toRT());
-                                    lCellIdx = DataSpaceOperations<numDims>::template map<SuperCellSize>(localCellIdx);
+                                    lCellIdx = math::linearize(SuperCellSize::toRT(), localCellIdx);
                                 }
                                 return particlesSuperCellIdx;
                             },

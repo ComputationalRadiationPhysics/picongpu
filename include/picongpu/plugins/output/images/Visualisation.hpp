@@ -35,7 +35,6 @@
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
@@ -292,11 +291,10 @@ namespace picongpu
             auto forEachCell = lockstep::makeForEach<cellsPerSupercell>(worker);
 
             forEachCell(
-                [&](uint32_t const linearIdx)
+                [&](int32_t const linearIdx)
                 {
                     // cell index within the superCell
-                    DataSpace<simDim> const cellIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
                     // offset to the origin of the local domain + guarding cells
                     DataSpace<simDim> const cellOffset(suplercellIdx * SuperCellSize::toRT() + cellIdx);
                     // cell offset without guarding cells
@@ -408,10 +406,10 @@ namespace picongpu
             worker.sync();
 
             forEachCell(
-                [&](uint32_t const idx, bool& isImageThread)
+                [&](int32_t const idx, bool& isImageThread)
                 {
                     // cell index within the superCell
-                    DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
 
                     // cell offset to origin of the local domain
                     DataSpace<simDim> const realCell(supercellCellOffset + cellIdx);
@@ -445,10 +443,10 @@ namespace picongpu
                 SuperCellSize::toRT()[transpose.x()] * sizeof(float_X)));
 
             forEachCell(
-                [&](uint32_t const idx, bool const isImageThread)
+                [&](int32_t const idx, bool const isImageThread)
                 {
                     /* cell index within the superCell */
-                    DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
 
                     DataSpace<DIM2> const localCell(cellIdx[transpose.x()], cellIdx[transpose.y()]);
 
@@ -471,8 +469,8 @@ namespace picongpu
                 {
                     int const linearCellIdx = particle[localCellIdx_];
                     // we only draw the first slice of cells in the super cell (z == 0)
-                    DataSpace<simDim> const particleCellOffset(
-                        DataSpaceOperations<simDim>::template map<SuperCellSize>(linearCellIdx));
+                    DataSpace<simDim> const particleCellOffset
+                        = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
                     bool const isParticleOnSlice = IsPartOfSlice<>{}(
                         particleCellOffset + supercellCellOffset,
                         sliceDim,
@@ -497,13 +495,12 @@ namespace picongpu
             worker.sync();
 
             forEachCell(
-                [&](uint32_t const idx, bool const isImageThread)
+                [&](int32_t const idx, bool const isImageThread)
                 {
                     if(isImageThread)
                     {
                         // cell index within the superCell
-                        DataSpace<simDim> const cellIdx
-                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                        DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
                         // cell offset to origin of the local domain
                         DataSpace<simDim> const realCell(supercellCellOffset + cellIdx);
                         // index in image

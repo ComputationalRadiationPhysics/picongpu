@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/types.hpp"
 
 #include <cstdint>
@@ -61,12 +60,12 @@ namespace pmacc
 
         HDINLINE decltype(auto) operator[](const int idx) const
         {
-            return Base::operator[](DataSpaceOperations<Dim>::map(originalSize, idx));
+            return Base::operator[](pmacc::math::mapToND(originalSize, idx));
         }
 
         HDINLINE decltype(auto) operator[](const int idx)
         {
-            return Base::operator[](DataSpaceOperations<Dim>::map(originalSize, idx));
+            return Base::operator[](pmacc::math::mapToND(originalSize, idx));
         }
 
     private:

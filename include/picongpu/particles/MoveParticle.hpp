@@ -97,7 +97,7 @@ namespace picongpu
             {
                 const int particleCellIdx = particle[localCellIdx_];
 
-                DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
+                DataSpace<TVec::dim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
                 /* new local cell position after particle move
                  * can be out of supercell
                  */
@@ -130,7 +130,7 @@ namespace picongpu
                  */
                 localCell -= (dir * TVec::toRT());
                 // update one dimensional cell index
-                particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec>(localCell);
+                particle[localCellIdx_] = pmacc::math::linearize(TVec::toRT(), localCell);
 
                 // see inlcude/pmacc/type/Exchnages.hpp for RIGHT, BOTTOM and BACK
                 uint32_t exchangeType = 1;

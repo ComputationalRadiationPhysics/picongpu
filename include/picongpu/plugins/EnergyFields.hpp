@@ -29,7 +29,6 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/device/Reduce.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/boxes/DataBoxUnaryTransform.hpp>

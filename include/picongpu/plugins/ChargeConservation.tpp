@@ -215,11 +215,12 @@ namespace picongpu
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             lockstep::makeForEach<cellsPerSupercell>(worker)(
-                [&](uint32_t const linearIdx)
+                [&](int32_t const linearIdx)
                 {
                     // cell index within the superCell
                     DataSpace<simDim> const inSupercellCellIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                        = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
+
                     auto globalCellIdx = supercellCellIdx + inSupercellCellIdx;
 
                     auto div = picongpu::detail::Div<simDim, typename FieldTmp::ValueType>{};

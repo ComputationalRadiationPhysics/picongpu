@@ -69,8 +69,9 @@ namespace picongpu
                         template<typename T_Particle, typename T_Worker>
                         HDINLINE void operator()(T_Worker const&, T_Particle& particle)
                         {
-                            DataSpace<simDim> const cellInSuperCell(
-                                DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]));
+                            DataSpace<simDim> const cellInSuperCell = pmacc::math::mapToND(
+                                SuperCellSize::toRT(),
+                                static_cast<int>(particle[localCellIdx_]));
                             Functor::operator()(m_superCellToLocalOriginCellOffset + cellInSuperCell, m_rng, particle);
                         }
 

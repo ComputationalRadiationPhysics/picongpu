@@ -131,9 +131,9 @@ namespace picongpu
                             = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
                         float3_X const mom = particle[momentum_] / weighting;
                         floatD_X const pos = particle[position_];
-                        lcellId_t const cellIdx = particle[localCellIdx_];
-                        DataSpace<simDim> const frameCellOffset(
-                            DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(cellIdx));
+                        int const cellIdx = particle[localCellIdx_];
+                        DataSpace<simDim> const frameCellOffset
+                            = pmacc::math::mapToND(MappingDesc::SuperCellSize::toRT(), cellIdx);
                         auto const localSupercellStart
                             = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
                         int const index_y = frameCellOffset.y();

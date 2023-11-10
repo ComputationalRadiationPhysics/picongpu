@@ -243,8 +243,8 @@ namespace picongpu
                     floatD_X const pos = particle[position_];
                     int const particleCellIdx = particle[localCellIdx_];
                     /* multi-dim coordinate of the local cell inside the super cell */
-                    DataSpace<SuperCellSize::dim> localCell(
-                        DataSpaceOperations<SuperCellSize::dim>::template map<SuperCellSize>(particleCellIdx));
+                    DataSpace<SuperCellSize::dim> localCell
+                        = pmacc::math::mapToND(SuperCellSize::toRT(), particleCellIdx);
                     /* interpolation of density */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosRho;
                     ValueType_Rho densityV

@@ -83,7 +83,7 @@ namespace picongpu
                     {
                         // Check if it fits the internal cells range
                         auto const cellInSuperCell
-                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
+                            = pmacc::math::mapToND(SuperCellSize::toRT(), static_cast<int>(particle[localCellIdx_]));
                         auto const localCell = superCellCellOffsetNoGuard + cellInSuperCell;
                         for(uint32_t d = 0; d < simDim; d++)
                             if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))

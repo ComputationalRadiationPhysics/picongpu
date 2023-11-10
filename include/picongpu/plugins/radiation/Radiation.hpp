@@ -35,7 +35,6 @@
 #include "picongpu/plugins/radiation/executeParticleFilter.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/filesystem.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>

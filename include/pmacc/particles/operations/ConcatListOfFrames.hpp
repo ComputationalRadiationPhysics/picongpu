@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/particles/Identifier.hpp"
 #include "pmacc/particles/operations/Deselect.hpp"
@@ -91,7 +91,7 @@ namespace pmacc
                     {
                         // local copy for each omp thread
                         T_Filter filter = particleFilter;
-                        DataSpace<T_dim> blockIndex(DataSpaceOperations<T_dim>::map(m_gridSize, linearBlockIdx));
+                        DataSpace<T_dim> blockIndex = pmacc::math::mapToND(m_gridSize, linearBlockIdx);
 
                         using namespace pmacc::particles::operations;
 
@@ -150,9 +150,9 @@ namespace pmacc
                                     auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
                                     assign(parDestNoDomainIdx, parSrc);
                                     /* calculate cell index for user-defined domain */
-                                    DataSpace<Mapping::Dim> localCellIdx(
-                                        DataSpaceOperations<Mapping::Dim>::template map<SuperCellSize>(
-                                            parSrc[localCellIdx_]));
+                                    DataSpace<Mapping::Dim> localCellIdx = pmacc::math::mapToND(
+                                        SuperCellSize::toRT(),
+                                        static_cast<int>(parSrc[localCellIdx_]));
                                     parDest[domainCellIdxIdentifier] = domainOffset + superCellPosition + localCellIdx;
                                 }
                             }

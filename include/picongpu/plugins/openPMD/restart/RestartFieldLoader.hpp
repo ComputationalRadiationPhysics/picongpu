@@ -175,7 +175,7 @@ namespace picongpu
                         {
                             /* calculate index inside the moving window domain which
                              * is located on the local grid*/
-                            destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
+                            destIdx = pmacc::math::mapToND(params->window.localDimensions.size, linearId);
                             /* jump over guard and local sliding window offset*/
                             destIdx += field_guard + params->localWindowToDomainOffset;
                         }

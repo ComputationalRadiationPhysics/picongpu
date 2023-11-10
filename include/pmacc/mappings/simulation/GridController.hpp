@@ -24,7 +24,6 @@
 
 #include "pmacc/communication/CommunicatorMPI.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/eventSystem/eventSystem.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
@@ -121,7 +120,7 @@ namespace pmacc
          */
         uint32_t getScalarPosition() const
         {
-            return DataSpaceOperations<DIM>::map(getGpuNodes(), getPosition());
+            return math::linearize(getGpuNodes(), getPosition());
         }
 
         /**
