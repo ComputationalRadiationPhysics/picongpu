@@ -1,6 +1,351 @@
 Changelog
 =========
 
+0.7.0
+-----
+
+**Date:** 2023-10-19
+
+C++17, lasers via incidentField, DispersivePulse laser profile, sub-stepping field solver, and [PICMI](https://picmi-standard.github.io/#) support
+
+With this release, the laser initialization switches to an incidentField approach, which allows easier initialization of arbitrary, Maxwell conform electromagnetic fields in a simulation. Old `laser.param` files won't work anymore. See the documentation!
+This update of the laser implementation has further been used to add the new profile 'DispersivePulse' and to rename the existing laser profiles.
+The new profile allows initialization of Gaussian laser pulses with arbitrary first, second, and third-order dispersion, while the renaming aims at expressing a laser's profile more precisely.
+
+Furthermore, basic [PICMI](https://picmi-standard.github.io/#) support is added to PIConGPU, as well as the possibility of time sub-stepping for field solvers, and improved handling of currents in PML boundaries. Again, please see the documentation for details.
+
+Larger code refactorings come with this release, too. To these belong a cleaning of the code base, in particular removal of unused plugins and CuSTL, performance improvements, and a switch to C++17 as the minimum required version.
+
+As usual, this release features fixes of PIConGPU and extensions and clarifications of the documentation.
+
+Thanks to Sergei Bastrakov, Finn-Ole Carstens, Alexander Debus, Fabia Dietrich,
+Simeon Ehrig, Marco Garten, Bernhard Manfred Gruber, Axel Huebl, Jeffrey Kelling, 
+Anton Lebedev,Brian Edward Marre, Paweł Ordyna, Richard Pausch, Franz Pöschel, 
+Klaus Steiniger, Jan Stephan, Hannes Tröpgen, Mika Soren Voß, René Widera
+for their contributions to this release!
+
+**User Input Changes:**
+- Remove deprecated laser profiles #4502
+- Remove flylite #4360
+- Remove FieldToParticleInterpolationNative #4369
+- Remove SliceFieldPrinter plugin #4112
+- Remove pusher `Axel` #4115
+- Remove unused plugin Intensity #4361
+- Remove PIConGPUs docker file #4374
+- Remove bremsstrahlung.unitless #4494
+- Remove deprecated laser profiles #4502
+- Incident field laser profiles #4038 #4050 #4053 #4064 #4069 #4080 #4077 #4076 #4120 #4105 #4172 #4302 #4507 #3860
+- Remove derived attribute/field MomentumComponent #4191
+- Add a new functor for start position and weightings of macroparticles #3882
+- Add a runtime option to set particle density file #3972
+- Implement phase-coefficients in Gauss-Laguerre laser modes #3992
+- Extend comments in density.param #4021
+- Comments to declarations of density profile types #4024
+- Add EZ current deposition type as alias to EmZ #4036
+- Change way of controlling position of the Huygens surface #4056
+- Specify BP5 default BufferChunkSize as 2GB #4127
+- Unify default openPMD file extension in plugins #4155
+- Add derived particle attributes for component of momentum and related density #4169
+- Add custom normalization option to PNG output #4165
+- Add a new functor to sample macroparticles in a cell #4111
+- Auto adjust particle exchange buffers for double precision #4236
+- Disallow binomial current interpolation together with current background #4252
+- Add free temperature functor #4256
+- Change user interface of free temperature functor to match free density functor #4273
+- KHI memory species buffer scaling based on simulation volume #4422
+- Refactor particle filters #4432
+- Replace mpl by mp11 (part 1/2) #3834
+
+**New Features:**
+- PIC:
+    - Add readthedocs description of TF/SF field generation #3877
+    - Add a new functor for start position and weightings of macroparticles #3882
+    - Optimize Jz calculation in EmZ 2d #3904
+    - Arbitrary order incident field solver #3860 #4038 #4050 #4082 #4105
+    - Add a runtime option to set particle density file #3972
+    - fix warnings and check for warnings in CI #3878
+    - Implement phase-coefficients in Gauss-Laguerre laser modes #3992
+    - Add a check and warning printed when no volume inside the Huygens surface #4049
+    - Add a warning for auto-adjusting domain to fit field absorber #4047
+    - Change way of controlling position of the Huygens surface #4056
+    - Check uniqueness of particle attributes #4078
+    - Improve reporting of wrong MPI/devices configuration #4122
+    - Check that averagely derived attributes are weighted #4154
+    - Add derived particle attributes for component of momentum and related density #4169
+    - Allow fractional indices in TWTSfast functors #4184
+    - Calculate and output laser phase velocity #4174
+    - Remove derived attribute/field MomentumComponent #4191
+    - HIP: use compute current strategy `strategy::CachedSupercellsScaled<2>` #4218
+    - Add a new functor to sample macroparticles in a cell #4111
+    - Add time-substepping versions of existing field solvers #3804
+    - Add time interpolation/extrapolation of J in substepping field solver  #4258
+    - Improve treating currents in PML #4293
+    - Add a new particle attribute for weighting damping factor  #4300
+    - FLYonPIC atomic physics for PIConGPU #4134
+    - fix warning in `Derivative.hpp` #4508
+- PMacc:
+    - allow time dependent checkpointing #4042
+    - Clarify performance warning on send/receive buffer being too small #4171
+    - provide a pmacc CMake target  #4257
+    - PMacc tests: use the CI provided GPU architecture #4493
+    - Replace mpl by mp11 (part 1/2) #3834
+- plugins:
+    - openPMD plugin: Set default backend depending on available options #4008
+    - openPMD plugin: throw error when neither defining period or toml #4028
+    - Clarify an inaccurate exception message in calorimeter plugin #4027
+    - Specify BP5 default BufferChunkSize as 2GB #4127
+    - Add custom normalization option to PNG output #4165
+    - OpenPMD plugin data range selection #4096
+    - Switch to .bp4 extension for ADIOS2 if available, print available extensions in help message #4234
+- tools:
+    - Crusher hipcc Profile: Fix export of env variables #3976
+    - Crusher hipcc profile #3973
+    - Fix EnergyHistogram and clarify usage #3970
+    - Fix PICSRC in bash_picongpu.profile #3999
+    - Enable --mpiDirect for crusher-ornl #4007
+    - Add profiles for A100 GPUs on Taurus #3998
+    - hzdr dev server profile #4086
+    - crusher: add slurm fault tolerance #4230
+    - `pic-configure` validate preset selection #4235
+    - crusher tpl: avoid false error message #4261
+    - Activate cuda_memtest on crusher #4216 
+    - Add template for async jobs on Crusher #4413
+    - Async template for Juwels Booster, Crusher and Summit #4431
+    - Added script to edit copied PIConGPU checkpoints. #4520
+    - gpu profile for dev-server #4183
+
+**Bug Fixes:**
+- PIC:
+    - Fix missing euler number in ADK formula #4696
+    - Fix incorrect assignment of Jz in 2d EmZ implementation #3892
+    - Fix getExternalCellsTotal() to properly account for guard cells #4030
+    - Fix incident field math around corners #4102
+    - Fix index shift in 2d incident field kernel #4202
+    - Fix fieldBackground constructors to be HINLINE #4013
+    - Better separate CFL and pusher/current deposition requirements #4237
+    - Skip J contribution to E for None field solver #4243
+    - Properly account for current background when deciding to skip adding J #4247
+    - Disallow binomial current interpolation together with current background #4252
+    - Change TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE to always be 64-bit #4263
+    - Update binary collisions, dynamic Coulomb log #4295
+    - Remove explicit definition of RngType in filter::generic::FreeRng #4440
+    - Fix particle position rounding issue #4463
+- PMacc:
+    - Fix copying of cuSTL device buffers #4029
+    - Fix function `toTimeSlice` #4040
+    - Fix implementation of pmacc::makeDeepCopy() and field background #4192
+    - Fix soft restart #4034
+    - Fix PMacc reduce #4328
+- plugins:
+    - Add missing communication in XrayScattering #3937
+    - Fix rad restart #3961
+    - Fix calculation of total current in the SumCurrents plugin for 2d case #4118
+    - Fix radiation trees #4231
+- tools:
+    - Add missing double quotes in handleSlurmSignals #4161
+    - Fix wrong memory requirment calculation in .tpl files #4308
+    - Fix PICSRC in bash_picongpu.profile #3999
+- Fix that PMacc depends on PIConGPU type definitions #3925
+- HIP: allow full architecture definition #3941
+- Make the span-based storeChunk API opt-in in various openPMD-based IO routines #3933
+- Fix openPMD outputs negative particle patch offset #4037
+- Fix CUDA container apt keys #4085
+- Add HIP and mallocMC + HIP to PIConGPU version output #4139
+- Do not forceinline recursive functions #4147
+- PNG plugin: fix invalid memory access in 2D #4225
+- Fix using uninitilized variable #4303
+- Fix openPMD particles `positionOffset` **breaking change** #4283
+- Fix precision cast is returning a reference #4337
+
+**Misc:**
+- Refactoring:
+    - PIC:
+        - Refactor absorbing and reflecting particle BC #3875
+        - Move yee::StencilFunctor to fdtd::StencilFunctor #3894
+        - Improve performance of MoveParticle #3908
+        - Cleanup current deposition implementation #3944
+        - Use `if constexpr()` to check for simulation/object dimension #4107
+        - Avoid using macro define `SIMDIM` #4116
+        - Switch to alpaka::Complex<> #4114
+        - Add a helper type for unique typelist of enabled incident field profiles #4177
+        - Cached shapes #4124
+        - Use cached shapes for current deposition #4170
+        - Add device side `ForEachParticle` #4173
+        - Workaround wrong reported free memory #4219
+        - Simplify implementation of incident field kernel #4226
+        - Auto adjust particle exchange buffers for double precision #4236
+        - Make adding J term part of field solver #4245
+        - Refactor adding current density to electomagnetic field #4255
+        - Add free temperature functor #4256
+        - Add singleton-like access for AbsorberImpl  #4262
+        - Simplify PmlImpl interface for getting update functors #4266
+        - Remove Cell2Particle #4289
+        - Remove getGlobalSuperCells #4325
+        - Move include collision.unitless to the default loader #4326
+        - Refactor lockstep programming #4321
+        - Switch to std::optional in compute field value #4345
+        - Use cupla/alpaka's min/max function #4350
+        - Remove flylite #4360
+        - Remove cuSTL #4363 #4398 #4402
+        - Remove Bremsstrahlung and Synchrotron radition extension #4395
+        - Remove unused vectors transition radiation #4427
+        - Fix incident field calculation order #4451
+        - Improve command line argument validation #4447
+        - Change class RelayPoint to function #4464
+        - OnePositionImpl refactoring #4465
+        - Refactor particle pusher launcher #4471
+        - Refactor differentiation trait #4473
+        - Refactor GetChargeState and GetCharge #4474
+        - Remove usage of `boost::result_of` #4505
+    - PMacc:
+        - Avoid overaligning particle frame data #3807
+        - Remove `MappedBufferIntern` #4018
+        - Use `if constexpr` in `lockstep::ForEach` #4095
+        - Rework implementation of pmacc::Unique #4176
+        - Remove HIP `atomicAdd(float)` emulation #4269
+        - Split PMacc objects into hpp and cpp files #4260
+        - DataBox remove method `reduceZ()` #4291
+        - Refactor CountParticles and particle filters #4313
+        - PMacc: refactor kernel en-queuing #4317
+        - Use alpaka `mem_fence()` #4349
+        - Introduce a constexpr value identifier #4344
+        - Remove boost workaround #4373
+        - Remove unused cuSTL classes #4415
+        - Extend global reduce interface #4425
+        - Remove cuSTL #4434
+        - Cleanup PMacc's event system #4443
+        - Remove buffer `*Intern` #4448
+        - Topic lockstep for each refactoring #4460
+        - PMacc: remove unused class math::Tuple #4461
+        - PMacc: remove invokeIf #4467
+        - PMacc: refactor meta::ForEach #4469
+        - Refactor `TaskSetValue` #4470
+        - Add HDINLINE to Selection methods #4500
+        - PMacc: header include validation #3924
+        - Remove dependency to `boost::math` #4503
+        - PMacc: DataConnector change `get()` interface #4506
+        - Refactor `math::Vector`, use unsigned dimension #4499
+        - Remove `boost::filesystem usage` #4504
+        - Remove particle merger from `TBG_macros.cfg` #4512
+        - Rename `abs2` -> `l2norm2` and `abs` for  vectors to `l2norm` #4509
+        - Replace mpl by mp11 (part 1.5/2) #4516
+    - Plugins:
+        - Add optionDefined() to plugins::multi::Option struct #3906
+        - Read IO plugin configuration (openPMD plugin) from reading applications (TOML) #3720
+        - openPMD-based plugins: choose default backend depending on what is available #4014
+        - Remove cupla compatibility macro definition #4017
+        - Refactor openPMD plugin #4054
+        - Improve comments and naming in PNG output #4164
+        - openPMD plugin: add IO file version #4287
+        - openPMD plugin: Flush data to disk within a step #4002
+        - openPMD plugin: JSON parameters for restarting #4329
+        - Use cuplas/alpakas mapped memory #4348
+        - Remove xray scattering #4352
+        - Remove plugin: PositionsParticle #4371
+        - Remove plugin: recource log #4372
+        - Remove particle merging plugins #4388
+        - Radiation plugin: Enable streaming #4387
+        - Plugin radiation: use PMaccs forEachFrame #4377
+        - Plugin emittance: remove cuSTL #4426
+        - Code clean-up: avoid using new and plane pointers #4428
+        - Charge conservation plugin: remove cuSTL #4424
+        - Refactor particle filters #4432
+        - Radiation plugin: refactor particle filter execution #4466
+        - Radiation plugin: refactor getRadiationMask #4468
+        - Plugin: CountMacroParticlesPerSupercell and ChargeConservation #4496
+        - Plugin sum current refactoring #4497
+        - Fix logging message in openPMD plugin #4044
+    - Tools:
+        - Update to cupla0.4.0 dev, cmake-modules and cuda_memtest #3868
+        - cupla 0.4.0-dev + alpaka 0.8.0-dev #3915
+        - Optimize CI #4437
+        - Switch PICMI to incidentField #4459
+        - Refactor `pic-create` #4515
+    - Unroll interpolation #3859
+    - Update to clang-format-12 #3826
+    - PML: avoid `stack frames` in GPU kernel #3881
+    - Version bump: openPMD-api from 0.12.0 to 0.14.3 #3913
+    - Switch to C++17 #3949
+    - Add combined derived attributes #3943
+    - Remove pusher `Axel` #4115
+    - Unify default openPMD file extension in plugins #4155
+    - Improve comments and naming in PNG output in docs and examples #4168
+    - Switch to std::void_t #4195
+    - Change user interface of free temperature functor to match free density functor #4273
+    - Change particle attribute for thermal boundaries to openPMD-conformant name #4278
+    - PIConGPU use RPATH by default #4312
+    - Remove FieldToParticleInterpolationNative #4369
+    - Remove unused file `LinearInterpolationWithUpper` #4370
+    - Switch to CI container version 3 #4378
+    - Plugin: phase space remove cuSTL #4404
+    - Clean Bunch example #4419
+    - Example foilLCT: use incident field laser #4488
+- Documentation:
+    - Upgrade to Boost 1.66 #3939
+    - Docs: Fix Stale LSF Links #3981
+    - Expand documentation on running interactively #3967
+    - Extend comments in density.param #4021
+    - Add doxygen comments to declarations of density profile types #4024
+    - Add a doc section on general usage of CPU systems #4039
+    - Merge 0.6.0 changes back to the development branch #4079
+    - Fix comments on axis definitions in incident field profiles #4083
+    - Switch to alpaka 0.9.0 #4081
+    - Fix a few instances of calling the Taflove-Hagness book just Taflove #4103
+    - Fix some typos in the reference doc page #4117
+    - Fix readthedocs example of context variable default initialization #4133
+    - Fix incorrect doxygen includes in readthedocs #4132
+    - Remove zlib from required dependencies in the docs #4128
+    - Update documentation of dependencies #4136
+    - Clarify description of numerical dispersion for Yee solver #4156
+    - Remove field slice printer arguments from TBG_macros.cfg #4188
+    - Documentation: mention `CMAKE_BUILD_TYPE` #4229
+    - Fix copyright years ending in 2021 in some files #4242
+    - Clarify docs on setting same sources for incident field on each side #4232
+    - Clarify/fix comment for AOFDTD derivative functors #4246
+    - Clarify approximation order of J in AOFDTD docs #4248
+    - Add docs on substepping field solver #4259
+    - Add Python code formatting guidelines to the docs #4277
+    - Install dependencies for memoryPerDevice example #4327
+    - Add papers Cristian Bontoiu #4445
+- Fix warning: add explicit braces to avoid dangling else [-Wdangling-else] #3869
+- Fix field absorber example that violated CFL for AOFDTD #3871
+- Spack load: no more "-r" #3873
+- CI: update to container version 2.0 #3934
+- Add --ntasks-per-node and -np to .tpl files on Hemera #3940
+- Adjust taurus k80 modules to work with c++17 #3962
+- Don't install toml11 internally shipped library #3986
+- Change the container URL of the GitLab CI to the new registry #4001
+- Fix fieldBackground constructors to be HINLINE #4013
+- Add ARM architecture templates #4033
+- Add EZ current deposition type as alias to EmZ #4036
+- Adjust laser in incident field example for a more realistic setup #3955
+- System DICC: add a system description and a profile for the GPU queue #4015
+- Remove example: ThermalTest #4100
+- Add Thermal electron benchmark #4099
+- CUDA: fix false warning #4113
+- Bugfix JUWELS Booster profile #4151
+- Add new benchmark TWEAC-FOM #4167
+- Update to cupla with alpaka 1.0.0-dev and mallocMC #4166
+- Extend TWEAC-FOM benchmark with incident field option for laser generation #4197
+- Add componentwise incident field calculation option to TWEAC-FOM benchmark #4200
+- Update cuda_memtest #4214
+- Update mallocMC to fix possible out of memory access #4220
+- CI: disable all optional dependencies for the Empty test case #4254
+- Add and enable UCX_RC_TIMEOUT workaround #4288
+- Add compilation of particle merger plugins to compile-time tests #4297
+- Update to latest cupla dev branch #4309
+- CI: add CUDA 11.3 - 11.4, HIP 4.5, 5.0 - 5.2 #4315
+- Add new openPMD-api module for hemera kepler #4320
+- Fix HIP CI tests #4353
+- Remove PIConGPU install description using spack #4375
+- KHI memory species buffer scaling based on simulation volume #4422
+- Remove warm copper example #4433
+- More variants: test KHI growth rate #4452
+- Example bunch: use incident field laser #4449
+- Remove old cluster profiles #4514
+- Fix single particle test example #4482
+
+
 0.6.0
 -----
 
