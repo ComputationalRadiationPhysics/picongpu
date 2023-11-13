@@ -162,15 +162,22 @@ namespace picongpu
                  * This function will be called inline on the device which must happen BEFORE threads diverge
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
                  * necessary after initializing the E-/B-field shared boxes in shared memory.
+                 *
+                 * @param localSuperCellOffset offset (in superCells, without any guards) relative
+                 *                             to the origin of the local domain
+                 * @param rngIdx linear index rng number index within the supercell, valid range[0;numFrameSlots)
                  */
                 template<typename T_Worker>
                 DINLINE void init(
-                    T_Worker const& worker,
-                    const DataSpace<simDim>& blockCell,
-                    const DataSpace<simDim>& localCellOffset)
+                    [[maybe_unused]] T_Worker const& worker,
+                    const DataSpace<simDim>& localSuperCellOffset,
+                    const uint32_t rngIdx)
                 {
-                    /* initialize random number generator with the local cell index in the simulation */
-                    this->randomGen.init(localCellOffset);
+                    auto rngOffset = DataSpace<simDim>::create(0);
+                    rngOffset.x() = rngIdx;
+                    auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                    numRNGsPerSuperCell.x() = FrameType::frameSize;
+                    this->randomGen.init(localSuperCellOffset * numRNGsPerSuperCell + rngOffset);
                 }
 
                 /** Determine number of new macro electrons due to ionization

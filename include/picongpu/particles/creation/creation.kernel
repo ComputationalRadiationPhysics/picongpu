@@ -78,10 +78,6 @@ namespace picongpu
 
                     DataSpace<simDim> const supercellCellOffset = superCellIdx * SuperCellSize::toRT();
 
-                    // relative offset to the origin of the local domain (without any guarding cells)
-                    pmacc::math::Int<simDim> const simDomainSupercellCellOffset
-                        = supercellCellOffset - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
-
                     /* "particle box" : container/iterator where the particles live in
                      * and where one can get the frame in a super cell from
                      */
@@ -115,19 +111,13 @@ namespace picongpu
                     auto particleCreatorCtx = lockstep::makeVar<T_ParticleCreator>(forEachParticle);
 
                     forEachParticle(
-                        [&](int32_t const idx, auto& destParticleCreator)
+                        [&](uint32_t const idx, auto& destParticleCreator)
                         {
-                            // cell index within the superCell
-                            DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), idx);
-
-                            // cell offset with respect to the local domain origin (without any guarding cells
-                            pmacc::math::Int<simDim> const localCellIndex = simDomainSupercellCellOffset + cellIdx;
-
                             // create a copy of the functor for each virtual worker
                             destParticleCreator = particleCreator;
 
                             // init particle creator functor for each virtual worker
-                            destParticleCreator.init(worker, supercellCellOffset, localCellIndex);
+                            destParticleCreator.init(worker, superCellIdx - mapper.getGuardingSuperCells(), idx);
                         },
                         particleCreatorCtx);
 
