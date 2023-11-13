@@ -126,6 +126,20 @@ pmacc-compile-reduced-matrix:
         job: pmacc-generate-reduced-matrix
     strategy: depend
 
+picongpu-unittest-generate-reduced-matrix:
+  variables:
+    PIC_INPUTS: "unit"
+    TEST_TUPLE_NUM_ELEM: 1
+  extends: ".base_generate-reduced-matrix"
+
+picongpu-unittest-compile-reduced-matrix:
+  stage: test
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: picongpu-unittest-generate-reduced-matrix
+    strategy: depend
+
 pypicongpu-generate-full-matrix:
   stage: generate
   image: ubuntu:22.04

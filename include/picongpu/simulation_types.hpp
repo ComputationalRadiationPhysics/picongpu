@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "picongpu/traits/GetDataBoxType.hpp"
-#include "picongpu/traits/GetMargin.hpp"
 #include "version.hpp"
 
 #include <pmacc/algorithms/PromoteType.hpp>
@@ -56,6 +54,5 @@ namespace picongpu
 
     using namespace pmacc::algorithms::promoteType;
     using namespace pmacc::traits;
-    using namespace picongpu::traits;
 
 } // namespace picongpu

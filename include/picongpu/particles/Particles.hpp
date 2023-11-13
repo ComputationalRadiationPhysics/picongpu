@@ -249,14 +249,6 @@ namespace picongpu
         }
     };
 
-    namespace traits
-    {
-        template<typename T_Name, typename T_Attributes, typename T_Flags>
-        struct GetDataBoxType<picongpu::Particles<T_Name, T_Attributes, T_Flags>>
-        {
-            using type = typename picongpu::Particles<T_Name, T_Attributes, T_Flags>::ParticlesBoxType;
-        };
-    } // namespace traits
 } // namespace picongpu
 
 namespace pmacc

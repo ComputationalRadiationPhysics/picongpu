@@ -296,7 +296,8 @@ for stage in range(num_stages):
             v_cuda_hip_str = "" if v_cuda_hip == 0 else str(v_cuda_hip)
             os_name = pairs[2][0]
             os_version = get_version(pairs[2])
-            image_prefix = "_run" if folder == "pmacc" else "_compile"
+            image_prefix = "_run" if folder == "pmacc" or folder == "unit"\
+                else "_compile"
             job_name = compiler + "_" + backend + v_cuda_hip_str + \
                 "_boost" + boost_version + "_" + folder.replace("/", ".")
             print(job_name + ":")
