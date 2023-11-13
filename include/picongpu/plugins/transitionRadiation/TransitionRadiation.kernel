@@ -294,7 +294,7 @@ namespace picongpu
                                 // create a form factor object for physical correct coherence effects within
                                 // macro-particles
                                 float_X const omega = freqFkt(o);
-                                macroParticleFormFactor::radFormFactor const macroParticleFormFactor{
+                                macroParticleFormFactor::RadFormFactor const macroParticleFormFactor{
                                     omega,
                                     precisionCast<float_64>(look)};
 

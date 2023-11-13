@@ -42,7 +42,7 @@ namespace picongpu
                  *           type: vector_64
                  *
                  */
-                HDINLINE vector_64 observation_direction(const int observation_id_extern)
+                HDINLINE vector_64 observationDirection(const int observation_id_extern)
                 {
                     /** This computes observation directions for one octant
                      *  of a sphere around the simulation area.
