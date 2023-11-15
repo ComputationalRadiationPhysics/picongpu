@@ -51,6 +51,7 @@ namespace picongpu
         public:
             template<typename T_Type, typename T_BinningData>
             void operator()(
+                std::optional<::openPMD::Series>& maybe_series,
                 std::unique_ptr<HostBuffer<T_Type, 1u>> hReducedBuffer,
                 T_BinningData binningData,
                 std::string const& dir,
@@ -61,18 +62,23 @@ namespace picongpu
                 using Type = T_Type;
 
                 // auto const& [extension, jsonConfig] = params;
-                auto const& extension = openPMDSuffix;
-                std::ostringstream filename;
-                if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
+                if(!maybe_series.has_value())
                 {
-                    filename << binningData.binnerOutputName << extension;
-                }
-                else
-                {
-                    filename << binningData.binnerOutputName << '.' << extension;
+                    auto const& extension = binningData.openPMDSuffix;
+                    std::ostringstream filename;
+                    if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
+                    {
+                        filename << binningData.binnerOutputName << extension;
+                    }
+                    else
+                    {
+                        filename << binningData.binnerOutputName << '.' << extension;
+                    }
+
+                    maybe_series = ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE);
                 }
 
-                auto series = ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE);
+                auto& series = *maybe_series;
 
                 /* begin recommended openPMD global attributes */
                 // series.setMeshesPath(meshesPathName);
@@ -175,7 +181,7 @@ namespace picongpu
 #else
                 openPMD::storeChunkRaw(record, hReducedBuffer->getBasePointer(), histOffset, histExtent);
 #endif
-                series.close();
+                iteration.close();
             };
         };
     } // namespace plugins::binning

@@ -25,6 +25,9 @@
 #include "picongpu/plugins/binning/utility.hpp"
 
 #include <memory>
+#include <optional>
+
+#include <openPMD/Series.hpp>
 
 
 namespace picongpu
@@ -140,6 +143,7 @@ namespace picongpu
             mpi::MPIReduce reduce{};
             bool isMaster = false;
             WriteHist histWriter;
+            std::optional<::openPMD::Series> m_series;
 
         public:
             Binner(TBinningData bd, MappingDesc* cellDesc) : binningData{bd}, cellDescription{cellDesc}
@@ -155,7 +159,17 @@ namespace picongpu
                 this->histBuffer->getDeviceBuffer().setValue(TDepositedQuantity(0.0));
             }
 
-            ~Binner() override = default;
+            ~Binner() override
+#if OPENPMDAPI_VERSION_GE(0,15,0)
+            {
+                if(m_series.has_value())
+                {
+                    m_series->close();
+                }
+            }
+#else
+    = default;
+#endif
 
             void notify(uint32_t currentStep) override
             {
@@ -243,6 +257,7 @@ namespace picongpu
                     if(reduce.hasResult(mpi::reduceMethods::Reduce()))
                     {
                         histWriter(
+                            m_series,
                             std::move(hReducedBuffer),
                             binningData,
                             std::string("binningOpenPMD/"),
