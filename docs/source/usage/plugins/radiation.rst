@@ -490,7 +490,7 @@ This currently assumes adios output but any openPMD output, such as hdf5, will w
 
     vec_n = radData.get_vector_n()
     gamma = 5.0
-    theta_norm = np.arctan(vec_n[:, 0]/vec_n[:, 1]) * gamma
+    theta_norm = np.arctan2(vec_n[:, 0], vec_n[:, 1]) * gamma
 
     # get spectrum over observation angle
     spectrum = radData.get_Spectra()
