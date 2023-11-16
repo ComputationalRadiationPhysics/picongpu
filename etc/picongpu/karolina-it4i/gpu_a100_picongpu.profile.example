@@ -1,0 +1,80 @@
+# please set your project account
+export proj="DD-23-83"
+
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+if [ -z ${proj-} ]; then
+    echo "WARNING: The 'proj' variable is not yet set in your $PIC_PROFILE file!"
+    echo "Please edit its line 2 to continue!"
+    return
+fi
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@host.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+export EDITOR="vim"
+
+# General modules #############################################################
+#
+module purge
+module load OpenMPI/4.1.4-GCC-11.3.0-CUDA-11.7.0
+module load CMake/3.23.1-GCCcore-11.3.0
+module load OpenBLAS/0.3.20-GCC-11.3.0
+module load Boost/1.79.0-GCC-11.3.0
+
+# PIConGPU dependencies #################################################
+#
+spack env activate picongpu
+
+# Environment #################################################################
+#
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:80"
+export SCRATCH="/scratch/project/dd-23-83/${USER}"
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/karolina-it4i"}
+
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
+
+# python not included yet
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "qgpu" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/karolina-it4i/gpu_a100.tpl"
+export TBG_partition="qgpu"
+
+# allocate an interactive shell for two hours
+#   getNode 2  # allocates two interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    export OMP_NUM_THREADS=16
+    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((8 * $numNodes)) --ntasks-per-node=8 --cpus-per-task=1 --exclusive --gpus-per-node=8 -p $TBG_partition -A $proj --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
+
