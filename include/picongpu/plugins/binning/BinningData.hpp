@@ -55,7 +55,7 @@ namespace picongpu
 
             /* Optional parameters not initialized by constructor.
              * Use the return value of addBinner() to modify them if needed. */
-            std::string openPMDSuffix = "_%T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+            std::string openPMDSuffix = "_%06T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
             std::string jsonCfg = "{}";
 
             BinningData(
