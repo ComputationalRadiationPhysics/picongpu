@@ -56,7 +56,7 @@ namespace picongpu
              * @param writeOpenPMDFunctor Functor to write out user specified openPMD data
              */
             template<typename TAxisTuple, typename TSpeciesTuple, typename TDepositionData>
-            void addBinner(
+            auto addBinner(
                 std::string binnerOutputName,
                 TAxisTuple axisTupleObject,
                 TSpeciesTuple speciesTupleObject,
@@ -68,6 +68,7 @@ namespace picongpu
                 std::function<void(::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh)>
                     writeOpenPMDFunctor
                 = [](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) {})
+                -> BinningData<TAxisTuple, TSpeciesTuple, TDepositionData>&
             {
                 auto bd = BinningData<TAxisTuple, TSpeciesTuple, TDepositionData>(
                     binnerOutputName,
@@ -82,7 +83,9 @@ namespace picongpu
                 auto binner = std::make_unique<Binner<BinningData<TAxisTuple, TSpeciesTuple, TDepositionData>>>(
                     bd,
                     cellDescription);
+                auto& res = binner->binningData;
                 binnerVector.emplace_back(std::move(binner));
+                return res;
             }
         };
     } // namespace plugins::binning

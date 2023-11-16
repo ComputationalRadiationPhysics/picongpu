@@ -176,16 +176,25 @@ namespace picongpu
                     [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
                 { mesh.setAttribute("p_nbins", ax_py.getNBins()); };
 
-                binningCreator.addBinner(
-                    "chargeDensityBinning",
-                    axisTuple,
-                    speciesTuple,
-                    chargeDepositionData,
-                    notifyPeriod,
-                    dataDumpNNotifies,
-                    enableTimeAveraging,
-                    normalizeByBinVolume,
-                    writeOpenPMD);
+                binningCreator
+                    .addBinner(
+                        "chargeDensityBinning",
+                        axisTuple,
+                        speciesTuple,
+                        chargeDepositionData,
+                        notifyPeriod,
+                        dataDumpNNotifies,
+                        enableTimeAveraging,
+                        normalizeByBinVolume,
+                        writeOpenPMD)
+                    .setJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})");
+#if false
+    // Commented out since this example should not hardcode the openPMD backend.
+    // When writing your own .param file, it is recommended to include
+    // "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+    // to avoid this. Not done here to keep the example somewhat minimal.
+                    .setOpenPMDSuffix("_%06T.h5");
+#endif
 
                 binningCreator.addBinner(
                     "particleBinning",

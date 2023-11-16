@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/plugins/binning/Axis.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 
 #include <alpaka/core/Tuple.hpp>
 
@@ -51,6 +52,11 @@ namespace picongpu
             std::function<void(::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh)>
                 writeOpenPMDFunctor;
             DataSpace<std::tuple_size_v<T_AxisTuple>> axisExtentsND;
+
+            /* Optional parameters not initialized by constructor.
+             * Use the return value of addBinner() to modify them if needed. */
+            std::string openPMDSuffix = "_%T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+            std::string jsonCfg = "{}";
 
             BinningData(
                 const std::string binnerName,
@@ -89,6 +95,17 @@ namespace picongpu
                 return std::tuple_size_v<T_AxisTuple>;
                 // return utility::tuple::size(axisTuple);
                 // return utility::tuple::size(declval<T_AxisTuple>());
+            }
+
+            BinningData& setOpenPMDSuffix(std::string suffix)
+            {
+                this->openPMDSuffix = std::move(suffix);
+                return *this;
+            }
+            BinningData& setJsonCfg(std::string cfg)
+            {
+                this->jsonCfg = std::move(cfg);
+                return *this;
             }
         };
     }; // namespace plugins::binning

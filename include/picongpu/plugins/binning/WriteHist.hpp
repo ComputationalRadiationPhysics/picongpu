@@ -25,7 +25,6 @@
 
 #include "picongpu/plugins/binning/UnitConversion.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 
@@ -49,9 +48,6 @@ namespace picongpu
          */
         class WriteHist
         {
-        private:
-            std::string openPMDSuffix = "_%T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
-
         public:
             template<typename T_Type, typename T_BinningData>
             void operator()(

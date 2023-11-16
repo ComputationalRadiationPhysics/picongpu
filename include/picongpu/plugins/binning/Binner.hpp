@@ -130,6 +130,8 @@ namespace picongpu
         {
             using TDepositedQuantity = typename TBinningData::DepositedQuantityType;
 
+            friend class BinningCreator;
+
         private:
             TBinningData binningData;
             MappingDesc* cellDescription;
