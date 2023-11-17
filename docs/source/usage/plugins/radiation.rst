@@ -24,7 +24,7 @@ Variable                       Meaning
                                (Time derivative of the normalized speed.)
 :math:`t`                      Time
 :math:`\vec n`                 Unit vector pointing in the direction where the far field radiation is observed.
-:math:`\omega`                  The circular frequency of the radiation that is observed.
+:math:`\omega`                 The circular frequency of the radiation that is observed.
 :math:`N`                      Number of all (macro) particles that are used for computing the radiation.
 :math:`k`                      Running index of the particles.
 ============================== ================================================================================
@@ -262,35 +262,46 @@ More details can be found in [Pausch2019]_.
 
 For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be computed by the following commands.
 
-========================================= ==============================================================================================================================
-Command line option                       Description
-========================================= ==============================================================================================================================
-``--<species>_radiation.period``          Gives the number of time steps between which the radiation should be calculated.
-                                          Default is ``0``, which means that the radiation in never calculated and therefor off.
-                                          Using ``1`` calculates the radiation constantly. Any value ``>=2`` is currently producing nonsense.
-``--<species>_radiation.dump``            Period, after which the calculated radiation data should be dumped to the file system.
-                                          Default is ``0``, therefor never.
-                                          In order to store the radiation data, a value ``>=1`` should be used.
-``--<species>_radiation.lastRadiation``   If set, the radiation spectra summed between the last and the current dump-time-step are stored.
-                                          Used for a better evaluation of the temporal evolution of the emitted radiation.
-``--<species>_radiation.folderLastRad``   Name of the folder, in which the summed spectra for the simulation time between the last dump and the current dump are stored.
-                                          Default is ``lastRad``.
-``--<species>_radiation.totalRadiation``  If set the spectra summed from simulation start till current time step are stored.
-``--<species>_radiation.folderTotalRad``  Folder name in which the total radiation spectra, integrated from the beginning of the simulation, are stored.
-                                          Default ``totalRad``.
-``--<species>_radiation.start``           Time step, at which PIConGPU starts calculating the radiation.
-                                          Default is ``2`` in order to get enough history of the particles.
-``--<species>_radiation.end``             Time step, at which the radiation calculation should end.
-                                          Default: ``0`` (stops at end of simulation).
-``--<species>_radiation.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
-                                          This allows for a localization of specific spectral features.
-``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
-                                          Default: ``radPerGPU``
-``--<species>_radiation.numJobs``         Number of independent jobs used for the radiation calculation.
-                                          This option is used to increase the utilization of the device by producing more independent work.
-                                          This option enables accumulation of data in parallel into multiple temporary arrays, thereby increasing the utilization of
-                                          the device by increasing the memory footprint
-                                          Default: ``2``
+======================================================== ==============================================================================================================================
+Command line option                                      Description
+======================================================== ==============================================================================================================================
+``--<species>_radiation.period``                         Gives the number of time steps between which the radiation should be calculated.
+                                                         Default is ``0``, which means that the radiation in never calculated and therefor off.
+                                                         Using ``1`` calculates the radiation constantly. Any value ``>=2`` is currently producing nonsense.
+``--<species>_radiation.dump``                           Period, after which the calculated radiation data should be dumped to the file system.
+                                                         Default is ``0``, therefor never.
+                                                         In order to store the radiation data, a value ``>=1`` should be used.
+``--<species>_radiation.lastRadiation``                  If set, the radiation spectra summed between the last and the current dump-time-step are stored.
+                                                         Used for a better evaluation of the temporal evolution of the emitted radiation.
+``--<species>_radiation.folderLastRad``                  Name of the folder, in which the summed spectra for the simulation time between the last dump and the current dump are stored.
+                                                         Default is ``lastRad``.
+``--<species>_radiation.totalRadiation``                 If set the spectra summed from simulation start till current time step are stored.
+``--<species>_radiation.folderTotalRad``                 Folder name in which the total radiation spectra, integrated from the beginning of the simulation, are stored.
+                                                         Default ``totalRad``.
+``--<species>_radiation.start``                          Time step, at which PIConGPU starts calculating the radiation.
+                                                         Default is ``2`` in order to get enough history of the particles.
+``--<species>_radiation.end``                            Time step, at which the radiation calculation should end.
+                                                         Default: ``0`` (stops at end of simulation).
+``--<species>_radiation.radPerGPU``                      If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
+                                                         This allows for a localization of specific spectral features.
+``--<species>_radiation.folderRadPerGPU``                Name of the folder, where the GPU specific spectra are stored.
+                                                         Default: ``radPerGPU``
+``--<species>_radiation.numJobs``                        Number of independent jobs used for the radiation calculation.
+                                                         This option is used to increase the utilization of the device by producing more independent work.
+                                                         This option enables accumulation of data in parallel into multiple temporary arrays, thereby increasing the utilization of
+                                                         the device by increasing the memory footprint
+                                                         Default: ``2``
+``--<species>_radiation.openPMDSuffix``                  This sets the suffix for openPMD filename extension and iteration expansion pattern.
+                                                         Default`: ``_%T_0_0_0.h5``
+``--<species>_radiation.openPMDCheckpointExtension``     Set filename extension for openPMD checkpoints.
+                                                         Default: ``h5``
+``--<species>_radiation.openPMDConfig``                  Give JSON/TOML configuration for initializing openPMD.
+                                                         Default: ``{}`` (no JSON/TOML configuration used)
+``--<species>_radiation.openPMDCheckpointConfig``        Give JSON/TOML configuration for initializing openPMD checkpointing.
+                                                         Default: ``{}`` (no JSON/TOML configuration used)
+``--<species>_radiation.distributedAmplitude``           Activate the optional output of distributed amplitudes per MPI rank.  in the openPMD output.
+                                                         Default: ``0`` (deactivated/no additional output)
+					  
 ========================================= ==============================================================================================================================
 
 Memory Complexity
