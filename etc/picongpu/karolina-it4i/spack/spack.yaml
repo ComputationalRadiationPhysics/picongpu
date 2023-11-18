@@ -1,0 +1,13 @@
+# This is a Spack Environment file.
+#
+# It describes a set of packages to be installed, along with
+# configuration settings.
+spack:
+  # add package specs to the `specs` list
+  specs:
+  - openpmd-api@0.14.5%gcc@11.3.0 ^adios2@2.8.3+cuda cuda_arch=80 ^cmake@3.23.1 ^hdf5@1.14.0
+    ^openmpi@4.1.4+atomics+cuda cuda_arch=80 ^py-numpy@1.24.2 ^python@3.10.10
+  - pngwriter@0.7.0%gcc@11.3.0
+  view: true
+  concretizer:
+    unify: true

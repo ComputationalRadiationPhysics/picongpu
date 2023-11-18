@@ -1,0 +1,14 @@
+compilers:
+- compiler:
+    modules: [GCCcore/11.3.0]
+    operating_system: centos7
+    paths:
+      cc: /apps/all/GCCcore/11.3.0/bin/gcc
+      cxx: /apps/all/GCCcore/11.3.0/bin/g++
+      f77: /apps/all/GCCcore/11.3.0/bin/gfortran
+      fc: /apps/all/GCCcore/11.3.0/bin/gfortran
+    spec: gcc@=11.3.0
+    target: x86_64
+    flags: {}
+    environment: {}
+    extra_rpaths: []
