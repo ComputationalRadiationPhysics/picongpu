@@ -30,10 +30,8 @@ namespace pmacc
     /** convert a list to a map
      *
      * @tparam T_List an mp_list.
-     * @tparam T_UnaryOperator unary operator to translate type from the sequence
+     * @tparam T_MakePairUnaryOperator unary operator to translate type from the sequence
      * to a mpl pair
-     * @tparam T_Accessor An unary lambda operator which is used before the type
-     * from the sequence is passed to T_UnaryOperator
      * @return ::type mpl map
      */
     template<typename T_List, typename T_MakePairUnaryOperator>
