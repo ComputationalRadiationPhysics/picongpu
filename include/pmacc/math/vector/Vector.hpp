@@ -283,6 +283,8 @@ namespace pmacc
                         result[i] = (*this)[i];
                     return result;
                 }
+
+                ALPAKA_UNREACHABLE(Vector<type, T_numElements, Navigator>{});
             }
 
             template<uint32_t T_numElements>
