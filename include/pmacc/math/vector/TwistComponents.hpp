@@ -37,19 +37,12 @@ namespace pmacc
                 using type = typename TwistComponents<T_Axes, typename T_Vector::This>::type;
             };
 
-            template<
-                typename T_Axes,
-                typename T_Type,
-                uint32_t T_dim,
-                typename T_Accessor,
-                typename T_Navigator,
-                typename T_Storage>
-            struct TwistComponents<T_Axes, math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>>
+            template<typename T_Axes, typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+            struct TwistComponents<T_Axes, math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
             {
                 using type = math::Vector<
                     T_Type,
                     T_dim,
-                    T_Accessor,
                     math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes>>,
                     T_Storage>&;
             };
