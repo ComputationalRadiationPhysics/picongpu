@@ -64,7 +64,7 @@ namespace picongpu
 
                             float_64 const initFreeBeta = math::sqrt(1.0 - 1.0 / (myGamma * myGamma));
 
-                            float3_X const driftDirection(ParamClass().direction);
+                            float3_X const driftDirection = ParamClass::driftDirection;
                             float3_X const normDir = driftDirection / pmacc::math::l2norm(driftDirection);
 
                             float3_X const mom(
