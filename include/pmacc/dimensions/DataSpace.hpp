@@ -96,7 +96,7 @@ namespace pmacc
             static_assert(sizeof...(T_Args) == T_dim, "Number of arguments must be equal to the DataSpace dimension.");
         }
 
-        HDINLINE DataSpace(const BaseType& vec) : BaseType(vec)
+        HDINLINE constexpr DataSpace(const BaseType& vec) : BaseType(vec)
         {
         }
 

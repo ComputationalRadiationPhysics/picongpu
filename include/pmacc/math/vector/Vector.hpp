@@ -23,7 +23,7 @@
 #pragma once
 
 #include "pmacc/algorithms/math.hpp"
-#include "pmacc/math/vector/navigator/StandardNavigator.hpp"
+#include "pmacc/math/vector/navigator/IdentityNavigator.hpp"
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
@@ -46,22 +46,43 @@ namespace pmacc
                 static constexpr uint32_t dim = T_dim;
                 using type = T_Type;
 
-                HDINLINE
-                constexpr Vector_components()
-                {
-                }
+                constexpr Vector_components() = default;
 
-                HDINLINE
                 constexpr Vector_components& operator=(const Vector_components&) = default;
 
-                HDINLINE
                 constexpr Vector_components(const Vector_components&) = default;
+
+                template<
+                    typename T_Navigator,
+                    typename... T_Args,
+                    typename = std::enable_if_t<
+                        (std::is_convertible_v<T_Args, T_Type> && ...)
+                        && !std::is_same_v<T_Navigator, IdentityNavigator>>>
+                HDINLINE constexpr Vector_components(T_Navigator const& navigator, T_Args... args)
+                {
+                    static_assert(
+                        sizeof...(T_Args) == dim,
+                        "Number of arguments must be equal to the vector dimension.");
+                    int i = 0;
+                    ([&] { operator[](navigator(i++)) = static_cast<type>(args); }(), ...);
+                }
+
+                template<
+                    typename... T_Args,
+                    typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
+                HDINLINE constexpr Vector_components(IdentityNavigator const&, T_Args... args)
+                    : v{static_cast<type>(args)...}
+                {
+                    static_assert(
+                        sizeof...(T_Args) == dim,
+                        "Number of arguments must be equal to the vector dimension.");
+                }
 
                 /*align full vector*/
                 PMACC_ALIGN(v[dim], type);
 
                 HDINLINE
-                type& operator[](const uint32_t idx)
+                constexpr type& operator[](const uint32_t idx)
                 {
                     return v[idx];
                 }
@@ -83,7 +104,7 @@ namespace pmacc
         template<
             typename T_Type,
             uint32_t T_dim,
-            typename T_Navigator = StandardNavigator,
+            typename T_Navigator = IdentityNavigator,
             typename T_Storage = detail::Vector_components<T_Type, T_dim>>
         struct Vector
             : private T_Storage
@@ -99,10 +120,7 @@ namespace pmacc
             /*Vectors without elements are not allowed*/
             PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed, dim > 0u);
 
-            HDINLINE
-            constexpr Vector()
-            {
-            }
+            constexpr Vector() = default;
 
             /** Constructor for N-dimensional vector
              *
@@ -111,11 +129,8 @@ namespace pmacc
              * @param args value of each dimension, x,y,z,...
              */
             template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
-            HDINLINE constexpr Vector(T_Args... args)
+            HDINLINE constexpr Vector(T_Args... args) : Storage(Navigator{}, args...)
             {
-                static_assert(sizeof...(T_Args) == dim, "Number of arguments must be equal to the vector dimension.");
-                int i = 0;
-                ([&] { (*this)[i++] = args; }(), ...);
             }
 
             HDINLINE
@@ -241,7 +256,35 @@ namespace pmacc
              *
              * @tparam T_numElements New dimension of the vector.
              * @return First T_numElements elements of the origin vector
+             *
+             * @{
              */
+            template<uint32_t T_numElements>
+            HDINLINE constexpr Vector<type, T_numElements, Navigator> shrink()
+            {
+                PMACC_CASSERT_MSG(
+                    math_Vector__T_numElements_must_be_lesser_or_equal_to_Vector_DIM,
+                    T_numElements <= dim);
+                if constexpr(T_numElements == 1u)
+                    return Vector<type, 1u, Navigator>(Storage::operator[](Navigator{}(0)));
+                else if constexpr(T_numElements == 2u)
+                    return Vector<type, 2u, Navigator>(
+                        Storage::operator[](Navigator{}(0)),
+                        Storage::operator[](Navigator{}(1)));
+                else if constexpr(T_numElements == 3u)
+                    return Vector<type, 3u, Navigator>(
+                        Storage::operator[](Navigator{}(0)),
+                        Storage::operator[](Navigator{}(1)),
+                        Storage::operator[](Navigator{}(2)));
+                else
+                {
+                    Vector<type, T_numElements, Navigator> result;
+                    for(uint32_t i = 0u; i < T_numElements; i++)
+                        result[i] = (*this)[i];
+                    return result;
+                }
+            }
+
             template<uint32_t T_numElements>
             HDINLINE Vector<type, T_numElements, Navigator> shrink() const
             {
@@ -253,6 +296,7 @@ namespace pmacc
                     result[i] = (*this)[i];
                 return result;
             }
+            /** @} */
 
             /** Shrink the number of elements of a vector.
              *
