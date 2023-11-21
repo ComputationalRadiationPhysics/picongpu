@@ -81,7 +81,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
      * @tparam T_Value dataType used for value storage, typically float_X
      * @tparam T_CollectionIndex dataType used for collection index, typically uint32_t
      * @tparam T_ConfigNumber dataType used for storage of configNumber
-     * @tparam T_Multiplicities dataType used for storage of T_Multiplicities, typically uint64_t
+     * @tparam T_Multiplicities dataType used for storage of T_Multiplicities, typically float64
      *
      * @tparam T_electronicExcitation is channel active?
      * @tparam T_electronicDeexcitation is channel active?
@@ -127,7 +127,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
      *      pmacc::dataBox'es, and a dataBuffer class, a container class holding
      *      pmacc::buffers in turn allowing access to the pmacc::dataBox'es.
      *
-     * Each dataBuffer will create on demand a host or device side dataBox class object which
+     * Each dataBuffer will create on demand a host- or device-side dataBox class object which
      *  in turn gives access to the data.
      *
      * Assumptions about input data are described in CheckTransitionTuple.hpp, ordering requirements of transitions in
@@ -162,6 +162,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         static constexpr bool switchAutonomousIonization = T_autonomousIonization;
         static constexpr bool switchFieldIonization = T_fieldIonization;
 
+        /// type shorthand definitions
+        //@{
         // tuples: S_* for shortened name
         using S_ChargeStateTuple = ChargeStateTuple<TypeValue>;
         using S_AtomicStateTuple = AtomicStateTuple<TypeValue, Idx>;
@@ -259,7 +261,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
             T_TransitionOrdering>;
 
         using S_TransitionSelectionDataBox = TransitionSelectionDataBox<TypeNumber, TypeValue>;
-
+        //@}
     private:
         // pointers to storage
         // charge state data
@@ -309,7 +311,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
 
         const std::string m_speciesName;
 
-        //! open file
+        //! try to open file, otherwise throw error
         HINLINE static std::ifstream openFile(std::string const fileName, std::string const fileContent)
         {
             std::ifstream file(fileName);
@@ -326,7 +328,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read charge state data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - charge state data is sorted by ascending charge
+         *   - charge state data is sorted ascending by charge
          *   - the completely ionized state is left out
          *
          * @return returns empty list if file not found/accessible
@@ -375,7 +377,6 @@ namespace picongpu::particles::atomicPhysics2::atomicData
          * @attention assumes input to already fulfills all ordering and unit assumptions
          *   - atomic state data is sorted block wise by charge state and secondary by ascending
          * configNumber
-         *   - the completely ionized state is left out
          *
          * @return returns empty list if file not found/accessible
          */
@@ -387,6 +388,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
 
             std::list<S_AtomicStateTuple> atomicStateList;
 
+            /// @todo maybe use uint64_t instead?, Brian Marre, 2023
             double stateConfigNumber;
             TypeValue energyOverGround;
 
@@ -407,7 +409,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read bound-bound transitions data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - transition data is sorted block wise by lower atomic state and secondary by ascending by upper state
+         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper state
          * configNumber
          *
          * @return returns empty list if file not found/accessible
@@ -447,8 +449,6 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                     continue;
                 }
 
-                //
-
                 S_BoundBoundTransitionTuple item = std::make_tuple(
                     collisionalOscillatorStrength,
                     absorptionOscillatorStrength,
@@ -461,7 +461,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
                     stateUpper);
 
                 boundBoundTransitions.push_back(item);
-                m_numberBoundBoundTransitions++;
+                ++m_numberBoundBoundTransitions;
             }
 
             return boundBoundTransitions;
@@ -470,7 +470,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read bound-free transitions data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - transition data is sorted block wise by lower atomic state and secondary by ascending by upper state
+         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper state
          * configNumber
          *
          * @return returns empty list if file not found/accessible
@@ -522,7 +522,7 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read autonomous transitions data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - transition data is sorted block wise by lower atomic state and secondary by ascending by upper state
+         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper state
          * configNumber
          *
          * @return returns empty list if file not found/(not accessible)

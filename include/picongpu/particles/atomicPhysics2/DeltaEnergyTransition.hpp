@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics2
          * @param atomicStateBox deviceDataBox giving access to atomic state property data
          * @param transitionBox deviceDataBox giving access to transition property data,
          * @param chargeStateBox optional deviceDataBox giving access to charge state property data
-         *  required if T_isIonizing = true
+         *  required if T_ProcessClassGroup is ionizing
          *
          * @return unit: eV
          */
