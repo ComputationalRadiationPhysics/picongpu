@@ -409,8 +409,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read bound-bound transitions data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper state
-         * configNumber
+         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper
+         * state configNumber
          *
          * @return returns empty list if file not found/accessible
          */
@@ -470,8 +470,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read bound-free transitions data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper state
-         * configNumber
+         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper
+         * state configNumber
          *
          * @return returns empty list if file not found/accessible
          */
@@ -522,8 +522,8 @@ namespace picongpu::particles::atomicPhysics2::atomicData
         /** read autonomous transitions data file
          *
          * @attention assumes input to already fulfills all ordering and unit assumptions
-         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper state
-         * configNumber
+         *   - transition data is sorted block wise ascending by lower atomic state and secondary ascending by upper
+         * state configNumber
          *
          * @return returns empty list if file not found/(not accessible)
          */

@@ -160,12 +160,15 @@ namespace picongpu::particles::atomicPhysics2::kernel
             auto rngGeneratorFloat = rngFactoryFloat(worker, superCellFieldIdx);
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
-            
+
             // UNIT_LENGTH^3
             constexpr float_X volumeScalingFactor
                 = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
 
-            PMACC_SMEM(worker, cachedHistogram, CachedHistogram<electronicChannelActive ? T_Histogram::numberBins: 0>);
+            PMACC_SMEM(
+                worker,
+                cachedHistogram,
+                CachedHistogram < electronicChannelActive ? T_Histogram::numberBins : 0 >);
             // no need to fill the histogram cache if we do not use the histogram
             if(electronicChannelActive)
                 cachedHistogram.fill(worker, electronHistogram, volumeScalingFactor);
