@@ -19,7 +19,7 @@ spack unload
 # PIConGPU build dependencies #################################################
 #   need to load correct cmake and gcc to compile picongpu
 
-spack load gcc@12.2.0s
+spack load gcc@12.2.0
 spack load cmake@3.25.0 ^openssl certs=mozilla %gcc@12.2.0
 
 # General modules #############################################################
