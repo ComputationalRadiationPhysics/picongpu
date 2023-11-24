@@ -18,6 +18,7 @@
 #
 import numpy as np
 import openpmd_api as io
+import warnings
 
 
 class RadiationData:
@@ -125,3 +126,38 @@ class RadiationData:
         n_vec[:, 1] = n_y * n_y_unitSI
         n_vec[:, 2] = n_z * n_z_unit_SI
         return n_vec
+
+    def get_distributedAmplitude(self):
+        """"
+        Return a 4D complex array of all distributed amplitudes
+        Array dimensions:
+        0: index GPU/worker
+        1: direction
+        2: frequency
+        3: polarization [x, y, z]
+        returns None if no distributed amplitudes are available
+        """
+        try:
+            h_distAmp = self.iteration.meshes["Amplitude_distributed"]
+        except IndexError:
+            warnings.warn("Warning: no distributed amplitude available.")
+            return None
+
+        # get shape of distributed amplitude
+        shapeDistAmp = h_distAmp["x"].shape
+        # add 3 vector components
+        shapeDistAmp.append(3)
+
+        # prepare data array
+        distAmp = np.empty(shape=shapeDistAmp, dtype=np.complex128)
+
+        # load data
+        for i, direction in enumerate(["x", "y", "z"]):
+            tmp = h_distAmp[direction][:, :, :]
+            self.rad_series.flush()
+            distAmp[:, :, :, i] = tmp
+
+        # convert to SI units:
+        distAmp *= np.sqrt(self.convert_to_SI)
+
+        return distAmp
