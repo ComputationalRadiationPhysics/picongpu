@@ -153,6 +153,8 @@ class RadiationData:
 
         # load data
         for i, direction in enumerate(["x", "y", "z"]):
+            # a temporary data buffer is required as
+            # the target array is not contiguous
             tmp = h_distAmp[direction][:, :, :]
             self.rad_series.flush()
             distAmp[:, :, :, i] = tmp
