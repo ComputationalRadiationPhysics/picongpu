@@ -20,6 +20,8 @@
 
 #include "openPMD/openPMD.hpp"
 
+#include <pmacc/eventSystem/waitForAllTasks.hpp>
+
 #include <cstdlib> // std::getenv
 #include <memory>
 #include <string> // std::stoull
@@ -252,6 +254,9 @@ namespace picongpu
                     switch(target)
                     {
                     case PreferredFlushTarget::Disk:
+                        // avoid deadlocks between not finished pmacc communication tasks and potential blocking
+                        // collectives in openPMD IO backends
+                        pmacc::eventSystem::waitForAllTasks();
                         series.flush(jsonConfigBP5TargetDisk);
                         break;
                     case PreferredFlushTarget::Buffer:

@@ -24,6 +24,7 @@
 #include "pmacc/eventSystem/events/EventTask.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/waitForAllTasks.hpp"
 
 namespace pmacc::eventSystem
 {
@@ -72,8 +73,4 @@ namespace pmacc::eventSystem
      *               possible places are: `ITask::TASK_DEVICE`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
      */
     EventStream* getEventStream(ITask::TaskType op);
-
-    /** Blocks the event system until all tasks finished */
-    void waitForAllTasks();
-
 } // namespace pmacc::eventSystem

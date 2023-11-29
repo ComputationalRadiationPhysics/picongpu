@@ -832,6 +832,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      * solver implementation */
                     const float_X timeOffset = 0.0;
 
+                    // avoid deadlock between not finished pmacc MPI communication tasks and mpi blocking collectives
+                    // used during IO
+                    eventSystem::getTransactionEvent().waitForFinished();
                     bool const isDomainBound = traits::IsFieldDomainBound<FieldTmp>::value;
                     /*write data to openPMD Series*/
                     openPMDWriter::template writeField<ComponentType>(
