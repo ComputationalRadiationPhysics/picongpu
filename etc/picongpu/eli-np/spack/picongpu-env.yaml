@@ -1,0 +1,24 @@
+# This is a Spack Environment file.
+#
+# It describes a set of packages to be installed, along with
+# configuration settings.
+spack:
+  # add package specs to the `specs` list
+  specs:
+  - cmake@3.26.5
+  - openpmd-api@0.15.2 ^adios2@2.9.2 ~mgard ^cuda@11.4.4 ^cmake@3.26.5 ^hdf5@1.14.0 ^openmpi@4.1.6 +atomics ~internal-pmix ~internal-hwloc ^cuda@11.4.4 ^py-numpy@1.24.2 ^python@3.10.10
+  - boost@1.81.0 +program_options +atomic ~python
+  - pngwriter@0.7.0
+
+  packages:
+    all:
+      target: [cascadelake]
+      compiler: [gcc@11.1.0]
+      variants: +mpi ~fortran +cuda cuda_arch=70
+      providers:
+        mpi: [openmpi@4.1.6]
+
+  view: true
+  concretizer:
+    reuse: false
+    unify: true

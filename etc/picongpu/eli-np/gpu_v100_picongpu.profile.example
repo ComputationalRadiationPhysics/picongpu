@@ -1,0 +1,67 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@host.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+export EDITOR="vim"
+
+# PIConGPU dependencies #################################################
+#
+module purge
+spack unload --all
+spack env deactivate
+spack load gcc@11.1.0
+spack env activate picongpu-env
+
+# Environment #################################################################
+#
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:70"
+export SCRATCH="/scratch/${USER}"
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/eli-np"}
+
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
+
+# python not included yet
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "qgpu" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/eli-np/gpu_v100.tpl"
+export TBG_partition="gpu"
+
+# allocate an interactive shell for two hours
+#   getNode 2  # allocates two interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    export OMP_NUM_THREADS=3
+    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((16 * $numNodes)) --ntasks-per-node=16 --cpus-per-task=3 --exclusive --gpus-per-node=16 -p $TBG_partition -A ${USER}_a+ --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
+
