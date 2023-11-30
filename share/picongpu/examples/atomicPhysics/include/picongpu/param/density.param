@@ -21,9 +21,6 @@
 #pragma once
 
 #include "picongpu/particles/densityProfiles/profiles.def"
-/* preprocessor struct generator */
-#include <pmacc/preprocessor/struct.hpp>
-
 
 // base density 1e25m^(-3), 10 macro particle per cell, uniform distribution
 namespace picongpu
@@ -76,8 +73,8 @@ namespace picongpu
             }
         };
 
-        PMACC_STRUCT(
-            GaussianParameter,
+        struct GaussianParameter
+        {
             /** Profile Formula:
              *   constexpr float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
              *   constexpr float_X density = exp(gasFactor * pow(exponent, gasPower));
@@ -86,7 +83,8 @@ namespace picongpu
              *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
              *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
              */
-            (PMACC_C_VALUE(float_X, gasFactor, -1.0))(PMACC_C_VALUE(float_X, gasPower, 4.0))
+            static constexpr float_X gasFactor = -1.0;
+            static constexpr float_X gasPower = 4.0;
 
             /** height of vacuum area on top border
              *
@@ -95,18 +93,20 @@ namespace picongpu
              *  assumes a charge-free volume
              *  unit: cells
              */
-            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+            static constexpr uint32_t vacuumCellsY = 50;
 
             /** The central position of the gas distribution
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 8.0e-5))(PMACC_C_VALUE(float_64, gasCenterRight_SI, 10.0e-5))
+            static constexpr float_64 gasCenterLeft_SI = 8.0e-5;
+            static constexpr float_64 gasCenterRight_SI = 10.0e-5;
 
             /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 8.0e-5))(
-                PMACC_C_VALUE(float_64, gasSigmaRight_SI, 8.0e-5))); /* struct GaussianParam */
+            static constexpr float_64 gasSigmaLeft_SI = 8.0e-5;
+            static constexpr float_64 gasSigmaRight_SI = 8.0e-5;
+        };
 
         /* definition of density with Gaussian profile */
         using Gaussian = GaussianImpl<GaussianParameter>;

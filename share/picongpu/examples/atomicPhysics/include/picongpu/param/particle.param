@@ -112,16 +112,13 @@ namespace picongpu
             //! Definition of manipulator to set charge State to 16 times ionized
             using SetIonization = unary::ChargeState<16u>;
 
-            /** Define initial particle drift direction vector.
-             *  This vector is used in struct DriftParam.
-             */
-            CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
-
             /** Define Lorentz factor of initial particle drift. */
             struct Drift200keVParam
             {
                 static constexpr float_64 gamma = 1.39139;
-                const DriftParam_direction_t direction;
+                /** Define initial particle drift direction vector.
+                 */
+                static constexpr auto driftDirection = float3_X(1.0, 0.0, 0.0);
             };
             /** Definition of manipulator that assigns a drift in X
              *  using parameters from struct DriftParam.

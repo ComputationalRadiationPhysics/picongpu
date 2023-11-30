@@ -50,9 +50,6 @@
 #pragma once
 
 #include "picongpu/particles/densityProfiles/profiles.def"
-/* preprocessor struct generator */
-#include <pmacc/preprocessor/struct.hpp>
-
 
 namespace picongpu
 {
@@ -79,11 +76,10 @@ namespace picongpu
          *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
          *   and `exponent = 0.0 for gasCenterLeft_SI < y < gasCenterRight_SI`
          */
-        PMACC_STRUCT(
-            GaussianParam,
-            /** ...
-             */
-            (PMACC_C_VALUE(float_X, gasFactor, -1.0))(PMACC_C_VALUE(float_X, gasPower, 4.0))
+        struct GaussianParam
+        {
+            static constexpr float_X gasFactor = -1.0;
+            static constexpr float_X gasPower = 4.0;
 
             /** height of vacuum area on top border
              *
@@ -92,18 +88,20 @@ namespace picongpu
              *  assumes a charge-free volume
              *  unit: cells
              */
-            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+            static constexpr uint32_t vacuumCellsY = 50;
 
             /** The central position of the distribution
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 4.62e-5))(PMACC_C_VALUE(float_64, gasCenterRight_SI, 4.62e-5))
+            static constexpr float_64 gasCenterLeft_SI = 4.62e-5;
+            static constexpr float_64 gasCenterRight_SI = 4.62e-5;
 
             /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 4.62e-5))(
-                PMACC_C_VALUE(float_64, gasSigmaRight_SI, 4.62e-5))); /* struct GaussianParam */
+            static constexpr float_64 gasSigmaLeft_SI = 4.62e-5;
+            static constexpr float_64 gasSigmaRight_SI = 4.62e-5;
+        };
 
         /* definition of density profile with gaussian profile */
         using Gaussian = GaussianImpl<GaussianParam>;
@@ -123,8 +121,8 @@ namespace picongpu
          *                  MAX
          * @endverbatim
          */
-        PMACC_STRUCT(
-            LinearExponentialParam,
+        struct LinearExponentialParam
+        {
             /** height of vacuum area on top border
              *
              * this vacuum is important because of the laser initialization,
@@ -132,13 +130,14 @@ namespace picongpu
              * assumes a charge-free volume
              * unit: cells
              */
-            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+            static constexpr uint32_t vacuumCellsY = 50;
 
             /** Y-Position where the linear slope ends and the exponential slope
              *  begins
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, gasYMax_SI, 1.0e-3))
+            static constexpr float_64 gasYMax_SI = 1.0e-3;
+
 
             /** Parameters for the linear slope:
              *  For Y <= gasYMax_SI:
@@ -147,7 +146,7 @@ namespace picongpu
              *  unit for A: 1/m
              *  unit for B: none
              */
-            (PMACC_C_VALUE(float_64, gasA_SI, 1.0e-3))
+            static constexpr float_64 gasA_SI = 1.0e-3;
 
             /** Parameters for the exponential slope
              *  For Y > gasYMax_SI:
@@ -156,21 +155,23 @@ namespace picongpu
              *         = element [0.0; 1.0]
              *  unit: 1/m
              */
-            (PMACC_C_VALUE(float_64, gasD_SI, 1.0e-3))
+            static constexpr float_64 gasD_SI = 1.0e-3;
 
-                (PMACC_C_VALUE(float_64, gasB, 0.0))); /* struct LinearExponentialParam */
+            static constexpr float_64 gasB = 0.0;
+        };
 
         /* definition of gas with linear start slop and exponential end slope */
         using LinearExponential = LinearExponentialImpl<LinearExponentialParam>;
 
 
-        PMACC_STRUCT(
-            GaussianCloudParam,
+        struct GaussianCloudParam
+        {
             /** Profile Formula:
              *     exponent = |globalCellPos - center| / sigma
              *     density = e^[ gasFactor * exponent^gasPower ]
              */
-            (PMACC_C_VALUE(float_X, gasFactor, -0.5))(PMACC_C_VALUE(float_X, gasPower, 2.0))
+            static constexpr float_X gasFactor = -0.5;
+            static constexpr float_X gasPower = 2.0;
 
             /** height of vacuum area on top border
              *
@@ -179,16 +180,17 @@ namespace picongpu
              * assumes a charge-free volume
              * unit: cells
              */
-            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+            static constexpr uint32_t vacuumCellsY = 50;
 
             /** The central position of the gas distribution
              *  unit: meter
              */
-            (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5))
+            static constexpr floatD_64 center_SI = float3_64(1.134e-5, 1.134e-5, 1.134e-5).shrink<simDim>();
 
             /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
              *  unit: meter */
-            (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 7.0e-6, 7.0e-6, 7.0e-6))); /* struct GaussianCloudParam */
+            static constexpr floatD_64 sigma_SI = float3_64(7.0e-6, 7.0e-6, 7.0e-6).shrink<simDim>();
+        };
 
         /* definition of cloud profile */
         using GaussianCloud = GaussianCloudImpl<GaussianCloudParam>;
@@ -206,8 +208,8 @@ namespace picongpu
          *       ..,x,..            x high (constant)
          * @endverbatim
          */
-        PMACC_STRUCT(
-            SphereFlanksParam,
+        struct SphereFlanksParam
+        {
             /** height of vacuum area on top border
              *
              * this vacuum is important because of the laser initialization,
@@ -215,22 +217,22 @@ namespace picongpu
              * assumes a charge-free volume
              * unit: cells
              */
-            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+            static constexpr uint32_t vacuumCellsY = 50;
 
             /** Radius of the constant sphere
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, r_SI, 1.0e-3))
+            static constexpr float_64 r_SI = 1.0e-3;
 
             /** Inner radius if you want to build a shell/ring
              *  unit: meter
              */
-            (PMACC_C_VALUE(float_64, ri_SI, 0.0))
+            static constexpr float_64 ri_SI = 0.0;
 
             /** Middle of the constant sphere
              *  unit: meter
              */
-            (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 8.0e-3, 8.0e-3, 8.0e-3))
+            static constexpr floatD_64 center_SI = float3_64(8.0e-3, 8.0e-3, 8.0e-3).shrink<simDim>();
 
             /** Parameters for the exponential slope
              *  For distance > r_SI:
@@ -238,9 +240,8 @@ namespace picongpu
              *    \rho = exp[ - distance' * exponent ]
              *  unit: 1/m
              */
-            (PMACC_C_VALUE(float_64, exponent_SI, 1.0e3))
-
-        ); /* struct SphereFlanksParam */
+            static constexpr float_64 exponent_SI = 1.0e3;
+        };
 
         /* definition of sphere profile with flanks */
         using SphereFlanks = SphereFlanksImpl<SphereFlanksParam>;
@@ -253,18 +254,18 @@ namespace picongpu
          * The density values must be a scalar dataset of type float_X, type mismatch would cause errors.
          * This implementation would ignore all openPMD metadata but axisLabels.
          * Each value in the dataset defines density in the cell with the corresponding total coordinate minus the
-         * given offset. When the functor is instantiated, it will load the part matching the current domain position.
-         * Density in points not present in the file would be set to the given default density.
+         * given offset. When the functor is instantiated, it will load the part matching the current domain
+         * position. Density in points not present in the file would be set to the given default density.
          * Dimensionality of the file indexing must match the simulation dimensionality.
          * Density values are in BASE_DENSITY_SI units.
          */
-        PMACC_STRUCT(
-            FromOpenPMDParam,
+        struct FromOpenPMDParam
+        {
             /** Path to the openPMD input file
              *
              * This value can alternatively be controlled at runtime by setting it to "" here and providing
-             * command-line option <species>_runtimeDensityFile. Refer to description of this command-line option for
-             * details. Note that runtime option only exists for this parameter, and not others in this struct.
+             * command-line option <species>_runtimeDensityFile. Refer to description of this command-line option
+             * for details. Note that runtime option only exists for this parameter, and not others in this struct.
              *
              * File-based iteration format is also supported, with the usual openPMD API naming scheme.
              *
@@ -272,7 +273,7 @@ namespace picongpu
              * Relative paths require consistency to the current directory when PIConGPU is started.
              * With tbg and the standard .tpl files, relative to the resulting simOutput directory.
              */
-            (PMACC_C_STRING(filename, "density.h5"))
+            static constexpr char const* filename = "density.h5";
 
             /** Name of the openPMD dataset inside the file
              *
@@ -284,10 +285,10 @@ namespace picongpu
              * @warning it is only the dataset itself, a simple text name and not something like
              * "/[directories]/density/[iteration]/fields/e_density".
              */
-            (PMACC_C_STRING(datasetName, "e_density"))
+            static constexpr char const* datasetName = "e_density";
 
             //! Iteration inside the file (only file, not related to the current simulation time iteration)
-            (PMACC_C_VALUE(uint32_t, iteration, 0))
+            static constexpr uint32_t iteration = 0;
 
             /** Offset in the file in cells: each value is density at (total cell index - offset)
              *
@@ -295,10 +296,11 @@ namespace picongpu
              * Positive offset means the file values "start" from index == offset in the total coordinates.
              * Negative offset is also supported.
              */
-            (PMACC_C_VECTOR_DIM(int, simDim, offset, 0, 0, 0))
+            static constexpr DataSpace<simDim> offset = DataSpace<DIM3>(0, 0, 0).shrink<simDim>();
 
             //! Default value to be used for cells with no corresponding file value
-            (PMACC_C_VALUE(float_X, defaultDensity, 0.0_X))); /* struct FromOpenPMDParam */
+            static constexpr float_X defaultDensity = 0.0_X;
+        };
 
 #if(ENABLE_OPENPMD == 1)
         //! Definition of density-from-file profile

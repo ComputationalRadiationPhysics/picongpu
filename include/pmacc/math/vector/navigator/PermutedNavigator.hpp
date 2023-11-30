@@ -30,7 +30,7 @@ namespace pmacc
         template<typename Permutation>
         struct PermutedNavigator
         {
-            HDINLINE int operator()(int component) const
+            HDINLINE constexpr int operator()(int component) const
             {
                 return Permutation().toRT()[component];
             }

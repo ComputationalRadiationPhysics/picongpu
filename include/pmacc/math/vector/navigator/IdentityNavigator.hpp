@@ -27,14 +27,12 @@ namespace pmacc
 {
     namespace math
     {
-        /** \todo rename this class to NavigatorIdentity*/
-        struct StandardNavigator
+        struct IdentityNavigator
         {
-            HDINLINE int operator()(int component) const
+            HDINLINE constexpr int operator()(int component) const
             {
                 return component;
             }
         };
-
     } // namespace math
 } // namespace pmacc

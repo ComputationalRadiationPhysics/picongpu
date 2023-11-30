@@ -34,8 +34,6 @@ namespace picongpu
             {
                 namespace param
                 {
-                    CONST_VECTOR(float_X, 3, DriftNegative_direction, -1.0, 0.0, 0.0);
-
                     //! configuration for the unary manipulator functor Drift
                     struct DriftCfg
                     {
@@ -45,7 +43,9 @@ namespace picongpu
                          *  unit: none
                          */
                         static constexpr float_64 gamma = 1.021;
-                        DriftNegative_direction_t const direction;
+                        /** Define initial particle drift direction vector.
+                         */
+                        static constexpr auto driftDirection = float3_X(-1.0, 0.0, 0.0);
                     };
                 } // namespace param
 

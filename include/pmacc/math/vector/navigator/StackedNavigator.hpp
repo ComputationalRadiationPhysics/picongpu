@@ -35,7 +35,7 @@ namespace pmacc
         template<typename NaviA, typename NaviB>
         struct StackedNavigator
         {
-            HDINLINE int operator()(int component) const
+            HDINLINE constexpr int operator()(int component) const
             {
                 return NaviB()(NaviA()(component));
             }

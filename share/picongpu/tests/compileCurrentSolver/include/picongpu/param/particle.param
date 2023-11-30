@@ -75,16 +75,13 @@ namespace picongpu
 
         namespace manipulators
         {
-            /** Define initial particle drift direction vector.
-             *  This vector is used in struct DriftParamPositive.
-             */
-            CONST_VECTOR(float_X, 3, DriftParamPositive_direction, 1.0, 0.0, 0.0);
-
             /** Define Lorentz factor of initial particle drift. */
             struct DriftParamPositive
             {
                 static constexpr float_64 gamma = 1.021;
-                const DriftParamPositive_direction_t direction;
+                /** Define initial particle drift direction vector.
+                 */
+                static constexpr auto driftDirection = float3_X(1.0, 0.0, 0.0);
             };
             /** Definition of manipulator that assigns a drift in +X
              *  using parameters from struct DriftParamPositive.

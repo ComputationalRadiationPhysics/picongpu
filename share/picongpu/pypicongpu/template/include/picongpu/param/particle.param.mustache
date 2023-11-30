@@ -79,11 +79,6 @@ namespace picongpu
                         {{! note: this is an "if" condition }}
                         {{! -> simple momentum does not require a drift }}
 
-                        {{#direction_normalized}}
-                            {{! this only serves to enter the "direction_normalized" context}}
-                            CONST_VECTOR(float_X, 3, drift_{{{species.typename}}}_direction, {{{x}}}, {{{y}}}, {{{z}}});
-                        {{/direction_normalized}}
-
                         struct AssignDrift_{{{species.typename}}}_Param
                         {
                             /** Initial particle drift velocity for electrons and ions
@@ -92,7 +87,11 @@ namespace picongpu
                             *  unit: none
                             */
                             static constexpr float_64 gamma = {{{gamma}}};
-                            const drift_{{{species.typename}}}_direction_t direction;
+                            {{#direction_normalized}}
+                            {{! this only serves to enter the "direction_normalized" context}}
+                            /** Define initial particle drift direction vector. */
+                            static constexpr auto driftDirection = float3_X({{{x}}}, {{{y}}}, {{{z}}});
+                            {{/direction_normalized}}
                         };
                         using AssignDrift_{{{species.typename}}} = unary::Drift<AssignDrift_{{{species.typename}}}_Param, pmacc::math::operation::Assign>;
                     {{/drift}}
