@@ -29,6 +29,7 @@
 #include "picongpu/plugins/common/stringHelpers.hpp"
 
 #include <memory>
+#include <optional>
 
 #include <openPMD/openPMD.hpp>
 
@@ -55,24 +56,22 @@ namespace picongpu
                 std::unique_ptr<HostBuffer<T_Type, 1u>> hReducedBuffer,
                 T_BinningData binningData,
                 std::string const& dir,
-                // WriteOpenPMDParams const& params,
                 std::array<double, 7> outputUnits,
                 const uint32_t currentStep)
             {
                 using Type = T_Type;
 
-                // auto const& [extension, jsonConfig] = params;
                 if(!maybe_series.has_value())
                 {
-                    auto const& extension = binningData.openPMDSuffix;
+                    auto const& extension = binningData.openPMDExtension;
                     std::ostringstream filename;
                     if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
                     {
-                        filename << binningData.binnerOutputName << extension;
+                        filename << binningData.binnerOutputName << binningData.openPMDInfix << extension;
                     }
                     else
                     {
-                        filename << binningData.binnerOutputName << '.' << extension;
+                        filename << binningData.binnerOutputName << binningData.openPMDInfix << '.' << extension;
                     }
 
                     maybe_series = ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE);

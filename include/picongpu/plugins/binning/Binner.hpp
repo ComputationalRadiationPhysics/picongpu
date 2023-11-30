@@ -24,6 +24,7 @@
 #include "picongpu/plugins/binning/WriteHist.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 

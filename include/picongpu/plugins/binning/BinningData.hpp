@@ -24,6 +24,12 @@
 
 #include <alpaka/core/Tuple.hpp>
 
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <tuple>
+#include <vector>
+
 namespace picongpu
 {
     namespace plugins::binning
@@ -31,31 +37,30 @@ namespace picongpu
         template<typename T_AxisTuple, typename T_SpeciesTuple, typename T_DepositionData>
         struct BinningData
         {
-            // private:
-            //     uint32_t n_axes;
-
         public:
             using DepositionFunctorType = typename T_DepositionData::FunctorType;
             using DepositedQuantityType = typename T_DepositionData::QuantityType;
             // @todo infer type from functor
             // using DepositedQuantityType = std::invoke_result_t<TDepositedQuantityFunctor, particle, worker>;
-            // using DepositedQuantityType = typename decltype(std::function{quantityFunctor})::result_type;
 
             std::string binnerOutputName;
             T_AxisTuple axisTuple;
             T_SpeciesTuple speciesTuple;
             T_DepositionData depositionData;
-            std::string notifyPeriod;
-            uint32_t dumpPeriod;
-            bool timeAveraging;
-            bool normalizeByBinVolume;
             std::function<void(::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh)>
                 writeOpenPMDFunctor;
             DataSpace<std::tuple_size_v<T_AxisTuple>> axisExtentsND;
 
             /* Optional parameters not initialized by constructor.
              * Use the return value of addBinner() to modify them if needed. */
-            std::string openPMDSuffix = "_%06T." + openPMD::getDefaultExtension(openPMD::ExtensionPreference::HDF5);
+            bool timeAveraging = true;
+            bool normalizeByBinVolume = true;
+            std::string notifyPeriod = "1";
+            uint32_t dumpPeriod = 0u;
+
+            std::string openPMDInfix = "_%06T.";
+            std::string openPMDExtension = openPMD::getDefaultExtension();
+
             std::string jsonCfg = "{}";
 
             BinningData(
@@ -63,20 +68,12 @@ namespace picongpu
                 const T_AxisTuple axes,
                 const T_SpeciesTuple species,
                 const T_DepositionData depositData,
-                const std::string period,
-                uint32_t dumpNNotifies,
-                bool enableTimeAveraging,
-                bool normalizeBinVol,
                 std::function<void(::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh)>
                     writeOpenPMD)
                 : binnerOutputName{binnerName}
                 , axisTuple{axes}
                 , speciesTuple{species}
                 , depositionData{depositData}
-                , notifyPeriod{period}
-                , dumpPeriod{dumpNNotifies}
-                , timeAveraging{enableTimeAveraging}
-                , normalizeByBinVolume{normalizeBinVol}
                 , writeOpenPMDFunctor{writeOpenPMD}
             {
                 static_assert(getNAxes() <= 3, "Only upto 3 binning axes are supported for now");
@@ -93,15 +90,43 @@ namespace picongpu
             static constexpr uint32_t getNAxes()
             {
                 return std::tuple_size_v<T_AxisTuple>;
-                // return utility::tuple::size(axisTuple);
-                // return utility::tuple::size(declval<T_AxisTuple>());
             }
 
-            BinningData& setOpenPMDSuffix(std::string suffix)
+            /** @brief Time average the accumulated data when doing the dump. Defaults to true. */
+            BinningData& setTimeAveraging(bool timeAv)
             {
-                this->openPMDSuffix = std::move(suffix);
+                this->timeAveraging = timeAv;
                 return *this;
             }
+            /** @brief Defaults to true */
+            BinningData& setNormalizeByBinVolume(bool normalize)
+            {
+                this->normalizeByBinVolume = normalize;
+                return *this;
+            }
+            /** @brief The periodicity of the output. Defaults to 1 */
+            BinningData& setNotifyPeriod(std::string notify)
+            {
+                this->notifyPeriod = std::move(notify);
+                return *this;
+            }
+            /** @brief The number of notify steps to accumulate over. Dump at the end. Defaults to 1. */
+            BinningData& setDumpPeriod(uint32_t dumpXNotifys)
+            {
+                this->dumpPeriod = dumpXNotifys;
+                return *this;
+            }
+            BinningData& setOpenPMDExtension(std::string extension)
+            {
+                this->openPMDExtension = std::move(extension);
+                return *this;
+            }
+            BinningData& setOpenPMDInfix(std::string infix)
+            {
+                this->openPMDInfix = std::move(infix);
+                return *this;
+            }
+
             BinningData& setJsonCfg(std::string cfg)
             {
                 this->jsonCfg = std::move(cfg);
