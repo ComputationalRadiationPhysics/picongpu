@@ -65,13 +65,29 @@ namespace picongpu
                 {
                     auto const& extension = binningData.openPMDExtension;
                     std::ostringstream filename;
-                    if(std::any_of(extension.begin(), extension.end(), [](char const c) { return c == '.'; }))
+                    filename << binningData.binnerOutputName;
+                    if(auto& infix = binningData.openPMDInfix; !infix.empty())
                     {
-                        filename << binningData.binnerOutputName << binningData.openPMDInfix << extension;
+                        if(*infix.begin() != '_')
+                        {
+                            filename << '_';
+                        }
+                        if(*infix.rbegin() == '.')
+                        {
+                            filename << infix.substr(0, infix.size() - 1);
+                        }
+                        else
+                        {
+                            filename << infix;
+                        }
+                    }
+                    if(*extension.begin() == '.')
+                    {
+                        filename << extension;
                     }
                     else
                     {
-                        filename << binningData.binnerOutputName << binningData.openPMDInfix << '.' << extension;
+                        filename << '.' << extension;
                     }
 
                     maybe_series = ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE);
