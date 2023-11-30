@@ -168,9 +168,9 @@ def check_params(num_iterations):
         Ex, info_Ex = ts.get_field(
             iteration=0, field="E", coord="x"
         )
-        cell_dx = info_Ex.dx
-        cell_dy = info_Ex.dy
-        cell_dz = info_Ex.dz
+        cell_dx = info_Ex.dx/5.36628e-08
+        cell_dy = info_Ex.dy/5.36628e-08
+        cell_dz = info_Ex.dz/5.36628e-08
         particle_map = np.zeros(shape=(np.shape(Ex)))
         # Calculate particle density map
         for k in range(len(x)):

@@ -59,6 +59,9 @@ done
 ## build and run picongpu ##
 ############################
 if [ -d "./include" ] ; then
+  rm -r ~/tmp_test
+  pic-create . ~/tmp_test
+  cd ~/tmp_test
   pic-build
   ret_build=$?
 
