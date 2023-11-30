@@ -1,16 +1,4 @@
 packages:
-  boost:
-    externals:
-    - spec: boost@1.79.0%gcc@11.3.0
-      modules:
-      - Boost/1.79.0-GCC-11.3.0
-    buildable: False
-  openblas:
-    externals:
-    - spec: openblas@0.3.20%gcc@11.3.0
-      modules:
-      - OpenBLAS/0.3.20-GCC-11.3.0
-    buildable: False
   openssh:
     externals:
     - spec: openssh@7.4p1
@@ -40,26 +28,7 @@ packages:
       modules:
       - libfabric/1.15.1-GCCcore-11.3.0
     buildable: False
-  binutils:
-    externals:
-    - spec: binutils@2.38%gcc@11.3.0
-      modules:
-      - binutils/2.38-GCCcore-11.3.0
-    buildable: False
-  cmake:
-    externals:
-    - spec: cmake@3.23.1%gcc@11.3.0
-      modules:
-      - CMake/3.23.1-GCCcore-11.3.0
-    buildable: False
-  curl:
-    externals:
-    - spec: curl@7.83.0%gcc@11.3.0
-      modules:
-      - cURL/7.83.0-GCCcore-11.3.0
-    buildable: False
   all:
     providers:
       mpi: [openmpi@4.1.4]
       cuda: [cuda@11.7.0]
-      blas: [openblas@0.3.20]
