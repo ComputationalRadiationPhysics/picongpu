@@ -46,19 +46,26 @@ namespace picongpu
             auto getADIOSExtension = []()
             {
                 auto availableExtensions = ::openPMD::getFileExtensions();
-                for(auto const& ext : availableExtensions)
+                if(std::find(availableExtensions.begin(), availableExtensions.end(), "bp5")
+                   != availableExtensions.end())
                 {
-                    if(ext == "bp4")
-                    {
-                        return "bp4";
-                    }
+                    // Engine available in ADIOS2 >= v2.8
+                    // File extension and support for engine available in openPMD-api >= 0.15
+                    return "bp5";
                 }
-                /*
-                 * BP4 engine is always available in all supported ADIOS2 versions,
-                 * but the bp4 extensions is new in openPMD, so we might need to
-                 * fallback to "bp".
-                 */
-                return "bp";
+                else if(
+                    std::find(availableExtensions.begin(), availableExtensions.end(), "bp4")
+                    != availableExtensions.end())
+                {
+                    // Engine available and supported in all supported versions of ADIOS2 and openPMD-api
+                    // File extension available in openPMD-api >= 0.15
+                    return "bp4";
+                }
+                else
+                {
+                    // Extension is always available in all supported versions of ADIOS2 and openPMD-api
+                    return "bp";
+                }
             };
 #if openPMD_HAVE_ADIOS2 && openPMD_HAVE_HDF5
             switch(ep)
