@@ -535,6 +535,20 @@ if(PIC_HAVE_openPMD)
         SYSTEM PRIVATE
         $<TARGET_PROPERTY:toml11::toml11,INTERFACE_INCLUDE_DIRECTORIES>)
     target_link_libraries(picongpu-hostonly PRIVATE toml11::toml11)
+
+    # This is a workaround for a missing API call in the openPMD-api,
+    # which currently does not re-export backend version information.
+    # https://github.com/openPMD/openPMD-api/issues/1563
+    if(openPMD_HAVE_ADIOS2)
+        foreach(target picongpu picongpu-hostonly)
+            target_compile_definitions(
+                picongpu
+                PRIVATE
+                ADIOS2_VERSION_MAJOR=${ADIOS2_VERSION_MAJOR}
+                ADIOS2_VERSION_MINOR=${ADIOS2_VERSION_MINOR}
+                ADIOS2_VERSION_PATCH=${ADIOS2_VERSION_PATCH})
+        endforeach()
+    endif()
 endif()
 
 ## annotate with RPATH's

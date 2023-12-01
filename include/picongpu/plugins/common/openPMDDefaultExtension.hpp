@@ -46,6 +46,21 @@ namespace picongpu
             auto getADIOSExtension = []()
             {
                 auto availableExtensions = ::openPMD::getFileExtensions();
+                /*
+                 * Using macros for detecting the ADIOS2 version is not very nice since the openPMD-api can be
+                 * recompiled against different backends and backend versions without affecting the ABI. Upgrading
+                 * ADIOS2 will require recompiling openPMD-api, but only relinking PIConGPU. The below #ifdef logic
+                 * will then not be updated.
+                 *
+                 * A functionality for doing a runtime query here is unfortunately missing in the openPMD-api at the
+                 * moment.
+                 * https://github.com/openPMD/openPMD-api/issues/1563
+                 *
+                 * The reason for requiring ADIOS2 >= v2.9.2 before enabling BP5 is this bug, fixed in version v2.9.2:
+                 * https://github.com/ornladios/ADIOS2/issues/3504
+                 */
+#if openPMD_HAVE_ADIOS2
+#    if ADIOS2_VERSION_MAJOR * 10000 + ADIOS2_VERSION_MINOR * 100 + ADIOS2_VERSION_PATCH >= 20902
                 if(std::find(availableExtensions.begin(), availableExtensions.end(), "bp5")
                    != availableExtensions.end())
                 {
@@ -53,9 +68,11 @@ namespace picongpu
                     // File extension and support for engine available in openPMD-api >= 0.15
                     return "bp5";
                 }
-                else if(
-                    std::find(availableExtensions.begin(), availableExtensions.end(), "bp4")
-                    != availableExtensions.end())
+                else
+#    endif
+#endif
+                    if(std::find(availableExtensions.begin(), availableExtensions.end(), "bp4")
+                       != availableExtensions.end())
                 {
                     // Engine available and supported in all supported versions of ADIOS2 and openPMD-api
                     // File extension available in openPMD-api >= 0.15
