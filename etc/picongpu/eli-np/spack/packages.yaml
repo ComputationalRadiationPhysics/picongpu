@@ -1,0 +1,11 @@
+packages:
+  openssh:
+    externals:
+    - spec: openssh@7.6p1
+      prefix: /usr
+    buildable: False
+  openssl:
+    externals:
+    - spec: openssl@1.1.1
+      prefix: /usr
+    buildable: False
