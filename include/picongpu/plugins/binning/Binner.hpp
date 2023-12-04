@@ -24,6 +24,12 @@
 #include "picongpu/plugins/binning/WriteHist.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
+#include <cstdint>
+#include <memory>
+#include <optional>
+
+#include <openPMD/Series.hpp>
+
 
 namespace picongpu
 {
@@ -128,6 +134,8 @@ namespace picongpu
         {
             using TDepositedQuantity = typename TBinningData::DepositedQuantityType;
 
+            friend class BinningCreator;
+
         private:
             TBinningData binningData;
             MappingDesc* cellDescription;
@@ -136,6 +144,7 @@ namespace picongpu
             mpi::MPIReduce reduce{};
             bool isMaster = false;
             WriteHist histWriter;
+            std::optional<::openPMD::Series> m_series;
 
         public:
             Binner(TBinningData bd, MappingDesc* cellDesc) : binningData{bd}, cellDescription{cellDesc}
@@ -151,7 +160,17 @@ namespace picongpu
                 this->histBuffer->getDeviceBuffer().setValue(TDepositedQuantity(0.0));
             }
 
-            ~Binner() override = default;
+            ~Binner() override
+#if OPENPMDAPI_VERSION_GE(0, 15, 0)
+            {
+                if(m_series.has_value())
+                {
+                    m_series->close();
+                }
+            }
+#else
+                = default;
+#endif
 
             void notify(uint32_t currentStep) override
             {
@@ -182,11 +201,12 @@ namespace picongpu
                     auto bufferExtent = this->histBuffer->getDeviceBuffer().getDataSpace();
 
                     // allocate this only once?
-                    auto hReducedBuffer = HostBuffer<TDepositedQuantity, 1>(bufferExtent);
+                    // using a unique_ptr here since HostBuffer does not implement move semantics
+                    auto hReducedBuffer = std::make_unique<HostBuffer<TDepositedQuantity, 1>>(bufferExtent);
 
                     reduce(
                         pmacc::math::operation::Add(),
-                        hReducedBuffer.getBasePointer(),
+                        hReducedBuffer->getBasePointer(),
                         this->histBuffer->getHostBuffer().getBasePointer(),
                         bufferExtent[0], // this is a 1D dataspace, just access it?
                         mpi::reduceMethods::Reduce());
@@ -207,7 +227,7 @@ namespace picongpu
                         auto productKernel = ProductKernel<blockSize, TBinningData::getNAxes()>();
 
                         PMACC_LOCKSTEP_KERNEL(productKernel, workerCfg)
-                        (gridSize)(binningData.axisExtentsND, factor, hReducedBuffer.getDataBox());
+                        (gridSize)(binningData.axisExtentsND, factor, hReducedBuffer->getDataBox());
                     }
 
                     // @todo When doing time averaging, this normalization is not be stable across time for auto bins
@@ -226,7 +246,7 @@ namespace picongpu
                             = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
 
                         PMACC_LOCKSTEP_KERNEL(normKernel, workerCfg)
-                        (gridSize)(binningData.axisExtentsND, axisKernels, hReducedBuffer.getDataBox());
+                        (gridSize)(binningData.axisExtentsND, axisKernels, hReducedBuffer->getDataBox());
 
                         // change output dimensions
                         apply(
@@ -238,7 +258,8 @@ namespace picongpu
                     if(reduce.hasResult(mpi::reduceMethods::Reduce()))
                     {
                         histWriter(
-                            hReducedBuffer,
+                            m_series,
+                            std::move(hReducedBuffer),
                             binningData,
                             std::string("binningOpenPMD/"),
                             outputUnits,

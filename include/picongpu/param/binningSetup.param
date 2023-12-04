@@ -23,9 +23,6 @@
 
 #include "picongpu/plugins/binning/binnerPlugin.hpp"
 
-#include <pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp>
-#include <pmacc/particles/meta/FindByNameOrType.hpp>
-
 namespace picongpu
 {
     namespace plugins::binning
@@ -155,14 +152,6 @@ namespace picongpu
                     = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X { return 1.0; };
                 auto getCounts = createFunctorDescription<float_X>(getParticleCount, "Counts");
 
-                /**
-                 * define notify period, dump frequency, normalizeByBinVolume, time averaging
-                 * Note that steps in time averaging are "notify steps" not simulation steps
-                 */
-                uint32_t dataDumpNNotifies = 0u;
-                bool enableTimeAveraging = true;
-                std::string notifyPeriod = "1:500";
-                bool normalizeByBinVolume = true;
 
                 /**
                  * Gives access to series, iteration and mesh to the user
@@ -176,26 +165,15 @@ namespace picongpu
                     [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
                 { mesh.setAttribute("p_nbins", ax_py.getNBins()); };
 
-                binningCreator.addBinner(
-                    "chargeDensityBinning",
-                    axisTuple,
-                    speciesTuple,
-                    chargeDepositionData,
-                    notifyPeriod,
-                    dataDumpNNotifies,
-                    enableTimeAveraging,
-                    normalizeByBinVolume,
-                    writeOpenPMD);
+                binningCreator
+                    .addBinner("chargeDensityBinning", axisTuple, speciesTuple, chargeDepositionData, writeOpenPMD)
+                    .setNotifyPeriod("1:500")
+                    .setJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
+                    .setOpenPMDExtension("h5");
 
-                binningCreator.addBinner(
-                    "particleBinning",
-                    createTuple(ax_time, ax_py),
-                    speciesTuple,
-                    getCounts,
-                    "1::",
-                    2000,
-                    false,
-                    false);
+                binningCreator.addBinner("particleBinning", createTuple(ax_time, ax_py), speciesTuple, getCounts)
+                    .setDumpPeriod(2000)
+                    .setNormalizeByBinVolume(false);
             }
         }
     } // namespace plugins::binning

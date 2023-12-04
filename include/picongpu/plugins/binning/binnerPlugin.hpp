@@ -23,3 +23,6 @@
 #include "picongpu/plugins/binning/BinningCreator.hpp"
 #include "picongpu/plugins/binning/FunctorDescription.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
+
+#include <pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
