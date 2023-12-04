@@ -1,4 +1,4 @@
-/* Copyright 2023-2023 Rene Widera
+/* Copyright 2023 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -20,40 +20,15 @@
  */
 
 
-#include "pmacc/eventSystem/eventSystem.hpp"
+#include "pmacc/eventSystem/waitForAllTasks.hpp"
 
 #include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/transactions/TransactionManager.hpp"
 
 namespace pmacc::eventSystem
 {
-    void startTransaction(EventTask serialEvent)
+    void waitForAllTasks()
     {
-        TransactionManager::getInstance().startTransaction(serialEvent);
-    }
-
-    EventTask endTransaction()
-    {
-        return TransactionManager::getInstance().endTransaction();
-    }
-
-    void startOperation(ITask::TaskType op)
-    {
-        TransactionManager::getInstance().startOperation(op);
-    };
-
-    EventTask setTransactionEvent(const EventTask& event)
-    {
-        return TransactionManager::getInstance().setTransactionEvent(event);
-    }
-
-    EventTask getTransactionEvent()
-    {
-        return TransactionManager::getInstance().getTransactionEvent();
-    }
-
-    EventStream* getEventStream(ITask::TaskType op)
-    {
-        return TransactionManager::getInstance().getEventStream(op);
+        Manager::getInstance().waitForAllTasks();
     }
 } // namespace pmacc::eventSystem
