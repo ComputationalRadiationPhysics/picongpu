@@ -71,6 +71,12 @@ namespace picongpu::fields::incidentField
                 static constexpr float_X endUpramp = TIME_PEAKPULSE - 0.5_X * LASER_NOFOCUS_CONSTANT;
                 static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5_X * LASER_NOFOCUS_CONSTANT;
 
+                /** Pulse duration
+                 *
+                 * unit: UNIT_TIME
+                 */
+                static constexpr float_X PREPULSE_DURATION
+                    = static_cast<float_X>(Params::PREPULSE_DURATION_SI / UNIT_TIME);
 
                 // compile-time checks for physical sanity:
                 static_assert(
@@ -108,15 +114,6 @@ namespace picongpu::fields::incidentField
                     || (ratio_dt >= 0.33_X && ri1 > ri2 * ri2 * ri2)
                     || (ratio_dt >= 0.25_X && ri1 > ri2 * ri2 * ri2 * ri2)
                     || (ratio_dt >= 0.2_X && ri1 > ri2 * ri2 * ri2 * ri2 * ri2);
-                static_assert(
-                    !intensity_too_big,
-                    "The intensities of the ramp are very large - the extrapolation to the time of the main "
-                    "pulse "
-                    "would give more than half of the pulse amplitude. This is not a Gaussian pulse at all "
-                    "anymore - probably some of the parameters are different from what you think!?");
-                //                static constexpr float_X INIT_TIME
-                //                    = static_cast<float_X>((TIME_PEAKPULSE + Params::RAMP_INIT *
-                //                    Base::PULSE_DURATION) / UNIT_TIME);
 
                 /* a symmetric pulse will be initialized at generation plane for
                  * a time of RAMP_INIT * PULSE_DURATION + LASER_NOFOCUS_CONSTANT = INIT_TIME.
@@ -226,7 +223,7 @@ namespace picongpu::fields::incidentField
                     env = 0._X;
                 else if(before_start)
                 {
-                    env = AMP_1 * gauss(runTime - Unitless::TIME_1);
+                    env = AMP_1 * gauss(runTime - Unitless::TIME_1, Unitless::PULSE_DURATION);
                 }
                 else if(before_peakpulse)
                 {
@@ -244,8 +241,9 @@ namespace picongpu::fields::incidentField
                     //        "and physically very unplausible, check the params for misunderstandings!");
                     //}
 
-                    env += (1._X - ramp_when_peakpulse) * gauss(runTime - Unitless::endUpramp);
-                    env += AMP_PREPULSE * gauss(runTime - Unitless::TIME_PREPULSE);
+                    env += (1._X - ramp_when_peakpulse)
+                        * gauss(runTime - Unitless::endUpramp, Unitless::PULSE_DURATION);
+                    env += AMP_PREPULSE * gauss(runTime - Unitless::TIME_PREPULSE, Unitless::PREPULSE_DURATION);
                     if(during_first_exp)
                         env += extrapolateExpo(Unitless::TIME_1, AMP_1, Unitless::TIME_2, AMP_2, runTime);
                     else
@@ -254,7 +252,7 @@ namespace picongpu::fields::incidentField
                 else if(!after_peakpulse)
                     env = 1.0_X;
                 else // after startDownramp
-                    env = gauss(runTime - Unitless::startDownramp);
+                    env = gauss(runTime - Unitless::startDownramp, Unitless::PULSE_DURATION);
                 return env;
             }
 
@@ -268,9 +266,9 @@ namespace picongpu::fields::incidentField
              * between 0 and 1, i.e. as multiple of the max value.
              * use as: amp_t = amp_0 * gauss( t - t_0 )
              */
-            HDINLINE static float_X gauss(float_X const t)
+            HDINLINE static float_X gauss(float_X const t, float_X const pulseDuration)
             {
-                auto const exponent = t / Unitless::PULSE_DURATION;
+                auto const exponent = t / pulseDuration;
                 return math::exp(-0.25_X * exponent * exponent);
             }
 
