@@ -23,50 +23,34 @@
 
 #include "picongpu/particles/collision/detail/ListEntry.hpp"
 
-namespace picongpu
+namespace picongpu::particles::collision::detail
 {
-    namespace particles
+    template<
+        typename T_FramePtr,
+        typename T_Worker,
+        typename T_ForEachCell,
+        typename T_EntryListArray,
+        typename T_Array,
+        typename T_Filter>
+    DINLINE void cellDensity(
+        T_Worker const& worker,
+        T_ForEachCell forEachCell,
+        T_EntryListArray& parCellList,
+        T_Array& densityArray,
+        T_Filter& filter)
     {
-        namespace collision
-        {
-            namespace detail
+        forEachCell(
+            [&](uint32_t const linearIdx)
             {
-                template<
-                    typename T_Worker,
-                    typename T_ForEach,
-                    typename T_FramePtr,
-                    typename T_ParBox,
-                    typename T_EntryListArray,
-                    typename T_Array,
-                    typename T_Filter>
-                DINLINE void cellDensity(
-                    T_Worker const& worker,
-                    T_ForEach forEach,
-                    T_FramePtr firstFrame,
-                    T_ParBox parBox,
-                    T_EntryListArray& parCellList,
-                    T_Array& densityArray,
-                    T_Filter& filter)
+                auto parAccess = parCellList.template getParticlesAccessor<T_FramePtr>(linearIdx);
+                uint32_t const numParInCell = parAccess.size();
+                float_X density(0.0);
+                for(uint32_t partIdx = 0; partIdx < numParInCell; partIdx++)
                 {
-                    forEach(
-                        [&](uint32_t const linearIdx)
-                        {
-                            uint32_t const numParInCell = parCellList[linearIdx].size;
-                            uint32_t* parListStart = parCellList[linearIdx].ptrToIndicies;
-                            float_X density(0.0);
-                            for(uint32_t ii = 0; ii < numParInCell; ii++)
-                            {
-                                auto particle = getParticle(parBox, firstFrame, parListStart[ii]);
-                                if(filter(worker, particle))
-                                {
-                                    density += particle[weighting_];
-                                }
-                            }
-                            densityArray[linearIdx] = density / CELL_VOLUME;
-                        });
+                    auto particle = parAccess[partIdx];
+                    density += particle[weighting_];
                 }
-
-            } // namespace detail
-        } // namespace collision
-    } // namespace particles
-} // namespace picongpu
+                densityArray[linearIdx] = density / CELL_VOLUME;
+            });
+    }
+} // namespace picongpu::particles::collision::detail

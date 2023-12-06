@@ -28,273 +28,385 @@
 #    include <mallocMC/mallocMC.hpp>
 #endif
 
-namespace picongpu
+namespace picongpu::particles::collision
 {
-    namespace particles
+    namespace detail
     {
-        namespace collision
+        /** Access all particles in a cell.
+         *
+         * An accessor provides access to all particles within a cell (NOT supercell).
+         *
+         * @tparam T_FramePtrType frame pointer type
+         */
+        template<typename T_FramePtrType>
+        struct ParticleAccessor
         {
-            namespace detail
+            T_FramePtrType* m_framePtrList = nullptr;
+            uint32_t* m_parIdxList = nullptr;
+            uint32_t m_numPars = 0u;
+
+            static constexpr uint32_t frameSize = T_FramePtrType::type::frameSize;
+
+            DINLINE ParticleAccessor(uint32_t* parIdxList, uint32_t const numParticles, T_FramePtrType* framePtrList)
+                : m_framePtrList(framePtrList)
+                , m_parIdxList(parIdxList)
+                , m_numPars(numParticles)
             {
-                /* Storage for particle IDs.
-                 *
-                 * Storage for IDs of collision eligible macro particles. It comes with a simple
-                 * shuffling algorithm.
-                 */
-                struct ListEntry
-                {
-                    //! Size of the particle list (number of stored IDs).
-                    uint32_t size;
-                    //! Pointer to the actual data stored on the device heap.
-                    uint32_t* ptrToIndicies;
+            }
 
-                    /* Initialize storage, allocate memory.
-                     *
-                     * @param acc alpaka accelerator
-                     * @param deviceHeapHandle Heap handle used for allocating storage on device.
-                     * @param numPar maximal number of IDs to be stored in the list.
-                     */
-                    template<typename T_Worker, typename T_DeviceHeapHandle>
-                    DINLINE void init(T_Worker const& worker, T_DeviceHeapHandle& deviceHeapHandle, uint32_t numPar)
+            /** Number of particles within the cell
+             */
+            DINLINE uint32_t size() const
+            {
+                return m_numPars;
+            }
+
+            /** get particle
+             *
+             * @param idx index of the particle, range [0;size())
+             */
+            DINLINE auto operator[](uint32_t idx) const
+            {
+                const uint32_t inSuperCellIdx = m_parIdxList[idx];
+                return m_framePtrList[inSuperCellIdx / frameSize][inSuperCellIdx % frameSize];
+            }
+        };
+
+        /* Storage for particle.
+         *
+         * Storage for particles of collision eligible macro particles. It comes with a simple
+         * shuffling algorithm.
+         */
+        template<uint32_t T_numElem>
+        struct ListEntry
+        {
+        private:
+            // contiguous particle indices
+            memory::Array<uint32_t*, T_numElem> particleList;
+
+            //! number of particles per cell
+            memory::Array<uint32_t, T_numElem> numParticles;
+
+            /** Frame pointer array.
+             *
+             * A Frame pointer contains only a pointer therefore storing data as void* is allowed (but not
+             * nice). This keeps the ListEntry signature equal for all species.
+             */
+            void** framePtr = nullptr;
+
+        public:
+            DINLINE uint32_t& size(uint32_t cellIdx)
+            {
+                return numParticles[cellIdx];
+            }
+
+            template<typename T_FramePtrType>
+            DINLINE T_FramePtrType& frameData(uint32_t frameIdx)
+            {
+                static_assert(sizeof(void*) == sizeof(T_FramePtrType));
+                return reinterpret_cast<T_FramePtrType*>(framePtr)[frameIdx];
+            }
+
+            /** Get particle index array.
+             *
+             * @param cellIdx index of the cell within the supercell
+             */
+            DINLINE uint32_t* particleIds(uint32_t cellIdx)
+            {
+                return particleList[cellIdx];
+            }
+
+            /* Initialize storage, allocate memory.
+             *
+             * @attention This is a collective method and must be called by any worker.
+             *            Worker will not be synchronized.
+             *
+             * @param worker alpaka accelerator
+             * @param deviceHeapHandle heap handle used for allocating storage on device
+             * @param bp particle box
+             * @param superCellIdx supercell index, relative to the guard origin
+             * @param numParArray array with number of particles for each cell
+             */
+            template<
+                typename T_Worker,
+                typename T_DeviceHeapHandle,
+                typename T_ParticlesBox,
+                typename T_NumParticlesArray>
+            DINLINE void init(
+                T_Worker const& worker,
+                T_DeviceHeapHandle& deviceHeapHandle,
+                T_ParticlesBox pb,
+                DataSpace<simDim> superCellIdx,
+                T_NumParticlesArray& numParArray)
+            {
+                constexpr uint32_t frameSize = T_ParticlesBox::frameSize;
+                auto onlyMaster = lockstep::makeMaster(worker);
+                onlyMaster(
+                    [&]()
                     {
-                        ptrToIndicies = nullptr;
-                        if(numPar != 0u)
+                        auto& superCell = pb.getSuperCell(superCellIdx);
+                        uint32_t numParticlesInSupercell = superCell.getNumParticles();
+
+                        uint32_t numFrames = (numParticlesInSupercell + frameSize - 1u) / frameSize;
+                        constexpr uint32_t framePtrBytes = sizeof(typename T_ParticlesBox::FramePtr);
+
+                        // Chunk size in bytes based on the typical initial number of frames within a supercell.
+                        constexpr uint32_t frameListChunkSize = cellListChunkSize * framePtrBytes;
+                        framePtr = (void**)
+                            allocMem<frameListChunkSize>(worker, numFrames * framePtrBytes, deviceHeapHandle);
+
+                        auto frame = pb.getFirstFrame(superCellIdx);
+                        uint32_t frameId = 0u;
+                        while(frame.isValid())
                         {
-                            const int maxTries = 13; // magic number is not performance critical
-                            for(int numTries = 0; numTries < maxTries; ++numTries)
-                            {
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP) // Allocate memory on a GPU device
-                                static_assert(
-                                    cellListChunkSize != 0u,
-                                    "collision::cellListChunkSize must be non zero!");
-                                /* Round-up the number of slots up to an mutiple of the typical amount of particles of
-                                 * a cell. This will waist memory but is avoiding that the mallocMC heap is fragmented
-                                 * which often results into out of memory crashes even if the amount of particles in
-                                 * the simulation is small.
-                                 */
-                                uint32_t const allocateNumParticles
-                                    = ((numPar + cellListChunkSize - 1u) / cellListChunkSize) * cellListChunkSize;
-                                uint32_t const allocationBytes = sizeof(uint32_t) * allocateNumParticles;
-                                ptrToIndicies = (uint32_t*) deviceHeapHandle.malloc(worker.getAcc(), allocationBytes);
-#else // No cuda or hip means the device heap is the host heap.
-                                ptrToIndicies = new uint32_t[numPar];
-#endif
-                                if(ptrToIndicies != nullptr)
-                                {
-                                    break;
-                                }
-                            }
-                            PMACC_DEVICE_VERIFY_MSG(
-                                ptrToIndicies != nullptr,
-                                "Error: Out of device heap memory in %s:%u\n",
-                                __FILE__,
-                                __LINE__);
+                            frameData<decltype(frame)>(frameId) = frame;
+                            frame = pb.getNextFrame(frame);
+                            ++frameId;
                         }
-                        // reset counter
-                        size = 0u;
-                    }
-
-                    /* Release allocated heap memory.
-                     *
-                     * @param acc alpaka accelerator
-                     * @param deviceHeapHandle Heap handle used for allocating storage on device.
-                     */
-                    template<typename T_Worker, typename T_DeviceHeapHandle>
-                    DINLINE void finalize(T_Worker const& worker, T_DeviceHeapHandle& deviceHeapHandle)
+                    });
+                auto forEachCell = lockstep::makeForEach<T_numElem>(worker);
+                // memory for particle indices
+                forEachCell(
+                    [&](uint32_t const cellIdx)
                     {
-                        if(ptrToIndicies != nullptr)
+                        particleList[cellIdx] = nullptr;
+                        // reset class counter
+                        numParticles[cellIdx] = 0u;
+                        uint32_t numParsInCell = numParArray[cellIdx];
+
+                        // Chunk size in bytes based on the typical initial number particles per cell.
+                        constexpr uint32_t chunkSizePerCell = cellListChunkSize * sizeof(uint32_t);
+                        particleList[cellIdx] = (uint32_t*)
+                            allocMem<chunkSizePerCell>(worker, sizeof(uint32_t) * numParsInCell, deviceHeapHandle);
+                    });
+            }
+
+            /* Update cell particle index list
+             *
+             * Update the contiguous index list per cell with particle indices.
+             */
+            template<typename T_Worker, typename T_ForEachFrame, typename T_Filter>
+            DINLINE void updateLinkedList(T_Worker const& worker, T_ForEachFrame forEachFrame, T_Filter& filter)
+            {
+                uint32_t frameIdx = 0u;
+
+                forEachFrame(
+                    [&](auto const& lockstepWorker, auto& frameCtx)
+                    {
+                        // loop over all particles in the frame
+                        auto forEachParticleInFrame = forEachFrame.lockstepForEach();
+
+                        forEachParticleInFrame(
+                            [&](uint32_t const linearIdx, auto& frame)
+                            {
+                                auto particle = frame[linearIdx];
+
+                                if(particle[multiMask_] != 0 && filter(worker, particle))
+                                {
+                                    auto parLocalIndex = particle[localCellIdx_];
+                                    uint32_t parOffset = cupla::atomicAdd(
+                                        worker.getAcc(),
+                                        &size(parLocalIndex),
+                                        1u,
+                                        ::alpaka::hierarchy::Threads{});
+                                    uint32_t const parInSuperCellIdx = frameIdx * numFrameSlots + linearIdx;
+                                    particleIds(parLocalIndex)[parOffset] = parInSuperCellIdx;
+                                }
+                                ++frameIdx;
+                            },
+                            frameCtx);
+                    });
+            }
+
+            /* Release allocated heap memory.
+             *
+             * @param acc alpaka accelerator
+             * @param deviceHeapHandle Heap handle used for allocating storage on device.
+             */
+            template<typename T_Worker, typename T_DeviceHeapHandle>
+            DINLINE void finalize(T_Worker const& worker, T_DeviceHeapHandle& deviceHeapHandle)
+            {
+                auto onlyMaster = lockstep::makeMaster(worker);
+                onlyMaster(
+                    [&]()
+                    {
+                        if(framePtr != nullptr)
                         {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-                            deviceHeapHandle.free(worker.getAcc(), (void*) ptrToIndicies);
-                            ptrToIndicies = nullptr;
+                            deviceHeapHandle.free(worker.getAcc(), (void*) framePtr);
 #else
-                            delete(ptrToIndicies);
+                            delete(framePtr);
 #endif
+                            framePtr = nullptr;
                         }
-                    }
-
-
-                    /* Shuffle list entries.
-                     *
-                     * @param worker lockstep worker
-                     * @param rngHandle random number generator handle
-                     */
-                    template<typename T_Worker, typename T_RngHandle>
-                    DINLINE void shuffle(T_Worker const& worker, T_RngHandle& rngHandle)
+                    });
+                auto forEachCell = lockstep::makeForEach<T_numElem>(worker);
+                // memory for particle indices
+                forEachCell(
+                    [&](uint32_t const cellIdx)
                     {
-                        using UniformUint32_t = pmacc::random::distributions::Uniform<uint32_t>;
-                        auto rng = rngHandle.template applyDistribution<UniformUint32_t>();
-                        // shuffle the particle lookup table
-                        for(uint32_t i = size; i > 1; --i)
+                        if(particleList[cellIdx] != nullptr)
                         {
-                            /* modulo is not perfect but okish,
-                             * because of the loop head mod zero is not possible
-                             */
-                            uint32_t p = rng(worker) % i;
-                            if(i - 1 != p)
-                                swap(ptrToIndicies[i - 1], ptrToIndicies[p]);
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+                            deviceHeapHandle.free(worker.getAcc(), (void*) particleList[cellIdx]);
+#else
+                            delete(particleList[cellIdx]);
+#endif
+                            particleList[cellIdx] = nullptr;
+                        }
+                    });
+            }
+
+
+            /** Creates an accessor to access particles within a cell
+             *
+             * @tparam T_FramePtrType
+             * @param cellIdx cell index within the supercell, range [0, number of cells in supercell)
+             * @return accessor to access particles via index
+             */
+            template<typename T_FramePtrType>
+            DINLINE auto getParticlesAccessor(uint32_t cellIdx)
+            {
+                return ParticleAccessor<T_FramePtrType>(
+                    particleIds(cellIdx),
+                    size(cellIdx),
+                    reinterpret_cast<T_FramePtrType*>(framePtr));
+            }
+
+        private:
+            /** Allocate a chunk of memory
+             *
+             * @tparam T_chunkBytes number of bytes, the allocated size will be a multiple of the chunk bytes
+             * size
+             * @param bytes number of bytes to allocate
+             * @return pointer to allocated data, nullptr in case bytes is zero or there is not enough memory
+             * in the heap available.
+             */
+            template<uint32_t T_chunkBytes, typename T_DeviceHeapHandle, typename T_Worker>
+            DINLINE void* allocMem(T_Worker const& worker, uint32_t const bytes, T_DeviceHeapHandle& deviceHeapHandle)
+            {
+                void* ptr = nullptr;
+                uint32_t const numChunks = (bytes + T_chunkBytes - 1u) / T_chunkBytes;
+                uint32_t const allocBytes = numChunks * T_chunkBytes;
+                if(bytes != 0u)
+                {
+                    const int maxTries = 13; // magic number is not performance critical
+                    for(int numTries = 0; numTries < maxTries; ++numTries)
+                    {
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+                        ptr = deviceHeapHandle.malloc(worker.getAcc(), allocBytes);
+#else // No cuda or hip means the device heap is the host heap.
+                        return (void**) new uint8_t[allocBytes];
+#endif
+
+                        if(ptr != nullptr)
+                        {
+                            break;
                         }
                     }
-
-
-                private:
-                    /* Swap two list entries.
-                     *
-                     * @param v0 index of the 1st entry to swap
-                     * @param v0 index of the 2nd entry to swap
-                     */
-                    DINLINE void swap(uint32_t& v0, uint32_t& v1)
-                    {
-                        uint32_t tmp = v0;
-                        v0 = v1;
-                        v1 = tmp;
-                    }
-                };
-
-                // TODO: simplify (maybe crate a class and inject all the required stuff as private references?), Check
-                // const, & etc.
-                //! Counting particles per grid frame
-                template<
-                    typename T_Worker,
-                    typename T_ForEach,
-                    typename T_ParBox,
-                    typename T_FramePtr,
-                    typename T_Array,
-                    typename T_Filter>
-                DINLINE void particlesCntHistogram(
-                    T_Worker const& worker,
-                    T_ForEach forEach,
-                    T_ParBox& parBox,
-                    T_FramePtr frame,
-                    uint32_t const numParticlesInSupercell,
-                    T_Array& nppc,
-                    T_Filter& filter)
-                {
-                    constexpr uint32_t frameSize = T_ParBox::frameSize;
-
-                    for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
-                    {
-                        forEach(
-                            [&](uint32_t const linearIdx)
-                            {
-                                if(i + linearIdx < numParticlesInSupercell)
-                                {
-                                    auto particle = frame[linearIdx];
-                                    if(filter(worker, particle))
-                                    {
-                                        auto parLocalIndex = particle[localCellIdx_];
-                                        cupla::atomicAdd(
-                                            worker.getAcc(),
-                                            &nppc[parLocalIndex],
-                                            1u,
-                                            ::alpaka::hierarchy::Threads{});
-                                    }
-                                }
-                            });
-                        frame = parBox.getNextFrame(frame);
-                    }
+                    PMACC_DEVICE_VERIFY_MSG(
+                        ptr != nullptr,
+                        "Error: Out of device heap memory in %s:%u\n",
+                        __FILE__,
+                        __LINE__);
                 }
+                return ptr;
+            }
+        };
 
-                /* Fills parCellList with new particles.
-                 * parCellList stores a list of particles for each grid cell and the
-                 * index in the supercell for each particle.
+        //! Count number of particles per cell in the supercell
+        template<typename T_Worker, typename T_ForEachParticle, typename T_Array, typename T_Filter>
+        DINLINE void particlesCntHistogram(
+            T_Worker const& worker,
+            T_ForEachParticle forEachParticle,
+            T_Array& nppc,
+            T_Filter& filter)
+        {
+            forEachParticle(
+                [&](auto const& lockstepWorker, auto& particle)
+                {
+                    if(filter(worker, particle))
+                    {
+                        auto parLocalIndex = particle[localCellIdx_];
+                        cupla::atomicAdd(worker.getAcc(), &nppc[parLocalIndex], 1u, ::alpaka::hierarchy::Threads{});
+                    }
+                });
+        }
+
+        /* Swap two list entries.
+         *
+         * @param v0 index of the 1st entry to swap
+         * @param v1 index of the 2nd entry to swap
+         */
+        DINLINE void swap(uint32_t& v0, uint32_t& v1)
+        {
+            uint32_t tmp = v0;
+            v0 = v1;
+            v1 = tmp;
+        }
+
+        /* Shuffle list entries
+         *
+         * Shuffle the given array with indices.
+         *
+         * @param worker lockstep worker
+         * @param ptr pointer to a list of indices
+         * @param numElements number of particles accessible via ptr
+         * @param rngHandle random number generator handle
+         */
+        template<typename T_Worker, typename T_RngHandle>
+        DINLINE void shuffle(T_Worker const& worker, uint32_t* ptr, uint32_t numElements, T_RngHandle& rngHandle)
+        {
+            using UniformUint32_t = pmacc::random::distributions::Uniform<uint32_t>;
+            auto rng = rngHandle.template applyDistribution<UniformUint32_t>();
+            // shuffle the particle lookup table
+            for(uint32_t i = numElements; i > 1; --i)
+            {
+                /* modulo is not perfect but okish,
+                 * because of the loop head mod zero is not possible
                  */
-                template<
-                    typename T_Worker,
-                    typename T_ForEach,
-                    typename T_ParBox,
-                    typename T_FramePtr,
-                    typename T_EntryListArray,
-                    typename T_Filter>
-                DINLINE void updateLinkedList(
-                    T_Worker const& worker,
-                    T_ForEach forEach,
-                    T_ParBox& parBox,
-                    T_FramePtr frame,
-                    uint32_t const numParticlesInSupercell,
-                    T_EntryListArray& parCellList,
-                    T_Filter& filter)
-                {
-                    constexpr uint32_t frameSize = T_ParBox::frameSize;
-                    for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
-                    {
-                        forEach(
-                            [&](uint32_t const linearIdx)
-                            {
-                                uint32_t const parInSuperCellIdx = i + linearIdx;
-                                if(parInSuperCellIdx < numParticlesInSupercell)
-                                {
-                                    auto particle = frame[linearIdx];
-                                    if(filter(worker, particle))
-                                    {
-                                        auto parLocalIndex = particle[localCellIdx_];
-                                        uint32_t parOffset = cupla::atomicAdd(
-                                            worker.getAcc(),
-                                            &parCellList[parLocalIndex].size,
-                                            1u,
-                                            ::alpaka::hierarchy::Threads{});
-                                        parCellList[parLocalIndex].ptrToIndicies[parOffset] = parInSuperCellIdx;
-                                    }
-                                }
-                            });
-                        frame = parBox.getNextFrame(frame);
-                    }
-                }
+                uint32_t p = rng(worker) % i;
+                if(i - 1 != p)
+                    detail::swap(ptr[i - 1], ptr[p]);
+            }
+        }
 
-                template<typename T_ParBox, typename T_FramePtr>
-                DINLINE auto getParticle(T_ParBox& parBox, T_FramePtr frame, uint32_t particleId) ->
-                    typename T_FramePtr::type::ParticleType
-                {
-                    constexpr int frameSize = T_ParBox::frameSize;
-                    uint32_t const skipFrames = particleId / frameSize;
-                    for(uint32_t i = 0; i < skipFrames; ++i)
-                        frame = parBox.getNextFrame(frame);
-                    return frame[particleId % frameSize];
-                }
+        template<
+            typename T_Worker,
+            typename T_ForEachCell,
+            typename T_ParticlesBox,
+            typename T_DeviceHeapHandle,
+            typename T_Array,
+            typename T_Filter,
+            uint32_t T_numListEntryCells>
+        DINLINE void prepareList(
+            T_Worker const& worker,
+            T_ForEachCell forEachCell,
+            T_ParticlesBox pb,
+            DataSpace<simDim> superCellIdx,
+            T_DeviceHeapHandle deviceHeapHandle,
+            ListEntry<T_numListEntryCells>& listEntrys,
+            T_Array& nppc,
 
-                template<
-                    typename T_Worker,
-                    typename T_ForEach,
-                    typename T_DeviceHeapHandle,
-                    typename T_ParBox,
-                    typename T_FramePtr,
-                    typename T_EntryListArray,
-                    typename T_Array,
-                    typename T_Filter>
-                DINLINE void prepareList(
-                    T_Worker const& worker,
-                    T_ForEach forEach,
-                    T_DeviceHeapHandle deviceHeapHandle,
-                    T_ParBox& parBox,
-                    T_FramePtr firstFrame,
-                    uint32_t const numParticlesInSupercell,
-                    T_EntryListArray& parCellList,
-                    T_Array& nppc,
-                    T_Filter filter)
-                {
-                    // Initialize nppc with zeros.
-                    forEach([&](uint32_t const linearIdx) { nppc[linearIdx] = 0u; });
-                    worker.sync();
-                    // Count eligible
-                    particlesCntHistogram(worker, forEach, parBox, firstFrame, numParticlesInSupercell, nppc, filter);
-                    worker.sync();
-
-                    // memory for particle indices
-                    forEach([&](uint32_t const linearIdx)
-                            { parCellList[linearIdx].init(worker, deviceHeapHandle, nppc[linearIdx]); });
-                    worker.sync();
-
-                    detail::updateLinkedList(
-                        worker,
-                        forEach,
-                        parBox,
-                        firstFrame,
-                        numParticlesInSupercell,
-                        parCellList,
-                        filter);
-                    worker.sync();
-                }
-            } // namespace detail
-        } // namespace collision
-    } // namespace particles
-} // namespace picongpu
+            T_Filter filter)
+        {
+            // Initialize nppc with zeros.
+            forEachCell([&](uint32_t const linearIdx) { nppc[linearIdx] = 0u; });
+            worker.sync();
+            // Count eligible
+            auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
+            particlesCntHistogram(worker, forEachParticle, nppc, filter);
+            worker.sync();
+            // memory for particle indices
+            listEntrys.init(worker, deviceHeapHandle, pb, superCellIdx, nppc);
+            worker.sync();
+            auto forEachFrame
+                = pmacc::particles::algorithm::acc::makeForEachFrame<pmacc::particles::algorithm::acc::Forward>(
+                    worker,
+                    pb,
+                    superCellIdx);
+            listEntrys.updateLinkedList(worker, forEachFrame, filter);
+            worker.sync();
+        }
+    } // namespace detail
+} // namespace picongpu::particles::collision
