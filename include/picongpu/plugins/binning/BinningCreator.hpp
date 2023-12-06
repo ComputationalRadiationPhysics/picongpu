@@ -35,10 +35,10 @@ namespace picongpu
         {
         public:
             MappingDesc* cellDescription;
-            std::vector<std::unique_ptr<INotify>>& binnerVector;
+            std::vector<std::unique_ptr<IPlugin>>& binnerVector;
 
         public:
-            BinningCreator(std::vector<std::unique_ptr<INotify>>& binVec, MappingDesc* cellDesc)
+            BinningCreator(std::vector<std::unique_ptr<IPlugin>>& binVec, MappingDesc* cellDesc)
                 : cellDescription{cellDesc}
                 , binnerVector{binVec}
             {
@@ -46,7 +46,8 @@ namespace picongpu
 
             /**
              * Creates a binner from user input and adds it to the vector of all binners
-             * @param binnerOutputName filename for openPMD output
+             * @param binnerOutputName filename for openPMD output. It must be unique or will cause overwrites during
+             * data dumps
              * @param axisTupleObject tuple holding the axes
              * @param speciesTupleObject tuple holding the species to do the binning with
              * @param depositionData functorDescription of the deposited quantity
