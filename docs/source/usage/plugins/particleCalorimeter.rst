@@ -94,10 +94,9 @@ as on accelerator.
 Output
 ^^^^^^
 
-The calorimeters are stored in hdf5-files in the ``simOutput/<species>_calorimeter/<filter>/`` directory.
-The file names are ``<species>_calorimeter_<file>_<sfilter>_<timestep>.h5``.
+The calorimeters are stored in openPMD-files in the ``simOutput/<species>_calorimeter/`` directory.
+The file names are ``<species>_calorimeter_<sfilter>_<timestep>.<file_ending>``.
 
-The dataset within the hdf5-file is located at ``/data/<timestep>/meshes/calorimeter``.
 Depending on whether energy binning is enabled the dataset is two or three dimensional.
 The dataset has the following attributes:
 
@@ -154,19 +153,29 @@ Analysis Tools
 The first bin of the energy axis of the calorimeter contains all particle energy less than the minimal detectable energy whereas the last bin contains all particle energy greater than the maximal detectable energy.
 The inner bins map to the actual energy range of the calorimeter.
 
-Sample script for plotting the spatial distribution and the energy distribution:
+To easily access the data, you can use our python module located in ``lib/python/picongpu/extra/plugins/data/calorimeter.py``
 
 .. code:: python
 
-   f = h5.File("<path-to-hdf5-file>")
-   calorimeter = np.array(f["/data/<timestep>/calorimeter"])
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-   # spatial energy distribution
-   # sum up the energy spectrum
-   plt.imshow(np.sum(calorimeter, axis=0))
-   plt.show()
+    from calorimeter import particleCalorimeter
 
-   # energy spectrum
-   # sum up all solid angles
-   plt.plot(np.sum(calorimeter, axis=(1,2)))
-   plt.show()
+    # setup access to data
+    calObj = particleCalorimeter("./simOutput/e_calorimeter/e_calorimeter_all_%T.bp")
+
+    # last bin contains overflow
+    selected_energy_bin = -1
+
+    plt.title("selected energy: >{:.1f} keV".format(calObj.getEnergy()[selected_energy_bin]), fontsize=18)
+
+    plt.pcolormesh(calObj.getYaw(), calObj.getPitch(), calObj.getData(2000)[selected_energy_bin, :, :])
+
+    plt.xlabel(calObj.detector_params["axisLabels"][-1] + r" $[^\circ]$", fontsize=18)
+    plt.ylabel(calObj.detector_params["axisLabels"][-2] + r" $[^\circ]$", fontsize=18)
+
+    cb = plt.colorbar()
+    cb.set_label("energy [keV]", fontsize=18)
+
+    plt.show()
