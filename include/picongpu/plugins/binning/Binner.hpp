@@ -24,6 +24,8 @@
 #include "picongpu/plugins/binning/WriteHist.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
+#include <pmacc/mpi/MPIReduce.hpp>
+
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -130,13 +132,14 @@ namespace picongpu
         }
 
         template<typename TBinningData>
-        class Binner : public INotify
+        class Binner : public IPlugin
         {
             using TDepositedQuantity = typename TBinningData::DepositedQuantityType;
 
             friend class BinningCreator;
 
         private:
+            std::string pluginName; /** @brief name used for restarts */
             TBinningData binningData;
             MappingDesc* cellDescription;
             std::unique_ptr<HostDeviceBuffer<TDepositedQuantity, 1>> histBuffer;
@@ -149,15 +152,13 @@ namespace picongpu
         public:
             Binner(TBinningData bd, MappingDesc* cellDesc) : binningData{bd}, cellDescription{cellDesc}
             {
-                Environment<>::get().PluginConnector().setNotificationPeriod(this, binningData.notifyPeriod);
-
+                this->pluginName = "binner_" + binningData.binnerOutputName;
                 /**
                  * Allocate and manage global histogram memory here, to facilitate time averaging
                  * @todo for auto n_bins. allocate full size buffer here. dont init axisExtents yet
                  */
                 this->histBuffer = std::make_unique<HostDeviceBuffer<TDepositedQuantity, 1>>(
                     binningData.axisExtentsND.productOfComponents());
-                this->histBuffer->getDeviceBuffer().setValue(TDepositedQuantity(0.0));
             }
 
             ~Binner() override
@@ -271,16 +272,21 @@ namespace picongpu
                 }
             }
 
-            void restart(uint32_t restartStep, const std::string restartDirectory)
+            void pluginRegisterHelp(po::options_description& desc) override
             {
-                /* restart from a checkpoint here
-                 * will be called only once per simulation and before notify() */
             }
 
-            void checkpoint(uint32_t currentStep, const std::string restartDirectory)
+            std::string pluginGetName() const override
             {
-                /* create a persistent checkpoint here
-                 * will be called before notify() if both will be called for the same timestep */
+                return pluginName;
+            }
+
+            void checkpoint(uint32_t currentStep, const std::string restartDirectory) override
+            {
+            }
+
+            void restart(uint32_t restartStep, const std::string restartDirectory) override
+            {
             }
 
         private:
@@ -330,6 +336,11 @@ namespace picongpu
 
                 PMACC_LOCKSTEP_KERNEL(functorBlock, workerCfg)
                 (mapper.getGridDim())(mapper);
+            }
+
+            void pluginLoad() override
+            {
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, binningData.notifyPeriod);
             }
         };
 

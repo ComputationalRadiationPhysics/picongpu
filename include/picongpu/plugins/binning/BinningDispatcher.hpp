@@ -38,7 +38,8 @@ namespace picongpu
         {
         private:
             std::string pluginName;
-            std::vector<std::unique_ptr<INotify>> binnerVector;
+            std::vector<std::unique_ptr<IPlugin>> binnerVector;
+            MappingDesc* cellDescription;
 
         public:
             // constructor doesn't know command line arguments if any, use pluginLoad to finish initialization
@@ -63,13 +64,9 @@ namespace picongpu
              * Create the binners
              * Set mapping Description for the "dispatched" binners
              */
-            void setMappingDescription(MappingDesc* cellDescription) override
+            void setMappingDescription(MappingDesc* cellDesc) override
             {
-                /**
-                 * Create and register Binning Plugins
-                 */
-                BinningCreator binningCreator{binnerVector, cellDescription};
-                getBinning(binningCreator);
+                this->cellDescription = cellDesc;
             }
 
             void restart(uint32_t restartStep, const std::string restartDirectory) override
@@ -88,9 +85,20 @@ namespace picongpu
             {
             }
 
-        private:
+        protected:
             void pluginLoad() override
             {
+                /**
+                 * Create Binning Plugins
+                 */
+                BinningCreator binningCreator{binnerVector, cellDescription};
+                getBinning(binningCreator);
+
+                /** Register Binning Plugins for notification*/
+                for(auto&& binner : binnerVector)
+                {
+                    binner->load();
+                }
             }
         };
     } // namespace plugins::binning
