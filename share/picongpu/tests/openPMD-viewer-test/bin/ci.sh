@@ -84,7 +84,7 @@ if [ $ret_build -eq 0 ] ; then
 
   # use absolut path's
   simPath=$(absolute_path $simPath)
-  
+
   cd $simPath
   echo "Run!"
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 32 32 12 --periodic 1 1 1 -s 1 \
@@ -113,4 +113,4 @@ echo $dataPath
 #fi
 
 exit $ret
-  
+

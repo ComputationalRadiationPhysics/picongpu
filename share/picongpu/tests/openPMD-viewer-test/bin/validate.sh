@@ -48,7 +48,7 @@ done
 
 if [ -d "./lib/python/test/" ] ; then
    MAINTEST="./lib/python/test"
-  if [ -z "$dataPath" ] ; then  
+  if [ -z "$dataPath" ] ; then
       dataPath=$0/../simOutput/openPMD
   fi
   python3 $MAINTEST/param-test.py -r $dataPath
