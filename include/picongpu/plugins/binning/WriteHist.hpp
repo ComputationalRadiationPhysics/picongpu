@@ -37,8 +37,11 @@ namespace picongpu
 {
     namespace plugins::binning
     {
-        struct WriteOpenPMDParams
+        struct OpenPMDWriteParams
         {
+            std::string const& dir;
+            std::string const& outputName;
+            std::string const& infix;
             std::string const& extension;
             std::string const& jsonConfig;
         };
@@ -53,20 +56,20 @@ namespace picongpu
             template<typename T_Type, typename T_BinningData>
             void operator()(
                 std::optional<::openPMD::Series>& maybe_series,
+                OpenPMDWriteParams params,
                 std::unique_ptr<HostBuffer<T_Type, 1u>> hReducedBuffer,
                 T_BinningData binningData,
-                std::string const& dir,
-                std::array<double, 7> outputUnits,
+                const std::array<double, 7>& outputUnits,
                 const uint32_t currentStep)
             {
                 using Type = T_Type;
 
                 if(!maybe_series.has_value())
                 {
-                    auto const& extension = binningData.openPMDExtension;
+                    auto const& extension = params.extension;
                     std::ostringstream filename;
-                    filename << binningData.binnerOutputName;
-                    if(auto& infix = binningData.openPMDInfix; !infix.empty())
+                    filename << params.outputName;
+                    if(auto& infix = params.infix; !infix.empty())
                     {
                         if(*infix.begin() != '_')
                         {
@@ -90,13 +93,15 @@ namespace picongpu
                         filename << '.' << extension;
                     }
 
-                    maybe_series = ::openPMD::Series(dir + '/' + filename.str(), ::openPMD::Access::CREATE);
+                    maybe_series = ::openPMD::Series(
+                        params.dir + '/' + filename.str(),
+                        ::openPMD::Access::CREATE,
+                        params.jsonConfig);
                 }
 
                 auto& series = *maybe_series;
 
                 /* begin recommended openPMD global attributes */
-                // series.setMeshesPath(meshesPathName);
                 const std::string software("PIConGPU");
                 std::stringstream softwareVersion;
                 softwareVersion << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "."
