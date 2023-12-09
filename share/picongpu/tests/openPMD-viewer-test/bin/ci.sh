@@ -16,11 +16,16 @@ help()
   echo "Execute a simple simulation and add the input data into the dictionary."
   echo "The openPMD-viewer readout is validated against your input data."
   echo ""
-  echo "Usage: ci.sh"
+  echo "Usage: ci.sh [-d dataPath] [inputSetPath] [destinationPath]"
   echo ""
   echo "Options"
   echo "-h | --help                   - show help"
   echo ""
+  echo "  inputSetPath                         - path to the simulation input set"
+  echo "                                         Default: current directory"
+  echo "  destinationPath                      - path to the destination where the input set is cloned to via"
+  echo "                                         'pic-create'"
+  echo "                                         Default: current directory"
 }
 
 ## not used at the moment
@@ -58,59 +63,72 @@ done
 ############################
 ## build and run picongpu ##
 ############################
-if [ -d "./include" ] ; then
-  rm -r ~/tmp_test
-  pic-create . ~/tmp_test
-  cd ~/tmp_test
+if [ $# -eq 2 ] ; then
+  inputSetPath=$1
+  inputDestinationPath=$2
+else
+  echo -e "$(help)"
+fi
+
+if [ -d "$inputSetPath/include" ] ; then
+  if [ -d "$inputDestinationPath" ] ; then
+    echo "Output directory $inputDestinationPath exists" >&2
+    echo "Please remove" >&2
+    exit 1
+  fi
+  pic-create $inputSetPath $inputDestinationPath
+  cd $inputDestinationPath
   pic-build
   ret_build=$?
 
 else
-  echo "Execute ci.sh from the directory where the simulation include dir is located!"
-  exit 1
+  echo "Input path $inputSetPath does not contain an include directory" >&2
+  exit 2
 fi
 
 if [ $ret_build -eq 0 ] ; then
-  ## create simulation data directory
-  date_stamp=$(date +"%F-%h-%M-%S")
-  simPath="./simOutput_$date_stamp"
+  for backend in bp h5
+  do
+      ## create simulation data directory
+      date_stamp=$(date +"%F-%h-%M-%S")
+      simPath="./simOutput_$date_stamp"
 
-  if [ -d "$simPath" ] ; then
-      echo "Destination path already in use, cannot create new folder" >&2
-      exit 1
-  fi
+      if [ -d "$simPath" ] ; then
+          echo "Simulation path already in use, cannot create new folder" >&2
+          exit 3
+      fi
 
-  mkdir -p $simPath
+      mkdir -p $simPath
 
-  # use absolut path's
-  simPath=$(absolute_path $simPath)
+      # use absolut path's
+      simPath=$(absolute_path $simPath)
 
-  cd $simPath
-  echo "Run!"
-  mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 32 32 12 --periodic 1 1 1 -s 1 \
-  --openPMD.period 1 --openPMD.ext h5 --openPMD.file simData
+      cd $simPath
+      echo "Run backend " $backend "!"
+      mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 32 32 12 --periodic 1 1 1 -s 1 \
+      --openPMD.period 1 --openPMD.ext $backend --openPMD.file simData
 
-  cd ..
+      cd ..
 
-  dataPath=$(absolute_path "$simPath/openPMD")
-  #dataPath='/home/lehman14/picongpu-projects/tinkering/ki/run07/simOutput/openPMD/'
+      dataPath=$(absolute_path "$simPath/openPMD")
+      #################################
+      ## validate simulation results ##
+      #################################
+      if [ -d $dataPath ] ; then
+          echo "Validate backend " $backend " !"
+          ./bin/validate.sh -d "$dataPath"
+      fi
+      ret=$?
+      if [ $ret -neq 0 ], then
+          echo "error when validating backend: " $backend
+          exit $ret
+      fi
+  done      
 fi
 
 
-#################################
-## validate simulation results ##
-#################################
-if [ -d $dataPath ] ; then
-    echo "Validate!"
-    module unload openpmd
-    ./bin/validate.sh -d "$dataPath"
-fi
-ret=$?
-echo $dataPath
-## clean up
-#if [ -d $simPath ] ; then
-#    rm -r $simPath
-#fi
+exit $ret      
+      
 
-exit $ret
+
 
