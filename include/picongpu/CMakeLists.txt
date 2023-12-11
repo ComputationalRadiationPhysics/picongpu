@@ -542,7 +542,7 @@ if(PIC_HAVE_openPMD)
     if(openPMD_HAVE_ADIOS2)
         foreach(target picongpu picongpu-hostonly)
             target_compile_definitions(
-                picongpu
+                ${target}
                 PRIVATE
                 ADIOS2_VERSION_MAJOR=${ADIOS2_VERSION_MAJOR}
                 ADIOS2_VERSION_MINOR=${ADIOS2_VERSION_MINOR}
