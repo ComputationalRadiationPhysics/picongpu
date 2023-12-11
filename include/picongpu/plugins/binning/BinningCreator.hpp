@@ -47,7 +47,7 @@ namespace picongpu
             /**
              * Creates a binner from user input and adds it to the vector of all binners
              * @param binnerOutputName filename for openPMD output. It must be unique or will cause overwrites during
-             * data dumps
+             * data dumps and undefined behaviour during restarts
              * @param axisTupleObject tuple holding the axes
              * @param speciesTupleObject tuple holding the species to do the binning with
              * @param depositionData functorDescription of the deposited quantity

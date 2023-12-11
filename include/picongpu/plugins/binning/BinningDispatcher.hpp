@@ -23,8 +23,12 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/binning/BinningCreator.hpp"
 
+#include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
+
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <variant>
 
 namespace picongpu
@@ -73,12 +77,20 @@ namespace picongpu
             {
                 /* restart from a checkpoint here
                  * will be called only once per simulation and before notify() */
+                for(auto&& binner : binnerVector)
+                {
+                    binner->restart(restartStep, restartDirectory);
+                }
             }
 
             void checkpoint(uint32_t currentStep, const std::string restartDirectory) override
             {
                 /* create a persistent checkpoint here
                  * will be called before notify() if both will be called for the same timestep */
+                for(auto&& binner : binnerVector)
+                {
+                    binner->checkpoint(currentStep, restartDirectory);
+                }
             }
 
             void notify(uint32_t currentStep) override
