@@ -196,7 +196,7 @@ namespace picongpu
                 ++accumulateCounter;
                 if(accumulateCounter >= binningData.dumpPeriod)
                 {
-                    auto bufferExtent = this->histBuffer->getDeviceBuffer().getDataSpace();
+                    auto bufferExtent = this->histBuffer->getHostBuffer().getDataSpace();
 
                     // Do time Averaging
                     if(binningData.dumpPeriod > 1 && binningData.timeAveraging)
@@ -300,10 +300,103 @@ namespace picongpu
 
             void checkpoint(uint32_t currentStep, const std::string restartDirectory) override
             {
+                /**
+                 * State to hold, accumulateCounter and hReducedBuffer
+                 */
+
+                // do the mpi reduce (can be avoided if the notify did a data dump and histBuffer is empty)
+                this->histBuffer->deviceToHost();
+                auto bufferExtent = this->histBuffer->getHostBuffer().getDataSpace();
+
+                // allocate this only once?
+                // using a unique_ptr here since HostBuffer does not implement move semantics
+                auto hReducedBuffer = std::make_unique<HostBuffer<TDepositedQuantity, 1>>(bufferExtent);
+
+                reduce(
+                    pmacc::math::operation::Add(),
+                    hReducedBuffer->getBasePointer(),
+                    this->histBuffer->getHostBuffer().getBasePointer(),
+                    bufferExtent[0], // this is a 1D dataspace, just access it?
+                    mpi::reduceMethods::Reduce());
+
+                if(isMain)
+                {
+                    std::optional<::openPMD::Series> ckpt_series;
+
+                    histWriter(
+                        ckpt_series,
+                        OpenPMDWriteParams{
+                            restartDirectory + std::string("/binningOpenPMD/"),
+                            binningData.binnerOutputName,
+                            binningData.openPMDInfix,
+                            binningData.openPMDExtension,
+                            binningData.jsonCfg},
+                        std::move(hReducedBuffer),
+                        binningData,
+                        binningData.depositionData.units,
+                        currentStep,
+                        true,
+                        accumulateCounter);
+                }
             }
 
             void restart(uint32_t restartStep, const std::string restartDirectory) override
             {
+                // retore to master or restore equal values to all MPI ranks or restore only on dump,
+                // bool wasRestarted, and read from file and add to buffer
+
+                if(isMain)
+                {
+                    // open file
+                    auto const& extension = binningData.openPMDExtension;
+                    std::ostringstream filename;
+                    filename << restartDirectory << "/binningOpenPMD/" << binningData.binnerOutputName;
+                    if(auto& infix = binningData.openPMDInfix; !infix.empty())
+                    {
+                        if(*infix.begin() != '_')
+                        {
+                            filename << '_';
+                        }
+                        if(*infix.rbegin() == '.')
+                        {
+                            filename << infix.substr(0, infix.size() - 1);
+                        }
+                        else
+                        {
+                            filename << infix;
+                        }
+                    }
+                    if(*extension.begin() == '.')
+                    {
+                        filename << extension;
+                    }
+                    else
+                    {
+                        filename << '.' << extension;
+                    }
+
+                    auto openPMDdataFile = ::openPMD::Series(filename.str(), ::openPMD::Access::READ_ONLY);
+                    // restore accumulate counter
+                    accumulateCounter
+                        = openPMDdataFile.iterations[restartStep].getAttribute("accCounter").get<uint32_t>();
+                    // restore hostBuffer
+                    ::openPMD::MeshRecordComponent dataset
+                        = openPMDdataFile.iterations[restartStep]
+                              .meshes["Binning"][::openPMD::RecordComponent::SCALAR];
+                    ::openPMD::Extent extent = dataset.getExtent();
+                    ::openPMD::Offset offset(extent.size(), 0);
+                    dataset.loadChunk(
+                        std::shared_ptr<float_X>{histBuffer->getHostBuffer().getPointer(), [](auto const*) {}},
+                        offset,
+                        extent);
+                    openPMDdataFile.flush();
+                    openPMDdataFile.iterations[restartStep].close();
+
+                    // @todo divide histBuffer by gc.getGlobalSize and call from all ranks
+
+                    // transfer restored data to device so that it is not overwritten
+                    this->histBuffer->hostToDevice();
+                }
             }
 
         private:

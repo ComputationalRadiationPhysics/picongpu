@@ -60,7 +60,9 @@ namespace picongpu
                 std::unique_ptr<HostBuffer<T_Type, 1u>> hReducedBuffer,
                 T_BinningData binningData,
                 const std::array<double, 7>& outputUnits,
-                const uint32_t currentStep)
+                const uint32_t currentStep,
+                const bool isCheckpoint = false,
+                const uint32_t accumulateCounter = 0)
             {
                 using Type = T_Type;
 
@@ -201,6 +203,11 @@ namespace picongpu
 #else
                 openPMD::storeChunkRaw(record, hReducedBuffer->getBasePointer(), histOffset, histExtent);
 #endif
+                if(isCheckpoint)
+                {
+                    iteration.setAttribute("accCounter", accumulateCounter);
+                }
+
                 iteration.close();
             };
         };
