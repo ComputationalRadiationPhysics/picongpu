@@ -32,7 +32,6 @@ help()
 currentPath=$(cd `dirname $0` && pwd)
 currentPath=$(absolute_path $currentPath)
 
-
 #####################
 ## option handling ##
 #####################
@@ -76,6 +75,7 @@ if [ -d "$inputSetPath/include" ] ; then
     echo "Please remove" >&2
     exit 1
   fi
+  echo "start setting up"
   pic-create $inputSetPath $inputDestinationPath
   cd $inputDestinationPath
   pic-build
@@ -119,16 +119,12 @@ if [ $ret_build -eq 0 ] ; then
           ./bin/validate.sh -d "$dataPath"
       fi
       ret=$?
-      if [ $ret -neq 0 ], then
+      if [ $ret -ne 0 ]; then
           echo "error when validating backend: " $backend
           exit $ret
       fi
-  done      
+  done
 fi
 
 
-exit $ret      
-      
-
-
-
+exit $ret
