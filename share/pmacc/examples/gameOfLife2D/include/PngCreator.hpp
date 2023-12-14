@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "types.hpp"
+
 #include <pmacc/types.hpp>
 
 #include <pngwriter.h>

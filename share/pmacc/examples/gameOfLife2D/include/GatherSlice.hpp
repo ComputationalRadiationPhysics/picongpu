@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "types.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
