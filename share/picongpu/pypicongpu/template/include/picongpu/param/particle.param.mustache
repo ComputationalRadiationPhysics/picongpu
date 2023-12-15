@@ -82,15 +82,17 @@ namespace picongpu
                         struct AssignDrift_{{{species.typename}}}_Param
                         {
                             /** Initial particle drift velocity for electrons and ions
-                            *  Examples:
-                            *    - No drift is equal to 1.0
-                            *  unit: none
-                            */
+                             *  Examples:
+                             *    - No drift is equal to 1.0
+                             *  unit: none
+                             */
                             static constexpr float_64 gamma = {{{gamma}}};
+
                             {{#direction_normalized}}
-                            {{! this only serves to enter the "direction_normalized" context}}
-                            /** Define initial particle drift direction vector. */
-                            static constexpr auto driftDirection = float3_X({{{x}}}, {{{y}}}, {{{z}}});
+                                {{! this only serves to enter the "direction_normalized" context}}
+
+                                //! Define initial particle drift direction vector.
+                                static constexpr auto driftDirection = float3_X({{{x}}}, {{{y}}}, {{{z}}});
                             {{/direction_normalized}}
                         };
                         using AssignDrift_{{{species.typename}}} = unary::Drift<AssignDrift_{{{species.typename}}}_Param, pmacc::math::operation::Assign>;
@@ -101,9 +103,7 @@ namespace picongpu
                         {{! -> simple momentum does not require a temperature }}
                             struct AddTemperature_{{{species.typename}}}_Param
                             {
-                                /* Initial temperature
-                                *  unit: keV
-                                */
+                                //! Initial temperature, unit: keV
                                 static constexpr float_64 temperature = {{{temperature_kev}}};
                             };
                             using AddTemperature_{{{species.typename}}} = unary::Temperature<AddTemperature_{{{species.typename}}}_Param>;
