@@ -35,7 +35,7 @@ namespace pmacc
      * DataSpace describes a T_dim-dimensional data space with a specific size for each dimension.
      * It only describes the space and does not hold any actual data.
      *
-     * @tparam T_dim dimension (1-3) of the dataspace
+     * @tparam T_dim dimension N of the dataspace
      */
     template<unsigned T_dim>
     class DataSpace : public math::Vector<int, T_dim>
