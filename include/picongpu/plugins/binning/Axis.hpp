@@ -125,7 +125,7 @@ namespace picongpu
                     }
 
                     // can have a version without an idx also as the bin width is constant
-                    constexpr T getBinWidth(uint32_t idx) const
+                    constexpr T getBinWidth(uint32_t idx = 0) const
                     {
                         PMACC_ASSERT(idx < nBins);
                         return 1 / scaling;
