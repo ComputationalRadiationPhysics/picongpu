@@ -212,9 +212,10 @@ namespace picongpu::particles::collision
                                     uint32_t const parInSuperCellIdx = frameIdx * numFrameSlots + linearIdx;
                                     particleIds(parLocalIndex)[parOffset] = parInSuperCellIdx;
                                 }
-                                ++frameIdx;
                             },
                             frameCtx);
+                        // increment frame index after all particles in the current frame are processed
+                        ++frameIdx;
                     });
             }
 
