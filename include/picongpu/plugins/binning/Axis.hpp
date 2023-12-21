@@ -58,7 +58,15 @@ namespace picongpu
                 Range<T_Data> m_range;
                 /** Number of bins in range */
                 uint32_t nBins;
-                AxisSplitting(Range<T_Data> range, uint32_t numBins) : m_range{range}, nBins{numBins}
+                /** Enable or Disable overflow bins.
+                 * Number of overflow bis is the responsibility of the axis implementaiton
+                 * Defaults to true
+                 */
+                const bool enableOverflowBins;
+                AxisSplitting(Range<T_Data> range, uint32_t numBins, bool enableOverflow = true)
+                    : m_range{range}
+                    , nBins{numBins}
+                    , enableOverflowBins{enableOverflow}
                 {
                 }
             };
@@ -106,10 +114,12 @@ namespace picongpu
                     using ScalingType = std::
                         conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
                     ScalingType scaling;
+                    /** Enable or disable allocation of extra bins for out of range particles*/
+                    bool overflowEnabled;
 
-                    constexpr LinearAxisKernel(T_AttrFunctor attrFunc, uint32_t n_bins)
+                    constexpr LinearAxisKernel(T_AttrFunctor attrFunc, bool enableOverflowBins)
                         : getAttributeValue{attrFunc}
-                        , nBins{n_bins}
+                        , overflowEnabled{enableOverflowBins}
                     {
                     }
 
@@ -120,7 +130,7 @@ namespace picongpu
                     {
                         min = minR;
                         max = maxR;
-                        nBins = n_bins + 2;
+                        nBins = n_bins;
                         scaling = scalingR;
                     }
 
@@ -132,8 +142,11 @@ namespace picongpu
                     }
 
                     template<typename T_Worker, typename T_Particle>
-                    ALPAKA_FN_ACC uint32_t
-                    getBinIdx(const DomainInfo& domainInfo, const T_Worker& worker, const T_Particle& particle) const
+                    ALPAKA_FN_ACC uint32_t getBinIdx(
+                        const DomainInfo& domainInfo,
+                        const T_Worker& worker,
+                        const T_Particle& particle,
+                        bool& validIdx) const
                     {
                         auto val = getAttributeValue(domainInfo, worker, particle);
 
@@ -145,7 +158,8 @@ namespace picongpu
                             std::is_convertible<decltype(val), uint32_t>::value,
                             "Unable to cast to unit32_t for bin number");
                         uint32_t binIdx = 0;
-
+                        bool enableBinning = overflowEnabled; // @todo check if disableBinning is better
+                        // @todo check for optimizations here
                         if(val >= min)
                         {
                             if(val < max)
@@ -155,10 +169,16 @@ namespace picongpu
                                  * Is the math floor necessary?
                                  */
                                 binIdx = math::floor(((val - min) * scaling) + 1);
+                                if(!overflowEnabled)
+                                {
+                                    enableBinning = true;
+                                    binIdx = binIdx - 1;
+                                }
                             }
                             else
                                 binIdx = nBins - 1;
                         }
+                        validIdx = validIdx && enableBinning;
                         return binIdx;
                     }
                 };
@@ -173,9 +193,11 @@ namespace picongpu
                     : axisSplit{axSplit}
                     , label{label}
                     , units{units}
-                    , lAK{attrFunctor, axSplit.nBins}
+                    , lAK{attrFunctor, axisSplit.enableOverflowBins}
                 {
+                    initLAK();
                 }
+
 
                 /**
                  * @todo auto min max n_bins
@@ -191,7 +213,14 @@ namespace picongpu
                     // do scaling calc here, on host and save it
                     auto scaling = static_cast<decltype(max)>(axisSplit.nBins) / (max - min);
 
-                    lAK.initAxisSplit(min, max, axisSplit.nBins, scaling);
+
+                    auto nBins = axisSplit.nBins;
+                    if(axisSplit.enableOverflowBins)
+                    {
+                        nBins += 2;
+                    }
+
+                    lAK.initAxisSplit(min, max, nBins, scaling);
                 }
 
                 constexpr uint32_t getNBins() const

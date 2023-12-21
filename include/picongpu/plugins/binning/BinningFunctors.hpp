@@ -59,26 +59,28 @@ namespace picongpu
             {
                 using DepositionType = typename T_HistBox::ValueType;
 
-                DepositionType depositVal = quantityFunctor(worker, particle);
-
                 auto binsDataspace = DataSpace<N_Axes>{};
+                bool validIdx = true;
                 apply(
                     [&](auto const&... tupleArgs)
                     {
                         uint32_t i = 0;
                         // This assumes n_bins and getBinIdx exist
-                        ((binsDataspace[i++] = tupleArgs.getBinIdx(domainInfo, worker, particle)), ...);
+                        ((binsDataspace[i++] = tupleArgs.getBinIdx(domainInfo, worker, particle, validIdx)), ...);
                     },
                     axisTuple);
 
-                auto const idxOneD = pmacc::math::linearize(extentsDataspace, binsDataspace);
-
-                cupla::atomicAdd(
-                    worker.getAcc(),
-                    // &(histBox(binsDataspace)),
-                    &(histBox(DataSpace<1u>{static_cast<int>(idxOneD)})),
-                    depositVal,
-                    ::alpaka::hierarchy::Blocks{});
+                if(validIdx)
+                {
+                    auto const idxOneD = pmacc::math::linearize(extentsDataspace, binsDataspace);
+                    DepositionType depositVal = quantityFunctor(worker, particle);
+                    cupla::atomicAdd(
+                        worker.getAcc(),
+                        // &(histBox(binsDataspace)),
+                        &(histBox(DataSpace<1u>{static_cast<int>(idxOneD)})),
+                        depositVal,
+                        ::alpaka::hierarchy::Blocks{});
+                }
             }
         };
 
