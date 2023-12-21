@@ -139,7 +139,7 @@ srun -N !TBG_nodes_adjusted --ntasks-per-node=1 mkdir -p "/mnt/bb/$USER/sync_bin
 # Note that this puts only the Python binary itself, but not its runtime dependency to node-local storage.
 # That seems to be the lesser problem anyway.
 for binary in "!TBG_dstPath/input/bin/picongpu" "$(which python)"; do
-    sbcast --send-libs=yes "$binary" "/mnt/bb/$USER/sync_bins/$binary"
+    sbcast --send-libs=yes "$binary" "/mnt/bb/$USER/sync_bins/${binary##*/}"
     if [ ! "$?" == "0" ]; then
         # CHECK EXIT CODE. When SBCAST fails, it may leave partial files on the compute nodes, and if you continue to launch srun,
         # your application may pick up partially complete shared library files, which would give you confusing errors.
