@@ -309,8 +309,6 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     # Need threaded MPI for SST on ECP systems with MPI backend of ADIOS2 SST.
     # This might or might not be needed with libfabric-based SST which will be available with ADIOS2 v2.10.
     export PIC_USE_THREADED_MPI=MPI_THREAD_MULTIPLE
-    # Might no longer be needed, let's test...
-    export PIC_WORKAROUND_CRAY_MPI_FINALIZE=1
     export MPICH_OFI_CXI_PID_BASE=$((MPICH_OFI_CXI_PID_BASE+1))
     # Corresponds to cores 1-8 (exclude first core) in each L3 cache group
     mask=0xfe,0xfe00,0xfe0000,0xfe000000,0xfe00000000,0xfe0000000000,0xfe000000000000,0xfe00000000000000
