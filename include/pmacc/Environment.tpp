@@ -242,40 +242,11 @@ namespace pmacc
                 // Required by scorep for flushing the buffers
                 cuplaDeviceSynchronize();
                 m_isMpiInitialized = false;
-                /*
-                 * When using the combination of MPI_Comm_Accept() and MPI_Open_Port() (as is done by the MPI-based
-                 * implementation of the ADIOS2 SST engine), the current (2023-01-06) Cray MPI implementation
-                 * on Crusher/Frontier will hang inside MPI_Finalize().
-                 * The workaround is to replace it with an MPI_Barrier().
-                 */
-                char const* env_value = std::getenv("PIC_WORKAROUND_CRAY_MPI_FINALIZE");
-                bool use_cray_workaround = false;
-                if(env_value)
-                {
-                    try
-                    {
-                        int env_value_int = std::stoi(env_value);
-                        use_cray_workaround = env_value_int != 0;
-                    }
-                    catch(std::invalid_argument const& e)
-                    {
-                        std::cerr
-                            << "Warning: PIC_WORKAROUND_CRAY_MPI_FINALIZE must have an integer value, received: '"
-                            << env_value << "'. Will ignore." << std::endl;
-                    }
-                }
                 /* Free the MPI context.
                  * The gpu context is freed by the `StreamController`, because
                  * MPI and CUDA are independent.
                  */
-                if(use_cray_workaround)
-                {
-                    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
-                }
-                else
-                {
-                    MPI_CHECK(MPI_Finalize());
-                }
+                MPI_CHECK(MPI_Finalize());
             }
         }
 

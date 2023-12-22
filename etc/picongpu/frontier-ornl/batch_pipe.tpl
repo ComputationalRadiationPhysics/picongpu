@@ -33,6 +33,7 @@
 #SBATCH -S 0
 #SBATCH --exclusive # This one might not be strictly necessarily, haven't tested
 #SBATCH --network=single_node_vni,job_vni
+#SBATCH -C nvme
 
 ###################
 # Optional params #
@@ -70,6 +71,9 @@
 .TBG_coresPerGPU=7
 .TBG_coresPerPipeInstance=7
 
+# Keep data transport MPI for now.
+# "fabric" works as well with the latest ADIOS2 master, but there might still be issues.
+# If MPI is not available and fabric is available, ADIOS2 will fall back to that automatically anyway.
 .TBG_DataTransport=mpi
 
 # Assign one OpenMP thread per available core per GPU (=task)
@@ -128,6 +132,61 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 unset MODULES_NO_OUTPUT
+
+# Create a folder for putting our binaries inside the NVMe on every node.
+srun -N !TBG_nodes_adjusted --ntasks-per-node=1 mkdir -p "/mnt/bb/$USER/sync_bins"
+# Use sbcast to put the launch binaries and their libraries to node-local storage.
+# Note that this puts only the Python binary itself, but not its runtime dependency to node-local storage.
+# That seems to be the lesser problem anyway.
+for binary in "!TBG_dstPath/input/bin/picongpu" "$(which python)"; do
+    sbcast --send-libs=yes "$binary" "/mnt/bb/$USER/sync_bins/${binary##*/}"
+    if [ ! "$?" == "0" ]; then
+        # CHECK EXIT CODE. When SBCAST fails, it may leave partial files on the compute nodes, and if you continue to launch srun,
+        # your application may pick up partially complete shared library files, which would give you confusing errors.
+        echo "SBCAST failed for $binary!"
+        exit 1
+    fi
+done
+mapfile -t shared_libs < <(find "/mnt/bb/$USER/sync_bins" -mindepth 1 -type d)
+export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+for shared_lib in "${shared_libs[@]}"; do
+    export LD_LIBRARY_PATH="$(realpath "$shared_lib"):$LD_LIBRARY_PATH"
+done
+export PATH="/mnt/bb/$USER/sync_bins/:$PATH"
+
+verify_synced() {
+    ls "/mnt/bb/$USER/sync_bins/"* -lisah
+    echo
+    echo "PATH=$PATH"
+    echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+}
+verify_synced | sed 's|^|>\t|'
+
+# Remove duplicates from the LD_LIBRARY_PATH to speed up application launches
+# at large scale.
+clean_duplicates_stable()
+{
+    # read lines from stdin
+    local already_seen=()
+    while read line; do
+        local skip=0
+        for possible_duplicate in "${already_seen[@]}"; do
+            if [[ "$line" = "$possible_duplicate" ]]; then
+                skip=1
+                break
+            fi
+        done
+        if [[ "$skip" = 0 ]]; then
+            echo "$line"
+            already_seen+=("$line")
+        fi
+    done
+}
+
+export LD_LIBRARY_PATH="$(echo "$LD_LIBRARY_PATH" | tr : '\n' | clean_duplicates_stable | tr '\n' :)"
+echo -e "LD_LIBRARY_PATH after cleaning duplicate entries:\n$LD_LIBRARY_PATH"
+
+echo "BEGIN DATE: $(date)"
 
 # set user rights to u=rwx;g=r-x;o=---
 umask 0027
@@ -205,9 +264,13 @@ fi
 # strategy that is used, since the deciding factor is that there is only one
 # instance of openpmd-pipe writing data per node. It does not matter that this
 # data does not necessarily stem from the same node.
-export OPENPMD_CHUNK_DISTRIBUTION=hostname_binpacking_fail
+export OPENPMD_CHUNK_DISTRIBUTION=hostname_roundrobin_discard
 
 export MPICH_OFI_NIC_POLICY=NUMA # The default
+
+# Increase the launch timeout to 10 minutes.
+# Default is 3 minutes.
+export PMI_MMAP_SYNC_WAIT_TIME=600
 
 if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     # Run PIConGPU
@@ -233,7 +296,8 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       --cpus-per-task=!TBG_coresPerPipeInstance   \
       --cpu-bind=verbose,mask_cpu:$mask           \
       --network=single_node_vni,job_vni           \
-      openpmd-pipe                                \
+      /mnt/bb/$USER/sync_bins/python              \
+        `which openpmd-pipe`                      \
         --infile "!TBG_streamdir"                 \
         --outfile "!TBG_dumpdir"                  \
         --inconfig @inconfig.json                 \
@@ -242,11 +306,9 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
 
     sleep 1
 
-    # Need threaded MPI for SST on ECP systems
+    # Need threaded MPI for SST on ECP systems with MPI backend of ADIOS2 SST.
+    # This might or might not be needed with libfabric-based SST which will be available with ADIOS2 v2.10.
     export PIC_USE_THREADED_MPI=MPI_THREAD_MULTIPLE
-    # Enable workaround as described here:
-    # https://github.com/ornladios/ADIOS2/blob/master/docs/user_guide/source/advanced/ecp_hardware.rst
-    export PIC_WORKAROUND_CRAY_MPI_FINALIZE=1
     export MPICH_OFI_CXI_PID_BASE=$((MPICH_OFI_CXI_PID_BASE+1))
     # Corresponds to cores 1-8 (exclude first core) in each L3 cache group
     mask=0xfe,0xfe00,0xfe0000,0xfe000000,0xfe00000000,0xfe0000000000,0xfe000000000000,0xfe00000000000000
@@ -262,8 +324,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       --cpu-bind=verbose,mask_cpu:$mask     \
       --network=single_node_vni,job_vni     \
       -K1                                   \
-      !TBG_dstPath/input/bin/picongpu       \
-        --mpiDirect                         \
+      /mnt/bb/$USER/sync_bins/picongpu      \
         !TBG_author                         \
         !TBG_programParams                  \
         > ../pic.out 2> ../pic.err          &
@@ -274,3 +335,4 @@ else
     echo "Job stopped because of previous issues." >&2
 fi
 
+echo "END DATE: $(date)"
