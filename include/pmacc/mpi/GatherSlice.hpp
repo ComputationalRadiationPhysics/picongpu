@@ -41,7 +41,7 @@ namespace pmacc
             MPI_Comm gatherComm = MPI_COMM_NULL;
             // gather rank zero will hold final data
             int gatherRank = -1;
-            // number of ranks participating into the gather operation
+            // number of ranks participating in the gather operation
             int numRanksInPlane = 0;
 
         public:
@@ -58,24 +58,22 @@ namespace pmacc
                         std::cerr << __FILE__ << ":" << __LINE__ << "MPI_Comm_free failed." << std::endl;
                     gatherComm = MPI_COMM_NULL;
                 }
-                gatherRank = -1;
-                numRanksInPlane = 0;
             }
 
             /** Check if MPI rank is the gather master rank.
              *
              * The master will return the data when calling gatherSlice().
              *
-             * @return True if MPI ranks is returning the gathered data in gatherSlice(), else false.
+             * @return True if this MPI rank is returning the gathered data during gatherSlice() operation, else false.
              */
             bool isMaster() const
             {
                 return gatherRank == 0;
             }
 
-            /** Check if MPI has the gathered data.
+            /** Check if this MPI rank gathers the data.
              *
-             * @return True if MPI ranks is returning the gathered data in gatherSlice().
+             * @return True if this MPI rank returns the gathered data during gatherSlice() operation, else false.
              */
             bool hasResult() const
             {
@@ -93,7 +91,7 @@ namespace pmacc
 
             /** Announce participation of the MPI rank in the gather operation
              *
-             * @attention Must be called from all MPI ranks even if they to not participate.
+             * @attention Must be called from all MPI ranks even if they do not participate.
              *
              * @param isActive True if MPI rank has data to gather, else false.
              * @return If the caller will contain the gathered data. @see isMaster()
@@ -147,7 +145,7 @@ namespace pmacc
              *
              * Must be called by all participating MPI ranks.
              * If a non-participating MPI rank is calling the method the returned buffer will be empty.
-             * @attention The master rank will allocate memory host memory for the received data.
+             * @attention The master rank will allocate host memory for the received data.
              *
              * @tparam T_DataType Slice buffer data type.
              * @param localInputSlice Buffer with local slice data. Buffer memory must be contiguous without line
@@ -163,7 +161,8 @@ namespace pmacc
                 DataSpace<DIM2> localSliceOffset) const
             {
                 using ValueType = T_DataType;
-                // guard against wrong usage, only ranks which are participating into the gather are allowed
+                // Guard against wrong usage, only MPI ranks which are participating into the gather are allowed to
+                // call corresponding MPI functions.
                 if(!isParticipating())
                     return std::shared_ptr<HostBuffer<ValueType, DIM2>>{};
 
@@ -200,12 +199,13 @@ namespace pmacc
 
                 std::vector<int> displs(numRanksInPlane);
                 std::vector<int> count(numRanksInPlane);
-                // @todo replace by std::scan
+
                 int offset = 0;
                 int globalNumElements = 0u;
 
                 if(isMaster())
                 {
+                    //! @todo replace by std::scan
                     for(int i = 0; i < numRanksInPlane; ++i)
                     {
                         displs[i] = offset * sizeof(ValueType);

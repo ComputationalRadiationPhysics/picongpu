@@ -23,7 +23,6 @@
 #pragma once
 
 #include "Evolution.hpp"
-#include "GatherSlice.hpp"
 #include "PngCreator.hpp"
 #include "types.hpp"
 
@@ -33,6 +32,7 @@
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
+#include <pmacc/mpi/GatherSlice.hpp>
 #include <pmacc/traits/NumberOfExchanges.hpp>
 
 #include <string>
@@ -49,7 +49,7 @@ namespace gol
         Space gridSize;
         /* holds rule mask derived from 23/3 input, @see Evolution.hpp */
         Evolutiontype evo;
-        GatherSlice gather;
+        std::unique_ptr<pmacc::mpi::GatherSlice> gather;
 
         /* for storing black (dead) and white (alive) data for gol */
         std::unique_ptr<Buffer> buff1; /* Buffer(@see types.h) for swapping between old and new world */
@@ -97,7 +97,7 @@ namespace gol
 
         void finalize()
         {
-            gather.finalize();
+            gather.reset();
         }
 
         void init()
@@ -172,14 +172,9 @@ namespace gol
                 buff2->addExchange(GUARD, Mask(i), guardingCells, BUFF2);
             }
 
-            /* Both next lines are defined in GatherSlice.hpp:                   *
-             *  -gather saves the MessageHeader object                           *
-             *  -Then do an Allgather for the gloabalRanks from GC, sort out     *
-             *  -inactive processes (second/boolean ,argument in gather.init) and*
-             *   save new MPI_COMMUNICATOR created from these into private var.  *
-             *  -return if rank == 0                                             */
-            MessageHeader header(gridSize, layout, subGrid.getLocalDomain().offset);
-            isMaster = gather.init(header, true);
+            gather = std::make_unique<pmacc::mpi::GatherSlice>();
+            // GoL is 2D so any MPI rank is participating
+            isMaster = gather->participate(true);
 
             /* Calls kernel to initialize random generator. Game of Life is then  *
              * initialized using uniform random numbers. With 10% (second arg)    *
@@ -189,17 +184,15 @@ namespace gol
 
         void start()
         {
-            Buffer* read = buff1.get();
-            Buffer* write = buff2.get();
             for(uint32_t i = 0; i < steps; ++i)
             {
-                oneStep(i, read, write);
-                std::swap(read, write);
+                oneStep(i, buff1, buff2);
+                std::swap(buff1, buff2);
             }
         }
 
     private:
-        void oneStep(uint32_t currentStep, Buffer* read, Buffer* write)
+        void oneStep(uint32_t currentStep, std::unique_ptr<Buffer>& read, std::unique_ptr<Buffer>& write)
         {
             auto splitEvent = eventSystem::getTransactionEvent();
             /* GridBuffer 'read' will use 'splitEvent' to schedule transaction    *
@@ -215,14 +208,29 @@ namespace gol
             eventSystem::setTransactionEvent(send);
             /* Calculate Borders */
             evo.run<BORDER>(read->getDeviceBuffer().getDataBox(), write->getDeviceBuffer().getDataBox());
-            write->deviceToHost();
 
             /* gather::operator() gathers all the buffers and assembles those to  *
              * a complete picture discarding the guards.                          */
-            auto picture = gather(write->getHostBuffer().getDataBox());
-            PngCreator png;
-            if(isMaster)
-                png(currentStep, picture, gridSize);
+            if(gather->isParticipating())
+            {
+                const SubGrid<DIM2>& subGrid = Environment<DIM2>::get().SubGrid();
+                auto bufferLayout = write->getGridLayout();
+                auto localDataExtents = bufferLayout.getDataSpaceWithoutGuarding();
+                auto view = std::make_unique<DeviceBuffer<uint8_t, DIM2>>(
+                    write->getDeviceBuffer(),
+                    localDataExtents,
+                    bufferLayout.getGuard());
+                // create a contiguous buffer required for gathering the data
+                auto dataWithoutGuard = std::make_unique<HostBuffer<uint8_t, DIM2>>(localDataExtents);
+                dataWithoutGuard->copyFrom(*view.get());
+                auto picture = gather->gatherSlice(
+                    *dataWithoutGuard.get(),
+                    subGrid.getGlobalDomain().size,
+                    subGrid.getLocalDomain().offset);
+                PngCreator png;
+                if(isMaster)
+                    png(currentStep, picture->getDataBox(), picture->getDataSpace());
+            }
         }
     };
 } // namespace gol

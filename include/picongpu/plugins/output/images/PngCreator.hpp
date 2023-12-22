@@ -31,6 +31,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <vector>
 
 
 namespace picongpu
@@ -86,26 +87,25 @@ namespace picongpu
 
         /** create image
          *
-         * @param data input data for png
+         * @param imageVector 1D representation of the image
          *             this object must be alive until destructor
          *             of `PngCreator` or method `join()` is called
-         * @param size size of data
          * @param header meta information about the simulation
          */
-        template<class Box>
-        void operator()(const Box data, const MessageHeader::Size2D size, const MessageHeader header)
+        template<typename T_DataType>
+        void operator()(std::shared_ptr<std::vector<T_DataType>> imageVector, const MessageHeader header)
         {
             if(m_isThreadActive)
             {
                 workerThread.join();
             }
             m_isThreadActive = true;
-            workerThread = std::thread(&PngCreator::createImage<Box>, this, data, size, header);
+            workerThread = std::thread(&PngCreator::createImage<T_DataType>, this, imageVector, header);
         }
 
     private:
-        template<class Box>
-        void createImage(const Box data, const MessageHeader::Size2D size, const MessageHeader header);
+        template<typename T_DataType>
+        void createImage(std::shared_ptr<std::vector<T_DataType>> imageBuffer, const MessageHeader header);
 
         std::string m_name;
         std::string m_folder;

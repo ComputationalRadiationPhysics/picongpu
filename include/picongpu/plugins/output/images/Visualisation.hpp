@@ -26,7 +26,6 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/output/GatherSlice.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
@@ -49,12 +48,14 @@
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/mpi/GatherSlice.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 
 #include <cfloat>
 #include <memory>
 #include <string>
+#include <vector>
 
 
 namespace picongpu
@@ -803,20 +804,40 @@ namespace picongpu
             eventSystem::getTransactionEvent().waitForFinished(); // wait for copy picture
 
             DataSpace<DIM2> size = img->getGridLayout().getDataSpace();
-
-            auto hostBox = img->getHostBuffer().getDataBox();
-
             if(picongpu::white_box_per_GPU)
             {
+                // mark local cell slice edges
+                auto hostBox = img->getHostBuffer().getDataBox();
                 hostBox({0, 0}) = float3_X(1.0, 1.0, 1.0);
                 hostBox({0, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
                 hostBox({size.x() - 1, 0}) = float3_X(1.0, 1.0, 1.0);
                 hostBox({size.x() - 1, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
             }
-            auto resultBox = gather(hostBox, *header);
+
+            auto picture = gather->gatherSlice(img->getHostBuffer(), header->sim.size, header->node.offset);
+
             if(isMaster)
             {
-                m_output(resultBox.shift(header->window.offset), header->window.size, *header);
+                auto numPixels = header->window.size.productOfComponents();
+                /* PNG output requires threadsafe linear memory.
+                 * PMacc buffers are not threadsafe because of the event system, therefore we use std::vector as
+                 * workaround.
+                 */
+                auto data = std::make_shared<std::vector<float3_X>>(numPixels);
+                auto& dataVec = *data.get();
+
+                // copy the gathered image into the linearized final buffer
+                auto picDBox = picture->getDataBox();
+                /* The gathered image contains data from outside the moving window, therefore we create
+                 * a 1D view into the window region.
+                 */
+                auto const picture1D = pmacc::DataBoxDim1Access<decltype(picDBox)>{
+                    picDBox.shift(header->window.offset),
+                    header->window.size};
+                for(int i = 0; i < numPixels; ++i)
+                    dataVec[i] = picture1D[i];
+
+                m_output(data, *header);
             }
         }
 
@@ -842,7 +863,9 @@ namespace picongpu
                 header->update(*cellDescription, window, m_transpose, 0, cellSizeArr, gpus);
 
                 bool isDrawing = doDrawing();
-                isMaster = gather.init(isDrawing);
+
+                gather = std::make_unique<pmacc::mpi::GatherSlice>();
+                isMaster = gather->participate(isDrawing);
                 reduce.participate(isDrawing);
 
                 /* create memory for the local picture if the gpu participate on the visualization */
@@ -892,7 +915,7 @@ namespace picongpu
         MessageHeader* header;
 
         Output m_output;
-        GatherSlice gather;
+        std::unique_ptr<pmacc::mpi::GatherSlice> gather;
         bool isMaster;
         algorithms::GlobalReduce reduce;
     };

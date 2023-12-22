@@ -34,6 +34,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #if(PIC_ENABLE_PNG == 1)
 #    include <pngwriter.h>
@@ -41,8 +42,10 @@
 
 namespace picongpu
 {
-    template<class Box>
-    inline void PngCreator::createImage(const Box data, const MessageHeader::Size2D size, const MessageHeader header)
+    template<typename T_DataType>
+    inline void PngCreator::createImage(
+        std::shared_ptr<std::vector<T_DataType>> imageVector,
+        const MessageHeader header)
     {
 #if(PIC_ENABLE_PNG == 1)
         if(m_createFolder)
@@ -55,6 +58,8 @@ namespace picongpu
         step << std::setw(6) << std::setfill('0') << header.sim.step;
         std::string filename(m_name + "_" + step.str() + ".png");
 
+        auto size = header.window.size;
+
         pngwriter png(size.x(), size.y(), 0, filename.c_str());
 
         /* default compression: 6
@@ -62,12 +67,15 @@ namespace picongpu
          */
         png.setcompressionlevel(1);
 
+        auto& img = *imageVector.get();
+
         // PngWriter coordinate system begin with 1,1
         for(int y = 0; y < size.y(); ++y)
         {
             for(int x = 0; x < size.x(); ++x)
             {
-                float3_X p = data({x, y});
+                auto srcIdx = pmacc::math::linearize(size, DataSpace<DIM2>(x, y));
+                float3_X p = img[srcIdx];
                 png.plot(x + 1, size.y() - y, p.x(), p.y(), p.z());
             }
         }
@@ -108,7 +116,7 @@ namespace picongpu
         // write to disk and close object
         png.close();
 #else
-        boost::ignore_unused(data, size, header);
+        boost::ignore_unused(imageVector, header);
         /* always fail with an exception at runtime */
         PMACC_VERIFY_MSG(false, "not allowed to call createImage (missing dependency PNGwriter)");
 #endif
