@@ -647,7 +647,6 @@ namespace picongpu
             , m_slicePoint(slicePoint)
             , pluginName(name)
             , m_transpose(transpose)
-            , header(nullptr)
             , m_output(output)
             , isMaster(false)
             , reduce(1024)
@@ -670,10 +669,6 @@ namespace picongpu
         {
             /* wait that shared buffers can destroyed */
             m_output.join();
-            if(!m_notifyPeriod.empty())
-            {
-                MessageHeader::destroy(header);
-            }
         }
 
         std::string pluginGetName() const override
@@ -798,8 +793,7 @@ namespace picongpu
             img->deviceToHost();
 
 
-            header->update(*cellDescription, window, m_transpose, currentStep);
-
+            auto header = MessageHeader(window, m_transpose, currentStep);
 
             eventSystem::getTransactionEvent().waitForFinished(); // wait for copy picture
 
@@ -814,11 +808,11 @@ namespace picongpu
                 hostBox({size.x() - 1, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
             }
 
-            auto picture = gather->gatherSlice(img->getHostBuffer(), header->sim.size, header->node.offset);
+            auto picture = gather->gatherSlice(img->getHostBuffer(), header.sim.size, header.node.offset);
 
             if(isMaster)
             {
-                auto numPixels = header->window.size.productOfComponents();
+                auto numPixels = header.window.size.productOfComponents();
                 /* PNG output requires threadsafe linear memory.
                  * PMacc buffers are not threadsafe because of the event system, therefore we use std::vector as
                  * workaround.
@@ -832,12 +826,12 @@ namespace picongpu
                  * a 1D view into the window region.
                  */
                 auto const picture1D = pmacc::DataBoxDim1Access<decltype(picDBox)>{
-                    picDBox.shift(header->window.offset),
-                    header->window.size};
+                    picDBox.shift(header.window.offset),
+                    header.window.size};
                 for(int i = 0; i < numPixels; ++i)
                     dataVec[i] = picture1D[i];
 
-                m_output(data, *header);
+                m_output(data, header);
             }
         }
 
@@ -852,16 +846,6 @@ namespace picongpu
                 sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * m_slicePoint)
                     + window.globalDimensions.offset[sliceDim];
 
-
-                const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
-
-                float_32 cellSizeArr[3] = {0, 0, 0};
-                for(uint32_t i = 0; i < simDim; ++i)
-                    cellSizeArr[i] = cellSize[i];
-
-                header = MessageHeader::create();
-                header->update(*cellDescription, window, m_transpose, 0, cellSizeArr, gpus);
-
                 bool isDrawing = doDrawing();
 
                 gather = std::make_unique<pmacc::mpi::GatherSlice>();
@@ -870,7 +854,10 @@ namespace picongpu
 
                 /* create memory for the local picture if the gpu participate on the visualization */
                 if(isDrawing)
-                    img = std::make_unique<GridBuffer<float3_X, DIM2>>(header->node.maxSize);
+                {
+                    auto header = MessageHeader(window, m_transpose, 0);
+                    img = std::make_unique<GridBuffer<float3_X, DIM2>>(header.node.maxSize);
+                }
             }
         }
 
@@ -911,8 +898,6 @@ namespace picongpu
         DataSpace<DIM2> m_transpose;
         //! dimension to slice range [0,simDim)
         uint32_t sliceDim;
-
-        MessageHeader* header;
 
         Output m_output;
         std::unique_ptr<pmacc::mpi::GatherSlice> gather;
