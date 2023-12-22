@@ -13,6 +13,8 @@ This is a demonstration setup to get a visible result quickly and test available
 The plasma gradients are unphysically high, the resolution of the laser wavelength is seriously bad, the laser parameters (e.g. pulse duration, focusing) are challenging to achieve technically and interaction region is too close to the boundaries of the simulation box.
 Nevertheless, this setup will run on a single GPU in full 3D in a few minutes, so just enjoy running it and interact with our plugins!
 
+There exists an example how to run a parameter scan using Snakemake. Details can be found `here <./lib/python/snakemake/README.md>`_.
+
 
 References
 ----------

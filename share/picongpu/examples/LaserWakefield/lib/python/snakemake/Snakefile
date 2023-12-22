@@ -1,0 +1,122 @@
+from snakemake.utils import Paramspace
+import pandas as pd
+import os
+
+current_dir=os.getcwd()
+input_params="params.tsv"
+output_params="new_params.tsv"
+
+# define a paramspace
+# filename_params defines naming and directory structure of every instance of the parameter space
+paramspace = Paramspace(pd.read_csv(input_params, sep="\t"), filename_params="*", param_sep="-") 
+
+# declare which rule should not be executed on cluster
+localrules: all, simulate
+
+# target rule, defines entire anticipated output
+rule all:
+    input: output_params
+
+# compile for every paramter instance
+rule compile:
+     input:
+         pic_project="path_to/picongpu_project",
+         pic_profile="path_to_profile/picongpu.profile"
+     # to use the paramspace naming pattern use python f-string formatting    
+     output:  directory(f"path_to_simulations/sim_{paramspace.wildcard_pattern}")
+     resources: # define needed cluster resources
+         slurm_partition="fwkt_v100",
+         slurm_account="fwkt_v100",
+         runtime=60,
+         nodes=1,
+         ntasks=4,
+         cpus_per_task=6,
+         mem_mb=378000,
+         slurm="gres=gpu:1"
+     params:
+         # access one parameter set with the instance methode
+         sim_params=paramspace.instance,
+         # define name to use paramspace naming pattern in shell commands
+         name=f"{paramspace.wildcard_pattern}"
+     retries: 2 # defines number of retries if execution fails
+     shell:
+         """
+         source {input.pic_profile}
+         pic-create {input.pic_project} projects/run_{params.name}/
+         cd projects/run_{params.name}/
+         # append touch command to .tpl -> creates file when simulation is finished
+         echo "if [[ ! -z \`grep \\\"100 % =\\\" output\` ]]; then touch ../../../simulated/finished_{params.name}.txt; fi" >> etc/picongpu/hemera-hzdr/fwkt_v100.tpl
+         # parameter dependent compile
+         pic-build -c "-DPARAM_OVERWRITES:LIST='-DPARAM_A0={params.sim_params[A0]};-DPARAM_PULSE_DURATION_SI={params.sim_params[PULSEDURATION]}'"
+         # create simulation directory, define which cfg should be used
+         tbg -c etc/picongpu/4_test.cfg -t etc/picongpu/hemera-hzdr/fwkt_v100.tpl {current_dir}/{output}
+        """
+
+# start and track simulation
+rule simulate:
+    input: f"simulations/sim_{paramspace.wildcard_pattern}"
+    output: f"simulated/finished_{paramspace.wildcard_pattern}.txt"
+    params:
+        name=f"{paramspace.wildcard_pattern}"
+    retries: 3
+    shell:
+         """         
+         # if no job id is known -> start simulation
+         if ! [ -f simulated/job_id_{params.name}.txt ]; then
+             sbatch {input}/tbg/submit.start > simulated/job_id_{params.name}.txt
+         fi
+
+         job_id=$(cut -c 21-27 simulated/job_id_{params.name}.txt
+         status=$(squeue --jobs $job_id -o "%2t" | tail -n 1 )
+
+         # if job isn't running or pending -> restart job
+         if ! [[ "$status" == "PD" || "$status" == "R " ]]; then
+             sbatch {input}/tbg/submit.start >  simulated/job_id_{params.name}.txt
+             job_id=$(cut -c 21-27 simulated/job_id_{params.name}.txt)
+             status=$(squeue --jobs $job_id -o "%2t" | tail -n 1 )
+         fi
+         # wait till job is finished
+         while [[ "$status" == "PD" || "$status" == "R " ]]
+         do
+             sleep 30
+             status=$(squeue --jobs $job_id -o "%2t" | tail -n 1 )
+         done
+         """
+
+# simple example of python post processing
+rule post_processing:
+    input:
+        f"simulated/finished_{paramspace.wildcard_pattern}.txt"
+    output: 
+        f"results/result_{paramspace.wildcard_pattern}.npy"
+    resources:
+         slurm_partition="defq",
+         runtime=60,  # [min]
+         nodes=1,
+         ntasks=20,
+         mem_mb=95000
+    # groups allow to execute multiple task in one slurm job (works for multiple tasks of a kind or different tasks)
+    group: "group1"
+    params:
+        name=f"{paramspace.wildcard_pattern}",
+        sim_dir=f"simulations/sim_{paramspace.wildcard_pattern}/simOutput/openPMD"
+    script:
+        "path_to_script/post_processing.py"
+
+# example rule of post processing that requires output from each parameter set 
+rule optimization:
+    input: 
+        current_params=input_params,
+        post_processing_results=expand("results/result_x_y_{params}.npy", params=paramspace.instance_patterns)
+    output: 
+        new_params=output_params
+    resources:
+         slurm_partition="defq",
+         runtime=60,
+         nodes=1,
+         ntasks=20,
+         mem_mb=95000 
+    params:
+        n_new_params=5
+    script:
+        "path_to_script/optimization.py"
