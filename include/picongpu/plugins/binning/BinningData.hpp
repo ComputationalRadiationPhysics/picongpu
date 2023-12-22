@@ -76,7 +76,6 @@ namespace picongpu
                 , depositionData{depositData}
                 , writeOpenPMDFunctor{writeOpenPMD}
             {
-                static_assert(getNAxes() <= 3, "Only upto 3 binning axes are supported for now");
                 std::apply(
                     [&](auto const&... tupleArgs)
                     {
