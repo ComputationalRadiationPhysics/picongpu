@@ -33,7 +33,7 @@ Please also read the tutorial for your local HPC cluster.
 We will use the following directories:
 
 - :file:`~/src/picongpu`: source files from github
-- :file:`~/k80_picongpu.profile`: load the dependencies for your local environment
+- :file:`~/fwkt_v100_picongpu.profile`: load the dependencies for your local environment
 - :file:`~/picongpu-projects`: scenarios to simulate
 - :file:`/bigdata/hplsim/external/alice`: result data of the simulation runs (*scratch* storage)
 
@@ -60,16 +60,16 @@ You need :ref:`a lot of dependencies <install-dependencies>`.
 Luckily, other people already did the work and prepared a *profile* that you can use.
 Copy it to your home directory::
 
-  cp ~/src/picongpu/etc/picongpu/hemera-hzdr/k80_picongpu.profile.example ~/k80_picongpu.profile
+  cp ~/src/picongpu/etc/picongpu/hemera-hzdr/fwkt_v100_picongpu.profile.example ~/fwkt_v100_picongpu.profile
 
 This profile determines which part of the HPC cluster (*partition*, also: *queue*) – and thereby the compute device(s) (type of CPUs/GPUs) – you will use.
-This particular profile will use `NVIDIA Tesla K80 <https://www.nvidia.com/en-gb/data-center/tesla-k80/>`_ GPUs.
+This particular profile will use `NVIDIA Volta V100 <https://www.nvidia.com/en-us/data-center/v100/>`_ GPUs.
 
 You can view the full list of available profiles `on github <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/etc/picongpu>`_ (look for :file:`NAME.profile.example`).
 
 For this guide we will add our scratch directory location to this profile.
 Edit the profile file using your favorite editor.
-If unsure use nano: ``nano ~/k80_picongpu.profile`` (save with :kbd:`Control-o`, exit with :kbd:`Control-x`).
+If unsure use nano: ``nano ~/fwkt_v100_picongpu.profile`` (save with :kbd:`Control-o`, exit with :kbd:`Control-x`).
 Go to the end of the file and add a new line::
 
   export SCRATCH=/bigdata/hplsim/external/alice
@@ -86,7 +86,7 @@ In the profile file you can also supply additional settings, like your email add
 
 Now activate your profile::
 
-  source ~/k80_picongpu.profile
+  source ~/fwkt_v100_picongpu.profile
 
 .. warning::
    You will have to repeat this command **every time** you want to use PIConGPU on a new shell, i.e. after logging in.
@@ -120,8 +120,8 @@ Create a directory and copy it::
 Usually you would now adjust the files in the newly created directory ``~/picongpu-projects/tinkering/try01`` – for this introduction we will use the parameters as provided.
 
 .. note::
-   The command :command:`pic-create` and the variable ``$PIC_EXAMPLES`` have been provided because you loaded the file :file:`~/k80_picongpu.profile` in the previous step.
-   If this fails (printing ``pic-create: command not found``), make sure you load the PIConGPU profile by executing ``source ~/k80_picongpu.profile``.
+   The command :command:`pic-create` and the variable ``$PIC_EXAMPLES`` have been provided because you loaded the file :file:`~/fwkt_v100_picongpu.profile` in the previous step.
+   If this fails (printing ``pic-create: command not found``), make sure you load the PIConGPU profile by executing ``source ~/fwkt_v100_picongpu.profile``.
 
 Compile and Run
 ---------------
@@ -148,7 +148,7 @@ After a successfull build, run (still on the compute node, still inside your sce
 
 - :command:`tbg`: tool provided by PIConGPU
 - ``bash``: the “submit system”, e.g. use ``sbatch`` for slurm
-- ``$PICSRC``: the path to your PIConGPU source code, automatically set when sourcing :file:`k80_picongpu.profile`
+- ``$PICSRC``: the path to your PIConGPU source code, automatically set when sourcing :file:`fwkt_v100_picongpu.profile`
 - :file:`$PICSRC/etc/picongpu/bash/mpiexec.tpl`: options for the chosen submit system
 - :file:`etc/picongpu/1.cfg`: runtime options (number of GPUs, etc.)
 - :file:`$SCRATCH/tinkering/try01/run01`: not-yet-existing destination for your result files
@@ -164,16 +164,16 @@ After a successfull build, run (still on the compute node, still inside your sce
      # ...should now display hemera4.cluster or hemera5.cluster
 
      # resubmit your simulation with a new directory:
-     tbg -s sbatch -c etc/picongpu/1.cfg -t etc/picongpu/hemera-hzdr/k80.tpl $SCRATCH/tinkering/try01/run02
+     tbg -s sbatch -c etc/picongpu/1.cfg -t etc/picongpu/hemera-hzdr/fwkt_v100.tpl $SCRATCH/tinkering/try01/run02
 
    This will print a confirmation message (e.g. ``Submitted batch job 3769365``),
    but no output of PIConGPU itself will be printed.
    Using ``squeue -u $USER`` you can view the current status of your job.
 
    Note that we not only used a different "submit system" ``sbatch``,
-   but also changed the template file to :file:`etc/picongpu/hemera-hzdr/k80.tpl`.
+   but also changed the template file to :file:`etc/picongpu/hemera-hzdr/fwkt_v100.tpl`.
    (This template file is directly located in your project directory.`)
-   Both profile and template file are built for the same compute device, the NVIDIA Tesla "K80" GPU.
+   Both profile and template file are built for the same compute device, the NVIDIA Volta "V100" GPU.
    
 
 Examine the Results
