@@ -77,15 +77,15 @@ find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../.
 # # Build type (debug, release)
 # ################################################################################
 
-# option(HEATEQ_RELEASE "Build release version, disables all runtime asserts" OFF)
-# if(HEATEQ_RELEASE)
-#     message(STATUS "Release version")
-#     set(CMAKE_BUILD_TYPE Release)
-#     add_definitions(-DNDEBUG)
-# else(HEATEQ_RELEASE)
-#     message(STATUS "Debug version")
-#     set(CMAKE_BUILD_TYPE Debug)
-# endif(HEATEQ_RELEASE)
+option(HEATEQ_RELEASE "Build release version, disables all runtime asserts" OFF)
+if(HEATEQ_RELEASE)
+    message(STATUS "Release version")
+    set(CMAKE_BUILD_TYPE Release)
+    add_definitions(-DNDEBUG)
+else(HEATEQ_RELEASE)
+    message(STATUS "Debug version")
+    set(CMAKE_BUILD_TYPE Debug)
+endif(HEATEQ_RELEASE)
 
 ################################################################################
 # PNGwriter
