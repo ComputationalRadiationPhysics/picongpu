@@ -19,8 +19,10 @@ PMACC_CONST_ARGS=""
 # to save compile time reduce the isaac functor chain length to one
 PMACC_CONST_ARGS="${PMACC_CONST_ARGS} -DCMAKE_BUILD_TYPE=${PMACC_BUILD_TYPE}"
 CMAKE_ARGS="${PMACC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION}"
+
 # allow root user to execute MPI
-CMAKE_ARGS="$CMAKE_ARGS -DUSE_MPI_AS_ROOT_USER=ON"
+USE_MPI_AS_ROOT_USER="ON"
+CMAKE_ARGS="$CMAKE_ARGS -DUSE_MPI_AS_ROOT_USER=$USE_MPI_AS_ROOT_USER"
 
 
 # check and activate if clang should be used as CUDA device compiler
@@ -113,4 +115,16 @@ if ! [[ "$PIC_BACKEND" =~ hip.* || ($CXX_VERSION =~ ^clang && $PIC_BACKEND =~ ^c
   make -j $PMACC_PARALLEL_BUILDS
   # execute on one device
   ./gameOfLife -d 1 1 -g 64 64  -s 100 -p 1 1
+
+  ## compile and test heat equation
+  export heatEq_folder=$HOME/heatEq
+  mkdir -p $heatEq_folder
+  cd $heatEq_folder
+  # release compile to avoid issues with cuda <11.7 https://github.com/alpaka-group/alpaka/issues/2035
+  cmake $CMAKE_ARGS -DHEATEQ_RELEASE=ON $code_DIR/share/pmacc/examples/heatEquation2D
+  make -j $PMACC_PARALLEL_BUILDS
+  # execute with  = 4
+  if [ "$USE_MPI_AS_ROOT_USER" == "ON" ]; then
+    mpirun --allow-run-as-root -npernode 4 -n 4 ./heatEq
+  fi
 fi

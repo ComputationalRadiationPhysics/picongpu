@@ -67,7 +67,7 @@ namespace pmacc
 
             /** defines if the result of the MPI operation is valid
              *
-             * The reduction method reduceMethods::Reduce is used.
+             * The reduction method reduceMethods::AllReduce is used.
              *
              * @return if result of operator() is valid
              */

@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Heiko Burau, Rene Widera
+/* Copyright 2013-2023 Heiko Burau, Rene Widera, Tapish Narwal
  *
  * This file is part of PMacc.
  *
@@ -20,35 +20,30 @@
 
 #pragma once
 
-#include "types.hpp"
-
+#include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/types.hpp>
 
 #include <pngwriter.h>
 
-namespace gol
+struct PngCreator
 {
-    struct PngCreator
+    template<class DBox>
+    void operator()(uint32_t currentStep, DBox data, pmacc::DataSpace<DIM2> dataSize)
     {
-        template<class DBox>
-        void operator()(uint32_t currentStep, DBox data, Space dataSize)
+        std::stringstream step;
+        step << std::setw(6) << std::setfill('0') << currentStep;
+        std::string filename("heat_" + step.str() + ".png");
+        pngwriter png(dataSize.x(), dataSize.y(), 0, filename.c_str());
+        png.setcompressionlevel(9);
+
+        for(int y = 0; y < dataSize.y(); ++y)
         {
-            std::stringstream step;
-            step << std::setw(6) << std::setfill('0') << currentStep;
-            std::string filename("gol_" + step.str() + ".png");
-            pngwriter png(dataSize.x(), dataSize.y(), 0, filename.c_str());
-            png.setcompressionlevel(9);
-
-            for(int y = 0; y < dataSize.y(); ++y)
+            for(int x = 0; x < dataSize.x(); ++x)
             {
-                for(int x = 0; x < dataSize.x(); ++x)
-                {
-                    float p = data[Space(x, y)];
-                    png.plot(x + 1, dataSize.y() - y, p, p, p);
-                }
+                float p = data[pmacc::DataSpace<DIM2>(x, y)];
+                png.plot(x + 1, dataSize.y() - y, p, 0., 1. - p);
             }
-            png.close();
         }
-    };
-
-} // namespace gol
+        png.close();
+    }
+};
