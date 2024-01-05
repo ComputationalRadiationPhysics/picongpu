@@ -45,14 +45,12 @@ while true ; do
     esac
     shift
 done
-
 if [ -d "./lib/python/test/" ] ; then
-   MAINTEST="./lib/python/test"
-  if [ -z "$dataPath" ] ; then
-      dataPath=$0/../simOutput/openPMD
-  fi
-  python3 $MAINTEST/param-test.py -r $dataPath
-  exit $?
+    MAINTEST="./lib/python/test"
+    dataPath=$0/../simOutput/openPMD
+    python3 $MAINTEST/param-test.py -r $dataPath
+    exit $?
 fi
+
 
 exit 2

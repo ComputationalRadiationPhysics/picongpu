@@ -5,14 +5,13 @@ import scipy.constants as spc
 from openpmd_viewer import OpenPMDTimeSeries
 import openpmd_viewer
 
-print(openpmd_viewer.__version__)
+print("openPMD-viewer version:", openpmd_viewer.__version__)
 parser = argparse.ArgumentParser(description="1")
 
 
 parser.add_argument(
     "-r",
-    help="Path of the folder where the results"
-    " of the test-suite should be saved",
+    help="Path of the folder where the results" " of the test-suite should be saved",
     dest="data",
     type=str,
 )
@@ -23,6 +22,8 @@ args = parser.parse_args()
 ts = OpenPMDTimeSeries(args.data)
 
 # Define parameters for electromagnetic fields and charge/energy densities
+base_density = 1.0e25
+gamma = 1.021
 field_param = {
     "Ex": -30.0e2,
     "Ey": -20.0e4,
@@ -30,23 +31,26 @@ field_param = {
     "Bx": 25,
     "By": -50,
     "Bz": 50,
-    "e_all_chargeDensity": -spc.elementary_charge * 1e25,
-    "e_all_energyDensity": spc.m_e
-    * spc.c**2
-    * (1.021 - 1)
-    * 1e25,
-    "i_all_chargeDensity": spc.elementary_charge * 1e25,
+    "e_all_chargeDensity": -spc.elementary_charge * base_density,
+    "e_all_energyDensity": spc.m_e * spc.c**2 * (gamma - 1) * base_density,
+    "i_all_chargeDensity": spc.elementary_charge * base_density,
     "i_all_energyDensity": 0,
+    "field_epsilon_relative": 1.0e-6,
+    "field_epsilon": 1.0e-2,
+    "density_epsilon_relative": 1.0e-3,
+    "density_epsilon": 1.0e-2,
 }
 
 # Define parameters for particle properties
-gamma = 1.021
+
 v = gamma * (spc.c * (gamma**2 - 1) ** (1 / 2)) / spc.c
 
 particle_param = {
     "ux": 0.267261 * v,
     "uy": 0.534522 * v,
     "uz": 0.801784 * v,
+    "location_epsilon": 1.0e-1,
+    "momentum_epsilon": 1.0e-1,
 }
 
 # Define grid parameters
@@ -55,6 +59,8 @@ grid_param = {
     "y_shape": 32,
     "z_shape": 12,
 }
+
+# Define uncertainties
 
 # Function to check parameters against simulation data
 
@@ -70,44 +76,32 @@ def check_params(num_iterations):
                 (
                     field_data[field][coord],
                     info,
-                ) = ts.get_field(
-                    iteration=i, field=field, coord=coord
-                )
+                ) = ts.get_field(iteration=i, field=field, coord=coord)
         for field in fields:
             for coord in coords:
-                eps_s = 1e-9
-                eps_l = np.abs(
-                    field_param[f"{field}{coord}"] * 1e-6
+                field_param["field_epsilon_relative"] *= np.abs(
+                    field_param[f"{field}{coord}"]
                 )
                 value = field_data[field][coord]
                 # Check if the field values are within a tolerance range
                 if not np.logical_and(
                     np.less_equal(
                         field_param[f"{field}{coord}"]
-                        - eps_l,
+                        - field_param["field_epsilon_relative"],
                         value,
                     ),
                     np.greater_equal(
                         field_param[f"{field}{coord}"]
-                        + eps_l,
+                        + field_param["field_epsilon_relative"],
                         value,
                     ),
                 ).all():
                     return False
-                if np.not_equal(
-                    field_param[f"{field}{coord}"], 0
-                ):
-                    value -= field_param[
-                        f"{field}{coord}"
-                    ]
+                if np.not_equal(field_param[f"{field}{coord}"], 0):
+                    value -= field_param[f"{field}{coord}"]
                     if not np.less_equal(
-                        np.abs(
-                            np.std(value)
-                            / field_param[
-                                f"{field}{coord}"
-                            ]
-                        ),
-                        eps_s,
+                        np.abs(np.std(value) / field_param[f"{field}{coord}"]),
+                        field_param["field_epsilon"],
                     ):
                         return False
                 else:
@@ -123,37 +117,27 @@ def check_params(num_iterations):
         density_data = {}
         for density in densities:
             density_data[density] = {}
-            density_data[density], info = ts.get_field(
-                iteration=i, field=density
-            )
+            density_data[density], info = ts.get_field(iteration=i, field=density)
         for density in densities:
-            eps_s = 1
-            eps_l = np.abs(
-                field_param[f"{density}"] * 1e-1
-            )
+            field_param["density_epsilon_relative"] *= np.abs(field_param[f"{density}"])
             value = density_data[density]
             # Check if the density values are within a tolerance range
             if not np.logical_and(
                 np.less_equal(
-                    field_param[f"{density}"] - eps_l,
+                    field_param[f"{density}"] - field_param["density_epsilon_relative"],
                     density_data[density],
                 ),
                 np.greater_equal(
-                    field_param[f"{density}"] + eps_l,
+                    field_param[f"{density}"] + field_param["density_epsilon_relative"],
                     density_data[density],
                 ),
             ).all():
                 return False
-            if np.not_equal(
-                field_param[f"{density}"], 0
-            ):
+            if np.not_equal(field_param[f"{density}"], 0):
                 value -= field_param[f"{density}"]
                 if not np.less_equal(
-                    np.abs(
-                        np.std(value)
-                        / field_param[f"{density}"]
-                    ),
-                    eps_s,
+                    np.abs(np.std(value) / field_param[f"{density}"]),
+                    field_param["density_epsilon"],
                 ):
                     return False
             else:
@@ -165,9 +149,7 @@ def check_params(num_iterations):
             iteration=i,
             species="e",
         )
-        Ex, info_Ex = ts.get_field(
-            iteration=0, field="E", coord="x"
-        )
+        Ex, info_Ex = ts.get_field(iteration=0, field="E", coord="x")
         cell_dx = info_Ex.dx
         cell_dy = info_Ex.dy
         cell_dz = info_Ex.dz
@@ -180,9 +162,7 @@ def check_params(num_iterations):
                 int(x[k] / cell_dx),
             ] += 1
         # Check if the maximum and minimum particle counts are equal
-        if not np.amax(particle_map) == np.amin(
-            particle_map
-        ):
+        if not np.amax(particle_map) == np.amin(particle_map):
             return False
         # Calculate the center map and check if values are within a tolerance
         center_map = [
@@ -194,16 +174,16 @@ def check_params(num_iterations):
             ]
             for item in array
         ]
-        eps = 0.1
         if not all(
-            0.5 - eps < value < 0.5 + eps
+            0.5 - particle_param["location_epsilon"]
+            < value
+            < 0.5 + particle_param["location_epsilon"]
             for value in center_map
         ):
             return False
 
         momenta = ["ux", "uy", "uz"]
         momentum_data = {}
-        eps = 0.1
         for momentum in momenta:
             momentum_data[momentum] = {}
             momentum_data[momentum] = [
@@ -218,11 +198,11 @@ def check_params(num_iterations):
             # Check if the momentum values are within a tolerance range
         if not np.logical_and(
             np.less_equal(
-                particle_param[f"{momentum}"] - eps,
+                particle_param[f"{momentum}"] - particle_param["momentum_epsilon"],
                 momentum_data[momentum],
             ),
             np.greater_equal(
-                particle_param[f"{momentum}"] + eps,
+                particle_param[f"{momentum}"] + particle_param["momentum_epsilon"],
                 momentum_data[momentum],
             ),
         ).all():
@@ -230,6 +210,6 @@ def check_params(num_iterations):
     return True
 
 
-bool_pass = check_params(2)  # false if failure
+bool_pass = check_params(2)  # false if failure else true if success
 print("Test result: ", bool_pass)
-sys.exit(not bool_pass)
+sys.exit(not bool_pass)  # 0 if success else 1 if failure

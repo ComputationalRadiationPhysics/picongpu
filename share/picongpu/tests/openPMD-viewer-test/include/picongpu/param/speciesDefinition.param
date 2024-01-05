@@ -29,27 +29,12 @@
 #include <pmacc/particles/Identifier.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 
-
-#ifndef PARAM_RADIATION
-/* disable radiation calculation */
-#    define PARAM_RADIATION 0
-#endif
-
-
 namespace picongpu
 {
     /*########################### define particle attributes #####################*/
 
     /** describe attributes of a particle*/
-    using DefaultParticleAttributes = MakeSeq_t<
-        position<position_pic>,
-        momentum,
-        weighting
-#if(PARAM_RADIATION == 1)
-        ,
-        momentumPrev1
-#endif
-        >;
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
 
     /*########################### end particle attributes ########################*/
 

@@ -2,7 +2,7 @@
 #
 # This file is part of PIConGPU.
 # Copyright 2023 PIConGPU contributors
-# Authors: Mika Soren Voss, Hannes Wolf, Klaus Steiniger
+# Authors: Mika Soren Voss, Hannes Wolf, Klaus Steiniger, Max Lehmann
 # License: GPLv3+
 #
 
@@ -19,18 +19,14 @@ help()
   echo "Usage: ci.sh [-d dataPath] [inputSetPath] [destinationPath]"
   echo ""
   echo "Options"
-  echo "-h | --help                   - show help"
+  echo "-h | --help                 - show help"
   echo ""
-  echo "  inputSetPath                         - path to the simulation input set"
-  echo "                                         Default: current directory"
-  echo "  destinationPath                      - path to the destination where the input set is cloned to via"
-  echo "                                         'pic-create'"
-  echo "                                         Default: current directory"
+  echo "inputSetPath                - path to the simulation input set"
+  echo "                              Default: current directory"
+  echo "destinationPath             - path to the destination where the input set is cloned to via"
+  echo "                              'pic-create'"
+  echo "                              Default: current directory"
 }
-
-## not used at the moment
-currentPath=$(cd `dirname $0` && pwd)
-currentPath=$(absolute_path $currentPath)
 
 #####################
 ## option handling ##
@@ -66,6 +62,7 @@ if [ $# -eq 2 ] ; then
   inputSetPath=$1
   inputDestinationPath=$2
 else
+  echo "Two arguments are required, $# given!"
   echo -e "$(help)"
 fi
 
