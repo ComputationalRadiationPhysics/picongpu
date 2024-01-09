@@ -74,7 +74,7 @@ Boost
 - 1.74.0+ (``program_options``, ``atomic`` and header-only libs)
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-atomic-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
-- *Spack:* ``spack install boost``
+- *Spack:* ``spack install boost +program_options +atomic``
 - *from source:*
 
   - ``mkdir -p ~/src ~/lib``
