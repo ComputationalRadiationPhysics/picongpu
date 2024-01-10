@@ -117,18 +117,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
 .. literalinclude:: profiles/hemera-hzdr/fwkt_v100_picongpu.profile.example
    :language: bash
 
-Queue: k20 (4x Nvidia K20m GPUs 4.7GB)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hemera-hzdr/k20_picongpu.profile.example
-   :language: bash
-
-Queue: k80 (8x NVIDIA K80 12GB)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hemera-hzdr/k80_picongpu.profile.example
-   :language: bash
-
 Summit (ORNL)
 -------------
 
