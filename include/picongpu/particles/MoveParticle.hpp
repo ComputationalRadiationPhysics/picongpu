@@ -34,10 +34,12 @@ namespace picongpu
          * in case the new position is outside of the cell we adjust
          * the cell index and the multiMask of the particle.
          *
+         * we assume that CFL condition is fulfilled
+         *
          * @tparam T_Particle particle type
          * @param particle particle handle
          * @param newPos new position relative to the current cell, in units of cells
-         * newPos must be [-1.0, 2.0)
+         * newPos must be [-1.0, 2.0) (following CFL)
          * @return whether the particle has left the original cell
          */
         template<typename T_Particle>
