@@ -1,0 +1,3 @@
+snakemake >= 8.0.0
+pandas
+snakemake-executor-plugin-slurm
