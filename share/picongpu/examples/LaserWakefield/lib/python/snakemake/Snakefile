@@ -17,7 +17,7 @@ localrules: all, simulate
 rule all:
     input: output_params
 
-# compile for every paramter instance
+# compile for every parameter instance
 rule compile:
      input:
          pic_project="path_to/picongpu_project",
@@ -107,7 +107,7 @@ rule post_processing:
 rule optimization:
     input: 
         current_params=input_params,
-        post_processing_results=expand("results/result_x_y_{params}.npy", params=paramspace.instance_patterns)
+        post_processing_results=expand("results/result_{params}.npy", params=paramspace.instance_patterns)
     output: 
         new_params=output_params
     resources:
