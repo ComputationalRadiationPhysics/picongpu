@@ -22,29 +22,57 @@
 #include <picongpu/simulation_defines.hpp>
 
 #include <catch2/catch_test_macros.hpp>
+#include <picongpu/particles/Particles.hpp>
 
 using ::picongpu::floatD_X;
-using ::picongpu::lcellId_t;
-using position = ::picongpu::position<::picongpu::position_pic>;
+using ::pmacc::localCellIdx;
+using ::pmacc::multiMask;
+using position = ::picongpu::position<>;
+using ::picongpu::particles::moveParticle;
 
 /** A tiny stub of a particle implementing the interface expected by moveParticle()
  */
 struct ParticleStub
 {
-    floatD_X pos;
-    lcellId_t localCellIdx;
+    floatD_X pos = floatD_X::create(0.);
+    int localCellIdxValue;
+    int multiMaskValue;
 
-    lcellId_t& operator[](lcellId_t const& index)
+    int& operator[](localCellIdx const& index)
     {
-        return localCellIdx;
+        return localCellIdxValue;
     }
 
     floatD_X& operator[](position const& index)
     {
         return pos;
     }
+
+    int& operator[](multiMask const& index)
+    {
+        return multiMaskValue;
+    }
+
+    bool operator==(ParticleStub const& other)
+    {
+        return pos == other.pos and localCellIdxValue == other.localCellIdxValue
+            and multiMaskValue == other.multiMaskValue;
+    }
 };
 
 TEST_CASE("unit::moveParticle", "[moveParticle test]")
 {
+    ParticleStub particle;
+    floatD_X newPos = floatD_X::create(0.);
+
+    SECTION("does nothing for unchanged position")
+    {
+        // precondition (not the actual test):
+        REQUIRE(newPos == particle.pos);
+
+        auto newParticle = particle;
+        moveParticle(newParticle, newPos);
+
+        REQUIRE(newParticle == particle);
+    }
 }
