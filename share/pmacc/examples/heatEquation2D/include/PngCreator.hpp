@@ -23,6 +23,8 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/types.hpp>
 
+#include <iomanip>
+
 #include <pngwriter.h>
 
 struct PngCreator

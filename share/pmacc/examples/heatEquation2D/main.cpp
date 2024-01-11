@@ -18,7 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../gameOfLife2D/include/GatherSlice.hpp"
 #include "include/PngCreator.hpp"
 #include "include/SetBoundaryConditions.hpp"
 #include "include/StencilFourPoint.hpp"
@@ -31,11 +30,13 @@
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/mpi/GatherSlice.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 #define NUM_STEPS 1000
 #define NUM_DEVICES_PER_DIM 2
@@ -43,6 +44,34 @@
 #define DX 4 // GRID SPACING
 #define DT 1 // TIME STEP - STABLE IF DT < (DX * DX) / (4 * THERMAL_DIFFUSIVITY)
 
+
+template<typename T_Gather, typename T_GridBuffer>
+inline auto createPng(uint32_t currentStep, T_Gather& gather, std::unique_ptr<T_GridBuffer> const& gridBuffer)
+{
+    /* gather::operator() gathers all the buffers and assembles those to
+     * a complete picture discarding the guards.
+     */
+    if(gather->isParticipating())
+    {
+        const pmacc::SubGrid<DIM2>& subGrid = pmacc::Environment<DIM2>::get().SubGrid();
+        auto bufferLayout = gridBuffer->getGridLayout();
+        auto localDataExtents = bufferLayout.getDataSpaceWithoutGuarding();
+        auto view = std::make_unique<pmacc::DeviceBuffer<float, DIM2>>(
+            gridBuffer->getDeviceBuffer(),
+            localDataExtents,
+            bufferLayout.getGuard());
+        // create a contiguous buffer required for gathering the data
+        auto dataWithoutGuard = std::make_unique<pmacc::HostBuffer<float, DIM2>>(localDataExtents);
+        dataWithoutGuard->copyFrom(*view.get());
+        auto picture = gather->gatherSlice(
+            *dataWithoutGuard.get(),
+            subGrid.getGlobalDomain().size,
+            subGrid.getLocalDomain().offset);
+        PngCreator png;
+        if(gather->isMaster())
+            png(currentStep, picture->getDataBox(), picture->getDataSpace());
+    }
+}
 
 auto main(int argc, char** argv) -> int
 {
@@ -127,23 +156,8 @@ auto main(int argc, char** argv) -> int
         borderMapper);
 
     // create png on host of the initial conditions
-    gol::GatherSlice gather;
-    bool isMaster;
-
-    gol::MessageHeader header(gridSize, layout, subGrid.getLocalDomain().offset);
-    isMaster = gather.init(header, true);
-
-    // gather needs to be global
-    // transfer the simulations calculated on device to host
-    buff1->deviceToHost();
-
-    auto picture = gather(buff1->getHostBuffer().getDataBox());
-
-    if(isMaster)
-    {
-        PngCreator png;
-        png(0u, picture, gridSize);
-    }
+    auto gather = std::make_unique<pmacc::mpi::GatherSlice>();
+    createPng(0u, gather, buff1);
 
     // buffer to store residual
     auto residualBuffer = std::make_unique<pmacc::HostDeviceBuffer<float, DIM1>>(pmacc::DataSpace<DIM1>::create(1));
@@ -198,7 +212,6 @@ auto main(int argc, char** argv) -> int
 
             // Swap the read and write buffers
             std::swap(buff1, buff2);
-            buff1->deviceToHost();
             residualBuffer->deviceToHost();
 
             // MPI Reduce the residual
@@ -210,16 +223,14 @@ auto main(int argc, char** argv) -> int
                 pmacc::mpi::reduceMethods::Reduce());
             // Reset residuals to zero for next iteration
             residualBuffer->reset(false);
-            picture = gather(buff1->getHostBuffer().getDataBox());
-            PngCreator png;
-            if(isMaster)
-                png(i + 1, picture, gridSize);
+            createPng(i + 1u, gather, buff1);
+
             if(reduce.hasResult(pmacc::mpi::reduceMethods::Reduce()))
                 std::cout << "Residual at time " << DT * i << " = " << hReducedResidual.getDataBox()[0] << std::endl;
         }
     }
     /* Finalize */
-    gather.finalize();
+    gather.reset();
     pmacc::eventSystem::getTransactionEvent().waitForFinished();
     pmacc::Environment<DIM2>::get().finalize();
 
