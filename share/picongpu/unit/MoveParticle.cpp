@@ -21,6 +21,10 @@
 
 #include <picongpu/simulation_defines.hpp>
 
+#include <functional>
+#include <numeric>
+
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -33,13 +37,29 @@ using position = ::picongpu::position<>;
 using ::picongpu::simDim;
 using ::picongpu::particles::moveParticle;
 
+const auto superCellSize = ::picongpu::SuperCellSize::toRT();
+constexpr const auto superCellVolume = ::pmacc::math::CT::volume<::picongpu::SuperCellSize>::type::value;
+
+template<typename T>
+static bool isApproxEqual(T const& a, T const& b)
+{
+    return std::transform_reduce(
+        &a[0], // should be std::cbegin(a),
+        (&a[simDim - 1]) + 1, // should be std::cend(a),
+        &b[0], // should be std::cbegin(b),
+        true,
+        std::logical_and{},
+        [](auto const& lhs, auto const& rhs)
+        { return lhs == Catch::Approx(rhs).margin(std::numeric_limits<typename T::type>::epsilon()); });
+}
+
 /** A tiny stub of a particle implementing the interface expected by moveParticle()
  */
 struct ParticleStub
 {
     floatD_X pos = floatD_X::create(0.);
-    int localCellIdxValue;
-    int multiMaskValue;
+    int localCellIdxValue = 0;
+    int multiMaskValue = 1;
 
     int& operator[](localCellIdx const& index)
     {
@@ -56,10 +76,17 @@ struct ParticleStub
         return multiMaskValue;
     }
 
-    bool operator==(ParticleStub const& other)
+    bool operator==(ParticleStub const& other) const
     {
-        return pos == other.pos and localCellIdxValue == other.localCellIdxValue
+        return isApproxEqual(pos, other.pos) and localCellIdxValue == other.localCellIdxValue
             and multiMaskValue == other.multiMaskValue;
+    }
+
+    std::string toString() const
+    {
+        std::stringstream ss;
+        ss << "pos: " << pos << ", localCellIdxValue: " << localCellIdxValue << ", multiMaskValue: " << multiMaskValue;
+        return ss.str();
     }
 };
 
@@ -68,7 +95,6 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
     ParticleStub particle;
     auto expectedParticle = particle;
     floatD_X newPos = particle.pos;
-    std::array<int, 3> neighbouringLocalCellIdx{1,8,64};
 
     SECTION("does nothing for unchanged position")
     {
@@ -93,11 +119,34 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         CHECK(particle == expectedParticle);
     }
 
+
     SECTION("moves outside of cell in positive direction")
     {
+        const std::array<int, 3> neighbouringLocalCellIdxPositive{1, 8, 64};
         newPos[i] = 1.5;
         expectedParticle.pos[i] = .5;
-        expectedParticle.localCellIdxValue = neighbouringLocalCellIdx[i];
+        expectedParticle.localCellIdxValue = neighbouringLocalCellIdxPositive[i];
+
+        moveParticle(particle, newPos);
+
+        CHECK(particle == expectedParticle);
+    }
+
+    SECTION("moves outside of cell in negative direction")
+    {
+        const auto lastCell = superCellVolume - 1;
+        // last number can be hard-coded because if this is used, we know we're 3D:
+        const std::array<int, 3> neighbouringLocalCellIdxNegative{
+            lastCell - 1,
+            lastCell - superCellSize[simDim - 2],
+            191};
+
+        // make sure that we don't cross supercell borders just here:
+        particle.localCellIdxValue = lastCell;
+
+        newPos[i] = -.5;
+        expectedParticle.pos[i] = .5;
+        expectedParticle.localCellIdxValue = neighbouringLocalCellIdxNegative[i];
 
         moveParticle(particle, newPos);
 
