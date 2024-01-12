@@ -63,30 +63,27 @@ struct ParticleStub
 TEST_CASE("unit::moveParticle", "[moveParticle test]")
 {
     ParticleStub particle;
+    auto expectedParticle = particle;
     floatD_X newPos = floatD_X::create(0.);
 
     SECTION("does nothing for unchanged position")
     {
-        // precondition (not the actual test):
         REQUIRE(newPos == particle.pos);
 
-        auto expectedParticle = particle;
         moveParticle(particle, newPos);
 
-        REQUIRE(particle == expectedParticle);
+        CHECK(particle == expectedParticle);
     }
 
     SECTION("moves trivially inside cell")
     {
         newPos[0] += .5;
-        auto expectedParticle = particle;
         expectedParticle.pos = newPos;
 
-        // precondition (not the actual test):
         REQUIRE(newPos != particle.pos);
 
         moveParticle(particle, newPos);
 
-        REQUIRE(particle == expectedParticle);
+        CHECK(particle == expectedParticle);
     }
 }
