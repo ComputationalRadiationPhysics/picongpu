@@ -182,4 +182,17 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         CHECK(leftSuperCell);
         CHECK(particle == expectedParticle);
     }
+
+    SECTION("handles rounding near zero correctly")
+    {
+        /* This is so small that 1-newPos[0] = 1.0 (after floating point rounding), so we DO NOT leave the cell after
+         * all but just move to position 0.
+         */
+        newPos[0] = -1.e-9;
+        expectedParticle.pos[0] = 0.;
+
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(not leftSuperCell);
+        CHECK(particle == expectedParticle);
+    }
 }
