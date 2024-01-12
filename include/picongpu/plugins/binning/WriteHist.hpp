@@ -190,7 +190,6 @@ namespace picongpu
                 record.setUnitSI(get_conversion_factor(outputUnits));
 
                 record.resetDataset({::openPMD::determineDatatype<Type>(), histExtent});
-#if OPENPMDAPI_VERSION_GE(0, 15, 0)
                 auto base_ptr = hReducedBuffer->getBasePointer();
                 ::openPMD::UniquePtrWithLambda<Type> data(
                     base_ptr,
@@ -200,9 +199,6 @@ namespace picongpu
                         /* no-op, destroy data via destructor of captured hReducedBuffer */
                     });
                 record.storeChunk<Type>(std::move(data), histOffset, histExtent);
-#else
-                openPMD::storeChunkRaw(record, hReducedBuffer->getBasePointer(), histOffset, histExtent);
-#endif
                 if(isCheckpoint)
                 {
                     iteration.setAttribute("accCounter", accumulateCounter);

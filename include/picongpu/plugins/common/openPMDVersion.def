@@ -53,57 +53,5 @@ namespace picongpu
          * if needed.
          */
         static constexpr int picongpuIOVersionMinor = 0;
-
-        namespace detail
-        {
-            template<typename RecordComponent = ::openPMD::RecordComponent, typename Dummy = void>
-            struct StoreChunkRaw
-            {
-                template<typename T>
-                static void store(RecordComponent& rc, T* ptr, ::openPMD::Offset offset, ::openPMD::Extent extent)
-                {
-                    rc.template storeChunk<T>(::openPMD::shareRaw(ptr), std::move(offset), std::move(extent));
-                }
-
-                template<typename T>
-                static void load(RecordComponent& rc, T* ptr, ::openPMD::Offset offset, ::openPMD::Extent extent)
-                {
-                    rc.template loadChunk<T>(::openPMD::shareRaw(ptr), std::move(offset), std::move(extent));
-                }
-            };
-
-            template<typename RecordComponent>
-            struct StoreChunkRaw<
-                RecordComponent,
-                decltype(std::declval<RecordComponent>().storeChunkRaw(
-                    std::declval<char*>(),
-                    std::declval<::openPMD::Offset>(),
-                    std::declval<::openPMD::Extent>()))>
-            {
-                template<typename T>
-                static void store(RecordComponent& rc, T* ptr, ::openPMD::Offset offset, ::openPMD::Extent extent)
-                {
-                    rc.template storeChunkRaw<T>(ptr, std::move(offset), std::move(extent));
-                }
-
-                template<typename T>
-                static void load(RecordComponent& rc, T* ptr, ::openPMD::Offset offset, ::openPMD::Extent extent)
-                {
-                    rc.template loadChunkRaw<T>(ptr, std::move(offset), std::move(extent));
-                }
-            };
-        } // namespace detail
-
-        template<typename T>
-        void storeChunkRaw(::openPMD::RecordComponent& rc, T* ptr, ::openPMD::Offset offset, ::openPMD::Extent extent)
-        {
-            detail::StoreChunkRaw<::openPMD::RecordComponent>::store(rc, ptr, std::move(offset), std::move(extent));
-        }
-
-        template<typename T>
-        void loadChunkRaw(::openPMD::RecordComponent& rc, T* ptr, ::openPMD::Offset offset, ::openPMD::Extent extent)
-        {
-            detail::StoreChunkRaw<::openPMD::RecordComponent>::load(rc, ptr, std::move(offset), std::move(extent));
-        }
     } // namespace openPMD
 } // namespace picongpu
