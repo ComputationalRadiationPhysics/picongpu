@@ -101,8 +101,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
     {
         REQUIRE(newPos == particle.pos);
 
-        moveParticle(particle, newPos);
-
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(not leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -115,8 +115,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
         REQUIRE(newPos != particle.pos);
 
-        CHECK(not moveParticle(particle, newPos));
-
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(not leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -130,8 +130,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[i] = .1;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxPositive[i];
 
-        CHECK(not moveParticle(particle, newPos));
-
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(not leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -153,8 +153,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[i] = .7;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxNegative[i];
 
-        CHECK(not moveParticle(particle, newPos));
-
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(not leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -166,7 +166,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[1] = .6;
         expectedParticle.localCellIdxValue = 9;
 
-        CHECK(not moveParticle(particle, newPos));
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(not leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -177,7 +178,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.localCellIdxValue = superCellSize[0] - 1;
         expectedParticle.multiMaskValue = 3;
 
-        CHECK(moveParticle(particle, newPos));
+        bool leftSuperCell = moveParticle(particle, newPos);
+        CHECK(leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 }
