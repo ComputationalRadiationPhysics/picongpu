@@ -21,10 +21,6 @@
 
 #include <picongpu/simulation_defines.hpp>
 
-#include <functional>
-#include <numeric>
-
-#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -39,19 +35,6 @@ using ::picongpu::particles::moveParticle;
 
 const auto superCellSize = ::picongpu::SuperCellSize::toRT();
 constexpr const auto superCellVolume = ::pmacc::math::CT::volume<::picongpu::SuperCellSize>::type::value;
-
-template<typename T>
-static bool isApproxEqual(T const& a, T const& b)
-{
-    return std::transform_reduce(
-        &a[0], // should be std::cbegin(a),
-        (&a[simDim - 1]) + 1, // should be std::cend(a),
-        &b[0], // should be std::cbegin(b),
-        true,
-        std::logical_and{},
-        [](auto const& lhs, auto const& rhs)
-        { return lhs == Catch::Approx(rhs).margin(std::numeric_limits<typename T::type>::epsilon()); });
-}
 
 /** A tiny stub of a particle implementing the interface expected by moveParticle()
  */
@@ -76,9 +59,10 @@ struct ParticleStub
         return multiMaskValue;
     }
 
+    // should be =default in C++20
     bool operator==(ParticleStub const& other) const
     {
-        return isApproxEqual(pos, other.pos) and localCellIdxValue == other.localCellIdxValue
+        return pos == other.pos and localCellIdxValue == other.localCellIdxValue
             and multiMaskValue == other.multiMaskValue;
     }
 
