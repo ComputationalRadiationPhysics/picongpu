@@ -67,7 +67,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 {
     ParticleStub particle;
     auto expectedParticle = particle;
-    floatD_X newPos = floatD_X::create(0.);
+    floatD_X newPos = particle.pos;
+    std::array<int, 3> neighbouringLocalCellIdx{1,8,64};
 
     SECTION("does nothing for unchanged position")
     {
@@ -93,9 +94,10 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
     SECTION("moves outside of cell in positive direction")
     {
-        newPos[0] += 1.5;
-        expectedParticle.pos[0] = .5;
-        expectedParticle.localCellIdxValue = 1;
+        auto i = GENERATE(range(0u, simDim));
+        newPos[i] += 1.5;
+        expectedParticle.pos[i] = .5;
+        expectedParticle.localCellIdxValue = neighbouringLocalCellIdx[i];
 
         moveParticle(particle, newPos);
 
