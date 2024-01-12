@@ -25,7 +25,6 @@
 #include <numeric>
 
 #include <catch2/catch_approx.hpp>
-
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -116,13 +115,13 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
         REQUIRE(newPos != particle.pos);
 
-        moveParticle(particle, newPos);
+        CHECK(not moveParticle(particle, newPos));
 
         CHECK(particle == expectedParticle);
     }
 
 
-    SECTION("moves outside of cell in positive direction")
+    SECTION("moves out of cell in positive direction")
     {
         auto i = GENERATE(range(0u, simDim));
 
@@ -131,12 +130,12 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[i] = .1;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxPositive[i];
 
-        moveParticle(particle, newPos);
+        CHECK(not moveParticle(particle, newPos));
 
         CHECK(particle == expectedParticle);
     }
 
-    SECTION("moves outside of cell in negative direction")
+    SECTION("moves out of cell in negative direction")
     {
         auto i = GENERATE(range(0u, simDim));
 
@@ -154,7 +153,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[i] = .7;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxNegative[i];
 
-        moveParticle(particle, newPos);
+        CHECK(not moveParticle(particle, newPos));
 
         CHECK(particle == expectedParticle);
     }
@@ -167,9 +166,18 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[1] = .6;
         expectedParticle.localCellIdxValue = 9;
 
-        moveParticle(particle, newPos);
-        std::cout << particle.toString() << "\n";
+        CHECK(not moveParticle(particle, newPos));
+        CHECK(particle == expectedParticle);
+    }
 
+    SECTION("moves out of super cell")
+    {
+        newPos[0] = -.9;
+        expectedParticle.pos[0] = .1;
+        expectedParticle.localCellIdxValue = superCellSize[0] - 1;
+        expectedParticle.multiMaskValue = 3;
+
+        CHECK(moveParticle(particle, newPos));
         CHECK(particle == expectedParticle);
     }
 }
