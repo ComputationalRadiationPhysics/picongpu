@@ -79,10 +79,11 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         CHECK(particle == expectedParticle);
     }
 
+    auto i = GENERATE(range(0u, simDim));
+
     SECTION("moves trivially inside cell")
     {
-        auto i = GENERATE(range(0u, simDim));
-        newPos[i] += .5;
+        newPos[i] = .5;
         expectedParticle.pos = newPos;
 
         REQUIRE(newPos != particle.pos);
@@ -94,8 +95,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
     SECTION("moves outside of cell in positive direction")
     {
-        auto i = GENERATE(range(0u, simDim));
-        newPos[i] += 1.5;
+        newPos[i] = 1.5;
         expectedParticle.pos[i] = .5;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdx[i];
 
