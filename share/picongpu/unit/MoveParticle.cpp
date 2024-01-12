@@ -62,17 +62,17 @@ struct ParticleStub
     int localCellIdxValue = 0;
     int multiMaskValue = 1;
 
-    int& operator[](localCellIdx const& index)
+    int& operator[](localCellIdx const&)
     {
         return localCellIdxValue;
     }
 
-    floatD_X& operator[](position const& index)
+    floatD_X& operator[](position const&)
     {
         return pos;
     }
 
-    int& operator[](multiMask const& index)
+    int& operator[](multiMask const&)
     {
         return multiMaskValue;
     }
