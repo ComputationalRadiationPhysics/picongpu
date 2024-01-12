@@ -86,4 +86,15 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
         CHECK(particle == expectedParticle);
     }
+
+    SECTION("moves outside of cell in positive direction")
+    {
+        newPos[0] += 1.5;
+        expectedParticle.pos[0] = .5;
+        expectedParticle.localCellIdxValue = 1;
+
+        moveParticle(particle, newPos);
+
+        CHECK(particle == expectedParticle);
+    }
 }
