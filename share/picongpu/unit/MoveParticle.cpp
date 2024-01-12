@@ -70,9 +70,23 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         // precondition (not the actual test):
         REQUIRE(newPos == particle.pos);
 
-        auto newParticle = particle;
-        moveParticle(newParticle, newPos);
+        auto expectedParticle = particle;
+        moveParticle(particle, newPos);
 
-        REQUIRE(newParticle == particle);
+        REQUIRE(particle == expectedParticle);
+    }
+
+    SECTION("moves trivially inside cell")
+    {
+        newPos[0] += .5;
+        auto expectedParticle = particle;
+        expectedParticle.pos = newPos;
+
+        // precondition (not the actual test):
+        REQUIRE(newPos != particle.pos);
+
+        moveParticle(particle, newPos);
+
+        REQUIRE(particle == expectedParticle);
     }
 }
