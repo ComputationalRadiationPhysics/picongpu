@@ -103,7 +103,7 @@ namespace picongpu
 
                     if(elements == 0)
                     {
-                        flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                         continue;
                     }
 
@@ -135,7 +135,7 @@ namespace picongpu
                         span[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
                     }
 
-                    flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                    params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                 }
 
                 auto unitMap = convertToUnitDimension(unitDimension);

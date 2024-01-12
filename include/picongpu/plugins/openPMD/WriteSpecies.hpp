@@ -499,7 +499,7 @@ namespace picongpu
                         globalNumParticles,
                         *params->jsonMatcher,
                         series.particlesPath() + speciesGroup);
-                    flushSeries(*params->openPMDSeries, PreferredFlushTarget::Buffer);
+                    params->openPMDSeries->flush(PreferredFlushTarget::Buffer);
                 }
 
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle patches for %1%")
