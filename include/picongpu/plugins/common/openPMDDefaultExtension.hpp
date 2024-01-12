@@ -71,17 +71,9 @@ namespace picongpu
                 else
 #    endif
 #endif
-                    if(std::find(availableExtensions.begin(), availableExtensions.end(), "bp4")
-                       != availableExtensions.end())
                 {
                     // Engine available and supported in all supported versions of ADIOS2 and openPMD-api
-                    // File extension available in openPMD-api >= 0.15
                     return "bp4";
-                }
-                else
-                {
-                    // Extension is always available in all supported versions of ADIOS2 and openPMD-api
-                    return "bp";
                 }
             };
 #if openPMD_HAVE_ADIOS2 && openPMD_HAVE_HDF5
