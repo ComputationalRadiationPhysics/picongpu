@@ -93,7 +93,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
     SECTION("moves trivially inside cell")
     {
-        newPos[i] = .5;
+        newPos[i] = .42;
         expectedParticle.pos = newPos;
 
         REQUIRE(newPos != particle.pos);
@@ -107,8 +107,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
     SECTION("moves outside of cell in positive direction")
     {
         const std::array<int, 3> neighbouringLocalCellIdxPositive{1, 8, 64};
-        newPos[i] = 1.5;
-        expectedParticle.pos[i] = .5;
+        newPos[i] = 1.1;
+        expectedParticle.pos[i] = .1;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxPositive[i];
 
         moveParticle(particle, newPos);
@@ -128,8 +128,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         // make sure that we don't cross supercell borders just here:
         particle.localCellIdxValue = lastCell;
 
-        newPos[i] = -.5;
-        expectedParticle.pos[i] = .5;
+        newPos[i] = -.3;
+        expectedParticle.pos[i] = .7;
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxNegative[i];
 
         moveParticle(particle, newPos);
