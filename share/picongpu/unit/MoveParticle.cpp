@@ -22,12 +22,15 @@
 #include <picongpu/simulation_defines.hpp>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
 #include <picongpu/particles/Particles.hpp>
 
 using ::picongpu::floatD_X;
 using ::pmacc::localCellIdx;
 using ::pmacc::multiMask;
 using position = ::picongpu::position<>;
+using ::picongpu::simDim;
 using ::picongpu::particles::moveParticle;
 
 /** A tiny stub of a particle implementing the interface expected by moveParticle()
@@ -77,7 +80,8 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
 
     SECTION("moves trivially inside cell")
     {
-        newPos[0] += .5;
+        auto i = GENERATE(range(0u, simDim));
+        newPos[i] += .5;
         expectedParticle.pos = newPos;
 
         REQUIRE(newPos != particle.pos);
