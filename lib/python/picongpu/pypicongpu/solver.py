@@ -16,6 +16,7 @@ class Solver:
 
     Parent class for type safety, does not contain anything.
     """
+
     pass
 
 

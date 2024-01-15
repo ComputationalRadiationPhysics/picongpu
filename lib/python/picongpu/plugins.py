@@ -1,2 +1,1 @@
-raise ImportError(
-    "module has been moved, please use: from picongpu.extra import plugins")
+raise ImportError("module has been moved, please use: from picongpu.extra import plugins")

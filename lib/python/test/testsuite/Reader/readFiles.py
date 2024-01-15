@@ -24,14 +24,12 @@ import os
 import testsuite._checkData as cD
 
 
-class ReadFiles():
+class ReadFiles:
     """
     superclass for all Reader
     """
 
-    def __init__(self, fileExtension: str,
-                 direction: str = None,
-                 directiontype: str = None):
+    def __init__(self, fileExtension: str, direction: str = None, directiontype: str = None):
         """
         constructor
 
@@ -58,15 +56,13 @@ class ReadFiles():
         TypeError: If neither a directory nor a directiontype was passed
         """
 
-        if (direction is None and directiontype is None):
-            raise TypeError("You must set at least one of the"
-                            " values(direction or directiontype)")
+        if direction is None and directiontype is None:
+            raise TypeError("You must set at least one of the" " values(direction or directiontype)")
 
         if directiontype is None:
             directiontype = "undefined"
 
-        direction = cD.checkDirection(variable=directiontype,
-                                      direction=direction)
+        direction = cD.checkDirection(variable=directiontype, direction=direction)
 
         self._direction = direction + "/"
         self._fileExtension = fileExtension
@@ -95,8 +91,7 @@ class ReadFiles():
         ------
         If a directiontype was specified, it must first be reset
         """
-        direction = cD.checkDirection(variable=self.directiontype,
-                                      direction=direction)
+        direction = cD.checkDirection(variable=self.directiontype, direction=direction)
 
         self._direction = direction + "/"
 
@@ -118,8 +113,7 @@ class ReadFiles():
               False otherwise
         """
 
-        all_files = [_ for _ in os.listdir(self._direction)
-                     if _.endswith(self._fileExtension)]
+        all_files = [_ for _ in os.listdir(self._direction) if _.endswith(self._fileExtension)]
 
         if all_files:
             return True
@@ -136,5 +130,4 @@ class ReadFiles():
               List of all names of .dat files
         """
 
-        return [_ for _ in os.listdir(self._direction)
-                if _.endswith(self._fileExtension)]
+        return [_ for _ in os.listdir(self._direction) if _.endswith(self._fileExtension)]

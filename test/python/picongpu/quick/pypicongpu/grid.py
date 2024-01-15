@@ -67,22 +67,19 @@ class TestGrid3D(unittest.TestCase):
     def test_gpu_and_cell_cnt_positive(self):
         """test if n_gpus and cell number s are >0"""
         g = self.g
-        with self.assertRaisesRegex(Exception,
-                                    ".*cell_cnt_x.*greater than 0.*"):
+        with self.assertRaisesRegex(Exception, ".*cell_cnt_x.*greater than 0.*"):
             g.cell_cnt_x = -1
             g._get_serialized()
         # revert changes
         g.cell_cnt_x = 6
 
-        with self.assertRaisesRegex(Exception,
-                                    ".*cell_cnt_y.*greater than 0.*"):
+        with self.assertRaisesRegex(Exception, ".*cell_cnt_y.*greater than 0.*"):
             g.cell_cnt_y = -2
             g._get_serialized()
         # revert changes
         g.cell_cnt_y = 7
 
-        with self.assertRaisesRegex(Exception,
-                                    ".*cell_cnt_z.*greater than 0.*"):
+        with self.assertRaisesRegex(Exception, ".*cell_cnt_z.*greater than 0.*"):
             g.cell_cnt_z = 0
             g._get_serialized()
         # revert changes

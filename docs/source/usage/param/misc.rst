@@ -26,4 +26,3 @@ physicalConstants.param
    :project: PIConGPU
    :path: include/picongpu/param/physicalConstants.param
    :no-link:
-

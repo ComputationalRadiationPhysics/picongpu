@@ -42,9 +42,8 @@ class RadiationData:
 
         # extract time step
         self.timestep = timestep
-        if (self.timestep not in self.rad_series.iterations):
-            raise Exception("The selected timestep {} ".format(self.timestep)
-                            + "is not available in the series.")
+        if self.timestep not in self.rad_series.iterations:
+            raise Exception("The selected timestep {} ".format(self.timestep) + "is not available in the series.")
         self.iteration = self.rad_series.iterations[self.timestep]
 
         # Amplitude
@@ -67,36 +66,35 @@ class RadiationData:
 
     def get_Amplitude_x(self):
         """Returns the complex amplitudes in x-axis."""
-        return ((self.Ax_Re[...] + 1j * self.Ax_Im[...])[:, :, 0] *
-                np.sqrt(self.convert_to_SI))
+        return (self.Ax_Re[...] + 1j * self.Ax_Im[...])[:, :, 0] * np.sqrt(self.convert_to_SI)
 
     def get_Amplitude_y(self):
         """Returns the complex amplitudes in y-axis."""
-        return ((self.Ay_Re[...] + 1j * self.Ay_Im[...])[:, :, 0] *
-                np.sqrt(self.convert_to_SI))
+        return (self.Ay_Re[...] + 1j * self.Ay_Im[...])[:, :, 0] * np.sqrt(self.convert_to_SI)
 
     def get_Amplitude_z(self):
         """Returns the complex amplitudes in z-axis."""
-        return ((self.Az_Re[...] + 1j * self.Az_Im[...])[:, :, 0] *
-                np.sqrt(self.convert_to_SI))
+        return (self.Az_Re[...] + 1j * self.Az_Im[...])[:, :, 0] * np.sqrt(self.convert_to_SI)
 
     def get_Spectra(self):
         """Returns real spectra in [Js]."""
-        return (np.abs(self.get_Amplitude_x())**2 +
-                np.abs(self.get_Amplitude_y())**2 +
-                np.abs(self.get_Amplitude_z())**2)
+        return (
+            np.abs(self.get_Amplitude_x()) ** 2
+            + np.abs(self.get_Amplitude_y()) ** 2
+            + np.abs(self.get_Amplitude_z()) ** 2
+        )
 
     def get_Polarization_X(self):
         """Returns real spectra for x-polarization in [Js]."""
-        return np.abs(self.get_Amplitude_x())**2
+        return np.abs(self.get_Amplitude_x()) ** 2
 
     def get_Polarization_Y(self):
         """Returns real spectra for y-polarization in [Js]."""
-        return np.abs(self.get_Amplitude_y())**2
+        return np.abs(self.get_Amplitude_y()) ** 2
 
     def get_Polarization_Z(self):
         """Returns real spectra for z-polarization in [Js]."""
-        return np.abs(self.get_Amplitude_z())**2
+        return np.abs(self.get_Amplitude_z()) ** 2
 
     def get_omega(self):
         """Returns frequency 'omega' of spectrum in [s^-1]."""
@@ -109,14 +107,14 @@ class RadiationData:
     def get_vector_n(self):
         """Returns the unit vector 'n' of the observation directions."""
         n_h = self.iteration.meshes["DetectorDirection"]
-        n_x = n_h['x'][:, 0, 0]
-        n_x_unitSI = n_h['x'].unit_SI
+        n_x = n_h["x"][:, 0, 0]
+        n_x_unitSI = n_h["x"].unit_SI
 
-        n_y = n_h['y'][:, 0, 0]
-        n_y_unitSI = n_h['y'].unit_SI
+        n_y = n_h["y"][:, 0, 0]
+        n_y_unitSI = n_h["y"].unit_SI
 
-        n_z = n_h['z'][:, 0, 0]
-        n_z_unit_SI = n_h['z'].unit_SI
+        n_z = n_h["z"][:, 0, 0]
+        n_z_unit_SI = n_h["z"].unit_SI
 
         self.rad_series.flush()
 

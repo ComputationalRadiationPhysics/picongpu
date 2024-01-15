@@ -20,8 +20,7 @@
 #
 
 
-
-__doc__ = '''
+__doc__ = """
 This program compares the energy evolution of two PIConGPU runs.
 Just give the directory of two PIConGPU runs and this program will
 get all values needed if they are available.
@@ -33,7 +32,7 @@ Plotted are:
 x-axis: time steps,
 y-axis: change in total energy.
 Developer: Richard Pausch
-'''
+"""
 
 import argparse
 import os
@@ -43,44 +42,53 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ## set up argument parser ##
-parser = argparse.ArgumentParser(
-    description=__doc__,
-    epilog='For further questions please contact Richard Pausch.'
-    )
+parser = argparse.ArgumentParser(description=__doc__, epilog="For further questions please contact Richard Pausch.")
 
-parser.add_argument(metavar="[directory] [[directory]]",
-                    dest="dir_run_all",
-                    nargs='+',
-                    help='directory with reference PIConGPU run [directory with PIConGPU run for comparison]',
-                    action='store')
+parser.add_argument(
+    metavar="[directory] [[directory]]",
+    dest="dir_run_all",
+    nargs="+",
+    help="directory with reference PIConGPU run [directory with PIConGPU run for comparison]",
+    action="store",
+)
 
-parser.add_argument("--label1",
-                    metavar='[string]',
-                    dest="label1",
-                    default="dev",
-                    help='label first simulation (default: dev)')
+parser.add_argument(
+    "--label1",
+    metavar="[string]",
+    dest="label1",
+    default="dev",
+    help="label first simulation (default: dev)",
+)
 
-parser.add_argument("--label2",
-                    metavar='[string]',
-                    dest="label2",
-                    default="branch",
-                    help='label second simulation (default: branch)')
+parser.add_argument(
+    "--label2",
+    metavar="[string]",
+    dest="label2",
+    default="branch",
+    help="label second simulation (default: branch)",
+)
 
-parser.add_argument("--diff",
-                    dest="boolDiff",
-                    action='store_true',
-                    help='show difference between both simulations')
+parser.add_argument(
+    "--diff",
+    dest="boolDiff",
+    action="store_true",
+    help="show difference between both simulations",
+)
 
-parser.add_argument("--noRelative",
-                    dest="boolRelative",
-                    action="store_false",
-                    help="do not plot evolution relative to initial value")
+parser.add_argument(
+    "--noRelative",
+    dest="boolRelative",
+    action="store_false",
+    help="do not plot evolution relative to initial value",
+)
 
-parser.add_argument("--export",
-                    metavar="file name",
-                    dest="output_file",
-                    default="",
-                    help="export plot to file (disable interactive window)")
+parser.add_argument(
+    "--export",
+    metavar="file name",
+    dest="output_file",
+    default="",
+    help="export plot to file (disable interactive window)",
+)
 
 args = parser.parse_args()
 
@@ -99,12 +107,12 @@ warningText1 = "The directory number {} does not exist ({})."
 warningText2 = "The directory number {} does not (yet) contain {}."
 for i in range(numDir):
     if not os.path.isdir(directories[i]):
-        sys.exit(warningText1.format(i+1, directories[i]))
+        sys.exit(warningText1.format(i + 1, directories[i]))
 
-    if not os.path.isdir(directories[i]+simDir):
-        sys.exit(warningText2.format(i+1, simDir))
+    if not os.path.isdir(directories[i] + simDir):
+        sys.exit(warningText2.format(i + 1, simDir))
 
-if(numDir == 2):
+if numDir == 2:
     if directories[0] == directories[1]:
         sys.exit("We do not allow cheating! Compare two different runs.")
 
@@ -116,13 +124,17 @@ Times = []
 
 ## load data from both directories ##
 for sim in directories:
-    mydir = sim+simDir
+    mydir = sim + simDir
     # get relevant files with energy
-    files = [f for f in os.listdir(mydir)
-             if os.path.isfile(os.path.join(mydir, f)) and (re.search('^.*_energy_all.dat', f) or re.search('^fields_energy.dat', f))]
+    files = [
+        f
+        for f in os.listdir(mydir)
+        if os.path.isfile(os.path.join(mydir, f))
+        and (re.search("^.*_energy_all.dat", f) or re.search("^fields_energy.dat", f))
+    ]
     # check if file list is empty
     if len(files) == 0:
-        sys.exit("There were no energy files in \"{}\".".format(mydir))
+        sys.exit('There were no energy files in "{}".'.format(mydir))
     # verbose output
     print("\nFor directory: \n\t{}".format(sim))
     print("the following files are considered for calculating the total energy:")
@@ -130,15 +142,15 @@ for sim in directories:
         print("\t \t - {}".format(f))
 
     # read time steps from first file in list
-    Time = np.loadtxt(os.path.join(mydir,files[0]))[:,0]
+    Time = np.loadtxt(os.path.join(mydir, files[0]))[:, 0]
     # allocate memory for total energy
     Energy = np.zeros(len(Time))
 
     # go through all files
     for f in files:
-        if not np.array_equal(Time, np.loadtxt(os.path.join(mydir,f))[:,0]):
+        if not np.array_equal(Time, np.loadtxt(os.path.join(mydir, f))[:, 0]):
             sys.exit("Time steps differ.")
-        Energy += np.loadtxt(os.path.join(mydir,f))[:,1]
+        Energy += np.loadtxt(os.path.join(mydir, f))[:, 1]
 
     # add data to lists
     Energies.append(Energy)
@@ -150,7 +162,7 @@ print(" ")
 
 ## check time steps ##
 if numDir == 2:
-    if(np.array_equal(Times[0], Times[1])):
+    if np.array_equal(Times[0], Times[1]):
         # if equal - no special treatment
         time_limit = len(Times[0])
     else:
@@ -158,10 +170,10 @@ if numDir == 2:
         print("WARNING: time steps between both directories differ")
         print("         choosing agreeing range")
         min_index = np.amin((len(Times[0]), len(Times[1])))
-        time_limit=0
+        time_limit = 0
         for i in range(min_index):
             if Times[0][i] == Times[1][i]:
-                time_limit = i+1
+                time_limit = i + 1
             else:
                 break
         if time_limit == 0:
@@ -180,38 +192,53 @@ startEnergy = Energies[:][0]
 
 # choose normalization
 if args.boolRelative:
-    norm = 100. / startEnergy[0] # relative to startEnergy in percent
+    norm = 100.0 / startEnergy[0]  # relative to startEnergy in percent
 else:
-    norm = 1.0 # absolute values
+    norm = 1.0  # absolute values
 
 if not args.boolDiff:
     # plot energy evolution
-    plt.plot(Times[0][:time_limit],
-             (Energies[0][:time_limit]-startEnergy[0])*norm,
-             color="green", lw=3, label=args.label1)
+    plt.plot(
+        Times[0][:time_limit],
+        (Energies[0][:time_limit] - startEnergy[0]) * norm,
+        color="green",
+        lw=3,
+        label=args.label1,
+    )
     if numDir == 2:
         # True is deviation of branch to init energy is less than of dev
-        branch_better = (np.abs(Energies[0][:time_limit]-startEnergy[0])
-                         > np.abs(Energies[1][:time_limit]-startEnergy[1]))
+        branch_better = np.abs(Energies[0][:time_limit] - startEnergy[0]) > np.abs(
+            Energies[1][:time_limit] - startEnergy[1]
+        )
 
         # branch is closer to initial energy than dev
-        plt.fill_between(Times[1][:time_limit],
-                         (Energies[0][:time_limit]-startEnergy[0])*norm,
-                         (Energies[1][:time_limit]-startEnergy[0])*norm,
-                         where=branch_better,
-                         color="orange", alpha=0.8)
+        plt.fill_between(
+            Times[1][:time_limit],
+            (Energies[0][:time_limit] - startEnergy[0]) * norm,
+            (Energies[1][:time_limit] - startEnergy[0]) * norm,
+            where=branch_better,
+            color="orange",
+            alpha=0.8,
+        )
 
         # dev is closer to initial energy than branch
-        plt.fill_between(Times[1][:time_limit],
-                         (Energies[0][:time_limit]-startEnergy[0])*norm,
-                         (Energies[1][:time_limit]-startEnergy[0])*norm,
-                         where=np.logical_not(branch_better),
-                         color="red", alpha=0.7)
+        plt.fill_between(
+            Times[1][:time_limit],
+            (Energies[0][:time_limit] - startEnergy[0]) * norm,
+            (Energies[1][:time_limit] - startEnergy[0]) * norm,
+            where=np.logical_not(branch_better),
+            color="red",
+            alpha=0.7,
+        )
 
         # plot second energy evolution
-        plt.plot(Times[1][:time_limit],
-                 (Energies[1][:time_limit]-startEnergy[0])*norm,
-                 color="blue",  lw=2, label=args.label2)
+        plt.plot(
+            Times[1][:time_limit],
+            (Energies[1][:time_limit] - startEnergy[0]) * norm,
+            color="blue",
+            lw=2,
+            label=args.label2,
+        )
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
     else:
@@ -220,16 +247,18 @@ if not args.boolDiff:
 else:
     # plot difference in energy evolution
     if numDir == 2:
-        plt.plot(Times[0][:time_limit],
-                 (Energies[0][:time_limit]-Energies[1][:time_limit])*norm,
-                 color="red", lw=3)
+        plt.plot(
+            Times[0][:time_limit],
+            (Energies[0][:time_limit] - Energies[1][:time_limit]) * norm,
+            color="red",
+            lw=3,
+        )
     else:
         sys.exit("A difference plot requires two directories.")
     if args.boolRelative:
         plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
     else:
         plt.ylabel(r"$E_1 - E_2$", fontsize=24)
-
 
 
 plt.xlabel("time step", fontsize=20)

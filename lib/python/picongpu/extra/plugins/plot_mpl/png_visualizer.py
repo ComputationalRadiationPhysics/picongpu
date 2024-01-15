@@ -42,9 +42,11 @@ class Visualizer(BaseVisualizer):
         # Fail if more than one run_directory since plotting
         # several PNGs at the same time does not make sense!
         if len(base_checked) > 1:
-            raise ValueError("This visualizer only supports plotting a single"
-                             " simulation! Parameter 'run_directory' can"
-                             " contain only a single element!")
+            raise ValueError(
+                "This visualizer only supports plotting a single"
+                " simulation! Parameter 'run_directory' can"
+                " contain only a single element!"
+            )
 
         return base_checked
 
@@ -93,10 +95,9 @@ class Visualizer(BaseVisualizer):
         super().visualize(**kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     def main():
-
         import sys
         import getopt
         import matplotlib.pyplot as plt
@@ -104,10 +105,12 @@ if __name__ == '__main__':
         def usage():
             print("usage:")
             print(
-                "python", sys.argv[0],
+                "python",
+                sys.argv[0],
                 "-p <path to run directory> -i <iteration>"
                 " -s <particle species> -f <species filter>"
-                " -a <axis> -o <slice point offset>")
+                " -a <axis> -o <slice point offset>",
+            )
 
         path = None
         iteration = None
@@ -117,9 +120,11 @@ if __name__ == '__main__':
         slice_point = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:a:o:", [
-                "help", "path", "iteration", "species", "filter", "axis",
-                "offset"])
+            opts, args = getopt.getopt(
+                sys.argv[1:],
+                "hp:i:s:f:a:o:",
+                ["help", "path", "iteration", "species", "filter", "axis", "offset"],
+            )
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -148,10 +153,10 @@ if __name__ == '__main__':
             usage()
             sys.exit(2)
         if species is None:
-            species = 'e'
+            species = "e"
             print("Particle species was not given, will use", species)
         if filtr is None:
-            filtr = 'all'
+            filtr = "all"
             print("Species filter was not given, will use", filtr)
         if axis is None:
             axis = "yx"
@@ -160,9 +165,13 @@ if __name__ == '__main__':
             print("Offset was not given, will determine from file")
 
         _, ax = plt.subplots(1, 1)
-        Visualizer(path, ax).visualize(iteration=iteration, species=species,
-                                       species_filter=filtr, axis=axis,
-                                       slice_point=slice_point)
+        Visualizer(path, ax).visualize(
+            iteration=iteration,
+            species=species,
+            species_filter=filtr,
+            axis=axis,
+            slice_point=slice_point,
+        )
         plt.show()
 
     main()

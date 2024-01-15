@@ -13,22 +13,24 @@ resultLog(direction:str = None, title:str = None)
 errorLog()
 """
 
-__all__ = ['resultLog', 'errorLog']
+__all__ = ["resultLog", "errorLog"]
 
 import sys
 from time import localtime, strftime
 import testsuite._checkData as cD
 
 
-def resultLog(theory: float,
-              value_sim: float,
-              acceptance: float,
-              perc_diff: int,
-              result: bool,
-              difference: float,
-              direction: str = None,
-              title: str = None,
-              inputparameter=None):
+def resultLog(
+    theory: float,
+    value_sim: float,
+    acceptance: float,
+    perc_diff: int,
+    result: bool,
+    difference: float,
+    direction: str = None,
+    title: str = None,
+    inputparameter=None,
+):
     """
     Creates the file testresult.log, in which all essential
     parameters of the test and the result of the test are
@@ -88,17 +90,13 @@ def resultLog(theory: float,
     """
 
     try:
-
         lt = localtime()
         date = strftime("date: %d.%m.%Y", lt)
         timeOfDay = strftime("time: %H:%M:%S", lt)
 
-        title = cD.checkVariables(variable="title",
-                                  default="No title",
-                                  parameter=title)
+        title = cD.checkVariables(variable="title", default="No title", parameter=title)
 
-        direction = cD.checkDirection(variable="resultDirection",
-                                      direction=direction)
+        direction = cD.checkDirection(variable="resultDirection", direction=direction)
 
         fobj_out = open(direction + "/testresult.log", "w+")
         fobj_out.write(date + " " + timeOfDay + "\n")
@@ -111,8 +109,7 @@ def resultLog(theory: float,
         fobj_out.write("difference: {}\n".format(difference))
         fobj_out.write("difference in percentage: {}\n".format(perc_diff))
         for key in inputparameter.keys():
-            fobj_out.write("input parameter: {}={}\n".format(
-                key, inputparameter[key]))
+            fobj_out.write("input parameter: {}={}\n".format(key, inputparameter[key]))
         fobj_out.close()
 
     except Exception:
@@ -133,9 +130,7 @@ def errorLog(direction: str = None):
                 does not exist, the current working directory is used.
     """
 
-    direction = cD.checkDirection(variable="resultDirection",
-                                  direction=direction,
-                                  errorhandling=True)
+    direction = cD.checkDirection(variable="resultDirection", direction=direction, errorhandling=True)
 
     lt = localtime()
     date = strftime("date: %d.%m.%Y", lt)
@@ -153,5 +148,6 @@ def errorLog(direction: str = None):
     fobj_out.close()
 
     sys.exit(42)
+
 
 # ToDo usedDatalog

@@ -57,23 +57,15 @@ class TestDensityProfile(unittest.TestCase):
         # schemas now loaded
         self.assertTrue(RenderedObject._schemas_loaded)
 
-        self.assertEqual(context["data"],
-                         uniform.get_rendering_context())
+        self.assertEqual(context["data"], uniform.get_rendering_context())
 
         # contains information on all types
-        self.assertEqual(context["type"],
-                         {
-                             "uniform": True,
-                             "foil": False
-                         })
+        self.assertEqual(context["type"], {"uniform": True, "foil": False})
 
         # is actually validated against "DensityProfile" schema
         # (note: accessing internal methods only for testing, don't do this)
-        density_profile_fqn = \
-            RenderedObject._get_fully_qualified_class_name(DensityProfile)
-        density_profile_uri = \
-            RenderedObject._get_schema_uri_by_fully_qualified_class_name(
-                density_profile_fqn)
+        density_profile_fqn = RenderedObject._get_fully_qualified_class_name(DensityProfile)
+        density_profile_uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(density_profile_fqn)
 
         schema = RenderedObject._schema_by_uri[density_profile_uri]
 
@@ -85,7 +77,8 @@ class TestDensityProfile(unittest.TestCase):
         # required
         self.assertEqual(
             set(schema["properties"]["type"]["required"]),
-            set(schema["properties"]["type"]["properties"].keys()))
+            set(schema["properties"]["type"]["properties"].keys()),
+        )
 
         # check 2: break the schema, schema rejects everything now
         RenderedObject._schema_by_uri[density_profile_uri] = False

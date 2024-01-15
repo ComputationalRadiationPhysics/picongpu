@@ -49,5 +49,4 @@ class NotPlaced(DensityOperation):
         generated attribute -> there is no code generated -> nothing to
         serialize
         """
-        raise RuntimeError(
-            "NotPlaced operation has no rendering context representation")
+        raise RuntimeError("NotPlaced operation has no rendering context representation")

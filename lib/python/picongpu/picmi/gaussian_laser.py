@@ -19,12 +19,13 @@ import typing
 class GaussianLaser(picmistandard.PICMI_GaussianLaser):
     """PICMI object for Gaussian Laser"""
 
-    def scalarProduct(self, a: typing.List[float], b: typing.List[float]) \
-            -> float:
-        assert len(a) == len(b), "the scalar product is only defined for two \
+    def scalarProduct(self, a: typing.List[float], b: typing.List[float]) -> float:
+        assert len(a) == len(
+            b
+        ), "the scalar product is only defined for two \
             vector of equal dimension"
 
-        result = 0.
+        result = 0.0
         for i in range(len(a)):
             result += a[i] * b[i]
 
@@ -32,29 +33,33 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
 
     @staticmethod
     def testRelativeError(trueValue, testValue, relativeErrorLimit):
-        return (abs((testValue - trueValue)/trueValue) < relativeErrorLimit)
+        return abs((testValue - trueValue) / trueValue) < relativeErrorLimit
 
     def __init__(
-            self, wavelength, waist, duration, propagation_direction,
-            polarization_direction, focal_position, centroid_position,
-            picongpu_polarization_type=(
-                laser.GaussianLaser.PolarizationType.LINEAR),
-            picongpu_laguerre_modes: typing.Optional[
-                typing.List[float]] = None,
-            picongpu_laguerre_phases: typing.Optional[
-                typing.List[float]] = None,
-            picongpu_phase: float = 0.,
-
-            # make sure to always place Huygens-surface inside PML-boundaries,
-            # default is valid for standard PMLs
-
-            # @todo create check for insufficient dimension
-            # @todo create check in simulation for conflict between PMLs and
-            # Huygens-surfaces
-            picongpu_huygens_surface_positions: typing.List[
-                typing.List[int]] = [[16, -16], [16, -16], [16, -16]],
-            **kw):
-
+        self,
+        wavelength,
+        waist,
+        duration,
+        propagation_direction,
+        polarization_direction,
+        focal_position,
+        centroid_position,
+        picongpu_polarization_type=(laser.GaussianLaser.PolarizationType.LINEAR),
+        picongpu_laguerre_modes: typing.Optional[typing.List[float]] = None,
+        picongpu_laguerre_phases: typing.Optional[typing.List[float]] = None,
+        picongpu_phase: float = 0.0,
+        # make sure to always place Huygens-surface inside PML-boundaries,
+        # default is valid for standard PMLs
+        # @todo create check for insufficient dimension
+        # @todo create check in simulation for conflict between PMLs and
+        # Huygens-surfaces
+        picongpu_huygens_surface_positions: typing.List[typing.List[int]] = [
+            [16, -16],
+            [16, -16],
+            [16, -16],
+        ],
+        **kw
+    ):
         if waist <= 0:
             raise ValueError("waist must be > 0")
         if wavelength <= 0:
@@ -62,24 +67,27 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
         if duration <= 0:
             raise ValueError("laser pulse duration must be > 0")
 
-        assert (
-            (picongpu_laguerre_modes is None
-                and picongpu_laguerre_phases is None) or
-            (picongpu_laguerre_modes is not None
-                and picongpu_laguerre_phases is not None)), \
-            "laguerre_modes and laguerre_phases MUST BE both set or both \
+        assert (picongpu_laguerre_modes is None and picongpu_laguerre_phases is None) or (
+            picongpu_laguerre_modes is not None and picongpu_laguerre_phases is not None
+        ), "laguerre_modes and laguerre_phases MUST BE both set or both \
             unset"
 
         self.picongpu_polarization_type = picongpu_polarization_type
         self.picongpu_laguerre_modes = picongpu_laguerre_modes
         self.picongpu_laguerre_phases = picongpu_laguerre_phases
         self.picongpu_phase = picongpu_phase
-        self.picongpu_huygens_surface_positions = \
-            picongpu_huygens_surface_positions
+        self.picongpu_huygens_surface_positions = picongpu_huygens_surface_positions
 
         super().__init__(
-            wavelength, waist, duration, propagation_direction,
-            polarization_direction, focal_position, centroid_position, **kw)
+            wavelength,
+            waist,
+            duration,
+            propagation_direction,
+            polarization_direction,
+            focal_position,
+            centroid_position,
+            **kw
+        )
 
     def get_as_pypicongpu(self) -> laser.GaussianLaser:
         util.unsupported("laser name", self.name)
@@ -91,32 +99,33 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
 
         assert self.testRelativeError(
             1,
-            self.scalarProduct(
-                self.polarization_direction,
-                self.polarization_direction),
-            1e-9), \
-            "the polarization direction vector must be normalized"
+            self.scalarProduct(self.polarization_direction, self.polarization_direction),
+            1e-9,
+        ), "the polarization direction vector must be normalized"
 
         # check for excessive phase values to avoid numerical precision errors
-        assert abs(self.picongpu_phase) <= 2*math.pi, \
-            "abs(phase) must be < 2*pi"
+        assert abs(self.picongpu_phase) <= 2 * math.pi, "abs(phase) must be < 2*pi"
 
         # check that initialising from y_min-plane only is sensible
-        assert (self.scalarProduct(self.propagation_direction,
-                [0., 1., 0.]) > 0.), \
-            "laser propagation parallel to the y-plane or pointing outside \
+        assert (
+            self.scalarProduct(self.propagation_direction, [0.0, 1.0, 0.0]) > 0.0
+        ), "laser propagation parallel to the y-plane or pointing outside \
             from the inside of the simulation box is not supported by this \
             laser in PIConGPU"
         assert self.testRelativeError(
             1,
-            (self.propagation_direction[0]**2
-                + self.propagation_direction[1]**2
-                + self.propagation_direction[2]**2),
-            1e-9), \
-            "propagation vector must be normalized"
+            (
+                self.propagation_direction[0] ** 2
+                + self.propagation_direction[1] ** 2
+                + self.propagation_direction[2] ** 2
+            ),
+            1e-9,
+        ), "propagation vector must be normalized"
 
         # check centroid outside box
-        assert (self.centroid_position[1] <= 0), "the laser maximum must be \
+        assert (
+            self.centroid_position[1] <= 0
+        ), "the laser maximum must be \
             outside of the \
             simulation box, otherwise it is impossible to correctly initialize\
             it using a huygens surface in the box, centroid_y <= 0"
@@ -127,11 +136,13 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
 
         assert self.testRelativeError(
             1,
-            (self.propagation_direction[0]**2
-                + self.propagation_direction[1]**2
-                + self.propagation_direction[2]**2),
-            1e-9), \
-            "polarization vector must be normalized"
+            (
+                self.propagation_direction[0] ** 2
+                + self.propagation_direction[1] ** 2
+                + self.propagation_direction[2] ** 2
+            ),
+            1e-9,
+        ), "polarization vector must be normalized"
 
         pypicongpu_laser = laser.GaussianLaser()
         pypicongpu_laser.wavelength = self.wavelength
@@ -142,8 +153,9 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
         pypicongpu_laser.E0 = self.E0
 
         pypicongpu_laser.pulse_init = max(
-            -2 * self.centroid_position[1]
-            / (self.propagation_direction[1] * constants.c)/self.duration, 15)
+            -2 * self.centroid_position[1] / (self.propagation_direction[1] * constants.c) / self.duration,
+            15,
+        )
         # unit: duration
 
         pypicongpu_laser.polarization_type = self.picongpu_polarization_type
@@ -161,7 +173,6 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
         else:
             pypicongpu_laser.laguerre_phases = self.picongpu_laguerre_phases
 
-        pypicongpu_laser.huygens_surface_positions = \
-            self.picongpu_huygens_surface_positions
+        pypicongpu_laser.huygens_surface_positions = self.picongpu_huygens_surface_positions
 
         return pypicongpu_laser

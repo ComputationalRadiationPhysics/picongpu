@@ -20,22 +20,24 @@ class TestRenderer(unittest.TestCase):
         """sanity-check valid context"""
         # no raise
         Renderer.check_rendering_context({})
-        Renderer.check_rendering_context({
-            "key": 1,
-            "ya": None,
-            "bool": True,
-            "grades": [
-                {"grade": 1},
-                {"grade": 2},
-                {"grade": 1},
-                {"grade": 1},
-            ],
-            "object": {
-                "nested": {
-                    "num": 3.5,
+        Renderer.check_rendering_context(
+            {
+                "key": 1,
+                "ya": None,
+                "bool": True,
+                "grades": [
+                    {"grade": 1},
+                    {"grade": 2},
+                    {"grade": 1},
+                    {"grade": 1},
+                ],
+                "object": {
+                    "nested": {
+                        "num": 3.5,
+                    },
                 },
-            },
-        })
+            }
+        )
 
     def test_check_rendering_context_type(self):
         """only dicts may be rendering context"""
@@ -52,15 +54,19 @@ class TestRenderer(unittest.TestCase):
 
         # list items not dict
         with self.assertRaisesRegex(TypeError, ".*[Ll]ist.*"):
-            Renderer.check_rendering_context({
-                "list": [1, 2, 3, None],
-            })
+            Renderer.check_rendering_context(
+                {
+                    "list": [1, 2, 3, None],
+                }
+            )
 
         # tuples not accepted as list replacement
         with self.assertRaises(TypeError):
-            Renderer.check_rendering_context({
-                "not_list": tuple({"k": "v"}),
-            })
+            Renderer.check_rendering_context(
+                {
+                    "not_list": tuple({"k": "v"}),
+                }
+            )
 
     def test_check_rendering_context_special_values(self):
         """special values are correctly allowed/disallowed"""
@@ -105,8 +111,7 @@ class TestRenderer(unittest.TestCase):
             orig_context = {
                 "key": original,
             }
-            translated_context = \
-                Renderer.get_context_preprocessed(orig_context)
+            translated_context = Renderer.get_context_preprocessed(orig_context)
             self.assertEqual(translated_context["key"], expected_translation)
             # orig_context not touched
             self.assertEqual(orig_context["key"], original)
@@ -170,25 +175,33 @@ class TestRenderer(unittest.TestCase):
     def test_get_rendered_template(self):
         """sanity-check the rendering engine"""
         self.assertEqual("", Renderer.get_rendered_template({}, ""))
-        self.assertEqual("", Renderer.get_rendered_template(
-            {"yes": False},
-            "{{#yes}}xxx{{/yes}}"))
-        self.assertEqual("xyz", Renderer.get_rendered_template(
-            {"alphabet": [
-                {"letter": "x"},
-                {"letter": "y"},
-                {"letter": "z"},
-            ]},
-            "{{#alphabet}}{{{letter}}}{{/alphabet}}"))
-        self.assertEqual("subsetvalue", Renderer.get_rendered_template(
-            {
-                "sub": {
-                    "set": {
-                        "value": "subsetvalue",
+        self.assertEqual("", Renderer.get_rendered_template({"yes": False}, "{{#yes}}xxx{{/yes}}"))
+        self.assertEqual(
+            "xyz",
+            Renderer.get_rendered_template(
+                {
+                    "alphabet": [
+                        {"letter": "x"},
+                        {"letter": "y"},
+                        {"letter": "z"},
+                    ]
+                },
+                "{{#alphabet}}{{{letter}}}{{/alphabet}}",
+            ),
+        )
+        self.assertEqual(
+            "subsetvalue",
+            Renderer.get_rendered_template(
+                {
+                    "sub": {
+                        "set": {
+                            "value": "subsetvalue",
+                        },
                     },
-                 },
-            },
-            "{{{sub.set.value}}}"))
+                },
+                "{{{sub.set.value}}}",
+            ),
+        )
 
     def test_get_rendered_template_warn_escape(self):
         """if HTML-escaping is used, a warning is issued"""
@@ -270,9 +283,11 @@ class TestRenderer(unittest.TestCase):
                 "sub/dir/num",
             }
             existing_files = set(
-                map(lambda p: str(p.relative_to(tmpdir)),
-                    filter(lambda p: p.is_file(),
-                           pathlib.Path(tmpdir).rglob("*"))))
+                map(
+                    lambda p: str(p.relative_to(tmpdir)),
+                    filter(lambda p: p.is_file(), pathlib.Path(tmpdir).rglob("*")),
+                )
+            )
             self.assertEqual(existing_files, expected_files)
 
         # temp dir now deleted (b/c left "with" block)

@@ -33,8 +33,7 @@ class TestElementProperties(unittest.TestCase):
 
         context = ep.get_rendering_context()
 
-        self.assertEqual(ep.element.get_rendering_context(),
-                         context["element"])
+        self.assertEqual(ep.element.get_rendering_context(), context["element"])
 
     def test_mandatory(self):
         """element is required"""

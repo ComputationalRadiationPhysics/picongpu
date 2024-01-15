@@ -12,8 +12,7 @@ import typing
 import re
 
 from .attribute import Attribute, Position, Momentum
-from .constant import Constant, Charge, Mass, DensityRatio, Ionizers, \
-    ElementProperties
+from .constant import Constant, Charge, Mass, DensityRatio, Ionizers, ElementProperties
 
 
 @typechecked
@@ -70,8 +69,7 @@ class Species(RenderedObject):
         # - re.fullmatch: match *actually* full string
         #   -> "abc\n" is rejected
         if not re.fullmatch(r"^[A-Za-z0-9_]+$", self.name):
-            raise ValueError("species names must be c++ compatible "
-                             "([A-Za-z0-9_]+)")
+            raise ValueError("species names must be c++ compatible " "([A-Za-z0-9_]+)")
 
         # position is mandatory attribute
         # position
@@ -87,25 +85,23 @@ class Species(RenderedObject):
 
         # each constant type can only be used once
         const_types = list(map(type, self.constants))
-        non_unique_constants = \
-            set([c for c in const_types if const_types.count(c) > 1])
+        non_unique_constants = set([c for c in const_types if const_types.count(c) > 1])
         if 0 != len(non_unique_constants):
             raise ValueError(
-                "constant names must be unique per species, offending: {}"
-                .format(", ".join(map(str, non_unique_constants))))
+                "constant names must be unique per species, offending: {}".format(
+                    ", ".join(map(str, non_unique_constants))
+                )
+            )
 
         # each attribute (-name) can only be used once
-        attr_names = list(map(lambda attr: attr.PICONGPU_NAME,
-                              self.attributes))
-        non_unique_attributes = \
-            set([c for c in attr_names if attr_names.count(c) > 1])
+        attr_names = list(map(lambda attr: attr.PICONGPU_NAME, self.attributes))
+        non_unique_attributes = set([c for c in attr_names if attr_names.count(c) > 1])
         if 0 != len(non_unique_attributes):
-            raise ValueError("attribute names must be unique per species, "
-                             "offending: {}"
-                             .format(", ".join(non_unique_attributes)))
+            raise ValueError(
+                "attribute names must be unique per species, " "offending: {}".format(", ".join(non_unique_attributes))
+            )
 
-    def get_constant_by_type(self,
-                             needle_type: typing.Type[Constant]) -> Constant:
+    def get_constant_by_type(self, needle_type: typing.Type[Constant]) -> Constant:
         """
         retrieve constant of given type, raise if not found
 
@@ -123,8 +119,7 @@ class Species(RenderedObject):
             if needle_type == type(const):
                 return const
 
-        raise RuntimeError("no constant of requested type available: {}"
-                           .format(needle_type))
+        raise RuntimeError("no constant of requested type available: {}".format(needle_type))
 
     def has_constant_of_type(self, needle_type: typing.Type[Constant]) -> bool:
         """
@@ -172,17 +167,13 @@ class Species(RenderedObject):
         constants_context = {}
         for constant_name, constant_type in constant_names_by_type.items():
             if self.has_constant_of_type(constant_type):
-                constants_context[constant_name] = \
-                    self.get_constant_by_type(constant_type).\
-                    get_rendering_context()
+                constants_context[constant_name] = self.get_constant_by_type(constant_type).get_rendering_context()
             else:
                 constants_context[constant_name] = None
 
         return {
             "name": self.name,
             "typename": self.get_cxx_typename(),
-            "attributes": list(map(
-                lambda attr: {"picongpu_name": attr.PICONGPU_NAME},
-                self.attributes)),
+            "attributes": list(map(lambda attr: {"picongpu_name": attr.PICONGPU_NAME}, self.attributes)),
             "constants": constants_context,
         }

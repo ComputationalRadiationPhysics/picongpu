@@ -85,18 +85,15 @@ class DensityProfile(RenderedObject):
         # import here to avoid circular inclusion
         from .uniform import Uniform
         from .foil import Foil
-        template_name_by_type = {
-            Uniform: "uniform",
-            Foil: "foil"
-        }
+
+        template_name_by_type = {Uniform: "uniform", Foil: "foil"}
         if self.__class__ not in template_name_by_type:
             raise RuntimeError("unkown type: {}".format(self.__class__))
 
         serialized_data = self.get_rendering_context()
 
         # create dict with all types set to false, except for the current one
-        type_dict = dict(map(lambda type_name: (type_name, False),
-                             template_name_by_type.values()))
+        type_dict = dict(map(lambda type_name: (type_name, False), template_name_by_type.values()))
         self_class_template_name = template_name_by_type[self.__class__]
         type_dict[self_class_template_name] = True
 

@@ -44,7 +44,6 @@ class Auto(RenderedObject):
         self.check()
         return {
             "period": self.period,
-
             # helper to avoid repeating code
             "png_axis": [
                 {"axis": "yx"},

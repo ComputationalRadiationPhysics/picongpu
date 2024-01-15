@@ -6,15 +6,12 @@ grid = picmi.Cartesian3DGrid(
     number_of_cells=[192] * 3,
     lower_bound=[0, 0, 0],
     upper_bound=[0.0111152256] * 3,
-
     # delta {x, y, z} is computed implicitly
-
     # lower & upper boundary conditions must be equal
     lower_boundary_conditions=boundary_conditions,
     upper_boundary_conditions=boundary_conditions,
 )
-solver = picmi.ElectromagneticSolver(method="Yee",
-                                     grid=grid)
+solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
 
 profile = picmi.UniformDistribution(
     density=1e20,

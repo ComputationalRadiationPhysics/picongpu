@@ -36,7 +36,8 @@ class TestRunner(unittest.TestCase):
             lower_bound=[0, 0, 0],
             upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
             lower_boundary_conditions=["open", "open", "periodic"],
-            upper_boundary_conditions=["open", "open", "periodic"])
+            upper_boundary_conditions=["open", "open", "periodic"],
+        )
         solver = picmi.ElectromagneticSolver(method="Yee", grid=grid, cfl=0.99)
         self.picmi_sim = picmi.Simulation(max_steps=int(1), solver=solver)
         self.sim = self.picmi_sim.get_as_pypicongpu()

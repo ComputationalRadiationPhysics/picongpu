@@ -26,10 +26,12 @@ from . import readFiles as rF
 
 
 class ParamReader(rF.ReadFiles):
-
-    def __init__(self, fileExtension: str = r".param",
-                 direction: str = None,
-                 directiontype: str = None):
+    def __init__(
+        self,
+        fileExtension: str = r".param",
+        direction: str = None,
+        directiontype: str = None,
+    ):
         """
         constructor
 
@@ -79,8 +81,7 @@ class ParamReader(rF.ReadFiles):
             jReader = jsonReader.JSONReader()
             # first search in json
             if jReader.getAllFiles():
-                if (jReader.getJSONwithParam(parameter.lower()) or
-                        jReader.getJSONwithParam(parameter.upper())):
+                if jReader.getJSONwithParam(parameter.lower()) or jReader.getJSONwithParam(parameter.upper()):
                     return jReader.getValue(parameter)
 
         except Exception:
@@ -89,24 +90,19 @@ class ParamReader(rF.ReadFiles):
             all_paramFiles = self.getParam(parameter)
 
             if len(all_paramFiles) > 1:
-                warnings.warn("Multiple files could be found"
-                              " with an \"undefined block\" for"
-                              " the same parameter.")
+                warnings.warn("Multiple files could be found" ' with an "undefined block" for' " the same parameter.")
 
             parameter = None
 
             for filename in all_paramFiles:
-                all_Lines = self.paramInLine(search_u,
-                                             filename).values()
+                all_Lines = self.paramInLine(search_u, filename).values()
 
                 for line in all_Lines:
                     if "define" + search_u in line and parameter is None:
-                        parameter = float(line[line.find(search_u) +
-                                          len(search_u) + 1: -1])
+                        parameter = float(line[line.find(search_u) + len(search_u) + 1 : -1])
             return parameter
 
     def __calculateOperations(self, line: str, value=0) -> float:
-
         if "+" in line:
             split = line.partition("+")
 
@@ -143,20 +139,18 @@ class ParamReader(rF.ReadFiles):
             line = line[:-2]
 
         # it is assumed to be a defining line
-        if ("=" not in line and "e" in line and "-" in line):
+        if "=" not in line and "e" in line and "-" in line:
             try:
                 result = float(line)
             except Exception:
                 result = self.__calculateOperations(line)
-        elif ("=" not in line and ("+" in line or "*" in line or
-                                   "/" in line or "-" in line)):
+        elif "=" not in line and ("+" in line or "*" in line or "/" in line or "-" in line):
             result = self.__calculateOperations(line)
 
-        elif ("=" not in line):
+        elif "=" not in line:
             try:
                 result = float(line)
             except Exception:
-
                 # check if there is a if no defined block in the .param files
                 ifno = self.getParam(line)
 
@@ -172,31 +166,31 @@ class ParamReader(rF.ReadFiles):
 
     def paramInLine(self, parameter: str, filename) -> dict:
         """
-        Returns the lines in which the parameter is located
+         Returns the lines in which the parameter is located
 
-        Input:
-        -------
-        parameter : str
+         Input:
+         -------
+         parameter : str
 
-        filename :  str
-                    name of the .param file in which to search
-                    for the parameter
+         filename :  str
+                     name of the .param file in which to search
+                     for the parameter
 
-        Raise:
-        -------
-        ValueError:
-            the parameter could not be found
+         Raise:
+         -------
+         ValueError:
+             the parameter could not be found
 
-        Return:
-        -------
-       out : dict
-             Line number in which the parameter was found
-             and the context of the line
+         Return:
+         -------
+        out : dict
+              Line number in which the parameter was found
+              and the context of the line
         """
 
         result = {}
 
-        lines = open(self._direction + filename, 'r')
+        lines = open(self._direction + filename, "r")
 
         allLines = lines.readlines()
 
@@ -209,8 +203,7 @@ class ParamReader(rF.ReadFiles):
                 result[number] = line
 
         if not result:
-            raise ValueError("The parameter {}"
-                             " could not be found".format(parameter))
+            raise ValueError("The parameter {}" " could not be found".format(parameter))
         else:
             return result
 
@@ -239,16 +232,17 @@ class ParamReader(rF.ReadFiles):
 
         # check if there are .param Files
         if not self.checkFilesInDir():
-            raise ValueError("No .param files could be found in the"
-                             " specified directory. Note: The directory"
-                             " from config.py may have been used"
-                             " (if config.py defined).")
+            raise ValueError(
+                "No .param files could be found in the"
+                " specified directory. Note: The directory"
+                " from config.py may have been used"
+                " (if config.py defined)."
+            )
 
         for file in self.getAllFiles():
-            fileParam = open(self._direction + file, 'r')
+            fileParam = open(self._direction + file, "r")
 
-            if (fileParam.read().find(parameter) != -1):
-
+            if fileParam.read().find(parameter) != -1:
                 searchResult.append(file)
 
             fileParam.close()
@@ -284,8 +278,7 @@ class ParamReader(rF.ReadFiles):
         """
 
         if not self.getParam(parameter):
-            raise ValueError("No .param file containing the"
-                             " parameter.")
+            raise ValueError("No .param file containing the" " parameter.")
 
         all_paramFiles = self.getParam(parameter)
         for filename in all_paramFiles:
@@ -295,9 +288,11 @@ class ParamReader(rF.ReadFiles):
                     value = self.__calculateResult(line)
 
         if "value" not in locals():
-            raise ValueError("The parameter searched for could not be read."
-                             " If config.py is used, please use the"
-                             " interfaces provided there to transfer"
-                             " the parameter.")
+            raise ValueError(
+                "The parameter searched for could not be read."
+                " If config.py is used, please use the"
+                " interfaces provided there to transfer"
+                " the parameter."
+            )
 
         return value

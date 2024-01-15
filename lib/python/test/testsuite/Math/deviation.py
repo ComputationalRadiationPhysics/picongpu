@@ -31,11 +31,13 @@ getTestResult(theory, simulation, acceptance:float = None) -> bool:
     acceptance range
 """
 
-__all__ = ["getDifference",
-           "getMaxDifference",
-           "getDifferenceInPercentage",
-           "getAcceptanceRange",
-           "getTestResult"]
+__all__ = [
+    "getDifference",
+    "getMaxDifference",
+    "getDifferenceInPercentage",
+    "getAcceptanceRange",
+    "getTestResult",
+]
 
 import testsuite._checkData as cD
 import numpy as np
@@ -191,8 +193,7 @@ def getAcceptanceRange(theory, acceptance: float = None):
     out : float or array
     """
 
-    acceptance = cD.checkVariables(variable="acceptance",
-                                   parameter=acceptance)
+    acceptance = cD.checkVariables(variable="acceptance", parameter=acceptance)
 
     return theory * (1 - acceptance), theory * (1 + acceptance)
 
@@ -230,11 +231,9 @@ def getTestResult(theory, simulation, acceptance: float = None) -> bool:
           true if the test passed
     """
 
-    acceptance = cD.checkVariables(variable="acceptance",
-                                   parameter=acceptance)
+    acceptance = cD.checkVariables(variable="acceptance", parameter=acceptance)
 
-    if (abs(getDifferenceInPercentage(theory, simulation)) <=
-            acceptance * 100):
+    if abs(getDifferenceInPercentage(theory, simulation)) <= acceptance * 100:
         return True
     else:
         return False

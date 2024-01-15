@@ -27,4 +27,3 @@
 
 find $1 -name "$2" -type f | grep -v "\.svn" | grep -v "\.git" | \
 xargs -n1 -P8 -I{} $3 {}
-

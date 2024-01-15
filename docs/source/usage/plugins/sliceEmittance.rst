@@ -113,4 +113,3 @@ References
         chapter 4.4,
         Master's thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
         https://doi.org/10.5281/zenodo.3529741
-

@@ -27,8 +27,7 @@ m_sel = menu.selected_option
 print(m_list[m_sel], milestones[m_sel].number)
 
 # get pulls (all pulls are also issues but not vice versa)
-issues = repo.get_issues(state="closed", sort="updated", direction="asc",
-                         milestone=milestones[m_sel])
+issues = repo.get_issues(state="closed", sort="updated", direction="asc", milestone=milestones[m_sel])
 # Use this in the future, but pagination seems broken in it:
 # search_string = 'repo:ComputationalRadiationPhysics/picongpu ' +
 #                 'type:pr is:merged milestone:"'+milestones[m_sel].title+'"'
@@ -37,34 +36,11 @@ issues = repo.get_issues(state="closed", sort="updated", direction="asc",
 
 
 # categories
-user = {
-    "input": []
-}
-bugs = {
-    "core": [],
-    "pmacc": [],
-    "plugin": [],
-    "tools": [],
-    "other": []
-}
-features = {
-    "core": [],
-    "pmacc": [],
-    "plugin": [],
-    "tools": [],
-    "other": []
-}
-refactoring = {
-    "core": [],
-    "pmacc": [],
-    "plugin": [],
-    "tools": [],
-    "other": []
-}
-misc = {
-    "docs": [],
-    "other": []
-}
+user = {"input": []}
+bugs = {"core": [], "pmacc": [], "plugin": [], "tools": [], "other": []}
+features = {"core": [], "pmacc": [], "plugin": [], "tools": [], "other": []}
+refactoring = {"core": [], "pmacc": [], "plugin": [], "tools": [], "other": []}
+misc = {"docs": [], "other": []}
 
 for i in issues:
     # skip issues, only pull requests

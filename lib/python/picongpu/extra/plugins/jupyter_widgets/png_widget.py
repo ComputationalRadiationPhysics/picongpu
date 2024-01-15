@@ -24,15 +24,9 @@ class PNGWidget(BaseWidget):
 
         display(PNGWidget(run_dir_options="path/to/outputs"))
     """
-    def __init__(self, run_dir_options, fig=None,
-                 output_widget=None, **kwargs):
 
-        BaseWidget.__init__(self,
-                            PNGMPL,
-                            run_dir_options,
-                            fig,
-                            output_widget,
-                            **kwargs)
+    def __init__(self, run_dir_options, fig=None, output_widget=None, **kwargs):
+        BaseWidget.__init__(self, PNGMPL, run_dir_options, fig, output_widget, **kwargs)
 
     def _create_sim_dropdown(self, options):
         """
@@ -40,8 +34,7 @@ class PNGWidget(BaseWidget):
         This should be a Dropdown since the underlying
         visualizer can not deal with multiple run_directories!
         """
-        sim_drop = widgets.Dropdown(
-            description="Sims", options=options, value=None)
+        sim_drop = widgets.Dropdown(description="Sims", options=options, value=None)
 
         return sim_drop
 
@@ -55,16 +48,12 @@ class PNGWidget(BaseWidget):
         a dict mapping keyword argument names of the PIC visualizer
         to the jupyter widgets responsible for adjusting those values.
         """
-        self.species = widgets.Dropdown(description="Species",
-                                        options=["e"],
-                                        value='e')
-        self.species_filter = widgets.Dropdown(description="Species_filter",
-                                               options=['all'],
-                                               value="all")
-        self.axis = widgets.Dropdown(description="Axis",
-                                     options=["yx", "yz"],
-                                     value="yx")
+        self.species = widgets.Dropdown(description="Species", options=["e"], value="e")
+        self.species_filter = widgets.Dropdown(description="Species_filter", options=["all"], value="all")
+        self.axis = widgets.Dropdown(description="Axis", options=["yx", "yz"], value="yx")
 
-        return {'species': self.species,
-                'species_filter': self.species_filter,
-                'axis': self.axis}
+        return {
+            "species": self.species,
+            "species_filter": self.species_filter,
+            "axis": self.axis,
+        }

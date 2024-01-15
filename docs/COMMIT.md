@@ -136,4 +136,3 @@ Compile **all CMake presets** of a *single example* with:
 - Compile like a boss!
   `<pathToYourPIConGPUgitDirectory>/compile -l -q -j 60 <pathToYourPIConGPUgitDirectory>/examples/ $tmpPath`
 - Wait for the **thumbs up/down** :)
-

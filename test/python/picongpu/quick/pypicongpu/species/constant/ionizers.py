@@ -11,8 +11,7 @@ import unittest
 
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.constant import Mass, Charge
-from picongpu.pypicongpu.species.attribute import \
-    Position, Momentum, BoundElectrons
+from picongpu.pypicongpu.species.attribute import Position, Momentum, BoundElectrons
 from picongpu.picmi import constants
 
 
@@ -41,12 +40,9 @@ class TestIonizers(unittest.TestCase):
         ionizers.electron_species = self.electron
         ionizers.check()
 
-        self.assertEqual([self.electron],
-                         ionizers.get_species_dependencies())
-        self.assertEqual([BoundElectrons],
-                         ionizers.get_attribute_dependencies())
-        self.assertEqual([ElementProperties],
-                         ionizers.get_constant_dependencies())
+        self.assertEqual([self.electron], ionizers.get_species_dependencies())
+        self.assertEqual([BoundElectrons], ionizers.get_attribute_dependencies())
+        self.assertEqual([ElementProperties], ionizers.get_constant_dependencies())
 
     def test_typesafety(self):
         """types are checked"""
@@ -142,8 +138,7 @@ class TestIonizers(unittest.TestCase):
 
         context = ionizers.get_rendering_context()
         self.assertNotEqual({}, context)
-        self.assertEqual(self.electron.get_rendering_context(),
-                         context["electron_species"])
+        self.assertEqual(self.electron.get_rendering_context(), context["electron_species"])
 
         # do *NOT* render if check() does not pass
         ionizers.electron_species = None

@@ -131,6 +131,6 @@ IncludeCategories:
     Priority: 9
 
 # Future options - not supported in clang-format 12
-# 
+#
 # OperandAlignmentStyle: Align
 ...

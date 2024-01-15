@@ -98,4 +98,3 @@ if [ ! -z $picongpuPrefix ]; then
 fi
 
 exit $test_return
-

@@ -27,20 +27,21 @@ import warnings
 import importlib
 import os
 
-if (importlib.util.find_spec("config") is None):
+if importlib.util.find_spec("config") is None:
     from testsuite.Template import config
-    warnings.warn("The file config.py could not be found. Note that now"
-                  " optional parameters must be passed. Otherwise error"
-                  " messages will be generated or default values will"
-                  " be used. See the documentation for more"
-                  " information.")
+
+    warnings.warn(
+        "The file config.py could not be found. Note that now"
+        " optional parameters must be passed. Otherwise error"
+        " messages will be generated or default values will"
+        " be used. See the documentation for more"
+        " information."
+    )
 else:
     import config
 
 
-def checkDirection(variable: str = "undefined",
-                   direction: str = None,
-                   errorhandling: bool = False) -> str:
+def checkDirection(variable: str = "undefined", direction: str = None, errorhandling: bool = False) -> str:
     """
     Checks whether the value is present in config.py. If so, this is
     returned if the directory exists. If there is no corresponding
@@ -98,21 +99,17 @@ def checkDirection(variable: str = "undefined",
     # if there are two use config.py value
 
     if val is not None and direction is not None:
-        warnings.warn("Both " + variable + " and direction are set."
-                      "Note that the value from config.py is used.")
+        warnings.warn("Both " + variable + " and direction are set." "Note that the value from config.py is used.")
 
         direction = val
 
     elif val is not None:
         direction = val
 
-    elif (val is None and direction is None and
-          not errorhandling):
-        raise ValueError("Both " + variable + " and direction are none."
-                         "You must set at least one value.")
+    elif val is None and direction is None and not errorhandling:
+        raise ValueError("Both " + variable + " and direction are none." "You must set at least one value.")
 
-    elif (val is None and direction is None and
-          errorhandling):
+    elif val is None and direction is None and errorhandling:
         direction = os.path.abspath(os.getcwd())
     else:
         exec("%s = direction" % (val_name))
@@ -121,9 +118,9 @@ def checkDirection(variable: str = "undefined",
 
     # check if the direction exist
     if not os.path.isdir(direction):
-        warnings.warn("The specified directory does not exist. "
-                      "The current working directory is used for"
-                      " the output.")
+        warnings.warn(
+            "The specified directory does not exist. " "The current working directory is used for" " the output."
+        )
 
         direction = os.path.abspath(os.getcwd())
 
@@ -157,9 +154,7 @@ def checkExistVariables(variable: str) -> bool:
             return True
 
 
-def checkVariables(variable: str = "undefined",
-                   default=None,
-                   parameter=None):
+def checkVariables(variable: str = "undefined", default=None, parameter=None):
     """
     Takes over the decision which value should be taken. The value
     from config.py is always taken first. If this does not exist or
@@ -199,14 +194,18 @@ def checkVariables(variable: str = "undefined",
         val = None
 
     if val is None and parameter is None and default is None:
-        raise ValueError("No value was set and there is also no"
-                         " default value. You must set at least"
-                         "one of the values. (e.g." + val_name + ")")
+        raise ValueError(
+            "No value was set and there is also no"
+            " default value. You must set at least"
+            "one of the values. (e.g." + val_name + ")"
+        )
 
     if val is not None and parameter is not None:
-        warnings.warn("Both " + val_name + " and the optional"
-                      " parameter are set. Note that the value"
-                      " from config.py is used.")
+        warnings.warn(
+            "Both " + val_name + " and the optional"
+            " parameter are set. Note that the value"
+            " from config.py is used."
+        )
 
         value = val
 
@@ -215,8 +214,7 @@ def checkVariables(variable: str = "undefined",
 
     # standard value if both are None
     elif val is None and parameter is None:
-        warnings.warn("Both " + val_name + " and the optional parameter"
-                      " are empty.")
+        warnings.warn("Both " + val_name + " and the optional parameter" " are empty.")
 
         value = default
 

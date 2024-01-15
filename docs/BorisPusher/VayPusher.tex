@@ -17,7 +17,7 @@ The Vay Pusher is a particle pusher described in ''Simulation of beams or plasma
 
 
 \subsection{Conventions}
-All indices have been reduced by a $\frac{1}{2}$-step compared to the paper. 
+All indices have been reduced by a $\frac{1}{2}$-step compared to the paper.
 Locations ($\vec r_i$) and fields ($\vec E_i$, $\vec B_i$) are known at full time steps, momenta and speeds ($\vec p_i$, $\vec u_i$, $\vec v_i$) at half time steps. In contrast to the Vay paper real momenta ($\vec p_i = \vec u_i \cdot m_0$) will be used.
 \begin{eqnarray*}
 \mbox{Vay paper} & \rightarrow & \mbox{implematation in PIC} \\
@@ -30,7 +30,7 @@ Locations ($\vec r_i$) and fields ($\vec E_i$, $\vec B_i$) are known at full tim
 \end{eqnarray*}
 
 \subsection{Variables handed to particle pusher}
-The pusher takes: 
+The pusher takes:
 \begin{itemize}
 	\item $\vec E_0$ \quad \texttt{eField}
 	\item $\vec B_0$ \quad \texttt{bField}
@@ -50,7 +50,7 @@ The pusher takes:
 \vec p \prime  & = & \vec p_{0} + \frac{q \Delta t}{2} \vec E_{0} \\
 \gamma \prime & = & \sqrt{1 + \frac{{\vec p \prime}^2}{m_0^2 c^2 }} \\
 \vec \tau & = & \frac{q \Delta t}{2 m_0} \vec B_{0} \\
-u^{\star} & = & \frac{\vec p \prime \cdot \vec \tau}{m_0 c} \\ 
+u^{\star} & = & \frac{\vec p \prime \cdot \vec \tau}{m_0 c} \\
 \sigma & = & {\gamma \prime }^2 - {\vec \tau}^2 \\
 \gamma_{+1/2} & = & \sqrt{\frac{  \sigma + \sqrt{  \sigma^2 + 4 \left( {\vec \tau}^2 + {u^\star}^2 \right) } }{2}} \\
 \vec t & = & \frac{\vec \tau}{\gamma_{+1/2}} \\

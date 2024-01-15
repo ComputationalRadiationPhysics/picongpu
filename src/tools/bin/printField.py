@@ -34,8 +34,8 @@ for i in np.range(data.size):
 data = data.astype(float)
 data = data.reshape((format[0], format[1] / 3, 3))
 
-dataAbs = np.sqrt(data[:, :, 0]**2 + data[:, :, 1]**2 + data[:, :, 2]**2)
+dataAbs = np.sqrt(data[:, :, 0] ** 2 + data[:, :, 1] ** 2 + data[:, :, 2] ** 2)
 
-plt.imshow(dataAbs, interpolation='nearest')
+plt.imshow(dataAbs, interpolation="nearest")
 plt.colorbar()
 plt.show()

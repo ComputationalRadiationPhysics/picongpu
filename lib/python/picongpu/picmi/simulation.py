@@ -58,75 +58,65 @@ class Simulation(picmistandard.PICMI_Simulation):
         assert "Yee" == self.solver.method
         assert isinstance(self.solver.grid, Cartesian3DGrid)
 
-        delta_x = ((self.solver.grid.upper_bound[0]
-                    - self.solver.grid.lower_bound[0])
-                   / self.solver.grid.number_of_cells[0])
-        delta_y = ((self.solver.grid.upper_bound[1]
-                    - self.solver.grid.lower_bound[1])
-                   / self.solver.grid.number_of_cells[1])
-        delta_z = ((self.solver.grid.upper_bound[2]
-                    - self.solver.grid.lower_bound[2])
-                   / self.solver.grid.number_of_cells[2])
+        delta_x = (
+            self.solver.grid.upper_bound[0] - self.solver.grid.lower_bound[0]
+        ) / self.solver.grid.number_of_cells[0]
+        delta_y = (
+            self.solver.grid.upper_bound[1] - self.solver.grid.lower_bound[1]
+        ) / self.solver.grid.number_of_cells[1]
+        delta_z = (
+            self.solver.grid.upper_bound[2] - self.solver.grid.lower_bound[2]
+        ) / self.solver.grid.number_of_cells[2]
 
-        if self.time_step_size is not None and \
-                self.solver.cfl is not None:
+        if self.time_step_size is not None and self.solver.cfl is not None:
             # both cfl & delta_t given -> check their compatibility
-            delta_t_from_cfl = \
-                self.solver.cfl / (constants.c
-                                   * sqrt(1/delta_x**2
-                                          + 1/delta_y**2
-                                          + 1/delta_z**2))
+            delta_t_from_cfl = self.solver.cfl / (
+                constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+            )
 
             if delta_t_from_cfl != self.time_step_size:
                 raise ValueError(
                     "time step size (delta t) does not match CFL "
                     "(Courant-Friedrichs-Lewy) parameter! delta_t: {}; "
-                    "expected from CFL: {}"
-                    .format(self.time_step_size, delta_t_from_cfl))
+                    "expected from CFL: {}".format(self.time_step_size, delta_t_from_cfl)
+                )
         else:
             if self.time_step_size is not None:
                 # calculate cfl
-                self.solver.cfl = \
-                    self.time_step_size * (constants.c
-                                           * sqrt(1/delta_x**2
-                                                  + 1/delta_y**2
-                                                  + 1/delta_z**2))
+                self.solver.cfl = self.time_step_size * (
+                    constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+                )
             elif self.solver.cfl is not None:
                 # calculate delta_t
-                self.time_step_size = \
-                    self.solver.cfl / (constants.c
-                                       * sqrt(1/delta_x**2
-                                              + 1/delta_y**2
-                                              + 1/delta_z**2))
+                self.time_step_size = self.solver.cfl / (
+                    constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+                )
 
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    def __init__(self,
-                 picongpu_template_dir: typing.Optional[
-                     typing.Union[str, pathlib.Path]] = None,
-                 picongpu_typical_ppc: typing.Optional[int] = None,
-                 **kw):
+    def __init__(
+        self,
+        picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
+        picongpu_typical_ppc: typing.Optional[int] = None,
+        **kw
+    ):
         # delegate actual work to parent
         super().__init__(**kw)
 
         # perform some additional checks on inputs
 
         # note: may throw if both cfl & delta_t are set
-        if self.solver is not None and \
-           "Yee" == self.solver.method and \
-           isinstance(self.solver.grid, Cartesian3DGrid):
+        if self.solver is not None and "Yee" == self.solver.method and isinstance(self.solver.grid, Cartesian3DGrid):
             self.__yee_compute_cfl_or_delta_t()
 
         if picongpu_template_dir is None:
             self.picongpu_template_dir = None
         else:
-            assert "" != picongpu_template_dir, \
-                "picongpu_template_dir MUST NOT be empty"
+            assert "" != picongpu_template_dir, "picongpu_template_dir MUST NOT be empty"
             # note: pathlib.Path(pathlib.Path(...)) is valid
             template_path = pathlib.Path(picongpu_template_dir)
-            assert template_path.is_dir(), \
-                "picongpu_template_dir must be existing dir"
+            assert template_path.is_dir(), "picongpu_template_dir must be existing dir"
             self.picongpu_template_dir = str(template_path)
 
         self.picongpu_typical_ppc = picongpu_typical_ppc
@@ -137,10 +127,9 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.__electron_species = None
 
     def __get_operations_simple_density(
-            self,
-            pypicongpu_by_picmi_species:
-            typing.Dict[picmistandard.PICMI_Species, species.Species]) -> \
-            typing.List[species.operation.SimpleDensity]:
+        self,
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
+    ) -> typing.List[species.operation.SimpleDensity]:
         """
         retrieve operations for simple density placements
 
@@ -166,36 +155,36 @@ class Simulation(picmistandard.PICMI_Simulation):
             if profile not in picmi_species_by_profile_by_layout[layout]:
                 picmi_species_by_profile_by_layout[layout][profile] = []
 
-            picmi_species_by_profile_by_layout[layout][profile].append(
-                picmi_species)
+            picmi_species_by_profile_by_layout[layout][profile].append(picmi_species)
 
         # re-group as operations
         all_operations = []
-        for layout, picmi_species_by_profile in \
-                picmi_species_by_profile_by_layout.items():
-            for profile, picmi_species_list in \
-                    picmi_species_by_profile.items():
-                assert isinstance(layout,
-                                  picmistandard.PICMI_PseudoRandomLayout)
+        for (
+            layout,
+            picmi_species_by_profile,
+        ) in picmi_species_by_profile_by_layout.items():
+            for profile, picmi_species_list in picmi_species_by_profile.items():
+                assert isinstance(layout, picmistandard.PICMI_PseudoRandomLayout)
 
                 op = species.operation.SimpleDensity()
                 op.ppc = layout.n_macroparticles_per_cell
                 op.profile = profile.get_as_pypicongpu()
 
-                op.species = set(map(
-                    lambda picmi_species: pypicongpu_by_picmi_species[
-                        picmi_species],
-                    picmi_species_list))
+                op.species = set(
+                    map(
+                        lambda picmi_species: pypicongpu_by_picmi_species[picmi_species],
+                        picmi_species_list,
+                    )
+                )
 
                 all_operations.append(op)
 
         return all_operations
 
     def __get_operations_not_placed(
-            self,
-            pypicongpu_by_picmi_species:
-            typing.Dict[picmistandard.PICMI_Species, species.Species]) -> \
-            typing.List[species.operation.NotPlaced]:
+        self,
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
+    ) -> typing.List[species.operation.NotPlaced]:
         """
         retrieve operations for not placed species
 
@@ -212,8 +201,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         all_operations = []
 
         for picmi_species, layout in zip(self.species, self.layouts):
-            if layout is not None or \
-               picmi_species.initial_distribution is not None:
+            if layout is not None or picmi_species.initial_distribution is not None:
                 continue
 
             # is not placed -> add op
@@ -224,10 +212,9 @@ class Simulation(picmistandard.PICMI_Simulation):
         return all_operations
 
     def __get_operations_from_individual_species(
-            self,
-            pypicongpu_by_picmi_species:
-            typing.Dict[picmistandard.PICMI_Species, species.Species]) -> \
-            typing.List[species.operation.Operation]:
+        self,
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
+    ) -> typing.List[species.operation.Operation]:
         """
         call get_independent_operations() of all species
 
@@ -237,17 +224,15 @@ class Simulation(picmistandard.PICMI_Simulation):
         """
         all_operations = []
 
-        for picmi_species, pypicongpu_species in \
-                pypicongpu_by_picmi_species.items():
-            all_operations += \
-                picmi_species.get_independent_operations(pypicongpu_species)
+        for picmi_species, pypicongpu_species in pypicongpu_by_picmi_species.items():
+            all_operations += picmi_species.get_independent_operations(pypicongpu_species)
 
         return all_operations
 
     def __fill_ionization_electrons(
-            self,
-            pypicongpu_by_picmi_species:
-            typing.Dict[picmistandard.PICMI_Species, species.Species]) -> None:
+        self,
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
+    ) -> None:
         """
         copy used-electron-relationship from PICMI to PIConGPU species
 
@@ -265,25 +250,22 @@ class Simulation(picmistandard.PICMI_Simulation):
         species objects passed in pypicongpu_by_picmi_species)
         """
 
-        for picmi_species, pypic_species in \
-                pypicongpu_by_picmi_species.items():
+        for picmi_species, pypic_species in pypicongpu_by_picmi_species.items():
             # only fill ionization electrons if required (by ionizers)
-            if not pypic_species.has_constant_of_type(
-                    species.constant.Ionizers):
+            if not pypic_species.has_constant_of_type(species.constant.Ionizers):
                 continue
 
-            assert picmi_species.picongpu_ionization_electrons in \
-                pypicongpu_by_picmi_species, "species {} (set as electrons " \
-                "for species {} via picongpu_ionization_species) must be " \
+            assert picmi_species.picongpu_ionization_electrons in pypicongpu_by_picmi_species, (
+                "species {} (set as electrons "
+                "for species {} via picongpu_ionization_species) must be "
                 "explicitly added with add_species()".format(
-                    picmi_species.picongpu_ionization_electrons.name,
-                    pypic_species.name)
+                    picmi_species.picongpu_ionization_electrons.name, pypic_species.name
+                )
+            )
 
-            ionizers = pypic_species.get_constant_by_type(
-                species.constant.Ionizers)
+            ionizers = pypic_species.get_constant_by_type(species.constant.Ionizers)
             # is pointer -> sets correct species for actual pypicongpu species
-            ionizers.electron_species = pypicongpu_by_picmi_species[
-                picmi_species.picongpu_ionization_electrons]
+            ionizers.electron_species = pypicongpu_by_picmi_species[picmi_species.picongpu_ionization_electrons]
 
     def __get_init_manager(self) -> species.InitManager:
         """
@@ -309,13 +291,15 @@ class Simulation(picmistandard.PICMI_Simulation):
             ratio = picmi_species.density_scale
 
             # either both None or both not None:
-            assert 1 != [layout, profile].count(None), "species need BOTH " \
-                "layout AND initial distribution set (or neither)"
+            assert 1 != [layout, profile].count(None), (
+                "species need BOTH " "layout AND initial distribution set (or neither)"
+            )
 
             # ratio only set if
             if ratio is not None:
-                assert layout is not None and profile is not None, "layout " \
-                    "and initial distribution must be set to use density scale"
+                assert layout is not None and profile is not None, (
+                    "layout " "and initial distribution must be set to use density scale"
+                )
 
         # get species list
         ##
@@ -336,16 +320,12 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         # operations with inter-species dependencies
         ##
-        initmgr.all_operations += \
-            self.__get_operations_simple_density(pypicongpu_by_picmi_species)
+        initmgr.all_operations += self.__get_operations_simple_density(pypicongpu_by_picmi_species)
 
         # operations without inter-species dependencies
         ##
-        initmgr.all_operations += \
-            self.__get_operations_not_placed(pypicongpu_by_picmi_species)
-        initmgr.all_operations += \
-            self.__get_operations_from_individual_species(
-                pypicongpu_by_picmi_species)
+        initmgr.all_operations += self.__get_operations_not_placed(pypicongpu_by_picmi_species)
+        initmgr.all_operations += self.__get_operations_from_individual_species(pypicongpu_by_picmi_species)
 
         return initmgr
 
@@ -373,10 +353,12 @@ class Simulation(picmistandard.PICMI_Simulation):
         for picmi_species in self.species:
             if "electron" == picmi_species.particle_type:
                 all_electrons.append(picmi_species)
-            elif picmi_species.mass is not None and \
-                    isclose(picmi_species.mass, constants.m_e) and \
-                    picmi_species.charge is not None and \
-                    isclose(picmi_species.charge, -constants.q_e):
+            elif (
+                picmi_species.mass is not None
+                and isclose(picmi_species.mass, constants.m_e)
+                and picmi_species.charge is not None
+                and isclose(picmi_species.charge, -constants.q_e)
+            ):
                 all_electrons.append(picmi_species)
 
         # exactly one electron species: use it
@@ -387,18 +369,16 @@ class Simulation(picmistandard.PICMI_Simulation):
         # no electron species: add one
         if 0 == len(all_electrons):
             # compute unambiguous name
-            all_species_names = list(map(
-                lambda picmi_species: picmi_species.name,
-                self.species))
+            all_species_names = list(map(lambda picmi_species: picmi_species.name, self.species))
             electrons_name = "e"
             while electrons_name in all_species_names:
                 electrons_name += "_"
 
-            logging.info("no electron species for ionization available, "
-                         "creating electrons with name: {}".format(
-                             electrons_name))
-            electrons = PicongpuPicmiSpecies(name=electrons_name,
-                                             particle_type="electron")
+            logging.info(
+                "no electron species for ionization available, "
+                "creating electrons with name: {}".format(electrons_name)
+            )
+            electrons = PicongpuPicmiSpecies(name=electrons_name, particle_type="electron")
             self.add_species(electrons, None)
 
             self.__electron_species = electrons
@@ -408,9 +388,10 @@ class Simulation(picmistandard.PICMI_Simulation):
         raise ValueError(
             "choice of electron species for ionization is ambiguous, please "
             "set picongpu_ionization_electrons explicitly for ionizable "
-            "species; found electron species: {}"
-            .format(", ".join(map(lambda picmi_species: picmi_species.name,
-                                  all_electrons))))
+            "species; found electron species: {}".format(
+                ", ".join(map(lambda picmi_species: picmi_species.name, all_electrons))
+            )
+        )
 
     def __resolve_electrons(self) -> None:
         """
@@ -438,8 +419,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             if picmi_species.picongpu_ionization_electrons is not None:
                 continue
 
-            picmi_species.picongpu_ionization_electrons = \
-                self.__get_electron_species()
+            picmi_species.picongpu_ionization_electrons = self.__get_electron_species()
 
     def get_as_pypicongpu(self) -> simulation.Simulation:
         """translate to PyPIConGPU object"""
@@ -453,8 +433,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         elif self.max_time is not None:
             s.time_steps = self.max_time / self.time_step_size
         else:
-            raise ValueError(
-                "runtime not specified (neither as step count nor max time)")
+            raise ValueError("runtime not specified (neither as step count nor max time)")
 
         util.unsupported("verbose", self.verbose)
         util.unsupported("particle shape", self.particle_shape, "linear")
@@ -464,10 +443,8 @@ class Simulation(picmistandard.PICMI_Simulation):
         s.grid = self.solver.grid.get_as_pypicongpu()
 
         # any injection method != None is not supported
-        if len(self.laser_injection_methods) != \
-                self.laser_injection_methods.count(None):
-            util.unsupported("laser injection method",
-                             self.laser_injection_methods, [])
+        if len(self.laser_injection_methods) != self.laser_injection_methods.count(None):
+            util.unsupported("laser injection method", self.laser_injection_methods, [])
 
         if len(self.lasers) > 1:
             util.unsupported("more than one laser")
@@ -499,8 +476,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def picongpu_run(self) -> None:
         """build and run PIConGPU simulation"""
         if self.__runner is None:
-            self.__runner = runner.Runner(self.get_as_pypicongpu(),
-                                          self.picongpu_template_dir)
+            self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         self.__runner.generate()
         self.__runner.build()
         self.__runner.run()
@@ -515,20 +491,18 @@ class Simulation(picmistandard.PICMI_Simulation):
         """
         if self.__runner is not None:
             logging.warning("runner already initialized, overwriting")
-        self.__runner = runner.Runner(self.get_as_pypicongpu(),
-                                      self.picongpu_template_dir,
-                                      setup_dir=file_name)
+        self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir, setup_dir=file_name)
         self.__runner.generate()
 
     def step(self, nsteps: int = 1):
         if nsteps != self.max_steps:
             raise ValueError(
                 "PIConGPU does not support stepwise running. Invoke step() "
-                "with max_steps (={})".format(self.max_steps))
+                "with max_steps (={})".format(self.max_steps)
+            )
         self.picongpu_run()
 
     def picongpu_get_runner(self) -> runner.Runner:
         if self.__runner is None:
-            self.__runner = runner.Runner(self.get_as_pypicongpu(),
-                                          self.picongpu_template_dir)
+            self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         return self.__runner

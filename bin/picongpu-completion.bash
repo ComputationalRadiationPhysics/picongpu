@@ -250,4 +250,3 @@ complete -o nospace -F _pic-compile pic-compile
 complete -o nospace -F _pic-configure pic-configure
 complete -F _pic-edit pic-edit
 complete -o nospace -F _tbg tbg
-

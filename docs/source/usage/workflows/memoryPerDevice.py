@@ -26,7 +26,7 @@ equally in transverse direction, like it is set up in the FoilLCT example.
 """
 
 
-cell_size = 0.8e-6 / 384.  # 2.083e-9 m
+cell_size = 0.8e-6 / 384.0  # 2.083e-9 m
 y0 = 0.5e-6  # position of foil front surface (m)
 y1 = 1.5e-6  # position of foil rear surface (m)
 L = 10e-9  # pre-plasma scale length (m)
@@ -77,54 +77,57 @@ target_z = Nz
 
 
 def sx(n):
-    return {1: "st", 2: "nd", 3: "rd"}.get(n if n < 20
-                                           else int(str(n)[-1]), "th")
+    return {1: "st", 2: "nd", 3: "rd"}.get(n if n < 20 else int(str(n)[-1]), "th")
 
 
 for row, target_y in enumerate(GPU_rows):
     print("{}{} row of GPUs:".format(row + 1, sx(row + 1)))
     print("* Memory requirement per GPU:")
     # field memory per GPU
-    field_gpu = pmc.mem_req_by_fields(Nx, Ny, Nz, field_tmp_slots=2,
-                                      particle_shape_order=2, sim_dim=sim_dim)
-    print(" + fields: {:.2f} MB".format(
-        field_gpu * megabyte))
+    field_gpu = pmc.mem_req_by_fields(Nx, Ny, Nz, field_tmp_slots=2, particle_shape_order=2, sim_dim=sim_dim)
+    print(" + fields: {:.2f} MB".format(field_gpu * megabyte))
 
     # electron macroparticles per supercell
     e_PPC = N_PPC * (
-            # H,C,N pre-ionization - higher weighting electrons
-            3
-            # electrons created from C ionization
-            + (6 - 2)
-            # electrons created from N ionization
-            + (7 - 2)
+        # H,C,N pre-ionization - higher weighting electrons
+        3
+        # electrons created from C ionization
+        + (6 - 2)
+        # electrons created from N ionization
+        + (7 - 2)
     )
     # particle memory per GPU - only the target area contributes here
     e_gpu = pmc.mem_req_by_particles(
-        target_x, target_y, target_z,
+        target_x,
+        target_y,
+        target_z,
         num_additional_attributes=0,
-        particles_per_cell=e_PPC
+        particles_per_cell=e_PPC,
     )
     H_gpu = pmc.mem_req_by_particles(
-        target_x, target_y, target_z,
+        target_x,
+        target_y,
+        target_z,
         # no bound electrons since H is pre-ionized
         num_additional_attributes=0,
-        particles_per_cell=N_PPC
+        particles_per_cell=N_PPC,
     )
     C_gpu = pmc.mem_req_by_particles(
-        target_x, target_y, target_z,
-        num_additional_attributes=1,  # number of bound electrons
-        particles_per_cell=N_PPC
+        target_x,
+        target_y,
+        target_z,
+        num_additional_attributes=1,
+        particles_per_cell=N_PPC,  # number of bound electrons
     )
     N_gpu = pmc.mem_req_by_particles(
-        target_x, target_y, target_z,
+        target_x,
+        target_y,
+        target_z,
         num_additional_attributes=1,
-        particles_per_cell=N_PPC
+        particles_per_cell=N_PPC,
     )
     # memory for calorimeters
-    cal_gpu = pmc.mem_req_by_calorimeter(
-        n_energy=1024, n_yaw=360, n_pitch=1
-    ) * 2  # electrons and protons
+    cal_gpu = pmc.mem_req_by_calorimeter(n_energy=1024, n_yaw=360, n_pitch=1) * 2  # electrons and protons
     # memory for random number generator states
     rng_gpu = pmc.mem_req_by_rng(Nx, Ny, Nz)
 
@@ -133,12 +136,8 @@ for row, target_y in enumerate(GPU_rows):
     print("  - H: {:.2f} MB".format(H_gpu * megabyte))
     print("  - C: {:.2f} MB".format(C_gpu * megabyte))
     print("  - N: {:.2f} MB".format(N_gpu * megabyte))
-    print(" + RNG states: {:.2f} MB".format(
-        rng_gpu * megabyte))
-    print(
-        " + particle calorimeters: {:.2f} MB".format(
-            cal_gpu * megabyte))
+    print(" + RNG states: {:.2f} MB".format(rng_gpu * megabyte))
+    print(" + particle calorimeters: {:.2f} MB".format(cal_gpu * megabyte))
 
     mem_sum = field_gpu + e_gpu + H_gpu + C_gpu + N_gpu + rng_gpu + cal_gpu
-    print("* Sum of required GPU memory: {:.2f} MB".format(
-        mem_sum * megabyte))
+    print("* Sum of required GPU memory: {:.2f} MB".format(mem_sum * megabyte))

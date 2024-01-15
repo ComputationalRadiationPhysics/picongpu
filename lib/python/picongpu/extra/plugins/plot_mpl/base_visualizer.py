@@ -108,8 +108,7 @@ class Visualizer(object):
         self.ax.clear()
 
     def _init_reader(self, run_directories):
-        self.data_reader = [
-            self.reader_cls(run_dir[1]) for run_dir in run_directories]
+        self.data_reader = [self.reader_cls(run_dir[1]) for run_dir in run_directories]
 
     def _init_data(self, run_directories):
         self.data = [None] * len(run_directories)
@@ -141,8 +140,9 @@ class Visualizer(object):
             return run_directories
 
         if isinstance(run_directories[0], str):
-            warn("First element is str. Assuming the same for all "
-                 "other elements. Will use enumeration for labeling!")
+            warn(
+                "First element is str. Assuming the same for all " "other elements. Will use enumeration for labeling!"
+            )
             run_directories = list(enumerate(run_directories))
 
         return run_directories
@@ -187,21 +187,20 @@ class Visualizer(object):
                 "No data readers are given. Did you provide run_directories"
                 " during construction?"
                 " If not, call set_run_directories() before calling"
-                " visualize()!")
+                " visualize()!"
+            )
 
         # check that not multiple iteratons or timesteps are selected.
         # Since time is preferred over iteration if both are passed,
         # we check time first.
         # Note: the readers might be capable of dealing with multiple
         # values but visualization is not.
-        if 'time' in kwargs:
-            if isinstance(kwargs['time'], list):
-                raise ValueError(
-                    "This class only supports single timestep visualization!")
-        if 'iteration' in kwargs:
-            if isinstance(kwargs['iteration'], list):
-                raise ValueError(
-                    "This class only supports single iteration visualization!")
+        if "time" in kwargs:
+            if isinstance(kwargs["time"], list):
+                raise ValueError("This class only supports single timestep visualization!")
+        if "iteration" in kwargs:
+            if isinstance(kwargs["iteration"], list):
+                raise ValueError("This class only supports single iteration visualization!")
 
         self.collect_data(**kwargs)
 
@@ -230,8 +229,7 @@ class Visualizer(object):
             if data is None:
                 # no data for the current combination of kwargs
                 # so we should just omit the data from this input file
-                warn("Data from {} is None! Will omit!".format(
-                    self.sim_labels[i]))
+                warn("Data from {} is None! Will omit!".format(self.sim_labels[i]))
                 if plt_obj is not None:
                     self._remove_plt_obj(i)
 

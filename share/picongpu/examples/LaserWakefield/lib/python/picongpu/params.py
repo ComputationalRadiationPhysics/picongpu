@@ -22,30 +22,42 @@ from picongpu.input.parameters import Parameter
 dt = 1.39e-16
 
 PARAMETERS = {
-    'laser': [
+    "laser": [
+        Parameter(name="_A0", ptype="compile", unit="1", default=1.5, range=(0.1, 50.01)),
         Parameter(
-            name="_A0", ptype="compile", unit="1",
-            default=1.5, range=(0.1, 50.01)),
-
+            name="Wave_Length_SI",
+            ptype="compile",
+            unit="nm",
+            default=800.0,
+            range=(400.0, 1400.0),
+        ),
         Parameter(
-            name="Wave_Length_SI", ptype="compile", unit="nm",
-            default=800.0, range=(400.0, 1400.0)),
-
-        Parameter(
-            name="Pulse_Duration_SI", ptype="compile", unit="fs",
-            default=5.0, range=(1.0, 150.0)),
+            name="Pulse_Duration_SI",
+            ptype="compile",
+            unit="fs",
+            default=5.0,
+            range=(1.0, 150.0),
+        ),
     ],
-    'target': [
+    "target": [
         Parameter(
-            name="Base_Density_SI", ptype="compile", unit="1/m^3",
-            default=1.e25, range=(1.e20, 1.e26)),
+            name="Base_Density_SI",
+            ptype="compile",
+            unit="1/m^3",
+            default=1.0e25,
+            range=(1.0e20, 1.0e26),
+        ),
     ],
-    'resolution': [
+    "resolution": [
         Parameter(
-            name="TBG_steps", ptype="run", unit="ps",
-            default=1.0, range=(0.1, 10.0),
+            name="TBG_steps",
+            ptype="run",
+            unit="ps",
+            default=1.0,
+            range=(0.1, 10.0),
             pic_to_SI=lambda steps: steps * dt,
             pic_from_SI=lambda time: int(round(time / dt)),
-            label="simulation time")
-    ]
+            label="simulation time",
+        )
+    ],
 }

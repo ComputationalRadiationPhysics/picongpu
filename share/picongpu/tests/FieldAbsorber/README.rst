@@ -46,4 +46,3 @@ References
         A. Taflove, S.C. Hagness
         *Computational electrodynamics: the finite-difference time-domain method*
         Artech house (2005)
-

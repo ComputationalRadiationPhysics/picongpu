@@ -16,4 +16,3 @@ spack:
   concretizer:
     reuse: false
     unify: true
-

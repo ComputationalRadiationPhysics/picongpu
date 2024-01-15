@@ -8,4 +8,3 @@ Example Setups
    :maxdepth: 1
 
    ../examples/*/README
-

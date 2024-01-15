@@ -65,7 +65,7 @@ class TestOperation(unittest.TestCase):
             self.species2: [
                 self.attribute2,
                 self.attribute3,
-            ]
+            ],
         }
         op.bake_species_attributes()
 
@@ -98,16 +98,12 @@ class TestOperation(unittest.TestCase):
     def test_bake_species_attributes_attribute_repetition(self):
         """every attribute type may only be prebooked once per species"""
         # check preconditions from setUp()
-        self.assertEqual(self.attribute1.PICONGPU_NAME,
-                         self.attribute1_copy.PICONGPU_NAME)
+        self.assertEqual(self.attribute1.PICONGPU_NAME, self.attribute1_copy.PICONGPU_NAME)
         self.assertTrue(self.attribute1 is not self.attribute1_copy)
 
         # provide two objects defining the same attribute "attribute1"
         op = self.op
-        op.attributes_by_species = {
-            self.species1: [
-                self.attribute1,
-                self.attribute1_copy]}
+        op.attributes_by_species = {self.species1: [self.attribute1, self.attribute1_copy]}
 
         with self.assertRaisesRegex(ValueError, ".*attribute1.*"):
             op.bake_species_attributes()
@@ -120,8 +116,7 @@ class TestOperation(unittest.TestCase):
             self.species1: [self.attribute1],
             self.species2: [self.attribute1],
         }
-        self.assertTrue(op.attributes_by_species[self.species1][0] is
-                        op.attributes_by_species[self.species2][0])
+        self.assertTrue(op.attributes_by_species[self.species1][0] is op.attributes_by_species[self.species2][0])
         with self.assertRaisesRegex(ValueError, ".*exclusive.*"):
             op.bake_species_attributes()
 

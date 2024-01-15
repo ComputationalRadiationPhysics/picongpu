@@ -55,24 +55,22 @@ class TransitionRadiationData(DataReader):
 
         sim_output_dir = os.path.join(self.run_directory, "simOutput")
         if not os.path.isdir(sim_output_dir):
-            raise IOError("The simOutput/ directory does not exist inside "
-                          "path:\n  {}\n"
-                          "Did you set the proper path to the run directory?\n"
-                          "Did the simulation already run?"
-                          .format(self.run_directory))
+            raise IOError(
+                "The simOutput/ directory does not exist inside "
+                "path:\n  {}\n"
+                "Did you set the proper path to the run directory?\n"
+                "Did the simulation already run?".format(self.run_directory)
+            )
 
         if iteration is None:
             return sim_output_dir
         else:
             data_file_path = os.path.join(
                 sim_output_dir,
-                self.data_file_folder + species + self.data_file_prefix +
-                str(iteration) + self.data_file_suffix
+                self.data_file_folder + species + self.data_file_prefix + str(iteration) + self.data_file_suffix,
             )
             if not os.path.isfile(data_file_path):
-                raise IOError("The file {} does not exist.\n"
-                              "Did the simulation already run?"
-                              .format(data_file_path))
+                raise IOError("The file {} does not exist.\n" "Did the simulation already run?".format(data_file_path))
             return data_file_path
 
     def _get_for_iteration(self, iteration=None, **kwargs):
@@ -97,8 +95,7 @@ class TransitionRadiationData(DataReader):
 
         # Do loading once and store them in ram
         if self.data is None:
-            data_file_path = self.get_data_path(species=kwargs["species"],
-                                                iteration=iteration)
+            data_file_path = self.get_data_path(species=kwargs["species"], iteration=iteration)
 
             # Actual loading of data
             self.data = np.loadtxt(data_file_path)
@@ -117,21 +114,27 @@ class TransitionRadiationData(DataReader):
                 self.omegas = np.logspace(
                     np.log10(float(parameters[1 + indexOffset])),
                     np.log10(float(parameters[2 + indexOffset])),
-                    int(parameters[0 + indexOffset]))
+                    int(parameters[0 + indexOffset]),
+                )
             elif parameters[1] == "lin":
-                self.omegas = np.linspace(float(parameters[1 + indexOffset]),
-                                          float(parameters[2 + indexOffset]),
-                                          int(parameters[0 + indexOffset]))
+                self.omegas = np.linspace(
+                    float(parameters[1 + indexOffset]),
+                    float(parameters[2 + indexOffset]),
+                    int(parameters[0 + indexOffset]),
+                )
             elif parameters[1] == "list":
-                self.omegas = np.loadtxt(
-                    self.get_data_path() + parameters[0 + indexOffset])
+                self.omegas = np.loadtxt(self.get_data_path() + parameters[0 + indexOffset])
                 indexOffset += 2
-            self.phis = np.linspace(float(parameters[4 + indexOffset]),
-                                    float(parameters[5 + indexOffset]),
-                                    int(parameters[3 + indexOffset]))
-            self.thetas = np.linspace(float(parameters[7 + indexOffset]),
-                                      float(parameters[8 + indexOffset]),
-                                      int(parameters[6 + indexOffset]))
+            self.phis = np.linspace(
+                float(parameters[4 + indexOffset]),
+                float(parameters[5 + indexOffset]),
+                int(parameters[3 + indexOffset]),
+            )
+            self.thetas = np.linspace(
+                float(parameters[7 + indexOffset]),
+                float(parameters[8 + indexOffset]),
+                int(parameters[6 + indexOffset]),
+            )
 
         return self.get_data(iteration=iteration, **kwargs)
 
@@ -181,8 +184,7 @@ class TransitionRadiationData(DataReader):
         if iteration is None:
             raise ValueError("Can't return data for an unknown iteration!")
         if self.data is None:
-            self.data = self._get_for_iteration(kwargs["species"], iteration,
-                                                **kwargs)
+            self.data = self._get_for_iteration(kwargs["species"], iteration, **kwargs)
 
         # Specify plot type
         type = kwargs["type"]
@@ -214,14 +216,14 @@ class TransitionRadiationData(DataReader):
                 theta = int(np.floor(maxIndex[0] / len(self.phis)))
                 phi = maxIndex[0] % len(self.phis)
             elif theta is None and phi is not None:
-                theta = np.argmax(self.data[phi::len(self.phis), :], 0)[0]
+                theta = np.argmax(self.data[phi :: len(self.phis), :], 0)[0]
             elif theta is not None and phi is None:
-                phi = np.argmax(self.data[
-                                theta * len(self.phis):(theta + 1) * len(
-                                    self.phis):, :], 0)[0]
+                phi = np.argmax(
+                    self.data[theta * len(self.phis) : (theta + 1) * len(self.phis) :, :],
+                    0,
+                )[0]
 
-            print("Spectrum is plotted at phi={:.2e} and theta={:.2e}".format(
-                self.phis[phi], self.thetas[theta]))
+            print("Spectrum is plotted at phi={:.2e} and theta={:.2e}".format(self.phis[phi], self.thetas[theta]))
             return self.omegas, self.data[theta * len(self.phis) + phi, :]
         elif type == "sliceovertheta":
             # find phi and omega with maximum intensity if they are not
@@ -236,10 +238,11 @@ class TransitionRadiationData(DataReader):
             if omega is None and phi is not None:
                 omega = 0
 
-            print("Angular intensity distribution is sliced at phi={:.2e} "
-                  "with omega={:.2e}.".format(self.phis[phi],
-                                              self.omegas[omega]))
-            return self.thetas, self.data[phi::len(self.phis), omega]
+            print(
+                "Angular intensity distribution is sliced at phi={:.2e} "
+                "with omega={:.2e}.".format(self.phis[phi], self.omegas[omega])
+            )
+            return self.thetas, self.data[phi :: len(self.phis), omega]
         elif type == "sliceoverphi":
             # find theta and omega with maximum intensity if they are not
             # given as parameters
@@ -253,12 +256,14 @@ class TransitionRadiationData(DataReader):
                 maxIndex = np.argmax(self.data[:, omega])
                 theta = int(np.floor(maxIndex / len(self.phis)))
 
-            print("Angular intensity distribution is sliced at theta={:.2e} "
-                  "with omega={:.2e}.".format(self.thetas[theta],
-                                              self.omegas[omega]))
-            return self.phis, self.data[
-                              theta * len(self.phis):(theta + 1) * len(
-                                  self.phis), omega]
+            print(
+                "Angular intensity distribution is sliced at theta={:.2e} "
+                "with omega={:.2e}.".format(self.thetas[theta], self.omegas[omega])
+            )
+            return (
+                self.phis,
+                self.data[theta * len(self.phis) : (theta + 1) * len(self.phis), omega],
+            )
         elif type == "heatmap":
             # find omega with maximum intensity if it is not given as parameter
             if omega is None:
@@ -267,8 +272,11 @@ class TransitionRadiationData(DataReader):
             theta_mesh, phi_mesh = np.meshgrid(self.thetas, self.phis)
 
             print("Heatmap is for omega={:.2e}.".format(self.omegas[omega]))
-            return theta_mesh, phi_mesh, self.data[::, omega].reshape(
-                (len(self.thetas), len(self.phis))).transpose()
+            return (
+                theta_mesh,
+                phi_mesh,
+                self.data[::, omega].reshape((len(self.thetas), len(self.phis))).transpose(),
+            )
         else:
             raise ValueError("Illegal type of figure!")
 

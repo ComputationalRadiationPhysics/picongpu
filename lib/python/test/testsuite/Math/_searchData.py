@@ -44,14 +44,11 @@ def searchParameter(parameter: str, directiontype: str = None, **kwargs):
     out : float or array
     """
 
-    if (directiontype not in ["param", "json", "dat", "openpmd"] and
-            directiontype is not None):
-        raise ValueError("directiontype must be either None, param,"
-                         " dat, json, or openpmd")
+    if directiontype not in ["param", "json", "dat", "openpmd"] and directiontype is not None:
+        raise ValueError("directiontype must be either None, param," " dat, json, or openpmd")
 
     if directiontype == "param":
-        pR = Reader.paramReader.ParamReader(
-            directiontype="paramDirection")
+        pR = Reader.paramReader.ParamReader(directiontype="paramDirection")
         result = pR.getValue(parameter)
     elif directiontype == "json":
         jR = Reader.jsonReader.JSONReader(directiontype="jsonDirection")
@@ -61,33 +58,31 @@ def searchParameter(parameter: str, directiontype: str = None, **kwargs):
         result = dR.getValue(parameter, **kwargs)
 
     if directiontype is None:
-        warnings.warn("The test suite now searches for the parameters"
-                      " independently. To prevent this please specify"
-                      " directiontype.")
+        warnings.warn(
+            "The test suite now searches for the parameters"
+            " independently. To prevent this please specify"
+            " directiontype."
+        )
         try:
-            pR = Reader.paramReader.ParamReader(
-                directiontype="paramDirection")
+            pR = Reader.paramReader.ParamReader(directiontype="paramDirection")
             result = pR.getValue(parameter)
         except Exception:
             result = None
 
         if result is None:
             try:
-                jR = Reader.jsonReader.JSONReader(
-                    directiontype="jsonDirection")
+                jR = Reader.jsonReader.JSONReader(directiontype="jsonDirection")
                 result = jR.getValue(parameter)
             except Exception:
                 result = None
 
         if result is None:
             try:
-                dR = Reader.dataReader.DataReader(
-                    directiontype="dataDirection")
+                dR = Reader.dataReader.DataReader(directiontype="dataDirection")
                 result = dR.getValue(parameter)
             except Exception:
                 result = None
 
     if result is None:
-        raise ValueError("The Parameter {} could not"
-                         " be found".format(parameter))
+        raise ValueError("The Parameter {} could not" " be found".format(parameter))
     return result

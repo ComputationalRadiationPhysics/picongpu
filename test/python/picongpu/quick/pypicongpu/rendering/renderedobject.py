@@ -31,11 +31,9 @@ class TestRenderedObject(unittest.TestCase):
         """simple example using real-world example"""
         yee = YeeSolver()
         self.assertTrue(isinstance(yee, RenderedObject))
-        self.assertNotEqual(
-            {}, RenderedObject._get_schema_from_class(type(yee)))
+        self.assertNotEqual({}, RenderedObject._get_schema_from_class(type(yee)))
         # no throw -> schema found
-        self.assertEqual(yee.get_rendering_context(),
-                         yee._get_serialized())
+        self.assertEqual(yee.get_rendering_context(), yee._get_serialized())
 
         # manually check that schema has been loaded
         fqn = RenderedObject._get_fully_qualified_class_name(type(yee))
@@ -44,6 +42,7 @@ class TestRenderedObject(unittest.TestCase):
 
     def test_not_implemented(self):
         """raises if _get_serialized() is not implemented"""
+
         class EmptyClass(RenderedObject):
             pass
 
@@ -53,6 +52,7 @@ class TestRenderedObject(unittest.TestCase):
 
     def test_no_schema(self):
         """not finding a schema raises"""
+
         class HasNoSchema(RenderedObject):
             def _get_serialized(self):
                 return {"any": "thing"}
@@ -119,8 +119,8 @@ class TestRenderedObject(unittest.TestCase):
         class HasPermissiveSchema(RenderedObject):
             def _get_serialized(self):
                 return {"any": "thing"}
-        fqn = RenderedObject._get_fully_qualified_class_name(
-            HasPermissiveSchema)
+
+        fqn = RenderedObject._get_fully_qualified_class_name(HasPermissiveSchema)
         uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
 
         # schema "{}" is considered too permissive
@@ -141,11 +141,13 @@ class TestRenderedObject(unittest.TestCase):
         def obj1():
             class MyClass:
                 pass
+
             return MyClass
 
         def obj2():
             class MyClass:
                 pass
+
             return MyClass
 
         t1 = obj1()
@@ -190,8 +192,8 @@ class TestRenderedObject(unittest.TestCase):
                                 "mandatory": {
                                     "type": "number",
                                     "exclusiveMinimum": 0,
-                                    },
                                 },
+                            },
                             "required": ["mandatory"],
                             "unevaluatedProperties": False,
                         },
@@ -207,8 +209,7 @@ class TestRenderedObject(unittest.TestCase):
         mrn.toreturn = None
         self.assertEqual({"value": None}, mrn.get_rendering_context())
         mrn.toreturn = {"mandatory": 2}
-        self.assertEqual({"value": {"mandatory": 2}},
-                         mrn.get_rendering_context())
+        self.assertEqual({"value": {"mandatory": 2}}, mrn.get_rendering_context())
 
         for invalid in [{"mandatory": 0}, {}, "", []]:
             with self.assertRaises(Exception):

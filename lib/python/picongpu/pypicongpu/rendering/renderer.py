@@ -45,19 +45,16 @@ class Renderer:
             if str != type(key):
                 raise TypeError("all keys must be strings: {}".format(path))
             if "." in key:
-                raise ValueError(
-                    "keys may NOT contain dot: {}.{}".format(path, key))
+                raise ValueError("keys may NOT contain dot: {}.{}".format(path, key))
             if key.startswith("_"):
-                raise ValueError("keys may NOT start with underscore: {}.{}"
-                                 .format(path, key))
+                raise ValueError("keys may NOT start with underscore: {}.{}".format(path, key))
 
             # value validation
             if type(value) is dict:
                 if {} == value:
                     raise TypeError("leaf must not be empty dict")
                 # dict -> recursive call
-                Renderer.__check_rendering_context_recursive(
-                    "{}.{}".format(path, key), value)
+                Renderer.__check_rendering_context_recursive("{}.{}".format(path, key), value)
             elif type(value) is list:
                 # may only contain dicts
                 # note: this is not a strict mustache requirement, but only
@@ -66,24 +63,21 @@ class Renderer:
                 # {{#mylist}}{{{.}}}{{/mylist}}, which is somewhat unintuitive)
                 not_dict = list(filter(lambda e: type(e) is not dict, value))
                 if 0 != len(not_dict):
-                    raise TypeError("lists may only contains dicts: {}.{}"
-                                    .format(path, key))
+                    raise TypeError("lists may only contains dicts: {}.{}".format(path, key))
                 # check the children
                 for i in range(len(value)):
-                    Renderer.__check_rendering_context_recursive(
-                        "{}[{}]".format(path, i), value[i])
+                    Renderer.__check_rendering_context_recursive("{}[{}]".format(path, i), value[i])
             else:
                 # leaf
                 invalid_floats = [math.inf, -math.inf, math.nan]
                 if value in invalid_floats:
-                    raise ValueError("invalid value for leaf: {} at {}.{}"
-                                     .format(value, path, key))
+                    raise ValueError("invalid value for leaf: {} at {}.{}".format(value, path, key))
 
                 allowed_types = [str, bool, type(None), int, float]
                 if type(value) not in allowed_types:
-                    raise TypeError("leaf may only be str, bool, None, number;"
-                                    " found: {} at {}.{}".format(
-                                        type(value), path, key))
+                    raise TypeError(
+                        "leaf may only be str, bool, None, number;" " found: {} at {}.{}".format(type(value), path, key)
+                    )
 
     @staticmethod
     def check_rendering_context(context: typing.Any) -> None:
@@ -129,10 +123,9 @@ class Renderer:
                 # list: add _last, _first
                 new_list = []
                 for i in range(len(value)):
-                    elem = \
-                        Renderer.__get_context_preprocessed_recursive(value[i])
-                    elem["_first"] = (0 == i)
-                    elem["_last"] = (len(value) - 1 == i)
+                    elem = Renderer.__get_context_preprocessed_recursive(value[i])
+                    elem["_first"] = 0 == i
+                    elem["_last"] = len(value) - 1 == i
                     new_list.append(elem)
                 pp[key] = new_list
             elif type(value) in [int, float]:
@@ -188,8 +181,8 @@ class Renderer:
             if block_content[0] not in "{^#/>!":
                 # note: use string composition instead of normal formatstrings
                 logging.warning(
-                    "do NOT use HTML escaped syntax (only {{two braces}}) for "
-                    "vars, offending var: " + match.group(1))
+                    "do NOT use HTML escaped syntax (only {{two braces}}) for " "vars, offending var: " + match.group(1)
+                )
         return chevron.render(template, context, warn=True)
 
     @staticmethod
@@ -209,21 +202,20 @@ class Renderer:
 
         mustache_fileending_re = re.compile(r"[.]mustache$")
         all_mustache_files = list(
-            filter(lambda p: mustache_fileending_re.search(str(p)),
-                   filter(lambda p: p.is_file(),
-                          pathlib.Path(path).rglob("*"))))
+            filter(
+                lambda p: mustache_fileending_re.search(str(p)),
+                filter(lambda p: p.is_file(), pathlib.Path(path).rglob("*")),
+            )
+        )
         for template_path in all_mustache_files:
-            rendered_path = pathlib.Path(
-                mustache_fileending_re.sub("", str(template_path)))
+            rendered_path = pathlib.Path(mustache_fileending_re.sub("", str(template_path)))
             if rendered_path.exists():
-                raise ValueError(
-                    "would overwrite {}, aborting".format(rendered_path))
+                raise ValueError("would overwrite {}, aborting".format(rendered_path))
 
             with open(rendered_path, "w") as outfile:
                 with open(template_path, "r") as infile:
                     template_str = infile.read()
-                    rendered = Renderer.get_rendered_template(context,
-                                                              template_str)
+                    rendered = Renderer.get_rendered_template(context, template_str)
                     outfile.write(rendered)
 
             # prefix filename with .
@@ -231,8 +223,6 @@ class Renderer:
             # reassembling paths from parts)
             parts = list(template_path.parts)
             parts[-1] = "." + parts[-1]
-            new_path = functools.reduce(lambda a, b: a / b,
-                                        map(lambda s: pathlib.Path(s),
-                                            parts))
+            new_path = functools.reduce(lambda a, b: a / b, map(lambda s: pathlib.Path(s), parts))
 
             template_path.rename(new_path)

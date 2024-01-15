@@ -38,10 +38,12 @@ from . import readFiles as rF
 
 
 class DataReader(rF.ReadFiles):
-
-    def __init__(self, fileExtension: str = r".dat",
-                 direction: str = None,
-                 directiontype: str = None):
+    def __init__(
+        self,
+        fileExtension: str = r".dat",
+        direction: str = None,
+        directiontype: str = None,
+    ):
         """
         constructor
 
@@ -105,8 +107,7 @@ class DataReader(rF.ReadFiles):
 
         return result
 
-    def getDatwithParam(self,
-                        parameter: str) -> list:
+    def getDatwithParam(self, parameter: str) -> list:
         """
         returns all .dat files in which the parameter is stored.
 
@@ -139,11 +140,13 @@ class DataReader(rF.ReadFiles):
         """
 
         if not self.checkFilesInDir():
-            raise FileNotFoundError("No .dat files could be found in the"
-                                    " specified directory. Please enter the"
-                                    " directory in which the .dat files are"
-                                    " located. No parent folders or direct"
-                                    " .dat files.")
+            raise FileNotFoundError(
+                "No .dat files could be found in the"
+                " specified directory. Please enter the"
+                " directory in which the .dat files are"
+                " located. No parent folders or direct"
+                " .dat files."
+            )
 
         all_files = self.getAllFiles()
         result = []
@@ -154,10 +157,7 @@ class DataReader(rF.ReadFiles):
 
         return result
 
-    def getValue(self,
-                 parameter: str,
-                 step_direction: str = None,
-                 p_type: str = None):
+    def getValue(self, parameter: str, step_direction: str = None, p_type: str = None):
         """
         the function returns all data of the passed parameter as an array
         the function uses the names of the parameters in the .dat files
@@ -203,14 +203,10 @@ class DataReader(rF.ReadFiles):
         all_files = self.getDatwithParam(parameter)
 
         if step_direction is not None and step_direction not in all_files:
-            raise ValueError("{} is not in the direction"
-                             .format(step_direction))
+            raise ValueError("{} is not in the direction".format(step_direction))
 
-        if (len(all_files) >= 2 and
-            p_type is None and
-                "step" not in parameter):
-            raise ValueError("The parameter could be found more than once."
-                             " Please use the parameter p_type for this")
+        if len(all_files) >= 2 and p_type is None and "step" not in parameter:
+            raise ValueError("The parameter could be found more than once." " Please use the parameter p_type for this")
 
         if "step" == parameter and step_direction is None:
             result = np.loadtxt(self._direction + all_files[0])[:, 0]
@@ -231,8 +227,10 @@ class DataReader(rF.ReadFiles):
                 index = params.index(parameter)
                 result = np.loadtxt(self._direction + part_file)[:, index]
             except Exception:
-                raise ValueError("More than one file containing the parameter"
-                                 " could be found. Therefore, a particle type"
-                                 " must be passed.")
+                raise ValueError(
+                    "More than one file containing the parameter"
+                    " could be found. Therefore, a particle type"
+                    " must be passed."
+                )
 
         return result

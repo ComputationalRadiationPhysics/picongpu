@@ -18,4 +18,3 @@ PIConGPU supports `PICMI <https://picmi-standard.github.io/>`_ to create simulat
 
    intro
    custom_template
-

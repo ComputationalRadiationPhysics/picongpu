@@ -43,11 +43,9 @@ def __calculate(axis, parameter, *args):
 
 
 def getaxisvalues(parameter, axis: str = "plot_xaxis"):
-
     # check if variable has an allowed value
     if axis not in ["plot_xaxis", "plot_yaxis", "plot_zaxis"]:
-        raise ValueError("variable has to be plot_xaxis, plot_yaxis"
-                         " or plot_zaxis")
+        raise ValueError("variable has to be plot_xaxis, plot_yaxis" " or plot_zaxis")
 
     # check if a function is given
     if axis in [func[0] for func in getmembers(config, isfunction)]:
@@ -55,8 +53,7 @@ def getaxisvalues(parameter, axis: str = "plot_xaxis"):
 
     # otherwise it has to be a list
     else:
-        values = cD.checkVariables(variable=axis,
-                                   default="")
+        values = cD.checkVariables(variable=axis, default="")
 
         # check if the value is a parameter
         if values in parameter.keys():
@@ -65,8 +62,7 @@ def getaxisvalues(parameter, axis: str = "plot_xaxis"):
         # else a default value should be defined
         if values == "":
             frequency = ph.plasmafrequence()
-            time = ph.calculateTimeFreq(frequency,
-                                        step_direction="fields_energy.dat")
+            time = ph.calculateTimeFreq(frequency, step_direction="fields_energy.dat")
             values = time
 
     return values
@@ -80,14 +76,7 @@ def getInputparameter(parameter: dict) -> dict:
         return None
 
 
-def _output(direction,
-            theory,
-            simulation,
-            max_diff,
-            perc,
-            acc_range,
-            result,
-            parameter):
+def _output(direction, theory, simulation, max_diff, perc, acc_range, result, parameter):
     """
     generates the output. For this purpose, the plot is created
     first and then the log file is written
@@ -96,39 +85,41 @@ def _output(direction,
     acceptance = cD.checkVariables(variable="acceptance")
 
     # plotter
-    plot_type = cD.checkVariables(variable="plot_type",
-                                  default="1D")
+    plot_type = cD.checkVariables(variable="plot_type", default="1D")
     inputparameter = getInputparameter(parameter)
     if plot_type == "1D":
         # get the values for the axis of the plot
         x_value = getaxisvalues(parameter)
-        plot_log = cD.checkVariables(variable="plot_log",
-                                     default="")
+        plot_log = cD.checkVariables(variable="plot_log", default="")
         if plot_log == "":
             plot_log = None
 
         # check that both have the same size
         if len(x_value) < len(simulation):
-            simulation = simulation[:len(x_value)]
+            simulation = simulation[: len(x_value)]
         elif len(x_value) > len(simulation):
-            x_value = x_value[:len(simulation)]
+            x_value = x_value[: len(simulation)]
 
-        Viewer.plot_1D(theory,
-                       simulation,
-                       x_value,
-                       plotLog=plot_log,
-                       acceptance=acceptance,
-                       direction=direction)
+        Viewer.plot_1D(
+            theory,
+            simulation,
+            x_value,
+            plotLog=plot_log,
+            acceptance=acceptance,
+            direction=direction,
+        )
     else:
         Viewer.plot_2D()
     print(inputparameter)
     # resultlog
     value_sim = max(simulation)
-    Log.resultLog(theory,
-                  value_sim,
-                  acceptance,
-                  perc,
-                  result,
-                  max_diff,
-                  direction=direction,
-                  inputparameter=inputparameter)
+    Log.resultLog(
+        theory,
+        value_sim,
+        acceptance,
+        perc,
+        result,
+        max_diff,
+        direction=direction,
+        inputparameter=inputparameter,
+    )

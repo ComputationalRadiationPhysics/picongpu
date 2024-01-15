@@ -52,9 +52,7 @@ class SimpleMomentum(Operation):
 
     def prebook_species_attributes(self) -> None:
         # always provides attribute -- might not be set (i.e. left at 0) though
-        self.attributes_by_species = {
-            self.species: [Momentum()]
-        }
+        self.attributes_by_species = {self.species: [Momentum()]}
 
     def _get_serialized(self) -> dict:
         self.check_preconditions()

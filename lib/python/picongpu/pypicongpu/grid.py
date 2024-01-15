@@ -22,6 +22,7 @@ class BoundaryCondition(enum.Enum):
     TODO: implement the other methods supported by PIConGPU
     (reflecting, thermal)
     """
+
     PERIODIC = 1
     ABSORBING = 2
 
@@ -77,8 +78,7 @@ class Grid3D(RenderedObject):
         assert self.cell_cnt_y > 0, "cell_cnt_y must be greater than 0"
         assert self.cell_cnt_z > 0, "cell_cnt_z must be greater than 0"
         for i in range(3):
-            assert self.n_gpus[i] > 0, \
-                "all n_gpus entries must be greater than 0"
+            assert self.n_gpus[i] > 0, "all n_gpus entries must be greater than 0"
 
         return {
             "cell_size": {
@@ -100,5 +100,5 @@ class Grid3D(RenderedObject):
                 "x": self.n_gpus[0],
                 "y": self.n_gpus[1],
                 "z": self.n_gpus[2],
-            }
+            },
         }

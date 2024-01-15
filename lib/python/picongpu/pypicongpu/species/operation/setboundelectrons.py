@@ -31,16 +31,13 @@ class SetBoundElectrons(Operation):
         pass
 
     def check_preconditions(self) -> None:
-        assert self.species.has_constant_of_type(Ionizers), \
-            "BoundElectrons requires Ionizers"
+        assert self.species.has_constant_of_type(Ionizers), "BoundElectrons requires Ionizers"
 
         if self.bound_electrons < 0:
             raise ValueError("bound electrons must be >0")
 
         if 0 == self.bound_electrons:
-            raise ValueError(
-                "bound electrons must be >0, use NoBoundElectrons to assign "
-                "0 bound electrons")
+            raise ValueError("bound electrons must be >0, use NoBoundElectrons to assign " "0 bound electrons")
 
     def prebook_species_attributes(self) -> None:
         self.attributes_by_species = {

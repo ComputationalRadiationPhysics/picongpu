@@ -54,10 +54,6 @@ class Foil(DensityProfile):
             "density_si": self.density_si,
             "y_value_front_foil_si": self.y_value_front_foil_si,
             "thickness_foil_si": self.thickness_foil_si,
-            "pre_foil_plasmaRamp":
-                self.pre_foil_plasmaRamp
-                    .get_generic_profile_rendering_context(),
-            "post_foil_plasmaRamp":
-                self.post_foil_plasmaRamp
-                    .get_generic_profile_rendering_context()
-            }
+            "pre_foil_plasmaRamp": self.pre_foil_plasmaRamp.get_generic_profile_rendering_context(),
+            "post_foil_plasmaRamp": self.post_foil_plasmaRamp.get_generic_profile_rendering_context(),
+        }

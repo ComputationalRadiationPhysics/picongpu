@@ -38,11 +38,10 @@ class TestRunner(unittest.TestCase):
             lower_bound=[0, 0, 0],
             upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
             lower_boundary_conditions=["open", "open", "periodic"],
-            upper_boundary_conditions=["open", "open", "periodic"])
+            upper_boundary_conditions=["open", "open", "periodic"],
+        )
         solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
-        self.picmi_sim = picmi.Simulation(time_step_size=1.39e-16,
-                                          max_steps=int(2048),
-                                          solver=solver)
+        self.picmi_sim = picmi.Simulation(time_step_size=1.39e-16, max_steps=int(2048), solver=solver)
         self.sim = self.picmi_sim.get_as_pypicongpu()
 
         # reset default scratch dir
@@ -104,10 +103,12 @@ class TestRunner(unittest.TestCase):
         Runner(self.picmi_sim.get_as_pypicongpu())
         Runner(self.sim)
 
-        r = Runner(self.sim,
-                   scratch_dir=self.existing_dir1,
-                   setup_dir=self.nonexisting_dir1,
-                   run_dir=self.nonexisting_dir2)
+        r = Runner(
+            self.sim,
+            scratch_dir=self.existing_dir1,
+            setup_dir=self.nonexisting_dir1,
+            run_dir=self.nonexisting_dir2,
+        )
         self.assertEqual(self.existing_dir1, r.scratch_dir)
         self.assertEqual(self.nonexisting_dir1, r.setup_dir)
         self.assertEqual(self.nonexisting_dir2, r.run_dir)
@@ -149,19 +150,26 @@ class TestRunner(unittest.TestCase):
         # -> the error *might* be collision,
         # but also might be due to (non-) existing contraints for dirs
         with self.assertRaises(Exception):
-            Runner(self.sim, run_dir=self.nonexisting_dir1,
-                   scratch_dir=self.nonexisting_dir1)
+            Runner(
+                self.sim,
+                run_dir=self.nonexisting_dir1,
+                scratch_dir=self.nonexisting_dir1,
+            )
         with self.assertRaises(Exception):
-            Runner(self.sim, run_dir=self.nonexisting_dir1,
-                   setup_dir=self.nonexisting_dir1)
+            Runner(self.sim, run_dir=self.nonexisting_dir1, setup_dir=self.nonexisting_dir1)
         with self.assertRaises(Exception):
-            Runner(self.sim, scratch_dir=self.nonexisting_dir1,
-                   setup_dir=self.nonexisting_dir1)
+            Runner(
+                self.sim,
+                scratch_dir=self.nonexisting_dir1,
+                setup_dir=self.nonexisting_dir1,
+            )
         with self.assertRaises(Exception):
-            Runner(self.sim,
-                   scratch_dir=self.nonexisting_dir1,
-                   setup_dir=self.nonexisting_dir1,
-                   run_dir=self.nonexisting_dir1)
+            Runner(
+                self.sim,
+                scratch_dir=self.nonexisting_dir1,
+                setup_dir=self.nonexisting_dir1,
+                run_dir=self.nonexisting_dir1,
+            )
 
     def test_scratch_from_env(self):
         """test that the scratch dir is loaded from environment when None"""
@@ -187,12 +195,15 @@ class TestRunner(unittest.TestCase):
         # relative path is accepted, but converted to absolute
         os.environ[Runner.SCRATCH_ENV_NAME] = self.existing_relative_dir1
         r = Runner(self.sim)
-        self.assertEqual(os.path.realpath(self.existing_relative_dir1),
-                         os.path.realpath(r.scratch_dir))
+        self.assertEqual(
+            os.path.realpath(self.existing_relative_dir1),
+            os.path.realpath(r.scratch_dir),
+        )
         self.assertTrue(os.path.isabs(r.scratch_dir))
 
     def test_missing_dirs_generated(self):
         """check that given dirs are kept and not-given dirs generated"""
+
         def check_postconditions(r):
             self.assertTrue(not os.path.exists(r.setup_dir))
             self.assertTrue(not os.path.exists(r.run_dir))
@@ -211,8 +222,7 @@ class TestRunner(unittest.TestCase):
         self.assertTrue(r.setup_dir.startswith(self.tmpdir))
 
         # scratch ignore if run is given
-        r = Runner(self.sim, scratch_dir=self.existing_dir1,
-                   run_dir=self.nonexisting_dir1)
+        r = Runner(self.sim, scratch_dir=self.existing_dir1, run_dir=self.nonexisting_dir1)
         check_postconditions(r)
         self.assertTrue(not r.setup_dir.startswith(r.scratch_dir))
         self.assertEqual(self.nonexisting_dir1, r.run_dir)
@@ -225,10 +235,12 @@ class TestRunner(unittest.TestCase):
     def test_checks_given_dirs(self):
         """sanity checks performed on given dirs"""
         # valid call
-        Runner(self.sim,
-               scratch_dir=self.existing_dir1,
-               setup_dir=self.nonexisting_dir1,
-               run_dir=self.nonexisting_dir2)
+        Runner(
+            self.sim,
+            scratch_dir=self.existing_dir1,
+            setup_dir=self.nonexisting_dir1,
+            run_dir=self.nonexisting_dir2,
+        )
 
         # make sure that the paths are not used/created during __init__
         assert os.path.isdir(self.existing_dir1)
@@ -239,27 +251,45 @@ class TestRunner(unittest.TestCase):
 
         # invalid calls:
         with self.assertRaisesRegex(Exception, ".*scratch.*"):
-            Runner(self.sim,
-                   scratch_dir=self.nonexisting_dir3,
-                   setup_dir=self.nonexisting_dir1,
-                   run_dir=self.nonexisting_dir2)
+            Runner(
+                self.sim,
+                scratch_dir=self.nonexisting_dir3,
+                setup_dir=self.nonexisting_dir1,
+                run_dir=self.nonexisting_dir2,
+            )
         with self.assertRaisesRegex(Exception, ".*setup.*"):
-            Runner(self.sim,
-                   scratch_dir=self.existing_dir1,
-                   setup_dir=self.existing_dir2,
-                   run_dir=self.nonexisting_dir2)
+            Runner(
+                self.sim,
+                scratch_dir=self.existing_dir1,
+                setup_dir=self.existing_dir2,
+                run_dir=self.nonexisting_dir2,
+            )
         with self.assertRaisesRegex(Exception, ".*run.*"):
-            Runner(self.sim,
-                   scratch_dir=self.existing_dir1,
-                   setup_dir=self.nonexisting_dir1,
-                   run_dir=self.existing_dir2)
+            Runner(
+                self.sim,
+                scratch_dir=self.existing_dir1,
+                setup_dir=self.nonexisting_dir1,
+                run_dir=self.existing_dir2,
+            )
 
     def test_invalid_dir_names(self):
         """forbidden character (not alphanum.-_) produce an error"""
-        allowed_dir_names = ["abas", "-123", "123", "/ahjsd",
-                             "hnaxbcnxyci8HJBASDJASG61723", "/tmp/hadjs/7123"]
-        forbidden_dir_names = ["", ";asd", "&/(12)", "try#123", "a:colon",
-                               "why is space not allowed"]
+        allowed_dir_names = [
+            "abas",
+            "-123",
+            "123",
+            "/ahjsd",
+            "hnaxbcnxyci8HJBASDJASG61723",
+            "/tmp/hadjs/7123",
+        ]
+        forbidden_dir_names = [
+            "",
+            ";asd",
+            "&/(12)",
+            "try#123",
+            "a:colon",
+            "why is space not allowed",
+        ]
 
         for allowed_name in allowed_dir_names:
             # no error
@@ -276,22 +306,27 @@ class TestRunner(unittest.TestCase):
                 Runner(self.sim, run_dir=forbidden_name)
 
     def test_absolute(self):
-        r = Runner(self.sim,
-                   scratch_dir=self.existing_relative_dir1,
-                   setup_dir=self.nonexisting_relative_dir1,
-                   run_dir=self.nonexisting_relative_dir2)
+        r = Runner(
+            self.sim,
+            scratch_dir=self.existing_relative_dir1,
+            setup_dir=self.nonexisting_relative_dir1,
+            run_dir=self.nonexisting_relative_dir2,
+        )
 
         self.assertNotEqual(self.existing_relative_dir1, r.scratch_dir)
         self.assertNotEqual(self.nonexisting_relative_dir1, r.setup_dir)
         self.assertNotEqual(self.nonexisting_relative_dir2, r.run_dir)
 
         # note: realpath for existing dir
-        self.assertEqual(os.path.realpath(self.existing_relative_dir1),
-                         os.path.realpath(r.scratch_dir))
-        self.assertEqual(os.path.abspath(self.nonexisting_relative_dir1),
-                         os.path.abspath(r.setup_dir))
-        self.assertEqual(os.path.abspath(self.nonexisting_relative_dir2),
-                         os.path.abspath(r.run_dir))
+        self.assertEqual(
+            os.path.realpath(self.existing_relative_dir1),
+            os.path.realpath(r.scratch_dir),
+        )
+        self.assertEqual(
+            os.path.abspath(self.nonexisting_relative_dir1),
+            os.path.abspath(r.setup_dir),
+        )
+        self.assertEqual(os.path.abspath(self.nonexisting_relative_dir2), os.path.abspath(r.run_dir))
 
         self.assertTrue(os.path.isabs(r.scratch_dir))
         self.assertTrue(os.path.isabs(r.setup_dir))
@@ -320,18 +355,15 @@ class TestRunner(unittest.TestCase):
             assert m
             return m[1]
 
-        self.assertEqual("123-teststring",
-                         get_wo_pypicongpu_prefix("pypicongpu-123-teststring"))
+        self.assertEqual("123-teststring", get_wo_pypicongpu_prefix("pypicongpu-123-teststring"))
 
         setup_dir_base_noprefix = get_wo_pypicongpu_prefix(setup_dir_base)
         run_dir_base_noprefix = get_wo_pypicongpu_prefix(run_dir_base)
 
-        self.assertEqual("blasabbl", os.path.commonprefix(
-            ["blasabbl123", "blasabblajhsdkljh"]))
+        self.assertEqual("blasabbl", os.path.commonprefix(["blasabbl123", "blasabblajhsdkljh"]))
         # common_start would typically be the current date
         # (though using the date is not required)
-        common_start = os.path.commonprefix([setup_dir_base_noprefix,
-                                             run_dir_base_noprefix])
+        common_start = os.path.commonprefix([setup_dir_base_noprefix, run_dir_base_noprefix])
         # six: shortest useful date representation YYMMDD
         self.assertTrue(len(common_start) >= 6)
 
@@ -382,8 +414,7 @@ class TestRunner(unittest.TestCase):
             # note: put in subdir, b/c not all directories are cloned by
             # pic-create
             os.makedirs(template_path / "etc" / "picongpu")
-            testfile_template = template_path / "etc" / "picongpu" / \
-                "date.mustache"
+            testfile_template = template_path / "etc" / "picongpu" / "date.mustache"
             with open(testfile_template, "w") as tpl_file:
                 tpl_file.write("{{{_date}}}")
             # workaround (TODO rm): add location for pypicongpu.param
@@ -391,8 +422,7 @@ class TestRunner(unittest.TestCase):
 
             # create ruunner with previous tempalte dir, rest of directories
             # is not predefined
-            runner = Runner(self.sim,
-                            pypicongpu_template_dir=template_dir)
+            runner = Runner(self.sim, pypicongpu_template_dir=template_dir)
 
             runner.generate()
 

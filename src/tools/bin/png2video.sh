@@ -47,4 +47,3 @@ ffmpeg -i $videoName.avi -vcodec libx264 -vpre hq -vpre normal -pass 1 -s 1280x1
 ffmpeg -i $videoName.avi -vcodec libx264 -vpre hq -vpre normal -pass 2 -s 1280x1192 -b 2000000 -threads 4 -f mp4 "$videoName.mp4"
 #ffmpeg -i $videoName.avi -pix_fmt rgb24 -s 1280x1192 "$videoName.gif"
 ffmpeg -i $videoName.avi -y -s 1280x1192 -b 2000000 -r 2 -f flv -vcodec flv  "$videoName.flv"
-

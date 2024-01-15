@@ -38,8 +38,7 @@ class particleCalorimeter:
                          path and openPMD file format for input series
                          e.g. "simOutput/e_calorimeter/e_calorimeter_all_%T.bp"
         """
-        self.series = io.Series(seriesFilename,
-                                access=io.Access_Type.read_only)
+        self.series = io.Series(seriesFilename, access=io.Access_Type.read_only)
         self.iterations = list(self.series.iterations)
 
         # get first iteration to extrat meta information
@@ -78,10 +77,14 @@ class particleCalorimeter:
         -------
         yaw : ndarray [degree]
         """
-        return np.linspace(-self.detector_params["maxYaw[deg]"],
-                           + self.detector_params["maxYaw[deg]"],
-                           self.detector_params["N_yaw"]) \
+        return (
+            np.linspace(
+                -self.detector_params["maxYaw[deg]"],
+                +self.detector_params["maxYaw[deg]"],
+                self.detector_params["N_yaw"],
+            )
             + self.detector_params["posYaw[deg]"]
+        )
 
     def getPitch(self):
         """
@@ -91,10 +94,14 @@ class particleCalorimeter:
         -------
         pitch : ndarray [degree]
         """
-        return np.linspace(-self.detector_params["maxPitch[deg]"],
-                           + self.detector_params["maxPitch[deg]"],
-                           self.detector_params["N_pitch"]) \
+        return (
+            np.linspace(
+                -self.detector_params["maxPitch[deg]"],
+                +self.detector_params["maxPitch[deg]"],
+                self.detector_params["N_pitch"],
+            )
             + self.detector_params["posPitch[deg]"]
+        )
 
     def getEnergy(self):
         """
@@ -109,14 +116,17 @@ class particleCalorimeter:
             return None
         else:
             if self.detector_params["logScale"] is False:
-                return np.linspace(self.detector_params["minEnergy[keV]"],
-                                   self.detector_params["maxEnergy[keV]"],
-                                   self.detector_params["N_energy"])
+                return np.linspace(
+                    self.detector_params["minEnergy[keV]"],
+                    self.detector_params["maxEnergy[keV]"],
+                    self.detector_params["N_energy"],
+                )
             else:
                 return np.logspace(
                     np.log10(self.detector_params["minEnergy[keV]"]),
                     np.log10(self.detector_params["maxEnergy[keV]"]),
-                    self.detector_params["N_energy"])
+                    self.detector_params["N_energy"],
+                )
 
     def getData(self, iteration):
         """

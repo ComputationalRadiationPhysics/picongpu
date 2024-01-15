@@ -53,10 +53,7 @@ def cs(text: str, color: str):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print(
-            "Set path to requirements.txt as first argument and output path as"
-            " second argument."
-        )
+        print("Set path to requirements.txt as first argument and output path as" " second argument.")
         exit(1)
 
     # parse environment variables
@@ -74,9 +71,7 @@ if __name__ == "__main__":
             for line in input.readlines():
                 input_pkg_name = line.split(" ")[0]
                 if input_pkg_name in packages:
-                    output.write(
-                        f"{input_pkg_name} == {packages[input_pkg_name]}\n"
-                    )
+                    output.write(f"{input_pkg_name} == {packages[input_pkg_name]}\n")
                     packages.pop(input_pkg_name)
                 else:
                     output.write(line)

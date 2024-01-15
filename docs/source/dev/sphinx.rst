@@ -87,4 +87,3 @@ Useful Links
  * `A primer on writing restFUL files for sphinx <http://www.sphinx-doc.org/en/stable/rest.html>`_
  * `Why You Shouldn't Use "Markdown" for Documentation <http://ericholscher.com/blog/2016/mar/15/dont-use-markdown-for-technical-docs/>`_
  * `Markdown Limitations in Sphinx <https://docs.readthedocs.io/en/latest/getting_started.html#in-markdown>`_
-

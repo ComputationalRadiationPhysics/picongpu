@@ -44,12 +44,12 @@ def read_range_file(file, values_only=True):
     if not os.path.isfile(file):
         raise IOError("File {} does not exist".format(file))
 
-    with open(file, 'r') as json_file:
+    with open(file, "r") as json_file:
         range_dict = json.load(json_file)
     if values_only:
         filtered_range_dict = dict()
         for name, attrs in range_dict.items():
-            filtered_range_dict[name] = attrs['values']
+            filtered_range_dict[name] = attrs["values"]
 
         return filtered_range_dict
     else:
@@ -83,30 +83,27 @@ def parse(file, ptype):
     # filter for correct ptype
     filtered_dict = dict()
     for param_name, attrs in range_dict.items():
-        if attrs['type'] == ptype:
+        if attrs["type"] == ptype:
             # name, value mapping
-            filtered_dict[param_name] = attrs['values'][0]
+            filtered_dict[param_name] = attrs["values"][0]
 
     # construct the statement passed to picongpu
     if ptype == "compile":
-        ostr = [to_macro_name(name) + "=" + str(value)
-                for name, value in filtered_dict.items()]
+        ostr = [to_macro_name(name) + "=" + str(value) for name, value in filtered_dict.items()]
         cxx_defines = ";".join(map(lambda s: "-D" + s, ostr))
         return "-DPARAM_OVERWRITES:LIST='" + cxx_defines + "'"
 
     elif ptype == "run":
-        ostr = [str(name) + "=" + str(value)
-                for name, value in filtered_dict.items()]
+        ostr = [str(name) + "=" + str(value) for name, value in filtered_dict.items()]
         if not ostr:
             return ""
         else:
             return "-o " + "'" + " ".join(ostr) + "'"
 
 
-if __name__ == '__main__':
-
-    type = ''
-    file = ''
+if __name__ == "__main__":
+    type = ""
+    file = ""
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "ht:i:", ["type=", "ifile="])
@@ -122,7 +119,7 @@ if __name__ == '__main__':
         elif opt in ("-i", "--ifile"):
             file = arg
 
-    if (type in ["compile", "run"]):
+    if type in ["compile", "run"]:
         print(parse(file, type))
     else:
         print("-t option not understood! Either choose 'compile' or 'run'!")

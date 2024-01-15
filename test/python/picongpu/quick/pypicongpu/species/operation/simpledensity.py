@@ -12,8 +12,7 @@ import typeguard
 
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.operation import densityprofile
-from picongpu.pypicongpu.species.attribute import \
-    Position, Weighting, Momentum
+from picongpu.pypicongpu.species.attribute import Position, Weighting, Momentum
 from picongpu.pypicongpu.species.constant import DensityRatio
 
 
@@ -175,8 +174,7 @@ class TestSimpleDensity(unittest.TestCase):
         # for each species the same
         for species, attributes in sd.attributes_by_species.items():
             # assign position & weighting
-            attribute_names = list(map(lambda attr: attr.PICONGPU_NAME,
-                                       attributes))
+            attribute_names = list(map(lambda attr: attr.PICONGPU_NAME, attributes))
             self.assertEqual(2, len(attribute_names))
             self.assertTrue(Position.PICONGPU_NAME in attribute_names)
             self.assertTrue(Weighting.PICONGPU_NAME in attribute_names)
@@ -194,18 +192,13 @@ class TestSimpleDensity(unittest.TestCase):
         context = self.sd.get_rendering_context()
 
         self.assertEqual(2, context["ppc"])
-        self.assertEqual(
-            context["profile"],
-            self.sd.profile.get_generic_profile_rendering_context())
+        self.assertEqual(context["profile"], self.sd.profile.get_generic_profile_rendering_context())
 
         # species with lowest ratio must be placed as first, which is species1
-        self.assertEqual(context["placed_species_initial"],
-                         self.species1.get_rendering_context())
+        self.assertEqual(context["placed_species_initial"], self.species1.get_rendering_context())
 
-        copied_species_names = list(map(lambda d: d["name"],
-                                        context["placed_species_copied"]))
-        self.assertEqual({"species2", "species3", "species4"},
-                         set(copied_species_names))
+        copied_species_names = list(map(lambda d: d["name"], context["placed_species_copied"]))
+        self.assertEqual({"species2", "species3", "species4"}, set(copied_species_names))
 
     def test_rendering_minimal(self):
         """minimal example for rendering"""
@@ -228,10 +221,7 @@ class TestSimpleDensity(unittest.TestCase):
         context = sd.get_rendering_context()
 
         self.assertEqual(1, context["ppc"])
-        self.assertEqual(
-            context["profile"],
-            sd.profile.get_generic_profile_rendering_context())
+        self.assertEqual(context["profile"], sd.profile.get_generic_profile_rendering_context())
 
-        self.assertEqual(context["placed_species_initial"],
-                         species.get_rendering_context())
+        self.assertEqual(context["placed_species_initial"], species.get_rendering_context())
         self.assertEqual(context["placed_species_copied"], [])

@@ -13,9 +13,8 @@ from .plasmaramp import PlasmaRamp
 @typeguard.typechecked
 class Exponential(PlasmaRamp):
     """exponential plasma ramp, either up or down"""
-    def __init__(self,
-                 PlasmaLength: float,
-                 PlasmaCutoff: float):
+
+    def __init__(self, PlasmaLength: float, PlasmaCutoff: float):
         self.PlasmaLength = PlasmaLength
         self.PlasmaCutoff = PlasmaCutoff
 
@@ -28,7 +27,4 @@ class Exponential(PlasmaRamp):
     def _get_serialized(self) -> dict:
         self.check()
 
-        return {
-            "PlasmaLength": self.PlasmaLength,
-            "PlasmaCutoff": self.PlasmaCutoff
-            }
+        return {"PlasmaLength": self.PlasmaLength, "PlasmaCutoff": self.PlasmaCutoff}

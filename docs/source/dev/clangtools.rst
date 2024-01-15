@@ -50,4 +50,3 @@ If a proper version of ``clang-tidy`` is found, we add a new ``clang-tidy`` buil
 
 .. [ClangTools]
         Online (2017), https://clang.llvm.org/docs/ClangTools.html
-

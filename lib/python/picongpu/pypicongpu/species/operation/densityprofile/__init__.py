@@ -4,9 +4,4 @@ from .foil import Foil
 
 from . import plasmaramp
 
-__all__ = [
-    "DensityProfile",
-    "Uniform",
-    "Foil",
-    "plasmaramp"
-]
+__all__ = ["DensityProfile", "Uniform", "Foil", "plasmaramp"]

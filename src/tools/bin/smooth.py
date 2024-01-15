@@ -74,8 +74,7 @@ def makeOddNumber(number, larger=True):
         else:
             return number - 1
     else:
-        error_msg = ("ERROR: number (= {}) neither odd " +
-                     "nor even").format(number)
+        error_msg = ("ERROR: number (= {}) neither odd " + "nor even").format(number)
         raise Exception(error_msg)
 
 
@@ -99,9 +98,9 @@ def gaussWindow(N, sigma):
     returns N symetric samples of e^(-0.5*(x/sigma)^2)
     """
     # +/- range bins to calculate
-    length = (N/float(sigma))
+    length = N / float(sigma)
     # not normalized
-    return np.exp(-0.5 * (np.linspace(-length, length, N))**2)
+    return np.exp(-0.5 * (np.linspace(-length, length, N)) ** 2)
 
 
 def smooth(x, sigma, window_len=11, fkt=gaussWindow):
@@ -128,33 +127,30 @@ def smooth(x, sigma, window_len=11, fkt=gaussWindow):
     """
     # check input:
     if type(x) is not np.ndarray:
-        error_msg = "ERROR: input needs to by a 1D numpy array. " + \
-                    "Data type is {}".format(type(x))
+        error_msg = "ERROR: input needs to by a 1D numpy array. " + "Data type is {}".format(type(x))
         raise Exception(error_msg)
 
     if len(x.shape) != 1:
         # not a 1D array
-        error_msg = "ERROR: input needs to by a 1D numpy array. " + \
-                    "Data shape is {}".format(x.shape)
+        error_msg = "ERROR: input needs to by a 1D numpy array. " + "Data shape is {}".format(x.shape)
         raise Exception(error_msg)
 
     # extending the data at the beginning and at the end
     # to apply the window at the borders
-    s = np.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
+    s = np.r_[x[window_len - 1 : 0 : -1], x, x[-1:-window_len:-1]]
 
     w = fkt(window_len, sigma)  # compute window values
 
     # smooth data by convolution with window function
     #   smoothed data with borders
-    y = np.convolve(w/w.sum(), s, mode='valid')
+    y = np.convolve(w / w.sum(), s, mode="valid")
     #   usually window_len is odd, and int-devision is used
-    overlap = window_len//2
+    overlap = window_len // 2
 
-    return y[overlap:len(y)-overlap]  # smoothed data without added borders
+    return y[overlap : len(y) - overlap]  # smoothed data without added borders
 
 
-def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
-             fkt=gaussWindow):
+def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50, fkt=gaussWindow):
     """
     This function smoothes the noisy data of a 2D array.
 
@@ -187,8 +183,7 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
     """
     # check input
     if type(data) is not np.ndarray:
-        error_msg = "ERROR: input needs to by a 2D numpy array. " + \
-                    "Data type is {}".format(type(data))
+        error_msg = "ERROR: input needs to by a 2D numpy array. " + "Data type is {}".format(type(data))
         raise Exception(error_msg)
 
     # make a copy since python is handling arrays by reference
@@ -196,8 +191,7 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
 
     if len(data.shape) != 2:
         # not a 2D array
-        error_msg = "ERROR: input needs to by a 2D numpy array. " + \
-                    "Data shape is {}".format(data.shape)
+        error_msg = "ERROR: input needs to by a 2D numpy array. " + "Data shape is {}".format(data.shape)
         raise Exception(error_msg)
 
     # make add window bins (maximum value included)
@@ -206,13 +200,11 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
 
     # smooth x
     for i in range(len(data_cp)):
-        data_cp[i] = smooth(data_cp[i], sigma_x, window_len=len_x,
-                            fkt=gaussWindow)
+        data_cp[i] = smooth(data_cp[i], sigma_x, window_len=len_x, fkt=gaussWindow)
 
     # smooth y
     for j in range(len(data_cp[0])):
-        data_cp[:, j] = smooth(data_cp[:, j], sigma_y, window_len=len_y,
-                               fkt=gaussWindow)
+        data_cp[:, j] = smooth(data_cp[:, j], sigma_y, window_len=len_y, fkt=gaussWindow)
 
     # return smoothed copy
     return data_cp
