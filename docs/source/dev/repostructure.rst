@@ -54,12 +54,16 @@ Directory Structure
   * examples, documentation
   * ``picongpu/``
 
+    * ``benchmarks/``: setups used for benchmarking
     * ``completions/``: bash completions
     * ``examples/``: each with same structure as ``/``
     * ``pypicongpu/``: required files for code generation
 
       * ``schema/``: code generation JSON schemas
       * ``template/``: base template for code generation
+
+    * ``tests/``: self-validating examples for different scenarios
+    * ``unit/``: small (hopefully expanding) selection of unit tests
 
 * ``bin/``
 
