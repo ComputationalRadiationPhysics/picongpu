@@ -9,3 +9,4 @@ repos:
   hooks:
   - id: no-commit-to-branch
     args: [-b, dev]
+  - id: check-merge-conflict
