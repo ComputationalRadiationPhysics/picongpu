@@ -10,3 +10,5 @@ repos:
   - id: no-commit-to-branch
     args: [-b, dev]
   - id: check-merge-conflict
+  - id: trailing-whitespace
+    exclude_types: [markdown, rst]
