@@ -5,7 +5,7 @@ Reference
 
 .. sectionauthor:: Axel Huebl
 
-PIConGPU is an almost decade-long scientific project with many people contributing to it.
+PIConGPU is a more than decade-long scientific project with many people contributing to it.
 In order to credit the work of others, we expect you to cite our latest paper describing PIConGPU when publishing and/or presenting scientific results.
 
 In addition to that and out of good scientific practice, you should document the version of PIConGPU that was used and any modifications you applied.

@@ -39,7 +39,7 @@ In order to create an efficient simulation, PIConGPU compiles to **exactly** the
 This comes at a small cost: when **even one of those settings is changed, you need to recompile**.
 Nevertheless, wasting about 5 minutes compiling on a single node is nothing compared to the time you save *at scale*!
 
-All options that are less or non-critical for runtime performance, such as specific ranges observables in :ref:`plugins <usage-plugins>` or how many nodes shall be used, can be set in :ref:`run time configuration files (*.cfg) <usage-tbg>` and do not need a recompile when changed.
+All options that are less or non-critical for runtime performance, such as specific ranges, observables in :ref:`plugins <usage-plugins>` or how many nodes shall be used, can be set in :ref:`run time configuration files (*.cfg) <usage-tbg>` and do not need a recompile when changed.
 
 Files and Their Usage
 ---------------------
