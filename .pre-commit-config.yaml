@@ -12,3 +12,4 @@ repos:
   - id: check-merge-conflict
   - id: trailing-whitespace
     exclude_types: [markdown, rst]
+  - id: end-of-file-fixer
