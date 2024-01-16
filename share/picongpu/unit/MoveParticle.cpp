@@ -79,8 +79,8 @@ struct ParticleStub
 
     bool operator==(ParticleStub const& other) const
     {
-        return isApproxEqual(pos, other.pos) and localCellIdxValue == other.localCellIdxValue
-            and multiMaskValue == other.multiMaskValue;
+        return isApproxEqual(pos, other.pos) && localCellIdxValue == other.localCellIdxValue
+            && multiMaskValue == other.multiMaskValue;
     }
 
     std::string toString() const
@@ -102,7 +102,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         REQUIRE(newPos == particle.pos);
 
         bool leftSuperCell = moveParticle(particle, newPos);
-        CHECK(not leftSuperCell);
+        CHECK(!leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -116,7 +116,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         REQUIRE(newPos != particle.pos);
 
         bool leftSuperCell = moveParticle(particle, newPos);
-        CHECK(not leftSuperCell);
+        CHECK(!leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -131,7 +131,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxPositive[i];
 
         bool leftSuperCell = moveParticle(particle, newPos);
-        CHECK(not leftSuperCell);
+        CHECK(!leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -154,7 +154,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.localCellIdxValue = neighbouringLocalCellIdxNegative[i];
 
         bool leftSuperCell = moveParticle(particle, newPos);
-        CHECK(not leftSuperCell);
+        CHECK(!leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -167,7 +167,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.localCellIdxValue = 9;
 
         bool leftSuperCell = moveParticle(particle, newPos);
-        CHECK(not leftSuperCell);
+        CHECK(!leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 
@@ -192,7 +192,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         expectedParticle.pos[0] = 0.;
 
         bool leftSuperCell = moveParticle(particle, newPos);
-        CHECK(not leftSuperCell);
+        CHECK(!leftSuperCell);
         CHECK(particle == expectedParticle);
     }
 }
