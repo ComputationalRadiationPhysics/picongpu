@@ -34,12 +34,14 @@ namespace picongpu
          * in case the new position is outside of the cell we adjust
          * the cell index and the multiMask of the particle.
          *
-         * we assume that CFL condition is fulfilled
+         * as everywhere in PIConGPU, we assume that the particle moves at most
+         * one cell per step. This has to be ensured by the caller and
+         * violations are NOT checked for or caught during execution.
          *
          * @tparam T_Particle particle type
          * @param particle particle handle
-         * @param newPos new position relative to the current cell, in units of cells
-         * newPos must be [-1.0, 2.0) (following CFL)
+         * @param newPos new position relative to the current cell's origin, in
+         * units of cells, so all entries of newPos must be [-1.0, 2.0) (see above)
          * @return whether the particle has left the original cell
          */
         template<typename T_Particle>
