@@ -33,8 +33,6 @@ namespace picongpu
         using Size2D = pmacc::DataSpace<2U>;
 
         Size2D size;
-        Size2D nodes;
-        Size2D simOffsetToNull;
         uint32_t step{0};
         picongpu::float_32 scale[2];
         picongpu::float_32 cellSizeArr[2];
@@ -57,7 +55,6 @@ namespace picongpu
         void writeToConsole(std::ostream& ocons) const
         {
             ocons << "SimHeader.size " << size.x() << " " << size.y() << std::endl;
-            ocons << "SimHeader.nodes " << nodes.x() << " " << nodes.y() << std::endl;
             ocons << "SimHeader.step " << step << std::endl;
             ocons << "SimHeader.scale " << scale[0] << " " << scale[1] << std::endl;
             ocons << "SimHeader.cellSize " << cellSizeArr[0] << " " << cellSizeArr[1] << std::endl;
