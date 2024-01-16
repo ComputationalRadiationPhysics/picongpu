@@ -163,9 +163,9 @@ namespace pmacc
              * The id provider for particles is the only code where atomicAllInc is used without an accelerator.
              * @todo remove the unsafe faked accelerator
              */
-            pmacc::memory::Array<cupla::AccThreadSeq, 1> fakeAcc;
+            pmacc::memory::Array<std::byte, sizeof(cupla::AccThreadSeq)> fakeAcc(std::byte(0));
             return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300 || BOOST_COMP_HIP)>()(
-                fakeAcc[0],
+                *reinterpret_cast<cupla::AccThreadSeq*>(fakeAcc.data()),
                 ptr,
                 ::alpaka::hierarchy::Grids());
         }
