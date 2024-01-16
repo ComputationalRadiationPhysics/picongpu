@@ -34,8 +34,10 @@ using ::picongpu::floatD_X;
 using ::pmacc::localCellIdx;
 using ::pmacc::multiMask;
 using position = ::picongpu::position<>;
+using ::picongpu::float_X;
 using ::picongpu::simDim;
 using ::picongpu::particles::moveParticle;
+using ::picongpu::operator""_X;
 
 const auto superCellSize = ::picongpu::SuperCellSize::toRT();
 constexpr const auto superCellVolume = ::pmacc::math::CT::volume<::picongpu::SuperCellSize>::type::value;
@@ -188,7 +190,7 @@ TEST_CASE("unit::moveParticle", "[moveParticle test]")
         /* This is so small that 1-newPos[0] = 1.0 (after floating point rounding), so we DO NOT leave the cell after
          * all but just move to position 0.
          */
-        newPos[0] = -1.e-9;
+        newPos[0] = -std::numeric_limits<float_X>::epsilon() / 4._X;
         expectedParticle.pos[0] = 0.;
 
         bool leftSuperCell = moveParticle(particle, newPos);
