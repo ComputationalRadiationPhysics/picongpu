@@ -86,7 +86,7 @@ When discretizing on the mesh with centered finite differences, the spatial posi
 chosen such that a field component, whose **temporal derivative** is
 calculated on the left hand side of a Maxwell equation, is spatially positioned between the two field components whose
 **spatial derivative** is evaluated on the right hand side of the respective Maxwell equation.
-In this way, the spatial points where a left hand side temporal derivative of a field is evaluate lies exactly at the
+In this way, the spatial points where a left hand side temporal derivative of a field is evaluated lies exactly at the
 position where the spatial derivative of the right hand side fields is calculated.
 The following image visualizes the arrangement of field components in PIConGPU.
 
@@ -275,7 +275,7 @@ we have :math:`\xi \leq \xi_\mathrm{max}` with equality possible for diagonal wa
 This reveals two important properties of the field solver.
 (The 2D version is obtained by letting :math:`\tilde k_z = 0`.)
 
-First, only within the range :math:`\xi_\mathrm{max} \leq 1` the field solver operates stable.
+First, only within the range :math:`\xi_\mathrm{max} \leq 1` the field solver operates stably.
 This gives the *Courant-Friedrichs-Lewy* stability condition relating time step to mesh spacing
 
 .. math::
@@ -284,7 +284,7 @@ This gives the *Courant-Friedrichs-Lewy* stability condition relating time step 
 
 Typically, :math:`\xi_\mathrm{max} = 0.995` is chosen.
 Outside this stability region, the frequency :math:`\omega` corresponding to a certain wave vector becomes imaginary,
-meaning that wave amplitudes can be nonphysical exponentially amplified [Taflove2005]_.
+meaning that wave amplitudes can be nonphysically exponentially amplified [Taflove2005]_.
 
 Second, there exists a purely numerical anisotropy in a wave's phase velocity :math:`\tilde v_p = \omega / \tilde k`
 (speed of electromagnetic wave propagation) depending on its propagation direction :math:`\phi`, as depicted in the following figure

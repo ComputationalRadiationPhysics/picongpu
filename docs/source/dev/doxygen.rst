@@ -5,28 +5,12 @@ Doxygen
 
 .. sectionauthor:: Axel Huebl
 
-An online version of our Doxygen build can be found at
-
-http://computationalradiationphysics.github.io/picongpu
-
-We regularly update it via
-
-.. code-block:: bash
-
-   git checkout gh-pages
-
-   # optional argument: branch or tag name
-   ./update.sh
-
-   git commit -a
-   git push
-
-This section explains what is done when this script is run to build it manually.
+PIConGPU uses `Doxygen` for API documentation. Please provide the corresponding annotations in new and updated code as needed. To build this documentation do the following:
 
 Requirements
 ------------
 
-install `Doxygen`_ and its dependencies for graph generation.
+Install `Doxygen`_ and its dependencies for graph generation.
 
 .. _Doxygen: http://doxygen.org
 
@@ -38,7 +22,7 @@ install `Doxygen`_ and its dependencies for graph generation.
 Activate HTML Output
 --------------------
 
-activate the generation of html files in the doxygen config file
+Activate the generation of html files in the doxygen config file
 
 .. code-block:: bash
 
