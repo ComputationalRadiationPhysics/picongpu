@@ -71,6 +71,7 @@ include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../../../include")
 ###############################################################################
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test)
+include_directories(BEFORE ./include)
 
 # CTest
 enable_testing()
