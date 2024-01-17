@@ -759,7 +759,6 @@ namespace pmacc
             typename T_IntegralType,
             typename T_Navigator,
             typename T_Storage,
-
             typename T_OtherNavigator,
             typename T_OtherStorage,
             uint32_t T_dim,
@@ -779,7 +778,6 @@ namespace pmacc
             typename T_IntegralType,
             typename T_Navigator,
             typename T_Storage,
-
             typename T_OtherNavigator,
             typename T_OtherStorage,
             uint32_t T_dim,
@@ -789,6 +787,20 @@ namespace pmacc
             const Vector<T_IntegralType, T_dim, T_OtherNavigator, T_OtherStorage>& idx)
         {
             return linearize(size.template shrink<T_dim - 1u>(), idx);
+        }
+
+        template<
+            typename T_IntegralType,
+            typename T_Navigator,
+            typename T_Storage,
+            typename T_OtherNavigator,
+            typename T_OtherStorage,
+            typename = std::enable_if_t<std::is_integral_v<T_IntegralType>>>
+        HDINLINE T_IntegralType linearize(
+            const Vector<T_IntegralType, DIM1, T_Navigator, T_Storage>&,
+            const Vector<T_IntegralType, DIM1, T_OtherNavigator, T_OtherStorage>& idx)
+        {
+            return idx.x();
         }
 
         /** @} */
