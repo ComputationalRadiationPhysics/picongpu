@@ -146,7 +146,7 @@ struct TestShape
 
                         for(int g = Shape::begin; g <= Shape::end; ++g)
                         {
-                            // shift the particle position into a valid range to be used to querry the shape
+                            // shift the particle position into a valid range to be used to query the shape
                             auto p = positionShift.template shift<Shape::support % 2 == 0>(positions[valueIdx]);
                             result[valueIdx] += shape(g - p);
                         }
@@ -194,7 +194,7 @@ TEST_CASE("unit::shape", "[shape test]")
 
     meta::ForEach<OnSupportShapes, TestShape<>>{}(inCellPositionBuffer, PositionShift{});
 
-    // check assignment shape outside of the uspport
+    // check assignment shape outside of the support
     using NotOnSupportShapes = pmacc::MakeSeq_t<
         particles::shapes::NGP::ChargeAssignment,
         particles::shapes::CIC::ChargeAssignment,

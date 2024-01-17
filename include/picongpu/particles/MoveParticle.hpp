@@ -34,10 +34,14 @@ namespace picongpu
          * in case the new position is outside of the cell we adjust
          * the cell index and the multiMask of the particle.
          *
+         * as everywhere in PIConGPU, we assume that the particle moves at most
+         * one cell per step. This has to be ensured by the caller and
+         * violations are NOT checked for or caught during execution.
+         *
          * @tparam T_Particle particle type
          * @param particle particle handle
-         * @param newPos new position relative to the current cell, in units of cells
-         * newPos must be [-1.0, 2.0)
+         * @param newPos new position relative to the current cell's origin, in
+         * units of cells, so all entries of newPos must be [-1.0, 2.0) (see above)
          * @return whether the particle has left the original cell
          */
         template<typename T_Particle>
@@ -104,7 +108,7 @@ namespace picongpu
                 localCell += dir;
 
                 /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
-                 * direction is know a very very big number, than we compare with supercell!
+                 * direction is now a very very big number, then we compare with supercell!
                  *
                  * if particle is inside of the supercell the **unsigned** representation
                  * of dir is always >= size of the supercell
@@ -115,7 +119,7 @@ namespace picongpu
 
                 /* if partice is outside of the supercell we use mod to
                  * set particle at cell supercellSize to 1
-                 * and partticle at cell -1 to supercellSize-1
+                 * and particle at cell -1 to supercellSize-1
                  * % (mod) can't use with negativ numbers, we add one supercellSize to hide this
                  *
                  * localCell.x() = (localCell.x() + TVec::x) % TVec::x;
@@ -126,20 +130,20 @@ namespace picongpu
                  * localCell = localCell - (dir*superCell_size)
                  * localCell = 0 if dir==-1
                  * localCell = superCell_size - 1 if dir==+1
-                 * for dir 0 localCel is not changed
+                 * for dir 0 localCell is not changed
                  */
                 localCell -= (dir * TVec::toRT());
                 // update one dimensional cell index
                 particle[localCellIdx_] = pmacc::math::linearize(TVec::toRT(), localCell);
 
-                // see inlcude/pmacc/type/Exchnages.hpp for RIGHT, BOTTOM and BACK
+                // see include/pmacc/type/Exchanges.hpp for RIGHT, BOTTOM and BACK
                 uint32_t exchangeType = 1;
 
                 /* transform direction vector into a exchange id
                  *
                  * newMultimask:
                  *   0 == is not possible because each particle processed by this function must be a valid particle
-                 *   1 == valid particle whihc is not leaving the supercell
+                 *   1 == valid particle which is not leaving the supercell
                  *   2 >= valid particle which is leaving the supercell into the direction (newMultimask - 1)
                  */
                 for(uint32_t i = 0; i < simDim; ++i)

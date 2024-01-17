@@ -143,7 +143,7 @@ namespace picongpu
                 log<picLog::PHYSICS>("Resolving plasma oscillations?\n"
                                      "   Estimates are based on DensityRatio to BASE_DENSITY of each species\n"
                                      "   (see: density.param, speciesDefinition.param).\n"
-                                     "   It and does not cover other forms of initialization");
+                                     "   It does not cover other forms of initialization");
                 logOmegaP();
 
                 const int localNrOfCells
