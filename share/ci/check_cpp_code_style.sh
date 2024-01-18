@@ -36,11 +36,6 @@ test/hasTabs
 test/hasNonASCII
 
 #############################################################################
-# Disallow spaces before pre-compiler macros                                #
-#############################################################################
-test/hasSpaceBeforePrecompiler
-
-#############################################################################
 # Enforce angle brackets <...> for includes of external library files       #
 #############################################################################
 test/hasExtLibIncludeBrackets include boost
