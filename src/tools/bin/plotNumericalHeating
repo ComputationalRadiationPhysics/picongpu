@@ -41,7 +41,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
-## set up argument parser ##
+# set up argument parser #
 parser = argparse.ArgumentParser(description=__doc__, epilog="For further questions please contact Richard Pausch.")
 
 parser.add_argument(
@@ -93,14 +93,14 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-## get directories from parser ##
+# get directories from parser #
 numDir = np.min((len(args.dir_run_all), 2))
 directories = []
 for i in range(numDir):
     directories.append(args.dir_run_all[i])
 
 
-## check if directories exit ###
+# check if directories exit #
 simDir = "/simOutput/"
 
 warningText1 = "The directory number {} does not exist ({})."
@@ -117,12 +117,12 @@ if numDir == 2:
         sys.exit("We do not allow cheating! Compare two different runs.")
 
 
-## lists for data from simulations ##
+# lists for data from simulations #
 Energies = []
 Times = []
 
 
-## load data from both directories ##
+# load data from both directories #
 for sim in directories:
     mydir = sim + simDir
     # get relevant files with energy
@@ -160,7 +160,7 @@ for sim in directories:
 print(" ")
 
 
-## check time steps ##
+# check time steps #
 if numDir == 2:
     if np.array_equal(Times[0], Times[1]):
         # if equal - no special treatment
@@ -185,10 +185,10 @@ else:
     sys.exit("Fatal error - number of directories is neither 1 or 2.")
 
 
-## get values ##
+# get values #
 startEnergy = Energies[:][0]
 
-## plot numerical heating ##
+# plot numerical heating #
 
 # choose normalization
 if args.boolRelative:
