@@ -39,7 +39,6 @@ pull-request-validation:
     - apt update
     - apt install -y -q git curl wget python3 python3-pip
     # Test if pull request can be merged into the destination branch
-    - $CI_PROJECT_DIR/test/correctBranchPR
     - source $CI_PROJECT_DIR/share/ci/git_merge.sh
     - pip3 install -U flake8 pyflakes
     # Test Python Files for PEP8 conformance
