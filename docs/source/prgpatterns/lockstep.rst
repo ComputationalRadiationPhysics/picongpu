@@ -11,9 +11,9 @@ Lockstep Programming Model
 
 The *lockstep programming model* structures code that is evaluated collectively and independently by workers (physical threads).
 Actual processing is described by one-dimensional index domains of *virtual workers* which can even be changed within a kernel.
-Mathematically, index domains are none-injective, total functions on physical workers.
+Mathematically, index domains are non-injective, total functions on physical workers.
 
-An index domain is **independent** from data but **can** be mapped to a data domain, e.g. one to one or with more complex mappings.
+An index domain is **independent** of the data but **can** be mapped to a data domain, e.g. one to one or with more complex mappings.
 
 Code which is implemented by the *lockstep programming model* is free of any dependencies between the number of worker and processed data elements.
 To simplify the implementation, each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA).
@@ -29,7 +29,7 @@ Context variables must be passed along with the functor to the lockstep forEach 
 * An unsigned 32bit integral parameter if the work depends on indices within the domain ``range [0,domain size)``: ``[&](uint32_t const linearIdx){}``
 
 
-* ``lockstep::Idx`` as parameter. lockstep::Idx is holing the linear index within the domain and meta information to access a context variables: ``[&](pmacc::mappings::threads::lockstep::Idx const idx){}``
+* ``lockstep::Idx`` as parameter. lockstep::Idx is holding the linear index within the domain and meta information to access a context variables: ``[&](pmacc::mappings::threads::lockstep::Idx const idx){}``
 
 
 pmacc helpers
