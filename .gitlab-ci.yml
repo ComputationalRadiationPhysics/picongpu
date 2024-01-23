@@ -42,6 +42,8 @@ pull-request-validation:
     - source $CI_PROJECT_DIR/share/ci/git_merge.sh
     - pip3 install -U flake8 pyflakes
     # Test Python Files for PEP8 conformance
+    # black's recommendation on compatibility with flake8
+    # see https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
     - flake8 --exclude=thirdParty --extend-ignore E203 --max-line-length "120" .
     # Warnings, unused code, etc.
     - pyflakes $(ls -d */ | grep -Ev "thirdParty|test") $(find test/ | grep "\.py$" | grep -Ev "__init__.py|__main__.py")

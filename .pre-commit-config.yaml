@@ -19,6 +19,8 @@ repos:
   rev: 7.0.0
   hooks:
   - id: flake8
+    # black's recommendation on compatibility with flake8
+    # see https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
     args: [--extend-ignore, E203, --max-line-length, "120"]
 - repo: https://github.com/psf/black-pre-commit-mirror
   rev: 23.12.1
