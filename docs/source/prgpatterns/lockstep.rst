@@ -17,7 +17,7 @@ An index domain is **independent** of the data but **can** be mapped to a data d
 
 Code which is implemented by the *lockstep programming model* is free of any dependencies between the number of worker and processed data elements.
 To simplify the implementation, each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA).
-Each *worker* :math:`i` can be executed as :math:`N_i` *virtual workers* (:math:`1:N_i`).
+But even within this simplified picture one real worker (i.e. physical thread) could still be assigned the workload of any number of *virtual workers*.
 
 Functors passed into lockstep routines can have three different base parameter signatures.
 Additionally each case can be extended by an arbitrary number parameters to get access to context variables.
