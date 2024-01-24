@@ -163,4 +163,3 @@ else
     echo "Job stopped because of previous issues."
     echo "Job stopped because of previous issues." >&2
 fi
-

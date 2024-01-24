@@ -69,7 +69,7 @@ def theory(gamma, **kwargs):
     """
     # gamma is calculated automatically, does not have to be passed
     v = ts.Math.physics.calculateV_O(gamma)
-    return (v / (c * np.sqrt(gamma)))
+    return v / (c * np.sqrt(gamma))
 
 
 def simData(Bx, **kwargs):
@@ -87,10 +87,9 @@ def simData(Bx, **kwargs):
     out : values from the simulation!
     """
     frequency = ts.Math.physics.plasmafrequence(relativistic=False)
-    time = ts.Math.physics.calculateTimeFreq(
-                           frequency, step_direction="fields_energy.dat")
+    time = ts.Math.physics.calculateTimeFreq(frequency, step_direction="fields_energy.dat")
 
     sim_values = ts.Math.math.growthRate(Bx, time)
-    sim_values = sim_values[argrelextrema(sim_values, np.less)[0][0]:]
+    sim_values = sim_values[argrelextrema(sim_values, np.less)[0][0] :]
 
     return sim_values

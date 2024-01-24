@@ -94,8 +94,7 @@ class Visualizer(BaseVisualizer):
 
         divider = make_axes_locatable(self.ax)
         for i in range(len(self.colorbar_axes)):
-            cax = divider.append_axes(
-                "right", size="5%", pad=0.5)
+            cax = divider.append_axes("right", size="5%", pad=0.5)
             self.colorbar_axes[i] = cax
 
     def _init_colors(self, run_directories):
@@ -135,28 +134,35 @@ class Visualizer(BaseVisualizer):
         np_data = np.zeros((len(y_slices), len(all_iterations)))
         for index, ts in enumerate(all_iterations):
             np_data[:, index] = slice_emit[index][1:]
-        ps = 1.e12  # for conversion from s to ps
+        ps = 1.0e12  # for conversion from s to ps
         max_iter = max(all_iterations * dt * ps)
         # np_data.T * 1.e6 converts emittance to pi mm mrad,
         # y_slices * 1.e6 converts y slice position to micrometer
-        self.plt_obj[idx] = self.ax.imshow(np_data.T * 1.e6, aspect="auto",
-                                           norm=LogNorm(), origin="lower",
-                                           vmin=1e-1, vmax=1e2,
-                                           extent=(0, max(y_slices*1.e6),
-                                                   0, max_iter),
-                                           cmap=self.colors[idx])
+        self.plt_obj[idx] = self.ax.imshow(
+            np_data.T * 1.0e6,
+            aspect="auto",
+            norm=LogNorm(),
+            origin="lower",
+            vmin=1e-1,
+            vmax=1e2,
+            extent=(0, max(y_slices * 1.0e6), 0, max_iter),
+            cmap=self.colors[idx],
+        )
         if self.cur_iteration:
-            self.plt_lin = self.ax.axhline(self.cur_iteration * dt * ps,
-                                           color='#FF6600')
+            self.plt_lin = self.ax.axhline(self.cur_iteration * dt * ps, color="#FF6600")
 
         # create the colorbar and a separate ax for it
-        self.colorbars[idx] = plt.colorbar(
-            self.plt_obj[idx], cax=self.colorbar_axes[idx])
+        self.colorbars[idx] = plt.colorbar(self.plt_obj[idx], cax=self.colorbar_axes[idx])
         self.colorbars[idx].solids.set_edgecolor("face")
         self.colorbars[idx].ax.text(
-            .5, .5, self.sim_labels[idx], ha='center',
-            va='center', rotation=270,
-            transform=self.colorbar_axes[idx].transAxes)
+            0.5,
+            0.5,
+            self.sim_labels[idx],
+            ha="center",
+            va="center",
+            rotation=270,
+            transform=self.colorbar_axes[idx].transAxes,
+        )
 
     def _update_plt_obj(self, idx):
         """
@@ -167,13 +173,12 @@ class Visualizer(BaseVisualizer):
         for index, ts in enumerate(all_iterations):
             np_data[:, index] = slice_emit[index][1:]
         # np_data.T*1.e6 for conversion of emittance to pi mm mrad
-        self.plt_obj[idx].set_data(np_data.T*1.e6)
+        self.plt_obj[idx].set_data(np_data.T * 1.0e6)
         if self.plt_lin:
             self.plt_lin.remove()
-        ps = 1.e12  # for conversion from s to ps
+        ps = 1.0e12  # for conversion from s to ps
         if self.cur_iteration:
-            self.plt_lin = self.ax.axhline(self.cur_iteration * dt * ps,
-                                           color='#FF6600')
+            self.plt_lin = self.ax.axhline(self.cur_iteration * dt * ps, color="#FF6600")
         self.plt_obj[idx].autoscale()
         self.colorbars[idx].update_normal(self.plt_obj[idx])
 
@@ -195,26 +200,28 @@ class Visualizer(BaseVisualizer):
                 (defined in ``particleFilters.param``)
 
         """
-        self.cur_iteration = kwargs.get('iteration')
+        self.cur_iteration = kwargs.get("iteration")
         # passing iteration=None to your DataReader requests all iterations,
         # which is what we want here.
-        kwargs['iteration'] = None
+        kwargs["iteration"] = None
         super().visualize(**kwargs)
 
     def adjust_plot(self, **kwargs):
-        species = kwargs['species']
-        species_filter = kwargs.get('species_filter', 'all')
-        idx = [
-            i for i, cbar in enumerate(self.colorbars) if cbar is not None][0]
+        species = kwargs["species"]
+        species_filter = kwargs.get("species_filter", "all")
+        idx = [i for i, cbar in enumerate(self.colorbars) if cbar is not None][0]
         self.colorbars[idx].ax.text(
-            -1.2, 0.5, r'emittance [$\pi$ mm mrad]',
-            ha='center', va='center',
+            -1.2,
+            0.5,
+            r"emittance [$\pi$ mm mrad]",
+            ha="center",
+            va="center",
             transform=self.colorbar_axes[idx].transAxes,
-            rotation=270)
-        self.ax.set_xlabel(r'y-slice [$\mathrm{\mu m}$]')
-        self.ax.set_ylabel('time [ps]')
-        self.ax.set_title('slice emittance for species ' +
-                          species + ', filter = ' + species_filter)
+            rotation=270,
+        )
+        self.ax.set_xlabel(r"y-slice [$\mathrm{\mu m}$]")
+        self.ax.set_ylabel("time [ps]")
+        self.ax.set_title("slice emittance for species " + species + ", filter = " + species_filter)
 
     def clear_cbar(self):
         """Clear colorbars if present."""
@@ -227,7 +234,7 @@ class Visualizer(BaseVisualizer):
                 self._remove_colorbar(idx)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     def main():
         import sys
@@ -236,9 +243,10 @@ if __name__ == '__main__':
         def usage():
             print("usage:")
             print(
-                "python", sys.argv[0],
-                "-p <path to run_directory>"
-                " -s <particle species> -f <species_filter> -i <iteration>")
+                "python",
+                sys.argv[0],
+                "-p <path to run_directory>" " -s <particle species> -f <species_filter> -i <iteration>",
+            )
 
         path = None
         iteration = None
@@ -246,8 +254,11 @@ if __name__ == '__main__':
         filtr = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:", [
-                "help", "path", "iteration", "species", "filter"])
+            opts, args = getopt.getopt(
+                sys.argv[1:],
+                "hp:i:s:f:",
+                ["help", "path", "iteration", "species", "filter"],
+            )
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -272,15 +283,14 @@ if __name__ == '__main__':
             usage()
             sys.exit(2)
         if species is None:
-            species = 'e'
+            species = "e"
             print("Particle species was not given, will use", species)
         if filtr is None:
-            filtr = 'all'
+            filtr = "all"
             print("Species filter was not given, will use", filtr)
 
         fig, ax = plt.subplots(1, 1)
-        Visualizer(path, ax).visualize(iteration=iteration, species=species,
-                                       species_filter=filtr)
+        Visualizer(path, ax).visualize(iteration=iteration, species=species, species_filter=filtr)
         plt.show()
 
     main()

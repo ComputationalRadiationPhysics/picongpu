@@ -14,7 +14,7 @@ import numpy as np
 import scipy.constants as sc
 from importlib import import_module
 
-picongpu_package_path = os.path.abspath('../../../lib/python/')
+picongpu_package_path = os.path.abspath("../../../lib/python/")
 
 if picongpu_package_path not in sys.path:
     sys.path.insert(0, picongpu_package_path)
@@ -22,19 +22,19 @@ if picongpu_package_path not in sys.path:
 
 # import my own modules without having to write a 'noqa' comment because PEP8
 # requires all imports to be at the top of the file
-FI_module = import_module(name='.utils.field_ionization', package='picongpu')
+FI_module = import_module(name=".utils.field_ionization", package="picongpu")
 
 
 params = {
-    'font.size': 20,
-    'lines.linewidth': 3,
-    'legend.fontsize': 10,
-    'legend.frameon': True,
-    'xtick.labelsize': 20,
-    'ytick.labelsize': 20,
+    "font.size": 20,
+    "lines.linewidth": 3,
+    "legend.fontsize": 10,
+    "legend.frameon": True,
+    "xtick.labelsize": 20,
+    "ytick.labelsize": 20,
     # RTD default textwidth: 800px
-    'figure.figsize': [10, 16],
-    'legend.title_fontsize': 10
+    "figure.figsize": [10, 16],
+    "legend.title_fontsize": 10,
 }
 mpl.rcParams.update(params)
 
@@ -70,10 +70,10 @@ if __name__ == "__main__":
     AU = FI.atomic_unit
 
     # atomic units
-    AU_E_eV = AU['energy'] / sc.electron_volt  # eV
-    AU_F = AU['electric field']  # V/m
-    AU_I = AU['intensity']  # W/m^2
-    AU_T = AU['time']  # s
+    AU_E_eV = AU["energy"] / sc.electron_volt  # eV
+    AU_F = AU["electric field"]  # V/m
+    AU_I = AU["intensity"]  # W/m^2
+    AU_T = AU["time"]  # s
 
     # proton number: Neon
     Z_max = 10
@@ -81,18 +81,20 @@ if __name__ == "__main__":
     Z = np.arange(1, Z_max + 1, dtype=int)
     # array of ionization energies in eV for Neon
     # taken from https://physics.nist.gov/cgi-bin/ASD/ie.pl
-    ionization_energies_eV = np.array([
-        21.5645,
-        40.9630,
-        63.4233,
-        97.1900,
-        126.247,
-        157.934,
-        207.271,
-        239.0969,
-        1195.8078,
-        1362.1991
-    ])
+    ionization_energies_eV = np.array(
+        [
+            21.5645,
+            40.9630,
+            63.4233,
+            97.1900,
+            126.247,
+            157.934,
+            207.271,
+            239.0969,
+            1195.8078,
+            1362.1991,
+        ]
+    )
 
     # convert ionization energies to atomic units
     i_pot_AU = ionization_energies_eV / AU_E_eV
@@ -104,41 +106,40 @@ if __name__ == "__main__":
     # cm^2 in m^2
     cm2 = 1e-4
 
-# ============================================================================
-#   Create the electric field distribution for our example.
-# ============================================================================
+    # ============================================================================
+    #   Create the electric field distribution for our example.
+    # ============================================================================
     # laser wavelength [unit: m]
-    lambda_laser = 800.e-9
+    lambda_laser = 800.0e-9
     # maximum electric field in a0
     E_max_a0 = 10
     # maximum intensity
     I_max = FI.convert_a0_to_Intensity(E_in_a0=E_max_a0)  # W/m^2
 
-    intensity_fwhm = 30.e-15  # s
-    intensity_sigma = intensity_fwhm / (2. * np.sqrt(2. * np.log(2)))  # s
+    intensity_fwhm = 30.0e-15  # s
+    intensity_sigma = intensity_fwhm / (2.0 * np.sqrt(2.0 * np.log(2)))  # s
 
     # the sampling resolution here determines how smooth the transitions
     # in the Markov chain are
     t_res = 10000
     time = np.linspace(-200e-15, 200e-15, t_res)  # s
-    intensity_envelope_SI = I_max * np.exp(- .5 * time**2 / intensity_sigma**2)
+    intensity_envelope_SI = I_max * np.exp(-0.5 * time**2 / intensity_sigma**2)
 
     intensity_envelope_AU = intensity_envelope_SI / AU_I
     e_field_envelope_AU = np.sqrt(intensity_envelope_AU)
 
-# =============================================================================
-#   Calculate the ADK rates for the electric field envelope and each charge
-#   state.
-# =============================================================================
+    # =============================================================================
+    #   Calculate the ADK rates for the electric field envelope and each charge
+    #   state.
+    # =============================================================================
     rate_matrix = np.zeros([len(i_pot_AU), t_res])
 
     for i, cs in enumerate(Z):
         rate_matrix[i, :] = FI.ADKRate(cs, i_pot_AU[i], e_field_envelope_AU)
 
-
-# =============================================================================
-#   Markovian approach for calculating the transition matrices of the problem.
-# =============================================================================
+    # =============================================================================
+    #   Markovian approach for calculating the transition matrices of the problem.
+    # =============================================================================
 
     # transition matrix
     trans_mat_base = np.diag(np.ones([Z_max + 1]))
@@ -167,15 +168,14 @@ if __name__ == "__main__":
             # probability to stay bound
             trans_mat[k, k] = np.exp(-rate_matrix[k, i] * dt)
             # probability to ionize
-            trans_mat[k + 1, k] = 1. - np.exp(-rate_matrix[k, i] * dt)
+            trans_mat[k + 1, k] = 1.0 - np.exp(-rate_matrix[k, i] * dt)
 
         # Markov step
         charge_dist[:, i] = np.dot(charge_dist[:, i - 1], trans_mat.T)
 
-
-# =============================================================================
-#   Barrier suppression field strength calculation
-# =============================================================================
+    # =============================================================================
+    #   Barrier suppression field strength calculation
+    # =============================================================================
     electric_field_BSI = FI.F_crit_BSI(Z, i_pot_AU)
 
     # find times when BSI fields are exceeded
@@ -184,11 +184,10 @@ if __name__ == "__main__":
         idx = np.where(e_field_envelope_AU > electric_field_BSI[i])[0][0]
         time_BSI[i] = time[idx - 1]
 
-
-# =============================================================================
-#   Plotting the ionization rates, the electric field and the charge state
-#   population over time.
-# =============================================================================
+    # =============================================================================
+    #   Plotting the ionization rates, the electric field and the charge state
+    #   population over time.
+    # =============================================================================
     xlim = [-75, -0]
     ylim_ax_rate = [1e-10, 1e3]  # 1 / AU of time
     ylim_ax_pop = [0, 100]
@@ -209,53 +208,58 @@ if __name__ == "__main__":
     for i in np.arange(Z_max + 1):
         if i < Z_max:
             ax_rate.plot(
-                time / fs, rate_matrix[i, :],
-                label="{}+ to {}+".format(
-                    Z[i] - 1, Z[i]), color=color[i]
+                time / fs,
+                rate_matrix[i, :],
+                label="{}+ to {}+".format(Z[i] - 1, Z[i]),
+                color=color[i],
             )
             ax_bsi.axvline(
                 time_BSI[i] / fs,
-                label="{}+ to {}+".format(
-                    Z[i] - 1, Z[i]), color=color[i]
+                label="{}+ to {}+".format(Z[i] - 1, Z[i]),
+                color=color[i],
             )
 
         ax_pop.plot(
-            time / fs, charge_dist[i, :-1] / percent,
-            label="{}+".format(i), color=color[i]
+            time / fs,
+            charge_dist[i, :-1] / percent,
+            label="{}+".format(i),
+            color=color[i],
         )
         ax_pop.fill_between(
             x=time / fs,
-            y1=0, y2=charge_dist[i, :-1] / percent,
-            color=color[i], alpha=.3
+            y1=0,
+            y2=charge_dist[i, :-1] / percent,
+            color=color[i],
+            alpha=0.3,
         )
         # color the regions between charge state transitions in the BSI model
-        if (i > 0 and i < Z_max):
+        if i > 0 and i < Z_max:
             ax_bsi.fill_betweenx(
                 y=yfill_range,
                 x1=time_BSI[i - 1] / fs,
                 x2=time_BSI[i] / fs,
                 color=color[i],
-                alpha=.3
+                alpha=0.3,
             )
         # color the range between the earliest time and the first charge state
         # transition
-        if (i == 0):
+        if i == 0:
             ax_bsi.fill_betweenx(
                 y=yfill_range,
                 x1=time[0] / fs,
                 x2=time_BSI[i] / fs,
                 color=color[i],
-                alpha=.3
+                alpha=0.3,
             )
         # color the range between the last charge state transition and the
         # latest time
-        if (i == Z_max):
+        if i == Z_max:
             ax_bsi.fill_betweenx(
                 y=yfill_range,
                 x1=time_BSI[i - 1] / fs,
                 x2=time[-1] / fs,
                 color=color[i],
-                alpha=.3
+                alpha=0.3,
             )
 
     ax_bsi_twin = ax_bsi.twinx()
@@ -268,11 +272,8 @@ if __name__ == "__main__":
     ax_bsi.set_yticklabels(labels)
 
     # secondy y-axis for rate plot
-    secaxy_rate = ax_rate.secondary_yaxis(
-        'right',
-        functions=(time_SI_to_AU, time_AU_to_SI)
-    )
-    secaxy_rate.set_ylabel(r'ionizations per second')
+    secaxy_rate = ax_rate.secondary_yaxis("right", functions=(time_SI_to_AU, time_AU_to_SI))
+    secaxy_rate.set_ylabel(r"ionizations per second")
 
     # set plot limits
     ax_rate.set_xlim(xlim)
@@ -284,16 +285,9 @@ if __name__ == "__main__":
     ax_bsi_twin.set_ylim(ylim_ax_bsi_twin)
 
     # note string for ADK rate plot note
-    note_string = "Note: ADK rates were calculated from the " \
-        + "intensity envelope below"
+    note_string = "Note: ADK rates were calculated from the " + "intensity envelope below"
     # note in ADK rate plot
-    ax_rate.text(
-        x=0.05,
-        y=0.9,
-        s=note_string,
-        fontsize=12,
-        transform=ax_rate.transAxes
-    )
+    ax_rate.text(x=0.05, y=0.9, s=note_string, fontsize=12, transform=ax_rate.transAxes)
 
     # labels
     ax_rate.set_ylabel(r"ADK: Ionization Rate $\Gamma\,\mathrm{(AU^{-1})}$")
@@ -302,12 +296,19 @@ if __name__ == "__main__":
     ax_bsi.set_xlabel(r"Time $t-t_\mathrm{max}\,\mathrm{(fs)}$")
     ax_bsi.set_ylabel(r"BSI: Relative Population (%)")
 
-    ax_rate.legend(loc="lower right", fancybox=True, borderpad=1,
-                   title="charge state"+"\n"+"transition")
-    ax_pop.legend(loc="lower right", fancybox=True, borderpad=1,
-                  title="charge state")
-    ax_bsi.legend(loc="lower right", fancybox=True, borderpad=1,
-                  title="charge state"+"\n"+"transition")
+    ax_rate.legend(
+        loc="lower right",
+        fancybox=True,
+        borderpad=1,
+        title="charge state" + "\n" + "transition",
+    )
+    ax_pop.legend(loc="lower right", fancybox=True, borderpad=1, title="charge state")
+    ax_bsi.legend(
+        loc="lower right",
+        fancybox=True,
+        borderpad=1,
+        title="charge state" + "\n" + "transition",
+    )
 
     fig.align_labels()
     plt.tight_layout(pad=0.4)

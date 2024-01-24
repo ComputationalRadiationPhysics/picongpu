@@ -108,4 +108,3 @@ if [ $? -eq 0 ] ; then
   # Run PIConGPU
   mpirun -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
-

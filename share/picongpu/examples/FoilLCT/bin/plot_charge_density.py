@@ -14,28 +14,19 @@ import argparse
 import os
 
 
-parser = argparse.ArgumentParser(
-    description='Compare the electron charge density of FoilLCT simulations'
-)
+parser = argparse.ArgumentParser(description="Compare the electron charge density of FoilLCT simulations")
 parser.add_argument(
-    'run_directory',
-    metavar='D',
+    "run_directory",
+    metavar="D",
     type=str,
-    nargs='+',
-    help='path to the run directory of PIConGPU ' +
-         '(the path before ``simOutput/``)'
+    nargs="+",
+    help="path to the run directory of PIConGPU " + "(the path before ``simOutput/``)",
 )
+parser.add_argument("--step", type=int, default=2000, help="the time step")
 parser.add_argument(
-    '--step',
-    type=int,
-    default=2000,
-    help='the time step'
-)
-parser.add_argument(
-    '--sum',
-    action='store_true',
-    help='instead of free electron density, ' +
-         'show summed charge density of all species'
+    "--sum",
+    action="store_true",
+    help="instead of free electron density, " + "show summed charge density of all species",
 )
 
 args = parser.parse_args()
@@ -51,7 +42,7 @@ for D in args.run_directory:
 
 # note: assume fixed resolution of the simulation
 dt = 4.91356e-18  # s
-dx = 800.e-9 / 384.  # m
+dx = 800.0e-9 / 384.0  # m
 step = args.step
 
 fig = plt.figure()
@@ -65,7 +56,7 @@ axes = [ax1, ax2, ax3, ax4]
 
 def get_nZ(flds, species):
     r = flds[species + "_chargeDensity"]
-    d = r[()] * r.attrs["unitSI"] / 1.602e-19 * 1.e-6  # elements / cm^3
+    d = r[()] * r.attrs["unitSI"] / 1.602e-19 * 1.0e-6  # elements / cm^3
     return d
 
 
@@ -84,24 +75,24 @@ def plot_sim(ax, sim):
     if args.sum:
         return ax.imshow(
             d,
-            cmap='RdBu',
+            cmap="RdBu",
             origin="lower",
             aspect="auto",
             interpolation="nearest",
-            vmin=-3.e22,
-            vmax=3.e22,
-            extent=[0., dx * 1.e6 * d.shape[0], 0., dx * 1.e6 * d.shape[1]]
+            vmin=-3.0e22,
+            vmax=3.0e22,
+            extent=[0.0, dx * 1.0e6 * d.shape[0], 0.0, dx * 1.0e6 * d.shape[1]],
         )
     else:
         return ax.imshow(
             np.abs(ne),
-            cmap='CMRmap_r',
+            cmap="CMRmap_r",
             origin="lower",
             aspect="auto",
             interpolation="nearest",
-            vmin=0.,
-            vmax=5.e23,
-            extent=[0., dx * 1.e6 * ne.shape[0], 0., dx * 1.e6 * ne.shape[1]]
+            vmin=0.0,
+            vmax=5.0e23,
+            extent=[0.0, dx * 1.0e6 * ne.shape[0], 0.0, dx * 1.0e6 * ne.shape[1]],
         )
 
 
@@ -112,15 +103,13 @@ for sim in sims:
     i += 1
 
 if args.sum:
-    fig.colorbar(im, cax=cax,
-                 label=r'$n_{Z,\Sigma{e,H,C,N}}$ [$q_e \cdot$ cm$^{-3}$]')
+    fig.colorbar(im, cax=cax, label=r"$n_{Z,\Sigma{e,H,C,N}}$ [$q_e \cdot$ cm$^{-3}$]")
 else:
-    fig.colorbar(im, cax=cax,
-                 label=r'$n_e$ [$q_e \cdot$ cm$^{-3}$]')
+    fig.colorbar(im, cax=cax, label=r"$n_e$ [$q_e \cdot$ cm$^{-3}$]")
 
-fig.suptitle("time = {:5.3f} fs".format(dt * step * 1.e15))
-ax3.set_xlabel(r'$x$ [$\mu$m]')
-ax4.set_xlabel(r'$x$ [$\mu$m]')
-ax1.set_ylabel(r'$y$ [$\mu$m]')
-ax3.set_ylabel(r'$y$ [$\mu$m]')
+fig.suptitle("time = {:5.3f} fs".format(dt * step * 1.0e15))
+ax3.set_xlabel(r"$x$ [$\mu$m]")
+ax4.set_xlabel(r"$x$ [$\mu$m]")
+ax1.set_ylabel(r"$y$ [$\mu$m]")
+ax3.set_ylabel(r"$y$ [$\mu$m]")
 plt.show()

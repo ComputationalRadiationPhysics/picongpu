@@ -40,4 +40,3 @@
 - optionally, for a full reset, do
 
   rm -rf ${HOME}/spack/ ${HOME}/.spack/
-

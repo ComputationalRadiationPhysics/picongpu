@@ -16,8 +16,7 @@ import picmistandard
 
 import sys
 
-assert sys.version_info.major > 3 or sys.version_info.minor >= 10, \
-    "Python 3.10 is required for PIConGPU PICMI"
+assert sys.version_info.major > 3 or sys.version_info.minor >= 10, "Python 3.10 is required for PIConGPU PICMI"
 
 __all__ = [
     "Simulation",

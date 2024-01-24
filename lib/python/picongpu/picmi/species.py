@@ -26,18 +26,13 @@ class Species(picmistandard.PICMI_Species):
     }
     """mass/charge tuple to use when passed a non-element particle_type"""
 
-    picongpu_fully_ionized = \
-        util.build_typesafe_property(typing.Optional[bool])
+    picongpu_fully_ionized = util.build_typesafe_property(typing.Optional[bool])
     """
     *usually* ionization is expected to be used on elements -- use this to
     explicitly DISABLE ionization
     """
 
-    def __init__(
-            self,
-            picongpu_fully_ionized: typing.Optional[bool] = None,
-            picongpu_ionization_electrons=None,
-            **kw):
+    def __init__(self, picongpu_fully_ionized: typing.Optional[bool] = None, picongpu_ionization_electrons=None, **kw):
         self.picongpu_fully_ionized = picongpu_fully_ionized
 
         # note: picongpu_ionization_electrons would *normally* just use a
@@ -46,16 +41,15 @@ class Species(picmistandard.PICMI_Species):
         # class. Typically this picmi species object is only available as
         # "picmi.Species()", and the resolution fails.
         # Hence, the type is checked manually here.
-        typeguard.check_type(picongpu_ionization_electrons,
-                             typing.Optional[Species])
+        typeguard.check_type(picongpu_ionization_electrons, typing.Optional[Species])
         self.picongpu_ionization_electrons = picongpu_ionization_electrons
 
         super().__init__(**kw)
 
     @staticmethod
     def __get_temperature_kev_by_rms_velocity(
-            rms_velocity_si: typing.Tuple[float, float, float],
-            particle_mass_si: float) -> float:
+        rms_velocity_si: typing.Tuple[float, float, float], particle_mass_si: float
+    ) -> float:
         """
         convert temperature from RMS velocity vector to keV
 
@@ -70,18 +64,15 @@ class Species(picmistandard.PICMI_Species):
         :raises Exception: on impossible conversion
         :return: temperature in keV
         """
-        assert rms_velocity_si[0] == rms_velocity_si[1] and \
-            rms_velocity_si[1] == rms_velocity_si[2], \
-            "all thermal velcoity spread (rms velocity) components must be " \
-            "equal"
+        assert rms_velocity_si[0] == rms_velocity_si[1] and rms_velocity_si[1] == rms_velocity_si[2], (
+            "all thermal velcoity spread (rms velocity) components must be " "equal"
+        )
         # see
         # https://en.wikipedia.org/wiki/Maxwell%E2%80%93Boltzmann_distribution
         rms_velocity_si_squared = rms_velocity_si[0] ** 2
-        return particle_mass_si * rms_velocity_si_squared \
-            * consts.electron_volt ** -1 * 10 ** -3
+        return particle_mass_si * rms_velocity_si_squared * consts.electron_volt**-1 * 10**-3
 
-    def __get_drift(
-            self) -> typing.Optional[species.operation.momentum.Drift]:
+    def __get_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
         """
         Retrieve respective pypicongpu drift object (or None)
 
@@ -101,26 +92,18 @@ class Species(picmistandard.PICMI_Species):
             return
 
         # particle type is set -> retrieve mass & charge
-        assert self.charge is None, \
-            "charge is specify implicitly via particle type, " \
-            "do NOT set charge explictly"
-        assert self.mass is None, \
-            "mass is specify implicitly via particle type, " \
-            "do NOT set mass explictly"
+        assert self.charge is None, "charge is specify implicitly via particle type, " "do NOT set charge explictly"
+        assert self.mass is None, "mass is specify implicitly via particle type, " "do NOT set mass explictly"
 
-        if self.particle_type in \
-                self.__mass_charge_by_openpmd_name_non_elements:
+        if self.particle_type in self.__mass_charge_by_openpmd_name_non_elements:
             # not element, but known
-            mass_charge_tuple = \
-                self.__mass_charge_by_openpmd_name_non_elements[
-                    self.particle_type]
+            mass_charge_tuple = self.__mass_charge_by_openpmd_name_non_elements[self.particle_type]
             self.mass = mass_charge_tuple[0]
             self.charge = mass_charge_tuple[1]
         else:
             # element (or unkown, which raises when trying to get an
             # element for that name)
-            self.element = species.util.Element.get_by_openpmd_name(
-                self.particle_type)
+            self.element = species.util.Element.get_by_openpmd_name(self.particle_type)
             self.mass = self.element.get_mass_si()
             self.charge = self.element.get_charge_si()
 
@@ -128,20 +111,18 @@ class Species(picmistandard.PICMI_Species):
         """
         check if ionization (charge_state) can be applied, potentially warns
         """
-        assert not self.picongpu_fully_ionized \
-            or self.charge_state is None, \
-            "picongpu_fully_ionized may only be used if " \
-            "charge_state is none"
+        assert not self.picongpu_fully_ionized or self.charge_state is None, (
+            "picongpu_fully_ionized may only be used if " "charge_state is none"
+        )
 
         if self.particle_type is None:
             # no particle type -> charge state is not allowed
-            assert self.charge_state is None, "charge_state is ONLY allowed " \
-                "when setting particle_type explicitly"
+            assert self.charge_state is None, "charge_state is ONLY allowed " "when setting particle_type explicitly"
 
             # no particle type -> fully ionized flag not permitted
-            assert self.picongpu_fully_ionized is None, \
-                "picongpu_fully_ionized is ONLY allowed " \
-                "when setting particle_type explicitly"
+            assert self.picongpu_fully_ionized is None, (
+                "picongpu_fully_ionized is ONLY allowed " "when setting particle_type explicitly"
+            )
 
             # no charge_state -> nothing left
             return
@@ -149,9 +130,9 @@ class Species(picmistandard.PICMI_Species):
         # particle type is set: fully ionized flag *ONLY* allowed if using
         # element
         if self.picongpu_fully_ionized is not None:
-            assert self.particle_type not in \
-                self.__mass_charge_by_openpmd_name_non_elements, \
-                "picongpu_fully_ionized is ONLY allowed for elements"
+            assert (
+                self.particle_type not in self.__mass_charge_by_openpmd_name_non_elements
+            ), "picongpu_fully_ionized is ONLY allowed for elements"
 
         # maybe warn
         if self.charge_state is None:
@@ -163,14 +144,15 @@ class Species(picmistandard.PICMI_Species):
             # warning is explicitly disabled with a flag is given
 
             # (note: omit if not element)
-            if not self.picongpu_fully_ionized and \
-                    self.particle_type not in \
-                    self.__mass_charge_by_openpmd_name_non_elements:
+            if (
+                not self.picongpu_fully_ionized
+                and self.particle_type not in self.__mass_charge_by_openpmd_name_non_elements
+            ):
                 logging.warning(
                     "species {} will be fully ionized for the entire "
                     "simulation -- if this is intended, set "
-                    "picongpu_fully_ionized=True"
-                    .format(self.name))
+                    "picongpu_fully_ionized=True".format(self.name)
+                )
 
     def get_as_pypicongpu(self) -> species.Species:
         util.unsupported("method", self.method)
@@ -206,13 +188,10 @@ class Species(picmistandard.PICMI_Species):
             density_scale_constant.ratio = self.density_scale
             s.constants.append(density_scale_constant)
 
-        if self.particle_type and \
-           self.particle_type not in \
-           self.__mass_charge_by_openpmd_name_non_elements:
+        if self.particle_type and self.particle_type not in self.__mass_charge_by_openpmd_name_non_elements:
             # particle type given and is not non-element (==is element)
             # -> add element flags
-            element = \
-                species.util.Element.get_by_openpmd_name(self.particle_type)
+            element = species.util.Element.get_by_openpmd_name(self.particle_type)
 
             elementary_properties_const = species.constant.ElementProperties()
             elementary_properties_const.element = element
@@ -223,9 +202,9 @@ class Species(picmistandard.PICMI_Species):
             assert element is not None
 
             atomic_number = element.value
-            assert self.charge_state <= atomic_number, \
-                "charge_state must be <= atomic number ({})" \
-                .format(atomic_number)
+            assert self.charge_state <= atomic_number, "charge_state must be <= atomic number ({})".format(
+                atomic_number
+            )
 
             const_ionizers = species.constant.Ionizers()
             # const_ionizers.electron_species must be set to a pypicongpu
@@ -242,10 +221,11 @@ class Species(picmistandard.PICMI_Species):
         return self.charge_state is not None
 
     def get_independent_operations(
-            self, pypicongpu_species: species.Species) \
-            -> typing.List[species.operation.Operation]:
-        assert pypicongpu_species.name == self.name, "to generate " \
-            "operations for PyPIConGPU species: names must match"
+        self, pypicongpu_species: species.Species
+    ) -> typing.List[species.operation.Operation]:
+        assert pypicongpu_species.name == self.name, (
+            "to generate " "operations for PyPIConGPU species: names must match"
+        )
 
         all_operations = []
 
@@ -255,20 +235,16 @@ class Species(picmistandard.PICMI_Species):
         momentum_op.drift = self.__get_drift()
 
         temperature_kev = 0
-        if self.initial_distribution is not None and \
-           self.initial_distribution.rms_velocity is not None:
-            mass_const = pypicongpu_species.get_constant_by_type(
-                species.constant.Mass)
+        if self.initial_distribution is not None and self.initial_distribution.rms_velocity is not None:
+            mass_const = pypicongpu_species.get_constant_by_type(species.constant.Mass)
             mass_si = mass_const.mass_si
 
-            temperature_kev = \
-                self.__get_temperature_kev_by_rms_velocity(
-                    tuple(self.initial_distribution.rms_velocity),
-                    mass_si)
+            temperature_kev = self.__get_temperature_kev_by_rms_velocity(
+                tuple(self.initial_distribution.rms_velocity), mass_si
+            )
 
         if 0 != temperature_kev:
-            momentum_op.temperature = \
-                species.operation.momentum.Temperature()
+            momentum_op.temperature = species.operation.momentum.Temperature()
             momentum_op.temperature.temperature_kev = temperature_kev
         else:
             momentum_op.temperature = None

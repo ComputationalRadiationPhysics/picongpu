@@ -108,9 +108,10 @@ class SimpleDensity(DensityOperation):
         # (treat "has no ratio" as 1)
         sorted_species_by_ratio = sorted(
             self.species,
-            key=lambda species:
-            1 if not species.has_constant_of_type(DensityRatio)
-            else species.get_constant_by_type(DensityRatio).ratio)
+            key=lambda species: 1
+            if not species.has_constant_of_type(DensityRatio)
+            else species.get_constant_by_type(DensityRatio).ratio,
+        )
 
         placed_species = []
         for species in sorted_species_by_ratio:
@@ -121,4 +122,4 @@ class SimpleDensity(DensityOperation):
             "profile": self.profile.get_generic_profile_rendering_context(),
             "placed_species_initial": placed_species[0],
             "placed_species_copied": placed_species[1:],
-            }
+        }

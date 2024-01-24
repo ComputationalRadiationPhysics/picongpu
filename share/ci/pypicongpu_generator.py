@@ -127,9 +127,7 @@ def get_all_major_pypi_versions(package_name):
     return [str(v) for v in version_map.values()]
 
 
-def get_supported_versions(
-    package_name: str, versions: List[str]
-) -> List[str]:
+def get_supported_versions(package_name: str, versions: List[str]) -> List[str]:
     """Take a list of package versions all removes all version, which are not
     supported by the requirements.txt.
 
@@ -158,9 +156,7 @@ def get_supported_versions(
                 pass
 
     if package_name not in req_versions:
-        print(
-            cs(f"ERROR: {package_name} is not defined in {sys.argv[1]}", "Red")
-        )
+        print(cs(f"ERROR: {package_name} is not defined in {sys.argv[1]}", "Red"))
         exit(1)
 
     for v in versions:
@@ -199,9 +195,7 @@ class Job:
         return yaml.dump({self.name: self.body})
 
 
-def extend_job_with_test_requirement(
-    job: Job, package_name: str, package_version: str
-) -> Job:
+def extend_job_with_test_requirement(job: Job, package_name: str, package_version: str) -> Job:
     """Copies the input job, adds a new variable to the variables section of
     the copied job and return it.
 
@@ -218,9 +212,7 @@ def extend_job_with_test_requirement(
     """
     job_copy_name = job.name + "_" + package_name + package_version
     job_copy = Job(job_copy_name, job.body)
-    job_copy.body["variables"][
-        "PYPIC_DEP_VERSION_" + package_name
-    ] = package_version
+    job_copy.body["variables"]["PYPIC_DEP_VERSION_" + package_name] = package_version
 
     return job_copy
 
@@ -254,16 +246,12 @@ def construct_job(
 
     if len(current_test_pkgs) == 1:
         for package_version in test_pkg_versions[package_name]:
-            extended_job = extend_job_with_test_requirement(
-                job, package_name, package_version
-            )
+            extended_job = extend_job_with_test_requirement(job, package_name, package_version)
             print(extended_job.yaml_dumps())
     else:
         for package_version in test_pkg_versions[package_name]:
             construct_job(
-                extend_job_with_test_requirement(
-                    job, package_name, package_version
-                ),
+                extend_job_with_test_requirement(job, package_name, package_version),
                 current_test_pkgs[1:],
                 test_pkg_versions,
             )
@@ -309,9 +297,7 @@ PACKAGES_TO_TEST: Dict[str, Callable] = {
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(
-            cs("ERROR: Set path to requirements.txt as first argument.", "Red")
-        )
+        print(cs("ERROR: Set path to requirements.txt as first argument.", "Red"))
         exit(1)
 
     test_pkg_versions: Dict[str, List[str]] = {}

@@ -290,4 +290,3 @@ Test Suite Examples
 
 You know a useful setting to validate our provided methods?
 Tell us about it or add it to our test sets in the examples/ folder!
-

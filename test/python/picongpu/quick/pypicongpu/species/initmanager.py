@@ -14,8 +14,12 @@ from .attribute import DummyAttribute
 from picongpu.pypicongpu import species
 from picongpu.pypicongpu.species.attribute import Position, Momentum
 from picongpu.pypicongpu.species.constant import Mass, Charge
-from picongpu.pypicongpu.species.operation import \
-    SimpleDensity, SimpleMomentum, NotPlaced, densityprofile
+from picongpu.pypicongpu.species.operation import (
+    SimpleDensity,
+    SimpleMomentum,
+    NotPlaced,
+    densityprofile,
+)
 
 import typing
 import typeguard
@@ -149,11 +153,9 @@ class TestInitManager(unittest.TestCase):
         """species names must be unique"""
         initmgr = self.initmgr
         initmgr.all_species = [self.species1, self.species1_copy]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
         self.assertTrue(initmgr.all_species[0] is not initmgr.all_species[1])
-        self.assertEqual(initmgr.all_species[0].name,
-                         initmgr.all_species[1].name)
+        self.assertEqual(initmgr.all_species[0].name, initmgr.all_species[1].name)
 
         with self.assertRaisesRegex(ValueError, ".*unique.*species1.*"):
             initmgr.bake()
@@ -188,8 +190,7 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = self.initmgr
         initmgr.all_species = [s1, s2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         # simply works
         initmgr.bake()
@@ -205,8 +206,11 @@ class TestInitManager(unittest.TestCase):
         tracer3 = self.OperationCallTracer("3", initmgr.all_species)
 
         initmgr.all_operations = [
-            tracer1, tracer3, tracer2,
-            self.OperationAddMandatoryAttributes(initmgr.all_species)]
+            tracer1,
+            tracer3,
+            tracer2,
+            self.OperationAddMandatoryAttributes(initmgr.all_species),
+        ]
 
         initmgr.bake()
 
@@ -216,8 +220,7 @@ class TestInitManager(unittest.TestCase):
         self.assertEqual(expected_callchain, tracer3.calls)
 
         # actually added the attributes
-        all_attr_names = list(map(lambda attr: attr.PICONGPU_NAME,
-                                  self.species1.attributes))
+        all_attr_names = list(map(lambda attr: attr.PICONGPU_NAME, self.species1.attributes))
         self.assertEqual(5, len(all_attr_names))
         self.assertTrue(tracer1.get_attr_name() in all_attr_names)
         self.assertTrue(tracer2.get_attr_name() in all_attr_names)
@@ -267,8 +270,7 @@ class TestInitManager(unittest.TestCase):
         """check string representation of OperationInvalidBehavior"""
         # rationale: sometimes the operation name must be in an error message
         # -> ensure regex-able string representation of offending operation
-        with self.assertRaisesRegex(ValueError,
-                                    ".*OperationInvalidBehavior.*"):
+        with self.assertRaisesRegex(ValueError, ".*OperationInvalidBehavior.*"):
             raise ValueError(str(self.OperationInvalidBehavior([])))
 
     def test_operation_invalid_behavior_check(self):
@@ -279,9 +281,7 @@ class TestInitManager(unittest.TestCase):
         invalid.check_adds_attribute = True
         initmgr.all_operations = [invalid]
 
-        with self.assertRaisesRegex(
-                AssertionError,
-                ".*check.*OperationInvalidBehavior.*IDSTRINGDZ.*"):
+        with self.assertRaisesRegex(AssertionError, ".*check.*OperationInvalidBehavior.*IDSTRINGDZ.*"):
             initmgr.bake()
 
     def test_operation_invalid_behavior_prebook(self):
@@ -292,20 +292,16 @@ class TestInitManager(unittest.TestCase):
         invalid.prebook_adds_attribute = True
         initmgr.all_operations = [invalid]
 
-        with self.assertRaisesRegex(
-                AssertionError,
-                ".*prebook.*OperationInvalidBehavior.*IDSTRINGDZ.*"):
+        with self.assertRaisesRegex(AssertionError, ".*prebook.*OperationInvalidBehavior.*IDSTRINGDZ.*"):
             initmgr.bake()
 
     def test_multiple_assigned_species(self):
         """each species object may only be added once"""
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species1]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes([self.species1])]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes([self.species1])]
 
-        with self.assertRaisesRegex(ValueError,
-                                    ".*[Ss]pecies.*once.*species1.*"):
+        with self.assertRaisesRegex(ValueError, ".*[Ss]pecies.*once.*species1.*"):
             # duplicate species
             initmgr.bake()
 
@@ -320,7 +316,9 @@ class TestInitManager(unittest.TestCase):
         tracer = self.OperationCallTracer("", initmgr.all_species)
         initmgr.all_operations = [
             self.OperationAddMandatoryAttributes([self.species1]),
-            tracer, tracer]
+            tracer,
+            tracer,
+        ]
 
         with self.assertRaisesRegex(ValueError, ".*[Oo]peration.*once.*"):
             # duplicate operation
@@ -333,6 +331,7 @@ class TestInitManager(unittest.TestCase):
 
     def test_exclusiveness_checked(self):
         """attributes must be exclusively owned by species"""
+
         class NonExclusiveOp(species.operation.Operation):
             attr_for_all = DummyAttribute()
 
@@ -348,8 +347,7 @@ class TestInitManager(unittest.TestCase):
                 self.attributes_by_species = {}
                 for spec in self.species_list:
                     # note: uses **global** (static) attribute object
-                    self.attributes_by_species[spec] = \
-                        [NonExclusiveOp.attr_for_all]
+                    self.attributes_by_species[spec] = [NonExclusiveOp.attr_for_all]
 
         initmgr = self.initmgr
         initmgr.all_species = [self.species1, self.species2]
@@ -400,16 +398,17 @@ class TestInitManager(unittest.TestCase):
         op1 = self.OperationCallTracer("a", [self.species1])
         op2 = self.OperationCallTracer("xkcd927", [self.species2])
         op3 = self.OperationCallTracer("1337", [self.species1, self.species2])
-        initmgr.all_operations = [op1, op2, op3,
-                                  self.OperationAddMandatoryAttributes([
-                                      self.species1, self.species2])]
+        initmgr.all_operations = [
+            op1,
+            op2,
+            op3,
+            self.OperationAddMandatoryAttributes([self.species1, self.species2]),
+        ]
 
         initmgr.bake()
 
-        species1_attr_names = list(map(lambda attr: attr.PICONGPU_NAME,
-                                       self.species1.attributes))
-        species2_attr_names = list(map(lambda attr: attr.PICONGPU_NAME,
-                                       self.species2.attributes))
+        species1_attr_names = list(map(lambda attr: attr.PICONGPU_NAME, self.species1.attributes))
+        species2_attr_names = list(map(lambda attr: attr.PICONGPU_NAME, self.species2.attributes))
 
         self.assertEqual(4, len(species1_attr_names))
         self.assertTrue(op1.get_attr_name(), species1_attr_names)
@@ -442,8 +441,7 @@ class TestInitManager(unittest.TestCase):
 
         attr_name = tracer1.get_attr_name()
 
-        with self.assertRaisesRegex(ValueError,
-                                    ".*conflict.*{}.*".format(attr_name)):
+        with self.assertRaisesRegex(ValueError, ".*conflict.*{}.*".format(attr_name)):
             initmgr.bake()
 
     def test_unregistered_species(self):
@@ -460,8 +458,7 @@ class TestInitManager(unittest.TestCase):
         initmgr.all_species = [self.species1]
 
         # assigns more species than known to the init manager
-        op = self.OperationAddMandatoryAttributes(
-            [self.species1, self.species2])
+        op = self.OperationAddMandatoryAttributes([self.species1, self.species2])
         initmgr.all_operations = [op]
 
         with self.assertRaisesRegex(ValueError, ".*register.*species2.*"):
@@ -515,14 +512,14 @@ class TestInitManager(unittest.TestCase):
         context = initmgr.get_rendering_context()
 
         self.assertEqual(2, len(context["species"]))
-        self.assertEqual(context["species"][0],
-                         self.species1.get_rendering_context())
-        self.assertEqual(context["species"][1],
-                         self.species2.get_rendering_context())
+        self.assertEqual(context["species"][0], self.species1.get_rendering_context())
+        self.assertEqual(context["species"][1], self.species2.get_rendering_context())
 
         self.assertEqual(1, len(context["operations"]["simple_density"]))
-        self.assertEqual(context["operations"]["simple_density"][0],
-                         simple_density.get_rendering_context())
+        self.assertEqual(
+            context["operations"]["simple_density"][0],
+            simple_density.get_rendering_context(),
+        )
 
     def test_rendering_context_passthru_ops(self):
         """operations are passed through into their respective locations"""
@@ -559,12 +556,13 @@ class TestInitManager(unittest.TestCase):
         context = initmgr.get_rendering_context()
 
         # note: NotPlaced only adds attr and no data, hence is not in context
-        self.assertEqual(simple_density.get_rendering_context(),
-                         context["operations"]["simple_density"][0])
+        self.assertEqual(
+            simple_density.get_rendering_context(),
+            context["operations"]["simple_density"][0],
+        )
 
         for momentum_op in momentum_ops:
-            self.assertTrue(momentum_op.get_rendering_context()
-                            in context["operations"]["simple_momentum"])
+            self.assertTrue(momentum_op.get_rendering_context() in context["operations"]["simple_momentum"])
 
     def test_constants_dependencies_outside(self):
         """species dependencies outside of initmanager are detected"""
@@ -622,38 +620,38 @@ class TestInitManager(unittest.TestCase):
         initmgr = InitManager()
         initmgr.all_species = [a, b, c, d, e]
         # associate ops for required attrs (to make checks pass)
-        initmgr.all_operations = [
-            self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         # bake reorders dependencies
         initmgr.bake()
-        baked_names_in_order = list(map(lambda species: species.name,
-                                        initmgr.all_species))
+        baked_names_in_order = list(map(lambda species: species.name, initmgr.all_species))
 
         # must be equal to context order
         context = initmgr.get_rendering_context()
-        context_names_in_order = list(map(lambda species: species["name"],
-                                          context["species"]))
-        self.assertEqual(baked_names_in_order,
-                         context_names_in_order)
+        context_names_in_order = list(map(lambda species: species["name"], context["species"]))
+        self.assertEqual(baked_names_in_order, context_names_in_order)
 
-        index_by_name = dict(map(
-            lambda species_name: (species_name,
-                                  context_names_in_order.index(species_name)),
-            context_names_in_order))
+        index_by_name = dict(
+            map(
+                lambda species_name: (
+                    species_name,
+                    context_names_in_order.index(species_name),
+                ),
+                context_names_in_order,
+            )
+        )
 
         # a->0, b->1, c->2, d->3, e->4
         # expected order: d < e = a < c < b
         #                 3 < 4 = 0 < 2 < 1
         self.assertEqual(0, index_by_name["species3"])
-        self.assertEqual({1, 2},
-                         {index_by_name["species0"],
-                          index_by_name["species4"]})
+        self.assertEqual({1, 2}, {index_by_name["species0"], index_by_name["species4"]})
         self.assertEqual(3, index_by_name["species2"])
         self.assertEqual(4, index_by_name["species1"])
 
     def test_constant_attribute_dependencies_ok(self):
         """a constant may require an attribute to be present"""
+
         class DummyOperation(species.operation.Operation):
             def __init__(self):
                 pass
@@ -662,9 +660,7 @@ class TestInitManager(unittest.TestCase):
                 pass
 
             def prebook_species_attributes(self):
-                self.attributes_by_species = {
-                    self.species: [self.attr]
-                }
+                self.attributes_by_species = {self.species: [self.attr]}
 
         attr = DummyAttribute()
 
@@ -678,9 +674,10 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species),
-             op]
+        initmgr.all_operations = [
+            self.OperationAddMandatoryAttributes(initmgr.all_species),
+            op,
+        ]
 
         # species1 required "attr" to be present after generation,
         # which is provided by op
@@ -697,8 +694,7 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         # DummyAttribute is required for species1, but not assigned
         with self.assertRaisesRegex(AssertionError, ".*species1.*"):
@@ -709,8 +705,7 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
         initmgr.bake()
 
     def test_constant_attribute_dependencies_typechecked(self):
@@ -731,8 +726,7 @@ class TestInitManager(unittest.TestCase):
 
             initmgr = InitManager()
             initmgr.all_species = [self.species1, self.species2]
-            initmgr.all_operations = \
-                [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+            initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
             with self.assertRaises(typeguard.TypeCheckError):
                 initmgr.bake()
@@ -758,8 +752,7 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         # passes silently, all checks ok
         initmgr.bake()
@@ -780,14 +773,14 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         with self.assertRaisesRegex(AssertionError, ".*species1.*Mass.*"):
             initmgr.bake()
 
     def test_constant_constant_dependencies_circular(self):
         """circular dependencies are allowed, (self references not)"""
+
         class OtherConstWithDeps(species.constant.Constant):
             def __init__(self):
                 pass
@@ -817,8 +810,7 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1, self.species2]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         # works
         initmgr.bake()
@@ -835,8 +827,7 @@ class TestInitManager(unittest.TestCase):
 
         initmgr = InitManager()
         initmgr.all_species = [self.species1]
-        initmgr.all_operations = \
-            [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+        initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
         # self-reference is detected and caught
         with self.assertRaisesRegex(ReferenceError, ".*(self|selve).*"):
@@ -860,8 +851,7 @@ class TestInitManager(unittest.TestCase):
 
             initmgr = InitManager()
             initmgr.all_species = [self.species1, self.species2]
-            initmgr.all_operations = \
-                [self.OperationAddMandatoryAttributes(initmgr.all_species)]
+            initmgr.all_operations = [self.OperationAddMandatoryAttributes(initmgr.all_species)]
 
             with self.assertRaises(typeguard.TypeCheckError):
                 initmgr.bake()
@@ -894,5 +884,7 @@ class TestInitManager(unittest.TestCase):
 
         context = initmgr.get_rendering_context()
 
-        self.assertEqual([ion_op.get_rendering_context()],
-                         context["operations"]["set_bound_electrons"])
+        self.assertEqual(
+            [ion_op.get_rendering_context()],
+            context["operations"]["set_bound_electrons"],
+        )

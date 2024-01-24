@@ -108,16 +108,14 @@ class TestSimulation(unittest.TestCase):
             self.s.init_manager.all_species = [particle_1, particle_2]
             self.s.get_rendering_context()
         with self.assertRaisesRegex(Exception, expected_error_re):
-            self.s.init_manager.all_species = [particle_1, particle_2,
-                                               particle_3]
+            self.s.init_manager.all_species = [particle_1, particle_2, particle_3]
             self.s.get_rendering_context()
         with self.assertRaisesRegex(Exception, expected_error_re):
             self.s.init_manager.all_species = [particle_3, particle_3]
             self.s.get_rendering_context()
 
         # no errors:
-        valid_species_lists = [[particle_2, particle_3],
-                               [particle_1, particle_3]]
+        valid_species_lists = [[particle_2, particle_3], [particle_1, particle_3]]
         for valid_species_list in valid_species_lists:
             sim = deepcopy(self.s)
             # initmanager resets species attributes
@@ -175,8 +173,7 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual("Yee", context["solver"]["name"])
         self.assertEqual(2, context["grid"]["cell_size"]["y"])
         self.assertEqual(None, context["laser"])
-        self.assertEqual(self.s.init_manager.get_rendering_context(),
-                         context["species_initmanager"])
+        self.assertEqual(self.s.init_manager.get_rendering_context(), context["species_initmanager"])
         self.assertEqual(1, context["output"]["auto"]["period"])
 
         self.assertNotEqual([], context["species_initmanager"]["species"])
@@ -200,5 +197,4 @@ class TestSimulation(unittest.TestCase):
         """period is always at least one"""
         for time_steps in [1, 17, 99]:
             self.s.time_steps = time_steps
-            self.assertEqual(
-                1, self.s.get_rendering_context()["output"]["auto"]["period"])
+            self.assertEqual(1, self.s.get_rendering_context()["output"]["auto"]["period"])

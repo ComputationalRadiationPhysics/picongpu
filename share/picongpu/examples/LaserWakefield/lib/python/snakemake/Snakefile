@@ -8,7 +8,7 @@ output_params="new_params.tsv"
 
 # define a paramspace
 # filename_params defines naming and directory structure of every instance of the parameter space
-paramspace = Paramspace(pd.read_csv(input_params, sep="\t"), filename_params="*", param_sep="-") 
+paramspace = Paramspace(pd.read_csv(input_params, sep="\t"), filename_params="*", param_sep="-")
 
 # declare which rule should not be executed on cluster
 localrules: all, simulate
@@ -22,7 +22,7 @@ rule compile:
      input:
          pic_project="path_to/picongpu_project",
          pic_profile="path_to_profile/picongpu.profile"
-     # to use the paramspace naming pattern use python f-string formatting    
+     # to use the paramspace naming pattern use python f-string formatting
      output:  directory(f"path_to_simulations/sim_{paramspace.wildcard_pattern}")
      resources: # define needed cluster resources
          slurm_partition="fwkt_v100",
@@ -60,7 +60,7 @@ rule simulate:
         name=f"{paramspace.wildcard_pattern}"
     retries: 3
     shell:
-         """         
+         """
          # if no job id is known -> start simulation
          if ! [ -f simulated/job_id_{params.name}.txt ]; then
              sbatch {input}/tbg/submit.start > simulated/job_id_{params.name}.txt
@@ -87,7 +87,7 @@ rule simulate:
 rule post_processing:
     input:
         f"simulated/finished_{paramspace.wildcard_pattern}.txt"
-    output: 
+    output:
         f"results/result_{paramspace.wildcard_pattern}.npy"
     resources:
          slurm_partition="defq",
@@ -103,19 +103,19 @@ rule post_processing:
     script:
         "path_to_script/post_processing.py"
 
-# example rule of post processing that requires output from each parameter set 
+# example rule of post processing that requires output from each parameter set
 rule optimization:
-    input: 
+    input:
         current_params=input_params,
         post_processing_results=expand("results/result_{params}.npy", params=paramspace.instance_patterns)
-    output: 
+    output:
         new_params=output_params
     resources:
          slurm_partition="defq",
          runtime=60,
          nodes=1,
          ntasks=20,
-         mem_mb=95000 
+         mem_mb=95000
     params:
         n_new_params=5
     script:

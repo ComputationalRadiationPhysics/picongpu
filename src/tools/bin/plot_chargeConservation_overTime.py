@@ -76,8 +76,7 @@ def deviation_charge_conservation(series, iteration):
         if fieldName[-14:] == "_chargeDensity":
             # load species density
             # load species density
-            species_Density = \
-                iteration.meshes[fieldName][io.Mesh_Record_Component.SCALAR][:]
+            species_Density = iteration.meshes[fieldName][io.Mesh_Record_Component.SCALAR][:]
             series.flush()
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])
@@ -98,25 +97,25 @@ def deviation_charge_conservation(series, iteration):
 
     if is2D:
         # compute divergence of electric field according to Yee scheme
-        div = ((Ex[1:, 1:] - Ex[1:, :-1]) / CELL_WIDTH +
-               (Ey[1:, 1:] - Ey[:-1, 1:]) / CELL_HEIGHT)
+        div = (Ex[1:, 1:] - Ex[1:, :-1]) / CELL_WIDTH + (Ey[1:, 1:] - Ey[:-1, 1:]) / CELL_HEIGHT
 
         # compute difference between electric field divergence and charge
         # density
-        diff = (div * EPS0 - charge[1:, 1:])
+        diff = div * EPS0 - charge[1:, 1:]
 
     else:
         # compute divergence of electric field according to Yee scheme
-        div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1]) / CELL_WIDTH +
-               (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:]) / CELL_HEIGHT +
-               (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:]) / CELL_DEPTH)
+        div = (
+            (Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1]) / CELL_WIDTH
+            + (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:]) / CELL_HEIGHT
+            + (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:]) / CELL_DEPTH
+        )
 
         # compute difference between electric field divergence and charge
         # density
-        diff = (div * EPS0 - charge[1:, 1:, 1:])
+        diff = div * EPS0 - charge[1:, 1:, 1:]
 
-    return np.amax(np.abs(diff)), np.mean(np.abs(diff)), \
-        np.std(diff), norm
+    return np.amax(np.abs(diff)), np.mean(np.abs(diff)), np.std(diff), norm
 
 
 # ---- main program ----------
@@ -125,37 +124,42 @@ if __name__ == "__main__":
     # set up argument parser
     parser = argparse.ArgumentParser(
         description=__doc__,
-        epilog="For further questions please contact Richard Pausch."
+        epilog="For further questions please contact Richard Pausch.",
     )
 
-    parser.add_argument("--start",
-                        dest="start_timestep",
-                        help='first timstep',
-                        action='store',
-                        default=0,
-                        type=int)
+    parser.add_argument(
+        "--start",
+        dest="start_timestep",
+        help="first timstep",
+        action="store",
+        default=0,
+        type=int,
+    )
 
-    parser.add_argument("--last",
-                        dest="last_timestep",
-                        help='last timstep',
-                        action='store',
-                        default=-1,
-                        type=int)
+    parser.add_argument(
+        "--last",
+        dest="last_timestep",
+        help="last timstep",
+        action="store",
+        default=-1,
+        type=int,
+    )
 
-    parser.add_argument(metavar="simulation directories",
-                        dest="file_pattern",
-                        help="openPMD series pattern with PIConGPU "
-                             "data e.g. simData_%%T.bp",
-                        action="store",
-                        nargs="+"
-                        )
+    parser.add_argument(
+        metavar="simulation directories",
+        dest="file_pattern",
+        help="openPMD series pattern with PIConGPU " "data e.g. simData_%%T.bp",
+        action="store",
+        nargs="+",
+    )
 
-    parser.add_argument("--export",
-                        metavar="file name",
-                        dest="output_file",
-                        default="",
-                        help="export plot to file " +
-                             "(disable interactive window)")
+    parser.add_argument(
+        "--export",
+        metavar="file name",
+        dest="output_file",
+        default="",
+        help="export plot to file " + "(disable interactive window)",
+    )
 
     args = parser.parse_args()
     file_patterns = args.file_pattern
@@ -166,14 +170,11 @@ if __name__ == "__main__":
 
     major_locator1 = LinearLocator()
     major_locator2 = LinearLocator()
-    major_formatter = FormatStrFormatter('%1.1e')
+    major_formatter = FormatStrFormatter("%1.1e")
 
     ax1 = plt.subplot(121)
     ax1.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
-    ax1.set_ylabel(
-        r"$\mathrm{max}|d|\,[\rho_\mathrm{max}(0)]$",
-        fontsize=20
-    )
+    ax1.set_ylabel(r"$\mathrm{max}|d|\,[\rho_\mathrm{max}(0)]$", fontsize=20)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     # always use scientific notation
@@ -182,10 +183,7 @@ if __name__ == "__main__":
 
     ax2 = plt.subplot(122)
     ax2.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
-    ax2.set_ylabel(
-        r"$\left<|d|\right> \pm \sigma_d\,[\rho_\mathrm{max}(0)]$",
-        fontsize=20
-    )
+    ax2.set_ylabel(r"$\left<|d|\right> \pm \sigma_d\,[\rho_\mathrm{max}(0)]$", fontsize=20)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     # always use scientific notation
@@ -205,17 +203,14 @@ if __name__ == "__main__":
         collect_results = None
 
         for iteration in series.iterations:
-            if (iteration >= first_step and
-                    (iteration <= last_step or last_step == -1)):
+            if iteration >= first_step and (iteration <= last_step or last_step == -1):
                 print("load iteration {:d}".format(iteration))
-                cc_max, mean_abs, std, norm = deviation_charge_conservation(
-                    series, series.iterations[iteration])
+                cc_max, mean_abs, std, norm = deviation_charge_conservation(series, series.iterations[iteration])
                 data_tmp = np.array([[iteration, cc_max, mean_abs, std, norm]])
                 if collect_results is None:
                     collect_results = data_tmp
                 else:
-                    collect_results = np.append(
-                        collect_results, data_tmp, axis=0)
+                    collect_results = np.append(collect_results, data_tmp, axis=0)
 
         # sort data temporally
         collect_results = np.sort(collect_results, axis=0)
@@ -228,18 +223,30 @@ if __name__ == "__main__":
         norm = collect_results[0, 4]  # first (t=0) norm
 
         # generate plot label based on directory and avoid underscore bug
-        plot_label = ("{:s}".format(pattern))
+        plot_label = "{:s}".format(pattern)
         sim_dir_counter += 1
 
         # add plot for maximum difference
-        ax1.plot(t, max_diff / norm,
-                 linestyle="-", lw=3,
-                 marker="+", ms=15, markeredgewidth=3,
-                 label=plot_label)
+        ax1.plot(
+            t,
+            max_diff / norm,
+            linestyle="-",
+            lw=3,
+            marker="+",
+            ms=15,
+            markeredgewidth=3,
+            label=plot_label,
+        )
 
         # add plot for mean difference and std
-        ax2.errorbar(t, mean_abs / norm, yerr=std / norm, lw=3,
-                     markeredgewidth=3, label=plot_label)
+        ax2.errorbar(
+            t,
+            mean_abs / norm,
+            yerr=std / norm,
+            lw=3,
+            markeredgewidth=3,
+            label=plot_label,
+        )
 
         del series
 

@@ -4,14 +4,14 @@ import numpy as np
 
 
 params = {
-    'font.size': 20,
-    'lines.linewidth': 3,
-    'legend.fontsize': 20,
-    'legend.frameon': False,
-    'xtick.labelsize': 20,
-    'ytick.labelsize': 20,
+    "font.size": 20,
+    "lines.linewidth": 3,
+    "legend.fontsize": 20,
+    "legend.frameon": False,
+    "xtick.labelsize": 20,
+    "ytick.labelsize": 20,
     # RTD default textwidth: 800px
-    'figure.figsize': [12, 8]
+    "figure.figsize": [12, 8],
 }
 mpl.rcParams.update(params)
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     E_H = 13.6 / E_AU
 
     # barrier suppression field strength of CII
-    F_BSI_CII = E_CII**2 / (4*Z_C_eff)
+    F_BSI_CII = E_CII**2 / (4 * Z_C_eff)
 
     r = np.linspace(xmin, xmax, 1000)  # spatial dimension
 
@@ -78,15 +78,17 @@ if __name__ == "__main__":
     plt.hlines(-E_CII, xmin, xmax)
 
     # add the legend and format the plot
-    plt.title("Effective atomic potentials of Carbon-II and Hydrogen in\n"
-              r"homogeneous electric field $F_\mathrm{BSI}$ (C-II)")
+    plt.title(
+        "Effective atomic potentials of Carbon-II and Hydrogen in\n"
+        r"homogeneous electric field $F_\mathrm{BSI}$ (C-II)"
+    )
     plt.legend(loc="best")
-    plt.text(xmin+1, -E_H+.05, r"$E_\mathrm{i}$ H")
-    plt.text(xmin+1, -E_CII+.05, r"$E_\mathrm{i}$ C-II (Z_eff)")
-    plt.text(xmin+1, -2.1, r"$V_\mathrm{eff} = -\frac{Z}{|x|} + Fx$")
-    plt.text(xmin+1, -2.6, r"$\mathrm{\ with\ } F = F_\mathrm{BSI}$(C-II)")
-    plt.xlim([-10., 10.])
-    plt.ylim([-3., 1.])
+    plt.text(xmin + 1, -E_H + 0.05, r"$E_\mathrm{i}$ H")
+    plt.text(xmin + 1, -E_CII + 0.05, r"$E_\mathrm{i}$ C-II (Z_eff)")
+    plt.text(xmin + 1, -2.1, r"$V_\mathrm{eff} = -\frac{Z}{|x|} + Fx$")
+    plt.text(xmin + 1, -2.6, r"$\mathrm{\ with\ } F = F_\mathrm{BSI}$(C-II)")
+    plt.xlim([-10.0, 10.0])
+    plt.ylim([-3.0, 1.0])
     plt.ylabel(r"$V_\mathrm{eff}$ [AU = Rydberg]")
     plt.xlabel(r"$x$ [AU = Bohr radii]")
 

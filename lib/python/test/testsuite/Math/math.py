@@ -50,7 +50,7 @@ def growthRate(f, time, interval=None):
 
     if interval is None:
         # The initial value is zero, to avoid noise it is removed
-        Gamma = 0.5 * np.log(f[3:]/f[1:-2])/(time[3:] - time[1:-2])
+        Gamma = 0.5 * np.log(f[3:] / f[1:-2]) / (time[3:] - time[1:-2])
         return Gamma
 
     else:
@@ -60,8 +60,10 @@ def growthRate(f, time, interval=None):
         # calculate upper limit
         stop = np.where(time > interval[1])[0][0] - 1
 
-        Gamma = 0.5 * np.log(f[start + 1:stop + 1] / f[start - 1:stop - 1]
-                             ) / (time[start + 1: stop + 1] -
-                                  time[start - 1: stop - 1])
+        Gamma = (
+            0.5
+            * np.log(f[start + 1 : stop + 1] / f[start - 1 : stop - 1])
+            / (time[start + 1 : stop + 1] - time[start - 1 : stop - 1])
+        )
 
     return Gamma, start, stop

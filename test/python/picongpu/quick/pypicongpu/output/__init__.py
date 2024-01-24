@@ -1,2 +1,2 @@
 # flake8: noqa
-from .auto import * # pyflakes.ignore
+from .auto import *  # pyflakes.ignore

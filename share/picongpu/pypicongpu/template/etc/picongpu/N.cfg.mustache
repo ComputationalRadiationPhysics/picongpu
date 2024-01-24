@@ -40,7 +40,7 @@ fi
 
 set -u
 # -> unbound vars will now raise error
-    
+
 
 #################################
 ## Section: Required Variables ##
@@ -85,19 +85,19 @@ pypicongpu_output_with_newlines="
         --fields_energy.period {{{period}}}
         --sumcurr.period {{{period}}}
         $USED_CHARGE_CONSERVATION_FLAGS
-    
+
         {{#species_initmanager.species}}
             --{{{name}}}_macroParticlesCount.period {{{period}}}
 
             --{{{name}}}_energy.period {{{period}}}
             --{{{name}}}_energy.filter all
-    
+
             --{{{name}}}_energyHistogram.period {{{period}}}
             --{{{name}}}_energyHistogram.filter all
             --{{{name}}}_energyHistogram.binCount 1024
             --{{{name}}}_energyHistogram.minEnergy 0
             --{{{name}}}_energyHistogram.maxEnergy 256000
-    
+
             {{#png_axis}}
                 --{{{name}}}_png.period {{{period}}}
                 --{{{name}}}_png.axis {{{axis}}}

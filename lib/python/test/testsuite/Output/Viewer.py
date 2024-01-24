@@ -11,19 +11,22 @@ __all__ = ["plot_1D", "plot_2D"]
 import matplotlib.pyplot as plt
 import testsuite._checkData as cD
 import matplotlib
+
 matplotlib.use("Agg")
 
 
-def plot_1D(theory,
-            simulation,
-            x_value,
-            xlabel: str = None,
-            ylabel: str = None,
-            title: str = None,
-            plotLog: str = None,
-            acceptance: float = None,
-            savefig: bool = True,
-            direction: str = None):
+def plot_1D(
+    theory,
+    simulation,
+    x_value,
+    xlabel: str = None,
+    ylabel: str = None,
+    title: str = None,
+    plotLog: str = None,
+    acceptance: float = None,
+    savefig: bool = True,
+    direction: str = None,
+):
     """
     Input:
     -------
@@ -74,8 +77,7 @@ def plot_1D(theory,
                 plots individual axes logarithmically ("y", "x" or "yx")
                 Default: None
     """
-    direction = cD.checkDirection(variable="resultDirection",
-                                  direction=direction)
+    direction = cD.checkDirection(variable="resultDirection", direction=direction)
     # If only one value is given, a horizontal line is plotted
     # as the theoretical value
     if isinstance(theory, int) or isinstance(theory, float):
@@ -84,11 +86,7 @@ def plot_1D(theory,
             offset = theory * acceptance
             plt.axhline(theory + offset, color="g")
             plt.axhline(theory - offset, color="g")
-            plt.fill_between(x_value,
-                             theory + offset,
-                             theory - offset,
-                             color='green',
-                             alpha=.5)
+            plt.fill_between(x_value, theory + offset, theory - offset, color="green", alpha=0.5)
     # if there are two values, one point is assumed to be the test object.
     elif len(theory) == 2:
         plt.plot(theory[0], theory[1], "k.", label="theory")
@@ -103,11 +101,7 @@ def plot_1D(theory,
             offset = theory * acceptance
             plt.plot(x_value, theory + offset, color="g")
             plt.plot(x_value, theory - offset, color="g")
-            plt.fill_between(x_value,
-                             theory + offset,
-                             theory - offset,
-                             color='green',
-                             alpha=.5)
+            plt.fill_between(x_value, theory + offset, theory - offset, color="green", alpha=0.5)
 
     if isinstance(simulation, int) or isinstance(simulation, float):
         plt.axhline(simulation, label="simulation")
@@ -126,21 +120,13 @@ def plot_1D(theory,
 
     plt.xlim(x_value[0], x_value[-1])
 
-    title = cD.checkVariables(variable="plot_title",
-                              default="No title",
-                              parameter=title)
+    title = cD.checkVariables(variable="plot_title", default="No title", parameter=title)
     if title == "No title":
-        title = cD.checkVariables(variable="title",
-                                  default="No title",
-                                  parameter=title)
+        title = cD.checkVariables(variable="title", default="No title", parameter=title)
 
-    xlabel = cD.checkVariables(variable="plot_xlabel",
-                               default="No title",
-                               parameter=xlabel)
+    xlabel = cD.checkVariables(variable="plot_xlabel", default="No title", parameter=xlabel)
 
-    ylabel = cD.checkVariables(variable="plot_ylabel",
-                               default="No title",
-                               parameter=ylabel)
+    ylabel = cD.checkVariables(variable="plot_ylabel", default="No title", parameter=ylabel)
     plt.title(title)
 
     plt.xlabel(xlabel)
@@ -156,6 +142,5 @@ def plot_1D(theory,
 
 
 def plot_2D():
-    """
-    """
+    """ """
     pass

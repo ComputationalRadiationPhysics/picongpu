@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 from scipy import constants as consts
+
 c = consts.c
 ep0 = consts.epsilon_0
 mu0 = consts.mu_0

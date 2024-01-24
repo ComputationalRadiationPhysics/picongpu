@@ -5,8 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.species.operation.densityprofile import \
-    Uniform, DensityProfile
+from picongpu.pypicongpu.species.operation.densityprofile import Uniform, DensityProfile
 
 import unittest
 import typeguard

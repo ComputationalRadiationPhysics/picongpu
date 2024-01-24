@@ -86,5 +86,3 @@ sleep 1
 
 # Run PIConGPU
 srun -K1 !TBG_dstPath/tbg/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
-
-

@@ -33,10 +33,15 @@ class PlasmaRamp(RenderedObject):
         for typeEntry, marker in self.returned_context["type"].items():
             if marker:
                 if foundPreviousActive:
-                    raise ValueError("only one type may be marked as present!,"
-                                     + " both " + foundPreviousActiveType
-                                     + " and " + typeEntry + " are marked as"
-                                     + "present")
+                    raise ValueError(
+                        "only one type may be marked as present!,"
+                        + " both "
+                        + foundPreviousActiveType
+                        + " and "
+                        + typeEntry
+                        + " are marked as"
+                        + "present"
+                    )
                 else:
                     foundPreviousActive = True
                     foundPreviousActiveType = typeEntry
@@ -108,8 +113,7 @@ class PlasmaRamp(RenderedObject):
 
         # create type meta data dict
         # init with all false
-        type_dict = dict(map(lambda type_name: (type_name, False),
-                             template_name_by_type.values()))
+        type_dict = dict(map(lambda type_name: (type_name, False), template_name_by_type.values()))
         # set this class entry to true
         self_class_template_name = template_name_by_type[self.__class__]
         type_dict[self_class_template_name] = True
@@ -125,7 +129,6 @@ class PlasmaRamp(RenderedObject):
         self.check()
 
         # make sure it passes schema checks
-        RenderedObject.check_context_for_type(PlasmaRamp,
-                                              self.returned_context)
+        RenderedObject.check_context_for_type(PlasmaRamp, self.returned_context)
 
         return self.returned_context

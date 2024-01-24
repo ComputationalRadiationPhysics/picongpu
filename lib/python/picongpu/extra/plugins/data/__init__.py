@@ -11,5 +11,5 @@ __all__ = [
     "PNGData",
     "RadiationData",
     "EmittanceData",
-    "TransitionRadiationData"
+    "TransitionRadiationData",
 ]

@@ -30,9 +30,7 @@ class Mass(Constant):
 
     def _get_serialized(self) -> dict:
         self.check()
-        return {
-            "mass_si": self.mass_si
-        }
+        return {"mass_si": self.mass_si}
 
     def get_species_dependencies(self):
         return []

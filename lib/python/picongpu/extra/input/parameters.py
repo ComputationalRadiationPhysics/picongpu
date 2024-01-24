@@ -7,6 +7,7 @@ License: GPLv3+
 """
 import collections
 import pint
+
 ureg = pint.UnitRegistry()
 
 try:
@@ -40,10 +41,18 @@ class Parameter(object):
     Stepping will be handled by the widget representation, not here.
     """
 
-    def __init__(self, name, ptype, unit, default,
-                 values=None, range=None,
-                 label=None, pic_to_SI=lambda x: x,
-                 pic_from_SI=lambda x: x):
+    def __init__(
+        self,
+        name,
+        ptype,
+        unit,
+        default,
+        values=None,
+        range=None,
+        label=None,
+        pic_to_SI=lambda x: x,
+        pic_from_SI=lambda x: x,
+    ):
         """
         Parameters
         ----------
@@ -98,8 +107,10 @@ class Parameter(object):
             if not values:
                 # check empty values list
                 values = [self.default]
-                print("WARNING: Values attribute can not be an empty "
-                      "iterable! Setting values to", values)
+                print(
+                    "WARNING: Values attribute can not be an empty " "iterable! Setting values to",
+                    values,
+                )
             # double conversion to avoid rounding issues
             self.values = values
             self.pic_values = self.convert_to_PIC(values)
@@ -113,8 +124,10 @@ class Parameter(object):
             # raise ValueError("Need either 'values' or 'range' parameter!")
             self.values = self.default
             self.pic_values = self.convert_to_PIC(default)
-            print("WARNING: Neither 'values' nor 'range' was given, setting"
-                  " 'values' to ", self.values)
+            print(
+                "WARNING: Neither 'values' nor 'range' was given, setting" " 'values' to ",
+                self.values,
+            )
 
     def _check_input(self, vals):
         """
@@ -133,15 +146,16 @@ class Parameter(object):
             if not res:
                 raise ValueError(
                     "Invalid values found! Values should be elements of "
-                    "{0} but are {1}!".format(self.pic_values, vals))
+                    "{0} but are {1}!".format(self.pic_values, vals)
+                )
         else:
             # check for valid range
-            res = all([self.pic_range[0] <= v <= self.pic_range[1]
-                       for v in vals])
+            res = all([self.pic_range[0] <= v <= self.pic_range[1] for v in vals])
             if not res:
-                raise ValueError("Invalid values found! Values should be "
-                                 "contained in {0} but are {1}!".format(
-                                     self.pic_range, vals))
+                raise ValueError(
+                    "Invalid values found! Values should be "
+                    "contained in {0} but are {1}!".format(self.pic_range, vals)
+                )
 
     def convert_to_PIC(self, vals, check_vals=False):
         """
@@ -160,8 +174,7 @@ class Parameter(object):
         -------
         A list of converted values.
         """
-        pic_vals = [self.pic_from_SI(
-            (v * self.unit).to_base_units().magnitude) for v in vals]
+        pic_vals = [self.pic_from_SI((v * self.unit).to_base_units().magnitude) for v in vals]
 
         if check_vals:
             self._check_input(pic_vals)
@@ -190,9 +203,7 @@ class Parameter(object):
         if check_vals:
             self._check_input(vals)
 
-        ui_results = [
-            ureg.convert(self.pic_to_SI(v), self.base_unit, self.unit)
-            for v in vals]
+        ui_results = [ureg.convert(self.pic_to_SI(v), self.base_unit, self.unit) for v in vals]
 
         return ui_results
 

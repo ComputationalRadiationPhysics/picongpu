@@ -102,37 +102,28 @@ class PhaseSpaceData(DataReader):
         """
         # @todo different file extensions?
         if species is None:
-            raise ValueError('The species parameter can not be None!')
+            raise ValueError("The species parameter can not be None!")
         if species_filter is None:
-            raise ValueError('The species_filter parameter can not be None!')
+            raise ValueError("The species_filter parameter can not be None!")
         if ps is None:
-            raise ValueError('The ps parameter can not be None!')
+            raise ValueError("The ps parameter can not be None!")
 
-        output_dir = os.path.join(
-            self.run_directory,
-            "simOutput",
-            "phaseSpace"
-        )
+        output_dir = os.path.join(self.run_directory, "simOutput", "phaseSpace")
         if not os.path.isdir(output_dir):
-            raise IOError('The simOutput/phaseSpace/ directory does not '
-                          'exist inside path:\n  {}\n'
-                          'Did you set the proper path to the '
-                          'run directory?\n'
-                          'Did you enable the phase space plugin?\n'
-                          'Did the simulation already run?'
-                          .format(self.run_directory))
+            raise IOError(
+                "The simOutput/phaseSpace/ directory does not "
+                "exist inside path:\n  {}\n"
+                "Did you set the proper path to the "
+                "run directory?\n"
+                "Did you enable the phase space plugin?\n"
+                "Did the simulation already run?".format(self.run_directory)
+            )
 
         iteration_str = "%T"
-        data_file_name = self.data_file_prefix.format(
-            species,
-            species_filter,
-            ps,
-            iteration_str
-        ) + '.' + file_ext
+        data_file_name = self.data_file_prefix.format(species, species_filter, ps, iteration_str) + "." + file_ext
         return os.path.join(output_dir, data_file_name)
 
-    def get_iterations(self, ps, species, species_filter='all',
-                       file_ext="h5"):
+    def get_iterations(self, ps, species, species_filter="all", file_ext="h5"):
         """
         Return an array of iterations with available data.
 
@@ -156,16 +147,14 @@ class PhaseSpaceData(DataReader):
         An array with unsigned integers.
         """
         # get the regular expression matching all available files
-        data_file_path = self.get_data_path(ps, species, species_filter,
-                                            file_ext=file_ext)
+        data_file_path = self.get_data_path(ps, species, species_filter, file_ext=file_ext)
 
         series = io.Series(data_file_path, io.Access.read_only)
         iterations = [key for key, _ in series.iterations.items()]
 
         return iterations
 
-    def _get_for_iteration(self, iteration, ps, species, species_filter='all',
-                           file_ext="h5", **kwargs):
+    def _get_for_iteration(self, iteration, ps, species, species_filter="all", file_ext="h5", **kwargs):
         """
         Get a phase space histogram.
 
@@ -199,8 +188,7 @@ class PhaseSpaceData(DataReader):
         If a single iteration is requested, return the tuple (ps, ps_meta).
         """
 
-        data_file_path = self.get_data_path(ps, species, species_filter,
-                                            file_ext=file_ext)
+        data_file_path = self.get_data_path(ps, species, species_filter, file_ext=file_ext)
         series = io.Series(data_file_path, io.Access.read_only)
         available_iterations = [key for key, _ in series.iterations.items()]
 
@@ -209,9 +197,11 @@ class PhaseSpaceData(DataReader):
                 iteration = [iteration]
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
-                raise IndexError('Iteration {} is not available!\n'
-                                 'List of available iterations: \n'
-                                 '{}'.format(iteration, available_iterations))
+                raise IndexError(
+                    "Iteration {} is not available!\n"
+                    "List of available iterations: \n"
+                    "{}".format(iteration, available_iterations)
+                )
         else:
             # take all availble iterations
             iteration = available_iterations
@@ -224,18 +214,18 @@ class PhaseSpaceData(DataReader):
             ps_data = mesh[io.Mesh_Record_Component.SCALAR]
 
             # all in SI
-            dV = mesh.get_attribute('dV') * mesh.get_attribute('dr_unit')**3
-            unitSI = mesh.get_attribute('sim_unit')
-            p_range = mesh.get_attribute('p_unit') * \
-                np.array(
-                    [mesh.get_attribute('p_min'), mesh.get_attribute('p_max')])
+            dV = mesh.get_attribute("dV") * mesh.get_attribute("dr_unit") ** 3
+            unitSI = mesh.get_attribute("sim_unit")
+            p_range = mesh.get_attribute("p_unit") * np.array(
+                [mesh.get_attribute("p_min"), mesh.get_attribute("p_max")]
+            )
 
-            mv_start = mesh.get_attribute('movingWindowOffset')
-            mv_end = mv_start + mesh.get_attribute('movingWindowSize')
+            mv_start = mesh.get_attribute("movingWindowOffset")
+            mv_end = mv_start + mesh.get_attribute("movingWindowSize")
             #                2D histogram:         0 (r_i); 1 (p_i)
-            spatial_offset = mesh.get_attribute('_global_start')[0]
+            spatial_offset = mesh.get_attribute("_global_start")[0]
 
-            dr = mesh.get_attribute('dr') * mesh.get_attribute('dr_unit')
+            dr = mesh.get_attribute("dr") * mesh.get_attribute("dr_unit")
 
             r_range_cells = np.array([mv_start, mv_end]) + spatial_offset
             r_range = r_range_cells * dr
@@ -247,8 +237,7 @@ class PhaseSpaceData(DataReader):
 
             it.close()
 
-            ps_meta = PhaseSpaceMeta(
-                species, species_filter, ps, ps_cut.shape, extent, dV)
+            ps_meta = PhaseSpaceMeta(species, species_filter, ps, ps_cut.shape, extent, dV)
             ret.append((ps_cut, ps_meta))
 
         if len(iteration) == 1:

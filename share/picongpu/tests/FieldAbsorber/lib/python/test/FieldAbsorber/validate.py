@@ -12,23 +12,19 @@ import openpmd_api as io
 
 
 def main(dataPath):
-    """ Evaluate the absorber performance
+    """Evaluate the absorber performance
 
-        dataPath is supposed to point to the openPMD directory of the two
-        PIConGPU simulations where the files of the test simulation and
-        reference simulation are located.
-        Their naming follows the pattern simData_test_%T.bp and
-        simData_ref_%T.bp, respectively.
+    dataPath is supposed to point to the openPMD directory of the two
+    PIConGPU simulations where the files of the test simulation and
+    reference simulation are located.
+    Their naming follows the pattern simData_test_%T.bp and
+    simData_ref_%T.bp, respectively.
 
-        Return zero in case of sufficient absorption at the boundary and
-        one in case of too small absorption at the boundary.
+    Return zero in case of sufficient absorption at the boundary and
+    one in case of too small absorption at the boundary.
     """
-    series_test = io.Series(
-        dataPath + "/simData_test_%T.bp",
-        io.Access.read_only)
-    series_ref = io.Series(
-        dataPath + "/simData_ref_%T.bp",
-        io.Access.read_only)
+    series_test = io.Series(dataPath + "/simData_test_%T.bp", io.Access.read_only)
+    series_ref = io.Series(dataPath + "/simData_ref_%T.bp", io.Access.read_only)
 
     """Read simulation parameters"""
     # shape of a data set
@@ -53,14 +49,14 @@ def main(dataPath):
     z_offset = int(0)
 
     # Calculate absolute position of measurement point in the small volume.
-    x_meas = Nx//2 + x_offset
-    y_meas = Ny//2 + y_offset
-    z_meas = Nz//2 + z_offset
+    x_meas = Nx // 2 + x_offset
+    y_meas = Ny // 2 + y_offset
+    z_meas = Nz // 2 + z_offset
 
     # Calculate absolute position of measurement point in the reference sim.
-    x_meas_ref = Nx_ref//2 + x_offset
-    y_meas_ref = Ny_ref//2 + y_offset
-    z_meas_ref = Nz_ref//2 + z_offset
+    x_meas_ref = Nx_ref // 2 + x_offset
+    y_meas_ref = Ny_ref // 2 + y_offset
+    z_meas_ref = Nz_ref // 2 + z_offset
 
     """Load data"""
     times = np.zeros(Nt)
@@ -89,15 +85,9 @@ def main(dataPath):
         # Load test data #
         ##################
 
-        Efield["x"].load_chunk(
-            Ex[i:i+1], offset=(z_meas, y_meas, x_meas), extent=(1, 1, 1)
-        )
-        Efield["y"].load_chunk(
-            Ey[i:i+1], offset=[z_meas, y_meas, x_meas], extent=[1, 1, 1]
-        )
-        Efield["z"].load_chunk(
-            Ez[i:i+1], offset=[z_meas, y_meas, x_meas], extent=[1, 1, 1]
-        )
+        Efield["x"].load_chunk(Ex[i : i + 1], offset=(z_meas, y_meas, x_meas), extent=(1, 1, 1))
+        Efield["y"].load_chunk(Ey[i : i + 1], offset=[z_meas, y_meas, x_meas], extent=[1, 1, 1])
+        Efield["z"].load_chunk(Ez[i : i + 1], offset=[z_meas, y_meas, x_meas], extent=[1, 1, 1])
 
         # spare the series.flush() since the iteration is closed immediately
 
@@ -113,16 +103,19 @@ def main(dataPath):
         Efield_ref = series_ref.iterations[it].meshes["E"]
 
         Efield_ref["x"].load_chunk(
-            Ex_ref[i:i+1], offset=[z_meas_ref, y_meas_ref, x_meas_ref],
-            extent=[1, 1, 1]
+            Ex_ref[i : i + 1],
+            offset=[z_meas_ref, y_meas_ref, x_meas_ref],
+            extent=[1, 1, 1],
         )
         Efield_ref["y"].load_chunk(
-            Ey_ref[i:i+1], offset=[z_meas_ref, y_meas_ref, x_meas_ref],
-            extent=[1, 1, 1]
+            Ey_ref[i : i + 1],
+            offset=[z_meas_ref, y_meas_ref, x_meas_ref],
+            extent=[1, 1, 1],
         )
         Efield_ref["z"].load_chunk(
-            Ez_ref[i:i+1], offset=[z_meas_ref, y_meas_ref, x_meas_ref],
-            extent=[1, 1, 1]
+            Ez_ref[i : i + 1],
+            offset=[z_meas_ref, y_meas_ref, x_meas_ref],
+            extent=[1, 1, 1],
         )
 
         # spare the series_ref.flush()
@@ -139,10 +132,10 @@ def main(dataPath):
     """
     component, component_ref = (
         np.sqrt(Ex**2 + Ey**2 + Ez**2),
-        np.sqrt(Ex_ref**2 + Ey_ref**2 + Ez_ref**2)
+        np.sqrt(Ex_ref**2 + Ey_ref**2 + Ez_ref**2),
     )
 
-    quality = np.abs(component - component_ref)/np.abs(component_ref).max()
+    quality = np.abs(component - component_ref) / np.abs(component_ref).max()
 
     """ Evaluate success or failure of the test
         As of 2023-09-12 we have seen values of the quality <=4.e-5
@@ -154,14 +147,14 @@ def main(dataPath):
         We therefore trust our current implementation and set the following
         bound on the relative deviation between reference and test simulation.
     """
-    qualityBound = 1.e-4
+    qualityBound = 1.0e-4
 
     retValue = int(0) if quality.max() <= qualityBound else int(1)
 
     sys.exit(retValue)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         arg = sys.argv[1]
     except IndexError:

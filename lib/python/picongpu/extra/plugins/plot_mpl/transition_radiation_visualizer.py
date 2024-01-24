@@ -37,9 +37,9 @@ class Visualizer(BaseVisualizer):
 
     def _create_plt_obj(self, idx):
         """
-           Implementation of base class function.
-           Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
-           """
+        Implementation of base class function.
+        Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
+        """
         if self.type == "spectrum":
             omegas, spectral_power = self.data[idx]
             self.plt_obj[idx] = self.ax.plot(omegas, spectral_power)
@@ -51,11 +51,8 @@ class Visualizer(BaseVisualizer):
             self.plt_obj[idx] = self.ax.plot(phis, spectral_power)
         elif self.type == "heatmap":
             theta_mesh, phi_mesh, spectral_power = self.data[idx]
-            im = self.plt_obj[idx] = self.ax.pcolormesh(theta_mesh, phi_mesh,
-                                                        spectral_power)
-            self.ax.get_figure().colorbar(im,
-                                          label=r"Spectral Power $d^2 W / "
-                                                r"d\omega d\Omega$ [Js]")
+            im = self.plt_obj[idx] = self.ax.pcolormesh(theta_mesh, phi_mesh, spectral_power)
+            self.ax.get_figure().colorbar(im, label=r"Spectral Power $d^2 W / " r"d\omega d\Omega$ [Js]")
 
     def _update_plt_obj(self, idx):
         """
@@ -109,8 +106,7 @@ class Visualizer(BaseVisualizer):
         species = kwargs["species"]
         if self.type == "spectrum":
             self.ax.set_xlabel(r"Frequency $\omega$ [1/s]")
-            self.ax.set_ylabel(
-                r"Spectral Power $d^2 W / d\omega d\Omega$ [Js]")
+            self.ax.set_ylabel(r"Spectral Power $d^2 W / d\omega d\Omega$ [Js]")
             self.ax.set_xscale("log")
             self.ax.set_yscale("log")
             self.ax.set_title("Transition Radiation Spectrum for " + species)
@@ -134,8 +130,7 @@ class Visualizer(BaseVisualizer):
             lambda_min = np.ceil(np.log10(calc_lambda(self.ax.get_xlim()[1])))
             lambda_max = np.floor(np.log10(calc_lambda(self.ax.get_xlim()[0])))
             # calculate tick locations
-            lambda_locations = np.logspace(lambda_min, lambda_max,
-                                           np.abs(lambda_max - lambda_min) + 1)
+            lambda_locations = np.logspace(lambda_min, lambda_max, np.abs(lambda_max - lambda_min) + 1)
             # set tick locations of top axes
             axtop.set_xticks(calc_omega(lambda_locations))
 
@@ -170,25 +165,21 @@ class Visualizer(BaseVisualizer):
             axtop.set_xticklabels(lambda_names)
             axtop.set_xlabel(r"Wavelength $\lambda [m]$")
         elif self.type == "sliceovertheta":
-            self.ax.set_title(
-                "Angular transition radiation distribution for " + species)
+            self.ax.set_title("Angular transition radiation distribution for " + species)
             self.ax.set_xlabel(r"Detector Angle $\theta$")
-            self.ax.set_ylabel(r"Spectral Power "
-                               r"$d^2 W / d\omega d\Omega$ [Js]")
+            self.ax.set_ylabel(r"Spectral Power " r"$d^2 W / d\omega d\Omega$ [Js]")
         elif self.type == "sliceoverphi":
-            self.ax.set_title(
-                "Angular transition radiation distribution for " + species)
+            self.ax.set_title("Angular transition radiation distribution for " + species)
             self.ax.set_xlabel(r"Detector Angle $\phi$")
-            self.ax.set_ylabel(r"Spectral Power "
-                               r"$d^2 W / d\omega d\Omega$ [Js]")
+            self.ax.set_ylabel(r"Spectral Power " r"$d^2 W / d\omega d\Omega$ [Js]")
         elif self.type == "heatmap":
-            self.ax.set_title(
-                "Angular transition radiation distribution for " + species)
+            self.ax.set_title("Angular transition radiation distribution for " + species)
             self.ax.set_xlabel(r"Detector Angle $\theta$")
             self.ax.set_ylabel(r"Detector Angle $\phi$")
 
 
 if __name__ == "__main__":
+
     def main():
         import sys
         import getopt
@@ -196,19 +187,23 @@ if __name__ == "__main__":
 
         def usage():
             print("usage:")
-            print("python", sys.argv[0], "\n",
-                  "\t-p, --path\t<path to run_directory>\n"
-                  "\t-i, --iteration\t<iteration>\n"
-                  "\t-s, --species\t<particle species>\n"
-                  "\t-t, --type\t<figure type>\n"
-                  "\t\tavailable figure types:\n"
-                  "\t\t -'spectrum'\n"
-                  "\t\t -'sliceovertheta'\n"
-                  "\t\t -'sliceoverphi'\n"
-                  "\t\t -'heatmap'\n"
-                  "\t-P, --phi\t<index of polar angle phi>\n"
-                  "\t-T, --theta\t<index of azimuth angle theta>\n"
-                  "\t-O, --omega\t<index of frequency omega>")
+            print(
+                "python",
+                sys.argv[0],
+                "\n",
+                "\t-p, --path\t<path to run_directory>\n"
+                "\t-i, --iteration\t<iteration>\n"
+                "\t-s, --species\t<particle species>\n"
+                "\t-t, --type\t<figure type>\n"
+                "\t\tavailable figure types:\n"
+                "\t\t -'spectrum'\n"
+                "\t\t -'sliceovertheta'\n"
+                "\t\t -'sliceoverphi'\n"
+                "\t\t -'heatmap'\n"
+                "\t-P, --phi\t<index of polar angle phi>\n"
+                "\t-T, --theta\t<index of azimuth angle theta>\n"
+                "\t-O, --omega\t<index of frequency omega>",
+            )
 
         path = None
         iteration = None
@@ -221,10 +216,20 @@ if __name__ == "__main__":
         omega = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:t:P:T:O:",
-                                       ["help", "path", "iteration",
-                                        "species", "type", "phi",
-                                        "theta", "omega"])
+            opts, args = getopt.getopt(
+                sys.argv[1:],
+                "hp:i:s:t:P:T:O:",
+                [
+                    "help",
+                    "path",
+                    "iteration",
+                    "species",
+                    "type",
+                    "phi",
+                    "theta",
+                    "omega",
+                ],
+            )
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -264,9 +269,14 @@ if __name__ == "__main__":
 
         # create pyplot axes object and visualize data
         _, ax = plt.subplots(1, 1)
-        Visualizer(path, ax).visualize(iteration=iteration, species=species,
-                                       type=type,
-                                       phi=phi, theta=theta, omega=omega)
+        Visualizer(path, ax).visualize(
+            iteration=iteration,
+            species=species,
+            type=type,
+            phi=phi,
+            theta=theta,
+            omega=omega,
+        )
         # plot layout magic for the beauty of the plot
         plt.tight_layout()
         plt.show()

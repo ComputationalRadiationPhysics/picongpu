@@ -40,4 +40,3 @@ Known Issues
 
 Currently, the file ``e_macroParticlesCount.dat``  is overwritten when restarting the simulation. 
 Therefore, all previously stored counts are lost.
-

@@ -79,4 +79,3 @@ in development
         H.-K. Chung, M.H. Chen, W.L. Morgan, Yu. Ralchenko, and R.W. Lee,
         *High Energy Density Physics* v.1, p.3 (2005)
         http://nlte.nist.gov/FLY/
-

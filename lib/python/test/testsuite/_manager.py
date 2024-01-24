@@ -12,12 +12,14 @@ import sys
 from . import _checkData as cD
 
 
-def run_testsuite(direction: str = None,
-                  dataDirection: str = None,
-                  paramDirection: str = None,
-                  jsonDirection: str = None,
-                  resultDirection: str = None,
-                  cmakeDirection: str = None):
+def run_testsuite(
+    direction: str = None,
+    dataDirection: str = None,
+    paramDirection: str = None,
+    jsonDirection: str = None,
+    resultDirection: str = None,
+    cmakeDirection: str = None,
+):
     """
     Main function of the test-suite, starts and runs the test-suite.
 
@@ -61,35 +63,23 @@ def run_testsuite(direction: str = None,
 
     """
     # determine all other directories if only "direction" is specified
-    if (cD.checkExistVariables(variable="direction") or
-            direction is not None):
-        direction = cD.checkDirection(variable="direction",
-                                      direction=direction)
-        if (dataDirection is None and not
-                cD.checkExistVariables(variable="dataDirection")):
-            dataDirection = cD.checkDirection(variable="dataDirection",
-                                              direction=direction +
-                                              "simOutput/")
-        if (paramDirection is None and not
-                cD.checkExistVariables(variable="paramDirection")):
-            paramDirection = cD.checkDirection(variable="paramDirection",
-                                               direction=direction +
-                                               "input/include/" +
-                                               "picongpu/param/")
-        if (cmakeDirection is None and not
-                cD.checkExistVariables(variable="cmakeDirection")):
-            cmakeDirection = cD.checkDirection(variable="cmakeDirection",
-                                               direction=direction +
-                                               "input/")
+    if cD.checkExistVariables(variable="direction") or direction is not None:
+        direction = cD.checkDirection(variable="direction", direction=direction)
+        if dataDirection is None and not cD.checkExistVariables(variable="dataDirection"):
+            dataDirection = cD.checkDirection(variable="dataDirection", direction=direction + "simOutput/")
+        if paramDirection is None and not cD.checkExistVariables(variable="paramDirection"):
+            paramDirection = cD.checkDirection(
+                variable="paramDirection",
+                direction=direction + "input/include/" + "picongpu/param/",
+            )
+        if cmakeDirection is None and not cD.checkExistVariables(variable="cmakeDirection"):
+            cmakeDirection = cD.checkDirection(variable="cmakeDirection", direction=direction + "input/")
 
     try:
         # read the Data
         from .Reader import _manager as read
 
-        json, param, data = read.mainsearch(dataDirection,
-                                            paramDirection,
-                                            jsonDirection,
-                                            cmakeDirection)
+        json, param, data = read.mainsearch(dataDirection, paramDirection, jsonDirection, cmakeDirection)
 
         # now we can determine the theory and simulation
         parameter = {**json, **param, **data}
@@ -98,6 +88,7 @@ def run_testsuite(direction: str = None,
 
         # calculate the deviation
         from .Math import _manager as dv
+
         max_diff, perc, acc_range, result = dv._calculate(theory, simData)
 
         # get the result
@@ -106,20 +97,21 @@ def run_testsuite(direction: str = None,
         if resultDirection is None and direction is not None:
             resultDirection = direction
 
-        output._output(theory=theory,
-                       simulation=simData,
-                       max_diff=max_diff,
-                       perc=perc,
-                       acc_range=acc_range,
-                       result=result,
-                       direction=resultDirection,
-                       parameter=parameter)
+        output._output(
+            theory=theory,
+            simulation=simData,
+            max_diff=max_diff,
+            perc=perc,
+            acc_range=acc_range,
+            result=result,
+            direction=resultDirection,
+            parameter=parameter,
+        )
         if result:
             sys.exit(0)
         else:
             sys.exit(1)
 
     except Exception:
-
         log.errorLog()
         sys.exit(42)

@@ -20,19 +20,24 @@ class TestDrift(unittest.TestCase):
         """values are present in output"""
         drift = Drift()
         drift.gamma = 17893
-        drift.direction_normalized = (0.0413868011324242,
-                                      0.7989163623763952,
-                                      0.6000164819563655)
+        drift.direction_normalized = (
+            0.0413868011324242,
+            0.7989163623763952,
+            0.6000164819563655,
+        )
 
         context = drift.get_rendering_context()
-        self.assertEqual(context, {
-            "gamma": drift.gamma,
-            "direction_normalized": {
-                "x": drift.direction_normalized[0],
-                "y": drift.direction_normalized[1],
-                "z": drift.direction_normalized[2],
+        self.assertEqual(
+            context,
+            {
+                "gamma": drift.gamma,
+                "direction_normalized": {
+                    "x": drift.direction_normalized[0],
+                    "y": drift.direction_normalized[1],
+                    "z": drift.direction_normalized[2],
+                },
             },
-        })
+        )
 
     def test_types(self):
         """typechecks are applied"""
@@ -150,17 +155,13 @@ class TestDrift(unittest.TestCase):
     def test_fill_from_gamma_velocity(self):
         """computation based on velocity vector multiplied with gamma"""
         d = Drift()
-        d.fill_from_gamma_velocity((29379221.65264335,
-                                    141390308.68517736,
-                                    265336.4756518417))
+        d.fill_from_gamma_velocity((29379221.65264335, 141390308.68517736, 265336.4756518417))
         self.assertAlmostEqual(d.gamma, 1.10997153564)
         self.assertAlmostEqual(d.direction_normalized[0], 0.20344224506631242)
         self.assertAlmostEqual(d.direction_normalized[1], 0.9790852245720864)
         self.assertAlmostEqual(d.direction_normalized[2], 0.001837375031333983)
 
-        d.fill_from_gamma_velocity((359876252.1771755,
-                                    42747107.177341804,
-                                    43958755.5088825))
+        d.fill_from_gamma_velocity((359876252.1771755, 42747107.177341804, 43958755.5088825))
         self.assertAlmostEqual(d.gamma, 1.57570157478)
         self.assertAlmostEqual(d.direction_normalized[0], 0.9857936257001714)
         self.assertAlmostEqual(d.direction_normalized[1], 0.11709532239932068)

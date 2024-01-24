@@ -37,12 +37,10 @@ import math
 class UniformDistribution(picmistandard.PICMI_UniformDistribution):
     """Uniform Particle Distribution as defined by PICMI"""
 
-    def picongpu_get_rms_velocity_si(
-            self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_as_pypicongpu(
-            self) -> species.operation.densityprofile.DensityProfile:
+    def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
         util.unsupported("fill in", self.fill_in)
         util.unsupported("lower bound", self.lower_bound, [None, None, None])
         util.unsupported("upper bound", self.upper_bound, [None, None, None])
@@ -56,8 +54,7 @@ class UniformDistribution(picmistandard.PICMI_UniformDistribution):
         #   lambda x: math.inf if x is None else x, self.upper_bound))
         return profile
 
-    def get_picongpu_drift(
-            self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None
@@ -74,32 +71,26 @@ class UniformDistribution(picmistandard.PICMI_UniformDistribution):
 class AnalyticDistribution(picmistandard.PICMI_AnalyticDistribution):
     """Analytic Particle Distribution as defined by PICMI @todo"""
 
-    def picongpu_get_rms_velocity_si(
-            self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_as_pypicongpu(
-            self) -> species.operation.densityprofile.DensityProfile:
+    def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
         util.unsupported("momentum expressions", self.momentum_expressions)
         util.unsupported("fill in", self.fill_in)
 
         # TODO
         profile = object()
-        profile.lower_bound = tuple(map(
-            lambda x: -math.inf if x is None else x, self.lower_bound))
-        profile.upper_bound = tuple(map(
-            lambda x: math.inf if x is None else x, self.upper_bound))
+        profile.lower_bound = tuple(map(lambda x: -math.inf if x is None else x, self.lower_bound))
+        profile.upper_bound = tuple(map(lambda x: math.inf if x is None else x, self.upper_bound))
 
         # final (more thorough) formula checking will be invoked inside
         # pypicongpu on translation to CPP
-        sympy_density_expression = \
-            sympy.sympify(self.density_expression).subs(self.user_defined_kw)
+        sympy_density_expression = sympy.sympify(self.density_expression).subs(self.user_defined_kw)
         profile.expression = sympy_density_expression
 
         return profile
 
-    def get_picongpu_drift(
-            self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None
@@ -114,12 +105,10 @@ class AnalyticDistribution(picmistandard.PICMI_AnalyticDistribution):
 
 @typechecked
 class GaussianBunchDistribution(picmistandard.PICMI_GaussianBunchDistribution):
-    def picongpu_get_rms_velocity_si(
-            self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_as_pypicongpu(
-            self) -> species.operation.densityprofile.DensityProfile:
+    def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
         # @todo respect boundaries, Brian Marre, 2023
         profile = object()
         profile.lower_bound = (-math.inf, -math.inf, -math.inf)
@@ -129,13 +118,11 @@ class GaussianBunchDistribution(picmistandard.PICMI_GaussianBunchDistribution):
 
         assert 0 != self.rms_bunch_size, "rms bunch size must not be zero"
 
-        profile.max_density_si = self.n_physical_particles / (
-            (2 * math.pi * self.rms_bunch_size**2)**1.5)
+        profile.max_density_si = self.n_physical_particles / ((2 * math.pi * self.rms_bunch_size**2) ** 1.5)
 
         return profile
 
-    def get_picongpu_drift(
-            self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None
@@ -150,12 +137,10 @@ class GaussianBunchDistribution(picmistandard.PICMI_GaussianBunchDistribution):
 
 @typechecked
 class FoilDistribution(picmistandard.PICMI_FoilDistribution):
-    def picongpu_get_rms_velocity_si(
-            self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_as_pypicongpu(self) -> species.operation.densityprofile \
-            .DensityProfile:
+    def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
         util.unsupported("fill in", self.fill_in)
         util.unsupported("lower bound", self.lower_bound, [None, None, None])
         util.unsupported("upper bound", self.upper_bound, [None, None, None])
@@ -166,51 +151,52 @@ class FoilDistribution(picmistandard.PICMI_FoilDistribution):
         foilProfile.thickness_foil_si = self.thickness
 
         # create prePlasma ramp if indicated by settings
-        prePlasma: bool = (
-            (self.exponential_pre_plasma_cutoff is not None)
-            and (self.exponential_pre_plasma_length is not None))
-        explicitlyNoPrePlasma: bool = (
-            (self.exponential_pre_plasma_cutoff is None)
-            and (self.exponential_pre_plasma_length is None))
+        prePlasma: bool = (self.exponential_pre_plasma_cutoff is not None) and (
+            self.exponential_pre_plasma_length is not None
+        )
+        explicitlyNoPrePlasma: bool = (self.exponential_pre_plasma_cutoff is None) and (
+            self.exponential_pre_plasma_length is None
+        )
 
         if prePlasma:
-            foilProfile.pre_foil_plasmaRamp \
-                = species.operation.densityprofile.plasmaramp.Exponential(
-                    self.exponential_pre_plasma_length,
-                    self.exponential_pre_plasma_cutoff)
+            foilProfile.pre_foil_plasmaRamp = species.operation.densityprofile.plasmaramp.Exponential(
+                self.exponential_pre_plasma_length,
+                self.exponential_pre_plasma_cutoff,
+            )
         elif explicitlyNoPrePlasma:
-            foilProfile.pre_foil_plasmaRamp \
-                = species.operation.densityprofile.plasmaramp.None_()
+            foilProfile.pre_foil_plasmaRamp = species.operation.densityprofile.plasmaramp.None_()
         else:
-            raise ValueError("either both exponential_pre_plasma_length and"
-                             " exponential_pre_plasma_cutoff must be set to"
-                             " none or neither!")
+            raise ValueError(
+                "either both exponential_pre_plasma_length and"
+                " exponential_pre_plasma_cutoff must be set to"
+                " none or neither!"
+            )
 
         # create postPlasma ramp if indicated by settings
-        postPlasma: bool = (
-            (self.exponential_post_plasma_cutoff is not None)
-            and (self.exponential_post_plasma_length is not None))
-        explicitlyNoPostPlasma: bool = (
-                (self.exponential_post_plasma_cutoff is None)
-                and (self.exponential_post_plasma_length is None))
+        postPlasma: bool = (self.exponential_post_plasma_cutoff is not None) and (
+            self.exponential_post_plasma_length is not None
+        )
+        explicitlyNoPostPlasma: bool = (self.exponential_post_plasma_cutoff is None) and (
+            self.exponential_post_plasma_length is None
+        )
 
         if postPlasma:
-            foilProfile.post_foil_plasmaRamp \
-                = species.operation.densityprofile.plasmaramp.Exponential(
-                    self.exponential_post_plasma_length,
-                    self.exponential_post_plasma_cutoff)
+            foilProfile.post_foil_plasmaRamp = species.operation.densityprofile.plasmaramp.Exponential(
+                self.exponential_post_plasma_length,
+                self.exponential_post_plasma_cutoff,
+            )
         elif explicitlyNoPostPlasma:
-            foilProfile.post_foil_plasmaRamp \
-                = species.operation.densityprofile.plasmaramp.None_()
+            foilProfile.post_foil_plasmaRamp = species.operation.densityprofile.plasmaramp.None_()
         else:
-            raise ValueError("either both exponential_post_plasma_length and"
-                             " exponential_post_plasma_cutoff must be set to"
-                             " none or neither!")
+            raise ValueError(
+                "either both exponential_post_plasma_length and"
+                " exponential_post_plasma_cutoff must be set to"
+                " none or neither!"
+            )
 
         return foilProfile
 
-    def get_picongpu_drift(
-            self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None

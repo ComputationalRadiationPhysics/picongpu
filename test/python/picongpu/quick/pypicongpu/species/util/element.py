@@ -26,8 +26,7 @@ class TestElement(unittest.TestCase):
             "N": Element.N,
         }
         for name, element in expected_element_by_name.items():
-            self.assertEqual(element,
-                             Element.get_by_openpmd_name(name))
+            self.assertEqual(element, Element.get_by_openpmd_name(name))
 
         for invalid_type in [[], None, 3]:
             with self.assertRaises(typeguard.TypeCheckError):
@@ -69,5 +68,4 @@ class TestElement(unittest.TestCase):
         for element in list(Element):
             context = element.get_rendering_context()
             self.assertEqual(context["symbol"], element.name)
-            self.assertEqual(context["picongpu_name"],
-                             element.get_picongpu_name())
+            self.assertEqual(context["picongpu_name"], element.get_picongpu_name())

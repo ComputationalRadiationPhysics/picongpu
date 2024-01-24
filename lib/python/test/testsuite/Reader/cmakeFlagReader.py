@@ -14,10 +14,12 @@ import os
 
 
 class CMAKEFlagReader(rF.ReadFiles):
-
-    def __init__(self, fileExtension: str = None,
-                 direction: str = None,
-                 directiontype: str = None):
+    def __init__(
+        self,
+        fileExtension: str = None,
+        direction: str = None,
+        directiontype: str = None,
+    ):
         """
         constructor
 
@@ -93,13 +95,13 @@ class CMAKEFlagReader(rF.ReadFiles):
 
         flags = []
 
-        file = open(self._direction + "cmakeFlags", 'r')
+        file = open(self._direction + "cmakeFlags", "r")
         lines = file.readlines()
 
         i = 0
         for line in lines:
             if "flags[" + str(i) + "]=" in line:
-                flags.append(line.split("\"")[1])
+                flags.append(line.split('"')[1])
                 i += 1
 
         return flags
@@ -131,8 +133,7 @@ class CMAKEFlagReader(rF.ReadFiles):
         allparameters = self.getAllSetups()[setup]
 
         if (parameter and parameter.upper()) not in allparameters:
-            raise ValueError("The parameter {} could not be"
-                             " found.".format(parameter))
+            raise ValueError("The parameter {} could not be" " found.".format(parameter))
 
         allparameters = allparameters.split(";")
 

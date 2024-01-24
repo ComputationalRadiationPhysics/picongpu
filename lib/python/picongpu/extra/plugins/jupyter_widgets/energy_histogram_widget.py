@@ -24,15 +24,9 @@ class EnergyHistogramWidget(BaseWidget):
 
       display(EnergyHistogramWidget(run_dir_options="path/to/outputs"))
     """
-    def __init__(self, run_dir_options, fig=None,
-                 output_widget=None, **kwargs):
 
-        BaseWidget.__init__(self,
-                            EnergyHistogramMPL,
-                            run_dir_options,
-                            fig,
-                            output_widget,
-                            **kwargs)
+    def __init__(self, run_dir_options, fig=None, output_widget=None, **kwargs):
+        BaseWidget.__init__(self, EnergyHistogramMPL, run_dir_options, fig, output_widget, **kwargs)
 
     def _create_widgets_for_vis_args(self):
         """
@@ -44,12 +38,7 @@ class EnergyHistogramWidget(BaseWidget):
         a dict mapping keyword argument names of the PIC visualizer
         to the jupyter widgets responsible for adjusting those values.
         """
-        self.species = widgets.Dropdown(description="Species",
-                                        options=["e"],
-                                        value='e')
-        self.species_filter = widgets.Dropdown(description="Species_filter",
-                                               options=['all'],
-                                               value="all")
+        self.species = widgets.Dropdown(description="Species", options=["e"], value="e")
+        self.species_filter = widgets.Dropdown(description="Species_filter", options=["all"], value="all")
 
-        return {'species': self.species,
-                'species_filter': self.species_filter}
+        return {"species": self.species, "species_filter": self.species_filter}

@@ -54,27 +54,25 @@ class EnergyHistogramData(DataReader):
         A string with a path.
         """
         if species is None:
-            raise ValueError('The species parameter can not be None!')
+            raise ValueError("The species parameter can not be None!")
         if species_filter is None:
-            raise ValueError('The species_filter parameter can not be None!')
+            raise ValueError("The species_filter parameter can not be None!")
 
         sim_output_dir = os.path.join(self.run_directory, "simOutput")
         if not os.path.isdir(sim_output_dir):
-            raise IOError('The simOutput/ directory does not exist inside '
-                          'path:\n  {}\n'
-                          'Did you set the proper path to the run directory?\n'
-                          'Did the simulation already run?'
-                          .format(self.run_directory))
+            raise IOError(
+                "The simOutput/ directory does not exist inside "
+                "path:\n  {}\n"
+                "Did you set the proper path to the run directory?\n"
+                "Did the simulation already run?".format(self.run_directory)
+            )
 
         data_file_path = os.path.join(
             sim_output_dir,
-            species + self.data_file_prefix + species_filter +
-            self.data_file_suffix
+            species + self.data_file_prefix + species_filter + self.data_file_suffix,
         )
         if not os.path.isfile(data_file_path):
-            raise IOError('The file {} does not exist.\n'
-                          'Did the simulation already run?'
-                          .format(data_file_path))
+            raise IOError("The file {} does not exist.\n" "Did the simulation already run?".format(data_file_path))
 
         return data_file_path
 
@@ -98,13 +96,9 @@ class EnergyHistogramData(DataReader):
         data_file_path = self.get_data_path(species, species_filter)
 
         # the first column contains the iterations
-        return pd.read_csv(data_file_path,
-                           usecols=(0,),
-                           delimiter=" ",
-                           dtype=np.uint64).values[:, 0]
+        return pd.read_csv(data_file_path, usecols=(0,), delimiter=" ", dtype=np.uint64).values[:, 0]
 
-    def _get_for_iteration(self, iteration, species, species_filter="all",
-                           include_overflow=False, **kwargs):
+    def _get_for_iteration(self, iteration, species, species_filter="all", include_overflow=False, **kwargs):
         """
         Get a histogram for a given iteration.
 
@@ -141,10 +135,7 @@ class EnergyHistogramData(DataReader):
         data_file_path = self.get_data_path(species, species_filter)
 
         # read whole file as pandas.DataFrame
-        data = pd.read_csv(
-            data_file_path,
-            delimiter=" "
-        )
+        data = pd.read_csv(data_file_path, delimiter=" ")
         # upper range of each bin in keV
         #    note: only reads first row and selects the valid energy bins
         bins = pd.read_csv(
@@ -153,19 +144,13 @@ class EnergyHistogramData(DataReader):
             nrows=0,
             delimiter=" ",
             usecols=range(2, data.shape[1] - 2),
-            dtype=np.float64
+            dtype=np.float64,
         ).columns.values.astype(np.float64)
 
         # set DataFrame column names properly
-        data.columns = [
-            'iteration',
-            'underflow'
-        ] + list(bins) + [
-            'overflow',
-            'sum'
-        ]
+        data.columns = ["iteration", "underflow"] + list(bins) + ["overflow", "sum"]
         # set iteration as index
-        data.set_index('iteration', inplace=True)
+        data.set_index("iteration", inplace=True)
 
         # all iterations requested
         if iteration is None:
@@ -173,15 +158,17 @@ class EnergyHistogramData(DataReader):
 
         # verify requested iterations exist
         if not set(iteration).issubset(data.index.values):
-            raise IndexError('Iteration {} is not available!\n'
-                             'List of available iterations: \n'
-                             '{}'.format(iteration, data.index.values))
+            raise IndexError(
+                "Iteration {} is not available!\n"
+                "List of available iterations: \n"
+                "{}".format(iteration, data.index.values)
+            )
 
         # remove unused columns
-        del data['sum']
+        del data["sum"]
         if not include_overflow:
-            del data['underflow']
-            del data['overflow']
+            del data["underflow"]
+            del data["overflow"]
         dt = self.get_dt()
         if len(iteration) > 1:
             return data.loc[iteration].values, bins, iteration, dt

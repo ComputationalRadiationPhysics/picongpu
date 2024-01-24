@@ -12,8 +12,7 @@ import typeguard
 
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.constant import Ionizers
-from picongpu.pypicongpu.species.attribute import \
-    BoundElectrons, Position, Momentum
+from picongpu.pypicongpu.species.attribute import BoundElectrons, Position, Momentum
 
 
 class TestSetBoundElectrons(unittest.TestCase):
@@ -79,8 +78,7 @@ class TestSetBoundElectrons(unittest.TestCase):
         self.assertEqual(1, len(sbe.attributes_by_species))
         self.assertTrue(self.species1 in sbe.attributes_by_species)
         self.assertEqual(1, len(sbe.attributes_by_species[self.species1]))
-        self.assertTrue(isinstance(sbe.attributes_by_species[self.species1][0],
-                                   BoundElectrons))
+        self.assertTrue(isinstance(sbe.attributes_by_species[self.species1][0], BoundElectrons))
 
     def test_ionizers_required(self):
         """ionizers constant must be present"""
@@ -141,5 +139,4 @@ class TestSetBoundElectrons(unittest.TestCase):
 
         context = sbe.get_rendering_context()
         self.assertEqual(1, context["bound_electrons"])
-        self.assertEqual(ion.get_rendering_context(),
-                         context["species"])
+        self.assertEqual(ion.get_rendering_context(), context["species"])

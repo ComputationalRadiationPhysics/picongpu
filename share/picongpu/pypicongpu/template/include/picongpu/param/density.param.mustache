@@ -86,7 +86,7 @@ namespace picongpu
                             // exponential pre-expanded density ramp after plateau of foil
                             constexpr float_64 postPlasmaLength = {{{profile.data.post_foil_plasmaRamp.data.PlasmaLength}}};
                             constexpr float_64 postPlasmaCutoff = {{{profile.data.post_foil_plasmaRamp.data.PlasmaCutoff}}};
-    
+
                         // postfoil downramp
                             if(y > y1 && y < y1 + postPlasmaCutoff)
                                 dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)

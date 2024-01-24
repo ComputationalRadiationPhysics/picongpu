@@ -14,7 +14,6 @@ import testsuite._checkData as cD
 
 
 def _calculate(theory, simulation):
-
     acceptance = cD.checkVariables(variable="acceptance")
 
     # only 1D

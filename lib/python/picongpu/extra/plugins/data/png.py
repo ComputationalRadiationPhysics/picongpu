@@ -18,9 +18,7 @@ except AttributeError:
     collectionsAbc = collections
 
 
-SPECIES_LONG_NAMES = {
-    'e': 'Electrons'
-}
+SPECIES_LONG_NAMES = {"e": "Electrons"}
 
 
 class PNGData(DataReader):
@@ -41,8 +39,14 @@ class PNGData(DataReader):
         self.data_file_prefix = "{0}_png_{1}_{2}_{3}"
         self.data_file_suffix = ".png"
 
-    def get_data_path(self, species=None, species_filter="all",
-                      axis=None, slice_point=None, iteration=None):
+    def get_data_path(
+        self,
+        species=None,
+        species_filter="all",
+        axis=None,
+        slice_point=None,
+        iteration=None,
+    ):
         """
         Return the path to the underlying data file.
 
@@ -74,24 +78,21 @@ class PNGData(DataReader):
         if species is None:
             raise ValueError("The species parameter can not be None!")
         if species_filter is None:
-            raise ValueError('The species_filter parameter can not be None!')
+            raise ValueError("The species_filter parameter can not be None!")
         if axis is None:
-            raise ValueError('The axis parameter can not be None!')
+            raise ValueError("The axis parameter can not be None!")
 
         dir_name = "png" + SPECIES_LONG_NAMES.get(species) + axis.upper()
 
-        output_dir = os.path.join(
-            self.run_directory,
-            "simOutput",
-            dir_name
-        )
+        output_dir = os.path.join(self.run_directory, "simOutput", dir_name)
 
         if not os.path.isdir(output_dir):
-            raise IOError('The simOutput/{0} directory does not '
-                          'exist inside path:\n  {1}\n'
-                          'Did you set the proper path to the run directory?\n'
-                          'Did the simulation already run?'
-                          .format(dir_name, self.run_directory))
+            raise IOError(
+                "The simOutput/{0} directory does not "
+                "exist inside path:\n  {1}\n"
+                "Did you set the proper path to the run directory?\n"
+                "Did the simulation already run?".format(dir_name, self.run_directory)
+            )
 
         if iteration is None:
             return output_dir
@@ -99,33 +100,31 @@ class PNGData(DataReader):
             if slice_point is None:
                 # determine slice point manually as the slice point of the
                 # first png file in alphabetical order
-                slice_point = [
-                    f.split("_")[3] for f in sorted(os.listdir(output_dir)) if
-                    f.endswith(".png")][0]
+                slice_point = [f.split("_")[3] for f in sorted(os.listdir(output_dir)) if f.endswith(".png")][0]
                 slice_point = float(slice_point)
 
-            data_file_name = self.data_file_prefix.format(
-                species,
-                axis,
-                str(slice_point),
-                '{:0>#6d}'.format(iteration)  # leading zeros for iter
-            ) + self.data_file_suffix
-
-            data_file_path = os.path.join(
-                output_dir,
-                data_file_name
+            data_file_name = (
+                self.data_file_prefix.format(
+                    species,
+                    axis,
+                    str(slice_point),
+                    "{:0>#6d}".format(iteration),  # leading zeros for iter
+                )
+                + self.data_file_suffix
             )
 
+            data_file_path = os.path.join(output_dir, data_file_name)
+
             if not os.path.isfile(data_file_path):
-                raise IOError('The file {} does not exist.\n'
-                              'Did the simulation already run?\n'
-                              'Is there a png for this iteration?'
-                              .format(data_file_path))
+                raise IOError(
+                    "The file {} does not exist.\n"
+                    "Did the simulation already run?\n"
+                    "Is there a png for this iteration?".format(data_file_path)
+                )
 
             return data_file_path
 
-    def get_iterations(self, species, species_filter='all', axis=None,
-                       slice_point=None):
+    def get_iterations(self, species, species_filter="all", axis=None, slice_point=None):
         """
         Return an array of iterations with available png files.
 
@@ -148,8 +147,7 @@ class PNGData(DataReader):
         A numpy array of sorted unsigned integers.
         """
         # get the available png files in the directory
-        png_path = self.get_data_path(
-            species, species_filter, axis, slice_point)
+        png_path = self.get_data_path(species, species_filter, axis, slice_point)
         # list of all png image file names
         png_files = [f for f in os.listdir(png_path) if f.endswith(".png")]
 
@@ -158,8 +156,7 @@ class PNGData(DataReader):
 
         return np.array(sorted(iters))
 
-    def _get_for_iteration(self, iteration, species, species_filter='all',
-                           axis=None, slice_point=None, **kwargs):
+    def _get_for_iteration(self, iteration, species, species_filter="all", axis=None, slice_point=None, **kwargs):
         """
         Get an array representation of a PNG file.
 
@@ -187,23 +184,22 @@ class PNGData(DataReader):
         if multiple iterations were requested, otherwise a 3d array
         of shape height x width x 3.
         """
-        available_iterations = self.get_iterations(
-            species, species_filter, axis, slice_point)
+        available_iterations = self.get_iterations(species, species_filter, axis, slice_point)
 
         if iteration is not None:
             if not isinstance(iteration, collectionsAbc.Iterable):
                 iteration = [iteration]
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
-                raise IndexError('Iteration {} is not available!\n'
-                                 'List of available iterations: \n'
-                                 '{}'.format(iteration, available_iterations))
+                raise IndexError(
+                    "Iteration {} is not available!\n"
+                    "List of available iterations: \n"
+                    "{}".format(iteration, available_iterations)
+                )
         else:
             # iteration is None, so we use all available data
             iteration = available_iterations
 
-        imgs = [imread(
-            self.get_data_path(species, species_filter, axis,
-                               slice_point, it)) for it in iteration]
+        imgs = [imread(self.get_data_path(species, species_filter, axis, slice_point, it)) for it in iteration]
 
         return np.array(imgs).squeeze()

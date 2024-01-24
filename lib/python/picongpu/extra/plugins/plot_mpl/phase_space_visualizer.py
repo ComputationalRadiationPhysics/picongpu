@@ -39,8 +39,8 @@ class Visualizer(BaseVisualizer):
         """
         # TODO: remove this and get it from the readers metadata
         # since it seems only correct for species='e' anyway.
-        self.mu = 1.e6
-        self.e_mc_r = 1. / (9.1e-31 * 2.9979e8)
+        self.mu = 1.0e6
+        self.e_mc_r = 1.0 / (9.1e-31 * 2.9979e8)
 
         self.colorbars = None
         # the separate colorbar axes
@@ -99,8 +99,7 @@ class Visualizer(BaseVisualizer):
 
         divider = make_axes_locatable(self.ax)
         for i in range(len(self.colorbar_axes)):
-            cax = divider.append_axes(
-                "right", size="5%", pad=0.5)
+            cax = divider.append_axes("right", size="5%", pad=0.5)
             self.colorbar_axes[i] = cax
 
     def _init_colors(self, run_directories):
@@ -141,22 +140,27 @@ class Visualizer(BaseVisualizer):
         self.plt_obj[idx] = self.ax.imshow(
             np.abs(dat).T * meta.dV,
             extent=meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
-            interpolation='nearest',
-            aspect='auto',
-            origin='lower',
+            interpolation="nearest",
+            aspect="auto",
+            origin="lower",
             norm=LogNorm(),
-            cmap=self.colors[idx])
+            cmap=self.colors[idx],
+        )
         # create the colorbar and a separate ax for it
-        self.colorbars[idx] = plt.colorbar(
-            self.plt_obj[idx], cax=self.colorbar_axes[idx])
+        self.colorbars[idx] = plt.colorbar(self.plt_obj[idx], cax=self.colorbar_axes[idx])
         self.colorbars[idx].solids.set_edgecolor("face")
         self.colorbars[idx].ax.text(
-            .5, .5, self.sim_labels[idx], ha='center',
-            va='center', rotation=270,
-            transform=self.colorbar_axes[idx].transAxes)
+            0.5,
+            0.5,
+            self.sim_labels[idx],
+            ha="center",
+            va="center",
+            rotation=270,
+            transform=self.colorbar_axes[idx].transAxes,
+        )
 
-        self.ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, r'\mathrm{\mu m}'))
-        self.ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
+        self.ax.set_xlabel(r"${0}$ [${1}$]".format(meta.r, r"\mathrm{\mu m}"))
+        self.ax.set_ylabel(r"$p_{0}$ [$\beta\gamma$]".format(meta.p))
 
     def _update_plt_obj(self, idx):
         """
@@ -200,15 +204,17 @@ class Visualizer(BaseVisualizer):
         """Overridden from base."""
         # only for the first index that is not None we set the description
         # (which is the innermost colorbar)
-        idx = [
-            i for i, cbar in enumerate(self.colorbars) if cbar is not None][0]
+        idx = [i for i, cbar in enumerate(self.colorbars) if cbar is not None][0]
 
         self.colorbars[idx].ax.text(
-            -1.2, 0.5,
-            r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$]',
-            ha='center', va='center',
+            -1.2,
+            0.5,
+            r"$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$]",
+            ha="center",
+            va="center",
             transform=self.colorbar_axes[idx].transAxes,
-            rotation=270)
+            rotation=270,
+        )
 
         # prevent squeezing of colorbars and labels
         self.ax.figure.tight_layout()
@@ -224,20 +230,21 @@ class Visualizer(BaseVisualizer):
                 self._remove_colorbar(idx)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     def main():
-
         import sys
         import getopt
 
         def usage():
             print("usage:")
             print(
-                "python", sys.argv[0],
+                "python",
+                sys.argv[0],
                 "-p <path to run_directory> -i <iteration>"
                 " -s <particle species> -f <species_filter>"
-                " -m <phase space selection>")
+                " -m <phase space selection>",
+            )
 
         path = None
         iteration = None
@@ -245,8 +252,11 @@ if __name__ == '__main__':
         filtr = None
         momentum = None
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:m:", [
-                "help", "path", "iteration", "species", "filter", "momentum"])
+            opts, args = getopt.getopt(
+                sys.argv[1:],
+                "hp:i:s:f:m:",
+                ["help", "path", "iteration", "species", "filter", "momentum"],
+            )
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -273,18 +283,17 @@ if __name__ == '__main__':
             usage()
             sys.exit(2)
         if species is None:
-            species = 'e'
+            species = "e"
             print("Particle species was not given, will use", species)
         if filtr is None:
-            filtr = 'all'
+            filtr = "all"
             print("Species filter was not given, will use", filtr)
         if momentum is None:
-            momentum = 'ypy'
+            momentum = "ypy"
             print("Momentum term was not given, will use", momentum)
 
         _, ax = plt.subplots(1, 1)
-        Visualizer(path, ax).visualize(iteration=iteration, species=species,
-                                       species_filter=filtr, ps=momentum)
+        Visualizer(path, ax).visualize(iteration=iteration, species=species, species_filter=filtr, ps=momentum)
         plt.show()
 
     main()

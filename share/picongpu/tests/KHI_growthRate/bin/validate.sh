@@ -66,5 +66,3 @@ MAINTEST="$PICSRC/lib/python/test/setups/ESKHI"
 
 python $MAINTEST/main.py -p "$inputSetPath/include/picongpu/param" -r "$dataPath" -s "$dataPath"
 exit $?
-
-

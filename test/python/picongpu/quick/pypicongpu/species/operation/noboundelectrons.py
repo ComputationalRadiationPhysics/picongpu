@@ -82,5 +82,4 @@ class TestNoBoundElectrons(unittest.TestCase):
         self.assertEqual(1, len(nbe.attributes_by_species))
 
         self.assertEqual(1, len(nbe.attributes_by_species[self.species1]))
-        self.assertTrue(isinstance(nbe.attributes_by_species[self.species1][0],
-                                   BoundElectrons))
+        self.assertTrue(isinstance(nbe.attributes_by_species[self.species1][0], BoundElectrons))

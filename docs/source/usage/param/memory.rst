@@ -26,4 +26,3 @@ mallocMC.param
    :project: PIConGPU
    :path: include/picongpu/param/mallocMC.param
    :no-link:
-

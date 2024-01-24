@@ -32,15 +32,13 @@ class Ionizers(Constant):
     def check(self) -> None:
         # import here to avoid circular import
         from ..species import Species
+
         if not isinstance(self.electron_species, Species):
-            raise TypeError(
-                "electron_species must be of type pypicongpu Species")
+            raise TypeError("electron_species must be of type pypicongpu Species")
 
         # electron species must not be ionizable
         if self.electron_species.has_constant_of_type(Ionizers):
-            raise ValueError(
-                "used electron species {} must not be ionizable itself"
-                .format(self.electron_species.name))
+            raise ValueError("used electron species {} must not be ionizable itself".format(self.electron_species.name))
 
         # note: do **NOT** check() electron species here
         # -> it is not fully initialized at this point in the initialization

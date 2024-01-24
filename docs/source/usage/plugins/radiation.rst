@@ -596,4 +596,3 @@ References
        *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*,
        PhD Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
        https://doi.org/10.5281/zenodo.3616045
-

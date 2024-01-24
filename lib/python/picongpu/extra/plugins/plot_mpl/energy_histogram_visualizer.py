@@ -46,14 +46,11 @@ class Visualizer(BaseVisualizer):
         counts, bins, iteration, dt = self.data[idx]
         label = self.sim_labels[idx]
 
-        if np.all(counts == 0.):
-            warn("All counts were 0 for {}. ".format(label) +
-                 "No log-plot can be created!")
+        if np.all(counts == 0.0):
+            warn("All counts were 0 for {}. ".format(label) + "No log-plot can be created!")
             return
 
-        self.plt_obj[idx] = self.ax.semilogy(
-            bins, counts, nonpositive='clip', label=label,
-            color=self.colors[idx])[0]
+        self.plt_obj[idx] = self.ax.semilogy(bins, counts, nonpositive="clip", label=label, color=self.colors[idx])[0]
 
     def _update_plt_obj(self, idx):
         """
@@ -62,9 +59,8 @@ class Visualizer(BaseVisualizer):
         counts, bins, iteration, dt = self.data[idx]
         label = self.sim_labels[idx]
 
-        if np.all(counts == 0.):
-            warn("All counts were 0 for {}. ".format(label) +
-                 "Log-plot will not be updated!")
+        if np.all(counts == 0.0):
+            warn("All counts were 0 for {}. ".format(label) + "Log-plot will not be updated!")
             return
 
         self.plt_obj[idx].set_data(bins, counts)
@@ -93,16 +89,15 @@ class Visualizer(BaseVisualizer):
         super().visualize(**kwargs)
 
     def adjust_plot(self, **kwargs):
-        species = kwargs['species']
-        species_filter = kwargs.get('species_filter', 'all')
+        species = kwargs["species"]
+        species_filter = kwargs.get("species_filter", "all")
 
         self._legend()
         self.ax.relim()
         self.ax.autoscale_view(True, True, True)
-        self.ax.set_xlabel('Energy [keV]')
-        self.ax.set_ylabel('Counts')
-        self.ax.set_title('Energy Histogram for species ' +
-                          species + ', filter = ' + species_filter)
+        self.ax.set_xlabel("Energy [keV]")
+        self.ax.set_ylabel("Counts")
+        self.ax.set_title("Energy Histogram for species " + species + ", filter = " + species_filter)
 
     def _legend(self):
         # draw the legend only for those lines for which there is data.
@@ -118,7 +113,7 @@ class Visualizer(BaseVisualizer):
         self.ax.legend(handles, labels)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     def main():
         import sys
@@ -128,9 +123,10 @@ if __name__ == '__main__':
         def usage():
             print("usage:")
             print(
-                "python", sys.argv[0],
-                "-p <path to run_directory> -i <iteration>"
-                " -s <particle species> -f <species_filter>")
+                "python",
+                sys.argv[0],
+                "-p <path to run_directory> -i <iteration>" " -s <particle species> -f <species_filter>",
+            )
 
         path = None
         iteration = None
@@ -138,8 +134,11 @@ if __name__ == '__main__':
         filtr = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:", [
-                "help", "path", "iteration", "species", "filter"])
+            opts, args = getopt.getopt(
+                sys.argv[1:],
+                "hp:i:s:f:",
+                ["help", "path", "iteration", "species", "filter"],
+            )
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -164,15 +163,14 @@ if __name__ == '__main__':
             usage()
             sys.exit(2)
         if species is None:
-            species = 'e'
+            species = "e"
             print("Particle species was not given, will use", species)
         if filtr is None:
-            filtr = 'all'
+            filtr = "all"
             print("Species filter was not given, will use", filtr)
 
         _, ax = plt.subplots(1, 1)
-        Visualizer(path, ax).visualize(iteration=iteration, species=species,
-                                       species_filter=filtr)
+        Visualizer(path, ax).visualize(iteration=iteration, species=species, species_filter=filtr)
         plt.show()
 
     main()

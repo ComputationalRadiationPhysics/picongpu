@@ -23,17 +23,19 @@ getValue(parameter:str, direction:str = None)
 """
 
 
-__all__ = ['JSONReader']
+__all__ = ["JSONReader"]
 
 import json
 from . import readFiles as rF
 
 
 class JSONReader(rF.ReadFiles):
-
-    def __init__(self, fileExtension: str = r".json",
-                 direction: str = None,
-                 directiontype: str = None):
+    def __init__(
+        self,
+        fileExtension: str = r".json",
+        direction: str = None,
+        directiontype: str = None,
+    ):
         """
         constructor
 
@@ -88,15 +90,15 @@ class JSONReader(rF.ReadFiles):
 
         # check if there are .param Files
         if not self.checkFilesInDir():
-            raise FileNotFoundError("No .json files could be found in the"
-                                    " specified directory. Note: "
-                                    "The directory from config.py may"
-                                    " have been used (if config.py defined).")
+            raise FileNotFoundError(
+                "No .json files could be found in the"
+                " specified directory. Note: "
+                "The directory from config.py may"
+                " have been used (if config.py defined)."
+            )
 
         for file in self.getAllFiles():
-
             with open(self._direction + file) as json_file:
-
                 data = json.load(json_file)
 
                 if parameter in data:
@@ -131,20 +133,17 @@ class JSONReader(rF.ReadFiles):
         """
 
         if not self.getJSONwithParam(parameter):
-            raise ValueError("The parameter could not be found in"
-                             " the .json Files")
+            raise ValueError("The parameter could not be found in" " the .json Files")
 
         all_files = self.getJSONwithParam(parameter)
 
         for file in all_files:
             with open(self._direction + file) as json_file:
-
                 data = json.load(json_file)
 
                 if "value" not in locals():
                     value = data[parameter]
                 elif "value" in locals() and value != data[parameter]:
-                    raise ValueError("More than one value could be found"
-                                     " for {}".format(parameter))
+                    raise ValueError("More than one value could be found" " for {}".format(parameter))
 
         return value["values"]

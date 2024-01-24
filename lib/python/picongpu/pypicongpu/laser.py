@@ -23,6 +23,7 @@ class GaussianLaser(RenderedObject):
 
     class PolarizationType(Enum):
         """represents a polarization of a laser (for PIConGPU)"""
+
         LINEAR = 1
         CIRCULAR = 2
 
@@ -58,8 +59,7 @@ class GaussianLaser(RenderedObject):
     """array containing the magnitudes of radial Laguerre-modes"""
     laguerre_phases = util.build_typesafe_property(typing.List[float])
     """array containing the phases of radial Laguerre-modes"""
-    huygens_surface_positions = util.build_typesafe_property(typing.List[
-        typing.List[int]])
+    huygens_surface_positions = util.build_typesafe_property(typing.List[typing.List[int]])
     """Position in cells of the Huygens surface relative to start/
        edge(negative numbers) of the total domain"""
 
@@ -69,37 +69,35 @@ class GaussianLaser(RenderedObject):
         if [] == self.laguerre_phases:
             raise ValueError("Laguerre phases MUST NOT be empty.")
         if len(self.laguerre_phases) != len(self.laguerre_modes):
-            raise ValueError("Laguerre modes and Laguerre phases MUST BE "
-                             "arrays of equal length.")
+            raise ValueError("Laguerre modes and Laguerre phases MUST BE " "arrays of equal length.")
         if len(list(filter(lambda x: x < 0, self.laguerre_modes))) > 0:
-            logging.warning(
-                "Laguerre mode magnitudes SHOULD BE positive definite.")
+            logging.warning("Laguerre mode magnitudes SHOULD BE positive definite.")
         return {
             "wave_length_si": self.wavelength,
             "waist_si": self.waist,
             "pulse_duration_si": self.duration,
-            "focus_pos_si": list(map(lambda x: {"component": x},
-                                     self.focus_pos)),
+            "focus_pos_si": list(map(lambda x: {"component": x}, self.focus_pos)),
             "phase": self.phase,
             "E0_si": self.E0,
             "pulse_init": self.pulse_init,
-            "propagation_direction": list(map(lambda x: {"component": x},
-                                              self.propagation_direction)),
+            "propagation_direction": list(map(lambda x: {"component": x}, self.propagation_direction)),
             "polarization_type": self.polarization_type.get_cpp_str(),
-            "polarization_direction": list(map(
-                lambda x: {"component": x},
-                self.polarization_direction)),
-            "laguerre_modes": list(map(
-                lambda x: {"single_laguerre_mode": x},
-                self.laguerre_modes)),
-            "laguerre_phases": list(map(lambda x: {"single_laguerre_phase": x},
-                                        self.laguerre_phases)),
-            "modenumber": len(self.laguerre_modes)-1,
+            "polarization_direction": list(map(lambda x: {"component": x}, self.polarization_direction)),
+            "laguerre_modes": list(map(lambda x: {"single_laguerre_mode": x}, self.laguerre_modes)),
+            "laguerre_phases": list(map(lambda x: {"single_laguerre_phase": x}, self.laguerre_phases)),
+            "modenumber": len(self.laguerre_modes) - 1,
             "huygens_surface_positions": {
-                "row_x": {"negative": self.huygens_surface_positions[0][0],
-                          "positive": self.huygens_surface_positions[0][1]},
-                "row_y": {"negative": self.huygens_surface_positions[1][0],
-                          "positive": self.huygens_surface_positions[1][1]},
-                "row_z": {"negative": self.huygens_surface_positions[2][0],
-                          "positive": self.huygens_surface_positions[2][1]}}
-            }
+                "row_x": {
+                    "negative": self.huygens_surface_positions[0][0],
+                    "positive": self.huygens_surface_positions[0][1],
+                },
+                "row_y": {
+                    "negative": self.huygens_surface_positions[1][0],
+                    "positive": self.huygens_surface_positions[1][1],
+                },
+                "row_z": {
+                    "negative": self.huygens_surface_positions[2][0],
+                    "positive": self.huygens_surface_positions[2][1],
+                },
+            },
+        }

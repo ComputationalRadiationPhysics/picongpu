@@ -67,7 +67,7 @@ def theory(gamma, **kwargs):
     out : theoretical values!
     """
 
-    return (1 / ((8**0.5) * gamma))
+    return 1 / ((8**0.5) * gamma)
 
 
 def simData(Bx, **kwargs):
@@ -85,8 +85,7 @@ def simData(Bx, **kwargs):
     out : values from the simulation!
     """
     frequency = ts.Math.physics.plasmafrequence()
-    time = ts.Math.physics.calculateTimeFreq(
-                           frequency, step_direction="fields_energy.dat")
+    time = ts.Math.physics.calculateTimeFreq(frequency, step_direction="fields_energy.dat")
 
     sim_values = ts.Math.math.growthRate(Bx, time)
     return sim_values

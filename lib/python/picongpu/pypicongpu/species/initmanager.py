@@ -9,8 +9,13 @@ import typeguard
 import typing
 from .. import util
 from .species import Species
-from .operation import Operation, DensityOperation, SimpleDensity, \
-    SimpleMomentum, SetBoundElectrons
+from .operation import (
+    Operation,
+    DensityOperation,
+    SimpleDensity,
+    SimpleMomentum,
+    SetBoundElectrons,
+)
 from .attribute import Attribute
 from .constant import Constant
 from functools import reduce
@@ -72,10 +77,12 @@ class InitManager(RenderedObject):
         :return: list of all attributes
         """
         return list(
-            reduce(lambda list_a, list_b: list_a + list_b,
-                   map(lambda species: species.attributes,
-                       self.all_species),
-                   []))
+            reduce(
+                lambda list_a, list_b: list_a + list_b,
+                map(lambda species: species.attributes, self.all_species),
+                [],
+            )
+        )
 
     def __precheck_species_conflicts(self) -> None:
         """
@@ -89,22 +96,17 @@ class InitManager(RenderedObject):
         - name not unique in self.all_species
         """
         # (1) check object uniqueness
-        duplicate_species = set([species.name
-                                 for species in self.all_species
-                                 if self.all_species.count(species) > 1])
+        duplicate_species = set([species.name for species in self.all_species if self.all_species.count(species) > 1])
         if 0 != len(duplicate_species):
             raise ValueError(
-                "every species object may only be added once, offending: {}"
-                .format(", ".join(duplicate_species)))
+                "every species object may only be added once, offending: {}".format(", ".join(duplicate_species))
+            )
 
         # (2) check name conflicts
         species_names = [species.name for species in self.all_species]
-        duplicate_names = set([name
-                               for name in species_names
-                               if species_names.count(name) > 1])
+        duplicate_names = set([name for name in species_names if species_names.count(name) > 1])
         if 0 != len(duplicate_names):
-            raise ValueError("species names must be unique, offending: {}"
-                             .format(", ".join(duplicate_names)))
+            raise ValueError("species names must be unique, offending: {}".format(", ".join(duplicate_names)))
 
     def __precheck_operation_conflicts(self) -> None:
         """
@@ -117,18 +119,16 @@ class InitManager(RenderedObject):
         - same object twice in self.all_operations
         """
         duplicate_operations = set(
-            [operation
-             for operation in self.all_operations
-             if self.all_operations.count(operation) > 1])
+            [operation for operation in self.all_operations if self.all_operations.count(operation) > 1]
+        )
         if 0 != len(duplicate_operations):
             raise ValueError(
-                "every operation object may only be added once, offending: {}"
-                .format(", ".join(map(str, duplicate_operations))))
+                "every operation object may only be added once, offending: {}".format(
+                    ", ".join(map(str, duplicate_operations))
+                )
+            )
 
-    def __check_operation_phase_left_attributes_untouched(
-            self,
-            phase_name: str,
-            operation: Operation) -> None:
+    def __check_operation_phase_left_attributes_untouched(self, phase_name: str, operation: Operation) -> None:
         """
         ensures that no attributes have been added to any species
 
@@ -143,15 +143,13 @@ class InitManager(RenderedObject):
         # use assertion instead of ValueError()
         # rationale: assertions check self (be unfriendly),
         #            ValueError()s user input (be more friendly)
-        assert 0 == len(self.__get_all_attributes()), \
-            "phase {} of operation {} added attributes: {}".format(
-                phase_name,
-                str(operation),
-                ", ".join(map(lambda attr: attr.PICONGPU_NAME,
-                              self.__get_all_attributes())))
+        assert 0 == len(self.__get_all_attributes()), "phase {} of operation {} added attributes: {}".format(
+            phase_name,
+            str(operation),
+            ", ".join(map(lambda attr: attr.PICONGPU_NAME, self.__get_all_attributes())),
+        )
 
-    def __check_operation_prebook_only_known_species(
-            self, operation: Operation) -> None:
+    def __check_operation_prebook_only_known_species(self, operation: Operation) -> None:
         """
         ensure that only registered species are prebooked
 
@@ -163,13 +161,11 @@ class InitManager(RenderedObject):
         prebooked_species = set(operation.attributes_by_species.keys())
         unknown_species = prebooked_species - set(self.all_species)
         if 0 != len(unknown_species):
-            unknown_species_names = list(map(lambda species: species.name,
-                                             unknown_species))
+            unknown_species_names = list(map(lambda species: species.name, unknown_species))
             raise ValueError(
                 "operation {} initialized species, but they are not "
-                "registered in InitManager.all_species: {}"
-                .format(str(operation),
-                        ", ".join(unknown_species_names)))
+                "registered in InitManager.all_species: {}".format(str(operation), ", ".join(unknown_species_names))
+            )
 
     def __check_attributes_species_exclusive(self) -> None:
         """
@@ -178,13 +174,14 @@ class InitManager(RenderedObject):
         if ok passes silently
         """
         all_attributes = list(
-            reduce(lambda list_a, list_b: list_a + list_b,
-                   map(lambda species: species.attributes,
-                       self.all_species),
-                   []))
+            reduce(
+                lambda list_a, list_b: list_a + list_b,
+                map(lambda species: species.attributes, self.all_species),
+                [],
+            )
+        )
         if len(all_attributes) != len(set(all_attributes)):
-            raise ValueError(
-                "attributes must be exclusively owned by exactly one species")
+            raise ValueError("attributes must be exclusively owned by exactly one species")
 
     def __check_species_dependencies_registered(self) -> None:
         """
@@ -201,8 +198,8 @@ class InitManager(RenderedObject):
                     if dependency not in self.all_species:
                         raise ReferenceError(
                             "species {} is dependency (is required by) {}, "
-                            "but unkown to the init manager"
-                            .format(dependency.name, species.name))
+                            "but unkown to the init manager".format(dependency.name, species.name)
+                        )
 
     def __check_species_dependencies_circular(self) -> None:
         """
@@ -225,8 +222,7 @@ class InitManager(RenderedObject):
 
             # initialize closure with immediate dependencies
             for constant in species.constants:
-                dependency_closure = dependency_closure.union(
-                    constant.get_species_dependencies())
+                dependency_closure = dependency_closure.union(constant.get_species_dependencies())
 
             # compute transitive dependencies
             is_closure_final = False
@@ -234,20 +230,19 @@ class InitManager(RenderedObject):
                 closure_size_before = len(dependency_closure)
                 for dependency_species in dependency_closure:
                     for constant in dependency_species.constants:
-                        dependency_closure = dependency_closure.union(
-                            constant.get_species_dependencies())
+                        dependency_closure = dependency_closure.union(constant.get_species_dependencies())
                 closure_size_after = len(dependency_closure)
-                is_closure_final = (closure_size_after == closure_size_before)
+                is_closure_final = closure_size_after == closure_size_before
 
             # check: self in dependency closure?
             if species in dependency_closure:
                 raise RecursionError(
                     "species {} is in circular dependency, "
-                    "all dependencies are: {}"
-                    .format(species.name,
-                            ", ".join(map(
-                                lambda species: species.name,
-                                dependency_closure))))
+                    "all dependencies are: {}".format(
+                        species.name,
+                        ", ".join(map(lambda species: species.name, dependency_closure)),
+                    )
+                )
 
     def __reorder_species_dependencies(self) -> None:
         """
@@ -282,10 +277,12 @@ class InitManager(RenderedObject):
         # initialize each species with its current index
         # -> if possible, the order will be preserved
         ordernumber_by_species = dict(
-            map(lambda species: (species, self.all_species.index(species)),
-                self.all_species))
-        assert 0 == len(ordernumber_by_species) or \
-            0 <= min(ordernumber_by_species.values())
+            map(
+                lambda species: (species, self.all_species.index(species)),
+                self.all_species,
+            )
+        )
+        assert 0 == len(ordernumber_by_species) or 0 <= min(ordernumber_by_species.values())
 
         is_ordering_final = False
         while not is_ordering_final:
@@ -299,19 +296,17 @@ class InitManager(RenderedObject):
                     for dependency in constant.get_species_dependencies():
                         dependencies_max_ordernumber = max(
                             dependencies_max_ordernumber,
-                            ordernumber_by_species[dependency])
+                            ordernumber_by_species[dependency],
+                        )
 
                 # ensure self comes *after* all dependencies
                 self_ordernumber = ordernumber_by_species[species]
                 if dependencies_max_ordernumber >= self_ordernumber:
                     is_ordering_final = False
-                    ordernumber_by_species[species] = \
-                        1 + dependencies_max_ordernumber
+                    ordernumber_by_species[species] = 1 + dependencies_max_ordernumber
 
         # actually reorder species
-        self.all_species = sorted(
-            self.all_species,
-            key=lambda species: ordernumber_by_species[species])
+        self.all_species = sorted(self.all_species, key=lambda species: ordernumber_by_species[species])
 
     def __check_constant_attribute_dependencies(self) -> None:
         """
@@ -327,8 +322,7 @@ class InitManager(RenderedObject):
         dependencies can be checked with this method.
         """
         for species in self.all_species:
-            species_attr_names = set(map(lambda attr: attr.PICONGPU_NAME,
-                                         species.attributes))
+            species_attr_names = set(map(lambda attr: attr.PICONGPU_NAME, species.attributes))
 
             for constant in species.constants:
                 required_attrs = constant.get_attribute_dependencies()
@@ -338,14 +332,15 @@ class InitManager(RenderedObject):
                 for required_attr in required_attrs:
                     if not issubclass(required_attr, Attribute):
                         raise typeguard.TypeCheckError(
-                            "required attribute must be attribute type, "
-                            "got: {}".format(required_attr))
+                            "required attribute must be attribute type, " "got: {}".format(required_attr)
+                        )
 
                     # actual check:
-                    assert required_attr.PICONGPU_NAME in species_attr_names, \
-                        "constant {} of species {} requires attribute {} to " \
-                        "be present, but it is not" \
-                        .format(constant, species.name, required_attr)
+                    assert (
+                        required_attr.PICONGPU_NAME in species_attr_names
+                    ), "constant {} of species {} requires attribute {} to " "be present, but it is not".format(
+                        constant, species.name, required_attr
+                    )
 
     def __check_constant_constant_dependencies(self):
         """
@@ -369,19 +364,19 @@ class InitManager(RenderedObject):
                 for required_constant in required_constants:
                     if not issubclass(required_constant, Constant):
                         raise typeguard.TypeCheckError(
-                            "required constants must be of Constant type, "
-                            "got: {}".format(required_constant))
+                            "required constants must be of Constant type, " "got: {}".format(required_constant)
+                        )
 
                     # self-references are not allowed
                     if type(constant) is required_constant:
-                        raise ReferenceError(
-                            "constants may not depend on themselves")
+                        raise ReferenceError("constants may not depend on themselves")
 
                     # check if constant exists
-                    assert species.has_constant_of_type(required_constant), \
-                        "species {}: required constant {} not found, " \
-                        "(required by constant {})" \
-                        .format(species.name, required_constant, constant)
+                    assert species.has_constant_of_type(
+                        required_constant
+                    ), "species {}: required constant {} not found, " "(required by constant {})".format(
+                        species.name, required_constant, constant
+                    )
 
     def bake(self) -> None:
         """
@@ -407,8 +402,7 @@ class InitManager(RenderedObject):
         # apply operation: check
         for operation in self.all_operations:
             operation.check_preconditions()
-            self.__check_operation_phase_left_attributes_untouched(
-                "check", operation)
+            self.__check_operation_phase_left_attributes_untouched("check", operation)
 
         # sync across operations:
         # all checks must pass before the first prebook is called
@@ -416,8 +410,7 @@ class InitManager(RenderedObject):
         # apply operation: prebook
         for operation in self.all_operations:
             operation.prebook_species_attributes()
-            self.__check_operation_phase_left_attributes_untouched(
-                "prebook", operation)
+            self.__check_operation_phase_left_attributes_untouched("prebook", operation)
             self.__check_operation_prebook_only_known_species(operation)
 
         # sync across operations:
@@ -468,7 +461,7 @@ class InitManager(RenderedObject):
         if min_ppc < 1:
             min_ppc = 1
 
-        return (max_ppc - min_ppc)//2 + min_ppc
+        return (max_ppc - min_ppc) // 2 + min_ppc
 
     def _get_serialized(self) -> dict:
         """
@@ -504,7 +497,6 @@ class InitManager(RenderedObject):
             "simple_density": SimpleDensity,
             "simple_momentum": SimpleMomentum,
             "set_bound_electrons": SetBoundElectrons,
-
             # note: NotPlaced is not rendered (as it provides no data & does
             # nothing anyways) -> it is not in this list
             # same as NoBoundElectrons
@@ -515,13 +507,13 @@ class InitManager(RenderedObject):
         operations_context = {}
         for op_name, op_type in operation_types_by_name.items():
             operations_context[op_name] = list(
-                map(lambda op: op.get_rendering_context(),
-                    filter(lambda op: type(op) is op_type,
-                           self.all_operations)))
+                map(
+                    lambda op: op.get_rendering_context(),
+                    filter(lambda op: type(op) is op_type, self.all_operations),
+                )
+            )
 
         return {
-            "species": list(map(
-                lambda species: species.get_rendering_context(),
-                self.all_species)),
+            "species": list(map(lambda species: species.get_rendering_context(), self.all_species)),
             "operations": operations_context,
         }

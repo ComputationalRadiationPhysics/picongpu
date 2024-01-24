@@ -14,6 +14,7 @@ class DataReader(object):
     """
     Base class that all data readers should inherit from.
     """
+
     def __init__(self, run_directory):
         """
         Parameters
@@ -23,7 +24,7 @@ class DataReader(object):
             (the path before ``simOutput/``)
         """
         if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
+            raise ValueError("The run_directory parameter can not be None!")
 
         self.run_directory = run_directory
         self.find_time = FindTime(run_directory)
@@ -90,27 +91,24 @@ class DataReader(object):
         The data for the requested parameters in a plugin
         dependent format and type.
         """
-        if 'iteration' not in kwargs and 'time' not in kwargs:
-            raise ValueError(
-                "One of 'iteration' and 'time' parameters"
-                " has to be present!")
+        if "iteration" not in kwargs and "time" not in kwargs:
+            raise ValueError("One of 'iteration' and 'time' parameters" " has to be present!")
 
         iteration = None
-        if 'iteration' in kwargs:
+        if "iteration" in kwargs:
             # remove the entry from kwargs since we pass that
             # on
-            iteration = kwargs.pop('iteration')
+            iteration = kwargs.pop("iteration")
 
-        if 'time' in kwargs:
+        if "time" in kwargs:
             # we have time and override the iteration
             # by the converted time
-            time = kwargs.pop('time')
+            time = kwargs.pop("time")
             if time is None:
                 # use all times that are available, i.e. all iterations
                 iteration = self.get_iterations(*args, **kwargs)
             else:
-                iteration = self.find_time.get_iteration(
-                    time, method='closest')
+                iteration = self.find_time.get_iteration(time, method="closest")
             # print("got 'time'=", time, ", converted to iter", iteration)
 
         return self._get_for_iteration(iteration, *args, **kwargs)

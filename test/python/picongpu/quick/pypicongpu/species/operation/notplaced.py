@@ -60,6 +60,5 @@ class TestNotPlaced(unittest.TestCase):
 
         attributes = np.attributes_by_species[np.species]
         self.assertEqual(2, len(attributes))
-        attr_types = set(map(lambda attr: type(attr),
-                             attributes))
+        attr_types = set(map(lambda attr: type(attr), attributes))
         self.assertEqual({Position, Weighting}, attr_types)

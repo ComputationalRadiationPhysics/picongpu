@@ -23,13 +23,7 @@ class MemoryCalculator:
     so far use up negligible amounts of memory on the device.
     """
 
-    def __init__(
-            self,
-            n_x,
-            n_y,
-            n_z,
-            precision_bits=32
-    ):
+    def __init__(self, n_x, n_y, n_z, precision_bits=32):
         """
         Class constructor
 
@@ -59,21 +53,19 @@ class MemoryCalculator:
             # value size in bytes
             self.value_size = np.float64().itemsize
         else:
-            raise ValueError(
-                "PIConGPU only supports either 32 or 64 bits precision."
-            )
+            raise ValueError("PIConGPU only supports either 32 or 64 bits precision.")
 
     def mem_req_by_fields(
-            self,
-            n_x=None,
-            n_y=None,
-            n_z=None,
-            field_tmp_slots=1,
-            particle_shape_order=2,
-            sim_dim=3,
-            pml_n_x=0,
-            pml_n_y=0,
-            pml_n_z=0
+        self,
+        n_x=None,
+        n_y=None,
+        n_z=None,
+        field_tmp_slots=1,
+        particle_shape_order=2,
+        sim_dim=3,
+        pml_n_x=0,
+        pml_n_y=0,
+        pml_n_z=0,
     ):
         """
         Memory reserved for fields on each device
@@ -131,10 +123,10 @@ class MemoryCalculator:
 
         if sim_dim == 2:
             # super cell size in cells in x, y, z
-            supercell_size = np.array(
-                [16, 16, 1])  # \TODO make this more generic
-            local_cells = (n_x + supercell_size[0] * 2 * guard_size_supercells[
-                0]) * (n_y + supercell_size[1] * 2 * guard_size_supercells[1])
+            supercell_size = np.array([16, 16, 1])  # \TODO make this more generic
+            local_cells = (n_x + supercell_size[0] * 2 * guard_size_supercells[0]) * (
+                n_y + supercell_size[1] * 2 * guard_size_supercells[1]
+            )
             local_pml_cells = n_x * n_y - (n_x - pml_n_x) * (n_y - pml_n_y)
 
             # cells around core-border region due to particle shape
@@ -144,23 +136,16 @@ class MemoryCalculator:
             # \TODO make this more generic
             supercell_size = np.array([8, 8, 4])
             local_cells = (
-                n_x + supercell_size[0] * 2 *
-                guard_size_supercells[0]) \
-                * (n_y + supercell_size[1] * 2 *
-                   guard_size_supercells[1]) \
-                * (n_z + supercell_size[2] * 2 *
-                   guard_size_supercells[2])
-            local_pml_cells = n_x * n_y * n_z \
-                - (n_x - pml_n_x) * (n_y - pml_n_y) * (n_z - pml_n_z)
+                (n_x + supercell_size[0] * 2 * guard_size_supercells[0])
+                * (n_y + supercell_size[1] * 2 * guard_size_supercells[1])
+                * (n_z + supercell_size[2] * 2 * guard_size_supercells[2])
+            )
+            local_pml_cells = n_x * n_y * n_z - (n_x - pml_n_x) * (n_y - pml_n_y) * (n_z - pml_n_z)
 
             # cells around core-border region due to particle shape
-            double_buffer_cells = (n_x + pso) * (n_y + pso) * (n_z + pso) \
-                - n_x * n_y * n_z
+            double_buffer_cells = (n_x + pso) * (n_y + pso) * (n_z + pso) - n_x * n_y * n_z
         else:
-            raise ValueError(
-                "PIConGPU only runs in either 2D or 3D: ",
-                sim_dim,
-                " =/= {2, 3}")
+            raise ValueError("PIConGPU only runs in either 2D or 3D: ", sim_dim, " =/= {2, 3}")
 
         # number of fields: 3 * 3 = x,y,z for E,B,J
         num_fields = 3 * 3 + field_tmp_slots
@@ -170,19 +155,21 @@ class MemoryCalculator:
         # 2 additional scalar fields for each of Ex, Ey, Ez, Bx, By, Bz
         num_pml_fields = 12
 
-        req_mem = self.value_size * num_fields * local_cells \
-            + double_buffer_mem \
+        req_mem = (
+            self.value_size * num_fields * local_cells
+            + double_buffer_mem
             + self.value_size * num_pml_fields * local_pml_cells
+        )
         return req_mem
 
     def mem_req_by_particles(
-            self,
-            target_n_x=None,
-            target_n_y=None,
-            target_n_z=None,
-            num_additional_attributes=0,
-            particles_per_cell=2,
-            sim_dim=3
+        self,
+        target_n_x=None,
+        target_n_y=None,
+        target_n_z=None,
+        num_additional_attributes=0,
+        particles_per_cell=2,
+        sim_dim=3,
     ):
         """
         Memory reserved for all particles of a species on a device.
@@ -219,13 +206,15 @@ class MemoryCalculator:
             target_n_z = self.n_z
 
         # memory required by the standard particle attributes
-        standard_attribute_mem = np.array([
-            3 * self.value_size,  # momentum
-            sim_dim * self.value_size,  # position
-            1,  # multimask (``uint8_t``)
-            2,  # cell index in supercell (``typedef uint16_t lcellId_t``)
-            1 * self.value_size  # weighting
-        ])
+        standard_attribute_mem = np.array(
+            [
+                3 * self.value_size,  # momentum
+                sim_dim * self.value_size,  # position
+                1,  # multimask (``uint8_t``)
+                2,  # cell index in supercell (``typedef uint16_t lcellId_t``)
+                1 * self.value_size,  # weighting
+            ]
+        )
 
         # memory per particle for additional attributes {unit: byte}
         additional_mem = num_additional_attributes * self.value_size
@@ -233,17 +222,10 @@ class MemoryCalculator:
         # cells filled by the target species
         local_cells = target_n_x * target_n_y * target_n_z
 
-        req_mem = local_cells * (np.sum(
-            standard_attribute_mem) + additional_mem) * particles_per_cell
+        req_mem = local_cells * (np.sum(standard_attribute_mem) + additional_mem) * particles_per_cell
         return req_mem
 
-    def mem_req_by_rng(
-            self,
-            n_x=None,
-            n_y=None,
-            n_z=None,
-            generator_method="XorMin"
-    ):
+    def mem_req_by_rng(self, n_x=None, n_y=None, n_z=None, generator_method="XorMin"):
         """
         Memory reserved for the random number generator state on each device.
 
@@ -287,10 +269,9 @@ class MemoryCalculator:
             state_size_per_cell = 7 * 4  # bytes
         else:
             raise ValueError(
-                "{} is not an available RNG for PIConGPU.".format(
-                    generator_method
-                ), "Please choose one of the following: ",
-                "'XorMin', 'MRG32k3aMin', 'AlpakaRand'"
+                "{} is not an available RNG for PIConGPU.".format(generator_method),
+                "Please choose one of the following: ",
+                "'XorMin', 'MRG32k3aMin', 'AlpakaRand'",
             )
 
         # CORE + BORDER region of the device, GUARD currently has no RNG state
@@ -299,13 +280,7 @@ class MemoryCalculator:
         req_mem = state_size_per_cell * local_cells
         return req_mem
 
-    def mem_req_by_calorimeter(
-            self,
-            n_energy,
-            n_yaw,
-            n_pitch,
-            value_size=None
-    ):
+    def mem_req_by_calorimeter(self, n_energy, n_yaw, n_pitch, value_size=None):
         """
         Memory required by the particle calorimeter plugin.
         Each of the (``n_energy`` x ``n_yaw`` x ``n_pitch``) bins requires

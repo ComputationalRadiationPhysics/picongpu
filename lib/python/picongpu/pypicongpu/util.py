@@ -17,19 +17,19 @@ attr_cnt = 0
 # (_GenericMeta vs. GenericMeta) -- so we compute it on the fly
 @typechecked
 def build_typesafe_property(
-        type_: typing.Union[type, type(typing.List[int])],
-        name: typing.Optional[str] = None) -> property:
+    type_: typing.Union[type, type(typing.List[int])], name: typing.Optional[str] = None
+) -> property:
     if name is None:
         global attr_cnt
         name = str(attr_cnt)
         attr_cnt += 1
     # don't use private prefix '__' to avoid name mangling
-    actual_var_name = 'magic_string_private_____{}'.format(name)
+    actual_var_name = "magic_string_private_____{}".format(name)
 
     @typechecked
     def getter(self) -> type_:
         if not hasattr(self, actual_var_name):
-            raise AttributeError('variable is not initialized')
+            raise AttributeError("variable is not initialized")
         return getattr(self, actual_var_name)
 
     @typechecked
@@ -40,8 +40,7 @@ def build_typesafe_property(
 
 
 @typechecked
-def unsupported(name: str, value: typing.Any = 1,
-                default: typing.Any = None) -> None:
+def unsupported(name: str, value: typing.Any = 1, default: typing.Any = None) -> None:
     """
     Print a msg that the feature/parameter/thing is unsupported.
 

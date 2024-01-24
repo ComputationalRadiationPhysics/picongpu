@@ -137,4 +137,3 @@ if [ -f $BASH_COMP_FILE ] ; then
 else
     echo "bash completion file '$BASH_COMP_FILE' not found." >&2
 fi
-

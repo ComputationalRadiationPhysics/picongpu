@@ -75,25 +75,24 @@ class RenderedObject:
         schemas_path = here.parents[5] / "share/picongpu/pypicongpu/schema"
         json_fileending_re = re.compile(r"[.]json$")
         all_json_files = list(
-            filter(lambda p: json_fileending_re.search(str(p)),
-                   filter(lambda p: p.is_file(),
-                          pathlib.Path(schemas_path).rglob("*"))))
+            filter(
+                lambda p: json_fileending_re.search(str(p)),
+                filter(lambda p: p.is_file(), pathlib.Path(schemas_path).rglob("*")),
+            )
+        )
 
-        logging.debug("found {} schemas in {}".format(len(all_json_files),
-                                                      schemas_path))
+        logging.debug("found {} schemas in {}".format(len(all_json_files), schemas_path))
 
         RenderedObject._schema_by_uri = {}
         for json_file_path in all_json_files:
             with open(json_file_path, "r") as infile:
                 schema = json.load(infile)
             if "$id" not in schema:
-                logging.error("cant load schema, has no URI ($id) set: {}"
-                              .format(json_file_path))
+                logging.error("cant load schema, has no URI ($id) set: {}".format(json_file_path))
                 continue
             uri = schema["$id"]
             if type(uri) is not str:
-                raise TypeError(
-                    "URI ($id) must be string: {}".format(json_file_path))
+                raise TypeError("URI ($id) must be string: {}".format(json_file_path))
 
             RenderedObject._schema_by_uri[uri] = schema
 
@@ -143,8 +142,7 @@ class RenderedObject:
         RenderedObject._maybe_fill_schema_store()
 
         if uri not in RenderedObject._schema_by_uri:
-            raise RuntimeError(
-                "schema not found for FQN {}: URI {}".format(fqn, uri))
+            raise RuntimeError("schema not found for FQN {}: URI {}".format(fqn, uri))
 
         schema = RenderedObject._schema_by_uri[uri]
 
@@ -155,11 +153,9 @@ class RenderedObject:
         # there are schemas that are valid but not an object -> skip checks
         if type(schema) is dict:
             if "unevaluatedProperties" not in schema:
-                logging.warning("schema does not explicitly forbid "
-                                "unevaluated properties: {}".format(fqn))
+                logging.warning("schema does not explicitly forbid " "unevaluated properties: {}".format(fqn))
             elif schema["unevaluatedProperties"]:
-                logging.warning(
-                    "schema supports unevaluated properties: {}".format(fqn))
+                logging.warning("schema supports unevaluated properties: {}".format(fqn))
         else:
             logging.warning("schema is not dict: {}".format(fqn))
 
@@ -170,8 +166,7 @@ class RenderedObject:
         return all required content for rendering as a dict
         :return: content as dictionary
         """
-        raise NotImplementedError(
-            "called parent _get_serialized of parent RenderedObject")
+        raise NotImplementedError("called parent _get_serialized of parent RenderedObject")
 
     def get_rendering_context(self) -> dict:
         """
@@ -204,11 +199,12 @@ class RenderedObject:
         fqn = RenderedObject._get_fully_qualified_class_name(type_to_check)
         uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
 
-        resolver = jsonschema.RefResolver(base_uri=RenderedObject._BASE_URI,
-                                          referrer=uri,
-                                          store=RenderedObject._schema_by_uri)
-        validator = jsonschema.Draft202012Validator(schema=schema,
-                                                    resolver=resolver)
+        resolver = jsonschema.RefResolver(
+            base_uri=RenderedObject._BASE_URI,
+            referrer=uri,
+            store=RenderedObject._schema_by_uri,
+        )
+        validator = jsonschema.Draft202012Validator(schema=schema, resolver=resolver)
 
         # raises on error
         validator.validate(context)
