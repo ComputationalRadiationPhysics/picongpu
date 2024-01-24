@@ -22,7 +22,11 @@
 #include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/UnitConversion.hpp"
 
+#include <array>
 #include <cstdint>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace picongpu
 {

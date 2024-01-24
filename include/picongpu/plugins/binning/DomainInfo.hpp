@@ -18,6 +18,9 @@
  */
 
 #pragma once
+
+#include <cstdint>
+
 namespace picongpu
 {
     namespace plugins::binning
@@ -53,5 +56,4 @@ namespace picongpu
             }
         };
     } // namespace plugins::binning
-
 } // namespace picongpu

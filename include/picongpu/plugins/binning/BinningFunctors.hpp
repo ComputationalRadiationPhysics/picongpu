@@ -24,6 +24,8 @@
 #include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
+#include <cstdint>
+
 namespace picongpu
 {
     namespace plugins::binning

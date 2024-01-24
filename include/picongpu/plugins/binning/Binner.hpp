@@ -20,7 +20,6 @@
 #pragma once
 
 #include "picongpu/plugins/binning/BinningFunctors.hpp"
-#include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/WriteHist.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 

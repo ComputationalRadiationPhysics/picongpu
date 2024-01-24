@@ -18,6 +18,10 @@
  */
 
 #pragma once
+
+#include <array>
+#include <map>
+
 #include <openPMD/openPMD.hpp>
 
 namespace picongpu
@@ -48,7 +52,7 @@ namespace picongpu
                 conversion_factor *= std::pow(UnitDimensions[i], myDimension[i]);
             };
             return conversion_factor;
-        };
+        }
 
         template<typename T>
         T toPICUnits(T varSI, const std::array<double, 7>& myDimension)
@@ -61,13 +65,13 @@ namespace picongpu
                 }
             };
             return static_cast<T>(static_cast<double>(varSI) / get_conversion_factor(myDimension));
-        };
+        }
 
         template<typename T>
         double toSIUnits(T varPIC, const std::array<double, 7>& myDimension)
         {
             return static_cast<double>(varPIC) * get_conversion_factor(myDimension);
-        };
+        }
 
 
         std::map<::openPMD::UnitDimension, double> makeOpenPMDUnitMap(const std::array<double, 7>& myDimension)
