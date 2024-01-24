@@ -91,20 +91,16 @@ namespace picongpu
 
             /// Axis 3
             // Define Functor
-            auto getTime
+            auto getTimeStep
                 = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
             { return domainInfo.currentStep; };
 
-            // Define units
-            std::array<double, 7> timeDimension{};
-            momentumDimension[SIBaseUnits::time] = 1.0;
-
             // Create Functor Description
-            auto timeDescription = createFunctorDescription<uint32_t>(getTime, "time_axis", timeDimension);
+            auto timeStepDescription = createFunctorDescription<uint32_t>(getTimeStep, "time_axis");
 
             // Create Axis
-            auto ax_time
-                = axis::createLinear(axis::AxisSplitting(axis::Range<uint32_t>{0, 2000}, 2000), timeDescription);
+            auto ax_timeStep
+                = axis::createLinear(axis::AxisSplitting(axis::Range<uint32_t>{0, 2000}, 2000), timeStepDescription);
 
 
             // Bring the axes together in a tuple
@@ -171,7 +167,7 @@ namespace picongpu
                     .setJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
                     .setOpenPMDExtension("h5");
 
-                binningCreator.addBinner("particleBinning", createTuple(ax_time, ax_py), speciesTuple, getCounts)
+                binningCreator.addBinner("particleBinning", createTuple(ax_timeStep, ax_py), speciesTuple, getCounts)
                     .setDumpPeriod(2000)
                     .setNormalizeByBinVolume(false);
             }
