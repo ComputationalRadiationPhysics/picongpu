@@ -72,7 +72,7 @@ namespace picongpu
         }
 
         template<typename... Args>
-        auto createTuple(Args const&... args)
+        HDINLINE auto createTuple(Args const&... args)
         {
             return std::make_tuple(args...);
         }

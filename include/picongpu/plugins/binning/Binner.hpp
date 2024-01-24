@@ -122,7 +122,7 @@ namespace picongpu
             }
         };
 
-        void dimensionSubtraction(std::array<double, 7>& outputDims, const std::array<double, 7>& axisDims)
+        HINLINE void dimensionSubtraction(std::array<double, 7>& outputDims, const std::array<double, 7>& axisDims)
         {
             for(size_t i = 0; i < 7; i++)
             {
