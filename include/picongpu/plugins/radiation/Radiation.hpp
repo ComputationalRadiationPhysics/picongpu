@@ -972,7 +972,6 @@ namespace picongpu
                                 // in some backends (ADIOS2), this allows avoiding memcopies
                                 auto span = mesh_n[dir]
                                                 .storeChunk<double>(
-                                                    mesh_n[dir],
                                                     offset_n,
                                                     extent_n,
                                                     [&fallbackBuffer](size_t numElements)
