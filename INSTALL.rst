@@ -196,7 +196,7 @@ pngwriter
 openPMD API
 """""""""""
 - optional, but strongly recommended as most PIConGPU output requires it
-- 0.14.3+
+- 0.15.0+
 - *Spack*: ``spack install openpmd-api``
 - For usage in PIConGPU, the openPMD API must have been built either with support for ADIOS2 or HDF5 (or both).
   When building the openPMD API from source (described below), these dependencies must be built and installed first.
@@ -208,7 +208,7 @@ openPMD API
 - *from source:*
 
   - ``mkdir -p ~/src ~/lib``
-  - ``git clone -b 0.14.4 https://github.com/openPMD/openPMD-api.git ~/src/openPMD-api``
+  - ``git clone -b 0.15.0 https://github.com/openPMD/openPMD-api.git ~/src/openPMD-api``
   - ``cd ~/src/openPMD-api``
   - ``mkdir build && cd build``
   - ``cmake .. -DopenPMD_USE_MPI=ON -DCMAKE_INSTALL_PREFIX=~/lib/openPMD-api``
