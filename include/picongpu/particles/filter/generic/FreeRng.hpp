@@ -112,7 +112,7 @@ namespace picongpu
                     {
                         auto const rng = (*static_cast<RngGenerator const*>(this))(worker, localSupercellOffset);
 
-                        return acc::FreeRng<Functor, ALPAKA_DECAY_T(decltype(rng))>(
+                        return acc::FreeRng<Functor, std::decay_t<decltype(rng)>>(
                             *static_cast<Functor const*>(this),
                             rng);
                     }

@@ -190,10 +190,10 @@ namespace alpaka
                 ::pmacc::math::Vector<T_ScalarType2, T_dim>,
                 void>
             {
-                using ScalarResultType = ALPAKA_DECAY_T(decltype(alpaka::math::min(
+                using ScalarResultType = std::decay_t<decltype(alpaka::math::min(
                     std::declval<T_Ctx>(),
                     std::declval<T_ScalarType1>(),
-                    std::declval<T_ScalarType2>())));
+                    std::declval<T_ScalarType2>()))>;
                 using ResultType = ::pmacc::math::Vector<ScalarResultType, T_dim>;
 
                 ALPAKA_FN_HOST_ACC auto operator()(
@@ -216,10 +216,10 @@ namespace alpaka
                 ::pmacc::math::Vector<T_ScalarType2, T_dim>,
                 void>
             {
-                using ScalarResultType = ALPAKA_DECAY_T(decltype(alpaka::math::max(
+                using ScalarResultType = std::decay_t<decltype(alpaka::math::max(
                     std::declval<T_Ctx>(),
                     std::declval<T_ScalarType1>(),
-                    std::declval<T_ScalarType2>())));
+                    std::declval<T_ScalarType2>()))>;
                 using ResultType = ::pmacc::math::Vector<ScalarResultType, T_dim>;
 
                 ALPAKA_FN_HOST_ACC auto operator()(
