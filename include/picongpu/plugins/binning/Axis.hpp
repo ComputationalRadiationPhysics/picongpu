@@ -22,7 +22,11 @@
 #include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/UnitConversion.hpp"
 
+#include <array>
 #include <cstdint>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace picongpu
 {
@@ -334,7 +338,7 @@ namespace picongpu
              * @param functorDescription
              */
             template<typename T_Attribute, typename T_FunctorDescription>
-            auto createLinear(AxisSplitting<T_Attribute> axSplit, T_FunctorDescription functorDesc)
+            HINLINE auto createLinear(AxisSplitting<T_Attribute> axSplit, T_FunctorDescription functorDesc)
             {
                 static_assert(
                     std::is_same_v<typename T_FunctorDescription::QuantityType, T_Attribute>,
@@ -348,7 +352,7 @@ namespace picongpu
             }
 
             template<typename T_FunctorDescription>
-            auto createBool(T_FunctorDescription functorDesc)
+            HINLINE auto createBool(T_FunctorDescription functorDesc)
             {
                 return BoolAxis<typename T_FunctorDescription::FunctorType>(functorDesc.functor, functorDesc.name);
             }

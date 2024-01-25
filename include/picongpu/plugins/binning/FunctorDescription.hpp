@@ -66,13 +66,13 @@ namespace picongpu
          * @returns FunctorDescription object
          */
         template<typename QuantityType, typename FunctorType>
-        auto createFunctorDescription(
+        HINLINE auto createFunctorDescription(
             FunctorType functor,
             std::string name,
-            std::array<double, 7> units = {0, 0, 0, 0, 0, 0, 0})
+            std::array<double, 7> units = std::array<double, 7>({0., 0., 0., 0., 0., 0., 0.}))
         {
             return FunctorDescription<QuantityType, FunctorType>(functor, name, units);
         }
 
-    }; // namespace plugins::binning
+    } // namespace plugins::binning
 } // namespace picongpu

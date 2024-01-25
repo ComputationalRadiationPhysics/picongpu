@@ -29,7 +29,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <variant>
+#include <vector>
 
 namespace picongpu
 {

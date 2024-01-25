@@ -18,7 +18,11 @@
  */
 
 #pragma once
+
 #include <pmacc/memory/STLTuple.hpp>
+
+#include <tuple>
+#include <utility>
 
 namespace picongpu
 {
@@ -68,7 +72,7 @@ namespace picongpu
         }
 
         template<typename... Args>
-        auto createTuple(Args const&... args)
+        HDINLINE auto createTuple(Args const&... args)
         {
             return std::make_tuple(args...);
         }
