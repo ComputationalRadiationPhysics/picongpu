@@ -19,25 +19,25 @@ spack unload
 # PIConGPU build dependencies #################################################
 #   need to load correct cmake and gcc to compile picongpu
 
-spack load gcc@12.2.0
-spack load cmake@3.25.0 ^openssl certs=mozilla %gcc@12.2.0
+spack load gcc@12.1.0
+spack load cmake@3.26.3 ^openssl certs=mozilla %gcc@12.1.0
 
 # General modules #############################################################
 #   correct dependencies are automatically loaded, if successfully installed using install.sh
 #   and no name confilcts in spack, see install.sh for more precise definition
 #   if name conflicts occur
 
-spack load openpmd-api@0.14.5 %gcc@12.2.0 \
-    ^adios2@2.8.3 \
+spack load openpmd-api@0.15.2 %gcc@12.1.0 \
+    ^adios2@2.9.2 \
     ^hdf5@1.12.2 \
     ^openmpi@4.1.4 +atomics ~cuda\
     ^python@3.10.4 \
     ^py-numpy@1.23.3
-spack load boost@1.80.0 %gcc@12.2.0
+spack load boost@1.80.0 %gcc@12.1.0
 
 # PIConGPU output dependencies ################################################
 #
-spack load pngwriter@0.7.0 %gcc@12.2.0
+spack load pngwriter@0.7.0 %gcc@12.1.0
 
 
 # Environment #################################################################

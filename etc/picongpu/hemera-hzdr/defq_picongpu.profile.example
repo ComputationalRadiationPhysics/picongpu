@@ -17,23 +17,23 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #
 module purge
 module load git
-module load gcc/7.3.0
-module load cmake/3.26.1
-module load openmpi/4.1.1
-module load boost/1.78.0
+module load gcc/12.2.0
+module load ucx/1.14.0
+module load libfabric/1.17.0-co79-csk
+module load openmpi/4.1.5-ucx
+module load python/3.10.4
+module load boost/1.82.0
 
 # Other Software ##############################################################
 #
 module load zlib/1.2.11
-module load c-blosc/1.14.4
+module load hdf5-parallel/1.14.0-omp415
+module load c-blosc/1.21.4
+module load adios2/2.9.2-csk
+module load openpmd/0.15.2-csk
+module load cmake/3.26.1
 
-module load hdf5-parallel/1.12.0-omp411
-module load python/3.6.5
-module load libfabric/1.11.1-co79-csk001
-module load adios2/2.7.1-no-cuda
-module load openpmd/0.14.4-no-cuda
-
-module load libpng/1.6.35
+module load libpng/1.6.39
 module load pngwriter/0.7.0
 
 # Environment #################################################################

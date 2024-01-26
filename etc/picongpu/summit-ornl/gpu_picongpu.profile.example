@@ -34,7 +34,7 @@ module load hdf5/1.10.7
 module load c-blosc/1.21.0 zfp/0.5.5 sz/2.1.11.1 lz4/1.9.3
 module load adios2/2.7.1
 
-module load openpmd-api/0.14.4
+module load openpmd-api/0.15.2
 
 #export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
