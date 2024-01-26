@@ -18,6 +18,7 @@
     - source $CI_PROJECT_DIR/share/ci/install/clang.sh
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile
+    - source $CI_PROJECT_DIR/share/ci/install/openPMD.sh
     - $CI_PROJECT_DIR/share/ci/run_tests.sh $PIC_TEST_CASE_FOLDER
   interruptible: true
 

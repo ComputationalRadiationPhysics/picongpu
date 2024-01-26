@@ -27,6 +27,7 @@
 #    include <algorithm> // std::copy_n, std::find
 #    include <cctype> // std::isspace
 
+#    include <openPMD/auxiliary/JSON.hpp>
 #    include <openPMD/openPMD.hpp>
 
 /*
@@ -297,63 +298,68 @@ The key 'select' must point to either a single string or an array of strings.)EN
     void addDefaults(nlohmann::json& config)
     {
         /*
+         * hdf5.dataset.chunks = none
+         * --------------------------
          * Disable HDF5 chunking as it can conflict with MPI-IO backends.
          * This is very likely the same issue as
          * https://github.com/open-mpi/ompi/issues/7795.
+         *
+         *
+         * adios2.engine.preferred_flush_target = "buffer"
+         * -----------------------------------------------
+         * Only relevant for ADIOS2 engines that support this feature,
+         * ignored otherwise. Currently supported in BP5.
+         * Small datasets should be written to the internal ADIOS2
+         * buffer.
+         * Big datasets should explicitly specify their flush target
+         * in Series::flush(). Options are "buffer" and "disk".
+         * Ideally, all flush() calls should specify this explicitly.
+         *
+         *
+         * adios2.engine.parameters.BufferChunkSize = 2147381248
+         * -----------------------------------------------------
+         * This parameter is only interpreted by the ADIOS2 BP5 engine
+         * (and potentially future engines that use the BP5 serializer).
+         * Other engines will ignore it without warning.
+         *
+         * Reasoning: The internal data structure of BP5 is a linked
+         * list of equally-sized chunks.
+         * This parameter specifies the size of each individual chunk to
+         * the maximum possible 2GB (i.e. a bit lower than that),
+         * which is more performant than the default 128MB.
+         *
+         * Since each buffer chunk is allocated by malloc(), chunks are
+         * not actually written upon creation.
+         * As a result, on systems with virtual memory, the overhead
+         * of specifying this is a potential allocation of up to 2GB
+         * of unused **virtual** memory, **not physical** memory.
+         * That's a good deal, since it gives us performance by default.
+         *
+         * On those systems where this setting actually poses a problem,
+         * careful memory configuration is necessary anyway, so the
+         * defaults don't matter.
          */
-        {
-            auto& hdf5Dataset = config["hdf5"]["dataset"];
-            if(!hdf5Dataset.contains("chunks"))
-            {
-                hdf5Dataset["chunks"] = "none";
-            }
-        }
-        {
-            auto& adios2EngineParams = config["adios2"]["engine"]["parameters"];
-            if(!adios2EngineParams.contains("BufferChunkSize"))
-            {
-                /*
-                 * This parameter is only interpreted by the ADIOS2 BP5 engine
-                 * (and potentially future engines that use the BP5 serializer).
-                 * Other engines will ignore it without warning.
-                 *
-                 * Reasoning: The internal data structure of BP5 is a linked
-                 * list of equally-sized chunks.
-                 * This parameter specifies the size of each individual chunk to
-                 * the maximum possible 2GB (i.e. a bit lower than that),
-                 * which is more performant than the default 128MB.
-                 *
-                 * Since each buffer chunk is allocated by malloc(), chunks are
-                 * not actually written upon creation.
-                 * As a result, on systems with virtual memory, the overhead
-                 * of specifying this is a potential allocation of up to 2GB
-                 * of unused **virtual** memory, **not physical** memory.
-                 * That's a good deal, since it gives us performance by default.
-                 *
-                 * On those systems where this setting actually poses a problem,
-                 * careful memory configuration is necessary anyway, so the
-                 * defaults don't matter.
-                 */
-                adios2EngineParams["BufferChunkSize"] = "2147381248";
-            }
-        }
-        if constexpr(picongpu::openPMD::detail::FlushSeries<openPMD::Series>::supportsFlushParameters)
-        {
-            auto& adios2Engine = config["adios2"]["engine"];
-            if(!adios2Engine.contains("preferred_flush_target"))
-            {
-                /*
-                 * Only relevant for ADIOS2 engines that support this feature,
-                 * ignored otherwise. Currently supported in BP5.
-                 * Small datasets should be written to the internal ADIOS2
-                 * buffer.
-                 * Big datasets should explicitly specify their flush target
-                 * in Series::flush(). Options are "buffer" and "disk".
-                 * Ideally, all flush() calls should specify this explicitly.
-                 */
-                adios2Engine["preferred_flush_target"] = "buffer";
-            }
-        }
+        std::string const& defaultValues = R"(
+{
+  "hdf5": {
+    "dataset": {
+      "chunks": "none"
+    }
+  },
+  "adios2": {
+    "engine": {
+      "preferred_flush_target": "buffer",
+      "parameters": {
+        "BufferChunkSize": 2147381248
+      }
+    }
+  }
+}
+        )";
+        std::stringstream json_to_string;
+        json_to_string << config;
+        auto merged = openPMD::json::merge(defaultValues, json_to_string.str());
+        config = nlohmann::json::parse(merged);
     }
 } // namespace
 

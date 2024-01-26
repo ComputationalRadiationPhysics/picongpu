@@ -32,6 +32,7 @@
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#include "picongpu/plugins/common/openPMDDefinitions.def"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
@@ -916,8 +917,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // getPointer() will wait for device->host transfer
                 ValueType* nativePtr = buffer.getHostBuffer().getPointer();
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
-                storeChunkRaw(mrc, rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
-                flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                mrc.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
+                params->openPMDSeries->flush(PreferredFlushTarget::Disk);
             }
 
             /** Implementation of loading random number generator states
@@ -967,8 +968,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* Explicit template parameters to asStandardVector required
                  * as we need to change the element type as well
                  */
-                loadChunkRaw(
-                    mrc,
+                mrc.loadChunkRaw(
                     rawPtr,
                     asStandardVector<VecUInt64, ::openPMD::Offset>(recordOffsetDims),
                     asStandardVector<VecUInt64, ::openPMD::Extent>(recordLocalSizeDims));
@@ -1628,14 +1628,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     if(numDataPoints == 0)
                     {
-                        flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                         continue;
                     }
 
                     // ask openPMD to create a buffer for us
                     // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = storeChunkSpan<ComponentType>(
-                        mrc,
+                    auto span = mrc.storeChunk<ComponentType>(
                         asStandardVector(recordOffsetDims),
                         asStandardVector(recordLocalSizeDims),
                         [&fieldBuffer](size_t size)
@@ -1679,7 +1678,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         }
                     }
 
-                    flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                    params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                 }
             }
 

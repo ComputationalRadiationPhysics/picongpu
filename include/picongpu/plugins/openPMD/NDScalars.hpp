@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "picongpu/plugins/common/openPMDDefinitions.def"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 
 #include <pmacc/Environment.hpp>
@@ -120,7 +121,7 @@ namespace picongpu
                     std::make_shared<T_Scalar>(value),
                     std::move(std::get<1>(tuple)),
                     std::move(std::get<2>(tuple)));
-                flushSeries(*params.openPMDSeries, PreferredFlushTarget::Buffer);
+                params.openPMDSeries->flush(PreferredFlushTarget::Buffer);
             }
 
         private:

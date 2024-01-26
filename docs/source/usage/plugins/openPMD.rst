@@ -162,16 +162,6 @@ Backend-specific notes
 ADIOS2
 ======
 
-Optional memory optimizations
-"""""""""""""""""""""""""""""
-
-* **Only for openPMD-api <= 0.14.3:**
-  The memory usage of some engines in ADIOS2 can be reduced by specifying the environment variable ``openPMD_USE_STORECHUNK_SPAN=1``.
-  This makes PIConGPU use the `span-based Put() API <https://adios2.readthedocs.io/en/latest/components/components.html#put-modes-and-memory-contracts>`_ of ADIOS2 which avoids buffer copies, but does not allow for compression.
-  Do *not* use this optimization in combination with compression, otherwise the resulting datasets will not be usable.
-* **For openPMD-api >= 0.14.4:** The above behavior has been fixed, no user interaction is required. The memory-optimized implementation will be automatically selected if possible.
-* **You don't know the precise settings and versions in your setup?** Then keep everything as it is and use the defaults.
-
 Streaming with the MPI-based SST implementation
 """""""""""""""""""""""""""""""""""""""""""""""
 

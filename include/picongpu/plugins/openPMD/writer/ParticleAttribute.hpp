@@ -103,29 +103,29 @@ namespace picongpu
 
                     if(elements == 0)
                     {
-                        flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                         continue;
                     }
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
                     // ask openPMD to create a buffer for us
                     // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = storeChunkSpan<ComponentType>(
-                                    recordComponent,
-                                    ::openPMD::Offset{globalOffset},
-                                    ::openPMD::Extent{elements},
-                                    [&storeBfr](size_t size)
-                                    {
-                                        // if there is no special backend support for creating buffers,
-                                        // reuse the storeBfr
-                                        if(!storeBfr && size > 0)
+                    auto span = recordComponent
+                                    .storeChunk<ComponentType>(
+                                        ::openPMD::Offset{globalOffset},
+                                        ::openPMD::Extent{elements},
+                                        [&storeBfr](size_t size)
                                         {
-                                            storeBfr = std::shared_ptr<ComponentType>{
-                                                new ComponentType[size],
-                                                [](ComponentType* ptr) { delete[] ptr; }};
-                                        }
-                                        return storeBfr;
-                                    })
+                                            // if there is no special backend support for creating buffers,
+                                            // reuse the storeBfr
+                                            if(!storeBfr && size > 0)
+                                            {
+                                                storeBfr = std::shared_ptr<ComponentType>{
+                                                    new ComponentType[size],
+                                                    [](ComponentType* ptr) { delete[] ptr; }};
+                                            }
+                                            return storeBfr;
+                                        })
                                     .currentBuffer();
 
 /* copy strided data from source to temporary buffer */
@@ -135,7 +135,7 @@ namespace picongpu
                         span[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
                     }
 
-                    flushSeries(*params->openPMDSeries, PreferredFlushTarget::Disk);
+                    params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                 }
 
                 auto unitMap = convertToUnitDimension(unitDimension);

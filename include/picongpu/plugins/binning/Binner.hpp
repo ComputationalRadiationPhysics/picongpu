@@ -162,16 +162,12 @@ namespace picongpu
             }
 
             ~Binner() override
-#if OPENPMDAPI_VERSION_GE(0, 15, 0)
             {
                 if(m_series.has_value())
                 {
                     m_series->close();
                 }
             }
-#else
-                = default;
-#endif
 
             void notify(uint32_t currentStep) override
             {
