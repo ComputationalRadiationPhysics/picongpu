@@ -21,6 +21,7 @@ namespace alpaka
         {
         };
     } // namespace hierarchy
+
     //! Defines the origins available for getting extent and indices of kernel executions.
     namespace origin
     {
@@ -31,6 +32,7 @@ namespace alpaka
         //! This type is used to get the extents relative to the thread.
         struct Thread;
     } // namespace origin
+
     //! Defines the units available for getting extent and indices of kernel executions.
     namespace unit
     {

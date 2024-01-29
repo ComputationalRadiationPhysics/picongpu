@@ -26,15 +26,18 @@ generate:
   script:
     - apk update && apk add python3~=3.11 py3-pip
     - pip3 install -r script/job_generator/requirements.txt
-    # it's enough to verify one time, because --compile-only und --runtime-only generates the same job matrix and filter it
-    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --verify --compile-only -o compile_only.yml
-    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --runtime-only -o runtime.yml
+    # it is sufficient to verify once, as the same job matrix is generated, verified and then filtered each time
+    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --verify --wave compile_only_job -o compile_only.yml
+    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --wave runtime_job_cpu -o runtime_cpu.yml
+    - python3 script/job_generator/job_generator.py ${ALPAKA_GITLAB_CI_GENERATOR_CONTAINER_VERSION} --wave runtime_job_gpu -o runtime_gpu.yml
     - cat compile_only.yml
-    - cat runtime.yml
+    - cat runtime_cpu.yml
+    - cat runtime_gpu.yml
   artifacts:
     paths:
       - compile_only.yml
-      - runtime.yml
+      - runtime_cpu.yml
+      - runtime_gpu.yml
     expire_in: 1 week
   interruptible: true
 
@@ -46,10 +49,18 @@ run-compile-only-test:
         job: generate
     strategy: depend
 
-run-runtime-test:
+run-runtime-cpu-test:
   stage: run-test-jobs
   trigger:
     include:
-      - artifact: runtime.yml
+      - artifact: runtime_cpu.yml
+        job: generate
+    strategy: depend
+
+run-runtime-gpu-test:
+  stage: run-test-jobs
+  trigger:
+    include:
+      - artifact: runtime_gpu.yml
         job: generate
     strategy: depend

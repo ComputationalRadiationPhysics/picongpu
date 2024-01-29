@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <type_traits>
 
-
 namespace alpaka
 {
     //! The addition function object.
@@ -34,6 +33,7 @@ namespace alpaka
 #endif
         }
     };
+
     //! The subtraction function object.
     struct AtomicSub
     {
@@ -55,6 +55,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The minimum function object.
     struct AtomicMin
     {
@@ -69,6 +70,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The maximum function object.
     struct AtomicMax
     {
@@ -83,6 +85,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The exchange function object.
     struct AtomicExch
     {
@@ -97,6 +100,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The increment function object.
     struct AtomicInc
     {
@@ -113,6 +117,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The decrement function object.
     struct AtomicDec
     {
@@ -129,6 +134,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The and function object.
     struct AtomicAnd
     {
@@ -143,6 +149,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The or function object.
     struct AtomicOr
     {
@@ -157,6 +164,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The exclusive or function object.
     struct AtomicXor
     {
@@ -171,6 +179,7 @@ namespace alpaka
             return old;
         }
     };
+
     //! The compare and swap function object.
     struct AtomicCas
     {
@@ -196,6 +205,7 @@ namespace alpaka
 #endif
             return old;
         }
+
         //! AtomicCas for floating point values
         // \return The old value of addr.
         ALPAKA_NO_HOST_ACC_WARNING

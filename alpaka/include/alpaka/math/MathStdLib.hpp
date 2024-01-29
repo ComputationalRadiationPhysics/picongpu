@@ -263,9 +263,8 @@ namespace alpaka::math
                 if constexpr(std::is_integral_v<Tx> && std::is_integral_v<Ty>)
                     return max(x, y);
                 else if constexpr(
-                    is_decayed_v<
-                        Tx,
-                        float> || is_decayed_v<Ty, float> || is_decayed_v<Tx, double> || is_decayed_v<Ty, double>)
+                    is_decayed_v<Tx, float> || is_decayed_v<Ty, float> || is_decayed_v<Tx, double>
+                    || is_decayed_v<Ty, double>)
                     return fmax(x, y);
                 else
                     static_assert(!sizeof(Tx), "Unsupported data type");
@@ -286,9 +285,8 @@ namespace alpaka::math
                 if constexpr(std::is_integral_v<Tx> && std::is_integral_v<Ty>)
                     return min(x, y);
                 else if constexpr(
-                    is_decayed_v<
-                        Tx,
-                        float> || is_decayed_v<Ty, float> || is_decayed_v<Tx, double> || is_decayed_v<Ty, double>)
+                    is_decayed_v<Tx, float> || is_decayed_v<Ty, float> || is_decayed_v<Tx, double>
+                    || is_decayed_v<Ty, double>)
                     return fmin(x, y);
                 else
                     static_assert(!sizeof(Tx), "Unsupported data type");

@@ -87,22 +87,8 @@ namespace alpaka
         ALPAKA_FN_HOST AccCpuTbbBlocks(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
-            , bt::IdxBtZero<TDim, TIdx>()
-            , AtomicHierarchy<
-                  AtomicCpu, // atomics between grids
-                  AtomicCpu, // atomics between blocks
-                  AtomicNoOp // atomics between threads
-                  >()
-            , math::MathStdLib()
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
             , BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity())
-            , BlockSyncNoOp()
-            , MemFenceCpu()
-#    ifdef ALPAKA_DISABLE_VENDOR_RNG
-            , rand::RandDefault()
-#    else
-            , rand::RandStdLib()
-#    endif
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -120,6 +106,7 @@ namespace alpaka
         {
             using type = AccCpuTbbBlocks<TDim, TIdx>;
         };
+
         //! The CPU TBB block accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuTbbBlocks<TDim, TIdx>>
@@ -144,6 +131,7 @@ namespace alpaka
                         static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes())};
             }
         };
+
         //! The CPU TBB block accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuTbbBlocks<TDim, TIdx>>

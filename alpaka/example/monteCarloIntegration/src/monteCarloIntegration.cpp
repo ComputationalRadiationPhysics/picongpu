@@ -72,7 +72,6 @@ struct Kernel
     }
 };
 
-
 auto main() -> int
 {
     // Defines and setup.
@@ -93,7 +92,7 @@ auto main() -> int
     using BufAcc = alpaka::Buf<Acc, uint32_t, Dim, Idx>;
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     // Problem parameter.
-    constexpr size_t numPoints = 100000000u;
+    constexpr size_t numPoints = 1'000'000u;
     constexpr size_t extent = 1u;
     constexpr size_t numThreads = 100u; // Kernel will decide numCalcPerThread.
     constexpr size_t numAlpakaElementsPerThread = 1;

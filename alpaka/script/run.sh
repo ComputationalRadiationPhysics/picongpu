@@ -104,7 +104,7 @@ then
     fi
 
     which "${CXX}"
-    ${CXX} -v
+    ${CXX} --version
 fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]

@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Aurora Perego
+/* Copyright 2024 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Aurora Perego, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -181,7 +182,19 @@ namespace alpaka::trait
             auto find64 = std::find(warp_sizes.begin(), warp_sizes.end(), 64);
             if(find64 != warp_sizes.end())
                 warp_sizes.erase(find64);
+            // Sort the warp sizes in decreasing order
+            std::sort(warp_sizes.begin(), warp_sizes.end(), std::greater<>{});
             return warp_sizes;
+        }
+    };
+
+    //! The SYCL device preferred warp size get trait specialization.
+    template<typename TPlatform>
+    struct GetPreferredWarpSize<DevGenericSycl<TPlatform>>
+    {
+        static auto getPreferredWarpSize(DevGenericSycl<TPlatform> const& dev) -> std::size_t
+        {
+            return GetWarpSizes<DevGenericSycl<TPlatform>>::getWarpSizes(dev).front();
         }
     };
 

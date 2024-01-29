@@ -13,7 +13,7 @@ author = 'Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 # The short X.Y version.
 version = u'1.0.0'
 # The full version, including alpha/beta/rc tags.
-release = u'1.0.0-develop'
+release = u'1.0.0-rc1'
 
 # The master toctree document.
 master_doc = 'index'
@@ -46,7 +46,7 @@ exclude_patterns = ["Thumbs.db", ".DS_Store"]
 
 source_suffix = ['.rst']
 master_doc = 'index'
-language = None
+language = "en"
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx' #'default'
@@ -99,7 +99,7 @@ latex_elements = {
     #
     # 'figure_align': 'htbp',
 }
-latex_logo = "../logo/alpaka.pdf"
+latex_logo = "../logo/alpaka.png"
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,

@@ -15,7 +15,6 @@
 #include <utility>
 #include <vector>
 
-
 namespace alpaka
 {
     template<std::size_t TDataAlignBytes = core::vectorization::defaultAlignment>

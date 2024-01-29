@@ -6,15 +6,16 @@ DisableFormat: false
 
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
+AlignArrayOfStructures: None
 AlignConsecutiveAssignments: false
 AlignConsecutiveBitFields: false
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: false
 AlignEscapedNewlines: Right
 AlignOperands: Align
-AlignTrailingComments: false
+AlignTrailingComments:
+  Kind: Never
 AllowAllArgumentsOnNextLine: false
-AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
@@ -29,9 +30,11 @@ AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
 BitFieldColonSpacing: Both
+BreakAfterAttributes: Never
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
-BreakBeforeConceptDeclarations: true
+BreakBeforeConceptDeclarations: Always
+BreakBeforeInlineASMColon: OnlyMultiline
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
@@ -39,46 +42,69 @@ BreakStringLiterals: true
 ColumnLimit: 119
 CommentPragmas:  '^ COMMENT pragma:'
 CompactNamespaces: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
-DeriveLineEnding: true
 DerivePointerAlignment: false
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: Always
 ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: true
 IncludeBlocks: Regroup
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
+IndentAccessModifiers: false
 IndentCaseBlocks: true
 IndentCaseLabels: false
 IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
 IndentPPDirectives: AfterHash
-IndentRequires: true
+IndentRequiresClause: false
 IndentWidth: 4
 IndentWrappedFunctionNames: false
+InsertBraces: false
+InsertNewlineAtEOF: true
+IntegerLiteralSeparator:
+  Binary: 4
+  Decimal: 3
+  DecimalMinDigits: 7
+  Hex: 4
 KeepEmptyLinesAtTheStartOfBlocks: false
+LambdaBodyIndentation: Signature
+LineEnding: DeriveLF
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
+PackConstructorInitializers: CurrentLine
 PenaltyBreakAssignment: 2
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
+PenaltyBreakOpenParenthesis: 0 # default made explicit here
 PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
+PenaltyIndentedWhitespace: 0 # default made explicit here
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
-QualifierAlignment: Right
+PPIndentWidth: -1 # follow IndentWidth
+QualifierAlignment: Custom
+QualifierOrder: ['friend', 'static', 'inline', 'constexpr', 'type', 'const', 'volatile', 'restrict']
+ReferenceAlignment: Pointer # follow PointerAlignment
 ReflowComments: true
+RemoveBracesLLVM: false
+RemoveSemicolon: false
+RequiresClausePosition: WithPreceding
+RequiresExpressionIndentation: OuterScope
+ShortNamespaceLines: 0
 SortIncludes: true
-SortUsingDeclarations: true
+SortUsingDeclarations: Lexicographic
+SeparateDefinitionBlocks: Always
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Default # follow PointerAlignment
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
@@ -86,6 +112,7 @@ SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: Never
 SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
 SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
@@ -93,14 +120,19 @@ SpacesInAngles:  false
 SpacesInConditionalStatement: false
 SpacesInContainerLiterals: false
 SpacesInCStyleCastParentheses: false
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: -1
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-SpaceBeforeSquareBrackets: false
 TabWidth: 4
 UseCRLF: false
 UseTab: Never
 
 # Project specific options
+#AttributeMacros: []
+#ForEachMacros: []
+#IfMacros: []
 IncludeCategories:
   # Local headers (in "") above all else
   - Regex: '"([A-Za-z0-9.\/-_])+"'
@@ -118,5 +150,21 @@ IncludeCategories:
   # below alpaka's includes
   - Regex: '<([A-Za-z0-9.\/-_])+>'
     Priority: 4
+# Macros: []
+# NamespaceMacros: []
+StatementAttributeLikeMacros:
+  - 'ALPAKA_DEVICE_VOLATILE'
+  - 'ALPAKA_FN_ACC'
+  - 'ALPAKA_FN_EXTERN'
+  - 'ALPAKA_FN_HOST'
+  - 'ALPAKA_FN_HOST_ACC'
+  - 'ALPAKA_FN_INLINE'
+  - 'ALPAKA_STATIC_ACC_MEM_CONSTANT'
+  - 'ALPAKA_STATIC_ACC_MEM_GLOBAL'
+  - 'ALPAKA_UNROLL'
+  - 'ALPAKA_VECTORIZE_HINT'
+#StatementMacros: []
+#TypenameMacros: []
+#WhitespaceSensitiveMacros: []
 
 ...

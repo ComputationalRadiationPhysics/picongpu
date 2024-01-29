@@ -27,16 +27,11 @@ The following example shows a minimal example of a ``CMakeLists.txt`` that uses 
    :caption: CMakeLists.txt
 
    cmake_minimum_required(VERSION 3.22)
-
-   set(_TARGET_NAME myProject)
-   project(${_TARGET_NAME})
+   project("myexample" CXX)
 
    find_package(alpaka REQUIRED)
-
-   alpaka_add_executable(${_TARGET_NAME} helloWorld.cpp)
-   target_link_libraries(
-     ${_TARGET_NAME}
-     PUBLIC alpaka::alpaka)
+   alpaka_add_executable(${PROJECT_NAME} helloWorld.cpp)
+   target_link_libraries(${PROJECT_NAME} PUBLIC alpaka::alpaka)
 
 In the CMake configuration phase of the project, you must activate the accelerator you want to use:
 
@@ -44,16 +39,13 @@ In the CMake configuration phase of the project, you must activate the accelerat
 
     cd <path/to/the/project/root>
     mkdir build && cd build
-    # enable the CUDA accelerator
     cmake .. -Dalpaka_ACC_GPU_CUDA_ENABLE=ON
-    # compile and link
     cmake --build .
-    # execute application
-    ./myProject
+    ./myexample
 
 A complete list of CMake flags for the  accelerator can be found :doc:`here </advanced/cmake>`.
 
-If the configuration was successful and CMake found the CUDA SDK, the C++ template accelerator type ``alpaka::acc::AccGpuCudaRt`` is available.
+If the configuration was successful and CMake found the CUDA SDK, the C++ template accelerator type ``alpaka::AccGpuCudaRt`` is available.
 
 Use alpaka via ``add_subdirectory``
 -----------------------------------
@@ -64,15 +56,10 @@ The ``add_subdirectory`` method does not require alpaka to be installed. Instead
    :caption: CMakeLists.txt
 
    cmake_minimum_required(VERSION 3.22)
-
-   set(_TARGET_NAME myProject)
-   project(${_TARGET_NAME})
+   project("myexample" CXX)
 
    add_subdirectory(thirdParty/alpaka)
-
-   alpaka_add_executable(${_TARGET_NAME} helloWorld.cpp)
-   target_link_libraries(
-     ${_TARGET_NAME}
-     PUBLIC alpaka::alpaka)
+   alpaka_add_executable(${PROJECT_NAME} helloWorld.cpp)
+   target_link_libraries(${PROJECT_NAME} PUBLIC alpaka::alpaka)
 
 The CMake configure and build commands are the same as for the ``find_package`` approach.

@@ -38,7 +38,7 @@ build/
 /.settings/
 
 # Visual Studio Code project files
-.vscode/
+.vscode
 
 # Visual Studio project files
 .vs/
@@ -57,3 +57,6 @@ jobs.yml
 # pipenv files
 Pipfile
 Pipfile.lock
+
+# user specific cmake preset settings
+CMakeUserPresets.json

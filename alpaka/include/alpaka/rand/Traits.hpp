@@ -45,6 +45,7 @@ namespace alpaka::rand
             using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
             return trait::CreateNormalReal<ImplementationBase, T>::createNormalReal(rand);
         }
+
         //! \return A uniform floating point distribution [0.0, 1.0).
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename T, typename TRand>
@@ -55,6 +56,7 @@ namespace alpaka::rand
             using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
             return trait::CreateUniformReal<ImplementationBase, T>::createUniformReal(rand);
         }
+
         //! \return A uniform integer distribution [0, UINT_MAX].
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename T, typename TRand>
@@ -79,6 +81,7 @@ namespace alpaka::rand
             template<typename TRand, typename TSfinae = void>
             struct CreateDefault;
         } // namespace trait
+
         //! \return A default random number generator engine. Its type is guaranteed to be trivially copyable.
         //!         Except HIP accelerator for HIP versions below 5.2 as its internal state was not trivially copyable.
         //!         The limitation was discussed in PR #1778.

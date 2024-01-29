@@ -860,6 +860,7 @@ TEST_CASE("higherMin", "[meta]")
         std::is_same_v<alpaka::meta::HigherMin<std::uint64_t, std::uint64_t>, std::uint64_t>,
         "alpaka::meta::HigherMin failed!");
 }
+
 TEST_CASE("lowerMin", "[meta]")
 {
     static_assert(

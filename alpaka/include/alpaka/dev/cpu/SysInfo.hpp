@@ -78,7 +78,7 @@ namespace alpaka::cpu::detail
     {
         // Get extended ids.
         std::uint32_t ex[4] = {0};
-        cpuid(0x80000000, 0, ex);
+        cpuid(0x8000'0000, 0, ex);
         std::uint32_t const nExIds(ex[0]);
 
         if(!nExIds)
@@ -96,20 +96,20 @@ namespace alpaka::cpu::detail
 #if BOOST_ARCH_X86
         // Get the information associated with each extended ID.
         char cpuBrandString[0x40] = {0};
-        for(std::uint32_t i(0x80000000); i <= nExIds; ++i)
+        for(std::uint32_t i(0x8000'0000); i <= nExIds; ++i)
         {
             cpuid(i, 0, ex);
 
             // Interpret CPU brand string and cache information.
-            if(i == 0x80000002)
+            if(i == 0x8000'0002)
             {
                 std::memcpy(cpuBrandString, ex, sizeof(ex));
             }
-            else if(i == 0x80000003)
+            else if(i == 0x8000'0003)
             {
                 std::memcpy(cpuBrandString + 16, ex, sizeof(ex));
             }
-            else if(i == 0x80000004)
+            else if(i == 0x8000'0004)
             {
                 std::memcpy(cpuBrandString + 32, ex, sizeof(ex));
             }

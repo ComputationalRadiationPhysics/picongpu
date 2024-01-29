@@ -17,11 +17,6 @@ namespace alpaka::test
         template<typename T, typename TSource>
         using MimicConst = std::conditional_t<std::is_const_v<TSource>, std::add_const_t<T>, std::remove_const_t<T>>;
 
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored                                                                                    \
-        "-Wcast-align" // "cast from 'Byte*' to 'Elem*' increases required alignment of target type"
-#endif
         template<typename TView, typename TSfinae = void>
         class IteratorView
         {
@@ -34,12 +29,12 @@ namespace alpaka::test
             ALPAKA_FN_HOST IteratorView(TView& view, Idx const idx)
                 : m_nativePtr(getPtrNative(view))
                 , m_currentIdx(idx)
-                , m_extents(getExtentVec(view))
-                , m_pitchBytes(getPitchBytesVec(view))
+                , m_extents(getExtents(view))
+                , m_pitchBytes(getPitchesInBytes(view))
             {
             }
 
-            ALPAKA_FN_HOST IteratorView(TView& view) : IteratorView(view, 0)
+            ALPAKA_FN_HOST explicit IteratorView(TView& view) : IteratorView(view, 0)
             {
             }
 
@@ -87,37 +82,19 @@ namespace alpaka::test
                     return *m_nativePtr;
                 else
                 {
-                    using Dim1 = DimInt<1>;
-                    using DimMin1 = DimInt<Dim::value - 1u>;
-
-                    Vec<Dim1, Idx> const currentIdxDim1{m_currentIdx};
-                    Vec<Dim, Idx> const currentIdxDimx(mapIdx<Dim::value>(currentIdxDim1, m_extents));
-
-                    // [pz, py, px] -> [py, px]
-                    auto const pitchWithoutOutermost = subVecEnd<DimMin1>(m_pitchBytes);
-                    // [ElemSize]
-                    Vec<Dim1, Idx> const elementSizeVec = static_cast<Idx>(sizeof(Elem));
-                    // [py, px] ++ [ElemSize] -> [py, px, ElemSize]
-                    Vec<Dim, Idx> const dstPitchBytes = concatVec(pitchWithoutOutermost, elementSizeVec);
-                    // [py, px, ElemSize] [z, y, x] -> [py*z, px*y, ElemSize*x]
-                    auto const dimensionalOffsetsInByte = currentIdxDimx * dstPitchBytes;
-                    // sum{[py*z, px*y, ElemSize*x]} -> offset in byte
-                    auto const offsetInByte = dimensionalOffsetsInByte.foldrAll(std::plus<Idx>());
-
-                    using Byte = MimicConst<std::uint8_t, Elem>;
-                    Byte* ptr(reinterpret_cast<Byte*>(m_nativePtr) + offsetInByte);
-
-#if 0
-                    std::cout
-                        << " i1: " << currentIdxDim1
-                        << " in: " << currentIdxDimx
-                        << " dpb: " << dstPitchBytes
-                        << " offb: " << offsetInByte
-                        << " ptr: " << reinterpret_cast<void const *>(ptr)
-                        << " v: " << *reinterpret_cast<Elem *>(ptr)
-                        << std::endl;
+                    Vec<Dim, Idx> const currentIdxDimx
+                        = mapIdx<Dim::value>(Vec<DimInt<1>, Idx>{m_currentIdx}, m_extents);
+                    auto const offsetInBytes = (currentIdxDimx * m_pitchBytes).sum();
+                    using QualifiedByte = MimicConst<std::byte, Elem>;
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic push
+                    // "cast from 'Byte*' to 'Elem*' increases required alignment of target type"
+#    pragma GCC diagnostic ignored "-Wcast-align"
 #endif
-                    return *reinterpret_cast<Elem*>(ptr);
+                    return *reinterpret_cast<Elem*>(reinterpret_cast<QualifiedByte*>(m_nativePtr) + offsetInBytes);
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic pop
+#endif
                 }
                 ALPAKA_UNREACHABLE(*m_nativePtr);
             }
@@ -128,9 +105,6 @@ namespace alpaka::test
             Vec<Dim, Idx> m_extents;
             Vec<Dim, Idx> m_pitchBytes;
         };
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
 
         template<typename TView, typename TSfinae = void>
         struct Begin
@@ -146,7 +120,7 @@ namespace alpaka::test
         {
             ALPAKA_FN_HOST static auto end(TView& view) -> IteratorView<TView>
             {
-                auto extents = getExtentVec(view);
+                auto extents = getExtents(view);
                 return IteratorView<TView>(view, extents.prod());
             }
         };

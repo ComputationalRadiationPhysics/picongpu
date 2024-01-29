@@ -9,6 +9,7 @@
 #include "alpaka/core/Common.hpp"
 #include "alpaka/core/Utility.hpp"
 #include "alpaka/dev/Traits.hpp"
+#include "alpaka/extent/Traits.hpp"
 #include "alpaka/vec/Vec.hpp"
 #include "alpaka/workdiv/WorkDivMembers.hpp"
 
@@ -50,6 +51,7 @@ namespace alpaka
                 --divisor;
             return divisor;
         }
+
         //! \param val The value to find divisors of.
         //! \param maxDivisor The maximum.
         //! \return A list of all divisors less then or equal to the given maximum.
@@ -310,8 +312,8 @@ namespace alpaka
         }
         else
             return subDivideGridElems(
-                getExtentVec(gridElemExtent),
-                getExtentVec(threadElemExtents),
+                getExtents(gridElemExtent),
+                getExtents(threadElemExtents),
                 getAccDevProps<TAcc>(dev),
                 blockThreadMustDivideGridThreadExtent,
                 gridBlockExtentSubDivRestrictions);
@@ -369,6 +371,7 @@ namespace alpaka
 
         return true;
     }
+
     //! \tparam TAcc The accelerator to test the validity on.
     //! \param dev The device to test the work division for validity on.
     //! \param workDiv The work division to test for validity.

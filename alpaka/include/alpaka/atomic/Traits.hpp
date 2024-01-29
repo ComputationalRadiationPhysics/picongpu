@@ -16,9 +16,11 @@ namespace alpaka
     struct ConceptAtomicGrids
     {
     };
+
     struct ConceptAtomicBlocks
     {
     };
+
     struct ConceptAtomicThreads
     {
     };

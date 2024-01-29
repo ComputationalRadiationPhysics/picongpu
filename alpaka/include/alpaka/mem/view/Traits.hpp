@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -14,9 +14,11 @@
 #include "alpaka/meta/Integral.hpp"
 #include "alpaka/offset/Traits.hpp"
 #include "alpaka/queue/Traits.hpp"
+#include "alpaka/vec/Traits.hpp"
 #include "alpaka/vec/Vec.hpp"
 
 #include <array>
+#include <cstddef>
 #include <iosfwd>
 #include <type_traits>
 #include <vector>
@@ -26,6 +28,23 @@
 
 namespace alpaka
 {
+    namespace detail
+    {
+        //! Calculate the pitches purely from the extents.
+        template<typename TElem, typename TDim, typename TIdx>
+        ALPAKA_FN_HOST_ACC inline constexpr auto calculatePitchesFromExtents(Vec<TDim, TIdx> const& extent)
+        {
+            Vec<TDim, TIdx> pitchBytes{};
+            constexpr auto dim = TIdx{TDim::value};
+            if constexpr(dim > 0)
+                pitchBytes.back() = static_cast<TIdx>(sizeof(TElem));
+            if constexpr(dim > 1)
+                for(TIdx i = TDim::value - 1; i > 0; i--)
+                    pitchBytes[i - 1] = extent[i] * pitchBytes[i];
+            return pitchBytes;
+        }
+    } // namespace detail
+
     //! The view traits.
     namespace trait
     {
@@ -43,7 +62,7 @@ namespace alpaka
         //!
         //! The default implementation uses the extent to calculate the pitch.
         template<typename TIdx, typename TView, typename TSfinae = void>
-        struct GetPitchBytes
+        struct [[deprecated("Use GetPitchesInBytes instead")]] GetPitchBytes
         {
             using ViewIdx = Idx<TView>;
 
@@ -58,12 +77,32 @@ namespace alpaka
                 constexpr auto idx = TIdx::value;
                 constexpr auto viewDim = Dim<TView>::value;
                 if constexpr(idx < viewDim - 1)
-                    return getExtent<idx>(view) * GetPitchBytes<DimInt<idx + 1>, TView>::getPitchBytes(view);
+                {
+#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+                    return getExtents(view)[idx] * GetPitchBytes<DimInt<idx + 1>, TView>::getPitchBytes(view);
+#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#    pragma GCC diagnostic pop
+#endif
+                }
                 else if constexpr(idx == viewDim - 1)
-                    return getExtent<viewDim - 1>(view) * static_cast<ViewIdx>(sizeof(Elem<TView>));
+                    return getExtents(view)[viewDim - 1] * static_cast<ViewIdx>(sizeof(Elem<TView>));
                 else
                     return static_cast<ViewIdx>(sizeof(Elem<TView>));
                 ALPAKA_UNREACHABLE({});
+            }
+        };
+
+        //! Customization point for \ref getPitchesInBytes.
+        //! The default implementation uses the extent to calculate the pitches.
+        template<typename TView, typename TSfinae = void>
+        struct GetPitchesInBytes
+        {
+            ALPAKA_FN_HOST_ACC constexpr auto operator()(TView const& view) const
+            {
+                return alpaka::detail::calculatePitchesFromExtents<Elem<TView>>(getExtents(view));
             }
         };
 
@@ -137,9 +176,29 @@ namespace alpaka
     //! \return The pitch in bytes. This is the distance in bytes between two consecutive elements in the given
     //! dimension.
     template<std::size_t Tidx, typename TView>
-    ALPAKA_FN_HOST auto getPitchBytes(TView const& view) -> Idx<TView>
+    [[deprecated("Use getPitchesInBytes instead")]] ALPAKA_FN_HOST auto getPitchBytes(TView const& view) -> Idx<TView>
     {
+#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
         return trait::GetPitchBytes<DimInt<Tidx>, TView>::getPitchBytes(view);
+#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#    pragma GCC diagnostic pop
+#endif
+    }
+
+    //! \return The pitches in bytes as an alpaka::Vec. This is the distance in bytes between two consecutive elements
+    //! in the given dimension.
+    //! E.g. for a 3D view without padding, the 0-dim pitch is the distance in bytes to jump from one element to the
+    //! next within the same row, the 1-dim pitch (aka. the row pitch) is the distance in bytes to jump from one
+    //! element to the neighboring element on the next row. The 2-dim pitch (aka. the slice pitch) is the distance in
+    //! bytes to jump from one element to the neighboring element on the next slice.
+    //! E.g. a 3D view of floats without padding and the extents {42, 10, 2}, would have a pitch vector of {80, 8, 4}.
+    template<typename TView>
+    ALPAKA_FN_HOST auto getPitchesInBytes(TView const& view) -> Vec<Dim<TView>, Idx<TView>>
+    {
+        return trait::GetPitchesInBytes<TView>{}(view);
     }
 
     //! Create a memory set task.
@@ -185,7 +244,7 @@ namespace alpaka
     template<typename TViewFwd, typename TQueue>
     ALPAKA_FN_HOST auto memset(TQueue& queue, TViewFwd&& view, std::uint8_t const& byte) -> void
     {
-        enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, getExtentVec(view)));
+        enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, getExtents(view)));
     }
 
     //! Creates a memory copy task.
@@ -250,7 +309,7 @@ namespace alpaka
     template<typename TViewSrc, typename TViewDstFwd, typename TQueue>
     ALPAKA_FN_HOST auto memcpy(TQueue& queue, TViewDstFwd&& viewDst, TViewSrc const& viewSrc) -> void
     {
-        enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, getExtentVec(viewSrc)));
+        enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, getExtents(viewSrc)));
     }
 
     namespace detail
@@ -270,7 +329,7 @@ namespace alpaka
             {
                 os << rowPrefix;
 
-                auto const pitch(getPitchBytes<TDim::value + 1u>(view));
+                auto const pitch = getPitchesInBytes(view)[TDim::value + 1];
                 auto const lastIdx(extent[TDim::value] - 1u);
                 for(auto i(decltype(lastIdx)(0)); i <= lastIdx; ++i)
                 {
@@ -294,6 +353,7 @@ namespace alpaka
                 os << rowSuffix;
             }
         };
+
         template<typename TView>
         struct Print<DimInt<Dim<TView>::value - 1u>, TView>
         {
@@ -326,6 +386,7 @@ namespace alpaka
             }
         };
     } // namespace detail
+
     //! Prints the content of the view to the given queue.
     // \TODO: Add precision flag.
     // \TODO: Add column alignment flag.
@@ -341,7 +402,7 @@ namespace alpaka
         detail::Print<DimInt<0u>, TView>::print(
             view,
             getPtrNative(view),
-            getExtentVec(view),
+            getExtents(view),
             os,
             elementSeparator,
             rowSeparator,
@@ -349,50 +410,19 @@ namespace alpaka
             rowSuffix);
     }
 
-    namespace detail
-    {
-        //! A class with a create method that returns the pitch for each index.
-        template<std::size_t Tidx>
-        struct CreatePitchBytes
-        {
-            template<typename TView>
-            ALPAKA_FN_HOST static auto create(TView const& view) -> Idx<TView>
-            {
-                return getPitchBytes<Tidx>(view);
-            }
-        };
-
-        //! Calculate the pitches purely from the extents.
-        template<typename TElem, typename TDim, typename TIdx>
-        ALPAKA_FN_HOST inline auto calculatePitchesFromExtents(Vec<TDim, TIdx> const& extent)
-        {
-            Vec<TDim, TIdx> pitchBytes(Vec<TDim, TIdx>::all(0));
-            if constexpr(TDim::value > 0)
-            {
-                pitchBytes[TDim::value - 1u] = extent[TDim::value - 1u] * static_cast<TIdx>(sizeof(TElem));
-                for(TIdx i = TDim::value - 1u; i > static_cast<TIdx>(0u); --i)
-                {
-                    pitchBytes[i - 1] = extent[i - 1] * pitchBytes[i];
-                }
-            }
-            return pitchBytes;
-        }
-    } // namespace detail
     //! \return The pitch vector.
     template<typename TView>
-    auto getPitchBytesVec(TView const& view = TView()) -> Vec<Dim<TView>, Idx<TView>>
+    [[deprecated("Use getPitchesInBytes instead")]] auto getPitchBytesVec(TView const& view)
+        -> Vec<Dim<TView>, Idx<TView>>
     {
-        return createVecFromIndexedFn<Dim<TView>, detail::CreatePitchBytes>(view);
+        return getPitchesInBytes(view);
     }
 
     //! \return The pitch but only the last N elements.
     template<typename TDim, typename TView>
     ALPAKA_FN_HOST auto getPitchBytesVecEnd(TView const& view = TView()) -> Vec<TDim, Idx<TView>>
     {
-        using IdxOffset = std::integral_constant<
-            std::intmax_t,
-            static_cast<std::intmax_t>(Dim<TView>::value) - static_cast<std::intmax_t>(TDim::value)>;
-        return createVecFromIndexedFnOffset<TDim, detail::CreatePitchBytes, IdxOffset>(view);
+        return subVecEnd<TDim>(getPitchesInBytes(view));
     }
 
     //! \return A view to static device memory.
@@ -433,7 +463,7 @@ namespace alpaka
     //! \param pitch Pitch in bytes for each dimension. Dimensionality must be equal to extent.
     //! \return A view to device memory.
     template<typename TDev, typename TElem, typename TExtent, typename TPitch>
-    auto createView(TDev const& dev, TElem* pMem, TExtent const& extent, TPitch const& pitch)
+    auto createView(TDev const& dev, TElem* pMem, TExtent const& extent, TPitch pitch)
     {
         return trait::CreateViewPlainPtr<TDev>::createViewPlainPtr(dev, pMem, extent, pitch);
     }
@@ -447,7 +477,7 @@ namespace alpaka
     template<typename TDev, typename TContainer>
     auto createView(TDev const& dev, TContainer& con)
     {
-        return createView(dev, std::data(con), getExtentVec(con));
+        return createView(dev, std::data(con), getExtents(con));
     }
 
     //! Creates a view to a contiguous container of device-accessible memory.
@@ -507,14 +537,12 @@ namespace alpaka
 
                     constexpr ByteIndexedAccessor() noexcept = default;
 
-                    ALPAKA_FN_HOST_ACC
-                    constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept
+                    ALPAKA_FN_HOST_ACC constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept
                     {
                         return p + i;
                     }
 
-                    ALPAKA_FN_HOST_ACC
-                    constexpr reference access(data_handle_type p, size_t i) const noexcept
+                    ALPAKA_FN_HOST_ACC constexpr reference access(data_handle_type p, size_t i) const noexcept
                     {
                         assert(i % alignof(ElementType) == 0);
 #    if BOOST_COMP_GNUC
@@ -531,18 +559,8 @@ namespace alpaka
                 template<typename TView, std::size_t... Is>
                 ALPAKA_FN_HOST auto makeExtents(TView const& view, std::index_sequence<Is...>)
                 {
-                    return std::experimental::dextents<Idx<TView>, Dim<TView>::value>{getExtent<Is>(view)...};
-                }
-
-                template<typename TView, std::size_t... Is>
-                ALPAKA_FN_HOST auto makeStrides(TView const& view, std::index_sequence<Is...>)
-                {
-                    constexpr auto fastestIndexPitch = static_cast<Idx<TView>>(sizeof(Elem<TView>));
-                    [[maybe_unused]] constexpr auto dim = Dim<TView>::value;
-                    // alpaka pitches are right-shifted by 1. We skip getPitchBytes<0> (the size in bytes of the entire
-                    // buffer) and append the element size last
-                    return std::array<Idx<TView>, dim>{
-                        (Is < dim - 1 ? getPitchBytes<Is + 1>(view) : fastestIndexPitch)...};
+                    auto const ex = getExtents(view);
+                    return std::experimental::dextents<Idx<TView>, Dim<TView>::value>{ex[Is]...};
                 }
             } // namespace detail
 
@@ -556,7 +574,7 @@ namespace alpaka
                     using Element = Elem<TView>;
                     auto extents = detail::makeExtents(view, std::make_index_sequence<dim>{});
                     auto* ptr = reinterpret_cast<std::byte*>(getPtrNative(view));
-                    auto const strides = detail::makeStrides(view, std::make_index_sequence<dim>{});
+                    auto const strides = toArray(getPitchesInBytes(view));
                     layout_stride::mapping<decltype(extents)> m{extents, strides};
                     return mdspan<Element, decltype(extents), layout_stride, detail::ByteIndexedAccessor<Element>>{
                         ptr,
@@ -569,7 +587,7 @@ namespace alpaka
                     using Element = Elem<TView>;
                     auto extents = detail::makeExtents(view, std::make_index_sequence<dim>{});
                     auto* ptr = reinterpret_cast<std::byte*>(getPtrNative(view));
-                    auto strides = detail::makeStrides(view, std::make_index_sequence<dim>{});
+                    auto strides = toArray(getPitchesInBytes(view));
                     std::reverse(begin(strides), end(strides));
                     layout_stride::mapping<decltype(extents)> m{extents, strides};
                     return mdspan<Element, decltype(extents), layout_stride, detail::ByteIndexedAccessor<Element>>{

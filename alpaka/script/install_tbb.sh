@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Simeon Ehrig
+# Copyright 2023 Benjamin Worpitz, Bernhard Manfred Gruber, Simeon Ehrig, Jan Stephan
 # SPDX-License-Identifier: MPL-2.0
 #
 
@@ -17,7 +17,7 @@ then
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
     then
         travis_retry sudo apt-get -qqq update
-        travis_retry sudo apt-get install -y wget build-essential pkg-config cmake ca-certificates gnupg
+        travis_retry sudo apt-get install -y wget ca-certificates gnupg
 
         travis_retry sudo wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
         sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB

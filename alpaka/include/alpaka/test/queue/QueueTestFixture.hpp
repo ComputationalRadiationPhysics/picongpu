@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2023 Benjamin Worpitz, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -16,12 +16,8 @@ namespace alpaka::test
         using Queue = std::tuple_element_t<1, TDevQueue>;
         using Platform = alpaka::Platform<Dev>;
 
-        QueueTestFixture() : m_dev(getDevByIdx(m_platform, 0)), m_queue(m_dev)
-        {
-        }
-
-        Platform m_platform;
-        Dev m_dev;
-        Queue m_queue;
+        Platform m_platform{};
+        Dev m_dev{getDevByIdx(m_platform, 0)};
+        Queue m_queue{m_dev};
     };
 } // namespace alpaka::test

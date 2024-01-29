@@ -1,17 +1,21 @@
-/* Copyright 2022 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato, Jan Stephan
+/* Copyright 2024 Benjamin Worpitz, Jakob Krude, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
+ *                Antonio Di Pilato, Jan Stephan, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/core/ApiCudaRt.hpp"
 #include "alpaka/core/Concepts.hpp"
 #include "alpaka/core/Cuda.hpp"
 #include "alpaka/core/Hip.hpp"
 #include "alpaka/dev/Traits.hpp"
+#include "alpaka/dev/common/QueueRegistry.hpp"
 #include "alpaka/mem/buf/Traits.hpp"
 #include "alpaka/platform/Traits.hpp"
 #include "alpaka/queue/Properties.hpp"
 #include "alpaka/queue/Traits.hpp"
+#include "alpaka/queue/cuda_hip/QueueUniformCudaHipRt.hpp"
 #include "alpaka/traits/Traits.hpp"
 #include "alpaka/wait/Traits.hpp"
 
@@ -27,13 +31,13 @@ namespace alpaka
     {
         template<typename TPlatform, typename TSfinae>
         struct GetDevByIdx;
-    }
+    } // namespace trait
 
     namespace uniform_cuda_hip::detail
     {
         template<typename TApi, bool TBlocking>
         class QueueUniformCudaHipRt;
-    }
+    } // namespace uniform_cuda_hip::detail
 
     template<typename TApi>
     using QueueUniformCudaHipRtBlocking = uniform_cuda_hip::detail::QueueUniformCudaHipRt<TApi, true>;
@@ -45,7 +49,7 @@ namespace alpaka
     struct PlatformUniformCudaHipRt;
 
     template<typename TApi, typename TElem, typename TDim, typename TIdx>
-    class BufUniformCudaHipRt;
+    struct BufUniformCudaHipRt;
 
     //! The CUDA/HIP RT device handle.
     template<typename TApi>
@@ -55,14 +59,19 @@ namespace alpaka
     {
         friend struct trait::GetDevByIdx<PlatformUniformCudaHipRt<TApi>>;
 
+        using IDeviceQueue = uniform_cuda_hip::detail::QueueUniformCudaHipRtImpl<TApi>;
+
     protected:
-        DevUniformCudaHipRt() = default;
+        DevUniformCudaHipRt() : m_QueueRegistry{std::make_shared<alpaka::detail::QueueRegistry<IDeviceQueue>>()}
+        {
+        }
 
     public:
         ALPAKA_FN_HOST auto operator==(DevUniformCudaHipRt const& rhs) const -> bool
         {
             return m_iDevice == rhs.m_iDevice;
         }
+
         ALPAKA_FN_HOST auto operator!=(DevUniformCudaHipRt const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -73,11 +82,28 @@ namespace alpaka
             return m_iDevice;
         }
 
+        [[nodiscard]] ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<IDeviceQueue>>
+        {
+            return m_QueueRegistry->getAllExistingQueues();
+        }
+
+        //! Registers the given queue on this device.
+        //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
+        ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IDeviceQueue> spQueue) const -> void
+        {
+            m_QueueRegistry->registerQueue(spQueue);
+        }
+
     private:
-        DevUniformCudaHipRt(int iDevice) : m_iDevice(iDevice)
+        DevUniformCudaHipRt(int iDevice)
+            : m_iDevice(iDevice)
+            , m_QueueRegistry(std::make_shared<alpaka::detail::QueueRegistry<IDeviceQueue>>())
         {
         }
+
         int m_iDevice;
+
+        std::shared_ptr<alpaka::detail::QueueRegistry<IDeviceQueue>> m_QueueRegistry;
     };
 
     namespace trait
@@ -139,12 +165,36 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getWarpSizes(DevUniformCudaHipRt<TApi> const& dev) -> std::vector<std::size_t>
             {
+                return {GetPreferredWarpSize<DevUniformCudaHipRt<TApi>>::getPreferredWarpSize(dev)};
+            }
+        };
+
+        //! The CUDA/HIP RT preferred device warp size get trait specialization.
+        template<typename TApi>
+        struct GetPreferredWarpSize<DevUniformCudaHipRt<TApi>>
+        {
+            ALPAKA_FN_HOST static auto getPreferredWarpSize(DevUniformCudaHipRt<TApi> const& dev) -> std::size_t
+            {
                 typename TApi::DeviceProp_t devProp;
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::getDeviceProperties(&devProp, dev.getNativeHandle()));
 
-                return {static_cast<std::size_t>(devProp.warpSize)};
+                return static_cast<std::size_t>(devProp.warpSize);
             }
         };
+
+#    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+        //! The CUDA RT preferred device warp size get trait specialization.
+        template<>
+        struct GetPreferredWarpSize<DevUniformCudaHipRt<ApiCudaRt>>
+        {
+            ALPAKA_FN_HOST static constexpr auto getPreferredWarpSize(DevUniformCudaHipRt<ApiCudaRt> const& /* dev */)
+                -> std::size_t
+            {
+                // All CUDA GPUs to date have a warp size of 32 threads.
+                return 32u;
+            }
+        };
+#    endif // ALPAKA_ACC_GPU_CUDA_ENABLED
 
         //! The CUDA/HIP RT device reset trait specialization.
         template<typename TApi>

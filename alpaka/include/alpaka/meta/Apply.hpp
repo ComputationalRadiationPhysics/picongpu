@@ -10,6 +10,7 @@ namespace alpaka::meta
     {
         template<typename TList, template<typename...> class TApplicant>
         struct ApplyImpl;
+
         template<template<typename...> class TList, template<typename...> class TApplicant, typename... T>
         struct ApplyImpl<TList<T...>, TApplicant>
         {

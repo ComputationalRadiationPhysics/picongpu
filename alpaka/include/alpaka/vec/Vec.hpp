@@ -12,16 +12,15 @@
 #include "alpaka/core/Unreachable.hpp"
 #include "alpaka/dim/DimIntegralConst.hpp"
 #include "alpaka/dim/Traits.hpp"
-#include "alpaka/extent/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
 #include "alpaka/meta/Fold.hpp"
 #include "alpaka/meta/Functional.hpp"
 #include "alpaka/meta/IntegerSequence.hpp"
-#include "alpaka/offset/Traits.hpp"
 #include "alpaka/vec/Traits.hpp"
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <ostream>
 #include <tuple>
@@ -32,43 +31,6 @@ namespace alpaka
 {
     template<typename TDim, typename TVal>
     class Vec;
-
-    //! Single value constructor helper.
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TDim,
-        template<std::size_t>
-        class TTFnObj,
-        typename... TArgs,
-        typename TIdxSize,
-        TIdxSize... TIndices>
-    ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnArbitrary(
-        std::integer_sequence<TIdxSize, TIndices...> const& /* indices */,
-        TArgs&&... args)
-    {
-        return Vec<TDim, decltype(TTFnObj<0>::create(std::forward<TArgs>(args)...))>(
-            (TTFnObj<TIndices>::create(std::forward<TArgs>(args)...))...);
-    }
-    //! Creator using func<idx>(args...) to initialize all values of the vector.
-    //! The idx is in the range [0, TDim].
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TDim, template<std::size_t> class TTFnObj, typename... TArgs>
-    ALPAKA_FN_HOST_ACC auto createVecFromIndexedFn(TArgs&&... args)
-    {
-        using IdxSequence = std::make_integer_sequence<typename TDim::value_type, TDim::value>;
-        return createVecFromIndexedFnArbitrary<TDim, TTFnObj>(IdxSequence(), std::forward<TArgs>(args)...);
-    }
-
-    //! Creator using func<idx>(args...) to initialize all values of the vector.
-    //! The idx is in the range [TIdxOffset, TIdxOffset + TDim].
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TDim, template<std::size_t> class TTFnObj, typename TIdxOffset, typename... TArgs>
-    ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnOffset(TArgs&&... args)
-    {
-        using IdxSubSequenceSigned = meta::MakeIntegerSequenceOffset<std::intmax_t, TIdxOffset::value, TDim::value>;
-        using IdxSubSequence = meta::ConvertIntegerSequence<typename TIdxOffset::value_type, IdxSubSequenceSigned>;
-        return createVecFromIndexedFnArbitrary<TDim, TTFnObj>(IdxSubSequence(), std::forward<TArgs>(args)...);
-    }
 
     //! A n-dimensional vector.
     template<typename TDim, typename TVal>
@@ -116,6 +78,31 @@ namespace alpaka
         }
 #endif
 
+        //! Generator constructor.
+        //! Initializes the vector with the values returned from generator(IC) in order, where IC::value runs from 0 to
+        //! TDim - 1 (inclusive).
+#if BOOST_COMP_NVCC && BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(11, 3, 0)                                              \
+    && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 4, 0)
+        template<typename F>
+        ALPAKA_FN_HOST_ACC constexpr explicit Vec(
+            F&& generator,
+            std::void_t<decltype(generator(std::integral_constant<std::size_t, 0>{}))>* ignore = nullptr)
+#else
+        template<typename F, std::enable_if_t<std::is_invocable_v<F, std::integral_constant<std::size_t, 0>>, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr explicit Vec(F&& generator)
+#endif
+            : Vec(std::forward<F>(generator), std::make_integer_sequence<TVal, TDim::value>{})
+        {
+        }
+
+    private:
+        template<typename F, TVal... Is>
+        ALPAKA_FN_HOST_ACC constexpr explicit Vec(F&& generator, std::integer_sequence<TVal, Is...>)
+            : m_data{generator(std::integral_constant<TVal, Is>{})...}
+        {
+        }
+
+    public:
         //! \brief Single value constructor.
         //!
         //! Creates a vector with all values set to val.
@@ -162,6 +149,80 @@ namespace alpaka
         {
             return m_data + TDim::value;
         }
+
+        ALPAKA_FN_HOST_ACC constexpr auto front() -> TVal&
+        {
+            return m_data[0];
+        }
+
+        ALPAKA_FN_HOST_ACC constexpr auto front() const -> TVal const&
+        {
+            return m_data[0];
+        }
+
+        ALPAKA_FN_HOST_ACC constexpr auto back() -> TVal&
+        {
+            return m_data[Dim::value - 1];
+        }
+
+        ALPAKA_FN_HOST_ACC constexpr auto back() const -> TVal const&
+        {
+            return m_data[Dim::value - 1];
+        }
+
+        //! access elements by name
+        //!
+        //! names: x,y,z,w
+        //! @{
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 1, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) x() const
+        {
+            return m_data[Dim::value - 1];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 1, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) x()
+        {
+            return m_data[Dim::value - 1];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 2, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) y() const
+        {
+            return m_data[Dim::value - 2];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 2, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) y()
+        {
+            return m_data[Dim::value - 2];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 3, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) z() const
+        {
+            return m_data[Dim::value - 3];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 3, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) z()
+        {
+            return m_data[Dim::value - 3];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 4, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) w() const
+        {
+            return m_data[Dim::value - 4];
+        }
+
+        template<typename TDefer = Dim, std::enable_if_t<std::is_same_v<TDefer, Dim> && Dim::value >= 4, int> = 0>
+        ALPAKA_FN_HOST_ACC constexpr decltype(auto) w()
+        {
+            return m_data[Dim::value - 4];
+        }
+
+        //! @}
 
         //! Value reference accessor at the given non-unsigned integer index.
         //! \return A reference to the value at the given index.
@@ -229,7 +290,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto prod() const -> TVal
         {
-            return foldrAll(std::multiplies<TVal>(), TVal(1));
+            return foldrAll(std::multiplies<TVal>{}, TVal{1});
         }
 #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
 #    pragma warning(pop)
@@ -238,42 +299,42 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto sum() const -> TVal
         {
-            return foldrAll(std::plus<TVal>(), TVal(0));
+            return foldrAll(std::plus<TVal>{}, TVal{0});
         }
 
         //! \return The min of all values.
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto min() const -> TVal
         {
-            return foldrAll(meta::min<TVal>(), std::numeric_limits<TVal>::max());
+            return foldrAll(meta::min<TVal>{}, std::numeric_limits<TVal>::max());
         }
 
         //! \return The max of all values.
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto max() const -> TVal
         {
-            return foldrAll(meta::max<TVal>(), std::numeric_limits<TVal>::min());
+            return foldrAll(meta::max<TVal>{}, std::numeric_limits<TVal>::min());
         }
 
         //! \return True if all values are true, i.e., the "logical and" of all values.
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto all() const -> bool
         {
-            return foldrAll(std::logical_and<TVal>(), true);
+            return foldrAll(std::logical_and<TVal>{}, true);
         }
 
         //! \return True if any value is true, i.e., the "logical or" of all values.
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto any() const -> bool
         {
-            return foldrAll(std::logical_or<TVal>(), false);
+            return foldrAll(std::logical_or<TVal>{}, false);
         }
 
         //! \return True if none of the values are true
         ALPAKA_NO_HOST_ACC_WARNING
         [[nodiscard]] ALPAKA_FN_HOST_ACC constexpr auto none() const -> bool
         {
-            return !foldrAll(std::logical_or<TVal>(), false);
+            return !foldrAll(std::logical_or<TVal>{}, false);
         }
 
         //! \return The index of the minimal element.
@@ -528,6 +589,12 @@ namespace alpaka
     template<typename TFirstIndex, typename... TRestIndices>
     Vec(TFirstIndex&&, TRestIndices&&...) -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
 
+    template<typename T>
+    inline constexpr bool isVec = false;
+
+    template<typename TDim, typename TVal>
+    inline constexpr bool isVec<Vec<TDim, TVal>> = true;
+
     //! Converts a Vec to a std::array
     template<typename TDim, typename TVal>
     ALPAKA_FN_HOST_ACC constexpr auto toArray(Vec<TDim, TVal> const& v) -> std::array<TVal, TDim::value>
@@ -655,10 +722,7 @@ namespace alpaka
                 ALPAKA_UNREACHABLE({});
             }
         };
-    } // namespace trait
 
-    namespace trait
-    {
         //! ReverseVec specialization for Vec.
         template<typename TDim, typename TVal>
         struct ReverseVec<Vec<TDim, TVal>>
@@ -702,143 +766,6 @@ namespace alpaka
                         r[TDimL::value + i] = vecR[i];
                 }
                 return r;
-            }
-        };
-    } // namespace trait
-
-    namespace detail
-    {
-        //! A function object that returns the extent for each index.
-        template<std::size_t Tidx>
-        struct CreateExtent
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            template<typename TExtent>
-            ALPAKA_FN_HOST_ACC static constexpr auto create(TExtent const& extent) -> Idx<TExtent>
-            {
-                return getExtent<Tidx>(extent);
-            }
-        };
-    } // namespace detail
-
-    //! \tparam TExtent has to specialize GetExtent.
-    //! \return The extent vector.
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TExtent>
-    ALPAKA_FN_HOST_ACC auto constexpr getExtentVec(TExtent const& extent = {}) -> Vec<Dim<TExtent>, Idx<TExtent>>
-    {
-        return createVecFromIndexedFn<Dim<TExtent>, detail::CreateExtent>(extent);
-    }
-
-    //! \tparam TExtent has to specialize GetExtent.
-    //! \return The extent but only the last TDim elements.
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TDim, typename TExtent>
-    ALPAKA_FN_HOST_ACC auto constexpr getExtentVecEnd(TExtent const& extent = {}) -> Vec<TDim, Idx<TExtent>>
-    {
-        static_assert(TDim::value <= Dim<TExtent>::value, "Cannot get more items than the extent holds");
-
-        using IdxOffset = std::integral_constant<
-            std::intmax_t,
-            static_cast<std::intmax_t>(Dim<TExtent>::value) - static_cast<std::intmax_t>(TDim::value)>;
-        return createVecFromIndexedFnOffset<TDim, detail::CreateExtent, IdxOffset>(extent);
-    }
-
-    namespace detail
-    {
-        //! A function object that returns the offsets for each index.
-        template<std::size_t Tidx>
-        struct CreateOffset
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            template<typename TOffsets>
-            ALPAKA_FN_HOST_ACC static constexpr auto create(TOffsets const& offsets) -> Idx<TOffsets>
-            {
-                return getOffset<Tidx>(offsets);
-            }
-        };
-    } // namespace detail
-
-    //! \tparam TOffsets has to specialize GetOffset.
-    //! \return The offset vector.
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TOffsets>
-    ALPAKA_FN_HOST_ACC constexpr auto getOffsetVec(TOffsets const& offsets = {}) -> Vec<Dim<TOffsets>, Idx<TOffsets>>
-    {
-        return createVecFromIndexedFn<Dim<TOffsets>, detail::CreateOffset>(offsets);
-    }
-
-    //! \tparam TOffsets has to specialize GetOffset.
-    //! \return The offset vector but only the last TDim elements.
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TDim, typename TOffsets>
-    ALPAKA_FN_HOST_ACC constexpr auto getOffsetVecEnd(TOffsets const& offsets = {}) -> Vec<TDim, Idx<TOffsets>>
-    {
-        static_assert(TDim::value <= Dim<TOffsets>::value, "Cannot get more items than the offsets hold");
-
-        using IdxOffset = std::integral_constant<
-            std::size_t,
-            static_cast<std::size_t>(
-                static_cast<std::intmax_t>(Dim<TOffsets>::value) - static_cast<std::intmax_t>(TDim::value))>;
-        return createVecFromIndexedFnOffset<TDim, detail::CreateOffset, IdxOffset>(offsets);
-    }
-
-    namespace trait
-    {
-        //! The Vec extent get trait specialization.
-        template<typename TIdxIntegralConst, typename TDim, typename TVal>
-        struct GetExtent<
-            TIdxIntegralConst,
-            Vec<TDim, TVal>,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static constexpr auto getExtent(Vec<TDim, TVal> const& extent) -> TVal
-            {
-                return extent[TIdxIntegralConst::value];
-            }
-        };
-        //! The Vec extent set trait specialization.
-        template<typename TIdxIntegralConst, typename TDim, typename TVal, typename TExtentVal>
-        struct SetExtent<
-            TIdxIntegralConst,
-            Vec<TDim, TVal>,
-            TExtentVal,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static constexpr auto setExtent(Vec<TDim, TVal>& extent, TExtentVal const& extentVal)
-                -> void
-            {
-                extent[TIdxIntegralConst::value] = extentVal;
-            }
-        };
-
-        //! The Vec offset get trait specialization.
-        template<typename TIdxIntegralConst, typename TDim, typename TVal>
-        struct GetOffset<
-            TIdxIntegralConst,
-            Vec<TDim, TVal>,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static constexpr auto getOffset(Vec<TDim, TVal> const& offsets) -> TVal
-            {
-                return offsets[TIdxIntegralConst::value];
-            }
-        };
-        //! The Vec offset set trait specialization.
-        template<typename TIdxIntegralConst, typename TDim, typename TVal, typename TOffset>
-        struct SetOffset<
-            TIdxIntegralConst,
-            Vec<TDim, TVal>,
-            TOffset,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static constexpr auto setOffset(Vec<TDim, TVal>& offsets, TOffset const& offset) -> void
-            {
-                offsets[TIdxIntegralConst::value] = offset;
             }
         };
     } // namespace trait

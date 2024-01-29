@@ -47,6 +47,7 @@ namespace alpaka::test
                 , m_bIsReady(true)
             {
             }
+
             EventHostManualTriggerCpuImpl(EventHostManualTriggerCpuImpl const& other) = delete;
             auto operator=(EventHostManualTriggerCpuImpl const&) -> EventHostManualTriggerCpuImpl& = delete;
 
@@ -84,11 +85,13 @@ namespace alpaka::test
             : m_spEventImpl(std::make_shared<cpu::detail::EventHostManualTriggerCpuImpl<TDev>>(dev))
         {
         }
+
         //! Equality comparison operator.
         ALPAKA_FN_HOST auto operator==(EventHostManualTriggerCpu const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
         }
+
         //! Inequality comparison operator.
         ALPAKA_FN_HOST auto operator!=(EventHostManualTriggerCpu const& rhs) const -> bool
         {
@@ -241,7 +244,6 @@ namespace alpaka::trait
 
 #    include "alpaka/core/Cuda.hpp"
 
-
 namespace alpaka::test
 {
     namespace uniform_cuda_hip::detail
@@ -266,8 +268,10 @@ namespace alpaka::test
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     cudaMemset(m_devMem, static_cast<int>(0u), static_cast<size_t>(sizeof(int32_t))));
             }
+
             EventHostManualTriggerCudaImpl(EventHostManualTriggerCudaImpl const&) = delete;
             auto operator=(EventHostManualTriggerCudaImpl const&) -> EventHostManualTriggerCudaImpl& = delete;
+
             ALPAKA_FN_HOST ~EventHostManualTriggerCudaImpl()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -309,10 +313,12 @@ namespace alpaka::test
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
         }
+
         ALPAKA_FN_HOST auto operator==(EventHostManualTriggerCuda const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
         }
+
         ALPAKA_FN_HOST auto operator!=(EventHostManualTriggerCuda const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -336,11 +342,12 @@ namespace alpaka::test
         {
             using type = test::EventHostManualTriggerCuda;
         };
+
         //! The CPU event host manual trigger support get trait specialization.
         template<>
         struct IsEventHostManualTriggerSupported<DevCudaRt>
         {
-            ALPAKA_FN_HOST static auto isSupported(DevCudaRt const& dev) -> bool
+            ALPAKA_FN_HOST static auto isSupported([[maybe_unused]] DevCudaRt const& dev) -> bool
             {
 #    if CUDA_VERSION < 11070
                 int result = 0;
@@ -426,10 +433,11 @@ namespace alpaka::trait
             ALPAKA_CUDA_DRV_CHECK(detail::streamWaitValue(
                 static_cast<CUstream>(queue.getNativeHandle()),
                 reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
-                0x01010101u,
+                0x0101'0101u,
                 CU_STREAM_WAIT_VALUE_GEQ));
         }
     };
+
     template<>
     struct Enqueue<QueueCudaRtBlocking, test::EventHostManualTriggerCuda>
     {
@@ -458,7 +466,7 @@ namespace alpaka::trait
             ALPAKA_CUDA_DRV_CHECK(detail::streamWaitValue(
                 static_cast<CUstream>(queue.getNativeHandle()),
                 reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
-                0x01010101u,
+                0x0101'0101u,
                 CU_STREAM_WAIT_VALUE_GEQ));
         }
     };
@@ -497,8 +505,10 @@ namespace alpaka::test
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     hipMemset(m_devMem, static_cast<int>(0u), static_cast<size_t>(sizeof(int32_t))));
             }
+
             EventHostManualTriggerHipImpl(EventHostManualTriggerHipImpl const&) = delete;
             auto operator=(EventHostManualTriggerHipImpl const&) -> EventHostManualTriggerHipImpl& = delete;
+
             ALPAKA_FN_HOST ~EventHostManualTriggerHipImpl()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -540,10 +550,12 @@ namespace alpaka::test
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
         }
+
         ALPAKA_FN_HOST auto operator==(EventHostManualTriggerHip const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
         }
+
         ALPAKA_FN_HOST auto operator!=(EventHostManualTriggerHip const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -641,7 +653,7 @@ namespace alpaka::trait
             std::cerr << "[Workaround] polling of device-located value in stream, as hipStreamWaitValue32 is not "
                          "available.\n";
 #    endif
-            while(hostMem < 0x01010101)
+            while(hostMem < 0x0101'0101)
             {
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipMemcpyDtoHAsync(
                     &hostMem,
@@ -689,7 +701,7 @@ namespace alpaka::trait
                 std::this_thread::sleep_for(std::chrono::milliseconds(10u));
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     hipMemcpy(&hmem, event.m_spEventImpl->m_devMem, sizeof(std::uint32_t), hipMemcpyDefault));
-            } while(hmem < 0x01010101u);
+            } while(hmem < 0x0101'0101u);
         }
     };
 } // namespace alpaka::trait

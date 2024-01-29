@@ -76,7 +76,7 @@ namespace cupla
                     using Platform = alpaka::Platform<T_MappedDeviceType>;
                     auto const platform = alpaka::Platform<Acc>{};
                     std::unique_ptr<BufType> bufPtr(
-                        new BufType(::alpaka::allocMappedBufIfSupported<Platform, uint8_t, MemSizeType>(
+                        new BufType(::alpaka::allocMappedBufIfSupported<uint8_t, MemSizeType>(
                             device.current(),
                             platform,
                             extent)));

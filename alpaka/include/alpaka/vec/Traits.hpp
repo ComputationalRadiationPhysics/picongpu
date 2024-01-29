@@ -5,11 +5,10 @@
 
 #pragma once
 
+#include "alpaka/core/Common.hpp"
 #include "alpaka/dim/Traits.hpp"
-#include "alpaka/extent/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
 #include "alpaka/meta/IntegerSequence.hpp"
-#include "alpaka/offset/Traits.hpp"
 
 #include <utility>
 
@@ -44,6 +43,7 @@ namespace alpaka
     {
         return trait::SubVecFromIndices<TVec, TIndexSequence>::subVecFromIndices(vec);
     }
+
     //! \tparam TVec has to specialize SubVecFromIndices.
     //! \return The sub-vector consisting of the first N elements of the source vector.
     ALPAKA_NO_HOST_ACC_WARNING
@@ -58,6 +58,7 @@ namespace alpaka
         using IdxSubSequence = std::make_integer_sequence<std::size_t, TSubDim::value>;
         return subVecFromIndices<IdxSubSequence>(vec);
     }
+
     //! \tparam TVec has to specialize SubVecFromIndices.
     //! \return The sub-vector consisting of the last N elements of the source vector.
     ALPAKA_NO_HOST_ACC_WARNING

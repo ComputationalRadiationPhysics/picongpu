@@ -15,19 +15,17 @@ message(STATUS "alpaka_DEV_COMPILE_OPTIONS: ${alpaka_DEV_COMPILE_OPTIONS}")
 target_compile_options(${_COMMON_TARGET_NAME} INTERFACE ${alpaka_DEV_COMPILE_OPTIONS})
 
 if(MSVC)
-    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/wd4996> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>) # This function or variable may be unsafe. Consider using <safe_version> instead.
-    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/bigobj> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/bigobj>)
+    # This function or variable may be unsafe. Consider using <safe_version> instead.
+    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:/wd4996>"
+                                                            "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler /wd4996>")
+    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:/bigobj>"
+                                                            "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler /bigobj>")
 endif()
 
 if(alpaka_ACC_GPU_CUDA_ENABLE)
     # CUDA driver API is used by EventHostManualTrigger
     target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE CUDA::cuda_driver)
     target_compile_definitions(${_COMMON_TARGET_NAME} INTERFACE "CUDA_API_PER_THREAD_DEFAULT_STREAM")
-endif()
-if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
-    if(alpaka_ENABLE_WERROR)
-        target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Werror=all-warnings>)
-    endif()
 endif()
 
 target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE alpaka::alpaka)

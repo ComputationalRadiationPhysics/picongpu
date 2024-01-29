@@ -101,7 +101,7 @@ public:
     //! Returns the current element.
     //!
     //! Returns a reference to the current index.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator*() -> const T&
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator*() -> T const&
     {
         return mData[mIndex];
     }
@@ -123,8 +123,12 @@ public:
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorCpu(TAcc const& acc, TBuf const* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorCpu(
+        TAcc const& acc,
+        TBuf const* data,
+        uint32_t linearizedIndex,
+        uint32_t gridSize,
+        uint64_t n)
         : Iterator<T, TBuf>(
             data,
             static_cast<uint32_t>((n * linearizedIndex) / alpaka::math::min(acc, static_cast<uint64_t>(gridSize), n)),
@@ -244,8 +248,12 @@ public:
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorGpu(TAcc const&, TBuf const* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorGpu(
+        TAcc const&,
+        TBuf const* data,
+        uint32_t linearizedIndex,
+        uint32_t gridSize,
+        uint64_t n)
         : Iterator<T, TBuf>(data, linearizedIndex, n)
         , mGridSize(gridSize)
     {

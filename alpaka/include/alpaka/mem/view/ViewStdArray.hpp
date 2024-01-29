@@ -49,14 +49,13 @@ namespace alpaka::trait
         using type = TElem;
     };
 
-    //! The std::array width get trait specialization.
     template<typename TElem, std::size_t Tsize>
-    struct GetExtent<DimInt<0u>, std::array<TElem, Tsize>>
+    struct GetExtents<std::array<TElem, Tsize>>
     {
-        ALPAKA_FN_HOST static constexpr auto getExtent(std::array<TElem, Tsize> const& extent)
-            -> Idx<std::array<TElem, Tsize>>
+        ALPAKA_FN_HOST constexpr auto operator()(std::array<TElem, Tsize> const& a)
+            -> Vec<DimInt<1>, Idx<std::array<TElem, Tsize>>>
         {
-            return std::size(extent);
+            return {std::size(a)};
         }
     };
 
@@ -68,6 +67,7 @@ namespace alpaka::trait
         {
             return std::data(view);
         }
+
         ALPAKA_FN_HOST static auto getPtrNative(std::array<TElem, Tsize>& view) -> TElem*
         {
             return std::data(view);
@@ -75,12 +75,13 @@ namespace alpaka::trait
     };
 
     //! The std::array offset get trait specialization.
-    template<typename TIdx, typename TElem, std::size_t Tsize>
-    struct GetOffset<TIdx, std::array<TElem, Tsize>>
+    template<typename TElem, std::size_t Tsize>
+    struct GetOffsets<std::array<TElem, Tsize>>
     {
-        ALPAKA_FN_HOST static auto getOffset(std::array<TElem, Tsize> const&) -> Idx<std::array<TElem, Tsize>>
+        ALPAKA_FN_HOST auto operator()(std::array<TElem, Tsize> const&)
+            -> Vec<DimInt<1>, Idx<std::array<TElem, Tsize>>>
         {
-            return 0u;
+            return {0};
         }
     };
 

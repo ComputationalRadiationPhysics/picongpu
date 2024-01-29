@@ -37,16 +37,22 @@ namespace alpaka
         template<typename TAcc>
         struct AccToTag;
 
-        template<typename TAcc>
-        using AccToTagType = typename AccToTag<TAcc>::type;
-
         template<typename TTag, typename TDim, typename TIdx>
         struct TagToAcc;
-
-        template<typename TTag, typename TDim, typename TIdx>
-        using TagToAccType = typename TagToAcc<TTag, TDim, TIdx>::type;
     } // namespace trait
 
+    /// @brief maps an acc type to a tag type
+    /// @tparam TAcc alpaka acc type
+    template<typename TAcc>
+    using AccToTag = typename trait::AccToTag<TAcc>::type;
+
+    /// @brief maps a tag type to an acc type
+    /// @tparam TTag alpaka tag type
+    /// @tparam TDim dimension of the mapped acc type
+    /// @tparam TIdx index type of the mapped acc type
+    template<typename TTag, typename TDim, typename TIdx>
+    using TagToAcc = typename trait::TagToAcc<TTag, TDim, TIdx>::type;
+
     template<typename TAcc, typename... TTag>
-    inline constexpr bool accMatchesTags = (std::is_same_v<alpaka::trait::AccToTagType<TAcc>, TTag> || ...);
+    inline constexpr bool accMatchesTags = (std::is_same_v<alpaka::AccToTag<TAcc>, TTag> || ...);
 } // namespace alpaka

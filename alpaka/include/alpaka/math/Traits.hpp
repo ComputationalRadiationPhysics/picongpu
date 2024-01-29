@@ -1,5 +1,5 @@
 /* Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber, Sergei Bastrakov,
- * Andrea Bocci
+ *                Andrea Bocci, René Widera
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -10,7 +10,10 @@
 
 #include <cmath>
 #include <complex>
-#if __has_include(<numbers>)
+#if __has_include(<version>) // Not part of the C++17 standard but all major standard libraries include this
+#    include <version>
+#endif
+#ifdef __cpp_lib_math_constants
 #    include <numbers>
 #endif
 
@@ -1330,6 +1333,7 @@ namespace alpaka::math
         using ImplementationBase = concepts::ImplementationBase<ConceptMathRound, T>;
         return trait::Round<ImplementationBase, TArg>{}(round_ctx, arg);
     }
+
     //! Computes the nearest integer value to arg (in integer format), rounding halfway cases away from zero,
     //! regardless of the current rounding mode.
     //!
@@ -1344,6 +1348,7 @@ namespace alpaka::math
         using ImplementationBase = concepts::ImplementationBase<ConceptMathRound, T>;
         return trait::Lround<ImplementationBase, TArg>{}(lround_ctx, arg);
     }
+
     //! Computes the nearest integer value to arg (in integer format), rounding halfway cases away from zero,
     //! regardless of the current rounding mode.
     //!
@@ -1420,7 +1425,6 @@ namespace alpaka::math
         using ImplementationBase = concepts::ImplementationBase<ConceptMathSinCos, T>;
         trait::SinCos<ImplementationBase, TArg>{}(sincos_ctx, arg, result_sin, result_cos);
     }
-
 
     //! Computes the square root of arg.
     //!

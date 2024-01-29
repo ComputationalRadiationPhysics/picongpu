@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 # nvcc + g++
-linux_nvcc12.0_gcc12_debug_separable_compilation_compile_only:
+linux_nvcc12.0_gcc12_debug_relocatable_device_code_compile_only:
   extends: .base_cuda_gcc_compile_only
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda110-gcc:3.1
   variables:
@@ -11,7 +11,7 @@ linux_nvcc12.0_gcc12_debug_separable_compilation_compile_only:
     CMAKE_BUILD_TYPE: Debug
     ALPAKA_BOOST_VERSION: 1.81.0
     ALPAKA_CI_CMAKE_VER: 3.26.5
-    CUDA_SEPARABLE_COMPILATION: "ON"
+    alpaka_RELOCATABLE_DEVICE_CODE: "ON"
 
 linux_nvcc12.0_gcc12_release_extended_lambda_off_compile_only:
   extends: .base_cuda_gcc_compile_only

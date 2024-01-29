@@ -55,7 +55,7 @@ namespace alpaka::core::detail
         template<typename TFnObj, typename... TArgs>
         auto enqueueTask(TFnObj&& task, TArgs&&... args) -> std::future<void>
         {
-            auto ptask = Task{[=, t = std::forward<TFnObj>(task)] { t(args...); }};
+            auto ptask = Task{[=, t = std::forward<TFnObj>(task)]() noexcept(noexcept(task(args...))) { t(args...); }};
             auto future = ptask.get_future();
             {
                 std::lock_guard<std::mutex> lock{m_mutex};

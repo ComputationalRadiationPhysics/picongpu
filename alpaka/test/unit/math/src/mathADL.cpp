@@ -68,204 +68,238 @@ namespace custom
     };
 
     ALPAKA_FN_HOST_ACC auto abs(Custom c);
+
     ALPAKA_FN_HOST_ACC auto abs(Custom c)
     {
         return Custom::Abs | c;
     }
 
     ALPAKA_FN_HOST_ACC auto acos(Custom c);
+
     ALPAKA_FN_HOST_ACC auto acos(Custom c)
     {
         return Custom::Acos | c;
     }
 
     ALPAKA_FN_HOST_ACC auto acosh(Custom c);
+
     ALPAKA_FN_HOST_ACC auto acosh(Custom c)
     {
         return Custom::Acosh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto arg(Custom c);
+
     ALPAKA_FN_HOST_ACC auto arg(Custom c)
     {
         return Custom::Arg | c;
     }
 
     ALPAKA_FN_HOST_ACC auto asin(Custom c);
+
     ALPAKA_FN_HOST_ACC auto asin(Custom c)
     {
         return Custom::Asin | c;
     }
 
     ALPAKA_FN_HOST_ACC auto asinh(Custom c);
+
     ALPAKA_FN_HOST_ACC auto asinh(Custom c)
     {
         return Custom::Asinh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto atan(Custom c);
+
     ALPAKA_FN_HOST_ACC auto atan(Custom c)
     {
         return Custom::Atan | c;
     }
 
     ALPAKA_FN_HOST_ACC auto atanh(Custom c);
+
     ALPAKA_FN_HOST_ACC auto atanh(Custom c)
     {
         return Custom::Atanh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto atan2(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto atan2(Custom a, Custom b)
     {
         return Custom::Atan2 | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto cbrt(Custom c);
+
     ALPAKA_FN_HOST_ACC auto cbrt(Custom c)
     {
         return Custom::Cbrt | c;
     }
 
     ALPAKA_FN_HOST_ACC auto ceil(Custom c);
+
     ALPAKA_FN_HOST_ACC auto ceil(Custom c)
     {
         return Custom::Ceil | c;
     }
 
     ALPAKA_FN_HOST_ACC auto conj(Custom c);
+
     ALPAKA_FN_HOST_ACC auto conj(Custom c)
     {
         return Custom::Conj | c;
     }
 
     ALPAKA_FN_HOST_ACC auto copysign(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto copysign(Custom a, Custom b)
     {
         return Custom::Copysign | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto cos(Custom c);
+
     ALPAKA_FN_HOST_ACC auto cos(Custom c)
     {
         return Custom::Cos | c;
     }
 
     ALPAKA_FN_HOST_ACC auto cosh(Custom c);
+
     ALPAKA_FN_HOST_ACC auto cosh(Custom c)
     {
         return Custom::Cosh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto erf(Custom c);
+
     ALPAKA_FN_HOST_ACC auto erf(Custom c)
     {
         return Custom::Erf | c;
     }
 
     ALPAKA_FN_HOST_ACC auto exp(Custom c);
+
     ALPAKA_FN_HOST_ACC auto exp(Custom c)
     {
         return Custom::Exp | c;
     }
 
     ALPAKA_FN_HOST_ACC auto floor(Custom c);
+
     ALPAKA_FN_HOST_ACC auto floor(Custom c)
     {
         return Custom::Floor | c;
     }
 
     ALPAKA_FN_HOST_ACC auto fma(Custom a, Custom b, Custom c);
+
     ALPAKA_FN_HOST_ACC auto fma(Custom a, Custom b, Custom c)
     {
         return Custom::Fma | a | b | c;
     }
 
     ALPAKA_FN_HOST_ACC auto fmod(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto fmod(Custom a, Custom b)
     {
         return Custom::Fmod | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto log(Custom c);
+
     ALPAKA_FN_HOST_ACC auto log(Custom c)
     {
         return Custom::Log | c;
     }
 
     ALPAKA_FN_HOST_ACC auto log2(Custom c);
+
     ALPAKA_FN_HOST_ACC auto log2(Custom c)
     {
         return Custom::Log2 | c;
     }
 
     ALPAKA_FN_HOST_ACC auto log10(Custom c);
+
     ALPAKA_FN_HOST_ACC auto log10(Custom c)
     {
         return Custom::Log10 | c;
     }
 
     ALPAKA_FN_HOST_ACC auto max(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto max(Custom a, Custom b)
     {
         return Custom::Max | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto min(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto min(Custom a, Custom b)
     {
         return Custom::Min | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto pow(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto pow(Custom a, Custom b)
     {
         return Custom::Pow | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto remainder(Custom a, Custom b);
+
     ALPAKA_FN_HOST_ACC auto remainder(Custom a, Custom b)
     {
         return Custom::Remainder | a | b;
     }
 
     ALPAKA_FN_HOST_ACC auto round(Custom c);
+
     ALPAKA_FN_HOST_ACC auto round(Custom c)
     {
         return Custom::Round | c;
     }
 
     ALPAKA_FN_HOST_ACC auto lround(Custom c);
+
     ALPAKA_FN_HOST_ACC auto lround(Custom c)
     {
         return Custom::Lround | c;
     }
 
     ALPAKA_FN_HOST_ACC auto llround(Custom c);
+
     ALPAKA_FN_HOST_ACC auto llround(Custom c)
     {
         return Custom::Llround | c;
     }
 
     ALPAKA_FN_HOST_ACC auto rsqrt(Custom c);
+
     ALPAKA_FN_HOST_ACC auto rsqrt(Custom c)
     {
         return Custom::Rsqrt | c;
     }
 
     ALPAKA_FN_HOST_ACC auto sin(Custom c);
+
     ALPAKA_FN_HOST_ACC auto sin(Custom c)
     {
         return Custom::Sin | c;
     }
 
     ALPAKA_FN_HOST_ACC auto sinh(Custom c);
+
     ALPAKA_FN_HOST_ACC auto sinh(Custom c)
     {
         return Custom::Sinh | c;
     }
 
     ALPAKA_FN_HOST_ACC void sincos(Custom c, Custom& a, Custom& b);
+
     ALPAKA_FN_HOST_ACC void sincos(Custom c, Custom& a, Custom& b)
     {
         a = static_cast<Custom>(Custom::Sincos | c | Custom::Arg2);
@@ -273,24 +307,28 @@ namespace custom
     }
 
     ALPAKA_FN_HOST_ACC auto sqrt(Custom c);
+
     ALPAKA_FN_HOST_ACC auto sqrt(Custom c)
     {
         return Custom::Sqrt | c;
     }
 
     ALPAKA_FN_HOST_ACC auto tan(Custom c);
+
     ALPAKA_FN_HOST_ACC auto tan(Custom c)
     {
         return Custom::Tan | c;
     }
 
     ALPAKA_FN_HOST_ACC auto tanh(Custom c);
+
     ALPAKA_FN_HOST_ACC auto tanh(Custom c)
     {
         return Custom::Tanh | c;
     }
 
     ALPAKA_FN_HOST_ACC auto trunc(Custom c);
+
     ALPAKA_FN_HOST_ACC auto trunc(Custom c)
     {
         return Custom::Trunc | c;

@@ -1,5 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
- * Antonio Di Pilato
+/* Copyright 2024 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
+ *                Antonio Di Pilato, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -29,15 +29,17 @@
 namespace alpaka
 {
     class DevCpu;
+
     namespace cpu
     {
         using ICpuQueue = IGenericThreadsQueue<DevCpu>;
-    }
+    } // namespace cpu
+
     namespace trait
     {
         template<typename TPlatform, typename TSfinae>
         struct GetDevByIdx;
-    }
+    } // namespace trait
     struct PlatformCpu;
 
     //! The CPU device.
@@ -64,6 +66,7 @@ namespace alpaka
         {
             return true;
         }
+
         auto operator!=(DevCpu const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -132,6 +135,16 @@ namespace alpaka
             }
         };
 
+        //! The CPU device preferred warp size get trait specialization.
+        template<>
+        struct GetPreferredWarpSize<DevCpu>
+        {
+            ALPAKA_FN_HOST static constexpr auto getPreferredWarpSize(DevCpu const& /* dev */) -> std::size_t
+            {
+                return 1u;
+            }
+        };
+
         //! The CPU device reset trait specialization.
         template<>
         struct Reset<DevCpu>
@@ -173,6 +186,7 @@ namespace alpaka
             using type = PlatformCpu;
         };
     } // namespace trait
+
     using QueueCpuNonBlocking = QueueGenericThreadsNonBlocking<DevCpu>;
     using QueueCpuBlocking = QueueGenericThreadsBlocking<DevCpu>;
 

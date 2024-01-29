@@ -10,6 +10,7 @@ namespace alpaka::meta
     {
         template<typename Ts, template<typename...> class TOp>
         struct TransformImpl;
+
         template<template<typename...> class TList, typename... Ts, template<typename...> class TOp>
         struct TransformImpl<TList<Ts...>, TOp>
         {

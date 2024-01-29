@@ -156,6 +156,7 @@ namespace alpaka::test
 #    endif
 #endif
     } // namespace trait
+
     //! The queue type that should be used for the given accelerator.
     template<typename TQueue>
     using IsBlockingQueue = trait::IsBlockingQueue<TQueue>;

@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber
+/* Copyright 2023 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -34,25 +34,18 @@ namespace alpaka::test
         using Queue = test::DefaultQueue<Device>;
         using WorkDiv = WorkDivMembers<Dim, Idx>;
 
-        KernelExecutionFixture(WorkDiv workDiv)
-            : m_devHost{getDevByIdx(m_platformHost, 0)}
-            , m_device{getDevByIdx(m_platform, 0)}
-            , m_queue{m_device}
-            , m_workDiv{std::move(workDiv)}
+        KernelExecutionFixture(WorkDiv workDiv) : m_workDiv{std::move(workDiv)}
         {
         }
 
         template<typename TExtent>
         KernelExecutionFixture(TExtent const& extent)
-            : m_devHost{getDevByIdx(m_platformHost, 0)}
-            , m_device{getDevByIdx(m_platform, 0)}
-            , m_queue{m_device}
-            , m_workDiv{getValidWorkDiv<Acc>(
-                  m_device,
-                  extent,
-                  Vec<Dim, Idx>::ones(),
-                  false,
-                  GridBlockExtentSubDivRestrictions::Unrestricted)}
+            : m_workDiv{getValidWorkDiv<Acc>(
+                m_device,
+                extent,
+                Vec<Dim, Idx>::ones(),
+                false,
+                GridBlockExtentSubDivRestrictions::Unrestricted)}
         {
         }
 
@@ -76,11 +69,11 @@ namespace alpaka::test
         }
 
     private:
-        PlatformCpu m_platformHost;
-        DevCpu m_devHost;
-        Platform m_platform;
-        Device m_device;
-        Queue m_queue;
+        PlatformCpu m_platformHost{};
+        DevCpu m_devHost{getDevByIdx(m_platformHost, 0)};
+        Platform m_platform{};
+        Device m_device{getDevByIdx(m_platform, 0)};
+        Queue m_queue{m_device};
         WorkDiv m_workDiv;
     };
 } // namespace alpaka::test

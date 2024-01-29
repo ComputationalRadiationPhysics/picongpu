@@ -96,22 +96,8 @@ namespace alpaka
         ALPAKA_FN_HOST AccCpuOmp2Blocks(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
-            , bt::IdxBtZero<TDim, TIdx>()
-            , AtomicHierarchy<
-                  AtomicCpu, // atomics between grids
-                  AtomicOmpBuiltIn, // atomics between blocks
-                  AtomicNoOp // atomics between threads
-                  >()
-            , math::MathStdLib()
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
             , BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity())
-            , BlockSyncNoOp()
-            , MemFenceOmp2Blocks()
-#    ifdef ALPAKA_DISABLE_VENDOR_RNG
-            , rand::RandDefault()
-#    else
-            , rand::RandStdLib()
-#    endif
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -129,6 +115,7 @@ namespace alpaka
         {
             using type = AccCpuOmp2Blocks<TDim, TIdx>;
         };
+
         //! The CPU OpenMP 2.0 block accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuOmp2Blocks<TDim, TIdx>>
@@ -153,6 +140,7 @@ namespace alpaka
                         static_cast<size_t>(AccCpuOmp2Blocks<TDim, TIdx>::staticAllocBytes())};
             }
         };
+
         //! The CPU OpenMP 2.0 block accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuOmp2Blocks<TDim, TIdx>>

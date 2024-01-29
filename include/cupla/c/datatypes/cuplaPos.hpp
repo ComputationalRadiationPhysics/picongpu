@@ -76,47 +76,24 @@ namespace alpaka
         };
 
         //! extent get trait specialization
-        template<typename T_Idx>
-        struct GetExtent<T_Idx, cuplaPos, typename std::enable_if<(3u > T_Idx::value)>::type>
+        template<>
+        struct GetExtents<cuplaPos>
         {
             ALPAKA_FN_HOST_ACC
-            static auto getExtent(cuplaPos const& extents) -> cupla::MemSizeType
+            constexpr auto operator()(cuplaPos const& extents) -> Vec<::alpaka::DimInt<3u>, cupla::MemSizeType>
             {
-                return (&extents.x)[(3u - 1u) - T_Idx::value];
-            }
-        };
-
-        //! extent set trait specialization
-        template<typename T_Idx, typename T_Pos>
-        struct SetExtent<T_Idx, cuplaPos, T_Pos, typename std::enable_if<(3u > T_Idx::value)>::type>
-        {
-            ALPAKA_FN_HOST_ACC
-            static auto setExtent(cuplaPos& extents, T_Pos const& extent) -> void
-            {
-                (&extents.x)[(3u - 1u) - T_Idx::value] = extent;
+                return {extents.z, extents.y, extents.x};
             }
         };
 
         //! offset get trait specialization
-        template<typename T_Idx>
-        struct GetOffset<T_Idx, cuplaPos, typename std::enable_if<(3u > T_Idx::value)>::type>
+        template<>
+        struct GetOffsets<cuplaPos>
         {
             ALPAKA_FN_HOST_ACC
-            static auto getOffset(cuplaPos const& offsets) -> cupla::MemSizeType
+            constexpr auto operator()(cuplaPos const& offsets) -> Vec<::alpaka::DimInt<3u>, cupla::MemSizeType>
             {
-                return (&offsets.x)[(3u - 1u) - T_Idx::value];
-            }
-        };
-
-
-        //! offset set trait specialization.
-        template<typename T_Idx, typename T_Offset>
-        struct SetOffset<T_Idx, cuplaPos, T_Offset, typename std::enable_if<(3u > T_Idx::value)>::type>
-        {
-            ALPAKA_FN_HOST_ACC
-            static auto setOffset(cuplaPos& offsets, T_Offset const& offset) -> void
-            {
-                offsets[(3u - 1u) - T_Idx::value] = offset;
+                return {offsets.z, offsets.y, offsets.x};
             }
         };
 
