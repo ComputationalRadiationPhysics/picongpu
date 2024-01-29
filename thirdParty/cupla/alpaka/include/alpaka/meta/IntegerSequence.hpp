@@ -16,12 +16,14 @@ namespace alpaka::meta
     {
         template<typename TDstType, typename TIntegerSequence>
         struct ConvertIntegerSequence;
+
         template<typename TDstType, typename T, T... Tvals>
         struct ConvertIntegerSequence<TDstType, std::integer_sequence<T, Tvals...>>
         {
             using type = std::integer_sequence<TDstType, static_cast<TDstType>(Tvals)...>;
         };
     } // namespace detail
+
     template<typename TDstType, typename TIntegerSequence>
     using ConvertIntegerSequence = typename detail::ConvertIntegerSequence<TDstType, TIntegerSequence>::type;
 
@@ -32,6 +34,7 @@ namespace alpaka::meta
         {
             static_assert(!TisSizeNegative, "MakeIntegerSequence<T, N> requires N to be non-negative.");
         };
+
         template<typename T, T Tbegin, T... Tvals>
         struct MakeIntegerSequenceHelper<
             false,
@@ -43,6 +46,7 @@ namespace alpaka::meta
         {
             using type = std::integer_sequence<T, Tvals...>;
         };
+
         template<typename T, T Tbegin, T TIdx, T... Tvals>
         struct MakeIntegerSequenceHelper<
             false,
@@ -81,6 +85,7 @@ namespace alpaka::meta
     //! Checks if the values in the index sequence are unique.
     template<typename TIntegerSequence>
     struct IntegerSequenceValuesUnique;
+
     //! Checks if the values in the index sequence are unique.
     template<typename T, T... Tvals>
     struct IntegerSequenceValuesUnique<std::integer_sequence<T, Tvals...>>
@@ -91,12 +96,14 @@ namespace alpaka::meta
     //! Checks if the integral values are within the given range.
     template<typename T, T Tmin, T Tmax, T... Tvals>
     struct IntegralValuesInRange;
+
     //! Checks if the integral values are within the given range.
     template<typename T, T Tmin, T Tmax>
     struct IntegralValuesInRange<T, Tmin, Tmax>
     {
         static constexpr bool value = true;
     };
+
     //! Checks if the integral values are within the given range.
     template<typename T, T Tmin, T Tmax, T I, T... Tvals>
     struct IntegralValuesInRange<T, Tmin, Tmax, I, Tvals...>
@@ -108,6 +115,7 @@ namespace alpaka::meta
     //! Checks if the values in the index sequence are within the given range.
     template<typename TIntegerSequence, typename T, T Tmin, T Tmax>
     struct IntegerSequenceValuesInRange;
+
     //! Checks if the values in the index sequence are within the given range.
     template<typename T, T... Tvals, T Tmin, T Tmax>
     struct IntegerSequenceValuesInRange<std::integer_sequence<T, Tvals...>, T, Tmin, Tmax>

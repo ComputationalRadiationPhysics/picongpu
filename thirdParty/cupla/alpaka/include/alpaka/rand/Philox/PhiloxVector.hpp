@@ -9,7 +9,6 @@
 
 #include <utility>
 
-
 namespace alpaka::rand::engine
 {
     /** Philox state for vector generator

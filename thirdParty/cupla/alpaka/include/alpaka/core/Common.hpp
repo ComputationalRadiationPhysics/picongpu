@@ -12,12 +12,20 @@
 #    include <intrin.h>
 #endif
 
+#if BOOST_LANG_HIP
+// HIP defines some keywords like __forceinline__ in header files.
+#    include <hip/hip_runtime.h>
+#endif
+
 //! All functions that can be used on an accelerator have to be attributed with ALPAKA_FN_ACC or ALPAKA_FN_HOST_ACC.
 //!
+//! \code{.cpp}
 //! Usage:
 //! ALPAKA_FN_ACC
 //! auto add(std::int32_t a, std::int32_t b)
 //! -> std::int32_t;
+//! \endcode
+//! @{
 #if BOOST_LANG_CUDA || BOOST_LANG_HIP
 #    if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) || defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
 #        define ALPAKA_FN_ACC __device__
@@ -31,6 +39,7 @@
 #    define ALPAKA_FN_HOST_ACC
 #    define ALPAKA_FN_HOST
 #endif
+//! @}
 
 //! All functions marked with ALPAKA_FN_ACC or ALPAKA_FN_HOST_ACC that are exported to / imported from different
 //! translation units have to be attributed with ALPAKA_FN_EXTERN. Note that this needs to be applied to both the
@@ -74,6 +83,8 @@
 #endif
 
 //! Macro defining the inline function attribute.
+//!
+//! The macro should stay on the left hand side of keywords, e.g. 'static', 'constexpr', 'explicit' or the return type.
 #if BOOST_LANG_CUDA || BOOST_LANG_HIP
 #    define ALPAKA_FN_INLINE __forceinline__
 #elif BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)

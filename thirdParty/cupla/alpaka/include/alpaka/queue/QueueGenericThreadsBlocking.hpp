@@ -42,6 +42,7 @@ namespace alpaka
                     , m_bCurrentlyExecutingTask(false)
                 {
                 }
+
                 QueueGenericThreadsBlockingImpl(QueueGenericThreadsBlockingImpl<TDev> const&) = delete;
                 auto operator=(QueueGenericThreadsBlockingImpl<TDev> const&)
                     -> QueueGenericThreadsBlockingImpl<TDev>& = delete;
@@ -79,10 +80,12 @@ namespace alpaka
 
             dev.registerQueue(m_spQueueImpl);
         }
+
         auto operator==(QueueGenericThreadsBlocking<TDev> const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
         }
+
         auto operator!=(QueueGenericThreadsBlocking<TDev> const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -100,6 +103,7 @@ namespace alpaka
         {
             using type = TDev;
         };
+
         //! The CPU blocking device queue device get trait specialization.
         template<typename TDev>
         struct GetDev<QueueGenericThreadsBlocking<TDev>>
@@ -133,6 +137,7 @@ namespace alpaka
                 queue.m_spQueueImpl->m_bCurrentlyExecutingTask = false;
             }
         };
+
         //! The CPU blocking device queue test trait specialization.
         template<typename TDev>
         struct Empty<QueueGenericThreadsBlocking<TDev>>

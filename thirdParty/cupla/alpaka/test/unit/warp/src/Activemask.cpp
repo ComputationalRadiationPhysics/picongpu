@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+#include <alpaka/acc/Tag.hpp>
+#include <alpaka/meta/TypeListOps.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
@@ -63,63 +65,77 @@ struct alpaka::trait::WarpSize<ActivemaskMultipleThreadWarpTestKernel<TWarpSize>
 TEMPLATE_LIST_TEST_CASE("activemask", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::Dim<Acc>;
-    using Idx = alpaka::Idx<Acc>;
-
-    auto const platform = alpaka::Platform<Acc>{};
-    auto const dev = alpaka::getDevByIdx(platform, 0);
-    auto const warpExtents = alpaka::getWarpSizes(dev);
-    for(auto const warpExtent : warpExtents)
+    if constexpr(alpaka::accMatchesTags<
+                     Acc,
+                     alpaka::TagCpuSycl,
+                     alpaka::TagGpuSyclIntel,
+                     alpaka::TagFpgaSyclIntel,
+                     alpaka::TagGenericSycl>)
     {
-        auto const scalar = Dim::value == 0 || warpExtent == 1;
-        if(scalar)
+        std::cout << "Test disabled for SYCL\n";
+        return;
+    }
+    else
+    {
+        using Dim = alpaka::Dim<Acc>;
+        using Idx = alpaka::Idx<Acc>;
+
+        auto const platform = alpaka::Platform<Acc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
+        auto const warpExtents = alpaka::getWarpSizes(dev);
+        for(auto const warpExtent : warpExtents)
         {
-            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
-            CHECK(fixture(ActivemaskSingleThreadWarpTestKernel{}));
-        }
-        else
-        {
-            using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
-            auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
-            // Enforce one warp per thread block
-            auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
-            blockThreadExtent[0] = static_cast<Idx>(warpExtent);
-            auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-            auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
-            auto fixture = ExecutionFixture{workDiv};
-            if(warpExtent == 4)
+            auto const scalar = Dim::value == 0 || warpExtent == 1;
+            if(scalar)
             {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
-                {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<4>{}, inactiveThreadIdx));
-                }
+                alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
+                CHECK(fixture(ActivemaskSingleThreadWarpTestKernel{}));
             }
-            else if(warpExtent == 8)
+            else
             {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
+                auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
+                // Enforce one warp per thread block
+                auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
+                blockThreadExtent[0] = static_cast<Idx>(warpExtent);
+                auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
+                auto workDiv =
+                    typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
+                auto fixture = ExecutionFixture{workDiv};
+                if(warpExtent == 4)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<8>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<4>{}, inactiveThreadIdx));
+                    }
                 }
-            }
-            else if(warpExtent == 16)
-            {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                else if(warpExtent == 8)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<16>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<8>{}, inactiveThreadIdx));
+                    }
                 }
-            }
-            else if(warpExtent == 32)
-            {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                else if(warpExtent == 16)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<32>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<16>{}, inactiveThreadIdx));
+                    }
                 }
-            }
-            else if(warpExtent == 64)
-            {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                else if(warpExtent == 32)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<64>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<32>{}, inactiveThreadIdx));
+                    }
+                }
+                else if(warpExtent == 64)
+                {
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<64>{}, inactiveThreadIdx));
+                    }
                 }
             }
         }

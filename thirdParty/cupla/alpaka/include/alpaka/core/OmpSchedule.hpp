@@ -12,7 +12,6 @@
 
 #include <cstdint>
 
-
 namespace alpaka::omp
 {
     //! Representation of OpenMP schedule information: kind and chunk size. This class can be used regardless of

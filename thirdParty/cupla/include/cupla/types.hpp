@@ -94,26 +94,6 @@ namespace cupla
 
 #endif
 
-#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        using AccDev = ::alpaka::DevOmp5;
-#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::QueueOmp5NonBlocking;
-#    else
-        using AccStream = ::alpaka::QueueOmp5Blocking;
-#    endif
-        using Acc = ::alpaka::AccOmp5<KernelDim, IdxType>;
-#endif
-
-#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-        using AccDev = ::alpaka::DevOacc;
-#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::QueueOaccNonBlocking;
-#    else
-        using AccStream = ::alpaka::QueueOaccBlocking;
-#    endif
-        using Acc = ::alpaka::AccOacc<KernelDim, IdxType>;
-#endif
-
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
         using AccDev = ::alpaka::DevCudaRt;
 #    if(CUPLA_STREAM_ASYNC_ENABLED == 1)

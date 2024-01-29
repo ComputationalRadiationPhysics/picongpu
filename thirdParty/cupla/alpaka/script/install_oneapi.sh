@@ -17,7 +17,7 @@ then
     # intel-basekit intel-hpckit are too large in size
 
     travis_retry sudo apt-get -qqq update
-    travis_retry sudo apt-get install -y wget build-essential pkg-config cmake ca-certificates gnupg
+    travis_retry sudo apt-get install -y wget ca-certificates gnupg
     travis_retry sudo wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
 
     sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
@@ -44,7 +44,7 @@ then
 fi
 
 which "${CXX}"
-${CXX} -v
+${CXX} --version
 which "${CC}"
-${CC} -v
+${CC} --version
 sycl-ls

@@ -46,6 +46,7 @@ namespace alpaka
                 return *data;
             }
         };
+
         template<std::size_t TDataAlignBytes>
         struct FreeSharedVars<BlockSharedMemStMember<TDataAlignBytes>>
         {

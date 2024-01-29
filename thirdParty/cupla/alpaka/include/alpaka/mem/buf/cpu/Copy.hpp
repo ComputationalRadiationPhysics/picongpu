@@ -17,7 +17,7 @@
 namespace alpaka
 {
     class DevCpu;
-}
+} // namespace alpaka
 
 namespace alpaka
 {
@@ -29,6 +29,8 @@ namespace alpaka
         template<typename TDim, typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyCpuBase
         {
+            static_assert(TDim::value > 0);
+
             using ExtentSize = Idx<TExtent>;
             using DstSize = Idx<TViewDst>;
             using SrcSize = Idx<TViewSrc>;
@@ -36,23 +38,26 @@ namespace alpaka
 
             template<typename TViewFwd>
             TaskCopyCpuBase(TViewFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
-                : m_extent(getExtentVec(extent))
-                , m_extentWidthBytes(m_extent[TDim::value - 1u] * static_cast<ExtentSize>(sizeof(Elem)))
+                : m_extent(getExtents(extent))
+                , m_extentWidthBytes(m_extent.back() * static_cast<ExtentSize>(sizeof(Elem)))
 #if(!defined(NDEBUG)) || (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                , m_dstExtent(getExtentVec(viewDst))
-                , m_srcExtent(getExtentVec(viewSrc))
+                , m_dstExtent(getExtents(viewDst))
+                , m_srcExtent(getExtents(viewSrc))
 #endif
-                , m_dstPitchBytes(getPitchBytesVec(viewDst))
-                , m_srcPitchBytes(getPitchBytesVec(viewSrc))
+                , m_dstPitchBytes(getPitchesInBytes(viewDst))
+                , m_srcPitchBytes(getPitchesInBytes(viewSrc))
                 , m_dstMemNative(reinterpret_cast<std::uint8_t*>(getPtrNative(viewDst)))
                 , m_srcMemNative(reinterpret_cast<std::uint8_t const*>(getPtrNative(viewSrc)))
             {
                 if constexpr(TDim::value > 0)
                 {
-                    ALPAKA_ASSERT((castVec<DstSize>(m_extent) <= m_dstExtent).foldrAll(std::logical_or<bool>()));
-                    ALPAKA_ASSERT((castVec<SrcSize>(m_extent) <= m_srcExtent).foldrAll(std::logical_or<bool>()));
-                    ALPAKA_ASSERT(static_cast<DstSize>(m_extentWidthBytes) <= m_dstPitchBytes[TDim::value - 1u]);
-                    ALPAKA_ASSERT(static_cast<SrcSize>(m_extentWidthBytes) <= m_srcPitchBytes[TDim::value - 1u]);
+                    ALPAKA_ASSERT((castVec<DstSize>(m_extent) <= m_dstExtent).all());
+                    ALPAKA_ASSERT((castVec<SrcSize>(m_extent) <= m_srcExtent).all());
+                    if constexpr(TDim::value > 1)
+                    {
+                        ALPAKA_ASSERT(static_cast<DstSize>(m_extentWidthBytes) <= m_dstPitchBytes[TDim::value - 2]);
+                        ALPAKA_ASSERT(static_cast<SrcSize>(m_extentWidthBytes) <= m_srcPitchBytes[TDim::value - 2]);
+                    }
                 }
             }
 
@@ -100,10 +105,11 @@ namespace alpaka
 #endif
                 // [z, y, x] -> [z, y] because all elements with the innermost x dimension are handled within one
                 // iteration.
-                Vec<DimMin1, ExtentSize> const extentWithoutInnermost(subVecBegin<DimMin1>(this->m_extent));
-                // [z, y, x] -> [y, x] because the z pitch (the full size of the buffer) is not required.
-                Vec<DimMin1, DstSize> const dstPitchBytesWithoutOutmost(subVecEnd<DimMin1>(this->m_dstPitchBytes));
-                Vec<DimMin1, SrcSize> const srcPitchBytesWithoutOutmost(subVecEnd<DimMin1>(this->m_srcPitchBytes));
+                Vec<DimMin1, ExtentSize> const extentWithoutInnermost = subVecBegin<DimMin1>(this->m_extent);
+                Vec<DimMin1, DstSize> const dstPitchBytesWithoutInnermost
+                    = subVecBegin<DimMin1>(this->m_dstPitchBytes);
+                Vec<DimMin1, SrcSize> const srcPitchBytesWithoutInnermost
+                    = subVecBegin<DimMin1>(this->m_srcPitchBytes);
 
                 if(static_cast<std::size_t>(this->m_extent.prod()) != 0u)
                 {
@@ -112,14 +118,8 @@ namespace alpaka
                         [&](Vec<DimMin1, ExtentSize> const& idx)
                         {
                             std::memcpy(
-                                reinterpret_cast<void*>(
-                                    this->m_dstMemNative
-                                    + (castVec<DstSize>(idx) * dstPitchBytesWithoutOutmost)
-                                          .foldrAll(std::plus<DstSize>())),
-                                reinterpret_cast<void const*>(
-                                    this->m_srcMemNative
-                                    + (castVec<SrcSize>(idx) * srcPitchBytesWithoutOutmost)
-                                          .foldrAll(std::plus<SrcSize>())),
+                                this->m_dstMemNative + (castVec<DstSize>(idx) * dstPitchBytesWithoutInnermost).sum(),
+                                this->m_srcMemNative + (castVec<SrcSize>(idx) * srcPitchBytesWithoutInnermost).sum(),
                                 static_cast<std::size_t>(this->m_extentWidthBytes));
                         });
                 }
@@ -164,9 +164,9 @@ namespace alpaka
                 , m_srcMemNative(reinterpret_cast<std::uint8_t const*>(getPtrNative(viewSrc)))
             {
                 // all zero-sized extents are equivalent
-                ALPAKA_ASSERT(getExtentVec(extent).prod() == 1u);
-                ALPAKA_ASSERT(getExtentVec(viewDst).prod() == 1u);
-                ALPAKA_ASSERT(getExtentVec(viewSrc).prod() == 1u);
+                ALPAKA_ASSERT(getExtents(extent).prod() == 1u);
+                ALPAKA_ASSERT(getExtents(viewDst).prod() == 1u);
+                ALPAKA_ASSERT(getExtents(viewSrc).prod() == 1u);
             }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL

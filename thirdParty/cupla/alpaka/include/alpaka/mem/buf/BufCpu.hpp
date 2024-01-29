@@ -64,8 +64,10 @@ namespace alpaka
                           << std::endl;
 #endif
             }
+
             BufCpuImpl(BufCpuImpl&&) = delete;
             auto operator=(BufCpuImpl&&) -> BufCpuImpl& = delete;
+
             ALPAKA_FN_HOST ~BufCpuImpl()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -106,6 +108,7 @@ namespace alpaka
         {
             using type = DevCpu;
         };
+
         //! The BufCpu device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetDev<BufCpu<TElem, TDim, TIdx>>
@@ -131,15 +134,12 @@ namespace alpaka
         };
 
         //! The BufCpu width get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-        struct GetExtent<
-            TIdxIntegralConst,
-            BufCpu<TElem, TDim, TIdx>,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
+        template<typename TElem, typename TDim, typename TIdx>
+        struct GetExtents<BufCpu<TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getExtent(BufCpu<TElem, TDim, TIdx> const& extent) -> TIdx
+            ALPAKA_FN_HOST auto operator()(BufCpu<TElem, TDim, TIdx> const& buf)
             {
-                return extent.m_spBufCpuImpl->m_extentElements[TIdxIntegralConst::value];
+                return buf.m_spBufCpuImpl->m_extentElements;
             }
         };
 
@@ -151,11 +151,13 @@ namespace alpaka
             {
                 return buf.m_spBufCpuImpl->m_pMem;
             }
+
             ALPAKA_FN_HOST static auto getPtrNative(BufCpu<TElem, TDim, TIdx>& buf) -> TElem*
             {
                 return buf.m_spBufCpuImpl->m_pMem;
             }
         };
+
         //! The BufCpu pointer on device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevCpu>
@@ -172,6 +174,7 @@ namespace alpaka
                     throw std::runtime_error("The buffer is not accessible from the given device!");
                 }
             }
+
             ALPAKA_FN_HOST static auto getPtrDev(BufCpu<TElem, TDim, TIdx>& buf, DevCpu const& dev) -> TElem*
             {
                 if(dev == getDev(buf))
@@ -215,6 +218,7 @@ namespace alpaka
                 return BufCpu<TElem, TDim, TIdx>(dev, memPtr, std::move(deleter), extent);
             }
         };
+
         //! The BufCpu stream-ordered memory allocation trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct AsyncBufAlloc<TElem, TDim, TIdx, DevCpu>
@@ -288,12 +292,12 @@ namespace alpaka
         };
 
         //! The BufCpu offset get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-        struct GetOffset<TIdxIntegralConst, BufCpu<TElem, TDim, TIdx>>
+        template<typename TElem, typename TDim, typename TIdx>
+        struct GetOffsets<BufCpu<TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getOffset(BufCpu<TElem, TDim, TIdx> const&) -> TIdx
+            ALPAKA_FN_HOST auto operator()(BufCpu<TElem, TDim, TIdx> const&) const -> Vec<TDim, TIdx>
             {
-                return 0u;
+                return Vec<TDim, TIdx>::zeros();
             }
         };
 

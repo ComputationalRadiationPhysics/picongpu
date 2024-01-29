@@ -31,6 +31,7 @@ namespace alpaka::rand
             {
                 using type = std::uint32_t;
             };
+
             template<>
             struct BitsType<double>
             {
@@ -173,6 +174,7 @@ namespace alpaka::rand
                 return {acc};
             }
         };
+
         //! The GPU device random number float uniform distribution get trait specialization.
         template<typename T>
         struct CreateUniformReal<RandDefault, T, std::enable_if_t<std::is_floating_point_v<T>>>
@@ -182,6 +184,7 @@ namespace alpaka::rand
                 return {};
             }
         };
+
         //! The GPU device random number integer uniform distribution get trait specialization.
         template<typename T>
         struct CreateUniformUint<RandDefault, T, std::enable_if_t<std::is_integral_v<T>>>

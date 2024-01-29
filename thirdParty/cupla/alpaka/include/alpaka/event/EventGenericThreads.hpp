@@ -33,6 +33,7 @@ namespace alpaka
             EventGenericThreadsImpl(TDev dev) noexcept : m_dev(std::move(dev))
             {
             }
+
             EventGenericThreadsImpl(EventGenericThreadsImpl<TDev> const&) = delete;
             auto operator=(EventGenericThreadsImpl<TDev> const&) -> EventGenericThreadsImpl<TDev>& = delete;
 
@@ -78,10 +79,12 @@ namespace alpaka
             : m_spEventImpl(std::make_shared<generic::detail::EventGenericThreadsImpl<TDev>>(dev))
         {
         }
+
         auto operator==(EventGenericThreads<TDev> const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
         }
+
         auto operator!=(EventGenericThreads<TDev> const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -90,6 +93,7 @@ namespace alpaka
     public:
         std::shared_ptr<generic::detail::EventGenericThreadsImpl<TDev>> m_spEventImpl;
     };
+
     namespace trait
     {
         //! The CPU device event device type trait specialization.
@@ -98,6 +102,7 @@ namespace alpaka
         {
             using type = TDev;
         };
+
         //! The CPU device event device get trait specialization.
         template<typename TDev>
         struct GetDev<EventGenericThreads<TDev>>
@@ -158,6 +163,7 @@ namespace alpaka
                     });
             }
         };
+
         //! The CPU non-blocking device queue enqueue trait specialization.
         template<typename TDev>
         struct Enqueue<QueueGenericThreadsNonBlocking<TDev>, EventGenericThreads<TDev>>
@@ -171,6 +177,7 @@ namespace alpaka
                 alpaka::enqueue(*queue.m_spQueueImpl, event);
             }
         };
+
         //! The CPU blocking device queue enqueue trait specialization.
         template<typename TDev>
         struct Enqueue<alpaka::generic::detail::QueueGenericThreadsBlockingImpl<TDev>, EventGenericThreads<TDev>>
@@ -205,6 +212,7 @@ namespace alpaka
                 promise.set_value();
             }
         };
+
         //! The CPU blocking device queue enqueue trait specialization.
         template<typename TDev>
         struct Enqueue<QueueGenericThreadsBlocking<TDev>, EventGenericThreads<TDev>>
@@ -219,6 +227,7 @@ namespace alpaka
             }
         };
     } // namespace trait
+
     namespace trait
     {
         namespace generic
@@ -258,6 +267,7 @@ namespace alpaka
                 wait(*event.m_spEventImpl);
             }
         };
+
         //! The CPU device event implementation thread wait trait specialization.
         //!
         //! Waits until the event itself and therefore all tasks preceding it in the queue it is enqueued to have been
@@ -276,6 +286,7 @@ namespace alpaka
                 eventImpl.wait(enqueueCount, lk);
             }
         };
+
         //! The CPU non-blocking device queue event wait trait specialization.
         template<typename TDev>
         struct WaiterWaitFor<
@@ -302,6 +313,7 @@ namespace alpaka
                 }
             }
         };
+
         //! The CPU non-blocking device queue event wait trait specialization.
         template<typename TDev>
         struct WaiterWaitFor<QueueGenericThreadsNonBlocking<TDev>, EventGenericThreads<TDev>>
@@ -313,6 +325,7 @@ namespace alpaka
                 wait(*queue.m_spQueueImpl, event);
             }
         };
+
         //! The CPU blocking device queue event wait trait specialization.
         template<typename TDev>
         struct WaiterWaitFor<alpaka::generic::detail::QueueGenericThreadsBlockingImpl<TDev>, EventGenericThreads<TDev>>
@@ -325,6 +338,7 @@ namespace alpaka
                 wait(*event.m_spEventImpl);
             }
         };
+
         //! The CPU blocking device queue event wait trait specialization.
         template<typename TDev>
         struct WaiterWaitFor<QueueGenericThreadsBlocking<TDev>, EventGenericThreads<TDev>>
@@ -336,6 +350,7 @@ namespace alpaka
                 wait(*queue.m_spQueueImpl, event);
             }
         };
+
         //! The CPU non-blocking device event wait trait specialization.
         //!
         //! Any future work submitted in any queue of this device will wait for event to complete before beginning

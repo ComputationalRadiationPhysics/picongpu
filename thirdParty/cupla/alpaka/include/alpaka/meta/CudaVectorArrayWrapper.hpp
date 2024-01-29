@@ -133,7 +133,8 @@ namespace alpaka::meta
     struct CudaVectorArrayWrapper<TScalar, 4> : public detail::CudaVectorArrayTypeTraits<TScalar, 4>::type
     {
         using value_type = TScalar;
-        constexpr static unsigned size = 4;
+        static constexpr unsigned size = 4;
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(std::initializer_list<TScalar> init)
         {
             auto it = std::begin(init);
@@ -142,6 +143,7 @@ namespace alpaka::meta
             this->z = *it++;
             this->w = *it++;
         }
+
         template<class Other>
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
         {
@@ -154,6 +156,7 @@ namespace alpaka::meta
             this->z = o[2];
             this->w = o[3];
         }
+
         ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
         {
             std::array<value_type, size> ret;
@@ -181,7 +184,8 @@ namespace alpaka::meta
     struct CudaVectorArrayWrapper<TScalar, 3> : public detail::CudaVectorArrayTypeTraits<TScalar, 3>::type
     {
         using value_type = TScalar;
-        constexpr static unsigned size = 3;
+        static constexpr unsigned size = 3;
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(std::initializer_list<TScalar> init)
         {
             auto it = std::begin(init);
@@ -189,6 +193,7 @@ namespace alpaka::meta
             this->y = *it++;
             this->z = *it++;
         }
+
         template<class Other>
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
         {
@@ -200,6 +205,7 @@ namespace alpaka::meta
             this->y = o[1];
             this->z = o[2];
         }
+
         ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
         {
             std::array<value_type, size> ret;
@@ -226,13 +232,15 @@ namespace alpaka::meta
     struct CudaVectorArrayWrapper<TScalar, 2> : public detail::CudaVectorArrayTypeTraits<TScalar, 2>::type
     {
         using value_type = TScalar;
-        constexpr static unsigned size = 2;
+        static constexpr unsigned size = 2;
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(std::initializer_list<TScalar> init)
         {
             auto it = std::begin(init);
             this->x = *it++;
             this->y = *it++;
         }
+
         template<class Other>
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
         {
@@ -243,6 +251,7 @@ namespace alpaka::meta
             this->x = o[0];
             this->y = o[1];
         }
+
         ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
         {
             std::array<value_type, size> ret;
@@ -268,12 +277,14 @@ namespace alpaka::meta
     struct CudaVectorArrayWrapper<TScalar, 1> : public detail::CudaVectorArrayTypeTraits<TScalar, 1>::type
     {
         using value_type = TScalar;
-        constexpr static unsigned size = 1;
+        static constexpr unsigned size = 1;
+
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(std::initializer_list<TScalar> init)
         {
             auto it = std::begin(init);
             this->x = *it;
         }
+
         template<class Other>
         ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE CudaVectorArrayWrapper(Other const& o)
         {
@@ -283,6 +294,7 @@ namespace alpaka::meta
                 "Can only convert between vectors of same element type.");
             this->x = o[0];
         }
+
         ALPAKA_FN_HOST_ACC constexpr operator std::array<value_type, size>() const
         {
             std::array<value_type, size> ret;

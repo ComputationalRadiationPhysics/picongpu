@@ -27,7 +27,7 @@ struct cheapArray
     //! \param index The index of the element to be accessed.
     //!
     //! Returns the requested element per constant reference.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator[](uint64_t index) const -> const T&
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator[](uint64_t index) const -> T const&
     {
         return data[index];
     }

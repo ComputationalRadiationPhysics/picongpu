@@ -57,13 +57,13 @@ TEMPLATE_LIST_TEST_CASE("test all possible acc tag combinations", "[acc][tag]", 
     {
         if constexpr(std::is_same_v<TestTag, ExpectedTag>)
         {
-            STATIC_REQUIRE((std::is_same_v<alpaka::trait::AccToTagType<TestAcc>, ExpectedTag>) );
-            STATIC_REQUIRE((std::is_same_v<alpaka::trait::TagToAccType<TestTag, Dim, Idx>, TestAcc>) );
+            STATIC_REQUIRE((std::is_same_v<alpaka::AccToTag<TestAcc>, ExpectedTag>) );
+            STATIC_REQUIRE((std::is_same_v<alpaka::TagToAcc<TestTag, Dim, Idx>, TestAcc>) );
             STATIC_REQUIRE((alpaka::accMatchesTags<TestAcc, TestTag>) );
         }
         else
         {
-            STATIC_REQUIRE(!(std::is_same_v<alpaka::trait::AccToTagType<TestAcc>, TestTag>) );
+            STATIC_REQUIRE(!(std::is_same_v<alpaka::AccToTag<TestAcc>, TestTag>) );
             STATIC_REQUIRE(!(alpaka::accMatchesTags<TestAcc, TestTag>) );
         }
     }
@@ -103,17 +103,18 @@ std::string specialized_function_2(TTag)
 
 // is required because of -Werror=missing-declarations
 std::string specialized_function_2(alpaka::TagCpuSerial);
+
 std::string specialized_function_2(alpaka::TagCpuSerial)
 {
     return "Serial";
 }
 
 std::string specialized_function_2(alpaka::TagGpuCudaRt);
+
 std::string specialized_function_2(alpaka::TagGpuCudaRt)
 {
     return "CUDA";
 }
-
 
 TEMPLATE_LIST_TEST_CASE("specialization of functions with tags", "[acc][tag]", TestAccs)
 {
@@ -137,10 +138,10 @@ TEMPLATE_LIST_TEST_CASE("specialization of functions with tags", "[acc][tag]", T
 
     INFO(
         "Test Acc: " + alpaka::getAccName<TestAcc>() + "\n" + "expect: " + expected_result + "\n"
-        + "is_specialized() returns: " + specialized_function<alpaka::trait::AccToTagType<TestAcc>>() + "\n"
-        + "is_specialized_2() returns: " + specialized_function_2(alpaka::trait::AccToTagType<TestAcc>{}));
-    REQUIRE((specialized_function<alpaka::trait::AccToTagType<TestAcc>>() == expected_result));
-    REQUIRE((specialized_function_2(alpaka::trait::AccToTagType<TestAcc>{}) == expected_result));
+        + "is_specialized() returns: " + specialized_function<alpaka::AccToTag<TestAcc>>() + "\n"
+        + "is_specialized_2() returns: " + specialized_function_2(alpaka::AccToTag<TestAcc>{}));
+    REQUIRE((specialized_function<alpaka::AccToTag<TestAcc>>() == expected_result));
+    REQUIRE((specialized_function_2(alpaka::AccToTag<TestAcc>{}) == expected_result));
 }
 
 struct InitKernel

@@ -933,9 +933,8 @@ namespace alpaka::math
                 else if constexpr(is_decayed_v<Tx, float> && is_decayed_v<Ty, float>)
                     return ::fmaxf(x, y);
                 else if constexpr(
-                    is_decayed_v<
-                        Tx,
-                        double> || is_decayed_v<Ty, double> || (is_decayed_v<Tx, float> && std::is_integral_v<Ty>)
+                    is_decayed_v<Tx, double> || is_decayed_v<Ty, double>
+                    || (is_decayed_v<Tx, float> && std::is_integral_v<Ty>)
                     || (std::is_integral_v<Tx> && is_decayed_v<Ty, float>) )
                     return ::fmax(x, y);
                 else
@@ -967,9 +966,8 @@ namespace alpaka::math
                 else if constexpr(is_decayed_v<Tx, float> && is_decayed_v<Ty, float>)
                     return ::fminf(x, y);
                 else if constexpr(
-                    is_decayed_v<
-                        Tx,
-                        double> || is_decayed_v<Ty, double> || (is_decayed_v<Tx, float> && std::is_integral_v<Ty>)
+                    is_decayed_v<Tx, double> || is_decayed_v<Ty, double>
+                    || (is_decayed_v<Tx, float> && std::is_integral_v<Ty>)
                     || (std::is_integral_v<Tx> && is_decayed_v<Ty, float>) )
                     return ::fmin(x, y);
                 else
@@ -1075,7 +1073,6 @@ namespace alpaka::math
                 ALPAKA_UNREACHABLE(Ret{});
             }
         };
-
 
         //! The CUDA round trait specialization.
         template<typename TArg>

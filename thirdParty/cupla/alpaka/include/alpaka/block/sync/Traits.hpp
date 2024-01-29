@@ -54,6 +54,7 @@ namespace alpaka
             return currentResult + static_cast<T>(value != static_cast<T>(0));
         }
     };
+
     //! The logical and function object.
     struct BlockAnd
     {
@@ -69,6 +70,7 @@ namespace alpaka
             return static_cast<T>(currentResult && (value != static_cast<T>(0)));
         }
     };
+
     //! The logical or function object.
     struct BlockOr
     {

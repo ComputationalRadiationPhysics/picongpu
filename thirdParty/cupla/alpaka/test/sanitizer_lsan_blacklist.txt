@@ -1,6 +1,0 @@
-#0 0xe95b9e in __interceptor_strdup /home/development/llvm/3.6.2/final/llvm.src/projects/compiler-rt/lib/asan/asan_interceptors.cc:603:3
-#1 0x7f445bc5eeb2  (/usr/lib/libtbb.so.2+0x12eb2)
-leak:libtbb.so
-#0 0x1dfd623 in __interceptor_strdup /work/release-test/final/llvm.src/projects/compiler-rt/lib/asan/asan_interceptors.cc:550:3
-#1 0x7efe2921da30 in __kmp_itt_thread_set_name_init_3_0(char const*) (/home/travis/cache/llvm/llvm-4.0.0/lib/libomp.so+0x19a30)
-leak:libomp.so

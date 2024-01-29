@@ -117,7 +117,7 @@ Kernels can also be defined via lambda expressions.
    }
 
 .. attention::
-   The Nvidia ``nvcc`` does not support generic lambdas which are marked with `__device__`, which is what `ALPAKA_FN_ACC` expands to (among others) when the CUDA backend is active.
+   NVIDIA's ``nvcc`` compiler does not support generic lambdas which are marked with `__device__`, which is what `ALPAKA_FN_ACC` expands to (among others) when the CUDA backend is active.
    Therefore, a workaround is required. The type of the ``acc`` must be defined outside the lambda.
 
    .. code-block:: cpp

@@ -77,7 +77,6 @@ struct TestTemplateCapture
     }
 };
 
-
 TEST_CASE("lambdaKernelIsWorking", "[kernel]")
 {
     alpaka::meta::forEachType<alpaka::test::TestAccs>(TestTemplateLambda());

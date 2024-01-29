@@ -1,4 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
+                  Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -90,18 +91,21 @@ namespace alpaka
         {
             using type = DimInt<1u>;
         };
+
         //! The CUDA/HIP vectors 2D dimension get trait specialization.
         template<typename T>
         struct DimType<T, std::enable_if_t<meta::Contains<alpaka::detail::CudaHipBuiltinTypes2, T>::value>>
         {
             using type = DimInt<2u>;
         };
+
         //! The CUDA/HIP vectors 3D dimension get trait specialization.
         template<typename T>
         struct DimType<T, std::enable_if_t<meta::Contains<alpaka::detail::CudaHipBuiltinTypes3, T>::value>>
         {
             using type = DimInt<3u>;
         };
+
         //! The CUDA/HIP vectors 4D dimension get trait specialization.
         template<typename T>
         struct DimType<T, std::enable_if_t<meta::Contains<alpaka::detail::CudaHipBuiltinTypes4, T>::value>>
@@ -116,222 +120,33 @@ namespace alpaka
             using type = decltype(std::declval<T>().x);
         };
 
-        //! The CUDA/HIP vectors extent get trait specialization.
-        template<typename TExtent>
-        struct GetExtent<
-            DimInt<Dim<TExtent>::value - 1u>,
-            TExtent,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 1)>>
+        template<typename TCudaHipBuiltin>
+        struct GetExtents<TCudaHipBuiltin, std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TCudaHipBuiltin>>>
         {
             ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getExtent(TExtent const& extent)
+            ALPAKA_FN_HOST_ACC auto operator()(TCudaHipBuiltin const& value) const
+                -> Vec<Dim<TCudaHipBuiltin>, Idx<TCudaHipBuiltin>>
             {
-                return extent.x;
-            }
-        };
-        //! The CUDA/HIP vectors extent get trait specialization.
-        template<typename TExtent>
-        struct GetExtent<
-            DimInt<Dim<TExtent>::value - 2u>,
-            TExtent,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 2)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getExtent(TExtent const& extent)
-            {
-                return extent.y;
-            }
-        };
-        //! The CUDA/HIP vectors extent get trait specialization.
-        template<typename TExtent>
-        struct GetExtent<
-            DimInt<Dim<TExtent>::value - 3u>,
-            TExtent,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 3)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getExtent(TExtent const& extent)
-            {
-                return extent.z;
-            }
-        };
-        //! The CUDA/HIP vectors extent get trait specialization.
-        template<typename TExtent>
-        struct GetExtent<
-            DimInt<Dim<TExtent>::value - 4u>,
-            TExtent,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 4)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getExtent(TExtent const& extent)
-            {
-                return extent.w;
-            }
-        };
-        //! The CUDA/HIP vectors extent set trait specialization.
-        template<typename TExtent, typename TExtentVal>
-        struct SetExtent<
-            DimInt<Dim<TExtent>::value - 1u>,
-            TExtent,
-            TExtentVal,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 1)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setExtent(TExtent const& extent, TExtentVal const& extentVal) -> void
-            {
-                extent.x = extentVal;
-            }
-        };
-        //! The CUDA/HIP vectors extent set trait specialization.
-        template<typename TExtent, typename TExtentVal>
-        struct SetExtent<
-            DimInt<Dim<TExtent>::value - 2u>,
-            TExtent,
-            TExtentVal,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 2)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setExtent(TExtent const& extent, TExtentVal const& extentVal) -> void
-            {
-                extent.y = extentVal;
-            }
-        };
-        //! The CUDA/HIP vectors extent set trait specialization.
-        template<typename TExtent, typename TExtentVal>
-        struct SetExtent<
-            DimInt<Dim<TExtent>::value - 3u>,
-            TExtent,
-            TExtentVal,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 3)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setExtent(TExtent const& extent, TExtentVal const& extentVal) -> void
-            {
-                extent.z = extentVal;
-            }
-        };
-        //! The CUDA/HIP vectors extent set trait specialization.
-        template<typename TExtent, typename TExtentVal>
-        struct SetExtent<
-            DimInt<Dim<TExtent>::value - 4u>,
-            TExtent,
-            TExtentVal,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TExtent> && (Dim<TExtent>::value >= 4)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setExtent(TExtent const& extent, TExtentVal const& extentVal) -> void
-            {
-                extent.w = extentVal;
+                constexpr auto dim = Dim<TCudaHipBuiltin>::value;
+                if constexpr(dim == 1)
+                    return {value.x};
+                else if constexpr(dim == 2)
+                    return {value.y, value.x};
+                else if constexpr(dim == 3)
+                    return {value.z, value.y, value.x};
+                else if constexpr(dim == 4)
+                    return {value.w, value.z, value.y, value.x};
+                else
+                    static_assert(sizeof(value) == 0, "Not implemented");
+
+                ALPAKA_UNREACHABLE({});
             }
         };
 
-        //! The CUDA/HIP vectors offset get trait specialization.
-        template<typename TOffsets>
-        struct GetOffset<
-            DimInt<Dim<TOffsets>::value - 1u>,
-            TOffsets,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 1)>>
+        template<typename TCudaHipBuiltin>
+        struct GetOffsets<TCudaHipBuiltin, std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TCudaHipBuiltin>>>
+            : GetExtents<TCudaHipBuiltin>
         {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const& offsets)
-            {
-                return offsets.x;
-            }
-        };
-        //! The CUDA/HIP vectors offset get trait specialization.
-        template<typename TOffsets>
-        struct GetOffset<
-            DimInt<Dim<TOffsets>::value - 2u>,
-            TOffsets,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 2)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const& offsets)
-            {
-                return offsets.y;
-            }
-        };
-        //! The CUDA/HIP vectors offset get trait specialization.
-        template<typename TOffsets>
-        struct GetOffset<
-            DimInt<Dim<TOffsets>::value - 3u>,
-            TOffsets,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 3)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const& offsets)
-            {
-                return offsets.z;
-            }
-        };
-        //! The CUDA/HIP vectors offset get trait specialization.
-        template<typename TOffsets>
-        struct GetOffset<
-            DimInt<Dim<TOffsets>::value - 4u>,
-            TOffsets,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 4)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const& offsets)
-            {
-                return offsets.w;
-            }
-        };
-        //! The CUDA/HIP vectors offset set trait specialization.
-        template<typename TOffsets, typename TOffset>
-        struct SetOffset<
-            DimInt<Dim<TOffsets>::value - 1u>,
-            TOffsets,
-            TOffset,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 1)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const& offsets, TOffset const& offset) -> void
-            {
-                offsets.x = offset;
-            }
-        };
-        //! The CUDA/HIP vectors offset set trait specialization.
-        template<typename TOffsets, typename TOffset>
-        struct SetOffset<
-            DimInt<Dim<TOffsets>::value - 2u>,
-            TOffsets,
-            TOffset,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 2)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const& offsets, TOffset const& offset) -> void
-            {
-                offsets.y = offset;
-            }
-        };
-        //! The CUDA/HIP vectors offset set trait specialization.
-        template<typename TOffsets, typename TOffset>
-        struct SetOffset<
-            DimInt<Dim<TOffsets>::value - 3u>,
-            TOffsets,
-            TOffset,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 3)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const& offsets, TOffset const& offset) -> void
-            {
-                offsets.z = offset;
-            }
-        };
-        //! The CUDA/HIP vectors offset set trait specialization.
-        template<typename TOffsets, typename TOffset>
-        struct SetOffset<
-            DimInt<Dim<TOffsets>::value - 4u>,
-            TOffsets,
-            TOffset,
-            std::enable_if_t<alpaka::detail::isCudaHipBuiltInType<TOffsets> && (Dim<TOffsets>::value >= 4)>>
-        {
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const& offsets, TOffset const& offset) -> void
-            {
-                offsets.w = offset;
-            }
         };
 
         //! The CUDA/HIP vectors idx type trait specialization.

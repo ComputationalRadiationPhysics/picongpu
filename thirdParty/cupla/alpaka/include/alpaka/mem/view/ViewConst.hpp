@@ -68,12 +68,12 @@ namespace alpaka
             using type = typename ElemType<TView>::type const;
         };
 
-        template<typename I, typename TView>
-        struct GetExtent<I, ViewConst<TView>>
+        template<typename TView>
+        struct GetExtents<ViewConst<TView>>
         {
-            ALPAKA_FN_HOST static auto getExtent(ViewConst<TView> const& view)
+            ALPAKA_FN_HOST auto operator()(ViewConst<TView> const& view) const
             {
-                return alpaka::getExtent<I::value>(view.m_view);
+                return getExtents(view.m_view);
             }
         };
 
@@ -89,21 +89,21 @@ namespace alpaka
             }
         };
 
-        template<typename I, typename TView>
-        struct GetPitchBytes<I, ViewConst<TView>>
+        template<typename TView>
+        struct GetPitchesInBytes<ViewConst<TView>>
         {
-            ALPAKA_FN_HOST static auto getPitchBytes(ViewConst<TView> const& view)
+            ALPAKA_FN_HOST auto operator()(ViewConst<TView> const& view) const
             {
-                return alpaka::getPitchBytes<I::value>(view.m_view);
+                return alpaka::getPitchesInBytes(view.m_view);
             }
         };
 
-        template<typename I, typename TView>
-        struct GetOffset<I, ViewConst<TView>>
+        template<typename TView>
+        struct GetOffsets<ViewConst<TView>>
         {
-            ALPAKA_FN_HOST static auto getOffset(ViewConst<TView> const& view)
+            ALPAKA_FN_HOST auto operator()(ViewConst<TView> const& view) const
             {
-                return alpaka::getOffset<I::value>(view.m_view);
+                return alpaka::getOffsets(view.m_view);
             }
         };
 

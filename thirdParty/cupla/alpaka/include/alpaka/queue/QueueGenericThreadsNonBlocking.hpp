@@ -45,12 +45,14 @@ namespace alpaka
                 explicit QueueGenericThreadsNonBlockingImpl(TDev dev) : m_dev(std::move(dev))
                 {
                 }
+
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev> const&) = delete;
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev>&&) = delete;
                 auto operator=(QueueGenericThreadsNonBlockingImpl<TDev> const&)
                     -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
                 auto operator=(QueueGenericThreadsNonBlockingImpl&&)
                     -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
+
                 ~QueueGenericThreadsNonBlockingImpl() override
                 {
                 }
@@ -87,10 +89,12 @@ namespace alpaka
 
             dev.registerQueue(m_spQueueImpl);
         }
+
         auto operator==(QueueGenericThreadsNonBlocking<TDev> const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
         }
+
         auto operator!=(QueueGenericThreadsNonBlocking<TDev> const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -108,6 +112,7 @@ namespace alpaka
         {
             using type = TDev;
         };
+
         //! The CPU non-blocking device queue device get trait specialization.
         template<typename TDev>
         struct GetDev<QueueGenericThreadsNonBlocking<TDev>>
@@ -135,6 +140,7 @@ namespace alpaka
                 queue.m_spQueueImpl->m_workerThread.submit(task);
             }
         };
+
         //! The CPU non-blocking device queue test trait specialization.
         template<typename TDev>
         struct Empty<QueueGenericThreadsNonBlocking<TDev>>

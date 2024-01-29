@@ -9,9 +9,8 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-class FloatEqualExactTestKernel
+struct FloatEqualExactTestKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& /* acc */, bool* success) const -> void

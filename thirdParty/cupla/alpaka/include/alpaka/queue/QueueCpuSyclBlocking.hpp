@@ -12,6 +12,6 @@
 namespace alpaka
 {
     using QueueCpuSyclBlocking = QueueGenericSyclBlocking<DevCpuSycl>;
-}
+} // namespace alpaka
 
 #endif

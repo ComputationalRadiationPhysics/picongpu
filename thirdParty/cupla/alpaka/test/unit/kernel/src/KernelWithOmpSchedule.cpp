@@ -54,6 +54,7 @@ struct KernelWithStaticMemberOmpScheduleChunkSize : KernelWithMemberOmpScheduleK
 {
     static int const ompScheduleChunkSize;
 };
+
 // In this case, the member has to be defined externally
 template<alpaka::omp::Schedule::Kind TKind>
 int const KernelWithStaticMemberOmpScheduleChunkSize<TKind>::ompScheduleChunkSize = 2;

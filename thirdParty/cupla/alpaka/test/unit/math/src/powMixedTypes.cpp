@@ -49,17 +49,15 @@ struct Convert<TInput, alpaka::Complex<TOutputValueType>, std::enable_if_t<std::
 };
 
 template<typename TExpected>
-class PowMixedTypesTestKernel
+struct PowMixedTypesTestKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename TArg1, typename TArg2>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, TArg1 const arg1, TArg2 const arg2) const -> void
     {
         auto expected = alpaka::math::pow(acc, Convert<TArg1, TExpected>{}(arg1), Convert<TArg2, TExpected>{}(arg2));
         auto actual = alpaka::math::pow(acc, arg1, arg2);
-        using alpaka::test::unit::math::almost_equal;
-        ALPAKA_CHECK(*success, almost_equal(acc, expected, actual, 1));
+        ALPAKA_CHECK(*success, mathtest::almost_equal(acc, expected, actual, 1));
     }
 };
 

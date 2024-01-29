@@ -54,25 +54,12 @@ Usage
 
 [cupla can be used as a header-only library and without the CMake build system](doc/ConfigurationHeader.md)
 
-Authors
--------
+Contributing
+------------
 
-### Maintainers* and Core Developers
+Any pull request will be reviewed by a [maintainer](https://github.com/orgs/alpaka-group/teams/alpaka-maintainers).
 
-- [Dr. Sergei Bastrakov](https://github.com/sbastrakov)*
-- [Dr. Andrea Bocci](https://github.com/fwyzard)
-- [Simeon Ehrig](https://github.com/SimeonEhrig)
-- [Jan Stephan](https://github.com/j-stephan)*
-- [Rene Widera](https://github.com/psychocoderHPC)*
-
-### Former Members, Contributions and Thanks
-
-- [Dr. Michael Bussmann](https://www.hzdr.de/db/!ContMan.Visi.Card?pUser=4167&pNid=0)
-- [Dr. Axel Huebl](https://github.com/ax3l)
-- [Dr. Jeffrey Kelling](https://github.com/jkelling)
-- [Maximilian Knespel](https://github.com/mxmlnkn)
-- [Vincent Ridder](https://github.com/vincentridder)
-- [Matthias Werner](https://github.com/tdd11235813)
+Thanks to all [active and former contributors](.rodare.json).
 
 
 Trademarks Disclaimer

@@ -8,7 +8,6 @@
 
 #include <utility>
 
-
 namespace alpaka::rand::engine
 {
     /** Philox-stateless engine generating a vector of numbers

@@ -28,15 +28,15 @@ struct AlpakaStream : Stream<T>
 {
     AlpakaStream(Idx arraySize, Idx deviceIndex);
 
-    virtual void copy() override;
-    virtual void add() override;
-    virtual void mul() override;
-    virtual void triad() override;
-    virtual void nstream() override;
-    virtual T dot() override;
+    void copy() override;
+    void add() override;
+    void mul() override;
+    void triad() override;
+    void nstream() override;
+    auto dot() -> T override;
 
-    virtual void init_arrays(T initA, T initB, T initC) override;
-    virtual void read_arrays(std::vector<T>& a, std::vector<T>& b, std::vector<T>& c) override;
+    void init_arrays(T initA, T initB, T initC) override;
+    void read_arrays(std::vector<T>& a, std::vector<T>& b, std::vector<T>& c) override;
 
     using PlatformHost = alpaka::PlatformCpu;
     using DevHost = alpaka::Dev<PlatformHost>;
@@ -61,7 +61,3 @@ private:
     BufAcc d_sum;
     Queue queue;
 };
-
-void listDevices();
-std::string getDeviceName(int deviceIndex);
-std::string getDeviceDriver(int device);

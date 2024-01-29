@@ -10,7 +10,6 @@
 
 #include <utility>
 
-
 namespace alpaka::rand::engine
 {
     /** Philox algorithm parameters
@@ -42,10 +41,12 @@ namespace alpaka::rand::engine
         {
             return TParams::rounds;
         }
+
         static constexpr unsigned vectorSize()
         {
             return TParams::counterSize;
         }
+
         static constexpr unsigned numberWidth()
         {
             return TParams::width;

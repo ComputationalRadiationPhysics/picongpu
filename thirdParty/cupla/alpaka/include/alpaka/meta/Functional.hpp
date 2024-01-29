@@ -12,8 +12,7 @@ namespace alpaka::meta
     struct min
     {
         ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC
-        constexpr auto operator()(const T& lhs, const T& rhs) const
+        ALPAKA_FN_HOST_ACC constexpr auto operator()(T const& lhs, T const& rhs) const
         {
             return (lhs < rhs) ? lhs : rhs;
         }
@@ -23,8 +22,7 @@ namespace alpaka::meta
     struct max
     {
         ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC
-        constexpr auto operator()(const T& lhs, const T& rhs) const
+        ALPAKA_FN_HOST_ACC constexpr auto operator()(T const& lhs, T const& rhs) const
         {
             return (lhs > rhs) ? lhs : rhs;
         }

@@ -14,6 +14,7 @@ namespace alpaka::meta
     {
         template<typename TList>
         struct ForEachTypeHelper;
+
         template<template<typename...> class TList>
         struct ForEachTypeHelper<TList<>>
         {
@@ -23,6 +24,7 @@ namespace alpaka::meta
             {
             }
         };
+
         template<template<typename...> class TList, typename T, typename... Ts>
         struct ForEachTypeHelper<TList<T, Ts...>>
         {

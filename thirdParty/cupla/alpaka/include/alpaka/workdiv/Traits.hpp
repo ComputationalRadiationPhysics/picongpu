@@ -49,6 +49,7 @@ namespace alpaka
                        * alpaka::getWorkDiv<origin::Block, unit::Threads>(workDiv);
             }
         };
+
         //! The work div grid element extent trait specialization.
         template<typename TWorkDiv>
         struct GetWorkDiv<TWorkDiv, origin::Grid, unit::Elems>
@@ -60,6 +61,7 @@ namespace alpaka
                        * alpaka::getWorkDiv<origin::Thread, unit::Elems>(workDiv);
             }
         };
+
         //! The work div block element extent trait specialization.
         template<typename TWorkDiv>
         struct GetWorkDiv<TWorkDiv, origin::Block, unit::Elems>

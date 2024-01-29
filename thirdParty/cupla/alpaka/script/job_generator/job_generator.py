@@ -88,11 +88,12 @@ def get_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--compile-only", action="store_true", help="Generate only compile only jobs."
-    )
-
-    parser.add_argument(
-        "--runtime-only", action="store_true", help="Generate only runtime jobs."
+        "--wave",
+        type=str,
+        # add `all` and remove `JOB_UNKNOWN` from the choices
+        choices=["all"] + list(set(WAVE_GROUP_NAMES) - set([JOB_UNKNOWN])),
+        default="all",
+        help="Generates only jobs for a specific wave group.",
     )
 
     parser.add_argument(
@@ -112,15 +113,6 @@ if __name__ == "__main__":
     enable_clang_cuda = True
     parameters[HOST_COMPILER] = get_compiler_versions(clang_cuda=enable_clang_cuda)
     parameters[DEVICE_COMPILER] = get_compiler_versions(clang_cuda=enable_clang_cuda)
-    # TODO(SimeonEhrig): remove GCC and Clang from DEVICE_COMPILER to disable CPU accelerator
-    # Backends
-    parameters[DEVICE_COMPILER] = list(
-        filter(
-            lambda compiler: compiler[NAME] != GCC and compiler[NAME] != CLANG,
-            parameters[DEVICE_COMPILER],
-        )
-    )
-
     parameters[BACKENDS] = get_backend_matrix()
     parameters[CMAKE] = get_sw_tuple_list(CMAKE)
     parameters[BOOST] = get_sw_tuple_list(BOOST)
@@ -201,14 +193,9 @@ if __name__ == "__main__":
             for job in wave:
                 print(job)
 
-    if args.compile_only:
-        wave_job_matrix = {JOB_COMPILE_ONLY: wave_job_matrix[JOB_COMPILE_ONLY]}
-        for wave_name in WAVE_GROUP_NAMES:
-            if not wave_name in wave_job_matrix:
-                wave_job_matrix[wave_name] = []
-
-    if args.runtime_only:
-        wave_job_matrix = {JOB_RUNTIME: wave_job_matrix[JOB_RUNTIME]}
+    if args.wave != "all":
+        filter_wave_name = args.wave
+        wave_job_matrix = {filter_wave_name: wave_job_matrix[filter_wave_name]}
         for wave_name in WAVE_GROUP_NAMES:
             if not wave_name in wave_job_matrix:
                 wave_job_matrix[wave_name] = []

@@ -79,47 +79,14 @@ namespace alpaka
             using type = cupla::MemSizeType;
         };
 
-        //! extent get trait specialization
-        template<typename T_Idx>
-        struct GetExtent<T_Idx, cuplaExtent, typename std::enable_if<(3u > T_Idx::value)>::type>
-        {
-            ALPAKA_FN_HOST_ACC
-            static auto getExtent(cuplaExtent const& extents) -> cupla::MemSizeType
-            {
-                return (&extents.width)[(3u - 1u) - T_Idx::value];
-            }
-        };
-
-        //! extent set trait specialization
-        template<typename T_Idx, typename T_Extent>
-        struct SetExtent<T_Idx, cuplaExtent, T_Extent, typename std::enable_if<(3u > T_Idx::value)>::type>
-        {
-            ALPAKA_FN_HOST_ACC
-            static auto setExtent(cuplaExtent& extents, T_Extent const& extent) -> void
-            {
-                (&extents.width)[(3u - 1u) - T_Idx::value] = extent;
-            }
-        };
-
         //! offset get trait specialization
-        template<typename T_Idx>
-        struct GetOffset<T_Idx, cuplaExtent, typename std::enable_if<(3u > T_Idx::value)>::type>
+        template<>
+        struct GetOffsets<cuplaExtent>
         {
             ALPAKA_FN_HOST_ACC
-            static auto getOffset(cuplaExtent const& offsets) -> cupla::MemSizeType
+            constexpr auto operator()(cuplaExtent const& offsets) -> Vec<::alpaka::DimInt<3u>, cupla::MemSizeType>
             {
-                return (&offsets.width)[(3u - 1u) - T_Idx::value];
-            }
-        };
-
-        //! offset set trait specialization.
-        template<typename T_Idx, typename T_Offset>
-        struct SetOffset<T_Idx, cuplaExtent, T_Offset, typename std::enable_if<(3u > T_Idx::value)>::type>
-        {
-            ALPAKA_FN_HOST_ACC
-            static auto setOffset(cuplaExtent& offsets, T_Offset const& offset) -> void
-            {
-                offsets[(3u - 1u) - T_Idx::value] = offset;
+                return {offsets.depth, offsets.height, offsets.width};
             }
         };
 

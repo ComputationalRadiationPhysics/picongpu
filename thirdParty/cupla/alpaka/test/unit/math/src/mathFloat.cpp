@@ -15,10 +15,8 @@
 using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 
 // This file only has unit tests for real numbers in order to split the tests between object files
-using FunctorsReal = alpaka::meta::Concatenate<
-    alpaka::test::unit::math::UnaryFunctorsReal,
-    alpaka::test::unit::math::BinaryFunctorsReal,
-    alpaka::test::unit::math::TernaryFunctorsReal>;
+using FunctorsReal = alpaka::meta::
+    Concatenate<mathtest::UnaryFunctorsReal, mathtest::BinaryFunctorsReal, mathtest::TernaryFunctorsReal>;
 using TestAccFunctorTuplesReal = alpaka::meta::CartesianProduct<std::tuple, TestAccs, FunctorsReal>;
 
 TEMPLATE_LIST_TEST_CASE("mathOpsFloat", "[math] [operator]", TestAccFunctorTuplesReal)
@@ -72,6 +70,6 @@ TEMPLATE_LIST_TEST_CASE("mathOpsFloat", "[math] [operator]", TestAccFunctorTuple
 
     using Acc = std::tuple_element_t<0u, TestType>;
     using Functor = std::tuple_element_t<1u, TestType>;
-    auto testTemplate = TestTemplate<Acc, Functor>{};
+    auto testTemplate = mathtest::TestTemplate<Acc, Functor>{};
     testTemplate.template operator()<float>();
 }

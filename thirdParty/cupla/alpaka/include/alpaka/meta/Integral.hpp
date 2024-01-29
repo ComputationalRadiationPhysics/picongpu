@@ -15,11 +15,11 @@ namespace alpaka::meta
         std::is_integral_v<TSuperset> && std::is_integral_v<TSubset>
             && (
                 // If the signdness is equal, the sizes have to be greater or equal to be a superset.
-                ((std::is_unsigned_v<TSuperset> == std::is_unsigned_v<TSubset>)
-                 && (sizeof(TSuperset) >= sizeof(TSubset)))
+                ((std::is_unsigned_v<TSuperset>
+                  == std::is_unsigned_v<TSubset>) &&(sizeof(TSuperset) >= sizeof(TSubset)))
                 // If the signdness is non-equal, the superset has to have at least one bit more.
-                || ((std::is_unsigned_v<TSuperset> != std::is_unsigned_v<TSubset>)
-                    && (sizeof(TSuperset) > sizeof(TSubset))))>;
+                || ((std::is_unsigned_v<TSuperset> != std::is_unsigned_v<TSubset>) &&(
+                    sizeof(TSuperset) > sizeof(TSubset))))>;
 
     //! The type that has the higher max value.
     template<typename T0, typename T1>

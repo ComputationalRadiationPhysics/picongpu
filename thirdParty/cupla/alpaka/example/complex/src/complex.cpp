@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <iostream>
 
-
 //! Complex numbers demonstration kernel
 struct ComplexKernel
 {

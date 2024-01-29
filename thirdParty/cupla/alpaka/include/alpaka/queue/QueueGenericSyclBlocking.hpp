@@ -12,6 +12,6 @@ namespace alpaka
 {
     template<typename TDev>
     using QueueGenericSyclBlocking = detail::QueueGenericSyclBase<TDev, true>;
-}
+} // namespace alpaka
 
 #endif

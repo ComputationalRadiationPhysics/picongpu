@@ -57,9 +57,5 @@ TEMPLATE_LIST_TEST_CASE("memP2PTest", "[memP2P]", alpaka::test::TestAccs)
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
-
-    auto const extent
-        = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-
-    testP2P<Acc>(extent);
+    testP2P<Acc>(alpaka::test::extentBuf<Dim, Idx>);
 }

@@ -54,10 +54,6 @@
 #            define CUPLA_ACCELERATOR_NAMESPACE cupla_tbb_seq_async
 #        endif
 
-#        ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-#            define CUPLA_ACCELERATOR_NAMESPACE cupla_omp5_omp5_async
-#        endif
-
 #    endif // mixed accelerator usage
 
 #else // CUPLA_STREAM_ASYNC_ENABLED
@@ -89,10 +85,6 @@
 
 #        ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
 #            define CUPLA_ACCELERATOR_NAMESPACE cupla_tbb_seq_sync
-#        endif
-
-#        ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-#            define CUPLA_ACCELERATOR_NAMESPACE cupla_omp5_omp5_sync
 #        endif
 
 #    endif // mixed accelerator usage

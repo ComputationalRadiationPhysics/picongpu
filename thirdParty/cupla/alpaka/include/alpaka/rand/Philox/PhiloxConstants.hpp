@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <utility>
 
-
 namespace alpaka::rand::engine
 {
     /** Constants used in the Philox algorithm
@@ -34,17 +33,19 @@ namespace alpaka::rand::engine
     public:
         static constexpr std::uint64_t WEYL_64_0()
         {
-            return 0x9E3779B97F4A7C15; ///< First Weyl sequence parameter: the golden ratio
+            return 0x9E37'79B9'7F4A'7C15; ///< First Weyl sequence parameter: the golden ratio
         }
+
         static constexpr std::uint64_t WEYL_64_1()
         {
-            return 0xBB67AE8584CAA73B; ///< Second Weyl sequence parameter: \f$ \sqrt{3}-1 \f$
+            return 0xBB67'AE85'84CA'A73B; ///< Second Weyl sequence parameter: \f$ \sqrt{3}-1 \f$
         }
 
         static constexpr std::uint32_t WEYL_32_0()
         {
             return high32Bits(WEYL_64_0()); ///< 1st Weyl sequence parameter, 32 bits
         }
+
         static constexpr std::uint32_t WEYL_32_1()
         {
             return high32Bits(WEYL_64_1()); ///< 2nd Weyl sequence parameter, 32 bits
@@ -52,11 +53,12 @@ namespace alpaka::rand::engine
 
         static constexpr std::uint32_t MULTIPLITER_4x32_0()
         {
-            return 0xCD9E8D57; ///< First Philox S-box multiplier
+            return 0xCD9E'8D57; ///< First Philox S-box multiplier
         }
+
         static constexpr std::uint32_t MULTIPLITER_4x32_1()
         {
-            return 0xD2511F53; ///< Second Philox S-box multiplier
+            return 0xD251'1F53; ///< Second Philox S-box multiplier
         }
     };
 } // namespace alpaka::rand::engine

@@ -10,10 +10,9 @@ from alpaka_job_coverage.globals import *  # pylint: disable=wildcard-import,unu
 from alpaka_globals import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 
-# TODO: only an example
 sw_versions: Dict[str, List[str]] = {
     GCC: ["9", "10", "11", "12", "13"],
-    CLANG: ["9", "10", "11", "12", "13", "14", "15", "16"],
+    CLANG: ["9", "10", "11", "12", "13", "14", "15", "16", "17"],
     NVCC: [
         "11.0",
         "11.1",
@@ -27,14 +26,52 @@ sw_versions: Dict[str, List[str]] = {
         "12.0",
         "12.1",
         "12.2",
+        "12.3",
     ],
-    HIPCC: ["5.0", "5.1", "5.2", "5.3", "5.4", "5.5"],
+    HIPCC: ["5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6.0"],
     ICPX: ["2023.1.0", "2023.2.0"],
+    # Contains all enabled back-ends.
+    # There are special cases for ALPAKA_ACC_GPU_CUDA_ENABLE and ALPAKA_ACC_GPU_HIP_ENABLE
+    # which have to be combined with nvcc and hipcc versions.
     BACKENDS: [
-        #         ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE,
-        ALPAKA_ACC_GPU_CUDA_ENABLE,
-        ALPAKA_ACC_GPU_HIP_ENABLE,
-        ALPAKA_ACC_SYCL_ENABLE,
+        # gcc and clang
+        [
+            ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE,
+            ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE,
+            ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE,
+            ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE,
+            ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE,
+        ],
+        # ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE,
+        # nvcc
+        [
+            ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE,
+            ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE,
+            ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE,
+            ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE,
+            ALPAKA_ACC_GPU_CUDA_ENABLE,
+        ],
+        # clang-cuda
+        # OpenMP is not supported for clang as cuda compiler
+        # https://github.com/alpaka-group/alpaka/issues/639
+        # therefore a extra combination is required
+        [
+            ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE,
+            ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE,
+            ALPAKA_ACC_GPU_CUDA_ENABLE,
+        ],
+        # hip
+        [
+            ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE,
+            ALPAKA_ACC_GPU_HIP_ENABLE,
+        ],
+        # sycl (oneAPI)
+        # Turn off OpenMP back-ends until Intel fixes https://github.com/intel/llvm/issues/10711
+        [
+            ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE,
+            ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE,
+            ALPAKA_ACC_SYCL_ENABLE,
+        ],
     ],
     UBUNTU: ["20.04"],
     CMAKE: ["3.22.6", "3.23.5", "3.24.4", "3.25.3", "3.26.4"],
@@ -85,24 +122,38 @@ def get_compiler_versions(clang_cuda: bool = True) -> List[Tuple[str, str]]:
 
 @typechecked
 def get_backend_matrix() -> List[List[Tuple[str, str]]]:
-    """Generate backend list, where only backend is active on the same time.
+    """Generates a back-end list which contains different combinations of enabled back-ends.
 
     Returns:
         List[List[Tuple[str, str]]]: The backend list.
     """
     combination_matrix: List[List[Tuple[str, str]]] = []
 
-    # TODO(SimeonEhrig) only working for HIP in the moment
-    if HIPCC in sw_versions:
-        for rocm_version in sw_versions[HIPCC]:
-            combination_matrix.append([(ALPAKA_ACC_GPU_HIP_ENABLE, rocm_version)])
+    for backend_list in sw_versions[BACKENDS]:
+        combination: List[Tuple[str, str]] = []
+        # all back-ends except ALPAKA_ACC_GPU_HIP_ENABLE and
+        # ALPAKA_ACC_GPU_CUDA_ENABLE can be enabled without having a version number attached to them
+        for backend_name in backend_list:
+            if backend_name not in [
+                ALPAKA_ACC_GPU_HIP_ENABLE,
+                ALPAKA_ACC_GPU_CUDA_ENABLE,
+            ]:
+                combination.append((backend_name, ON_VER))
 
-    if NVCC in sw_versions:
-        for cuda_version in sw_versions[NVCC]:
-            combination_matrix.append([(ALPAKA_ACC_GPU_CUDA_ENABLE, cuda_version)])
-
-    if ICPX in sw_versions:
-        combination_matrix.append([(ALPAKA_ACC_SYCL_ENABLE, ON_VER)])
+        # add a back-end entry for each CUDA SDK version
+        if ALPAKA_ACC_GPU_CUDA_ENABLE in backend_list:
+            for cuda_version in sw_versions[NVCC]:
+                combination_copy = combination[:]
+                combination_copy.append((ALPAKA_ACC_GPU_CUDA_ENABLE, cuda_version))
+                combination_matrix.append(combination_copy)
+        # add a back-end entry for each HIP SDK version
+        elif ALPAKA_ACC_GPU_HIP_ENABLE in backend_list:
+            for rocm_version in sw_versions[HIPCC]:
+                combination_copy = combination[:]
+                combination_copy.append((ALPAKA_ACC_GPU_HIP_ENABLE, rocm_version))
+                combination_matrix.append(combination_copy)
+        else:
+            combination_matrix.append(combination)
 
     return combination_matrix
 
