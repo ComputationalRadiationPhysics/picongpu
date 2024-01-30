@@ -1,0 +1,114 @@
+/* Copyright 2014-2023 Axel Huebl, Alexander Debus
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+/** Load external background fields
+ *
+ */
+namespace picongpu
+{
+    class FieldBackgroundE
+    {
+    public:
+        /* Add this additional field for pushing particles */
+        static constexpr bool InfluenceParticlePusher = false;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HINLINE FieldBackgroundE(const float3_64 unitField) : m_unitField(unitField)
+        {
+        }
+
+        HDINLINE FieldBackgroundE(const FieldBackgroundE&) = default;
+
+        /** Specify your background field E(r,t) here
+         *
+         * @param cellIdx The total cell id counted from the start at t = 0
+         * @param currentStep The current time step */
+        HDINLINE float3_X operator()(
+            const DataSpace<simDim>& /*cellIdx*/,
+            const uint32_t /*currentStep*/
+        ) const
+        {
+            /* specify your E-Field in V/m and convert to PIConGPU units */
+            return float3_X(0.0, 0.0, 0.0 / m_unitField[2]);
+        }
+    };
+
+    class FieldBackgroundB
+    {
+    public:
+        /* Add this additional field for pushing particles */
+        static constexpr bool InfluenceParticlePusher = true;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HINLINE FieldBackgroundB(const float3_64 unitField) : m_unitField(unitField)
+        {
+        }
+
+        HDINLINE FieldBackgroundB(const FieldBackgroundB&) = default;
+
+        /** Specify your background field B(r,t) here
+         *
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step */
+        HDINLINE float3_X operator()(
+            const DataSpace<simDim>& /*cellIdx*/,
+            const uint32_t /*currentStep*/
+        ) const
+        {
+            /* specify your B-Field in T and convert to PIConGPU units */
+            return float3_X(0.0, 0.0, 50.0 / m_unitField[2]);
+        }
+    };
+
+    class FieldBackgroundJ
+    {
+    public:
+        /* Add this additional field? */
+        static constexpr bool activated = false;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HINLINE FieldBackgroundJ(const float3_64 unitField) : m_unitField(unitField)
+        {
+        }
+
+        HDINLINE FieldBackgroundJ(const FieldBackgroundJ&) = default;
+
+        /** Specify your background field J(r,t) here
+         *
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step */
+        HDINLINE float3_X operator()(
+            const DataSpace<simDim>& /*cellIdx*/,
+            const uint32_t /*currentStep*/
+        ) const
+        {
+            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
+            return float3_X(0.0, 0.0, 0.0);
+        }
+    };
+
+} // namespace picongpu
