@@ -1,0 +1,2 @@
+numpy version == 1.24.2
+openpmd_api >= 0.15.1
