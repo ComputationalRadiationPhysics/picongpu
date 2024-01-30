@@ -329,6 +329,8 @@ for stage in range(num_stages):
             print("    PIC_BACKEND: '" + backend + "'")
             print("    BOOST_VERSION: '" + boost_version + "'")
             print("    CXX_VERSION: '" + compiler + "'")
+            print("    CXX_PREFIX_PATH: '/usr/lib/x86_64-linux-gnu/openmpi'")
+            print("    LDFLAGS: '-lopen-pal'")
             print("  before_script:")
             if backend == "hip":
                 print("    - wget -q -O - " "https://repo.radeon.com/rocm/rocm.gpg.key | " "apt-key add -")
