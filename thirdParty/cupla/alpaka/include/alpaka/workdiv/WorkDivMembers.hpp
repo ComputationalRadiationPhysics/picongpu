@@ -5,6 +5,7 @@
 #pragma once
 
 #include "alpaka/core/Common.hpp"
+#include "alpaka/extent/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
 #include "alpaka/vec/Vec.hpp"
 #include "alpaka/workdiv/Traits.hpp"
@@ -19,6 +20,7 @@ namespace alpaka
     {
     public:
         ALPAKA_FN_HOST_ACC WorkDivMembers() = delete;
+
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TGridBlockExtent, typename TBlockThreadExtent, typename TThreadElemExtent>
         ALPAKA_FN_HOST_ACC explicit WorkDivMembers(
@@ -30,6 +32,7 @@ namespace alpaka
             , m_threadElemExtent(getExtentVecEnd<TDim>(threadElemExtent))
         {
         }
+
         ALPAKA_NO_HOST_ACC_WARNING
         ALPAKA_FN_HOST_ACC WorkDivMembers(WorkDivMembers const& other)
             : m_gridBlockExtent(other.m_gridBlockExtent)
@@ -37,6 +40,7 @@ namespace alpaka
             , m_threadElemExtent(other.m_threadElemExtent)
         {
         }
+
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TWorkDiv>
         ALPAKA_FN_HOST_ACC explicit WorkDivMembers(TWorkDiv const& other)
@@ -49,6 +53,7 @@ namespace alpaka
         WorkDivMembers(WorkDivMembers&&) = default;
         auto operator=(WorkDivMembers const&) -> WorkDivMembers& = default;
         auto operator=(WorkDivMembers&&) -> WorkDivMembers& = default;
+
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TWorkDiv>
         ALPAKA_FN_HOST_ACC auto operator=(TWorkDiv const& other) -> WorkDivMembers<TDim, TIdx>&

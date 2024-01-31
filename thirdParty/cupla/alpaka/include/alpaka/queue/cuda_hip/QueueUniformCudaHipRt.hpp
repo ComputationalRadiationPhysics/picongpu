@@ -9,11 +9,11 @@
 #include "alpaka/core/Concepts.hpp"
 #include "alpaka/core/Cuda.hpp"
 #include "alpaka/core/Hip.hpp"
-#include "alpaka/dev/DevUniformCudaHipRt.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/event/Traits.hpp"
 #include "alpaka/meta/DependentFalseType.hpp"
 #include "alpaka/queue/Traits.hpp"
+#include "alpaka/traits/Traits.hpp"
 #include "alpaka/wait/Traits.hpp"
 
 #include <condition_variable>
@@ -29,6 +29,9 @@ namespace alpaka
 {
     template<typename TApi>
     class EventUniformCudaHipRt;
+
+    template<typename TApi>
+    class DevUniformCudaHipRt;
 
     namespace uniform_cuda_hip::detail
     {
@@ -57,8 +60,10 @@ namespace alpaka
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                     TApi::streamCreateWithFlags(&m_UniformCudaHipQueue, TApi::streamNonBlocking));
             }
+
             QueueUniformCudaHipRtImpl(QueueUniformCudaHipRtImpl&&) = default;
             auto operator=(QueueUniformCudaHipRtImpl&&) -> QueueUniformCudaHipRtImpl& = delete;
+
             ALPAKA_FN_HOST ~QueueUniformCudaHipRtImpl()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -94,11 +99,14 @@ namespace alpaka
             ALPAKA_FN_HOST QueueUniformCudaHipRt(DevUniformCudaHipRt<TApi> const& dev)
                 : m_spQueueImpl(std::make_shared<QueueUniformCudaHipRtImpl<TApi>>(dev))
             {
+                dev.registerQueue(m_spQueueImpl);
             }
+
             ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRt const& rhs) const -> bool
             {
                 return (m_spQueueImpl == rhs.m_spQueueImpl);
             }
+
             ALPAKA_FN_HOST auto operator!=(QueueUniformCudaHipRt const& rhs) const -> bool
             {
                 return !((*this) == rhs);
@@ -108,6 +116,7 @@ namespace alpaka
             {
                 return m_spQueueImpl->getNativeHandle();
             }
+
             auto getCallbackThread() -> core::CallbackThread&
             {
                 return m_spQueueImpl->m_callbackThread;
@@ -203,7 +212,7 @@ namespace alpaka
             {
                 auto data = std::unique_ptr<HostFuncData>(reinterpret_cast<HostFuncData*>(arg));
                 auto& queue = data->q;
-                auto f = queue.m_callbackThread.submit([data = std::move(data)] { data->t(); });
+                auto f = queue.m_callbackThread.submit([d = std::move(data)] { d->t(); });
                 f.wait();
             }
 

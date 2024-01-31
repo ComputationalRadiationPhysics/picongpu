@@ -21,14 +21,18 @@ namespace alpaka::detail
     {
         constexpr auto dim = Dim<TExtent>::value;
 
-        auto const width = getWidth(ext) * multiplier;
-
-        if constexpr(dim == 1)
-            return sycl::range<1>{width};
-        else if constexpr(dim == 2)
-            return sycl::range<2>{width, getHeight(ext)};
+        if constexpr(dim == 0)
+            return sycl::range<1>{multiplier};
         else
-            return sycl::range<3>{width, getHeight(ext), getDepth(ext)};
+        {
+            auto const width = getWidth(ext) * multiplier;
+            if constexpr(dim == 1)
+                return sycl::range<1>{width};
+            else if constexpr(dim == 2)
+                return sycl::range<2>{width, getHeight(ext)};
+            else
+                return sycl::range<3>{width, getHeight(ext), getDepth(ext)};
+        }
     }
 
     template<typename TView>
@@ -36,12 +40,17 @@ namespace alpaka::detail
     {
         constexpr auto dim = Dim<TView>::value;
 
-        if constexpr(dim == 1)
-            return sycl::id<1>{getOffsetX(view)};
-        else if constexpr(dim == 2)
-            return sycl::id<2>{getOffsetX(view), getOffsetY(view)};
+        if constexpr(dim == 0)
+            return sycl::range<1>{1};
         else
-            return sycl::id<3>{getOffsetX(view), getOffsetY(view), getOffsetZ(view)};
+        {
+            if constexpr(dim == 1)
+                return sycl::id<1>{getOffsetX(view)};
+            else if constexpr(dim == 2)
+                return sycl::id<2>{getOffsetX(view), getOffsetY(view)};
+            else
+                return sycl::id<3>{getOffsetX(view), getOffsetY(view), getOffsetZ(view)};
+        }
     }
 } // namespace alpaka::detail
 

@@ -1,4 +1,4 @@
-/* Copyright 2023 Axel Huebl, Benjamin Worpitz, Jakob Krude, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Jakob Krude, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -33,19 +33,11 @@ struct TestContainer
 
     using SubView = alpaka::ViewSubView<DevAcc, TData, TDim, TIdx>;
 
-    PlatformAcc const platformAcc{};
-    DevAcc const devAcc;
-    PlatformHost const platformHost{};
-    DevHost const devHost;
-    DevQueue devQueue;
-
-    // Constructor
-    TestContainer()
-        : devAcc(alpaka::getDevByIdx(platformAcc, 0))
-        , devHost(alpaka::getDevByIdx(platformHost, 0u))
-        , devQueue(devAcc)
-    {
-    }
+    PlatformAcc platformAcc{};
+    DevAcc devAcc{alpaka::getDevByIdx(platformAcc, 0)};
+    PlatformHost platformHost{};
+    DevHost devHost{alpaka::getDevByIdx(platformHost, 0u)};
+    DevQueue devQueue{devAcc};
 
     auto createHostBuffer(Vec extents, bool indexed) -> BufHost
     {
@@ -126,12 +118,9 @@ TEMPLATE_LIST_TEST_CASE("memBufSlicingMemcpyTest", "[memBuf]", TestAccWithDataTy
     {
         TestContainer<Dim, Idx, Acc, Data> slicingTest;
 
-        auto const extents
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-        auto const extentsSubView
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>();
-        auto const offsets
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
+        auto const extents = alpaka::test::extentBuf<Dim, Idx>;
+        auto const extentsSubView = alpaka::test::extentSubView<Dim, Idx>;
+        auto const offsets = alpaka::test::offset<Dim, Idx>;
 
         // This is the initial buffer.
         auto const indexedBuffer = slicingTest.createHostBuffer(extents, true);
@@ -182,12 +171,9 @@ TEMPLATE_LIST_TEST_CASE("memBufSlicingMemsetTest", "[memBuf]", TestAccWithDataTy
     {
         TestContainer<Dim, Idx, Acc, Data> slicingTest;
 
-        auto const extents
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-        auto const extentsSubView
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>();
-        auto const offsets
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
+        auto const extents = alpaka::test::extentBuf<Dim, Idx>;
+        auto const extentsSubView = alpaka::test::extentSubView<Dim, Idx>;
+        auto const offsets = alpaka::test::offset<Dim, Idx>;
 
         // This is the initial buffer.
         auto const indexedBuffer = slicingTest.createHostBuffer(extents, true);

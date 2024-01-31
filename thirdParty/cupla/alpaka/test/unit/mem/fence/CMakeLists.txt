@@ -1,7 +1,12 @@
 #
-# Copyright 2021 Jan Stephan
+# Copyright 2023 Jan Stephan, Bernhard Manfred Gruber
 # SPDX-License-Identifier: MPL-2.0
 #
+
+if (CMAKE_CXX_FLAGS MATCHES ".*-fsanitize=thread.*")
+    message(WARNING "TSan does not support memory fences yet. The fenceTest has been disabled. See also: https://github.com/google/sanitizers/issues/1352")
+    return()
+endif()
 
 set(_TARGET_NAME "fenceTest")
 

@@ -46,8 +46,7 @@ TEMPLATE_LIST_TEST_CASE("mdSpan", "[memView]", alpaka::test::TestAccs)
     auto const dev = alpaka::getDevByIdx(platform, 0);
     auto queue = alpaka::Queue<Dev, alpaka::Blocking>(dev);
 
-    auto const extent
-        = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
+    auto const extent = alpaka::test::extentBuf<Dim, Idx>;
     auto buf = alpaka::allocBuf<TElem, Idx>(dev, extent);
     alpaka::test::iotaFillView(queue, buf);
 

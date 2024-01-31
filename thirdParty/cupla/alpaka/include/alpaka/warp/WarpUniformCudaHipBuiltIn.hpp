@@ -1,4 +1,4 @@
-/* Copyright 2022 Sergei Bastrakov, David M. Rogers, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber
+/* Copyright 2023 Sergei Bastrakov, David M. Rogers, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -67,7 +67,7 @@ namespace alpaka::warp
                 std::int32_t predicate) -> std::int32_t
             {
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                return __all_sync(activemask(warp), predicate);
+                return __all_sync(0xffff'ffff, predicate);
 #        else
                 return __all(predicate);
 #        endif
@@ -82,7 +82,7 @@ namespace alpaka::warp
                 std::int32_t predicate) -> std::int32_t
             {
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                return __any_sync(activemask(warp), predicate);
+                return __any_sync(0xffff'ffff, predicate);
 #        else
                 return __any(predicate);
 #        endif
@@ -103,7 +103,7 @@ namespace alpaka::warp
 #        endif
             {
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                return __ballot_sync(activemask(warp), predicate);
+                return __ballot_sync(0xffff'ffff, predicate);
 #        else
                 return __ballot(predicate);
 #        endif
@@ -113,33 +113,75 @@ namespace alpaka::warp
         template<>
         struct Shfl<WarpUniformCudaHipBuiltIn>
         {
-            //-------------------------------------------------------------
+            template<typename T>
             __device__ static auto shfl(
                 [[maybe_unused]] warp::WarpUniformCudaHipBuiltIn const& warp,
-                float val,
+                T val,
                 int srcLane,
-                std::int32_t width) -> float
+                std::int32_t width) -> T
             {
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                return __shfl_sync(activemask(warp), val, srcLane, width);
-#        else
-                return __shfl(val, srcLane, width);
-#        endif
-            }
-            //-------------------------------------------------------------
-            __device__ static auto shfl(
-                [[maybe_unused]] warp::WarpUniformCudaHipBuiltIn const& warp,
-                std::int32_t val,
-                int srcLane,
-                std::int32_t width) -> std::int32_t
-            {
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                return __shfl_sync(activemask(warp), val, srcLane, width);
+                return __shfl_sync(0xffff'ffff, val, srcLane, width);
 #        else
                 return __shfl(val, srcLane, width);
 #        endif
             }
         };
+
+        template<>
+        struct ShflUp<WarpUniformCudaHipBuiltIn>
+        {
+            template<typename T>
+            __device__ static auto shfl_up(
+                [[maybe_unused]] warp::WarpUniformCudaHipBuiltIn const& warp,
+                T val,
+                std::uint32_t offset,
+                std::int32_t width) -> T
+            {
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+                return __shfl_up_sync(0xffff'ffff, val, offset, width);
+#        else
+                return __shfl_up(val, offset, width);
+#        endif
+            }
+        };
+
+        template<>
+        struct ShflDown<WarpUniformCudaHipBuiltIn>
+        {
+            template<typename T>
+            __device__ static auto shfl_down(
+                [[maybe_unused]] warp::WarpUniformCudaHipBuiltIn const& warp,
+                T val,
+                std::uint32_t offset,
+                std::int32_t width) -> T
+            {
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+                return __shfl_down_sync(0xffff'ffff, val, offset, width);
+#        else
+                return __shfl_down(val, offset, width);
+#        endif
+            }
+        };
+
+        template<>
+        struct ShflXor<WarpUniformCudaHipBuiltIn>
+        {
+            template<typename T>
+            __device__ static auto shfl_xor(
+                [[maybe_unused]] warp::WarpUniformCudaHipBuiltIn const& warp,
+                T val,
+                std::int32_t mask,
+                std::int32_t width) -> T
+            {
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+                return __shfl_xor_sync(0xffff'ffff, val, mask, width);
+#        else
+                return __shfl_xor(val, mask, width);
+#        endif
+            }
+        };
+
     } // namespace trait
 #    endif
 } // namespace alpaka::warp

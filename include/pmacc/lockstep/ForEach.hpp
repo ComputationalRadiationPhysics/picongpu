@@ -264,10 +264,10 @@ namespace pmacc
                 std::enable_if_t<!resultIsVoid<T_Functor, T_CtxVars...>, int> = 0>
             HDINLINE auto operator()(T_Functor&& functor, T_CtxVars&&... ctxVars) const
             {
-                auto tmp = makeVar<ALPAKA_DECAY_T(decltype(alpaka::core::declval<detail::FunctorWrapper>()(
+                auto tmp = makeVar<std::decay_t<decltype(alpaka::core::declval<detail::FunctorWrapper>()(
                     std::forward<T_Functor>(functor),
                     alpaka::core::declval<Idx>(),
-                    std::forward<T_CtxVars>(ctxVars)...)))>(*this);
+                    std::forward<T_CtxVars>(ctxVars)...))>>(*this);
                 this->operator()(
                     [&](Idx const& idx)
                     {

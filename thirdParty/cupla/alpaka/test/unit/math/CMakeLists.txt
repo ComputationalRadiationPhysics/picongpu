@@ -23,12 +23,6 @@ target_include_directories(
 target_link_libraries(
     ${_TARGET_NAME}
     PRIVATE common)
-set_target_properties(
-    ${_TARGET_NAME}
-    PROPERTIES
-    COMPILE_OPTIONS
-    $<$<CXX_COMPILER_ID:clang>:"-ffp-contract=off"> # ffp-contract: https://llvm.org/docs/CompileCudaWithLLVM.html#id5
-    )
 
 set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
 target_compile_definitions(${_TARGET_NAME} PRIVATE "-DTEST_UNIT_MATH")

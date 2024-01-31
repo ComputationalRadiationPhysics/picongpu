@@ -125,7 +125,7 @@ namespace picongpu
                     {
                         auto& cellOffsetFunctor = *static_cast<CellOffsetFunctor const*>(this);
                         auto const rng = (*static_cast<RngGenerator const*>(this))(worker, localSupercellOffset);
-                        return acc::FreeTotalCellOffsetRng<Functor, ALPAKA_DECAY_T(decltype(rng))>(
+                        return acc::FreeTotalCellOffsetRng<Functor, std::decay_t<decltype(rng)>>(
                             *static_cast<Functor const*>(this),
                             cellOffsetFunctor(worker, localSupercellOffset),
                             rng);

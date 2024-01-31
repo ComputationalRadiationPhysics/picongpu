@@ -39,7 +39,7 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
     #        ):
     #            job[JOB_EXECUTION_TYPE] = (JOB_EXECUTION_TYPE, JOB_EXECUTION_RUNTIME)
     #            break
-            
+
     ##############################################
     ## Defining runtime test for the CUDA backend
     ##############################################
@@ -66,7 +66,7 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
     for job in job_matrix:
         if (
             ALPAKA_ACC_GPU_CUDA_ENABLE in job
-            and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] !=OFF_VER
+            and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER
         ):
             v = version.parse(job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION])
             if not v.major in latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]]:
@@ -142,8 +142,13 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
             missing_nvcc_versions.remove(job[DEVICE_COMPILER][VERSION])
         elif (
             ALPAKA_ACC_GPU_CUDA_ENABLE in job
-            and ALPAKA_ACC_GPU_CUDA_ENABLE[VERSION] !=OFF_VER
+            and ALPAKA_ACC_GPU_CUDA_ENABLE[VERSION] != OFF_VER
         ):
             job[SM_LEVEL] = (SM_LEVEL, STANDARD_SM_LEVEL)
         else:
             job[SM_LEVEL] = (SM_LEVEL, "")
+
+    # run tests each time if a CPU backend is used
+    for job in job_matrix:
+        if job[DEVICE_COMPILER][NAME] in [GCC, CLANG]:
+            job[JOB_EXECUTION_TYPE] = (JOB_EXECUTION_TYPE, JOB_EXECUTION_RUNTIME)

@@ -179,7 +179,7 @@ namespace alpaka
         template<typename T, typename THierarchy>
         struct AtomicOp<AtomicMin, AtomicOmpBuiltIn, T, THierarchy>
         {
-            ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T const& value) -> T
+            ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T value) -> T
             {
                 T old;
                 auto& ref(*addr);
@@ -187,7 +187,12 @@ namespace alpaka
 #        pragma omp atomic capture compare
                 {
                     old = ref;
-                    ref = (ref <= value) ? ref : value;
+                    // Do not remove the curly brackets of the if body else
+                    // icpx 2024.0 is not able to compile the atomics.
+                    if(value < ref)
+                    {
+                        ref = value;
+                    }
                 }
                 return old;
             }
@@ -197,7 +202,7 @@ namespace alpaka
         template<typename T, typename THierarchy>
         struct AtomicOp<AtomicMax, AtomicOmpBuiltIn, T, THierarchy>
         {
-            ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T const& value) -> T
+            ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T value) -> T
             {
                 T old;
                 auto& ref(*addr);
@@ -205,7 +210,12 @@ namespace alpaka
 #        pragma omp atomic capture compare
                 {
                     old = ref;
-                    ref = (ref >= value) ? ref : value;
+                    // Do not remove the curly brackets of the if body else
+                    // icpx 2024.0 is not able to compile the atomics.
+                    if(value > ref)
+                    {
+                        ref = value;
+                    }
                 }
                 return old;
             }
@@ -217,21 +227,12 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T const& value) -> T
             {
+                // TODO(bgruber): atomic increment with wrap around is not implementable in OpenMP 5.1
                 T old;
-                auto& ref(*addr);
-// atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
-#            pragma GCC diagnostic push
-#            pragma GCC diagnostic ignored "-Wconversion"
-#        endif
-#        pragma omp atomic capture compare
+#        pragma omp critical(AlpakaOmpAtomicOp)
                 {
-                    old = ref;
-                    ref = ((ref >= value) ? 0 : (ref + 1));
+                    old = AtomicInc{}(addr, value);
                 }
-#        if BOOST_COMP_GNUC
-#            pragma GCC diagnostic pop
-#        endif
                 return old;
             }
         };
@@ -242,21 +243,12 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T const& value) -> T
             {
+                // TODO(bgruber): atomic decrement with wrap around is not implementable in OpenMP 5.1
                 T old;
-                auto& ref(*addr);
-// atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
-#            pragma GCC diagnostic push
-#            pragma GCC diagnostic ignored "-Wconversion"
-#        endif
-#        pragma omp atomic capture compare
+#        pragma omp critical(AlpakaOmpAtomicOp)
                 {
-                    old = ref;
-                    ref = ((ref == 0) || (ref > value)) ? value : (ref - 1);
+                    old = AtomicDec{}(addr, value);
                 }
-#        if BOOST_COMP_GNUC
-#            pragma GCC diagnostic pop
-#        endif
                 return old;
             }
         };
@@ -265,11 +257,7 @@ namespace alpaka
         template<typename T, typename THierarchy>
         struct AtomicOp<AtomicCas, AtomicOmpBuiltIn, T, THierarchy>
         {
-            ALPAKA_FN_HOST static auto atomicOp(
-                AtomicOmpBuiltIn const&,
-                T* const addr,
-                T const& compare,
-                T const& value) -> T
+            ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T compare, T value) -> T
             {
                 T old;
                 auto& ref(*addr);
@@ -277,7 +265,12 @@ namespace alpaka
 #        pragma omp atomic capture compare
                 {
                     old = ref;
-                    ref = (ref == compare ? value : ref);
+                    // Do not remove the curly brackets of the if body else
+                    // icpx 2024.0 is not able to compile the atomics.
+                    if(ref == compare)
+                    {
+                        ref = value;
+                    }
                 }
                 return old;
             }
@@ -293,14 +286,15 @@ namespace alpaka
             ALPAKA_FN_HOST static auto atomicOp(AtomicOmpBuiltIn const&, T* const addr, T const& value) -> T
             {
                 T old;
-// \TODO: Currently not only the access to the same memory location is protected by a mutex but all atomic ops on all
-// threads.
+                // \TODO: Currently not only the access to the same memory location is protected by a mutex but all
+                // atomic ops on all threads.
 #        pragma omp critical(AlpakaOmpAtomicOp)
                 {
                     old = TOp()(addr, value);
                 }
                 return old;
             }
+
             ALPAKA_FN_HOST static auto atomicOp(
                 AtomicOmpBuiltIn const&,
                 T* const addr,
@@ -308,8 +302,8 @@ namespace alpaka
                 T const& value) -> T
             {
                 T old;
-// \TODO: Currently not only the access to the same memory location is protected by a mutex but all atomic ops on all
-// threads.
+                // \TODO: Currently not only the access to the same memory location is protected by a mutex but all
+                // atomic ops on all threads.
 #        pragma omp critical(AlpakaOmpAtomicOp2)
                 {
                     old = TOp()(addr, compare, value);

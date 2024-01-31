@@ -44,12 +44,7 @@ By default, no accelerator is enabled because some combinations of compilers and
 
 .. code-block::
 
-  # create build folder
-  mkdir build && cd build
-  # run cmake configure with enable CUDA backend
-  cmake -Dalpaka_ACC_GPU_CUDA_ENABLE=ON ..
-  # compile source code
-  cmake --build .
+  cmake -Dalpaka_ACC_GPU_CUDA_ENABLE=ON ...
 
 In the overview of :doc:`cmake arguments </advanced/cmake>` you will find all CMake flags for activating the different accelerators. How to select an accelerator in the source code is described on the :doc:`example page </basic/example>`.
 
@@ -60,4 +55,4 @@ In the overview of :doc:`cmake arguments </advanced/cmake>` you will find all CM
 
 .. hint::
 
-  When the test or examples are activated, the alpaka build system automatically activates the ``serial backend``, as it is needed for many tests. Therefore, the tests are run with the ``serial backend`` by default. If you want to test another backend, you have to activate it at CMake configuration time, for example the ``HIP`` backend: ``cmake .. -DBUILD_TESTING=ON -Dalpaka_ACC_GPU_HIP_ENABLE=ON``. The alpaka tests use a selector algorithm to choose a specific accelerator for the test cases. The selector works with accelerator priorities. Therefore, it is recommended to enable only one accelerator for a build to make sure that the right one is used.
+  When the test or examples are activated, the alpaka build system automatically activates the ``serial backend``, as it is needed for many tests. Therefore, the tests are run with the ``serial backend`` by default. If you want to test another backend, you have to activate it at CMake configuration time, for example the ``HIP`` backend: ``cmake .. -DBUILD_TESTING=ON -Dalpaka_ACC_GPU_HIP_ENABLE=ON``. Some alpaka tests use a selector algorithm to choose a specific accelerator for the test cases. The selector works with accelerator priorities. Therefore, it is recommended to enable only one accelerator for a build to make sure that the right one is used.

@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -6,6 +6,8 @@
 
 #include "alpaka/block/sync/Traits.hpp"
 #include "alpaka/core/Common.hpp"
+
+#include <cstdint>
 
 #ifdef _OPENMP
 
@@ -36,6 +38,7 @@ namespace alpaka
         {
             template<typename TOp>
             struct AtomicOp;
+
             template<>
             struct AtomicOp<BlockCount>
             {
@@ -45,6 +48,7 @@ namespace alpaka
                     result += static_cast<int>(value);
                 }
             };
+
             template<>
             struct AtomicOp<BlockAnd>
             {
@@ -54,6 +58,7 @@ namespace alpaka
                     result &= static_cast<int>(value);
                 }
             };
+
             template<>
             struct AtomicOp<BlockOr>
             {
@@ -69,6 +74,7 @@ namespace alpaka
         struct SyncBlockThreadsPredicate<TOp, BlockSyncBarrierOmp>
         {
             ALPAKA_NO_HOST_ACC_WARNING
+
             ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(BlockSyncBarrierOmp const& blockSync, int predicate)
                 -> int
             {

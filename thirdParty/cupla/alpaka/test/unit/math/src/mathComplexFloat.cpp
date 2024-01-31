@@ -20,8 +20,7 @@ using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 
 // This file only has unit tests for complex numbers in order to split the tests between object files and save compiler
 // memory. For the same reason single- and double-precision are done separately and not wrapped into a common template.
-using FunctorsComplex = alpaka::meta::
-    Concatenate<alpaka::test::unit::math::UnaryFunctorsComplex, alpaka::test::unit::math::BinaryFunctorsComplex>;
+using FunctorsComplex = alpaka::meta::Concatenate<mathtest::UnaryFunctorsComplex, mathtest::BinaryFunctorsComplex>;
 using TestAccFunctorTuplesComplex = alpaka::meta::CartesianProduct<std::tuple, TestAccs, FunctorsComplex>;
 
 TEMPLATE_LIST_TEST_CASE("mathOpsComplexFloat", "[math] [operator]", TestAccFunctorTuplesComplex)
@@ -29,7 +28,7 @@ TEMPLATE_LIST_TEST_CASE("mathOpsComplexFloat", "[math] [operator]", TestAccFunct
     // Same as "mathOpsFloat" template test, but for complex float. See detailed explanation there.
     using Acc = std::tuple_element_t<0u, TestType>;
     using Functor = std::tuple_element_t<1u, TestType>;
-    auto testTemplate = TestTemplate<Acc, Functor>{};
+    auto testTemplate = mathtest::TestTemplate<Acc, Functor>{};
     testTemplate.template operator()<alpaka::Complex<float>>();
 }
 

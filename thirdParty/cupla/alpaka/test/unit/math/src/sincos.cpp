@@ -15,10 +15,8 @@
 
 #include <type_traits>
 
-
-class SinCosTestKernel
+struct SinCosTestKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename FP>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, FP const arg) const -> void
@@ -30,10 +28,10 @@ public:
         auto result_sin = FP{0};
         auto result_cos = FP{0};
         alpaka::math::sincos(acc, arg, result_sin, result_cos);
-        using alpaka::test::unit::math::almost_equal;
         ALPAKA_CHECK(
             *success,
-            almost_equal(acc, result_sin, check_sin, 1) && almost_equal(acc, result_cos, check_cos, 1));
+            mathtest::almost_equal(acc, result_sin, check_sin, 1)
+                && mathtest::almost_equal(acc, result_cos, check_cos, 1));
     }
 };
 

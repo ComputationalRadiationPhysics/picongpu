@@ -1,4 +1,4 @@
-/* Copyright 2022 Sergei Bastrakov, David M. Rogers, Bernhard Manfred Gruber
+/* Copyright 2022 Sergei Bastrakov, David M. Rogers, Bernhard Manfred Gruber, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -65,18 +65,52 @@ namespace alpaka::warp
         template<>
         struct Shfl<WarpSingleThread>
         {
+            template<typename T>
             static auto shfl(
                 warp::WarpSingleThread const& /*warp*/,
-                std::int32_t val,
+                T val,
                 std::int32_t /*srcLane*/,
                 std::int32_t /*width*/)
             {
                 return val;
             }
+        };
 
-            static auto shfl(
+        template<>
+        struct ShflUp<WarpSingleThread>
+        {
+            template<typename T>
+            static auto shfl_up(
                 warp::WarpSingleThread const& /*warp*/,
-                float val,
+                T val,
+                std::uint32_t /*srcLane*/,
+                std::int32_t /*width*/)
+            {
+                return val;
+            }
+        };
+
+        template<>
+        struct ShflDown<WarpSingleThread>
+        {
+            template<typename T>
+            static auto shfl_down(
+                warp::WarpSingleThread const& /*warp*/,
+                T val,
+                std::uint32_t /*srcLane*/,
+                std::int32_t /*width*/)
+            {
+                return val;
+            }
+        };
+
+        template<>
+        struct ShflXor<WarpSingleThread>
+        {
+            template<typename T>
+            static auto shfl_xor(
+                warp::WarpSingleThread const& /*warp*/,
+                T val,
                 std::int32_t /*srcLane*/,
                 std::int32_t /*width*/)
             {

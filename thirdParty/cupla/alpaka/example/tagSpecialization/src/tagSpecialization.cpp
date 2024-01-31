@@ -100,8 +100,8 @@ auto main() -> int
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Call the specialized functions
-    std::cout << host_function_ver1<alpaka::trait::AccToTagType<Acc>>() << std::endl;
-    std::cout << host_function_ver2(alpaka::trait::AccToTagType<Acc>{}) << std::endl;
+    std::cout << host_function_ver1<alpaka::AccToTag<Acc>>() << std::endl;
+    std::cout << host_function_ver2(alpaka::AccToTag<Acc>{}) << std::endl;
 
     // Defines the synchronization behavior of a queue
     using QueueProperty = alpaka::Blocking;

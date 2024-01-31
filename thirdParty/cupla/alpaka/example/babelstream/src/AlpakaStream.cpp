@@ -11,23 +11,26 @@
 
 #include <numeric>
 
-constexpr auto TBSIZE = 1024;
-constexpr auto DOT_NUM_BLOCKS = 256;
+namespace
+{
+    constexpr auto blockSize = 1024;
+    constexpr auto dotBlockSize = 256;
+} // namespace
 
 template<typename T>
 AlpakaStream<T>::AlpakaStream(Idx arraySize, Idx deviceIndex)
     : arraySize(arraySize)
     , devHost(alpaka::getDevByIdx(platformHost, 0))
     , devAcc(alpaka::getDevByIdx(platformAcc, deviceIndex))
-    , sums(alpaka::allocBuf<T, Idx>(devHost, DOT_NUM_BLOCKS))
+    , sums(alpaka::allocBuf<T, Idx>(devHost, dotBlockSize))
     , d_a(alpaka::allocBuf<T, Idx>(devAcc, arraySize))
     , d_b(alpaka::allocBuf<T, Idx>(devAcc, arraySize))
     , d_c(alpaka::allocBuf<T, Idx>(devAcc, arraySize))
-    , d_sum(alpaka::allocBuf<T, Idx>(devAcc, DOT_NUM_BLOCKS))
+    , d_sum(alpaka::allocBuf<T, Idx>(devAcc, dotBlockSize))
     , queue(devAcc)
 {
-    if(arraySize % TBSIZE != 0)
-        throw std::runtime_error("Array size must be a multiple of " + std::to_string(TBSIZE));
+    if(arraySize % blockSize != 0)
+        throw std::runtime_error("Array size must be a multiple of " + std::to_string(blockSize));
     std::cout << "Using alpaka device " << alpaka::getName(devAcc) << std::endl;
 }
 
@@ -46,7 +49,7 @@ struct InitKernel
 template<typename T>
 void AlpakaStream<T>::init_arrays(T initA, T initB, T initC)
 {
-    auto const workdiv = WorkDiv{arraySize / TBSIZE, TBSIZE, 1};
+    auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
     // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
     alpaka::exec<Acc>(
         queue,
@@ -82,7 +85,7 @@ struct CopyKernel
 template<typename T>
 void AlpakaStream<T>::copy()
 {
-    auto const workdiv = WorkDiv{arraySize / TBSIZE, TBSIZE, 1};
+    auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
     // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
     alpaka::exec<Acc>(queue, workdiv, CopyKernel{}, alpaka::getPtrNative(d_a), alpaka::getPtrNative(d_c));
     alpaka::wait(queue);
@@ -102,7 +105,7 @@ struct MulKernel
 template<typename T>
 void AlpakaStream<T>::mul()
 {
-    auto const workdiv = WorkDiv{arraySize / TBSIZE, TBSIZE, 1};
+    auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
     // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
     alpaka::exec<Acc>(queue, workdiv, MulKernel{}, alpaka::getPtrNative(d_b), alpaka::getPtrNative(d_c));
     alpaka::wait(queue);
@@ -121,7 +124,7 @@ struct AddKernel
 template<typename T>
 void AlpakaStream<T>::add()
 {
-    auto const workdiv = WorkDiv{arraySize / TBSIZE, TBSIZE, 1};
+    auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
     // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
     alpaka::exec<Acc>(
         queue,
@@ -147,7 +150,7 @@ struct TriadKernel
 template<typename T>
 void AlpakaStream<T>::triad()
 {
-    auto const workdiv = WorkDiv{arraySize / TBSIZE, TBSIZE, 1};
+    auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
     // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
     alpaka::exec<Acc>(
         queue,
@@ -173,7 +176,7 @@ struct NstreamKernel
 template<typename T>
 void AlpakaStream<T>::nstream()
 {
-    auto const workdiv = WorkDiv{arraySize / TBSIZE, TBSIZE, 1};
+    auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
     // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
     alpaka::exec<Acc>(
         queue,
@@ -190,37 +193,37 @@ struct DotKernel
     template<typename TAcc, typename T>
     ALPAKA_FN_ACC void operator()(TAcc const& acc, T const* a, T const* b, T* sum, int arraySize) const
     {
-        // TODO - test if sharedMem bug is affecting performance here
-        auto& tb_sum = alpaka::declareSharedVar<T[TBSIZE], __COUNTER__>(acc);
+        // TODO(Jeff Young) - test if sharedMem bug is affecting performance here
+        auto& tbSum = alpaka::declareSharedVar<T[blockSize], __COUNTER__>(acc);
 
         auto [i] = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const [local_i] = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
         auto const [totalThreads] = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
-        T thread_sum = 0;
-        for(; i < arraySize; i += totalThreads)
-            thread_sum += a[i] * b[i];
-        tb_sum[local_i] = thread_sum;
+        T threadSum = 0;
+        for(; i < arraySize; i += totalThreads) // NOLINT(bugprone-infinite-loop)
+            threadSum += a[i] * b[i];
+        tbSum[local_i] = threadSum;
 
         auto const [blockDim] = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
         for(int offset = blockDim / 2; offset > 0; offset /= 2)
         {
             alpaka::syncBlockThreads(acc);
             if(local_i < offset)
-                tb_sum[local_i] += tb_sum[local_i + offset];
+                tbSum[local_i] += tbSum[local_i + offset];
         }
 
         auto const [blockIdx] = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc);
         if(local_i == 0)
-            sum[blockIdx] = tb_sum[local_i];
+            sum[blockIdx] = tbSum[local_i];
     }
 };
 
 template<typename T>
-T AlpakaStream<T>::dot()
+auto AlpakaStream<T>::dot() -> T
 {
-    auto const workdiv = WorkDiv{DOT_NUM_BLOCKS, TBSIZE, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, DOT_NUM_BLOCKS * TBSIZE);
+    auto const workdiv = WorkDiv{dotBlockSize, blockSize, 1};
+    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, dotBlockSize * blockSize);
     alpaka::exec<Acc>(
         queue,
         workdiv,
@@ -234,7 +237,7 @@ T AlpakaStream<T>::dot()
     alpaka::memcpy(queue, sums, d_sum);
     T const* sumPtr = alpaka::getPtrNative(sums);
     // TODO(bgruber): replace by std::reduce, when gcc 9.3 is the baseline
-    return std::accumulate(sumPtr, sumPtr + DOT_NUM_BLOCKS, T{0});
+    return std::accumulate(sumPtr, sumPtr + dotBlockSize, T{0});
 }
 
 void listDevices()
@@ -246,13 +249,13 @@ void listDevices()
         std::cout << i << ": " << getDeviceName(i) << std::endl;
 }
 
-std::string getDeviceName(int deviceIndex)
+auto getDeviceName(int deviceIndex) -> std::string
 {
     auto const platform = alpaka::Platform<Acc>{};
     return alpaka::getName(alpaka::getDevByIdx(platform, deviceIndex));
 }
 
-std::string getDeviceDriver(int device)
+auto getDeviceDriver([[maybe_unused]] int device) -> std::string
 {
     return "Not supported";
 }

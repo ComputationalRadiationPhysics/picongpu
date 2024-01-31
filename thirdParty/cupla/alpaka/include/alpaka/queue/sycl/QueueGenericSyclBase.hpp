@@ -202,7 +202,7 @@ namespace alpaka
 {
     template<typename TDev>
     class EventGenericSycl;
-}
+} // namespace alpaka
 
 namespace alpaka::trait
 {

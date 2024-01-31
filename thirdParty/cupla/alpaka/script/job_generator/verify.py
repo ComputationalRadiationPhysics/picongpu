@@ -30,7 +30,7 @@ def verify_parameters(
                 for name, version in backend:
                     if not is_supported_version(name=name, version=version):
                         print_warn(
-                            f"{name}-{mod_version} is not officially supported by "
+                            f"{name}-{version} is not officially supported by "
                             "the alpaka-job-library."
                         )
         elif param_name not in [BUILD_TYPE, JOB_EXECUTION_TYPE, MDSPAN]:

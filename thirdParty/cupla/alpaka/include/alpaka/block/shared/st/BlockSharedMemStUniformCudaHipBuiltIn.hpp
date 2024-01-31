@@ -42,6 +42,7 @@ namespace alpaka
                 return *(reinterpret_cast<T*>(shMem));
             }
         };
+
         template<>
         struct FreeSharedVars<BlockSharedMemStUniformCudaHipBuiltIn>
         {

@@ -163,79 +163,29 @@ namespace alpaka::trait
     };
 
     //! The SYCL vectors' extent get trait specialization.
-    template<typename TExtent>
-    struct GetExtent<DimInt<Dim<TExtent>::value>, TExtent, std::enable_if_t<IsSyclBuiltInType<TExtent>::value>>
+    template<typename T>
+    struct GetExtents<T, std::enable_if_t<IsSyclBuiltInType<T>::value>>
     {
-        static auto getExtent(TExtent const& extent)
+        auto operator()(T const& value) const
         {
-            if constexpr(std::is_scalar_v<TExtent>)
-                return extent;
+            if constexpr(std::is_scalar_v<T>)
+                return value;
             else
-            {
-                // Creates a SYCL vector with one element from a multidimensional vector. The element is a reference
-                // to the requested dimension's vector element. Then return the element's value.
-                return extent.template swizzle<DimInt<Dim<TExtent>::value>::value>();
-            }
+                return impl(value, std::make_index_sequence<Dim<T>::value>{});
         }
-    };
 
-    //! The SYCL vectors' extent set trait specialization.
-    template<typename TExtent, typename TExtentVal>
-    struct SetExtent<
-        DimInt<Dim<TExtent>::value>,
-        TExtent,
-        TExtentVal,
-        std::enable_if_t<IsSyclBuiltInType<TExtent>::value>>
-    {
-        static auto setExtent(TExtent const& extent, TExtentVal const& extentVal)
+    private:
+        template<std::size_t... Is>
+        auto impl(T const& value, std::index_sequence<Is...>) const
         {
-            if constexpr(std::is_scalar_v<TExtent>)
-                extent = extentVal;
-            else
-            {
-                // Creates a SYCL vector with one element from a multidimensional vector. The element is a reference
-                // to the requested dimension's vector element. Then set the element's value.
-                extent.template swizzle<DimInt<Dim<TExtent>::value>::value>() = extentVal;
-            }
+            return Vec{value.template swizzle<Is>()...};
         }
     };
 
     //! The SYCL vectors' offset get trait specialization.
-    template<typename TOffsets>
-    struct GetOffset<DimInt<Dim<TOffsets>::value>, TOffsets, std::enable_if_t<IsSyclBuiltInType<TOffsets>::value>>
+    template<typename T>
+    struct GetOffsets<T, std::enable_if_t<IsSyclBuiltInType<T>::value>> : GetExtents<T>
     {
-        static auto getOffset(TOffsets const& offsets)
-        {
-            if constexpr(std::is_scalar_v<TOffsets>)
-                return offsets;
-            else
-            {
-                // Creates a SYCL vector with one element from a multidimensional vector. The element is a reference
-                // to the requested dimension's vector element. Then return the element's value.
-                return offsets.template swizzle<DimInt<Dim<TOffsets>::value>::value>();
-            }
-        }
-    };
-
-    //! The SYCL vectors' offset set trait specialization.
-    template<typename TOffsets, typename TOffset>
-    struct SetOffset<
-        DimInt<Dim<TOffsets>::value>,
-        TOffsets,
-        TOffset,
-        std::enable_if_t<IsSyclBuiltInType<TOffsets>::value>>
-    {
-        static auto setOffset(TOffsets const& offsets, TOffset const& offset)
-        {
-            if constexpr(std::is_scalar_v<TOffsets>)
-                offsets = offset;
-            else
-            {
-                // Creates a SYCL vector with one element from a multidimensional vector. The element is a reference
-                // to the requested dimension's vector element. Then set the element's value.
-                offsets.template swizzle<DimInt<Dim<TOffsets>::value>::value>() = offset;
-            }
-        }
     };
 
     //! The SYCL vectors' idx type trait specialization.

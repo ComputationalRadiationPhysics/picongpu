@@ -807,7 +807,7 @@ namespace alpaka
 
             // Get the size of the block shared dynamic memory.
             auto const blockSharedMemDynSizeBytes = std::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                [&](std::decay_t<TArgs> const&... args)
                 {
                     return getBlockSharedMemDynSizeBytes<AccCpuOmp2Blocks<TDim, TIdx>>(
                         m_kernelFnObj,
@@ -831,7 +831,7 @@ namespace alpaka
 
             // Get the OpenMP schedule information for the given kernel and parameter types
             auto const schedule = std::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [&](std::decay_t<TArgs> const&... args) {
                     return getOmpSchedule<AccCpuOmp2Blocks<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,

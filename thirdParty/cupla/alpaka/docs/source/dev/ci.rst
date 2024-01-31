@@ -34,10 +34,19 @@ For more information, see the section :ref:`The Job Generator`.
 
 It is also possible to define custom jobs, see :ref:`Custom jobs`.
 
-.. figure:: /images/arch_gitlab_mirror.svg
-   :alt: Relationship between GitHub.com, GitLab.com and HZDR gitlab-ci runners
+.. only:: html
 
-   Relationship between GitHub.com, GitLab.com and HZDR gitlab-ci runners
+  .. figure:: /images/arch_gitlab_mirror.svg
+     :alt: Relationship between GitHub.com, GitLab.com and HZDR gitlab-ci runners
+
+     Relationship between GitHub.com, GitLab.com and HZDR gitlab-ci runners
+
+.. only:: latex
+
+  .. figure:: /images/arch_gitlab_mirror.png
+     :alt: Relationship between GitHub.com, GitLab.com and HZDR gitlab-ci runners
+  
+     Relationship between GitHub.com, GitLab.com and HZDR gitlab-ci runners
 
 The Container Registry
 ++++++++++++++++++++++
@@ -69,8 +78,15 @@ Instead, the job generator uses `pairwise testing <https://en.wikipedia.org/wiki
 
 The stages of the job generator are:
 
-.. figure:: /images/job_generator_flow.svg
-   :alt: workflow fo the CI job generator
+.. only:: html
+
+  .. figure:: /images/job_generator_flow.svg
+     :alt: workflow fo the CI job generator
+
+.. only:: latex
+
+  .. figure:: /images/job_generator_flow.png
+     :alt: workflow fo the CI job generator
 
 The job generator is located at `script/job_generator/ <https://github.com/alpaka-group/alpaka/tree/develop/script/job_generator/>`_.
 The code is split into two parts. One part is alpaka-specific and stored in this repository.

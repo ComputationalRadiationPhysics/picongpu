@@ -19,6 +19,7 @@ namespace alpaka::rand
     class TinyMersenneTwister : public concepts::Implements<ConceptRand, TinyMersenneTwister>
     {
     };
+
     using RandStdLib = TinyMersenneTwister;
 
     //! The standard library mersenne twister implementation.
@@ -54,14 +55,17 @@ namespace alpaka::rand
 
             // STL UniformRandomBitGenerator concept interface
             using result_type = std::mt19937::result_type;
-            ALPAKA_FN_HOST constexpr static auto min() -> result_type
+
+            ALPAKA_FN_HOST static constexpr auto min() -> result_type
             {
                 return std::mt19937::min();
             }
-            ALPAKA_FN_HOST constexpr static auto max() -> result_type
+
+            ALPAKA_FN_HOST static constexpr auto max() -> result_type
             {
                 return std::mt19937::max();
             }
+
             ALPAKA_FN_HOST auto operator()() -> result_type
             {
                 return state();
@@ -96,14 +100,17 @@ namespace alpaka::rand
 
             // STL UniformRandomBitGenerator concept interface
             using result_type = TinyMTengine::result_type;
-            ALPAKA_FN_HOST constexpr static auto min() -> result_type
+
+            ALPAKA_FN_HOST static constexpr auto min() -> result_type
             {
                 return TinyMTengine::min();
             }
-            ALPAKA_FN_HOST constexpr static auto max() -> result_type
+
+            ALPAKA_FN_HOST static constexpr auto max() -> result_type
             {
                 return TinyMTengine::max();
             }
+
             ALPAKA_FN_HOST auto operator()() -> result_type
             {
                 return state();
@@ -129,14 +136,17 @@ namespace alpaka::rand
 
             // STL UniformRandomBitGenerator concept interface
             using result_type = std::random_device::result_type;
-            ALPAKA_FN_HOST constexpr static auto min() -> result_type
+
+            ALPAKA_FN_HOST static constexpr auto min() -> result_type
             {
                 return std::random_device::min();
             }
-            ALPAKA_FN_HOST constexpr static auto max() -> result_type
+
+            ALPAKA_FN_HOST static constexpr auto max() -> result_type
             {
                 return std::random_device::max();
             }
+
             ALPAKA_FN_HOST auto operator()() -> result_type
             {
                 return state();
@@ -202,6 +212,7 @@ namespace alpaka::rand
                 return {};
             }
         };
+
         //! The CPU device random number float uniform distribution get trait specialization.
         template<typename T>
         struct CreateUniformReal<RandStdLib, T, std::enable_if_t<std::is_floating_point_v<T>>>
@@ -211,6 +222,7 @@ namespace alpaka::rand
                 return {};
             }
         };
+
         //! The CPU device random number integer uniform distribution get trait specialization.
         template<typename T>
         struct CreateUniformUint<RandStdLib, T, std::enable_if_t<std::is_integral_v<T>>>

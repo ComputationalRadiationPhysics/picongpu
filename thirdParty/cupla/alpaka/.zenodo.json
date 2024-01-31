@@ -3,19 +3,9 @@
   "description": "The alpaka library is a header-only C++17 abstraction library for accelerator development. Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.",
   "creators": [
     {
-      "name": "Bastrakov, Sergei",
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0003-3396-6154"
-    },
-    {
       "name": "Bocci, Andrea",
       "affiliation": "CERN",
       "orcid": "0000-0002-6515-5666"
-    },
-    {
-      "name": "Di Pilato, Antonio",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf, CERN",
-      "orcid": "0000-0002-9233-3632"
     },
     {
       "name": "Ehrig, Simeon",
@@ -28,49 +18,74 @@
       "orcid": "0000-0001-7848-1690"
     },
     {
-      "name": "Huebl, Axel",
-      "affiliation": "Lawrence Berkeley National Laboratory",
-      "orcid": "0000-0003-1943-7141"
+      "name": "Martin-Haugh, Stewart",
+      "affiliation": "STFC Rutherford Appleton Laboratory",
+      "orcid": "0000-0001-9457-1928"
     },
     {
-      "name": "Kelling, Jeffrey",
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0003-1761-2591"
-    },
-    {
-      "name": "Pantaleo, Felice",
+      "name": "Perego, Aurora",
       "affiliation": "CERN",
-      "orcid": "0000-0003-3266-4357"
+      "orcid": "0000-0003-1576-6757"
     },
     {
-      "name": "Stephan, Jan",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0001-7839-4386"
-    },
-    {
-      "name": "Vyskočil, Jiří",
-      "affiliation":"CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0001-8822-0929"
+      "name": "Tascon, Andres Rios",
+      "affiliation": "Princeton University"
     },
     {
       "name": "Widera, René",
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
       "orcid": "0000-0003-1642-0459"
-    },
-    {
-      "name": "Worpitz, Benjamin",
-      "affiliation": "LogMeIn Inc."
     }
   ],
   "contributors": [
+    {
+      "name": "Bastrakov, Sergei",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-3396-6154",
+      "type": "Other"
+    },
+    {
+      "name": "Bastrakova, Kseniia",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-8970-5098",
+      "type": "Other"
+    },
     {
       "name": "Colgrove, Mat",
       "affiliation": "NVIDIA",
       "type": "Other"
     },
     {
+      "name": "Di Pilato, Antonio",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf, CERN",
+      "orcid": "0000-0002-9233-3632",
+      "type": "Other"
+    },
+    {
+      "name": "Ferragina, Luca",
+      "affiliation": "CERN",
+      "type": "Other"
+    },
+    {
       "name": "Gehrke, Valentin",
       "affiliation": "TU Dresden",
+      "type": "Other"
+    },
+    {
+      "name": "Hübl, Axel",
+      "affiliation": "Lawrence Berkeley National Laboratory",
+      "orcid": "0000-0003-1943-7141",
+      "type": "Other"
+    },
+    {
+      "name": "Kaever, Christian",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "type": "Other"
+    },
+    {
+      "name": "Kelling, Jeffrey",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1761-2591",
       "type": "Other"
     },
     {
@@ -100,6 +115,12 @@
       "type": "Other"
     },
     {
+      "name": "Pantaleo, Felice",
+      "affiliation": "CERN",
+      "orcid": "0000-0003-3266-4357",
+      "type": "Other"
+    },
+    {
       "name": "Rogers, David M.",
       "affiliation": "Oak Ridge National Laboratory",
       "orcid": "0000-0002-5187-1768",
@@ -116,8 +137,20 @@
       "type": "Other"
     },
     {
+      "name": "Stephan, Jan",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-7839-4386",
+      "type": "Other"
+    },
+    {
       "name": "Vollmer, Daniel",
       "affiliation": "Deutsches Zentrum für Luft- und Raumfahrt e.V.",
+      "type": "Other"
+    },
+    {
+      "name": "Vyskočil, Jiří",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-8822-0929",
       "type": "Other"
     },
     {
@@ -128,6 +161,17 @@
     {
       "name":"Wesarg, Bert",
       "affiliation":"TU Dresden",
+      "type": "Other"
+    },
+    {
+      "name": "Worpitz, Benjamin",
+      "affiliation": "LogMeIn Inc.",
+      "type": "Other"
+    },
+    {
+      "name": "Young, Jeffrey",
+      "affiliation": "Georgia Institute of Technology",
+      "orcid": "0000-0001-9841-4057",
       "type": "Other"
     },
     {

@@ -68,4 +68,4 @@ then
 fi
 
 which "${CXX}"
-${CXX} -v
+${CXX} --version

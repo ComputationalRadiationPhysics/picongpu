@@ -13,7 +13,9 @@
 
 namespace alpaka::detail
 {
-    //! The CPU device implementation.
+    //! The CPU/GPU device queue registry implementation.
+    //!
+    //! @tparam TQueue queue implementation
     template<typename TQueue>
     struct QueueRegistry
     {

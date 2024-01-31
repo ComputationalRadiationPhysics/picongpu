@@ -5,7 +5,7 @@
 #pragma once
 
 // Uncomment this to disable the standard spinlock behaviour of the threads
-//#define ALPAKA_THREAD_BARRIER_DISABLE_SPINLOCK
+// #define ALPAKA_THREAD_BARRIER_DISABLE_SPINLOCK
 
 #include "alpaka/block/sync/Traits.hpp"
 #include "alpaka/core/Common.hpp"
@@ -82,6 +82,7 @@ namespace alpaka::core
         {
             template<typename TOp>
             struct AtomicOp;
+
             template<>
             struct AtomicOp<BlockCount>
             {
@@ -90,6 +91,7 @@ namespace alpaka::core
                     result += static_cast<int>(value);
                 }
             };
+
             template<>
             struct AtomicOp<BlockAnd>
             {
@@ -98,6 +100,7 @@ namespace alpaka::core
                     result &= static_cast<int>(value);
                 }
             };
+
             template<>
             struct AtomicOp<BlockOr>
             {

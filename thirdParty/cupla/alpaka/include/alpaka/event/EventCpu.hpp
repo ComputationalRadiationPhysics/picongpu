@@ -10,4 +10,4 @@
 namespace alpaka
 {
     using EventCpu = EventGenericThreads<DevCpu>;
-}
+} // namespace alpaka

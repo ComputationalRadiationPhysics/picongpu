@@ -22,8 +22,6 @@
 #include "picongpu/plugins/binning/Axis.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 
-#include <alpaka/core/Tuple.hpp>
-
 #include <cstdint>
 #include <functional>
 #include <string>

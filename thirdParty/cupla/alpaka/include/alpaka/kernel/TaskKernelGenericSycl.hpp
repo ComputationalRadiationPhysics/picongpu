@@ -7,9 +7,7 @@
 #include "alpaka/acc/Traits.hpp"
 #include "alpaka/block/shared/dyn/BlockSharedDynMemberAllocKiB.hpp"
 #include "alpaka/core/BoostPredef.hpp"
-#include "alpaka/core/STLTuple/STLTuple.hpp"
 #include "alpaka/core/Sycl.hpp"
-#include "alpaka/core/Tuple.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/dim/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
@@ -44,7 +42,7 @@
                 sycl::nd_item<TDim::value> work_item) [[intel::reqd_sub_group_size(sub_group_size)]]                  \
             {                                                                                                         \
                 auto acc = TAcc{item_elements, work_item, dyn_shared_accessor, st_shared_accessor};                   \
-                core::apply(                                                                                          \
+                std::apply(                                                                                           \
                     [k_func, &acc](typename std::decay_t<TArgs> const&... args) { k_func(acc, args...); },            \
                     k_args);                                                                                          \
             });
@@ -56,7 +54,7 @@
                 sycl::nd_item<TDim::value> work_item)                                                                 \
             {                                                                                                         \
                 auto acc = TAcc{item_elements, work_item, dyn_shared_accessor, st_shared_accessor};                   \
-                core::apply(                                                                                          \
+                std::apply(                                                                                           \
                     [k_func, &acc](typename std::decay_t<TArgs> const&... args) { k_func(acc, args...); },            \
                     k_args);                                                                                          \
             });
@@ -97,7 +95,7 @@ namespace alpaka
             // allocate dynamic shared memory -- needs at least 1 byte to make the Xilinx Runtime happy
             auto const dyn_shared_mem_bytes = std::max(
                 1ul,
-                core::apply(
+                std::apply(
                     [&](std::decay_t<TArgs> const&... args) {
                         return getBlockSharedMemDynSizeBytes<TAcc>(m_kernelFnObj, group_items, item_elements, args...);
                     },
@@ -233,7 +231,7 @@ namespace alpaka
 
     public:
         TKernelFnObj m_kernelFnObj;
-        core::Tuple<std::decay_t<TArgs>...> m_args;
+        std::tuple<std::decay_t<TArgs>...> m_args;
     };
 
 } // namespace alpaka

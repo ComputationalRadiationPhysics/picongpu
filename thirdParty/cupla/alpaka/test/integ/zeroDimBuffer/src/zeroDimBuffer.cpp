@@ -60,6 +60,12 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
         "host buffer allocated at " << std::data(h_buffer1) << " with " << alpaka::getExtentProduct(h_buffer1)
                                     << " element(s)");
 
+    // extents
+    CHECK(alpaka::getExtents(h_buffer1) == alpaka::Vec<alpaka::DimInt<0>, Idx>{});
+    CHECK(alpaka::getWidth(h_buffer1) == 1);
+    CHECK(alpaka::getHeight(h_buffer1) == 1);
+    CHECK(alpaka::getDepth(h_buffer1) == 1);
+
     // async host buffer
     auto h_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(hostQueue, Scalar{});
     INFO(

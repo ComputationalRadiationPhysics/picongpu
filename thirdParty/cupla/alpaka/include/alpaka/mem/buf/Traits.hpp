@@ -1,4 +1,5 @@
-/* Copyright 2023 Alexander Matthes, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2023 Alexander Matthes, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan,
+ *                Christian Kaever
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -7,6 +8,7 @@
 #include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/Common.hpp"
 #include "alpaka/mem/view/Traits.hpp"
+#include "alpaka/platform/Traits.hpp"
 
 namespace alpaka
 {
@@ -90,7 +92,7 @@ namespace alpaka
     //! \tparam TDev The type of device to allocate the buffer on.
     //! \tparam TDim The dimensionality of the buffer to allocate.
     template<typename TDev, typename TDim>
-    constexpr inline bool hasAsyncBufSupport = trait::HasAsyncBufSupport<TDim, TDev>::value;
+    inline constexpr bool hasAsyncBufSupport = trait::HasAsyncBufSupport<TDim, TDev>::value;
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -151,7 +153,7 @@ namespace alpaka
     //!
     //! \tparam TPlatform The platform from which the buffer is accessible.
     template<typename TPlatform>
-    constexpr inline bool hasMappedBufSupport = trait::HasMappedBufSupport<TPlatform>::value;
+    inline constexpr bool hasMappedBufSupport = trait::HasMappedBufSupport<TPlatform>::value;
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -162,22 +164,23 @@ namespace alpaka
     //! this function is provided for convenience in the cases where the difference is not relevant,
     //! and the pinned/mapped memory is only used as a performance optimisation.
     //!
-    //! \tparam TPlatform The platform from which the buffer is accessible.
     //! \tparam TElem The element type of the returned buffer.
     //! \tparam TIdx The linear index type of the buffer.
     //! \tparam TExtent The extent type of the buffer.
+    //! \tparam TPlatform The platform from which the buffer is accessible.
     //! \param host The host device to allocate the buffer on.
     //! \param extent The extent of the buffer.
     //! \return The newly allocated buffer.
-    template<typename TPlatform, typename TElem, typename TIdx, typename TExtent>
+    template<typename TElem, typename TIdx, typename TExtent, typename TPlatform>
     ALPAKA_FN_HOST auto allocMappedBufIfSupported(
         DevCpu const& host,
         TPlatform const& platform,
         TExtent const& extent = TExtent())
     {
-        if constexpr(hasMappedBufSupport<TPlatform>)
+        using Platform = alpaka::Platform<TPlatform>;
+        if constexpr(hasMappedBufSupport<Platform>)
         {
-            return allocMappedBuf<TPlatform, TElem, TIdx>(host, platform, extent);
+            return allocMappedBuf<Platform, TElem, TIdx>(host, platform, extent);
         }
         else
         {

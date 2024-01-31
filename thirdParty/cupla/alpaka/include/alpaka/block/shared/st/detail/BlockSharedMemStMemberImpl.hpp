@@ -39,7 +39,7 @@ namespace alpaka::detail
             : m_mem(mem)
             , m_capacity(static_cast<std::uint32_t>(capacity))
         {
-            ALPAKA_ASSERT_OFFLOAD((m_mem == nullptr) == (m_capacity == 0u));
+            ALPAKA_ASSERT_ACC((m_mem == nullptr) == (m_capacity == 0u));
         }
 #else
         BlockSharedMemStMemberImpl(std::uint8_t* mem, std::size_t) : m_mem(mem)
@@ -52,12 +52,12 @@ namespace alpaka::detail
         {
             // Add meta data chunk in front of the user data
             m_allocdBytes = varChunkEnd<MetaData>(m_allocdBytes);
-            ALPAKA_ASSERT_OFFLOAD(m_allocdBytes <= m_capacity);
+            ALPAKA_ASSERT_ACC(m_allocdBytes <= m_capacity);
             auto* meta = getLatestVarPtr<MetaData>();
 
             // Allocate variable
             m_allocdBytes = varChunkEnd<T>(m_allocdBytes);
-            ALPAKA_ASSERT_OFFLOAD(m_allocdBytes <= m_capacity);
+            ALPAKA_ASSERT_ACC(m_allocdBytes <= m_capacity);
 
             // Update meta data with id and offset for the allocated variable.
             meta->id = id;
@@ -87,7 +87,7 @@ namespace alpaka::detail
                 // Adjust offset to be aligned
                 std::uint32_t const alignedMetaDataOffset
                     = varChunkEnd<MetaData>(off) - static_cast<std::uint32_t>(sizeof(MetaData));
-                ALPAKA_ASSERT_OFFLOAD(
+                ALPAKA_ASSERT_ACC(
                     (alignedMetaDataOffset + static_cast<std::uint32_t>(sizeof(MetaData))) <= m_allocdBytes);
                 auto* metaDataPtr = reinterpret_cast<MetaData*>(m_mem + alignedMetaDataOffset);
                 off = metaDataPtr->offset;

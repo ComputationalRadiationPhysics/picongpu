@@ -54,14 +54,17 @@ namespace alpaka::rand
         // STL UniformRandomBitGenerator concept
         // https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator
         using result_type = std::uint32_t;
+
         ALPAKA_FN_HOST_ACC constexpr auto min() -> result_type
         {
             return 0;
         }
+
         ALPAKA_FN_HOST_ACC constexpr auto max() -> result_type
         {
             return std::numeric_limits<result_type>::max();
         }
+
         ALPAKA_FN_HOST_ACC auto operator()() -> result_type
         {
             return engineVariant();
@@ -110,14 +113,17 @@ namespace alpaka::rand
 
         using ResultInt = std::uint32_t;
         using ResultVec = decltype(std::declval<EngineVariant>()());
+
         ALPAKA_FN_HOST_ACC constexpr auto min() -> ResultInt
         {
             return 0;
         }
+
         ALPAKA_FN_HOST_ACC constexpr auto max() -> ResultInt
         {
             return std::numeric_limits<ResultInt>::max();
         }
+
         ALPAKA_FN_HOST_ACC auto operator()() -> ResultVec
         {
             return engineVariant();

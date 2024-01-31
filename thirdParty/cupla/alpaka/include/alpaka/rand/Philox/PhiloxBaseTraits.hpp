@@ -15,17 +15,17 @@ namespace alpaka
 {
     template<typename TApi, typename TDim, typename TIdx>
     class AccGpuUniformCudaHipRt;
-}
+} // namespace alpaka
 #endif
 
 namespace alpaka::rand::engine::trait
 {
     template<typename TAcc>
-    constexpr inline bool isGPU = false;
+    inline constexpr bool isGPU = false;
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
     template<typename TApi, typename TDim, typename TIdx>
-    constexpr inline bool isGPU<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>> = true;
+    inline constexpr bool isGPU<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>> = true;
 #endif
 
     /** Selection of default backend

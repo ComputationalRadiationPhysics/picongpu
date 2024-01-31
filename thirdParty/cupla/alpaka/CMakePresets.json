@@ -1,0 +1,197 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 22,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "develop",
+            "description": "enable tests and examples",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "alpaka_BUILD_EXAMPLES": "ON",
+                "BUILD_TESTING": "ON"
+            }
+        },
+        {
+            "name": "cpu-serial",
+            "description": "enable serial back-end",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "cpu-omp2b",
+            "description": "enable OpenMP 2 Grid Block back-end",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "cpu-omp2t",
+            "description": "enable OpenMP 2 Block Thread back-end",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "cpu-stdthreads",
+            "description": "enable std::thread back-end",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "cpu-tbb",
+            "description": "enable Intel TBB back-end",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "cpu-all",
+            "description": "enable all cpu back-ends (serial, OpenMP 2 Grid Block and Block Thread, std::thread and Intel TBB back-end",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE": "ON",
+                "alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE": "ON",
+                "alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE": "ON",
+                "alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE": "ON",
+                "alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "gpu-hip",
+            "description": "use HIP back-end on AMD GPUs",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE": "ON",
+                "alpaka_ACC_GPU_HIP_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "gpu-sycl-intel",
+            "description": "use Sycl back-end on Intel GPUs",
+            "inherits": "develop",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "icpx",
+                "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE": "ON",
+                "alpaka_ACC_SYCL_ENABLE": "ON",
+                "alpaka_SYCL_ONEAPI_GPU": "ON",
+                "alpaka_SYCL_ONEAPI_GPU_DEVICES": "spir64"
+            }
+        },
+        {
+            "name": "gpu-cuda-nvcc",
+            "description": "use cuda back-end on Nvidia GPUs with nvcc device compiler",
+            "inherits": "develop",
+            "cacheVariables": {
+                "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE": "ON",
+                "alpaka_ACC_GPU_CUDA_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "gpu-cuda-clang",
+            "description": "use cuda back-end on Nvidia GPUs with clang++ device compiler",
+            "inherits": "develop",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_CUDA_COMPILER": "clang++",
+                "alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE": "ON",
+                "alpaka_ACC_GPU_CUDA_ENABLE": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "cpu-serial",
+            "configurePreset": "cpu-serial"
+        },
+        {
+            "name": "cpu-omp2b",
+            "configurePreset": "cpu-omp2b"
+        },
+        {
+            "name": "cpu-omp2t",
+            "configurePreset": "cpu-omp2t"
+        },
+        {
+            "name": "cpu-stdthreads",
+            "configurePreset": "cpu-stdthreads"
+        },
+        {
+            "name": "cpu-tbb",
+            "configurePreset": "cpu-tbb"
+        },
+        {
+            "name": "cpu-all",
+            "configurePreset": "cpu-all"
+        },
+        {
+            "name": "gpu-hip",
+            "configurePreset": "gpu-hip"
+        },
+        {
+            "name": "gpu-sycl-intel",
+            "configurePreset": "gpu-sycl-intel"
+        },
+        {
+            "name": "gpu-cuda-nvcc",
+            "configurePreset": "gpu-cuda-nvcc"
+        },
+        {
+            "name": "gpu-cuda-clang",
+            "configurePreset": "gpu-cuda-clang"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "cpu-serial",
+            "configurePreset": "cpu-serial"
+        },
+        {
+            "name": "cpu-omp2b",
+            "configurePreset": "cpu-omp2b"
+        },
+        {
+            "name": "cpu-omp2t",
+            "configurePreset": "cpu-omp2t"
+        },
+        {
+            "name": "cpu-stdthreads",
+            "configurePreset": "cpu-stdthreads"
+        },
+        {
+            "name": "cpu-tbb",
+            "configurePreset": "cpu-tbb"
+        },
+        {
+            "name": "cpu-all",
+            "configurePreset": "cpu-all"
+        },
+        {
+            "name": "gpu-hip",
+            "configurePreset": "gpu-hip"
+        },
+        {
+            "name": "gpu-sycl-intel",
+            "configurePreset": "gpu-sycl-intel"
+        },
+        {
+            "name": "gpu-cuda-nvcc",
+            "configurePreset": "gpu-cuda-nvcc"
+        },
+        {
+            "name": "gpu-cuda-clang",
+            "configurePreset": "gpu-cuda-clang"
+        }
+    ]
+}

@@ -51,8 +51,10 @@ namespace alpaka
                     &m_UniformCudaHipEvent,
                     (bBusyWait ? TApi::eventDefault : TApi::eventBlockingSync) | TApi::eventDisableTiming));
             }
+
             EventUniformCudaHipImpl(EventUniformCudaHipImpl const&) = delete;
             auto operator=(EventUniformCudaHipImpl const&) -> EventUniformCudaHipImpl& = delete;
+
             ALPAKA_FN_HOST ~EventUniformCudaHipImpl()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -89,10 +91,12 @@ namespace alpaka
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
         }
+
         ALPAKA_FN_HOST auto operator==(EventUniformCudaHipRt<TApi> const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
         }
+
         ALPAKA_FN_HOST auto operator!=(EventUniformCudaHipRt<TApi> const& rhs) const -> bool
         {
             return !((*this) == rhs);
@@ -106,6 +110,7 @@ namespace alpaka
     public:
         std::shared_ptr<uniform_cuda_hip::detail::EventUniformCudaHipImpl<TApi>> m_spEventImpl;
     };
+
     namespace trait
     {
         //! The CUDA/HIP RT device event device type trait specialization.
@@ -114,6 +119,7 @@ namespace alpaka
         {
             using type = DevUniformCudaHipRt<TApi>;
         };
+
         //! The CUDA/HIP RT device event device get trait specialization.
         template<typename TApi>
         struct GetDev<EventUniformCudaHipRt<TApi>>
@@ -154,6 +160,7 @@ namespace alpaka
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::eventRecord(event.getNativeHandle(), queue.getNativeHandle()));
             }
         };
+
         //! The CUDA/HIP RT queue enqueue trait specialization.
         template<typename TApi>
         struct Enqueue<QueueUniformCudaHipRtBlocking<TApi>, EventUniformCudaHipRt<TApi>>
@@ -183,6 +190,7 @@ namespace alpaka
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::eventSynchronize(event.getNativeHandle()));
             }
         };
+
         //! The CUDA/HIP RT queue event wait trait specialization.
         template<typename TApi>
         struct WaiterWaitFor<QueueUniformCudaHipRtNonBlocking<TApi>, EventUniformCudaHipRt<TApi>>
@@ -197,6 +205,7 @@ namespace alpaka
                     TApi::streamWaitEvent(queue.getNativeHandle(), event.getNativeHandle(), 0));
             }
         };
+
         //! The CUDA/HIP RT queue event wait trait specialization.
         template<typename TApi>
         struct WaiterWaitFor<QueueUniformCudaHipRtBlocking<TApi>, EventUniformCudaHipRt<TApi>>
@@ -211,6 +220,7 @@ namespace alpaka
                     TApi::streamWaitEvent(queue.getNativeHandle(), event.getNativeHandle(), 0));
             }
         };
+
         //! The CUDA/HIP RT device event wait trait specialization.
         //!
         //! Any future work submitted in any queue of this device will wait for event to complete before beginning
@@ -227,9 +237,17 @@ namespace alpaka
                 // Set the current device.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
 
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::streamWaitEvent(nullptr, event.getNativeHandle(), 0));
+                // Get all the queues on the device at the time of invocation.
+                // All queues added afterwards are ignored.
+                auto vQueues = dev.getAllQueues();
+                for(auto&& spQueue : vQueues)
+                {
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                        TApi::streamWaitEvent(spQueue->getNativeHandle(), event.getNativeHandle(), 0));
+                }
             }
         };
+
         //! The CUDA/HIP RT event native handle trait specialization.
         template<typename TApi>
         struct NativeHandle<EventUniformCudaHipRt<TApi>>

@@ -58,7 +58,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
             auto& buf = cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<2u>>::get().alloc(extent);
 
             *devPtr = ::alpaka::getPtrNative(buf);
-            *pitch = ::alpaka::getPitchBytes<1u>(buf);
+            *pitch = ::alpaka::getPitchesInBytes(buf)[0];
         }
         catch(...)
         {
@@ -78,7 +78,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
             *pitchedDevPtr = make_cuplaPitchedPtr(
                 ::alpaka::getPtrNative(buf),
-                ::alpaka::getPitchBytes<2u>(buf),
+                ::alpaka::getPitchesInBytes(buf)[1],
                 extent.width,
                 extent.height);
         }
@@ -280,9 +280,9 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
         const ::alpaka::Vec<cupla::AlpakaDim<2u>, cupla::MemSizeType> numBytes(height, width);
 
-        const ::alpaka::Vec<cupla::AlpakaDim<2u>, cupla::MemSizeType> dstPitch(dPitch * height, dPitch);
+        const ::alpaka::Vec<cupla::AlpakaDim<2u>, cupla::MemSizeType> dstPitch(dPitch, sizeof(uint8_t));
 
-        const ::alpaka::Vec<cupla::AlpakaDim<2u>, cupla::MemSizeType> srcPitch(sPitch * height, sPitch);
+        const ::alpaka::Vec<cupla::AlpakaDim<2u>, cupla::MemSizeType> srcPitch(sPitch, sizeof(uint8_t));
 
         auto& device(cupla::manager::Device<cupla::AccDev>::get().current());
 
@@ -387,23 +387,15 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
         const ::alpaka::Vec<cupla::AlpakaDim<3u>, cupla::MemSizeType> offsetDst(p->dstPos.z, p->dstPos.y, p->dstPos.x);
 
-        const ::alpaka::Vec<
-            cupla::AlpakaDim<3u>,
-            cupla::MemSizeType>
-            dstPitch(
-                p->dstPtr.pitch * p->dstPtr.ysize
-                    * (p->extent.depth + p->dstPos.z), // @todo: can't create z pitch,  but is not needed by alpaka
-                p->dstPtr.pitch * p->dstPtr.ysize,
-                p->dstPtr.pitch);
+        const ::alpaka::Vec<cupla::AlpakaDim<3u>, cupla::MemSizeType> dstPitch(
+            p->dstPtr.pitch * p->dstPtr.ysize,
+            p->dstPtr.pitch,
+            sizeof(uint8_t));
 
-        const ::alpaka::Vec<
-            cupla::AlpakaDim<3u>,
-            cupla::MemSizeType>
-            srcPitch(
-                p->srcPtr.pitch * p->srcPtr.ysize
-                    * (p->extent.depth + p->srcPos.z), // @todo: can't create z pitch, but is not needed by alpaka
-                p->srcPtr.pitch * p->srcPtr.ysize,
-                p->srcPtr.pitch);
+        const ::alpaka::Vec<cupla::AlpakaDim<3u>, cupla::MemSizeType> srcPitch(
+            p->srcPtr.pitch * p->srcPtr.ysize,
+            p->srcPtr.pitch,
+            sizeof(uint8_t));
 
         auto& device(cupla::manager::Device<cupla::AccDev>::get().current());
 

@@ -226,7 +226,6 @@ compilers.append(hip_clang_compilers)
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
 backends = [
-    ("hip", 5.0),
     ("hip", 5.1),
     ("hip", 5.2),
     ("hip", 5.3),
@@ -330,6 +329,8 @@ for stage in range(num_stages):
             print("    PIC_BACKEND: '" + backend + "'")
             print("    BOOST_VERSION: '" + boost_version + "'")
             print("    CXX_VERSION: '" + compiler + "'")
+            print("    CXX_PREFIX_PATH: '/usr/lib/x86_64-linux-gnu/openmpi'")
+            print("    LDFLAGS: '-lopen-pal'")
             print("  before_script:")
             if backend == "hip":
                 print("    - wget -q -O - " "https://repo.radeon.com/rocm/rocm.gpg.key | " "apt-key add -")

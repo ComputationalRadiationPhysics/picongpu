@@ -10,46 +10,33 @@
 
 namespace alpaka::test
 {
-    template<typename TIdx>
-    struct CreateVecWithIdx
+    template<typename TDim, typename TVal>
+    inline constexpr auto extentBuf = []
     {
-        //! 1D: (11)
-        //! 2D: (11, 10)
-        //! 3D: (11, 10, 9)
-        //! 4D: (11, 10, 9, 8)
-        template<std::size_t Tidx>
-        struct ForExtentBuf
-        {
-            ALPAKA_FN_HOST_ACC static auto create()
-            {
-                return static_cast<TIdx>(11u - Tidx);
-            }
-        };
+        Vec<TDim, TVal> v;
+        if constexpr(TDim::value > 0)
+            for(TVal i = 0; i < TVal{TDim::value}; i++)
+                v[i] = 11 - i;
+        return v;
+    }();
 
-        //! 1D: (8)
-        //! 2D: (8, 6)
-        //! 3D: (8, 6, 4)
-        //! 4D: (8, 6, 4, 2)
-        template<std::size_t Tidx>
-        struct ForExtentSubView
-        {
-            ALPAKA_FN_HOST_ACC static auto create()
-            {
-                return static_cast<TIdx>(8u - (Tidx * 2u));
-            }
-        };
+    template<typename TDim, typename TVal>
+    inline constexpr auto extentSubView = []
+    {
+        Vec<TDim, TVal> v;
+        if constexpr(TDim::value > 0)
+            for(TVal i = 0; i < TVal{TDim::value}; i++)
+                v[i] = 8 - i * 2;
+        return v;
+    }();
 
-        //! 1D: (2)
-        //! 2D: (2, 3)
-        //! 3D: (2, 3, 4)
-        //! 4D: (2, 3, 4, 5)
-        template<std::size_t Tidx>
-        struct ForOffset
-        {
-            ALPAKA_FN_HOST_ACC static auto create()
-            {
-                return static_cast<TIdx>(2u + Tidx);
-            }
-        };
-    };
+    template<typename TDim, typename TVal>
+    inline constexpr auto offset = []
+    {
+        Vec<TDim, TVal> v;
+        if constexpr(TDim::value > 0)
+            for(TVal i = 0; i < TVal{TDim::value}; i++)
+                v[i] = 2 + i;
+        return v;
+    }();
 } // namespace alpaka::test

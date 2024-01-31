@@ -30,6 +30,7 @@ namespace alpaka
                 : m_threadToIndexMap(mThreadToIndices)
             {
             }
+
             ALPAKA_FN_HOST IdxBtRefThreadIdMap(IdxBtRefThreadIdMap const&) = delete;
             ALPAKA_FN_HOST auto operator=(IdxBtRefThreadIdMap const&) -> IdxBtRefThreadIdMap& = delete;
 

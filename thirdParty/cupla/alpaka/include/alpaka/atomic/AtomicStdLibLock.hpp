@@ -86,6 +86,7 @@ namespace alpaka
                 std::lock_guard<std::mutex> lock(atomic.getMutex(addr));
                 return TOp()(addr, value);
             }
+
             ALPAKA_FN_HOST static auto atomicOp(
                 AtomicStdLibLock<THashTableSize> const& atomic,
                 T* const addr,

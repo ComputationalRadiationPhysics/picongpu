@@ -11,15 +11,15 @@
 namespace alpaka::rand
 {
     /// Get high 32 bits of a 64-bit number
-    ALPAKA_FN_HOST_ACC constexpr static auto high32Bits(std::uint64_t const x) -> std::uint32_t
+    ALPAKA_FN_HOST_ACC inline constexpr auto high32Bits(std::uint64_t const x) -> std::uint32_t
     {
         return static_cast<std::uint32_t>(x >> 32);
     }
 
     /// Get low 32 bits of a 64-bit number
-    ALPAKA_FN_HOST_ACC constexpr static auto low32Bits(std::uint64_t const x) -> std::uint32_t
+    ALPAKA_FN_HOST_ACC inline constexpr auto low32Bits(std::uint64_t const x) -> std::uint32_t
     {
-        return static_cast<std::uint32_t>(x & 0xffffffff);
+        return static_cast<std::uint32_t>(x & 0xffff'ffff);
     }
 
     /** Multiply two 64-bit numbers and split the result into high and low 32 bits, also known as "mulhilo32"
@@ -30,7 +30,7 @@ namespace alpaka::rand
      * @param resultLow low 32 bits of the product a*b
      */
     // TODO: See single-instruction implementations in original Philox source code
-    ALPAKA_FN_HOST_ACC constexpr static void multiplyAndSplit64to32(
+    ALPAKA_FN_HOST_ACC inline constexpr void multiplyAndSplit64to32(
         std::uint64_t const a,
         std::uint64_t const b,
         std::uint32_t& resultHigh,
