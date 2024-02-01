@@ -58,7 +58,7 @@ libpng/1.6.38-cpeCray-23.03
 module load freetype/2.12.1-cpeCray-23.03
 
 # ATTENTION: blosc2 is used, please check your cfg's and replace blosc with blosc2
-#module load openpmd-api/0.14.4
+#module load openpmd-api/0.15.2
 
 # Self-Build Software #########################################################
 # Optional, not required.

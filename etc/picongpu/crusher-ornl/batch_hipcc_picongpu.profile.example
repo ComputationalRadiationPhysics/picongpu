@@ -61,7 +61,7 @@ export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/li
 #
 module load zlib/1.2.11
 module load git/2.35.1
-module load c-blosc/1.21.1 adios2/2.7.1 hdf5/1.12.0 openpmd-api/0.14.4
+module load c-blosc/1.21.1 adios2/2.7.1 hdf5/1.12.0 openpmd-api/0.15.2
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OLCF_HDF5_ROOT/lib
 module load libpng/1.6.37 freetype/2.11.0
 
