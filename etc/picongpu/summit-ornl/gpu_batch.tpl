@@ -106,6 +106,6 @@ EOL
 
 #if [ $? -eq 0 ] ; then
 export OMP_NUM_THREADS=!TBG_coresPerGPU
-jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams | tee output
+jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
 # note: instead of the PIConGPU binary, one can also debug starting "js_task_info | sort"
 #fi
