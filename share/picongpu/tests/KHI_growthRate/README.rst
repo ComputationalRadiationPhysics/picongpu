@@ -5,7 +5,15 @@ KelvinHelmholtz: Kelvin-Helmholtz Instability
 .. moduleauthor:: Richard Pausch <r.pausch (at) hzdr.de>, Mika Soren Voß <m.voss (at) hzdr.de>
 
 This KHI growth rate test simulates a shear-flow instability known as the Kelvin-Helmholtz Instability in a sub-relativistic setup as studied in [Alves12]_, [Grismayer13]_, [Bussmann13]_. The setup uses a pre-ionized quasi-neutral hydrogen plasma. From the simulation, the growth of the dominant magnetic field is extracted and compared to theoretic predictions. The tests only passes if the simulation reaches the ideal theoretical growth rate with a 10% accuracy. 
-		  
+
+
+Usage
+-----
+
+.. code-block:: bash
+  # execute ci
+  $PICSRC/share/picongpu/tests/KHI_growthRate/bin/ci.sh $PICSRC/share/picongpu/tests/KHI_growthRate/ <user_given_output_directory>
+
 
 References
 ----------
