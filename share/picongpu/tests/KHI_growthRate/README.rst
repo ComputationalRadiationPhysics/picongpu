@@ -11,6 +11,7 @@ Usage
 -----
 
 .. code-block:: bash
+
   # execute ci
   $PICSRC/share/picongpu/tests/KHI_growthRate/bin/ci.sh $PICSRC/share/picongpu/tests/KHI_growthRate/ <user_given_output_directory>
 
