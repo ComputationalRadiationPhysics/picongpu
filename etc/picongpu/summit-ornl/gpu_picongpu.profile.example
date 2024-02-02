@@ -18,29 +18,32 @@ export proj=<yourProject>
 #export EDITOR="nano"
 
 # basic environment ###########################################################
-module load gcc/9.3.0 spectrum-mpi/10.4.0.3-20210112
+module unload xl
+module load gcc/12.1.0
+module load spectrum-mpi/10.4.0.6-20230210
 
 export CC=$(which gcc)
 export CXX=$(which g++)
 
 # required tools and libs
-module load git/2.29.0
-module load cmake/3.23.2
-module load cuda/11.0.3
-module load boost/1.74.0
+module load git/2.42.0
+module load cmake/3.27.7
+module load cuda/12.2.0
+# boost needs to be installed manually (or uncomment if you have access to csc380)
+#export CMAKE_PREFIX_PATH=/gpfs/alpine2/csc380/proj-shared/lib_summit/lib/boost:$CMAKE_PREFIX_PATH
 
 # plugins (optional) ##########################################################
-module load hdf5/1.10.7
-module load c-blosc/1.21.0 zfp/0.5.5 sz/2.1.11.1 lz4/1.9.3
-module load adios2/2.7.1
+module load hdf5/1.14.3
+module load c-blosc/1.21.5 zfp/1.0.0-cuda117 sz/2.1.12.5 lz4/1.9.4
+module load adios2/2.9.2
 
 module load openpmd-api/0.15.2
 
 #export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
 
-module load zlib/1.2.11
-module load libpng/1.6.37 freetype/2.10.4
+module load zlib-ng/2.1.4
+module load libpng/1.6.39 freetype/2.11.1
 # optionally install pngwriter yourself:
 #   https://github.com/pngwriter/pngwriter#install
 # export PNGwriter_ROOT=<your pngwriter install directory>  # e.g., ${HOME}/sw/pngwriter
