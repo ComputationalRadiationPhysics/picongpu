@@ -1,4 +1,4 @@
-.. _usage-examples:
+.. _usage-tests:
 
 Test Setups
 ===========
@@ -7,4 +7,4 @@ Test Setups
    :glob:
    :maxdepth: 1
 
-   ../../../share/picongpu/tests/KHI_growthRate/README
+   ../../../share/picongpu/tests/*/README
