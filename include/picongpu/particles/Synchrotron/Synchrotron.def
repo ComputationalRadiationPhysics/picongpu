@@ -1,0 +1,55 @@
+/* Copyright 2015-2024 Marco Garten, Jakob Trojok, Filip Optolowicz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+#include <pmacc/types.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace Synchrotron
+        {
+            /** Barrier Suppression Synchrotron - Implementation
+             *
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_SynchrotronCurrent select type of Synchrotron current (None or EnergyConservation)
+             * @tparam T_SrcSpecies particle species that is ionized
+             *         default is boost::mpl placeholder because specialization
+             *         cannot be known in list of particle species' flags
+             *         @see speciesDefinition.param
+             */
+            template<typename T_SynchrotronAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = boost::mpl::_1>
+            struct Synchrotron_Impl;
+
+
+            template<typename T_DestSpecies, typename T_SynchrotronCurrent = current::None>
+            struct Synchrotron
+            {
+                using SynchrotronAlgorithm = particles::Synchrotron::AlgorithmSynchrotron;
+                using type = Synchrotron_Impl<SynchrotronAlgorithm, T_DestSpecies, T_SynchrotronCurrent>;
+            };
+
+
+        } // namespace Synchrotron
+    } // namespace particles
+} // namespace picongpu

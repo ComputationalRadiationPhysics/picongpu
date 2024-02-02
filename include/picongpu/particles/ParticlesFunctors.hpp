@@ -1,5 +1,6 @@
-/* Copyright 2014-2023 Rene Widera, Marco Garten, Alexander Grund,
+/* Copyright 2014-2024 Rene Widera, Marco Garten, Alexander Grund,
  *                     Heiko Burau, Axel Huebl, Sergei Bastrakov
+ *                     Filip Optolowicz
  *
  * This file is part of PIConGPU.
  *
@@ -23,12 +24,14 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
@@ -331,6 +334,58 @@ namespace picongpu
                         particleIonization;
                     particleIonization(cellDesc, currentStep);
                 }
+            }
+        };
+
+        /** Call Synchrotron Algorithm of an electron species
+         * called from: /include/picongpu/simulation/stage/SynchrotronRadiation.hpp
+         *
+         * @todo test what it tests for
+         * Tests if species can radiate photons and calls the kernels to do that
+         *
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for Synchrotron
+         */
+        template<typename T_SpeciesType>
+        struct CallSynchrotron
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using FrameType = typename SpeciesType::FrameType;
+
+            // the following line only fetches the alias
+            using FoundSynchrotronAlias = typename pmacc::traits::GetFlagType<FrameType, Synchrotron<>>::type;
+
+            // this now resolves the alias into the actual object type, a list of photons
+            using DestinationSpecies = typename pmacc::traits::Resolve<FoundSynchrotronAlias>::type;
+
+            /** Functor implementation
+             *
+             * @tparam T_CellDescription contains the number of blocks and blocksize
+             *                           that is later passed to the kernel
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
+             * @param F1F2DeviceBuff GridBuffer on the device side containing F1 and F2 values for each particle
+             */
+            template<typename T_CellDescription>
+            HINLINE void operator()(
+                T_CellDescription cellDesc,
+                const uint32_t currentStep,
+                GridBuffer<float_64, 2>::DataBoxType F1F2DeviceBuff) const
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+
+                // alias for pointer on source species
+                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
+                // alias for pointer on destination species
+                auto photonsPtr = dc.get<DestinationSpecies>(DestinationSpecies::FrameType::getName());
+
+                auto synchrotronFunctor
+                    = particles::synchrotron::AlgorithmSynchrotron<SpeciesType, DestinationSpecies>(
+                        currentStep,
+                        F1F2DeviceBuff);
+
+                creation::createParticlesFromSpecies(*srcSpeciesPtr, *photonsPtr, synchrotronFunctor, cellDesc);
+
+                photonsPtr->fillAllGaps();
             }
         };
 
