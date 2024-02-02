@@ -7,4 +7,4 @@ Test Setups
    :glob:
    :maxdepth: 1
 
-   ../../../share/picongpu/tests/*/README
+   ../tests/*/README
