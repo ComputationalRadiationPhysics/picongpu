@@ -26,6 +26,9 @@
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+
+#include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
@@ -333,6 +336,116 @@ namespace picongpu
                 }
             }
         };
+
+
+
+
+
+
+        
+        /** Call an Synchrotron method upon an ion species
+         *
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is going to be ionized
+         * with Synchrotron scheme T_SelectIonizer
+         */
+        template<typename T_SpeciesType, typename T_SelectSynchrotron>
+        struct CallSynchrotronScheme
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using SelectSynchrotron = T_SelectSynchrotron;
+            using FrameType = typename SpeciesType::FrameType;
+
+            /* define the type of the species to be created
+             * from inside the Synchrotron model specialization
+             */
+            using DestSpecies = typename SelectSynchrotron::DestSpecies;
+            using DestFrameType = typename DestSpecies::FrameType;
+
+            /** Functor implementation
+             *
+             * @tparam T_CellDescription contains the number of blocks and blocksize
+             *                           that is later passed to the kernel
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
+             */
+            template<typename T_CellDescription>
+            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep) const
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+
+                // alias for pointer on source species
+                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
+                // alias for pointer on destination species
+                auto electronsPtr = dc.get<DestSpecies>(DestFrameType::getName());
+
+                SelectSynchrotron selectSynchrotron(currentStep);
+
+                creation::createParticlesFromSpecies(*srcSpeciesPtr, *electronsPtr, selectSynchrotron, cellDesc);
+
+                /* fill the gaps in the created species' particle frames to ensure that only
+                 * the last frame is not completely filled but every other before is full
+                 */
+                electronsPtr->fillAllGaps();
+            }
+        };
+
+        /** Call all Synchrotron schemes of an ion species
+         *
+         * Tests if species can be ionized and calls the kernels to do that
+         *
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for Synchrotron
+         */
+        template<typename T_SpeciesType>
+        struct CallSynchrotron
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using FrameType = typename SpeciesType::FrameType;
+
+            // the following line only fetches the alias
+            using FoundSynchrotronAlias = typename pmacc::traits::GetFlagType<FrameType, Synchrotron<>>::type;
+
+            // this now resolves the alias into the actual object type, a list of Synchrotron
+            using DestinationSpecies = typename pmacc::traits::Resolve<FoundSynchrotronAlias>::type;
+
+
+
+
+            // SelectSynchrotron will be either the specified one or fallback: None
+            // using SelectSynchrotronAlgorithm =
+
+            /** Functor implementation
+             *
+             * @tparam T_CellDescription contains the number of blocks and blocksize
+             *                           that is later passed to the kernel
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
+             */
+            template<typename T_CellDescription>
+            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff ) const
+            {
+               
+                DataConnector& dc = Environment<>::get().DataConnector();
+
+                // alias for pointer on source species
+                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
+                // alias for pointer on destination species
+                auto photonsPtr = dc.get<DestinationSpecies>(DestinationSpecies::FrameType::getName());
+
+                
+                auto synchrotronFunctor = particles::synchrotron::AlgorithmSynchrotron<SpeciesType,DestinationSpecies>(currentStep, F1F2DeviceBuff);
+
+                creation::createParticlesFromSpecies(*srcSpeciesPtr, *photonsPtr, synchrotronFunctor, cellDesc);
+
+                photonsPtr->fillAllGaps();
+            }
+        };
+
+
+
+
+
+
+
 
     } // namespace particles
 } // namespace picongpu

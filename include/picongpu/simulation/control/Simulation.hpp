@@ -54,6 +54,7 @@
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
 #include "picongpu/simulation/stage/ParticleBoundaries.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
+#include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
 #include "picongpu/versionFormat.hpp"
@@ -314,8 +315,11 @@ namespace picongpu
             // This has to be called before initFields()
             currentInterpolationAndAdditionToEMF->init();
 
+
             currentBackground = std::make_shared<simulation::stage::CurrentBackground>(*cellDescription);
             dc.share(currentBackground);
+
+            SYNCH = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
 
             initFields(dc);
 
@@ -520,10 +524,14 @@ namespace picongpu
             using namespace simulation::stage;
 
             IterationStart{}(currentStep);
+            // if(currentStep % 10) std::cout<<"Hello from iteration: "<< currentStep<<"\n";
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
+            
             ParticleIonization{*cellDescription}(currentStep);
+            (*SYNCH)(currentStep);
+
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
             fieldBackground.subtract(currentStep);
@@ -534,6 +542,7 @@ namespace picongpu
             CurrentDeposition{}(currentStep);
             (*currentInterpolationAndAdditionToEMF)(currentStep, *myFieldSolver);
             myFieldSolver->update_afterCurrent(currentStep);
+            
         }
 
         void movingWindowCheck(uint32_t currentStep) override
@@ -598,6 +607,8 @@ namespace picongpu
         }
 
     protected:
+    
+        std::shared_ptr<simulation::stage::SynchrotronRadiation> SYNCH;
         std::shared_ptr<DeviceHeap> deviceHeap;
 
         std::shared_ptr<fields::Solver> myFieldSolver;

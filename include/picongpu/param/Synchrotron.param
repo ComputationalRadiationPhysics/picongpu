@@ -1,0 +1,44 @@
+/* Copyright 2014-2023 Marco Garten, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * This file contains the proton and neutron numbers of commonly used elements
+ * of the periodic table. The elements here should have a matching list of
+ * ionization energies in @see ionizationEnergies.param. Moreover this file
+ * contains a description of how to configure an ionization model for a species.
+ *
+ * Furthermore there are parameters for specific ionization models to be found
+ * here. That includes lists of screened nuclear charges as seen by bound
+ * electrons for the aforementioned elements as well as fitting parameters of
+ * the Thomas-Fermi ionization model.
+ */
+
+#pragma once
+
+#include "picongpu/particles/ionization/byCollision/ionizers.def"
+#include "picongpu/particles/ionization/byField/ionizers.def"
+
+namespace picongpu
+{
+    namespace ionization
+    {
+    } // namespace ionization
+}
+
