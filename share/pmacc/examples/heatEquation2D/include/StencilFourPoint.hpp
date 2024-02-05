@@ -103,7 +103,7 @@ struct StencilFourPoint
                 cupla::atomicAdd(
                     worker.getAcc(),
                     &(boxResidual[0]),
-                    pmacc::math::cPow<float>(stencil_sum, 2),
+                    pmacc::math::cPow<float>(stencil_sum, 2u),
                     ::alpaka::hierarchy::Blocks{});
 
                 boxWrite(pos) = stencil_sum + cache(cellIdx);

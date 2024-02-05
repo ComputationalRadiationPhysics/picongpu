@@ -35,7 +35,7 @@ namespace pmacc::math
     /** power function for integer exponents, constexpr
      *
      * @tparam T_Type return and accumulation data type
-     * @tparam T_Exp exponent data type, must be an integral type, default uint32_t
+     * @tparam T_Exp exponent data type, must be an unsigned integral type, default uint32_t
      *
      * @param x base
      * @param exp exponent
@@ -44,8 +44,8 @@ namespace pmacc::math
     HDINLINE constexpr T_Type cPow(T_Type const x, T_Exp const exp)
     {
         static_assert(
-            std::is_integral_v<T_Exp>,
-            "This pow() implementation supports only integral types for the exponent.");
+            std::is_unsigned_v<T_Exp>,
+            "This pow() implementation supports only unsigned integral types for the exponent.");
 
         T_Type result = static_cast<T_Type>(1u);
         for(T_Exp e = static_cast<T_Exp>(0u); e < exp; e++)
