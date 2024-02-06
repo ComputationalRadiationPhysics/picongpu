@@ -46,8 +46,13 @@ module load git
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 
-export CXX=hipcc
+
+export PATH=$ROCM_PATH/llvm/bin:$PATH
+export CC=clang
+export CXX=clang++
+
 export CXXFLAGS="$CXXFLAGS -I${MPICH_DIR}/include"
+export HIPFLAGS=$CXXFLAGS
 export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a}"
 
 # Other Software ##############################################################
@@ -55,8 +60,10 @@ export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a}
 module load libpng/1.6.37
 module load freetype/2.11.1
 
-# ATTENTION: blosc2 is used, please check your cfg's and replace blosc with blosc2
-module load openpmd-api/0.15.2
+# Please use your self compiled openpmd-api with adios2 and blosc2 support.
+# ORNL is only providing outdated modules.
+#
+# module load openpmd-api/0.15.X
 
 # Self-Build Software #########################################################
 # Optional, not required.
