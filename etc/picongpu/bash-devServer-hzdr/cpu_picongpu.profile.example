@@ -11,7 +11,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
-export EDITOR="nano"
+export EDITOR="vim"
 
 # load packages
 spack unload
@@ -19,41 +19,41 @@ spack unload
 # PIConGPU build dependencies #################################################
 #   need to load correct cmake and gcc to compile picongpu
 
-spack load gcc@12.1.0
-spack load cmake@3.26.3 ^openssl certs=mozilla %gcc@12.1.0
+spack load gcc@12.2.0
+spack load cmake@3.26.6 ^openssl certs=mozilla %gcc@12.2.0
 
 # General modules #############################################################
 #   correct dependencies are automatically loaded, if successfully installed using install.sh
 #   and no name confilcts in spack, see install.sh for more precise definition
 #   if name conflicts occur
 
-spack load openpmd-api@0.15.2 %gcc@12.1.0 \
+spack load openpmd-api@0.15.2 %gcc@12.2.0 \
     ^adios2@2.9.2 \
-    ^hdf5@1.12.2 \
-    ^openmpi@4.1.4 +atomics ~cuda\
-    ^python@3.10.4 \
-    ^py-numpy@1.23.3
-spack load boost@1.80.0 %gcc@12.1.0
+    ^hdf5@1.14.3 \
+    ^openmpi@4.1.5 +atomics ~cuda\
+    ^python@3.11.6 \
+    ^py-numpy@1.26.2
+spack load boost@1.83.0 %gcc@12.2.0
 
 # PIConGPU output dependencies ################################################
 #
-spack load pngwriter@0.7.0 %gcc@12.1.0
+spack load pngwriter@0.7.0 %gcc@12.2.0
+
+# Python pip dependency #######################################################
+spack load py-pip ^python@3.11.6 %gcc@12.2.0
 
 
 # Environment #################################################################
 #
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
-export PIC_BACKEND="omp2b:native" # running on cpu
-
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="omp2b:skylake-avx512"
+export PIC_BACKEND="omp2b:native"
 
 # Path to the required templates of the system,
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash-devServer-hzdr"}
 
-export PATH=$PICSRC/bin::$PATH
+export PATH=$PICSRC/bin:$PATH
 export PATH=$PICSRC/src/tools/bin:$PATH
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH

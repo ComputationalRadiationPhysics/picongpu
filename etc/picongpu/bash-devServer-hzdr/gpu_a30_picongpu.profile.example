@@ -11,7 +11,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
-export EDITOR="nano"
+export EDITOR="vim"
 
 # load packages
 spack unload
@@ -19,25 +19,28 @@ spack unload
 # PIConGPU build dependencies #################################################
 #   need to load correct cmake and gcc to compile picongpu
 
-spack load gcc@12.1.0
-spack load cmake@3.26.3 %gcc@12.1.0
+spack load gcc@12.2.0
+spack load cmake@3.26.6 ^openssl certs=mozilla %gcc@12.2.0
 
 # General modules #############################################################
 #   correct dependencies are automatically loaded, if successfully installed using install.sh
 #   and no name confilcts in spack, see install.sh for more precise definition
 #   if name conflicts occur
 
-spack load openpmd-api@0.15.2 %gcc@12.1.0 \
+spack load openpmd-api@0.15.2 %gcc@12.2.0 \
     ^adios2@2.9.2 \
-    ^hdf5@1.14.0 \
+    ^hdf5@1.14.3 \
     ^openmpi@4.1.5 +atomics +cuda cuda_arch=80 \
-    ^python@3.10.10 \
-    ^py-numpy@1.24.2
-spack load boost@1.81.0 %gcc@12.1.0
+    ^python@3.11.6 \
+    ^py-numpy@1.26.2
+spack load boost@1.83.0 %gcc@12.2.0
 
 # PIConGPU output dependencies ################################################
 #
-spack load pngwriter@0.7.0 %gcc@12.1.0
+spack load pngwriter@0.7.0 %gcc@12.2.0
+
+# Python pip dependency #######################################################
+spack load py-pip ^python@3.11.6 %gcc@12.2.0
 
 
 # Environment #################################################################
@@ -51,7 +54,7 @@ export PIC_BACKEND="cuda:80"
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash-devServer-hzdr"}
 
 export PATH=$PICSRC/bin:$PATH
-export PATH=$PICSRC/src/tools/bin
+export PATH=$PICSRC/src/tools/bin:$PATH
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
