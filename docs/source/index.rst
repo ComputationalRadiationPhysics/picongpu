@@ -32,12 +32,6 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    We are migrating our `wiki`_ to this manual, but some pages might still be missing.
    We also have an `official homepage`_ .
 
-.. note::
-
-   Are you looking for our latest Doxygen docs for the API?
-
-   See http://computationalradiationphysics.github.io/picongpu
-
 .. _wiki: https://github.com/ComputationalRadiationPhysics/picongpu/wiki
 .. _official homepage: http://picongpu.hzdr.de
 
