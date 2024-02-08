@@ -131,7 +131,7 @@ namespace picongpu::particles::collision
             prepareList(worker, forEachCell, pb, superCellIdx, deviceHeapHandle, parCellList, nppc, accFilter);
 
             using FramePtr = typename T_ParBox::FramePtr;
-            detail::cellDensity<FramePtr>(worker, forEachCell, parCellList, densityArray, accFilter);
+            detail::cellDensity<FramePtr>(worker, forEachCell, pb, superCellIdx, parCellList, densityArray, accFilter);
 
             worker.sync();
 
@@ -148,7 +148,7 @@ namespace picongpu::particles::collision
             auto collisionFunctorCtx = forEachCell(
                 [&](int32_t const idx)
                 {
-                    auto parAccess = parCellList.template getParticlesAccessor<FramePtr>(idx);
+                    auto parAccess = parCellList.getParticlesAccessor(pb, superCellIdx, idx);
                     uint32_t const sizeAll = parAccess.size();
                     uint32_t potentialPartners = sizeAll - 1u + sizeAll % 2u;
                     auto collisionFunctor = srcCollisionFunctor(
