@@ -5,25 +5,40 @@ Dumping Metadata
 
 Starting your simulation with
 
-``<executable> [...] --dump-metadata [<filename>]``
+``<executable> [...] --dump-metadata [<filename>] [--no-start-simulation]``
 
 will dump a `json`_ respresentation of some metadata to `<filename>`. If no `<filename>` is given, the default value
 `???` is used. This feature might in a future revision default to being active.
 
-The dumping happens immediately before the simulation starts. This implies that
+You might want to dump metadata without actually running a simulation. In this case, you can add the 
+`--no-start-simulation` flag which will make the code skip the actual simulation.
+
+The dumping happens after all initialisation immediately before the simulation starts (or is skipped). This implies that
 
  * No dynamic information about the simulation can be included (e.g. information about the state at time step 10).
  * The dumped information will represent the actual parameters used which might be different from the parameters given
    in the input files, e.g., due to :ref:`automatic adjustment<???>`.
 
- .. note::
+.. note::
+
+  Since we are still performing all initialisation work in order to get to the actual parameter values that affect the
+  simulation, it might be necessary to run this feature in a (very short) full batch submission with all resources (like
+  GPUs, etc.) available as for the full simulation run even when running with `--no-start-simulation`.
+
+The content of the output is a **summary of the physical content of the simulated conditions** and the format is
+described :ref:`below <???>`. It is important to note that the structure of the content is aligned with its
+categorisation in the physical context and not (enforced to be) aligned with the internal code structure.
+
+.. note::
 
   The scope of this feature is to provide a human- and machine-readable **summary of the physical content of the
-  simulated conditions**. The envisioned usage is a human researcher quickly getting an overview over their simulation 
-  data, an experimentalist comparing with simulation data or a database using such information for tagging, filtering 
-  and searching. 
+  simulated conditions**. The envisioned use cases are:
 
-  The following related aspects are out of scope:
+    * a theoretician quickly getting an overview over their simulation data,
+    * an experimentalist comparing with simulation data or 
+    * a database using such information for tagging, filtering and searching.
+
+  The following related aspects are out of scope (for the PIConGPU development team):
     
     * Reproducibility: The only faithful, feature-complete representation of the input necessary to reproduce a 
       PIConGPU simulation is the complete input directory. If a more standardised and human-readable repesentation is 
@@ -33,6 +48,9 @@ The dumping happens immediately before the simulation starts. This implies that
       appropriate maintenance effort. We therefore do not aim to describe simulations exhaustively.
     * (De-)Serialisation: We do not provide infrastructure to fully or partially reconstruct C++ objects from the 
       dumped information.
+    * Standardisation or generalisation of the format: The format and content are the result of our best effort to be
+      useful. Any form of standardisation or generalisation beyond this scope requires a resources commitment from
+      outside the PIConGPU development team. We are happy to implement any such result.
 
 
 The Format
@@ -86,14 +104,14 @@ for example
      }
    };
 
-put anywhere where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the declaration of `MyClass`
-itself.
+put anywhere in the code where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the declaration 
+of `MyClass` itself.
 
 The `json` object returned from `description()` is related to the final output via a `merge_patch`_ operation but we do
 not guarantee any particular order in which these are merged. So it is effectively the responsibility of the programmer
 to make sure that no metadata entries overwrite each other.
 
-These external classes might run into access restrictions when attempting to dump `private` or `protected` members.
+These external classes might run into access restrictions when attempting to dump `private`_ or `protected`_ members.
 These can be circumvented in three ways: 
 
 1. If `MyClass` already implements a `.metadata()` method, it might already provide the necessary information through
@@ -110,6 +128,7 @@ These can be circumvented in three ways:
         json description() const {
           json result = obj.metadata();
           result["adjust"]["to"]["your"]["liking"] = obj.moreToDump;
+          // or alternatively create a new json instance and only copy over some information
           return result;
         }
       };
@@ -117,8 +136,7 @@ These can be circumvented in three ways:
   This is the preferred way of handling this situation (if applicable). The default implementation of 
   `picongpu::traits::GetMetadata` forwards to such `.metadata()` methods anyway.
 
-2. Declare `picongpu::traits::GetMetadata<MyClass` a friend of `MyClass`,
-   i.e.
+2. Declare `picongpu::traits::GetMetadata<MyClass` a friend of `MyClass`, i.e.
 
    .. code::
    
@@ -160,7 +178,7 @@ with the example, a plugin could implement
    void pluginLoad() {
      // ...
 
-     registerMetadata(\*this);
+     addMetadataOf(\*this);
    }
 
 Classes that only affect compile-time aspects of the program need to be registered in
@@ -173,3 +191,5 @@ case they can be handled exactly as compile-time-only classes.
 
 .. _json: https://www.json.org
 .. _merge_patch: https://datatracker.ietf.org/doc/html/rfc7396
+.. _private: https://en.cppreference.com/w/cpp/language/access
+.. _protected: https://en.cppreference.com/w/cpp/language/access
