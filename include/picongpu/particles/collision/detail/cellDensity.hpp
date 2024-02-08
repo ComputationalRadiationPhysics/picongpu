@@ -42,7 +42,7 @@ namespace picongpu::particles::collision::detail
         forEachCell(
             [&](uint32_t const linearIdx)
             {
-                auto parAccess = parCellList.template getParticlesAccessor<T_FramePtr>(linearIdx);
+                auto parAccess = parCellList.getParticlesAccessor(linearIdx);
                 uint32_t const numParInCell = parAccess.size();
                 float_X density(0.0);
                 for(uint32_t partIdx = 0; partIdx < numParInCell; partIdx++)
