@@ -1,3 +1,4 @@
+minimum_pre_commit_version: 3.2.0  # necessitated by Lucas-C's hooks
 exclude: 'thirdParty'
 repos:
 - repo: https://github.com/pre-commit/mirrors-clang-format
