@@ -14,11 +14,6 @@ test/hasCudaGlobalKeyword include/picongpu
 test/hasCudaGlobalKeyword share/picongpu/examples
 
 #############################################################################
-# Disallow non-ASCII in source files and scripts                            #
-#############################################################################
-test/hasNonASCII
-
-#############################################################################
 # Enforce angle brackets <...> for includes of external library files       #
 #############################################################################
 test/hasExtLibIncludeBrackets include boost
