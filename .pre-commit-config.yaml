@@ -36,3 +36,5 @@ repos:
     - id: remove-tabs
       types_or: [file]
       exclude_types: [rst, tex, tsv]
+    - id: forbid-crlf
+    - id: remove-crlf
