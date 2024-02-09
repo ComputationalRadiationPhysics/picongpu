@@ -19,6 +19,7 @@ repos:
   - id: check-toml
   - id: check-yaml
   - id: mixed-line-ending
+  - id: check-executables-have-shebangs
   - id: check-shebang-scripts-are-executable
     exclude: \.tpl$
 - repo: https://github.com/Lucas-C/pre-commit-hooks
