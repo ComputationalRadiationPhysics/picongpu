@@ -38,3 +38,10 @@ repos:
       exclude_types: [rst, tex, tsv]
     - id: forbid-crlf
     - id: remove-crlf
+- repo: https://github.com/brutus/enforce-ascii
+  rev: v0.2.1
+  hooks:
+      - id: enforce-ascii
+        types_or: [file]
+        exclude_types: [rst, tex, tsv, jupyter, markdown]
+        exclude: .zenodo.json

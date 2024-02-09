@@ -14,11 +14,6 @@ test/hasCudaGlobalKeyword include/picongpu
 test/hasCudaGlobalKeyword share/picongpu/examples
 
 #############################################################################
-# Disallow TABs, use white spaces                                           #
-#############################################################################
-test/hasTabs
-
-#############################################################################
 # Disallow non-ASCII in source files and scripts                            #
 #############################################################################
 test/hasNonASCII
