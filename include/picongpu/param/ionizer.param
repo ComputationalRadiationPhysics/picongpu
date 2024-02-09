@@ -166,10 +166,10 @@ namespace picongpu
          * References:
          *   Clementi, E.; Raimondi, D. L. (1963)
          *     "Atomic Screening Constants from SCF Functions"
-         *     J. Chem. Phys. 38 (11): 2686–2689. doi:10.1063/1.1733573
+         *     J. Chem. Phys. 38 (11): 2686-2689. doi:10.1063/1.1733573
          *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
          *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
-         *     Journal of Chemical Physics. 47: 1300–1307. doi:10.1063/1.1712084
+         *     Journal of Chemical Physics. 47: 1300-1307. doi:10.1063/1.1712084
          *
          * IMPORTANT NOTE:
          * You have to insert the values in REVERSE order since the lowest shell
