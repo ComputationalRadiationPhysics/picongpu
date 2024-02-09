@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 echo "cmake:"
 spack install --reuse cmake@3.26.6 %gcc@12.2.0
 spack load cmake@3.26.6 ^openssl certs=mozilla %gcc@12.2.0
