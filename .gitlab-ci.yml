@@ -42,7 +42,7 @@ pull-request-validation:
     - source $CI_PROJECT_DIR/share/ci/git_merge.sh
     - pip3 install -U -r requirements_pre-commit.txt
     - pre-commit install
-    - pre-commit run --all-files
+    - pre-commit run --all-files --hook-stage manual
     # Check C++ code style
     - source $CI_PROJECT_DIR/share/ci/check_cpp_code_style.sh
   tags:

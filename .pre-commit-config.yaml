@@ -46,3 +46,17 @@ repos:
         types_or: [file]
         exclude_types: [rst, tex, tsv, jupyter, markdown]
         exclude: .zenodo.json
+- repo: local
+  hooks:
+    - id: check_cpp_code_style
+      name: check_cpp_code_style
+      entry: share/ci/check_cpp_code_style.sh
+      language: system
+      files: \.(cpp|def|h|cu|tpp|kernel|loader|unitless|hpp|param)$
+      pass_filenames: false
+      # This hook runs on all files which is why it feels a bit too heavy-weight
+      # for running before every commit. The CI currently runs manually, so it's
+      # still running there and can be run manually on demand.
+      # TODO: Adjust the script to take filenames, so that we can pass the
+      # filenames and speed things up before commits.
+      stages: [manual]

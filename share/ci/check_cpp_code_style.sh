@@ -3,7 +3,6 @@
 set -e
 set -o pipefail
 
-cd $CI_PROJECT_DIR
 
 #############################################################################
 # Conformance with Alpaka: Do not write __global__ CUDA kernels directly    #
