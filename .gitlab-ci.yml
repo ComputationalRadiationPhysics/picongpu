@@ -43,8 +43,6 @@ pull-request-validation:
     - pip3 install -U -r requirements_pre-commit.txt
     - pre-commit install
     - pre-commit run --all-files --hook-stage manual
-    # Check C++ code style
-    - source $CI_PROJECT_DIR/share/ci/check_cpp_code_style.sh
   tags:
     - x86_64
     - cpuonly
