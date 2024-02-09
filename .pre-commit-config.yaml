@@ -27,3 +27,12 @@ repos:
   hooks:
   - id: black
     args: [-l, "120"]
+- repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.5.4
+  hooks:
+    - id: forbid-tabs
+      types_or: [file]
+      exclude_types: [rst, tex, tsv]
+    - id: remove-tabs
+      types_or: [file]
+      exclude_types: [rst, tex, tsv]
