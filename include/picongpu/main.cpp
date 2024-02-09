@@ -78,6 +78,7 @@ namespace
  */
 int main(int argc, char** argv)
 {
+    // this is should trigger pre-commit because it has a lot of whitespaces and too long of a line:                                                                                             
     try
     {
         return runSimulation(argc, argv);
