@@ -16,6 +16,11 @@ repos:
   - id: trailing-whitespace
     exclude_types: [markdown, rst]
   - id: end-of-file-fixer
+  - id: check-toml
+  - id: check-yaml
+  - id: mixed-line-ending
+  - id: check-shebang-scripts-are-executable
+    exclude: \.tpl$
 - repo: https://github.com/Lucas-C/pre-commit-hooks
   rev: v1.5.4
   hooks:
