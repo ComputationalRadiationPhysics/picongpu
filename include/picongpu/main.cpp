@@ -37,8 +37,8 @@ namespace
 {
     /** Run a PIConGPU simulation
      *
-     * \param argc count of arguments in argv (same as for main() )
-     * \param argv arguments of program start (same as for main() )
+     * @param argc count of arguments in argv (same as for main() )
+     * @param argv arguments of program start (same as for main() )
      */
     int runSimulation(int argc, char** argv)
     {
