@@ -12,10 +12,10 @@ We agree on the following simple rules to make our lives easier :)
 Pre-commit
 ----------
 
-A good approximation of our guidelines can be easily achieved via [pre-commit](https://pre-commit.com/) hooks (based on
-the more general but harder to use [git hooks](https://git-scm.com/docs/githooks)). After the following installation
-this little tool will run a number of checks prior to every commit, reject the commit, if they don't succeed, and
-potentially apply fixes.
+Compliance with the coding style can be ensured (as much as automatically possible) by using
+[pre-commit](https://pre-commit.com/) hooks (based on the more general but harder to use [git
+hooks](https://git-scm.com/docs/githooks)). After the following installation this little tool will run a number of
+checks prior to every commit, reject the commit, if they don't succeed, and potentially apply fixes.
 
 `pre-commit` is a Python tool, so you need a working version of `python3`, e.g. from
 [conda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html), your favorite package manager or
@@ -33,7 +33,9 @@ $ pre-commit install
 From now on, each commit in this clone of the repo will be checked. See [pre-commit](https://pre-commit.com/) for usage
 details. Some hints:
 
-- You can run all hooks on all files via `pre-commit run --all-files`.
+- You can run all hooks on all files via `pre-commit run --all-files [--hook-stage manual]`. The last argument
+  `--hook-stage manual` includes rather slow additional tests that are ran by the CI but are considered too heavy-weight
+  to run before each commit.
 - If a check fails, oftentimes it will automatically apply the fixes (e.g. run `clang-format`). If there are no unstaged
   files, these changes will appear as unstaged changes in your working tree. To make the commit pass, you have to `git
   add` all changed files.
