@@ -239,8 +239,9 @@ class TransitionRadiationData(DataReader):
                 omega = 0
 
             print(
-                "Angular intensity distribution is sliced at phi={:.2e} "
-                "with omega={:.2e}.".format(self.phis[phi], self.omegas[omega])
+                "Angular intensity distribution is sliced at phi={:.2e} " "with omega={:.2e}.".format(
+                    self.phis[phi], self.omegas[omega]
+                )
             )
             return self.thetas, self.data[phi :: len(self.phis), omega]
         elif type == "sliceoverphi":
@@ -257,8 +258,9 @@ class TransitionRadiationData(DataReader):
                 theta = int(np.floor(maxIndex / len(self.phis)))
 
             print(
-                "Angular intensity distribution is sliced at theta={:.2e} "
-                "with omega={:.2e}.".format(self.thetas[theta], self.omegas[omega])
+                "Angular intensity distribution is sliced at theta={:.2e} " "with omega={:.2e}.".format(
+                    self.thetas[theta], self.omegas[omega]
+                )
             )
             return (
                 self.phis,

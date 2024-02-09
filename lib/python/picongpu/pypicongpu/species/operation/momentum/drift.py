@@ -45,8 +45,9 @@ class Drift(RenderedObject):
         for invalid in [math.inf, -math.inf, math.nan]:
             if invalid in vector:
                 raise ValueError(
-                    "vector may only contain real components, "
-                    "offending axis: {}".format(["x", "y", "z"][vector.index(invalid)])
+                    "vector may only contain real components, " "offending axis: {}".format(
+                        ["x", "y", "z"][vector.index(invalid)]
+                    )
                 )
 
     def check(self) -> None:

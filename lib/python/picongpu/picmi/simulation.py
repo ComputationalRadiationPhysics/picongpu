@@ -70,9 +70,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         if self.time_step_size is not None and self.solver.cfl is not None:
             # both cfl & delta_t given -> check their compatibility
-            delta_t_from_cfl = self.solver.cfl / (
-                constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
-            )
+            delta_t_from_cfl = self.solver.cfl / (constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2))
 
             if delta_t_from_cfl != self.time_step_size:
                 raise ValueError(
@@ -99,7 +97,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         self,
         picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
         picongpu_typical_ppc: typing.Optional[int] = None,
-        **kw
+        **kw,
     ):
         # delegate actual work to parent
         super().__init__(**kw)
@@ -375,8 +373,9 @@ class Simulation(picmistandard.PICMI_Simulation):
                 electrons_name += "_"
 
             logging.info(
-                "no electron species for ionization available, "
-                "creating electrons with name: {}".format(electrons_name)
+                "no electron species for ionization available, " "creating electrons with name: {}".format(
+                    electrons_name
+                )
             )
             electrons = PicongpuPicmiSpecies(name=electrons_name, particle_type="electron")
             self.add_species(electrons, None)
@@ -497,8 +496,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     def step(self, nsteps: int = 1):
         if nsteps != self.max_steps:
             raise ValueError(
-                "PIConGPU does not support stepwise running. Invoke step() "
-                "with max_steps (={})".format(self.max_steps)
+                "PIConGPU does not support stepwise running. Invoke step() " "with max_steps (={})".format(
+                    self.max_steps
+                )
             )
         self.picongpu_run()
 

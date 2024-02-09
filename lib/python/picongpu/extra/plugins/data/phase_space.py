@@ -198,9 +198,9 @@ class PhaseSpaceData(DataReader):
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
                 raise IndexError(
-                    "Iteration {} is not available!\n"
-                    "List of available iterations: \n"
-                    "{}".format(iteration, available_iterations)
+                    "Iteration {} is not available!\n" "List of available iterations: \n" "{}".format(
+                        iteration, available_iterations
+                    )
                 )
         else:
             # take all availble iterations

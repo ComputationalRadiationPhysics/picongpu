@@ -359,8 +359,9 @@ class BaseWidget(widgets.VBox):
             self.sim_time_slider.value = last_selected_val
         else:
             print(
-                "last selected time {0} not present with newly"
-                " selected sim_times, set to {1}".format(last_selected_val, common_sim_times[0])
+                "last selected time {0} not present with newly" " selected sim_times, set to {1}".format(
+                    last_selected_val, common_sim_times[0]
+                )
             )
             self.sim_time_slider.value = common_sim_times[0]
 

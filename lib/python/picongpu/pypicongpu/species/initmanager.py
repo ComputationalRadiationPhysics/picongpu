@@ -197,8 +197,9 @@ class InitManager(RenderedObject):
                 for dependency in constant.get_species_dependencies():
                     if dependency not in self.all_species:
                         raise ReferenceError(
-                            "species {} is dependency (is required by) {}, "
-                            "but unkown to the init manager".format(dependency.name, species.name)
+                            "species {} is dependency (is required by) {}, " "but unkown to the init manager".format(
+                                dependency.name, species.name
+                            )
                         )
 
     def __check_species_dependencies_circular(self) -> None:
@@ -237,8 +238,7 @@ class InitManager(RenderedObject):
             # check: self in dependency closure?
             if species in dependency_closure:
                 raise RecursionError(
-                    "species {} is in circular dependency, "
-                    "all dependencies are: {}".format(
+                    "species {} is in circular dependency, " "all dependencies are: {}".format(
                         species.name,
                         ", ".join(map(lambda species: species.name, dependency_closure)),
                     )
@@ -336,10 +336,10 @@ class InitManager(RenderedObject):
                         )
 
                     # actual check:
-                    assert (
-                        required_attr.PICONGPU_NAME in species_attr_names
-                    ), "constant {} of species {} requires attribute {} to " "be present, but it is not".format(
-                        constant, species.name, required_attr
+                    assert required_attr.PICONGPU_NAME in species_attr_names, (
+                        "constant {} of species {} requires attribute {} to " "be present, but it is not".format(
+                            constant, species.name, required_attr
+                        )
                     )
 
     def __check_constant_constant_dependencies(self):
@@ -372,10 +372,10 @@ class InitManager(RenderedObject):
                         raise ReferenceError("constants may not depend on themselves")
 
                     # check if constant exists
-                    assert species.has_constant_of_type(
-                        required_constant
-                    ), "species {}: required constant {} not found, " "(required by constant {})".format(
-                        species.name, required_constant, constant
+                    assert species.has_constant_of_type(required_constant), (
+                        "species {}: required constant {} not found, " "(required by constant {})".format(
+                            species.name, required_constant, constant
+                        )
                     )
 
     def bake(self) -> None:

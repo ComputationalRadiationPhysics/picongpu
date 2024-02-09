@@ -145,16 +145,18 @@ class Parameter(object):
             res = all([v in self.pic_values for v in vals])
             if not res:
                 raise ValueError(
-                    "Invalid values found! Values should be elements of "
-                    "{0} but are {1}!".format(self.pic_values, vals)
+                    "Invalid values found! Values should be elements of " "{0} but are {1}!".format(
+                        self.pic_values, vals
+                    )
                 )
         else:
             # check for valid range
             res = all([self.pic_range[0] <= v <= self.pic_range[1] for v in vals])
             if not res:
                 raise ValueError(
-                    "Invalid values found! Values should be "
-                    "contained in {0} but are {1}!".format(self.pic_range, vals)
+                    "Invalid values found! Values should be " "contained in {0} but are {1}!".format(
+                        self.pic_range, vals
+                    )
                 )
 
     def convert_to_PIC(self, vals, check_vals=False):

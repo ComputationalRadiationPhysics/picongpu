@@ -159,9 +159,9 @@ class EnergyHistogramData(DataReader):
         # verify requested iterations exist
         if not set(iteration).issubset(data.index.values):
             raise IndexError(
-                "Iteration {} is not available!\n"
-                "List of available iterations: \n"
-                "{}".format(iteration, data.index.values)
+                "Iteration {} is not available!\n" "List of available iterations: \n" "{}".format(
+                    iteration, data.index.values
+                )
             )
 
         # remove unused columns
