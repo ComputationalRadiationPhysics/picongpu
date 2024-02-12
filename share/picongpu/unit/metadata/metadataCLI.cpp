@@ -104,4 +104,12 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
         ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
         CHECK(metadataPlugin.isSupposedToRun);
     }
+
+    SECTION("gets activated with additional filename")
+    {
+        string filename{"filename"};
+        FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
+        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        CHECK(metadataPlugin.isSupposedToRun);
+    }
 }
