@@ -76,6 +76,12 @@ include_directories(BEFORE ./include)
 # CTest
 enable_testing()
 
+# TODO: This is as much CMake magic as I can pull off. It feels very hacky.
+add_library(argparser
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/ArgsParser.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.cpp"
+)
+
 # Test cases
 # Each *UT.cpp file is an independent executable with one or more test cases
 file(GLOB_RECURSE TESTS *.cpp)
@@ -88,6 +94,7 @@ foreach(dim 2 3)
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
+        target_link_libraries(${testExe} PUBLIC argparser)
         add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe})
     endforeach()
     string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
