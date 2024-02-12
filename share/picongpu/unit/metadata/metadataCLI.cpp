@@ -22,9 +22,11 @@
 #include "picongpu/ArgsParser.hpp"
 
 #include <boost/program_options/options_description.hpp>
+#include <boost/program_options/value_semantic.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
+using boost::program_options::bool_switch;
 using boost::program_options::options_description;
 using picongpu::ArgsParser;
 using std::string;
@@ -39,6 +41,7 @@ struct MetadataPlugin
 
     void pluginRegisterHelp(options_description& description)
     {
+        description.add_options()("dump-metadata", bool_switch(&isSupposedToRun));
     }
 
     bool isSupposedToRun{false};
@@ -66,14 +69,27 @@ struct FictitiousArgv
     };
 };
 
+struct TestableArgsParser : ArgsParser
+{
+    static TestableArgsParser& getInstance()
+    {
+        static TestableArgsParser instance;
+        return instance;
+    }
+    void reset()
+    {
+        options.clear();
+    }
+};
+
 TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
 {
+    TestableArgsParser& ap = TestableArgsParser::getInstance();
+    ap.reset();
     MetadataPlugin metadataPlugin;
-    ArgsParser& ap = ArgsParser::getInstance();
     options_description description(metadataPlugin.pluginGetName());
     metadataPlugin.pluginRegisterHelp(description);
     ap.addOptions(description);
-
 
     SECTION("deactivated by default")
     {

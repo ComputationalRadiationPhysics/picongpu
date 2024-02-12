@@ -71,7 +71,7 @@ namespace picongpu
          */
         Status parse(int argc, char** argv);
 
-    private:
+    protected:
         /**
          * Constructor
          */
