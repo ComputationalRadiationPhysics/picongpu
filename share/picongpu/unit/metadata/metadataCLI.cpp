@@ -51,14 +51,14 @@ struct MetadataPlugin
                 // `<executable> --dump-metadata ""` which might not quite be the expected behaviour.
                 // We should decide if we want something cleverer here to circumvent this.
                 ->default_value("") // this works like bool_switch -> disable if not given
-                ->implicit_value(default_filename) // this provides default value but only if given
+                ->implicit_value(defaultFilename) // this provides default value but only if given
                 ->notifier( // this sets `isSupposedToRun`
                     [this](auto const& filename) { this->isSupposedToRun = filename == "" ? false : true; }));
     }
 
     bool isSupposedToRun{false};
     path filename{""};
-    const path default_filename{"picongpu-metadata.json"};
+    const path defaultFilename{"picongpu-metadata.json"};
 };
 
 // strongly inspired by
@@ -77,7 +77,7 @@ struct FictitiousArgv
         return pointers.data();
     }
 
-    size_t size() const
+    size_t makeArgc() const
     {
         return content.size();
     };
@@ -98,39 +98,40 @@ struct TestableArgsParser : ArgsParser
 
 TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
 {
-    TestableArgsParser& ap = TestableArgsParser::getInstance();
-    ap.reset();
     MetadataPlugin metadataPlugin;
+    TestableArgsParser& argsParser = TestableArgsParser::getInstance();
+    argsParser.reset();
+
     options_description description(metadataPlugin.pluginGetName());
     metadataPlugin.pluginRegisterHelp(description);
-    ap.addOptions(description);
+    argsParser.addOptions(description);
 
     SECTION("deactivated by default")
     {
         FictitiousArgv fictitiousArgv{{"<executable>"}};
-        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
         CHECK(!metadataPlugin.isSupposedToRun);
     }
 
     SECTION("gets activated via `--dump-metadata`")
     {
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata"}};
-        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
         CHECK(metadataPlugin.isSupposedToRun);
     }
 
     SECTION("has correct default filename")
     {
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata"}};
-        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
-        CHECK(metadataPlugin.filename == metadataPlugin.default_filename);
+        argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
+        CHECK(metadataPlugin.filename == metadataPlugin.defaultFilename);
     }
 
     SECTION("gets activated with additional filename")
     {
         string filename{"filename"};
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
-        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
         CHECK(metadataPlugin.isSupposedToRun);
     }
 
@@ -138,7 +139,7 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
     {
         string filename{"filename"};
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
-        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
         CHECK(metadataPlugin.filename == filename);
     }
 }
