@@ -24,13 +24,16 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
+#include <filesystem>
+
 #include <catch2/catch_test_macros.hpp>
 
-using boost::program_options::bool_switch;
 using boost::program_options::options_description;
+using boost::program_options::value;
 using picongpu::ArgsParser;
 using std::string;
 using std::vector;
+using std::filesystem::path;
 
 struct MetadataPlugin
 {
@@ -41,10 +44,21 @@ struct MetadataPlugin
 
     void pluginRegisterHelp(options_description& description)
     {
-        description.add_options()("dump-metadata", bool_switch(&isSupposedToRun));
+        description.add_options()(
+            "dump-metadata",
+            value<path>(&filename)
+                // TODO: One could theoretically use this convention to deactivate explicitly via
+                // `<executable> --dump-metadata ""` which might not quite be the expected behaviour.
+                // We should decide if we want something cleverer here to circumvent this.
+                ->default_value("") // this works like bool_switch -> disable if not given
+                ->implicit_value(default_filename) // this provides default value but only if given
+                ->notifier( // this sets `isSupposedToRun`
+                    [this](auto const& filename) { this->isSupposedToRun = filename == "" ? false : true; }));
     }
 
     bool isSupposedToRun{false};
+    path filename{""};
+    const path default_filename{"picongpu-metadata.json"};
 };
 
 // strongly inspired by
@@ -111,5 +125,13 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
         ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
         CHECK(metadataPlugin.isSupposedToRun);
+    }
+
+    SECTION("takes filename after `--dump-metadata`")
+    {
+        string filename{"filename"};
+        FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
+        ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        CHECK(metadataPlugin.filename == filename);
     }
 }
