@@ -40,6 +40,8 @@ struct MetadataPlugin
     void pluginRegisterHelp(options_description& description)
     {
     }
+
+    bool isSupposedToRun{false};
 };
 
 // strongly inspired by
@@ -72,10 +74,11 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
     metadataPlugin.pluginRegisterHelp(description);
     ap.addOptions(description);
 
-    FictitiousArgv fictitiousArgv{{""}};
 
     SECTION("deactivated by default")
     {
+        FictitiousArgv fictitiousArgv{{"<executable>"}};
         ap.parse(fictitiousArgv.size(), fictitiousArgv.makeArgv());
+        CHECK(!metadataPlugin.isSupposedToRun);
     }
 }
