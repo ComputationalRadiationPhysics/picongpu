@@ -104,17 +104,13 @@ namespace picongpu
         };
     } // namespace traits
 
-    template<typename T>
-    void addMetadataOf(T const& obj)
+    template<typename... T, typename... U>
+    void addMetadataOf(U const&... obj)
     {
-        json new_metadata = picongpu::traits::GetMetadata<T>{obj}.description();
-        MetadataPlugin::metadata.merge_patch(new_metadata);
+        using picongpu::traits::GetMetadata;
+
+        (MetadataPlugin::metadata.merge_patch(GetMetadata<T>{}.description()), ...);
+        (MetadataPlugin::metadata.merge_patch(GetMetadata<U>{obj}.description()), ...);
     }
 
-    template<typename T>
-    void addMetadataOf()
-    {
-        json new_metadata = picongpu::traits::GetMetadata<T>{}.description();
-        MetadataPlugin::metadata.merge_patch(new_metadata);
-    }
 } // namespace picongpu
