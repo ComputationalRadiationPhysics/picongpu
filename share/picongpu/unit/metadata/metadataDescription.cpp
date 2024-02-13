@@ -127,5 +127,17 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         CHECK(metadataPlugin.metadata == expected);
     }
 
+    SECTION("overlapping metadata overwrites (test for confidence and documentation)")
+    {
+        SomethingWithRTInfo obj{42};
+        SomethingWithCustomRTInfo obj2{41, 'j'}; // provides same entry as previous one
+        auto expected = json::object();
+        expected["info"] = obj2.moreInfo;
+
+        addMetadataOf(obj);
+        addMetadataOf(obj2);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
     MetadataPlugin::metadata = json::object();
 }
