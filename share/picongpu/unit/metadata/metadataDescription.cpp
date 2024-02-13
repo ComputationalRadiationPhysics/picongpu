@@ -76,6 +76,61 @@ struct picongpu::traits::GetMetadata<SomethingWithCustomRTInfo>
     }
 };
 
+struct SomethingWithPrivateInfo
+{
+protected:
+    int privateInfo = 0;
+
+public:
+    SomethingWithPrivateInfo(int i) : privateInfo{i}
+    {
+    }
+
+    virtual json metadata() const
+    {
+        auto result = json::object();
+        result["privateInfo"] = privateInfo;
+        return result;
+    }
+};
+
+template<>
+struct picongpu::traits::GetMetadata<SomethingWithPrivateInfo>
+{
+    SomethingWithPrivateInfo const& obj;
+
+    json description() const
+    {
+        auto result = obj.metadata();
+        result["customisedInfo"] = "Some customised string.";
+        return result;
+    }
+};
+
+struct SomethingWithoutUsefulMetadata : SomethingWithPrivateInfo
+{
+    friend picongpu::traits::GetMetadata<SomethingWithoutUsefulMetadata>;
+
+    SomethingWithoutUsefulMetadata(int i) : SomethingWithPrivateInfo(i){};
+    json metadata() const override
+    {
+        return {};
+    }
+};
+
+template<>
+struct picongpu::traits::GetMetadata<SomethingWithoutUsefulMetadata>
+{
+    SomethingWithoutUsefulMetadata const& obj;
+
+    json description() const
+    {
+        json result = json::object();
+        result["privateInfo"] = obj.privateInfo;
+        result["customisedInfo"] = "Some other customised string.";
+        return result;
+    }
+};
 
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
 {
@@ -136,6 +191,30 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
 
         addMetadataOf(obj);
         addMetadataOf(obj2);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
+    SECTION("customisation can extract private information from `.metadata()`")
+    {
+        int privateInfo = 42;
+        SomethingWithPrivateInfo obj{privateInfo};
+        auto expected = json::object();
+        expected["privateInfo"] = privateInfo;
+        expected["customisedInfo"] = "Some customised string.";
+
+        addMetadataOf(obj);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
+    SECTION("customisation can extract private information as a friend")
+    {
+        int privateInfo = 42;
+        SomethingWithoutUsefulMetadata obj{privateInfo};
+        auto expected = json::object();
+        expected["privateInfo"] = privateInfo;
+        expected["customisedInfo"] = "Some other customised string.";
+
+        addMetadataOf(obj);
         CHECK(metadataPlugin.metadata == expected);
     }
 
