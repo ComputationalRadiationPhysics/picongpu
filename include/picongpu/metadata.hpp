@@ -107,6 +107,7 @@ namespace picongpu
     template<typename T>
     void addMetadataOf(T const& obj)
     {
-        MetadataPlugin::metadata = picongpu::traits::GetMetadata<T>{obj}.description();
+        json new_metadata = picongpu::traits::GetMetadata<T>{obj}.description();
+        MetadataPlugin::metadata.merge_patch(new_metadata);
     }
 } // namespace picongpu

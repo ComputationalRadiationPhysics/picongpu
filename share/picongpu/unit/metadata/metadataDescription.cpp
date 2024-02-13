@@ -44,13 +44,13 @@ struct SomethingWithRTInfo
 
 struct SomethingWithMoreRTInfo
 {
-    int info = 0;
+    int moreInfo = 0;
     char c = 'a';
 
     json metadata() const
     {
         auto result = json::object();
-        result["info"] = info;
+        result["moreInfo"] = moreInfo;
         result["character"] = c;
         return result;
     }
@@ -70,7 +70,7 @@ struct picongpu::traits::GetMetadata<SomethingWithCustomRTInfo>
     json description() const
     {
         auto result = json::object();
-        result["info"] = obj.info;
+        result["info"] = obj.moreInfo;
         // Is different from output of .metadata() because we are not reporting `c`.
         return result;
     }
@@ -95,7 +95,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
     {
         SomethingWithMoreRTInfo obj{42, 'j'};
         auto expected = json::object();
-        expected["info"] = obj.info;
+        expected["moreInfo"] = obj.moreInfo;
         expected["character"] = obj.c;
 
         addMetadataOf(obj);
@@ -106,10 +106,26 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
     {
         SomethingWithCustomRTInfo obj{42};
         auto expected = json::object();
-        expected["info"] = obj.info;
+        expected["info"] = obj.moreInfo;
         REQUIRE(obj.metadata() != expected); // make sure we test something non-trivial here
 
         addMetadataOf(obj);
         CHECK(metadataPlugin.metadata == expected);
     }
+
+    SECTION("merges two non-overlapping sets of metadata")
+    {
+        SomethingWithRTInfo obj{42};
+        SomethingWithMoreRTInfo obj2{42, 'j'};
+        auto expected = json::object();
+        expected["info"] = obj.info;
+        expected["moreInfo"] = obj2.moreInfo;
+        expected["character"] = obj2.c;
+
+        addMetadataOf(obj);
+        addMetadataOf(obj2);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
+    MetadataPlugin::metadata = json::object();
 }
