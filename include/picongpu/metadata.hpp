@@ -90,9 +90,23 @@ namespace picongpu
         static json metadata;
     };
 
+    namespace traits
+    {
+        template<typename TObject>
+        struct GetMetadata
+        {
+            TObject const& obj;
+
+            json description() const
+            {
+                return obj.metadata();
+            }
+        };
+    } // namespace traits
+
     template<typename T>
     void addMetadataOf(T const& obj)
     {
-        MetadataPlugin::metadata = obj.metadata();
+        MetadataPlugin::metadata = picongpu::traits::GetMetadata<T>{obj}.description();
     }
 } // namespace picongpu

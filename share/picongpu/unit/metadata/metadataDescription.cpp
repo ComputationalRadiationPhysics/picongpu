@@ -56,6 +56,27 @@ struct SomethingWithMoreRTInfo
     }
 };
 
+struct SomethingWithCustomRTInfo : SomethingWithMoreRTInfo
+{
+    // We simply derive from a parent because we need a `.metadata()` implementation to override but we're not really
+    // interested in what it is.
+};
+
+template<>
+struct picongpu::traits::GetMetadata<SomethingWithCustomRTInfo>
+{
+    SomethingWithCustomRTInfo const& obj;
+
+    json description() const
+    {
+        auto result = json::object();
+        result["info"] = obj.info;
+        // Is different from output of .metadata() because we are not reporting `c`.
+        return result;
+    }
+};
+
+
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
 {
     MetadataPlugin metadataPlugin;
@@ -76,6 +97,17 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         auto expected = json::object();
         expected["info"] = obj.info;
         expected["character"] = obj.c;
+
+        addMetadataOf(obj);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
+    SECTION("metadata can be customised via trait")
+    {
+        SomethingWithCustomRTInfo obj{42};
+        auto expected = json::object();
+        expected["info"] = obj.info;
+        REQUIRE(obj.metadata() != expected); // make sure we test something non-trivial here
 
         addMetadataOf(obj);
         CHECK(metadataPlugin.metadata == expected);
