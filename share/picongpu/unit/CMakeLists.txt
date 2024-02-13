@@ -51,6 +51,19 @@ find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../i
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/catch2 ${CMAKE_BINARY_DIR}/catch2)
 
+###############################################################################
+# JSON
+###############################################################################
+
+ set(JSON_BuildTests OFF CACHE INTERNAL "")
+ set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
+ set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
+ set(JSON_Install OFF CACHE INTERNAL "")  # only used PRIVATE
+
+add_subdirectory(
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/nlohmann_json"
+    "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json")
+
 ################################################################################
 # MPI
 ################################################################################
@@ -95,6 +108,11 @@ foreach(dim 2 3)
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
         target_link_libraries(${testExe} PUBLIC argparser)
+        target_include_directories(
+            ${testExe}
+            SYSTEM PRIVATE
+            $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
+        target_link_libraries(${testExe} PRIVATE nlohmann_json::nlohmann_json)
         add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe})
     endforeach()
     string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")

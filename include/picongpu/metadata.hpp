@@ -32,10 +32,14 @@
 #include <ostream>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
+
 namespace picongpu
 {
     using boost::program_options::options_description;
     using boost::program_options::value;
+    using nlohmann::json;
     using pmacc::IPlugin;
     using std::ofstream;
     using std::ostream;
@@ -84,5 +88,11 @@ namespace picongpu
         bool isSupposedToRun{false};
         path filename{""};
         const path defaultFilename{"picongpu-metadata.json"};
+        json metadata{{"info", 42}};
     };
+
+    template<typename T>
+    void addMetadataOf(T const& obj)
+    {
+    }
 } // namespace picongpu
