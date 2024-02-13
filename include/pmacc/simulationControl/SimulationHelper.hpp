@@ -122,7 +122,7 @@ namespace pmacc
         /**
          * Begin the simulation.
          */
-        void startSimulation();
+        virtual void startSimulation();
 
         void pluginRegisterHelp(po::options_description& desc) override;
 

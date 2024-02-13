@@ -119,6 +119,7 @@ namespace picongpu
             desc.add_options()(
                 "versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(),
                 "print version information once and start")
+                ("no-start-simulation", po::bool_switch(&skipSimulation)->default_value(true), "Do not actually run the simulation but initialise everything, skip simulation and finalise.")
                 ("devices,d", po::value<std::vector<uint32_t>>(&devices)->multitoken(),
                  "number of devices in each dimension")
                 ("grid,g", po::value<std::vector<uint32_t>>(&gridSize)->multitoken(),
@@ -156,6 +157,12 @@ namespace picongpu
             fieldBackground.registerHelp(desc);
             particleBoundaries.registerHelp(desc);
             runtimeDensityFile.registerHelp(desc);
+        }
+
+        virtual void startSimulation() override
+        {
+            if(!skipSimulation)
+                SimulationHelper<simDim>::startSimulation();
         }
 
         std::string pluginGetName() const override
@@ -641,6 +648,7 @@ namespace picongpu
         bool showVersionOnce{false};
         bool autoAdjustGrid = true;
         uint32_t numRanksPerDevice = 1u;
+        bool skipSimulation{false};
 
     private:
         /** Get available memory on device
