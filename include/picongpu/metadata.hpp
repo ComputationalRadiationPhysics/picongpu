@@ -110,4 +110,11 @@ namespace picongpu
         json new_metadata = picongpu::traits::GetMetadata<T>{obj}.description();
         MetadataPlugin::metadata.merge_patch(new_metadata);
     }
+
+    template<typename T>
+    void addMetadataOf()
+    {
+        json new_metadata = picongpu::traits::GetMetadata<T>{}.description();
+        MetadataPlugin::metadata.merge_patch(new_metadata);
+    }
 } // namespace picongpu

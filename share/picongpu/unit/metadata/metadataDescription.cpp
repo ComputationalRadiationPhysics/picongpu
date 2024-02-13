@@ -132,6 +132,28 @@ struct picongpu::traits::GetMetadata<SomethingWithoutUsefulMetadata>
     }
 };
 
+struct SomeParameter
+{
+    static constexpr int info = 0;
+};
+
+struct SomethingWithCTInfo
+{
+    using Info = SomeParameter;
+};
+
+template<>
+struct picongpu::traits::GetMetadata<SomethingWithCTInfo>
+{
+    using CTObject = SomethingWithCTInfo;
+    json description() const
+    {
+        json result = json::object();
+        result["Info"] = CTObject::Info::info;
+        return result;
+    }
+};
+
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
 {
     MetadataPlugin metadataPlugin;
@@ -218,5 +240,13 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         CHECK(metadataPlugin.metadata == expected);
     }
 
+    SECTION("can extract CT information")
+    {
+        auto expected = json::object();
+        expected["Info"] = SomethingWithCTInfo::Info::info;
+
+        addMetadataOf<SomethingWithCTInfo>();
+        CHECK(metadataPlugin.metadata == expected);
+    }
     MetadataPlugin::metadata = json::object();
 }
