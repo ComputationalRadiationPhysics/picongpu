@@ -20,46 +20,22 @@
 #include <pmacc/boost_workaround.hpp>
 
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/metadata.hpp"
 
 #include <boost/program_options/options_description.hpp>
-#include <boost/program_options/value_semantic.hpp>
 
 #include <filesystem>
+#include <string>
 
 #include <catch2/catch_test_macros.hpp>
 
 using boost::program_options::options_description;
-using boost::program_options::value;
 using picongpu::ArgsParser;
+using picongpu::MetadataPlugin;
 using std::string;
 using std::vector;
 using std::filesystem::path;
 
-struct MetadataPlugin
-{
-    string pluginGetName()
-    {
-        return "MetadataPlugin";
-    }
-
-    void pluginRegisterHelp(options_description& description)
-    {
-        description.add_options()(
-            "dump-metadata",
-            value<path>(&filename)
-                // TODO: One could theoretically use this convention to deactivate explicitly via
-                // `<executable> --dump-metadata ""` which might not quite be the expected behaviour.
-                // We should decide if we want something cleverer here to circumvent this.
-                ->default_value("") // this works like bool_switch -> disable if not given
-                ->implicit_value(defaultFilename) // this provides default value but only if given
-                ->notifier( // this sets `isSupposedToRun`
-                    [this](auto const& filename) { this->isSupposedToRun = filename == "" ? false : true; }));
-    }
-
-    bool isSupposedToRun{false};
-    path filename{""};
-    const path defaultFilename{"picongpu-metadata.json"};
-};
 
 // strongly inspired by
 // https://codereview.stackexchange.com/questions/205269/create-a-c-style-char-from-a-c-vectorstring/205298#205298

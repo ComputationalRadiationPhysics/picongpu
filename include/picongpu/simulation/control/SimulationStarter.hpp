@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/metadata.hpp"
 #include "picongpu/simulation/control/ISimulationStarter.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -47,6 +48,7 @@ namespace picongpu
         std::unique_ptr<SimulationClass> simulationClass;
         std::unique_ptr<InitClass> initClass;
         std::unique_ptr<PluginClass> pluginClass;
+        std::unique_ptr<MetadataPlugin> metadataClass;
 
 
         MappingDesc* mappingDesc{nullptr};
@@ -58,6 +60,7 @@ namespace picongpu
             initClass = std::make_unique<InitClass>();
             simulationClass->setInitController(initClass.get());
             pluginClass = std::make_unique<PluginClass>();
+            metadataClass = std::make_unique<MetadataPlugin>();
         }
 
         std::string pluginGetName() const override
@@ -71,6 +74,7 @@ namespace picongpu
             pluginConnector.loadPlugins();
             log<picLog::SIMULATION_STATE>("Startup");
             simulationClass->setInitController(initClass.get());
+            metadataClass->dump();
             simulationClass->startSimulation();
         }
 
@@ -99,6 +103,10 @@ namespace picongpu
             pluginClass->pluginRegisterHelp(pluginDesc);
             ap.addOptions(pluginDesc);
 
+            po::options_description metadataDesc(metadataClass->pluginGetName());
+            metadataClass->pluginRegisterHelp(metadataDesc);
+            ap.addOptions(metadataDesc);
+
             // setup all boost::program_options and add to ArgsParser
             BoostOptionsList options = pluginConnector.registerHelp();
 
@@ -115,6 +123,7 @@ namespace picongpu
         void pluginLoad() override
         {
             simulationClass->load();
+            metadataClass->load();
             mappingDesc = simulationClass->getMappingDescription();
             pluginClass->setMappingDescription(mappingDesc);
             initClass->setMappingDescription(mappingDesc);
@@ -126,6 +135,7 @@ namespace picongpu
             pluginConnector.unloadPlugins();
             initClass->unload();
             pluginClass->unload();
+            metadataClass->unload();
             simulationClass->unload();
         }
 
