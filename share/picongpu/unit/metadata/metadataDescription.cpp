@@ -1,4 +1,4 @@
-/* Copyright 2023 Julian Lenz
+/* Copyright 2024 Julian Lenz
  *
  * This file is part of PIConGPU.
  *
