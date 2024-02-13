@@ -28,9 +28,32 @@ using nlohmann::json;
 using picongpu::addMetadataOf;
 using picongpu::MetadataPlugin;
 
+json picongpu::MetadataPlugin::metadata;
+
 struct SomethingWithRTInfo
 {
     int info = 0;
+
+    json metadata() const
+    {
+        auto result = json::object();
+        result["info"] = info;
+        return result;
+    }
+};
+
+struct SomethingWithMoreRTInfo
+{
+    int info = 0;
+    char c = 'a';
+
+    json metadata() const
+    {
+        auto result = json::object();
+        result["info"] = info;
+        result["character"] = c;
+        return result;
+    }
 };
 
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
@@ -40,7 +63,19 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
     SECTION("can add RT info for simple object")
     {
         SomethingWithRTInfo obj{42};
-        json expected = json::object({{"info", 42}});
+        auto expected = json::object();
+        expected["info"] = obj.info;
+
+        addMetadataOf(obj);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
+    SECTION("can add RT info for simple object")
+    {
+        SomethingWithMoreRTInfo obj{42, 'j'};
+        auto expected = json::object();
+        expected["info"] = obj.info;
+        expected["character"] = obj.c;
 
         addMetadataOf(obj);
         CHECK(metadataPlugin.metadata == expected);

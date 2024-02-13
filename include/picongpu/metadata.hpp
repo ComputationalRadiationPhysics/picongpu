@@ -87,11 +87,12 @@ namespace picongpu
         bool isSupposedToRun{false};
         path filename{""};
         const path defaultFilename{"picongpu-metadata.json"};
-        json metadata{{"info", 42}};
+        static json metadata;
     };
 
     template<typename T>
     void addMetadataOf(T const& obj)
     {
+        MetadataPlugin::metadata = obj.metadata();
     }
 } // namespace picongpu
