@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <pmacc/boost_workaround.hpp>
+
 #include "pmacc/pluginSystem/IPlugin.hpp"
 
 #include <boost/program_options/options_description.hpp>
