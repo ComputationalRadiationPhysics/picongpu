@@ -107,6 +107,13 @@ namespace picongpu
     template<typename... T, typename... U>
     void addMetadataOf(U const&... obj)
     {
+        // This implementation would theoretically be capable of adding multiple CT and RT metadata sets at once.
+        // But it feels like a potential reason for a lot of headache for future-me, so as long as we don't need that
+        // feature, we deactivate manually here.
+        static_assert(
+            sizeof...(T) + sizeof...(U) == 1,
+            "As we consider it highly likely to mess up non-trivial cases, please add your metadata one by one.");
+
         using picongpu::traits::GetMetadata;
 
         (MetadataPlugin::metadata.merge_patch(GetMetadata<T>{}.description()), ...);
