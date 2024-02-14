@@ -162,7 +162,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         CHECK(metadataPlugin.metadata == expected);
     }
 
-    SECTION("can add RT info for simple object")
+    SECTION("can handle multiple pieces of information")
     {
         SomethingWithMoreRTInfo obj{42, 'j'};
         auto expected = json::object();
