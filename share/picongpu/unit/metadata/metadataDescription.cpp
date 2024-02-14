@@ -148,6 +148,24 @@ struct SomethingWithCTInfo
     }
 };
 
+struct SomethingWithCustomCTInfo : SomethingWithCTInfo
+{
+};
+
+template<>
+struct picongpu::traits::GetMetadata<SomethingWithCustomCTInfo>
+{
+    static json descriptionCT()
+    {
+        // Maybe the value of info needs to be multiplied by a unit to get a meaningful value for metadata:
+        int unit = 10;
+        json result = SomethingWithCustomCTInfo::metadata();
+        // It's surprisingly verbose to get back an int from this. See https://json.nlohmann.me for more details.
+        result["Info"] = result.at("Info").get<int>() * unit;
+        return result;
+    }
+};
+
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
 {
     MetadataPlugin metadataPlugin;
@@ -240,6 +258,15 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
     {
         auto expected = json::object();
         expected["Info"] = SomethingWithCTInfo::Info::info;
+
+        addMetadataOf<SomethingWithCTInfo>();
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
+    SECTION("can extract customised CT information")
+    {
+        auto expected = json::object();
+        expected["Info"] = 10 * SomethingWithCustomCTInfo::Info::info;
 
         addMetadataOf<SomethingWithCTInfo>();
         CHECK(metadataPlugin.metadata == expected);
