@@ -1,4 +1,4 @@
-/* Copyright 2023 Sergei Bastrakov, Finn-Ole Carstens
+/* Copyright 2023-2024 Sergei Bastrakov, Finn-Ole Carstens, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -187,6 +187,18 @@ namespace picongpu
                     static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                     static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                     /** @} */
+
+                    static json metadata()
+                    {
+                        json metadata = json::object();
+                        metadata["polarisation"]["direction"] = vector<float_64>{
+                            {POLARISATION_DIRECTION_X, POLARISATION_DIRECTION_Y, POLARISATION_DIRECTION_Z}};
+                        metadata["polarisation"]["type"]
+                            = Polarisation == PolarisationType::Linear ? "linear" : "circular";
+                        json result = json::object();
+                        result["incidentField"] = metadata;
+                        return result;
+                    }
                 };
             } // namespace profiles
         } // namespace incidentField

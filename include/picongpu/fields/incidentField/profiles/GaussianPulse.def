@@ -1,5 +1,6 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
+                       Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -70,6 +71,16 @@ namespace picongpu::fields::incidentField::profiles
             using LAGUERREPHASES_t = gaussianPulse::LAGUERREPHASES_t;
             static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
             /** @} */
+
+            static json metadata()
+            {
+                auto baseMetadata = BaseParam::metadata();
+                auto gaussianMetadata = json::object();
+                gaussianMetadata["W0"] = W0_SI;
+                gaussianMetadata["PULSE_INIT"] = PULSE_INIT;
+                baseMetadata["incidentField"]["Gaussian parameters"] = gaussianMetadata;
+                return baseMetadata;
+            }
         };
     } // namespace defaults
 

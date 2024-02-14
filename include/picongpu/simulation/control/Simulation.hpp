@@ -165,6 +165,13 @@ namespace picongpu
                 SimulationHelper<simDim>::startSimulation();
         }
 
+        json metadata() const
+        {
+            auto result = json::object();
+            result["simulation"]["steps"] = runSteps;
+            return result;
+        }
+
         std::string pluginGetName() const override
         {
             return "PIConGPU";
