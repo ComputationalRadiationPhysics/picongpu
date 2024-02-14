@@ -200,6 +200,8 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
 
     SECTION("overlapping metadata overwrites (test for confidence and documentation)")
     {
+        // actually in the documentation we explicitly don't specify an order, so this is technically undefined
+        // behaviour
         SomethingWithRTInfo obj{42};
         SomethingWithCustomRTInfo obj2{41, 'j'}; // provides same entry as previous one
         auto expected = json::object();
