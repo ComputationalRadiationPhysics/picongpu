@@ -67,7 +67,7 @@ struct picongpu::traits::GetMetadata<SomethingWithCustomRTInfo>
 {
     SomethingWithCustomRTInfo const& obj;
 
-    json description() const
+    json descriptionRT() const
     {
         auto result = json::object();
         result["info"] = obj.moreInfo;
@@ -99,7 +99,7 @@ struct picongpu::traits::GetMetadata<SomethingWithPrivateInfo>
 {
     SomethingWithPrivateInfo const& obj;
 
-    json description() const
+    json descriptionRT() const
     {
         auto result = obj.metadata();
         result["customisedInfo"] = "Some customised string.";
@@ -123,7 +123,7 @@ struct picongpu::traits::GetMetadata<SomethingWithoutUsefulMetadata>
 {
     SomethingWithoutUsefulMetadata const& obj;
 
-    json description() const
+    json descriptionRT() const
     {
         json result = json::object();
         result["privateInfo"] = obj.privateInfo;
@@ -140,16 +140,10 @@ struct SomeParameter
 struct SomethingWithCTInfo
 {
     using Info = SomeParameter;
-};
-
-template<>
-struct picongpu::traits::GetMetadata<SomethingWithCTInfo>
-{
-    using CTObject = SomethingWithCTInfo;
-    json description() const
+    static json metadata()
     {
         json result = json::object();
-        result["Info"] = CTObject::Info::info;
+        result["Info"] = Info::info;
         return result;
     }
 };
@@ -240,7 +234,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         CHECK(metadataPlugin.metadata == expected);
     }
 
-    SECTION("can extract CT information")
+    SECTION("can extract default CT information")
     {
         auto expected = json::object();
         expected["Info"] = SomethingWithCTInfo::Info::info;

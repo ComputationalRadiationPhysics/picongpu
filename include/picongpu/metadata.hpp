@@ -97,9 +97,14 @@ namespace picongpu
         {
             TObject const& obj;
 
-            json description() const
+            json descriptionRT() const
             {
                 return obj.metadata();
+            }
+
+            static json descriptionCT()
+            {
+                return TObject::metadata();
             }
         };
     } // namespace traits
@@ -116,8 +121,8 @@ namespace picongpu
 
         using picongpu::traits::GetMetadata;
 
-        (MetadataPlugin::metadata.merge_patch(GetMetadata<T>{}.description()), ...);
-        (MetadataPlugin::metadata.merge_patch(GetMetadata<U>{obj}.description()), ...);
+        (MetadataPlugin::metadata.merge_patch(GetMetadata<T>::descriptionCT()), ...);
+        (MetadataPlugin::metadata.merge_patch(GetMetadata<U>{obj}.descriptionRT()), ...);
     }
 
 } // namespace picongpu
