@@ -23,7 +23,9 @@
 
 #include "picongpu/ArgsParser.hpp"
 #include "picongpu/metadata.hpp"
+#include "picongpu/metadataCT.def"
 #include "picongpu/simulation/control/ISimulationStarter.hpp"
+#include "pmacc/meta/ForEach.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
@@ -39,9 +41,18 @@ namespace picongpu
 {
     using namespace pmacc;
 
+    template<typename T>
+    struct AddMetadataOf
+    {
+        void operator()()
+        {
+            addMetadataOf<T>();
+        }
+    };
+
     void addMetadataRegisteredAtCT()
     {
-        addMetadataOf<picongpu::fields::incidentField::YMin>();
+        pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<boost::mpl::_1>>{}();
     }
 
     template<class InitClass, class PluginClass, class SimulationClass>
