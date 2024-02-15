@@ -24,5 +24,12 @@
 #include "pmacc/meta/conversion/MakeSeq.hpp"
 namespace picongpu
 {
-    using MetadataRegisteredAtCT = pmacc::MakeSeq_t<picongpu::fields::incidentField::YMin>;
-}
+    using picongpu::fields::incidentField::XMax;
+    using picongpu::fields::incidentField::XMin;
+    using picongpu::fields::incidentField::YMax;
+    using picongpu::fields::incidentField::YMin;
+    using picongpu::fields::incidentField::ZMax;
+    using picongpu::fields::incidentField::ZMin;
+
+    using MetadataRegisteredAtCT = pmacc::MakeSeq_t<XMin, YMin, ZMin, XMax, YMax, ZMax>;
+} // namespace picongpu

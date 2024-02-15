@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Sergei Bastrakov
+/* Copyright 2022-2024 Sergei Bastrakov, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,11 @@ namespace picongpu
                     HINLINE static std::string getName()
                     {
                         return "None";
+                    }
+
+                    static json metadata()
+                    {
+                        return json::object();
                     }
                 };
             } // namespace profiles
