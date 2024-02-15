@@ -77,8 +77,11 @@ namespace picongpu
         }
         void dump() const
         {
-            ofstream file{filename};
-            dump(file);
+            if(isSupposedToRun)
+            {
+                ofstream file{filename};
+                dump(file);
+            }
         }
         void dump(ostream& stream) const
         {
