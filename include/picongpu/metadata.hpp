@@ -82,6 +82,7 @@ namespace picongpu
         }
         void dump(ostream& stream) const
         {
+            stream << metadata.dump(2);
         }
 
         bool isSupposedToRun{false};
