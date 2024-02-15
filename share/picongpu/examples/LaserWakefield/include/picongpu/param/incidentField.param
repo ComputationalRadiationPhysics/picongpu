@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Sergei Bastrakov, Rene Widera
+/* Copyright 2020-2024 Sergei Bastrakov, Rene Widera, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -89,7 +89,7 @@ namespace picongpu
              * The particular used parameter structures do not have to inherit this, but must define same members
              * with same meaning.
              */
-            struct LwfaGaussianPulseBaseParams
+            struct LwfaGaussianPulseBaseParams : public BaseParam
             {
                 /** Wave length along propagation direction
                  *
@@ -209,6 +209,11 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                 /** @} */
+
+                static constexpr auto metadata = []<typename MyType = LwfaGaussianPulseBaseParams>
+                {
+                    return BaseParam::metadata<MyType>();
+                };
             };
 
             namespace lwfaGaussianPulse
