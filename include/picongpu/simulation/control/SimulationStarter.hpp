@@ -39,6 +39,11 @@ namespace picongpu
 {
     using namespace pmacc;
 
+    void addMetadataRegisteredAtCT()
+    {
+        addMetadataOf<picongpu::fields::incidentField::YMin>();
+    }
+
     template<class InitClass, class PluginClass, class SimulationClass>
     class SimulationStarter : public ISimulationStarter
     {
@@ -124,6 +129,7 @@ namespace picongpu
         {
             simulationClass->load();
             metadataClass->load();
+            addMetadataRegisteredAtCT();
             mappingDesc = simulationClass->getMappingDescription();
             pluginClass->setMappingDescription(mappingDesc);
             initClass->setMappingDescription(mappingDesc);
