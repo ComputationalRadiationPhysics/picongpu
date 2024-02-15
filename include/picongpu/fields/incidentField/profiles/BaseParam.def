@@ -19,8 +19,11 @@
 
 #pragma once
 
+#include "../../../thirdParty/nlohmann_json/single_include/nlohmann/json.hpp"
 namespace picongpu
 {
+    using nlohmann::json;
+    using std::vector;
     namespace fields
     {
         namespace incidentField

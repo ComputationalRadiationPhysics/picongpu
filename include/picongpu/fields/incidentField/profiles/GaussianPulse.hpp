@@ -1,5 +1,6 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
+ *                     Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "../../../../thirdParty/nlohmann_json/single_include/nlohmann/json.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
 
@@ -356,6 +358,11 @@ namespace picongpu::fields::incidentField
                 std::string name = isTilted ? "PulseFrontTilt" : "GaussianPulse";
                 name += "_with_" + LongitudinalEnvelope::getName();
                 return name;
+            }
+
+            static json metadata()
+            {
+                return T_Params::metadata();
             }
         };
 
