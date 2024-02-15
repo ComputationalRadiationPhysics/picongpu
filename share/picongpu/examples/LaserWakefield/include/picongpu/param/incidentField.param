@@ -210,7 +210,8 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                 /** @} */
 
-                static constexpr auto metadata = []<typename MyType = LwfaGaussianPulseBaseParams>
+                template<typename MyType = LwfaGaussianPulseBaseParams>
+                static auto metadata()
                 {
                     return BaseParam::metadata<MyType>();
                 };
