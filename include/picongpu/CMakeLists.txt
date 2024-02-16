@@ -325,7 +325,7 @@ if(PIC_SEARCH_openPMD)
             # TOML
             set(
                 PIC_toml11_PROVIDER "intern" CACHE
-                STRING "Use internally shipped or external nlohmann_json library.")
+                STRING "Use internally shipped or external toml11 library.")
             set_property(
                 CACHE PIC_toml11_PROVIDER
                 PROPERTY STRINGS "intern;extern")
