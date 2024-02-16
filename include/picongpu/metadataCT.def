@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/meta/conversion/MakeSeq.hpp"
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 namespace picongpu
 {
     using picongpu::fields::incidentField::XMax;

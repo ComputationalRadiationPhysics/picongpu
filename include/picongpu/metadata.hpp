@@ -22,7 +22,8 @@
 #include <pmacc/boost_workaround.hpp>
 
 #include "../../../thirdParty/nlohmann_json/single_include/nlohmann/json.hpp"
-#include "pmacc/pluginSystem/IPlugin.hpp"
+
+#include <pmacc/pluginSystem/IPlugin.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
