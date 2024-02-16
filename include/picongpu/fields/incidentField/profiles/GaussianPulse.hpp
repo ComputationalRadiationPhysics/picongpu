@@ -23,7 +23,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "../../../../thirdParty/nlohmann_json/single_include/nlohmann/json.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
 
@@ -34,6 +33,8 @@
 #include <limits>
 #include <string>
 #include <type_traits>
+
+#include <nlohmann/json.hpp>
 
 
 namespace picongpu::fields::incidentField

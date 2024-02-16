@@ -532,6 +532,12 @@ target_include_directories(
     $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
 target_link_libraries(picongpu-hostonly PRIVATE nlohmann_json::nlohmann_json)
 
+target_include_directories(
+    picongpu
+    SYSTEM PRIVATE
+    $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_libraries(picongpu PRIVATE nlohmann_json::nlohmann_json)
+
 if(PIC_HAVE_openPMD)
     # same tricks for toml11
     target_include_directories(
