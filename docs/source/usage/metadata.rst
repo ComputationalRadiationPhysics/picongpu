@@ -10,7 +10,7 @@ Starting your simulation with
 will dump a `json`_ respresentation of some metadata to `<filename>`. If no `<filename>` is given, the default value
 `???` is used. This feature might in a future revision default to being active.
 
-You might want to dump metadata without actually running a simulation. In this case, you can add the 
+You might want to dump metadata without actually running a simulation. In this case, you can add the
 `--no-start-simulation` flag which will make the code skip the actual simulation.
 
 The dumping happens after all initialisation immediately before the simulation starts (or is skipped). This implies that
@@ -35,18 +35,18 @@ categorisation in the physical context and not (enforced to be) aligned with the
   simulated conditions**. The envisioned use cases are:
 
     * a theoretician quickly getting an overview over their simulation data,
-    * an experimentalist comparing with simulation data or 
+    * an experimentalist comparing with simulation data or
     * a database using such information for tagging, filtering and searching.
 
   The following related aspects are out of scope (for the PIConGPU development team):
-    
-    * Reproducibility: The only faithful, feature-complete representation of the input necessary to reproduce a 
-      PIConGPU simulation is the complete input directory. If a more standardised and human-readable repesentation is 
+
+    * Reproducibility: The only faithful, feature-complete representation of the input necessary to reproduce a
+      PIConGPU simulation is the complete input directory. If a more standardised and human-readable repesentation is
       desired, :ref:`PICMI<???>` provides access to a small subset of features.
-    * Completeness: This feature is intended to be fed with well-structured information considered important by the 
-      researchers. It is :ref:`customisable<???>` but the design does not allow to ensure any form of completeness with 
+    * Completeness: This feature is intended to be fed with well-structured information considered important by the
+      researchers. It is :ref:`customisable<???>` but the design does not allow to ensure any form of completeness with
       appropriate maintenance effort. We therefore do not aim to describe simulations exhaustively.
-    * (De-)Serialisation: We do not provide infrastructure to fully or partially reconstruct C++ objects from the 
+    * (De-)Serialisation: We do not provide infrastructure to fully or partially reconstruct C++ objects from the
       dumped information.
     * Standardisation or generalisation of the format: The format and content are the result of our best effort to be
       useful. Any form of standardisation or generalisation beyond this scope requires a resources commitment from
@@ -59,7 +59,7 @@ The Format
 The created file is a human-readable text file containing valid `json` the content of which is partially
 :ref:`customisable<???>`. We do not enforce a particular format but suggest that you stick as closely as possible to the
 naming conventions from :ref:`PyPIConGPU<???>` and :ref:`PICMI<???>`. By default, the output has the following
-high-level structure which might be supplemented with further details as appropriate for the described elements of the 
+high-level structure which might be supplemented with further details as appropriate for the described elements of the
 simulation:
 
 ``???``
@@ -92,7 +92,7 @@ for example
 
    template<>
    struct picongpu::traits::GetMetadata<MyClass> {
-    
+
      MyClass const& obj;
 
      json description() const {
@@ -104,7 +104,7 @@ for example
      }
    };
 
-put anywhere in the code where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the declaration 
+put anywhere in the code where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the declaration
 of `MyClass` itself.
 
 The `json` object returned from `description()` is related to the final output via a `merge_patch`_ operation but we do
@@ -112,17 +112,17 @@ not guarantee any particular order in which these are merged. So it is effective
 to make sure that no metadata entries overwrite each other.
 
 These external classes might run into access restrictions when attempting to dump `private`_ or `protected`_ members.
-These can be circumvented in three ways: 
+These can be circumvented in three ways:
 
 1. If `MyClass` already implements a `.metadata()` method, it might already provide the necessary information through
    that interface, e.g.
 
    .. code::
-      
-      
+
+
       template<>
       struct picongpu::traits::GetMetadata<MyClass> {
-       
+
         MyClass const& obj;
 
         json description() const {
@@ -133,28 +133,28 @@ These can be circumvented in three ways:
         }
       };
 
-  This is the preferred way of handling this situation (if applicable). The default implementation of 
+  This is the preferred way of handling this situation (if applicable). The default implementation of
   `picongpu::traits::GetMetadata` forwards to such `.metadata()` methods anyway.
 
 2. Declare `picongpu::traits::GetMetadata<MyClass` a friend of `MyClass`, i.e.
 
    .. code::
-   
+
       class MyClass {
         friend picongpu::traits::GetMetadata<MyClass>;
         // ...
       }
 
-   This way is minimally invasive and preferred if your change is only applicable to your personal situation and is 
+   This way is minimally invasive and preferred if your change is only applicable to your personal situation and is
    not intended to land into mainline.
 
 3. Implement/adjust the `.metadata()` member function of `MyClass`
 
    .. code::
-      
+
       class MyClass {
         // ...
-        
+
         json metadata() const {
           // here you have all access you could possibly have
         }
