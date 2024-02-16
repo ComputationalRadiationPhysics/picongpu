@@ -191,16 +191,21 @@ namespace picongpu
                     static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                     /** @} */
 
-                    template<typename MyType = BaseParam>
+                    template<typename My = BaseParam>
                     static json metadata()
                     {
+                        // We make this a function template in order to gain control over the type we are applying this
+                        // to. A derived class of the BaseParam should similarly make their own `.metadata()` member a
+                        // `template<typename My =Derived>` and should use `BaseParam::metadata<My>()` as a starting
+                        // point for customisation.
+
                         json metadata = json::object();
                         metadata["polarisation"]["direction"] = vector<float_64>{
-                            {MyType::POLARISATION_DIRECTION_X,
-                             MyType::POLARISATION_DIRECTION_Y,
-                             MyType::POLARISATION_DIRECTION_Z}};
+                            {My::POLARISATION_DIRECTION_X,
+                             My::POLARISATION_DIRECTION_Y,
+                             My::POLARISATION_DIRECTION_Z}};
                         metadata["polarisation"]["type"]
-                            = MyType::Polarisation == PolarisationType::Linear ? "linear" : "circular";
+                            = My::Polarisation == PolarisationType::Linear ? "linear" : "circular";
                         json result = json::object();
                         result["incidentField"] = metadata;
                         return result;

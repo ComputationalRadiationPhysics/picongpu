@@ -210,10 +210,12 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                 /** @} */
 
-                template<typename MyType = LwfaGaussianPulseBaseParams>
+                template<typename My = LwfaGaussianPulseBaseParams>
                 static auto metadata()
                 {
-                    return BaseParam::metadata<MyType>();
+                    // static member functions do not bind to the derived type when inherited, so we have to refer to
+                    // our type explicitly
+                    return BaseParam::metadata<My>();
                 };
             };
 
