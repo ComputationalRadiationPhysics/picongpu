@@ -166,6 +166,38 @@ struct picongpu::traits::GetMetadata<SomethingWithCustomCTInfo>
     }
 };
 
+// An example for the documentation:
+
+struct CompileTimeInformation
+{
+    static constexpr int value = 42;
+};
+
+struct MyClass
+{
+    using MyCompileTimeInformation = CompileTimeInformation;
+    const int runtimeValue = 8;
+    // would normally also provide a default implementation of
+    // json descriptionRT() const;
+};
+
+// doc-include-start: metadata customisation
+template<>
+struct picongpu::traits::GetMetadata<MyClass>
+{
+    MyClass const& obj;
+
+    json descriptionRT() const
+    {
+        json result = json::object(); // always use objects and not arrays as root
+        result["my"]["cool"]["runtimeValue"] = obj.runtimeValue;
+        result["my"]["cool"]["compiletimeValue"] = MyClass::MyCompileTimeInformation::value;
+        result["somethingElseThatSeemedImportant"] = "not necessarily derived from obj or MyClass";
+        return result;
+    }
+};
+// doc-include-end: metadata customisation
+
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
 {
     MetadataPlugin metadataPlugin;
@@ -271,5 +303,18 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         addMetadataOf<SomethingWithCTInfo>();
         CHECK(metadataPlugin.metadata == expected);
     }
+
+    SECTION("can extract customised CT information")
+    {
+        MyClass obj;
+        auto expected = json::object();
+        expected["my"]["cool"]["runtimeValue"] = obj.runtimeValue;
+        expected["my"]["cool"]["compiletimeValue"] = MyClass::MyCompileTimeInformation::value;
+        expected["somethingElseThatSeemedImportant"] = "not necessarily derived from obj or MyClass";
+
+        addMetadataOf(obj);
+        CHECK(metadataPlugin.metadata == expected);
+    }
+
     MetadataPlugin::metadata = json::object();
 }

@@ -73,36 +73,19 @@ Content Creation
 The main customisation point for adding and adjusting the output related to some `typename TObject`, say a Laser or the
 `Simulation` object itself, is providing a specialisation for
 
-.. code::
-
-  template <typename TObject>
-  struct picongpu::traits::GetMetadata {
-
-    // omitted for purely compile-time types
-    TObject const& obj;
-
-    // must be static for purely compile-time types
-    json description() const;
-
-  };
+.. literalinclude:: ../../../include/picongpu/metadata.hpp
+   :language: C++
+   :start-after: doc-include-start: GetMetdata trait
+   :end-before: doc-include-end: GetMetdata trait
+   :dedent:
 
 for example
 
-.. code::
-
-   template<>
-   struct picongpu::traits::GetMetadata<MyClass> {
-
-     MyClass const& obj;
-
-     json description() const {
-       json result = json::object(); // always use objects and not arrays as root
-       result["my"]["cool"]["runtimeValue"] = obj.runtimeValue;
-       result["my"]["cool"]["compiletimeValue"] = MyClass::MyCompileTime::value;
-       result["somethingElseThatSeemedImportant"] = "not necessarily derived from obj or MyClass";
-       return result;
-     }
-   };
+.. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
+   :language: C++
+   :start-after: doc-include-start: metadata customisation
+   :end-before: doc-include-end: metadata customisation
+   :dedent:
 
 put anywhere in the code where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the declaration
 of `MyClass` itself.
