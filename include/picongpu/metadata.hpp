@@ -89,7 +89,11 @@ namespace picongpu
 
         bool isSupposedToRun{false};
         path filename{""};
-        const path defaultFilename{"picongpu-metadata.json"};
+        const path defaultFilename{
+            // doc-include-start: metadata default filename
+            "picongpu-metadata.json"
+            // doc-include-end: metadata default filename
+        };
         static nlohmann::json metadata;
     };
 

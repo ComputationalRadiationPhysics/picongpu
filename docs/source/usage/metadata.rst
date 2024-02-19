@@ -8,7 +8,14 @@ Starting your simulation with
 ``<executable> [...] --dump-metadata [<filename>] [--no-start-simulation]``
 
 will dump a `json`_ respresentation of some metadata to `<filename>`. If no `<filename>` is given, the default value
-`???` is used. This feature might in a future revision default to being active.
+
+.. literalinclude:: ../../../include/picongpu/metadata.hpp
+   :language: C++
+   :start-after: doc-include-start: metadata default filename
+   :end-before: doc-include-end: metadata default filename
+   :dedent:
+
+is used. This feature might in a future revision default to being active.
 
 You might want to dump metadata without actually running a simulation. In this case, you can add the
 `--no-start-simulation` flag which will make the code skip the actual simulation.
