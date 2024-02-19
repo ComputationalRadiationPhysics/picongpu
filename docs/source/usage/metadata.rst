@@ -117,7 +117,7 @@ These can be circumvented in three ways:
   This is the preferred way of handling this situation (if applicable). The default implementation of
   `picongpu::traits::GetMetadata` forwards to such `.metadata()` methods anyway.
 
-2. Declare `picongpu::traits::GetMetadata<MyClass>` a friend of `MyClass`, e.g.
+2. Declare `picongpu::traits::GetMetadata<MyClass>` a `friend`_ of `MyClass`, e.g.
 
   .. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
      :language: C++
@@ -167,3 +167,4 @@ case they can be handled exactly as compile-time-only classes.
 .. _merge_patch: https://datatracker.ietf.org/doc/html/rfc7396
 .. _private: https://en.cppreference.com/w/cpp/language/access
 .. _protected: https://en.cppreference.com/w/cpp/language/access
+.. _friend: https://en.cppreference.com/w/cpp/language/friend
