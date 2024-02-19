@@ -71,7 +71,7 @@ Content Creation
 ^^^^^^^^^^^^^^^^
 
 The main customisation point for adding and adjusting the output related to some `typename TObject`, say a Laser or the
-`Simulation` object itself, is providing a specialisation for
+`Simulation` object itself, is providing a specialisation for `picongpu::traits::GetMetadata` defaulting to
 
 .. literalinclude:: ../../../include/picongpu/metadata.hpp
    :language: C++
@@ -79,7 +79,8 @@ The main customisation point for adding and adjusting the output related to some
    :end-before: doc-include-end: GetMetdata trait
    :dedent:
 
-for example
+For example, customising the metadata for `MyClass` with some runtime as well as some compiletime information could look
+something like this
 
 .. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
    :language: C++
@@ -87,8 +88,8 @@ for example
    :end-before: doc-include-end: metadata customisation
    :dedent:
 
-put anywhere in the code where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the declaration
-of `MyClass` itself.
+This can be put anywhere in the code where `MyClass` is known, e.g., in a pertinent `.param` file or directly below the
+declaration of `MyClass` itself.
 
 The `json` object returned from `description()` is related to the final output via a `merge_patch`_ operation but we do
 not guarantee any particular order in which these are merged. So it is effectively the responsibility of the programmer
@@ -100,54 +101,37 @@ These can be circumvented in three ways:
 1. If `MyClass` already implements a `.metadata()` method, it might already provide the necessary information through
    that interface, e.g.
 
-   .. code::
-
-
-      template<>
-      struct picongpu::traits::GetMetadata<MyClass> {
-
-        MyClass const& obj;
-
-        json description() const {
-          json result = obj.metadata();
-          result["adjust"]["to"]["your"]["liking"] = obj.moreToDump;
-          // or alternatively create a new json instance and only copy over some information
-          return result;
-        }
-      };
+  .. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
+     :language: C++
+     :start-after: doc-include-start: reusing default metadata
+     :end-before: doc-include-end: reusing default metadata
+     :dedent:
 
   This is the preferred way of handling this situation (if applicable). The default implementation of
   `picongpu::traits::GetMetadata` forwards to such `.metadata()` methods anyway.
 
-2. Declare `picongpu::traits::GetMetadata<MyClass` a friend of `MyClass`, i.e.
+2. Declare `picongpu::traits::GetMetadata<MyClass>` a friend of `MyClass`, e.g.
 
-   .. code::
+  .. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
+     :language: C++
+     :start-after: doc-include-start: declare metadata as friend
+     :end-before: doc-include-end: declare metadata as friend
+     :dedent:
 
-      class MyClass {
-        friend picongpu::traits::GetMetadata<MyClass>;
-        // ...
-      }
+  This way is minimally invasive and preferred if your change is only applicable to your personal situation and is
+  not intended to land into mainline.
 
-   This way is minimally invasive and preferred if your change is only applicable to your personal situation and is
-   not intended to land into mainline.
+3. Implement/adjust the `.metadata()` member function of `MyClass`, e.g.
 
-3. Implement/adjust the `.metadata()` member function of `MyClass`
+  .. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
+     :language: C++
+     :start-after: doc-include-start: adapting metadata
+     :end-before: doc-include-end: adapting metadata
+     :dedent:
 
-   .. code::
-
-      class MyClass {
-        // ...
-
-        json metadata() const {
-          // here you have all access you could possibly have
-        }
-
-        // ..
-      }
-
-   This method is preferred if your change is general enough to make it into the mainline. If so, you are invited to
-   :ref:`open a pull request<???>`. It is also the approach used to provide you with default implementations to build
-   upon.
+  This method is preferred if your change is general enough to make it into the mainline. If so, you are invited to
+  :ref:`open a pull request<???>`. It is also the approach used to provide you with default implementations to build
+  upon.
 
 Content Registration
 ^^^^^^^^^^^^^^^^^^^^

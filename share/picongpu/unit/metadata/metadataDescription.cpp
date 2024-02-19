@@ -30,6 +30,7 @@ using picongpu::MetadataPlugin;
 
 json picongpu::MetadataPlugin::metadata;
 
+// doc-include-start: adapting metadata
 struct SomethingWithRTInfo
 {
     int info = 0;
@@ -41,6 +42,7 @@ struct SomethingWithRTInfo
         return result;
     }
 };
+// doc-include-end: adapting metadata
 
 struct SomethingWithMoreRTInfo
 {
@@ -94,6 +96,7 @@ public:
     }
 };
 
+// doc-include-start: reusing default metadata
 template<>
 struct picongpu::traits::GetMetadata<SomethingWithPrivateInfo>
 {
@@ -102,14 +105,19 @@ struct picongpu::traits::GetMetadata<SomethingWithPrivateInfo>
     json descriptionRT() const
     {
         auto result = obj.metadata();
+        // could also depend on the (publicly accessible members of) `obj`:
         result["customisedInfo"] = "Some customised string.";
         return result;
     }
 };
+// doc-include-end: reusing default metadata
 
+// doc-include-start: declare metadata as friend
 struct SomethingWithoutUsefulMetadata : SomethingWithPrivateInfo
 {
     friend picongpu::traits::GetMetadata<SomethingWithoutUsefulMetadata>;
+    // ...
+    // doc-include-end: declare metadata as friend
 
     SomethingWithoutUsefulMetadata(int i) : SomethingWithPrivateInfo(i){};
     json metadata() const override
