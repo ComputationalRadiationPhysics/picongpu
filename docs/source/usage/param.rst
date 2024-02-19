@@ -63,10 +63,3 @@ When setting up a simulation, it is recommended to adjust ``.param`` files in th
    param/extensions
    param/plugins
    param/misc
-
-Python Generator (Third party)
-------------------------------
-
-`PoGit <https://github.com/hightower8083/PoGit>`_ is a utility to generate a set of ``.param files`` and a ``.cfg`` file using a Pythonic API.
-PoGit is a third-party development and supports only a subset of PIConGPU compile- and run-time settings.
-However, the resulting output can serve as a basis to be edited as normal ``.param files``.
