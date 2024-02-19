@@ -90,6 +90,8 @@
 #include <string>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 namespace picongpu
 {
     using namespace pmacc;
@@ -166,9 +168,9 @@ namespace picongpu
                 SimulationHelper<simDim>::startSimulation();
         }
 
-        json metadata() const
+        nlohmann::json metadata() const
         {
-            auto result = json::object();
+            auto result = nlohmann::json::object();
             result["simulation"]["steps"] = runSteps;
             return result;
         }

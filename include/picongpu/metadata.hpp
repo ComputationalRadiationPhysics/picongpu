@@ -38,7 +38,6 @@ namespace picongpu
 {
     using boost::program_options::options_description;
     using boost::program_options::value;
-    using nlohmann::json;
     using pmacc::IPlugin;
     using std::ofstream;
     using std::ostream;
@@ -91,7 +90,7 @@ namespace picongpu
         bool isSupposedToRun{false};
         path filename{""};
         const path defaultFilename{"picongpu-metadata.json"};
-        static json metadata;
+        static nlohmann::json metadata;
     };
 
     namespace traits
@@ -101,12 +100,12 @@ namespace picongpu
         {
             TObject const& obj;
 
-            json descriptionRT() const
+            nlohmann::json descriptionRT() const
             {
                 return obj.metadata();
             }
 
-            static json descriptionCT()
+            static nlohmann::json descriptionCT()
             {
                 return TObject::metadata();
             }

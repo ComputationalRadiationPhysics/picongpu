@@ -361,7 +361,7 @@ namespace picongpu::fields::incidentField
                 return name;
             }
 
-            static json metadata()
+            static nlohmann::json metadata()
             {
                 return T_Params::metadata();
             }

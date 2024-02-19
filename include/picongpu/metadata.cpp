@@ -23,6 +23,5 @@
 
 namespace picongpu
 {
-    using nlohmann::json;
-    json MetadataPlugin::metadata;
+    nlohmann::json MetadataPlugin::metadata;
 } // namespace picongpu

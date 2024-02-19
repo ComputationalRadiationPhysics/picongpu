@@ -28,6 +28,8 @@
 #include <cstdint>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 
 namespace picongpu
 {
@@ -45,9 +47,9 @@ namespace picongpu
                         return "None";
                     }
 
-                    static json metadata()
+                    static nlohmann::json metadata()
                     {
-                        return json::object();
+                        return nlohmann::json::object();
                     }
                 };
             } // namespace profiles

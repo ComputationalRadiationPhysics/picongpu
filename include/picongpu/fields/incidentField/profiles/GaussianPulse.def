@@ -23,6 +23,8 @@
 
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
 
+#include <nlohmann/json.hpp>
+
 
 namespace picongpu::fields::incidentField::profiles
 {
@@ -72,10 +74,10 @@ namespace picongpu::fields::incidentField::profiles
             static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
             /** @} */
 
-            static json metadata()
+            static nlohmann::json metadata()
             {
                 auto baseMetadata = BaseParam::metadata();
-                auto gaussianMetadata = json::object();
+                auto gaussianMetadata = nlohmann::json::object();
                 gaussianMetadata["W0"] = W0_SI;
                 gaussianMetadata["PULSE_INIT"] = PULSE_INIT;
                 baseMetadata["incidentField"]["Gaussian parameters"] = gaussianMetadata;
