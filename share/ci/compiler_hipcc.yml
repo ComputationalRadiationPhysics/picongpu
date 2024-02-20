@@ -6,8 +6,7 @@
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    # ISAAC is not working with HIP
-    DISABLE_ISAAC: "yes"
+    DISABLE_ISAAC: "no"
     # CI_GPU_ARCH architecture of the hosted GPU is provided by the CI
     GPU_TARGETS: ${CI_GPU_ARCH}
   script:
