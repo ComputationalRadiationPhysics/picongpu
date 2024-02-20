@@ -34,7 +34,7 @@ From now on, each commit in this clone of the repo will be checked. See [pre-com
 details. Some hints:
 
 - You can run all hooks on all files via `pre-commit run --all-files [--hook-stage manual]`. The last argument
-  `--hook-stage manual` includes rather slow additional tests that are ran by the CI but are considered too heavy-weight
+  `--hook-stage manual` includes rather slow additional tests that are run by the CI but are considered too heavy-weight
   to run before each commit.
 - If a check fails, oftentimes it will automatically apply the fixes (e.g. run `clang-format`). If there are no unstaged
   files, these changes will appear as unstaged changes in your working tree. To make the commit pass, you have to `git
