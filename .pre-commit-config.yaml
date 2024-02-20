@@ -61,7 +61,10 @@ repos:
     # Run the linter.
     - id: ruff
       types_or: [ python, pyi, jupyter ]
-      args: [ --fix ]
+      # Rule E721 is about using isinstance()
+      # but lib/python/picongpu/pypicongpu/rendering/renderer.py
+      # is strict about types. Could be solved locally but I think this is fine.
+      args: [ --fix, --ignore, E721]
     # Run the formatter.
     - id: ruff-format
       types_or: [ python, pyi, jupyter ]
