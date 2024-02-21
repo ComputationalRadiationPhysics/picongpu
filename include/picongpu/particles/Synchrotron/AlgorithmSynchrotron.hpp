@@ -23,6 +23,8 @@
 
 #include "picongpu/traits/attribute/GetChargeState.hpp"
 
+// #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
+
 /** @file AlgorithmSynchrotron.hpp
  *
  * Synchrotron ALGORITHM for the Synchrotron model
@@ -38,6 +40,36 @@ namespace picongpu
     {
         namespace synchrotron
         {
+                /// to access it: 
+                /// picongpu::particles::synchrotron::params
+            namespace params
+            {
+                constexpr uint64_t numberTableEntries = 1024u; // number of synchrotron function values to precompute, stored in table
+                constexpr uint32_t numberSamplePoints = 1024u; // number of samples to use in integration in firstSynchrotronFunction
+
+                struct FirstSynchrotronFunctionParam
+                {
+                    //! log10(100.0), arbitrary cutoff, for 2nd kind cyclic bessel function function close enough to zero
+                    static constexpr float_64 logEnd = 2.0;
+                };
+
+                struct InterpolationIndexingParam
+                {
+                    static constexpr float_64 minZqExponent = -15; /// -> cutoff energy -> ///@todo: make this a parameter
+                    static constexpr float_64 maxZqExponent = 1; //don't change
+                };
+
+                enum struct Accessor : uint8_t
+                {
+                    f1 = 0u,
+                    f2 = 1u
+                };
+                static constexpr uint32_t u32(Accessor const t)
+                {
+                    return static_cast<uint32_t>(t);
+                }
+            }
+
             /** \struct AlgorithmSynchrotron
              *
              * \brief Ammosov-Delone-Krainov
@@ -74,15 +106,39 @@ namespace picongpu
                         // std::cout << "zq = " << zq << " F1 = " << F1F2(zq,0) << " F2 = " << F1F2(zq,1) << std::endl;
                     // }
 
+                    /// zq = 2/3 * chi^(-1) * delta / (1 - delta) ;chi - ratio of the typical photon energy to the electron kinetic energy
+                    ///                                           ;delta - the ratio of the photon energy to the electron energy
+                    /// see Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments, A. Gonoskov et.Al.     
+
                     //Check the interpolation
-                    int16_t minZqExp = -18;
-                    int16_t maxZqExp = 1;
-                    float_64 zq = (randNr1+randNr2)*5;
+                    
+                    constexpr int16_t minZqExponent = params::InterpolationIndexingParam::minZqExponent;
+                    constexpr int16_t maxZqExponent = params::InterpolationIndexingParam::maxZqExponent;
+                    constexpr float_64 interpolationPoints = static_cast<float_64>(params::numberTableEntries);
+
+                    // constexpr int16_t minZqExponent = -18;
+                    // constexpr int16_t maxZqExponent = 2;
+                    // constexpr uint32_t interpolationPoints = 1024u;
+                    constexpr float_64 stepWidthLogatihmicScale = (static_cast<float_64>(maxZqExponent - minZqExponent) / interpolationPoints);
+
+                    float_64 zq = randNr1;
                     if (zq){
-                        int16_t index = (std::log10(zq) - minZqExp) / (maxZqExp - minZqExp) * 1000;
-                        float_64 F1 = F1F2(index,0);
-                        float_64 F2 = F1F2(index,1);
+                        const float_64 zqExponent = math::log(zq)/math::log(10);
+                        const int16_t index = static_cast<int16_t>((zqExponent - minZqExponent) / stepWidthLogatihmicScale);
+                        
+                        
+                        float_64 F1 = 0;
+                        float_64 F2 = 0;
+
+                        if (index>=0 && index < interpolationPoints)
+                        {
+                            F1 = F1F2(index,0);
+                            F2 = F1F2(index,1);
+                        }
+
+                        printf("\n");
                         printf("zq: %f\n", zq);
+                        printf("zqExponent: %f\n", zqExponent);
                         printf("index: %d\n", index);
                         printf("F1: %f\n", F1);
                         printf("F2: %f\n", F2);
@@ -90,10 +146,11 @@ namespace picongpu
 
 
                     // printf random numbers -> they are random indeed
-                    printf("randNr1: %f\n", randNr1);
-                    printf("randNr2: %f\n", randNr2);
+                    // printf("randNr1: %f\n", randNr1);
+                    // printf("randNr2: %f\n", randNr2);
 
                     // calculate Heff
+                    
 
                     // Calculate chi and z_q
                     // float_64 chi = e * hbar * HeffValue * gamma / (m_e * m_e * c * c * c);
@@ -149,14 +206,14 @@ namespace picongpu
                 PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize, 1>>);
                 PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize, 0>>);
                 
-                // F1F2DeviceBuff_ is a pointer to a databox containing F1 and F2 values
-                GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff_;
+                // F1F2DeviceBuff_ is a pointer to a databox containing F1 and F2 values. m stands for member
+                GridBuffer<float_64,2>::DataBoxType m_F1F2DeviceBuff;
 
             public:
                 /* host constructor initializing member : random number generator */
                 AlgorithmSynchrotron(const uint32_t currentStep, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff) : randomGen(RNGFactory::createRandom<Distribution>())
                 {
-                    F1F2DeviceBuff_ = F1F2DeviceBuff;
+                    m_F1F2DeviceBuff = F1F2DeviceBuff;
                     DataConnector& dc = Environment<>::get().DataConnector();
                     /* initialize pointers on host-side E-(B-)field and current density databoxes */
                     auto fieldE = dc.get<FieldE>(FieldE::getName());
@@ -209,12 +266,20 @@ namespace picongpu
                  */
                 template<typename T_Worker>
                 DINLINE void init(
-                    T_Worker const& worker,
-                    const DataSpace<simDim>& blockCell,
-                    const DataSpace<simDim>& localCellOffset)
+                    [[maybe_unused]] T_Worker const& worker,
+                    const DataSpace<simDim>& localSuperCellOffset,
+                    const uint32_t rngIdx)
+
                 {
                     /* initialize random number generator with the local cell index in the simulation */
-                    this->randomGen.init(localCellOffset);
+                    // this->randomGen.init(localCellOffset);
+
+                    auto rngOffset = DataSpace<simDim>::create(0);
+                    rngOffset.x() = rngIdx;
+                    auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
+                    numRNGsPerSuperCell.x() = FrameType::frameSize;
+                    this->randomGen.init(localSuperCellOffset * numRNGsPerSuperCell + rngOffset);
+
                 }
 
                 /** Determine number of new macro electrons due to ionization
@@ -231,8 +296,7 @@ namespace picongpu
                     floatD_X pos = particle[position_];
                     const int particleCellIdx = particle[localCellIdx_];
                     /* multi-dim coordinate of the local cell inside the super cell */
-                    DataSpace<TVec::dim> localCell(
-                        DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
+                    DataSpace<TVec::dim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
                     /* interpolation of E- */
                     const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
                     ValueType_E eField = Field2ParticleInterpolation()(cachedE.shift(localCell), pos, fieldPosE());
@@ -241,10 +305,10 @@ namespace picongpu
                     ValueType_B bField = Field2ParticleInterpolation()(cachedB.shift(localCell), pos, fieldPosB());
 
                     SynchrotronIdea synchrotronAlgo;
-                    printf("worker: %u\n", worker.getWorkerIdx());
-                    printf("cpu rand: %f\n", this->randomGen(worker));
+                    // printf("worker: %u\n", worker.getWorkerIdx());
+                    // printf("cpu rand: %f\n", this->randomGen(worker));
 
-                    float_X photonEnergy = synchrotronAlgo(bField, eField, particle, this->randomGen(worker), this->randomGen(worker), F1F2DeviceBuff_); // can I do 2x random number -> it looks like yes
+                    float_X photonEnergy = synchrotronAlgo(bField, eField, particle, this->randomGen(worker), this->randomGen(worker), m_F1F2DeviceBuff); 
                     
                     normalizedPhotonEnergy = photonEnergy;
                     return (photonEnergy > 0); // generate photon if energy is > 0 

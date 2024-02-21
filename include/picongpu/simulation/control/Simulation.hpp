@@ -35,7 +35,7 @@
 #include "picongpu/initialization/ParserGridDistribution.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/Manipulate.hpp"
-#include "picongpu/particles/ParticlesFunctors.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp" // -> includes AlgorithmSynchrotron.hpp -> includes params of Synchrotron
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
@@ -315,11 +315,14 @@ namespace picongpu
             // This has to be called before initFields()
             currentInterpolationAndAdditionToEMF->init();
 
-
             currentBackground = std::make_shared<simulation::stage::CurrentBackground>(*cellDescription);
             dc.share(currentBackground);
 
-            SYNCH = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
+            SYNCH = std::make_shared<simulation::stage::SynchrotronRadiation<
+            picongpu::particles::synchrotron::params::FirstSynchrotronFunctionParam,
+            picongpu::particles::synchrotron::params::InterpolationIndexingParam,
+            picongpu::particles::synchrotron::params::numberTableEntries,
+            picongpu::particles::synchrotron::params::numberSamplePoints>>(*cellDescription);
 
             initFields(dc);
 
@@ -607,8 +610,12 @@ namespace picongpu
         }
 
     protected:
-    
-        std::shared_ptr<simulation::stage::SynchrotronRadiation> SYNCH;
+        std::shared_ptr<simulation::stage::SynchrotronRadiation<
+            picongpu::particles::synchrotron::params::FirstSynchrotronFunctionParam,
+            picongpu::particles::synchrotron::params::InterpolationIndexingParam,
+            picongpu::particles::synchrotron::params::numberTableEntries,
+            picongpu::particles::synchrotron::params::numberSamplePoints>> SYNCH;
+            
         std::shared_ptr<DeviceHeap> deviceHeap;
 
         std::shared_ptr<fields::Solver> myFieldSolver;
