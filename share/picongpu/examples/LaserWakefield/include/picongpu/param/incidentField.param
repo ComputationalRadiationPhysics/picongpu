@@ -89,7 +89,7 @@ namespace picongpu
              * The particular used parameter structures do not have to inherit this, but must define same members
              * with same meaning.
              */
-            struct LwfaGaussianPulseBaseParams : public BaseParam
+            struct LwfaGaussianPulseBaseParams : public profiles::BaseParam
             {
                 /** Wave length along propagation direction
                  *
@@ -215,7 +215,7 @@ namespace picongpu
                 {
                     // static member functions do not bind to the derived type when inherited, so we have to refer to
                     // our type explicitly
-                    return BaseParam::metadata<My>();
+                    return profiles::BaseParam::metadata<My>();
                 };
             };
 
