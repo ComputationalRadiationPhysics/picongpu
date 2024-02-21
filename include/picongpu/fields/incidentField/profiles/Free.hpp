@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Sergei Bastrakov
+/* Copyright 2022-2024 Sergei Bastrakov, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -26,7 +26,15 @@
 
 #include <cstdint>
 #include <string>
+#include <type_traits>
 
+#include <nlohmann/json.hpp>
+
+template<typename, typename = void>
+constexpr bool hasMetadata = false;
+
+template<typename T>
+constexpr bool hasMetadata<T, std::void_t<decltype(T::metadata())>> = true;
 
 namespace picongpu
 {
@@ -43,6 +51,28 @@ namespace picongpu
                     HINLINE static std::string getName()
                     {
                         return "Free";
+                    }
+
+                    static nlohmann::json metadata()
+                    {
+                        auto result = nlohmann::json::object();
+                        result["incidentField"]["name"] = "Free";
+                        result["incidentField"]["B field"] = functorMetadata<T_FunctorIncidentB>();
+                        result["incidentField"]["E field"] = functorMetadata<T_FunctorIncidentE>();
+                        return result;
+                    }
+
+                private:
+                    template<typename Functor, std::enable_if_t<hasMetadata<Functor>, bool> = true>
+                    static auto functorMetadata()
+                    {
+                        return Functor::metadata();
+                    }
+
+                    template<typename Functor, std::enable_if_t<!hasMetadata<Functor>, bool> = true>
+                    static nlohmann::json functorMetadata()
+                    {
+                        return "no metadata available";
                     }
                 };
             } // namespace profiles
