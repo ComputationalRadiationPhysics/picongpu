@@ -62,9 +62,27 @@ if ! [ -d "./include" ]; then
 	exit 1
 fi
 
+TMPDIR="$(mktemp -d)"
+OPTIONAL_FILENAME="picongpu-metadata.json"
+
+function cleanup {
+	rm -rf "${TMPDIR}"
+}
+
+trap cleanup EXIT
+
+cp "${OPTIONAL_FILENAME}.reference" "${TMPDIR}/${OPTIONAL_FILENAME}.reference"
+
+pic-create -f . "${TMPDIR}" &&
+	cd "${TMPDIR}" &&
+	pic-build
+
+EXECUTABLE="bin/picongpu"
+ARGS="-d 1 1 1 -g 24 24 24 "
+
 # doc-include-start: cmdline
-pic-build && bin/picongpu -d 1 1 1 -g 24 24 24 --no-start-simulation --dump-metadata picongpu-metadata.json
+${EXECUTABLE} ${ARGS} --dump-metadata "${OPTIONAL_FILENAME}" --no-start-simulation
 # doc-include-end: cmdline
 
-diff picongpu-metadata.json picongpu-metadata.json.reference
+diff "${OPTIONAL_FILENAME}" "${OPTIONAL_FILENAME}.reference"
 exit $?

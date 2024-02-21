@@ -1,0 +1,15 @@
+{
+  "incidentField": {
+    "polarisation": {
+      "direction": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "type": "circular"
+    }
+  },
+  "simulation": {
+    "steps": 0
+  }
+}
