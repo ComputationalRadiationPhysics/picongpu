@@ -48,7 +48,7 @@ namespace pmacc
                 }
             };
 
-#if CUPLA_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if PMACC_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
             /**
              * Trait that returns whether an optimized version of AtomicAllInc
              * exists for Kepler architectures (and up)
@@ -136,7 +136,7 @@ namespace pmacc
             struct AtomicAllInc<T_Type, true> : public AtomicAllIncKepler<T_Type>
             {
             };
-#endif // CUPLA_DEVICE_COMPILE == 1
+#endif // PMACC_DEVICE_COMPILE == 1
 
         } // namespace detail
 
@@ -168,9 +168,9 @@ namespace pmacc
              * The id provider for particles is the only code where atomicAllInc is used without an accelerator.
              * @todo remove the unsafe faked accelerator
              */
-            pmacc::memory::Array<std::byte, sizeof(cupla::AccThreadSeq)> fakeAcc(std::byte(0));
+            pmacc::memory::Array<std::byte, sizeof(pmacc::Acc<DIM1>)> fakeAcc(std::byte(0));
             return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300 || BOOST_COMP_HIP)>()(
-                *reinterpret_cast<cupla::AccThreadSeq*>(fakeAcc.data()),
+                *reinterpret_cast<pmacc::Acc<DIM1>*>(fakeAcc.data()),
                 ptr,
                 ::alpaka::hierarchy::Grids());
         }
@@ -196,7 +196,7 @@ namespace pmacc
             const T_Type value,
             const T_Hierarchy& hierarchy)
         {
-#if CUPLA_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if PMACC_DEVICE_COMPILE == 1 && (BOOST_LANG_CUDA || BOOST_COMP_HIP)
             const auto mask = alpaka::warp::activemask(worker.getAcc());
             const auto leader
                 = alpaka::ffs(worker.getAcc(), static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;

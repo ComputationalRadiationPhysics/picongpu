@@ -76,7 +76,7 @@ append_recursive_files_add_to_src_group("${_GENERATED_SOURCE_DIR}" "${_GENERATED
 list(APPEND _FILES_SOURCE "src/main.cpp")
 
 # Always add all files to the target executable build call to add them to the build project.
-cupla_add_executable(
+alpaka_add_executable(
         ${_TARGET_NAME}
         ${_FILES_SOURCE})
 

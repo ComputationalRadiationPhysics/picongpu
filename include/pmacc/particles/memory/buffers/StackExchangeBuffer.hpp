@@ -51,22 +51,6 @@ namespace pmacc
         }
 
         /**
-         * Returns a PushDataBox for the internal HostBuffer.
-         *
-         * @return PushDataBox for host buffer
-         */
-        ExchangePushDataBox<vint_t, FRAME, DIM> getHostExchangePushDataBox()
-        {
-            return ExchangePushDataBox<vint_t, FRAME, DIM>(
-                stack.getHostBuffer().getBasePointer(),
-                stack.getHostBuffer().getCurrentSizePointer(),
-                stack.getHostBuffer().getDataSpace().productOfComponents(),
-                PushDataBox<vint_t, FRAMEINDEX>(
-                    stackIndexer.getHostBuffer().getBasePointer(),
-                    stackIndexer.getHostBuffer().getCurrentSizePointer()));
-        }
-
-        /**
          * Returns a PopDataBox for the internal HostBuffer.
          *
          * @return PopDataBox for host buffer
@@ -88,12 +72,12 @@ namespace pmacc
             PMACC_ASSERT(stack.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
             PMACC_ASSERT(stackIndexer.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
             return ExchangePushDataBox<vint_t, FRAME, DIM>(
-                stack.getDeviceBuffer().getBasePointer(),
-                (vint_t*) stack.getDeviceBuffer().getCurrentSizeOnDevicePointer(),
+                stack.getDeviceBuffer().data(),
+                (vint_t*) alpaka::getPtrNative(stack.getDeviceBuffer().getCurrentSizeDeviceSideBuffer()),
                 stack.getDeviceBuffer().getDataSpace().productOfComponents(),
                 PushDataBox<vint_t, FRAMEINDEX>(
-                    stackIndexer.getDeviceBuffer().getBasePointer(),
-                    (vint_t*) stackIndexer.getDeviceBuffer().getCurrentSizeOnDevicePointer()));
+                    stackIndexer.getDeviceBuffer().data(),
+                    (vint_t*) alpaka::getPtrNative(stackIndexer.getDeviceBuffer().getCurrentSizeDeviceSideBuffer())));
         }
 
         /**

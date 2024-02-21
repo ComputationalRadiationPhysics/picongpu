@@ -31,11 +31,11 @@
 namespace pmacc::math
 {
     //! Computes the natural (base e) logarithm.
-    CUPLA_UNARY_MATH_FN(log, alpaka::math::ConceptMathLog, Log)
+    ALPAKA_UNARY_MATH_FN(log, alpaka::math::ConceptMathLog, Log)
 
     //! Computes the natural (base 2) logarithm.
-    CUPLA_UNARY_MATH_FN(log2, alpaka::math::ConceptMathLog2, Log2)
+    ALPAKA_UNARY_MATH_FN(log2, alpaka::math::ConceptMathLog2, Log2)
 
     //! Computes the natural (base 10) logarithm.
-    CUPLA_UNARY_MATH_FN(log10, alpaka::math::ConceptMathLog10, Log10)
+    ALPAKA_UNARY_MATH_FN(log10, alpaka::math::ConceptMathLog10, Log10)
 } // namespace pmacc::math

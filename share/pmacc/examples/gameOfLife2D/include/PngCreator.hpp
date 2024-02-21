@@ -24,6 +24,8 @@
 
 #include <pmacc/types.hpp>
 
+#include <iomanip>
+
 #include <pngwriter.h>
 
 namespace gol

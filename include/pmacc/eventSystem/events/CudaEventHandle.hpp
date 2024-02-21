@@ -64,7 +64,7 @@ namespace pmacc
          *
          * @return native cupla event
          */
-        cuplaEvent_t operator*() const;
+        AlpakaEventType operator*() const;
 
         /** check whether the event is finished
          *
@@ -77,12 +77,12 @@ namespace pmacc
          *
          * @return native cupla stream
          */
-        cuplaStream_t getStream() const;
+        AccStream getStream() const;
 
         /** record event in a device stream
          *
          * @param stream native cupla stream
          */
-        void recordEvent(cuplaStream_t stream);
+        void recordEvent(AccStream const& stream);
     };
 } // namespace pmacc

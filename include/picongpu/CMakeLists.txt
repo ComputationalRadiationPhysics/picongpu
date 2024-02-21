@@ -513,7 +513,7 @@ target_link_libraries(picongpu-hostonly PUBLIC ${HOST_LIBS})
 # compatibility to std::experimental::filesystem is handled in pmacc.
 target_link_libraries(picongpu-hostonly PRIVATE pmacc::filesystem)
 
-cupla_add_executable(picongpu
+alpaka_add_executable(picongpu
      ${ACCSRCFILES}
 )
 

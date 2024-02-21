@@ -27,11 +27,7 @@
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 #define BOOST_MPL_LIMIT_MAP_SIZE 20
 
-#include <cupla/types.hpp>
-
-#ifndef PMACC_CUDA_ENABLED
-#    define PMACC_CUDA_ENABLED ALPAKA_ACC_GPU_CUDA_ENABLED
-#endif
+#include <alpaka/alpaka.hpp>
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
 /* include mallocMC before cupla renaming is activated, else we need the variable acc
@@ -43,9 +39,10 @@
 
 #include <pmacc/boost_workaround.hpp>
 
+#include "pmacc/alpakaHelper/ValidateCall.hpp"
+#include "pmacc/alpakaHelper/acc.hpp"
 #include "pmacc/attribute/Constexpr.hpp"
 #include "pmacc/attribute/FunctionSpecifier.hpp"
-#include "pmacc/cuplaHelper/ValidateCall.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
 #include "pmacc/dimensions/Definition.hpp"
 #include "pmacc/eventSystem/EventType.hpp"
@@ -56,9 +53,9 @@
 #include "pmacc/type/Exchange.hpp"
 #include "pmacc/type/Integral.hpp"
 
-#include <boost/filesystem.hpp>
+#include <alpaka/alpaka.hpp>
 
-#include <cupla.hpp>
+#include <boost/filesystem.hpp>
 
 
 namespace pmacc

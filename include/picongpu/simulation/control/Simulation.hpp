@@ -360,13 +360,12 @@ namespace picongpu
             dc.consume(std::move(rngFactory));
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            auto nativeCudaStream = cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(0);
+            auto alpakaQueue = pmacc::eventSystem::getEventStream(ITask::TASK_DEVICE)->getCudaStream();
+            auto alpakaDevice = manager::Device<ComputeDevice>::get().current();
             /* Create an empty allocator. This one is resized after all exchanges
              * for particles are created */
-            deviceHeap.reset(
-
-                new DeviceHeap(cupla::manager::Device<cupla::AccDev>::get().current(), nativeCudaStream, 0u));
-            cuplaStreamSynchronize(0);
+            deviceHeap = std::make_shared<DeviceHeap>(alpakaDevice, alpakaQueue, 0u);
+            alpaka::wait(alpakaQueue);
 #endif
 
             // Allocate and initialize particle species with all left-over memory below
@@ -399,11 +398,8 @@ namespace picongpu
                 log<picLog::MEMORY>("Device RAM is NOT shared between GPU and host.");
 
             // initializing the heap for particles
-            deviceHeap->destructiveResize(
-                cupla::manager::Device<cupla::AccDev>::get().current(),
-                nativeCudaStream,
-                heapSize);
-            cuplaStreamSynchronize(0);
+            deviceHeap->destructiveResize(alpakaDevice, alpakaQueue, heapSize);
+            alpaka::wait(alpakaQueue);
 
             auto mallocMCBuffer = std::make_unique<MallocMCBuffer<DeviceHeap>>(deviceHeap);
             dc.consume(std::move(mallocMCBuffer));
@@ -688,24 +684,31 @@ namespace picongpu
             }
 
             size_t allocatableMemory = freeDeviceMemory;
-            cuplaError_t err;
-            std::byte* ptr = nullptr;
+            bool memAlloced = false;
+            std::optional<::alpaka::Buf<ComputeDevice, std::byte, AlpakaDim<1>, size_t>> tmpBuffer{};
 
             // Check how much memory can be allocated with a single allocation call.
             do
             {
-                err = cuplaMalloc((void**) &ptr, allocatableMemory * sizeof(std::byte));
-                if(err != cuplaSuccess)
+                try
                 {
-                    // reset error
-                    cuplaGetLastError();
+                    memAlloced = true;
+                    auto testBuffer = alpaka::allocBuf<std::byte, size_t>(
+                        pmacc::manager::Device<ComputeDevice>::get().current(),
+                        allocatableMemory);
+                    tmpBuffer = testBuffer;
+                    memAlloced = true;
+                }
+                catch(...)
+                {
                     // reduce step size if left over memory is too small to be reduced
                     if(allocatableMemory < stepSize)
                         stepSize = std::min(allocatableMemory, stepSize / 2u);
                     // reduce memory to test for the next iteration
                     allocatableMemory -= stepSize;
+                    memAlloced = false;
                 }
-            } while(err != cuplaSuccess && allocatableMemory != 0u);
+            } while(!memAlloced && allocatableMemory != 0u);
 
             if(allocatableMemory < freeDeviceMemory)
             {
@@ -719,12 +722,6 @@ namespace picongpu
             {
                 // Wait that all MPI processes had checked the available/allocatable memory.
                 MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
-            }
-
-            if(ptr != nullptr)
-            {
-                // free the test allocation after all MPI ranks on the GPU succeed there test allocation
-                CUDA_CHECK(cuplaFree(ptr));
             }
 
             return allocatableMemory;

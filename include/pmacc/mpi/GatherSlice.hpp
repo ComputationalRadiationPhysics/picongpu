@@ -220,7 +220,7 @@ namespace pmacc
                 int localNumElements = localSliceSize.productOfComponents();
 
                 MPI_CHECK(MPI_Gatherv(
-                    reinterpret_cast<char*>(localInputSlice.getDataBox().getPointer()),
+                    reinterpret_cast<char*>(localInputSlice.data()),
                     localNumElements * sizeof(ValueType),
                     MPI_CHAR,
                     reinterpret_cast<char*>(allData.data()),

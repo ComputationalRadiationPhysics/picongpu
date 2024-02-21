@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 
 namespace pmacc
@@ -37,7 +38,7 @@ namespace pmacc
         /**
          * Constructor
          *
-         * @param stream the EventStream this StreamTask will use
+         * @param stream the AccStream this StreamTask will use
          */
         StreamTask();
 
@@ -87,7 +88,7 @@ namespace pmacc
          *
          * @return the associated cupla stream
          */
-        cuplaStream_t getCudaStream();
+        AccStream getCudaStream();
 
 
     protected:

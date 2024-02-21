@@ -384,7 +384,7 @@ namespace pmacc::particles::algorithm
                     constexpr uint32_t dim = T_ParBox::Dim;
 
                     DataSpace<dim> const superCellIdx(
-                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc()))));
+                        mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc()))));
 
                     auto forEachParticle = makeForEach(worker, pb, superCellIdx);
 

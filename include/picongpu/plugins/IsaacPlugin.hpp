@@ -23,6 +23,7 @@
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
+#include <pmacc/alpakaHelper/acc.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/meta/Mp11.hpp>
 #include <pmacc/static_assert.hpp>
@@ -30,7 +31,7 @@
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/mpl/vector.hpp>
 
-#define ISAAC_IDX_TYPE cupla::IdxType
+#define ISAAC_IDX_TYPE pmacc::IdxType
 #include <boost/fusion/container/list.hpp>
 #include <boost/fusion/container/list/list_fwd.hpp>
 #include <boost/fusion/include/as_list.hpp>
@@ -366,10 +367,10 @@ namespace picongpu
             using ParticleList = ListForIsaac<pmacc::mp_transform<ParticleSource, Particle_Seq>>;
 
             using VisualizationType = IsaacVisualization<
-                cupla::AccHost,
-                cupla::Acc,
-                cupla::AccStream,
-                cupla::KernelDim,
+                pmacc::HostDevice,
+                pmacc::Acc<DIM3>,
+                pmacc::AccStream,
+                pmacc::AlpakaDim<DIM3>,
                 SourceList,
                 VectorFieldSourceList,
                 ParticleList,
@@ -681,7 +682,7 @@ namespace picongpu
 
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-                    isaac_size2 framebuffer_size = {cupla::IdxType(width), cupla::IdxType(height)};
+                    isaac_size2 framebuffer_size = {pmacc::IdxType(width), pmacc::IdxType(height)};
 
                     forEachParams(sources, SourceInitIterator(), cellDescription);
                     forEachParams(vecFieldSources, SourceInitIterator(), cellDescription);
@@ -698,9 +699,9 @@ namespace picongpu
                         position[i] = subGrid.getLocalDomain().offset[i];
                     }
                     visualization = std::make_unique<VisualizationType>(
-                        cupla::manager::Device<cupla::AccHost>::get().current(),
-                        cupla::manager::Device<cupla::AccDev>::get().current(),
-                        cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(),
+                        pmacc::manager::Device<pmacc::HostDevice>::get().current(),
+                        pmacc::manager::Device<pmacc::ComputeDevice>::get().current(),
+                        eventSystem::getEventStream(pmacc::ITask::TASK_DEVICE)->getCudaStream(),
                         name,
                         0,
                         url,

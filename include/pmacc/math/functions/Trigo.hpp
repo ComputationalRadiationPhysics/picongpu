@@ -29,41 +29,41 @@
 namespace pmacc::math
 {
     //! Computes the sine (measured in radians).
-    CUPLA_UNARY_MATH_FN(sin, alpaka::math::ConceptMathSin, Sin)
+    ALPAKA_UNARY_MATH_FN(sin, alpaka::math::ConceptMathSin, Sin)
 
     //! Computes the cosine (measured in radians).
-    CUPLA_UNARY_MATH_FN(cos, alpaka::math::ConceptMathCos, Cos)
+    ALPAKA_UNARY_MATH_FN(cos, alpaka::math::ConceptMathCos, Cos)
 
     //! Computes the tangent (measured in radians).
-    CUPLA_UNARY_MATH_FN(tan, alpaka::math::ConceptMathTan, Tan)
+    ALPAKA_UNARY_MATH_FN(tan, alpaka::math::ConceptMathTan, Tan)
 
     //! Computes the principal value of the arc sine.
-    CUPLA_UNARY_MATH_FN(asin, alpaka::math::ConceptMathAsin, Asin)
+    ALPAKA_UNARY_MATH_FN(asin, alpaka::math::ConceptMathAsin, Asin)
 
     //! Computes the principal value of the arc cosine.
-    CUPLA_UNARY_MATH_FN(acos, alpaka::math::ConceptMathAcos, Acos)
+    ALPAKA_UNARY_MATH_FN(acos, alpaka::math::ConceptMathAcos, Acos)
 
     //! Computes the principal value of the arc tangent.
-    CUPLA_UNARY_MATH_FN(atan, alpaka::math::ConceptMathAtan, Atan)
+    ALPAKA_UNARY_MATH_FN(atan, alpaka::math::ConceptMathAtan, Atan)
 
     //! Computes the arc tangent of y/x using the signs of arguments to determine the correct quadrant.
-    CUPLA_BINARY_MATH_FN(atan2, alpaka::math::ConceptMathAtan2, Atan2)
+    ALPAKA_BINARY_MATH_FN(atan2, alpaka::math::ConceptMathAtan2, Atan2)
 
     //! Computes the hyperbolic sine.
-    CUPLA_UNARY_MATH_FN(sinh, alpaka::math::ConceptMathSinh, Sinh)
+    ALPAKA_UNARY_MATH_FN(sinh, alpaka::math::ConceptMathSinh, Sinh)
 
     //! Computes the hyperbolic cosine.
-    CUPLA_UNARY_MATH_FN(cosh, alpaka::math::ConceptMathCosh, Cosh)
+    ALPAKA_UNARY_MATH_FN(cosh, alpaka::math::ConceptMathCosh, Cosh)
 
     //! Computes the hyperbolic tangent.
-    CUPLA_UNARY_MATH_FN(tanh, alpaka::math::ConceptMathTanh, Tanh)
+    ALPAKA_UNARY_MATH_FN(tanh, alpaka::math::ConceptMathTanh, Tanh)
 
     //! Computes the hyperbolic arc sine.
-    CUPLA_UNARY_MATH_FN(asinh, alpaka::math::ConceptMathAsin, Asinh)
+    ALPAKA_UNARY_MATH_FN(asinh, alpaka::math::ConceptMathAsin, Asinh)
 
     //! Computes the hyperbolic arc cosine.
-    CUPLA_UNARY_MATH_FN(acosh, alpaka::math::ConceptMathAcosh, Acosh)
+    ALPAKA_UNARY_MATH_FN(acosh, alpaka::math::ConceptMathAcosh, Acosh)
 
     //! Computes the hyperbolic arc tangent.
-    CUPLA_UNARY_MATH_FN(atanh, alpaka::math::ConceptMathAtanh, Atanh)
+    ALPAKA_UNARY_MATH_FN(atanh, alpaka::math::ConceptMathAtanh, Atanh)
 } // namespace pmacc::math

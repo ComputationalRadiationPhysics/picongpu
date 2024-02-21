@@ -29,7 +29,7 @@ namespace pmacc
     {
         namespace methods
         {
-            template<typename T_Acc = cupla::Acc>
+            template<typename T_Acc = pmacc::Acc<DIM1>>
             class AlpakaRand
             {
             public:

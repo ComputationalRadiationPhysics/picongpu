@@ -79,7 +79,7 @@ namespace pmacc
                     PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
 
                     DataSpace<dim> const blockCell(
-                        mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())))
+                        mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())))
                         * SuperCellSize::toRT());
 
                     // origin in area from local GPU

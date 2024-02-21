@@ -94,7 +94,7 @@ namespace picongpu
                                     float_X(x) - pos.x());
                                 for(int i = 0; i <= 2; i++)
                                 {
-                                    cupla::atomicAdd(
+                                    alpaka::atomicAdd(
                                         worker.getAcc(),
                                         &(jBoxPar(DataSpace<DIM3>(x, y, z))[i]),
                                         jGridx[i]);
@@ -135,7 +135,7 @@ namespace picongpu
                                 float_X(x) - pos.x());
                             for(int i = 0; i <= 2; i++)
                             {
-                                cupla::atomicAdd(worker.getAcc(), &(jBoxPar(DataSpace<DIM2>(x, y))[i]), jGridx[i]);
+                                alpaka::atomicAdd(worker.getAcc(), &(jBoxPar(DataSpace<DIM2>(x, y))[i]), jGridx[i]);
                             }
                         }
                     }

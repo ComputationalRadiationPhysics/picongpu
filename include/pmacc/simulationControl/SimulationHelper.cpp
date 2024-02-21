@@ -99,8 +99,7 @@ namespace pmacc
         {
             /* first synchronize: if something failed, we can spare the time
              * for the checkpoint writing */
-            CUDA_CHECK(cuplaDeviceSynchronize());
-            CUDA_CHECK(cuplaGetLastError());
+            alpaka::wait(manager::Device<ComputeDevice>::get().current());
 
             // avoid deadlock between not finished PMacc tasks and MPI_Barrier
             eventSystem::getTransactionEvent().waitForFinished();
@@ -120,8 +119,7 @@ namespace pmacc
 
             /* important synchronize: only if no errors occured until this
              * point guarantees that a checkpoint is usable */
-            CUDA_CHECK(cuplaDeviceSynchronize());
-            CUDA_CHECK(cuplaGetLastError());
+            alpaka::wait(manager::Device<ComputeDevice>::get().current());
 
             /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
             eventSystem::getTransactionEvent().waitForFinished();

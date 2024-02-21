@@ -77,12 +77,12 @@ namespace pmacc
                     else
                     {
                         exchange->getHostBuffer().setCurrentSize(newBufferSize);
-                        Environment<>::get().Factory().createTaskCopyHostToDevice(
+                        Environment<>::get().Factory().createTaskCopy(
                             exchange->getHostBuffer(),
                             exchange->getDeviceDoubleBuffer());
                     }
 
-                    Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                    Environment<>::get().Factory().createTaskCopy(
                         exchange->getDeviceDoubleBuffer(),
                         exchange->getDeviceBuffer(),
                         this);
@@ -101,7 +101,7 @@ namespace pmacc
                     else
                     {
                         exchange->getHostBuffer().setCurrentSize(newBufferSize);
-                        Environment<>::get().Factory().createTaskCopyHostToDevice(
+                        Environment<>::get().Factory().createTaskCopy(
                             exchange->getHostBuffer(),
                             exchange->getDeviceBuffer(),
                             this);
@@ -148,8 +148,7 @@ namespace pmacc
                     executeIntern();
                 }
                 break;
-            case COPYHOST2DEVICE:
-            case COPYDEVICE2DEVICE:
+            case COPY:
                 state = Finish;
                 break;
             default:

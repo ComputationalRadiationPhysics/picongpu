@@ -117,8 +117,7 @@ namespace picongpu
              */
             PMACC_SMEM(worker, destCounter, int);
 
-            DataSpace<simDim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
             /* offset of the superCell relative to the local domain [in supercells] (without guarding supercells) */
             DataSpace<simDim> const localSuperCellOffset(superCellIdx - mapper.getGuardingSuperCells());
@@ -212,7 +211,7 @@ namespace picongpu
                         if(numParsPerCell > 0u)
                         {
                             destParticleIdx
-                                = cupla::atomicAdd(worker.getAcc(), &destCounter, 1, ::alpaka::hierarchy::Threads{});
+                                = alpaka::atomicAdd(worker.getAcc(), &destCounter, 1, ::alpaka::hierarchy::Threads{});
                             numParsPerCell--;
                         }
                         return destParticleIdx;

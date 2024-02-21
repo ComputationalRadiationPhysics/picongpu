@@ -26,7 +26,7 @@
 #include "pmacc/types.hpp"
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
-#if(CUPLA_DEVICE_COMPILE == 1)
+#if(PMACC_DEVICE_COMPILE == 1)
 #    define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id)                                                             \
         using namespace PMACC_JOIN(pmacc_static_const_vector_device, id)
 #else

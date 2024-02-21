@@ -25,6 +25,7 @@
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
 #include "pmacc/types.hpp"
 
+#include <cstdint>
 
 namespace pmacc::exec::detail
 {
@@ -33,7 +34,8 @@ namespace pmacc::exec::detail
     HINLINE auto KernelPreperationWrapper<T_KernelFunctor>::operator()(
         T_VectorGrid const& gridExtent,
         T_VectorBlock const& blockExtent,
-        size_t const sharedMemByte) const -> KernelLauncher<KernelWithDynSharedMem<T_KernelFunctor>>
+        size_t const sharedMemByte) const
+        -> KernelLauncher<KernelWithDynSharedMem<T_KernelFunctor>, GetDim<T_VectorGrid>::dim>
     {
         return {
             KernelWithDynSharedMem<T_KernelFunctor>(m_kernelFunctor, sharedMemByte),
@@ -46,7 +48,7 @@ namespace pmacc::exec::detail
     template<typename T_VectorGrid, typename T_VectorBlock>
     HINLINE auto KernelPreperationWrapper<T_KernelFunctor>::operator()(
         T_VectorGrid const& gridExtent,
-        T_VectorBlock const& blockExtent) const -> KernelLauncher<T_KernelFunctor>
+        T_VectorBlock const& blockExtent) const -> KernelLauncher<T_KernelFunctor, GetDim<T_VectorGrid>::dim>
     {
         return {m_kernelFunctor, m_metaData, gridExtent, blockExtent};
     }

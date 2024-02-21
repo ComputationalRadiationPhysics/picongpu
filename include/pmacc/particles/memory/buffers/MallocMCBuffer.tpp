@@ -21,9 +21,11 @@
 
 #pragma once
 
-#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
 
+#    include "pmacc/alpakaHelper/Device.hpp"
 #    include "pmacc/eventSystem/eventSystem.hpp"
+#    include "pmacc/math/Vector.hpp"
 #    include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
 #    include "pmacc/types.hpp"
 
@@ -34,9 +36,7 @@ namespace pmacc
 {
     template<typename T_DeviceHeap>
     MallocMCBuffer<T_DeviceHeap>::MallocMCBuffer(const std::shared_ptr<DeviceHeap>& deviceHeap)
-        : hostPtr(nullptr)
-        ,
-        /* currently mallocMC has only one heap */
+        : /* currently mallocMC has only one heap */
         deviceHeapInfo(deviceHeap->getHeapLocations()[0])
         , hostBufferOffset(0)
     {
@@ -45,45 +45,34 @@ namespace pmacc
     template<typename T_DeviceHeap>
     MallocMCBuffer<T_DeviceHeap>::~MallocMCBuffer()
     {
-        if(hostPtr != nullptr)
-        {
-#    if(PMACC_CUDA_ENABLED == 1)
-            cudaHostUnregister(hostPtr);
-            delete[] hostPtr;
-#    else
-            CUDA_CHECK_NO_EXCEPT((cuplaError_t) hipFree(hostPtr));
-#    endif
-        }
     }
 
     template<typename T_DeviceHeap>
     void MallocMCBuffer<T_DeviceHeap>::synchronize()
     {
-        /** \todo: we had no abstraction to create a host buffer and a pseudo
-         *         device buffer (out of the mallocMC ptr) and copy both with our event
-         *         system.
-         *         WORKAROUND: use native CUDA/HIP calls :-(
-         */
-        if(hostPtr == nullptr)
-        {
-#    if(PMACC_CUDA_ENABLED == 1)
-            /* use `new` and than `cudaHostRegister` is faster than `cudaMallocHost`
-             * but with the some result (create page-locked memory)
-             */
-            hostPtr = new char[deviceHeapInfo.size];
-            CUDA_CHECK((cuplaError_t) cudaHostRegister(hostPtr, deviceHeapInfo.size, cudaHostRegisterDefault));
-#    else
-            // we do not use hipHostRegister because this would require a strict alignment
-            // https://github.com/alpaka-group/alpaka/pull/896
-            CUDA_CHECK((cuplaError_t) hipHostMalloc((void**) &hostPtr, deviceHeapInfo.size, hipHostMallocDefault));
-#    endif
+        auto alpakaBufferSize = pmacc::math::Vector<pmacc::MemIdxType, 1>(deviceHeapInfo.size).toAlpakaMemVec();
 
-            this->hostBufferOffset = static_cast<int64_t>(reinterpret_cast<char*>(deviceHeapInfo.p) - hostPtr);
+        if(!hostBuffer)
+        {
+            hostBuffer = alpaka::allocMappedBufIfSupported<uint8_t, MemIdxType>(
+                manager::Device<HostDevice>::get().current(),
+                manager::Device<ComputeDevice>::get().getPlatform(),
+                alpakaBufferSize);
+
+            hostBufferOffset = static_cast<int64_t>(
+                reinterpret_cast<uint8_t*>(deviceHeapInfo.p) - alpaka::getPtrNative(*hostBuffer));
         }
         /* add event system hints */
         eventSystem::startOperation(ITask::TASK_DEVICE);
         eventSystem::startOperation(ITask::TASK_HOST);
-        CUDA_CHECK(cuplaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cuplaMemcpyDeviceToHost));
+
+        auto devView = ::alpaka::ViewPlainPtr<ComputeDevice, uint8_t, AlpakaDim<DIM1>, pmacc::MemIdxType>(
+            (uint8_t*) deviceHeapInfo.p,
+            manager::Device<ComputeDevice>::get().current(),
+            alpakaBufferSize);
+        auto alpakaStream = pmacc::eventSystem::getEventStream(ITask::TASK_DEVICE)->getCudaStream();
+        alpaka::memcpy(alpakaStream, *hostBuffer, devView, alpakaBufferSize);
+        alpaka::wait(alpakaStream);
     }
 
 } // namespace pmacc

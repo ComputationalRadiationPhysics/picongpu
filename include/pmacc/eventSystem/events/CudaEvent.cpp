@@ -23,16 +23,15 @@
 #include "pmacc/eventSystem/events/CudaEvent.hpp"
 
 #include "pmacc/Environment.hpp"
+#include "pmacc/alpakaHelper/Device.hpp"
+#include "pmacc/alpakaHelper/acc.hpp"
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"
 #include "pmacc/types.hpp"
 
-
 namespace pmacc
 {
-    CudaEvent::CudaEvent()
+    CudaEvent::CudaEvent() : event(AlpakaEventType(manager::Device<ComputeDevice>::get().current()))
     {
-        log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
-        CUDA_CHECK(cuplaEventCreateWithFlags(&event, cuplaEventDisableTiming));
     }
 
 
@@ -40,9 +39,7 @@ namespace pmacc
     {
         PMACC_ASSERT(refCounter == 0u);
         log(ggLog::CUDA_RT() + ggLog::EVENT(), "sync and delete event");
-        // free cupla event
-        CUDA_CHECK_NO_EXCEPT(cuplaEventSynchronize(event));
-        CUDA_CHECK_NO_EXCEPT(cuplaEventDestroy(event));
+        alpaka::wait(event);
     }
 
     void CudaEvent::registerHandle()
@@ -58,7 +55,7 @@ namespace pmacc
         if(oldCounter == 1u)
         {
             // reset event meta data
-            isRecorded = false;
+            stream.reset();
             finished = true;
 
             Environment<>::get().EventPool().push(this);
@@ -68,33 +65,23 @@ namespace pmacc
 
     bool CudaEvent::isFinished()
     {
-        // avoid cupla driver calls if event is already finished
-        if(finished)
-            return true;
-        assert(isRecorded);
-
-        cuplaError_t rc = cuplaEventQuery(event);
-
-        if(rc == cuplaSuccess)
+        // avoid alpaka calls if event is already finished
+        if(!finished)
         {
-            finished = true;
-            return true;
+            assert(stream);
+            finished = alpaka::isComplete(event);
         }
-        else if(rc == cuplaErrorNotReady)
-            return false;
-        else
-            PMACC_PRINT_CUPLA_ERROR_AND_THROW(rc, "Event query failed");
+        return finished;
     }
 
 
-    void CudaEvent::recordEvent(cuplaStream_t stream)
+    void CudaEvent::recordEvent(AccStream const& stream)
     {
         /* disallow double recording */
-        assert(isRecorded == false);
-        isRecorded = true;
+        assert(!this->stream);
         finished = false;
         this->stream = stream;
-        CUDA_CHECK(cuplaEventRecord(event, stream));
+        alpaka::enqueue(*this->stream, event);
     }
 
 } // namespace pmacc

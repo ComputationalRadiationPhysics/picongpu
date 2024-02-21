@@ -29,8 +29,21 @@
 
 namespace pmacc
 {
-    /**
-     * A T_dim-dimensional data space.
+    /** A T_dim-dimensional vector of MemIdxType.
+     *
+     * The object is used to describe extents/number of elements for buffer allocations.
+     * It only describes the space and does not hold any actual data.
+     *
+     * @tparam T_dim dimension N of the dataspace
+     */
+    template<uint32_t T_dim>
+    using MemSpace = math::Vector<MemIdxType, T_dim>;
+
+    /** A T_dim-dimensional vector of integers.
+     *
+     * The object is used to describe indices of threads in the kernel.
+     * @attention Currently this object is also used to describe memory extents. This should be avoided and is and is a
+     * technical dept from the past and limits the index space to 2 giga elements.
      *
      * DataSpace describes a T_dim-dimensional data space with a specific size for each dimension.
      * It only describes the space and does not hold any actual data.
@@ -60,28 +73,15 @@ namespace pmacc
 
         HDINLINE constexpr DataSpace& operator=(const DataSpace&) = default;
 
-        /**
-         * constructor.
-         * Sets size of all dimensions from cuda dim3.
+        /** constructor.
+         *
+         * Sets size of all dimensions from alpaka.
          */
-        HDINLINE explicit DataSpace(cupla::dim3 value)
+        template<typename T_MemberType>
+        HDINLINE explicit DataSpace(alpaka::Vec<::alpaka::DimInt<T_dim>, T_MemberType> const& value)
         {
-            for(uint32_t i = 0; i < T_dim; ++i)
-            {
-                (*this)[i] = *(&(value.x) + i);
-            }
-        }
-
-        /**
-         * constructor.
-         * Sets size of all dimensions from cupla uint3 (e.g. cupla::threadIdx(acc)/cupla::blockIdx(acc))
-         */
-        HDINLINE DataSpace(cupla::uint3 value)
-        {
-            for(uint32_t i = 0; i < T_dim; ++i)
-            {
-                (*this)[i] = *(&(value.x) + i);
-            }
+            for(uint32_t i = 0u; i < T_dim; i++)
+                (*this)[T_dim - 1 - i] = value[i];
         }
 
         /** Constructor for N-dimensional DataSpace.
@@ -140,7 +140,7 @@ namespace pmacc
          * @param other DataSpace to compare with
          * @return true if one dimension is greater, false otherwise
          */
-        HINLINE bool isOneDimensionGreaterThan(const DataSpace<T_dim>& other) const
+        HINLINE bool isOneDimensionGreaterThan(const MemSpace<T_dim>& other) const
         {
             for(uint32_t i = 0; i < T_dim; ++i)
             {
@@ -156,11 +156,6 @@ namespace pmacc
             for(uint32_t i = 0; i < T_dim; i++)
                 result[i] = static_cast<size_t>((*this)[i]);
             return result;
-        }
-
-        HDINLINE operator cupla::dim3() const
-        {
-            return this->toDim3();
         }
     };
 

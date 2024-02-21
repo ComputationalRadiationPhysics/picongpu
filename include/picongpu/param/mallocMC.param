@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include <pmacc/alpakaHelper/acc.hpp>
+
 #include <mallocMC/mallocMC.hpp>
 
 namespace picongpu
@@ -57,11 +59,11 @@ namespace picongpu
      * algorithm.
      */
     using DeviceHeap = mallocMC::Allocator<
-        cupla::Acc,
+        pmacc::Acc<DIM1>,
         mallocMC::CreationPolicies::Scatter<DeviceHeapConfig>,
         mallocMC::DistributionPolicies::Noop,
         mallocMC::OOMPolicies::ReturnNull,
-        mallocMC::ReservePoolPolicies::AlpakaBuf<cupla::Acc>,
+        mallocMC::ReservePoolPolicies::AlpakaBuf<pmacc::Acc<DIM1>>,
         mallocMC::AlignmentPolicies::Shrink<>>;
 
 } // namespace picongpu

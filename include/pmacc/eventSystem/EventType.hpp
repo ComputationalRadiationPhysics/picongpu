@@ -36,9 +36,7 @@ namespace pmacc
         enum EventType
         {
             FINISHED,
-            COPYHOST2DEVICE,
-            COPYDEVICE2HOST,
-            COPYDEVICE2DEVICE,
+            COPY,
             SENDFINISHED,
             RECVFINISHED,
             LOGICALAND,

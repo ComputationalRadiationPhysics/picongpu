@@ -39,7 +39,7 @@ namespace pmacc
 
             HDINLINE result operator()(float value)
             {
-#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+#if(PMACC_DEVICE_COMPILE == 1) // we are on gpu
                 return ::__float2int_ru(value);
 #else
                 return static_cast<int>(ceil(value));
@@ -54,7 +54,7 @@ namespace pmacc
 
             HDINLINE result operator()(float value)
             {
-#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+#if(PMACC_DEVICE_COMPILE == 1) // we are on gpu
                 return ::__float2int_rd(value);
 #else
                 return static_cast<int>(floor(value));
@@ -69,7 +69,7 @@ namespace pmacc
 
             HDINLINE result operator()(float value)
             {
-#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+#if(PMACC_DEVICE_COMPILE == 1) // we are on gpu
                 return ::__float2int_rn(value);
 #else
                 if(value < 0.0f)

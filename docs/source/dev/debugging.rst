@@ -24,7 +24,7 @@ An example build command is
 
 .. code:: bash
 
-   pic-build -c "-DPIC_VERBOSE=127 -DPMACC_VERBOSE=127 -DPMACC_BLOCKING_KERNEL=ON -DCUPLA_STREAM_ASYNC_ENABLE=OFF"
+   pic-build -c "-DPIC_VERBOSE=127 -DPMACC_VERBOSE=127 -DPMACC_BLOCKING_KERNEL=ON -DPMACC_USE_ASYNC_QUEUES=OFF"
 
 When reporting a crash, it is helpful if you attached the output ``stdout`` and ``stderr`` of such a build.
 

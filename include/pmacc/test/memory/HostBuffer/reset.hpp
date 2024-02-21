@@ -56,9 +56,10 @@ namespace pmacc
 
                             hostBuffer.reset();
 
+                            auto resultBox = hostBuffer.getDataBox();
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                REQUIRE(hostBuffer.getPointer()[i] == 0);
+                                REQUIRE(resultBox.getPointer()[i] == 0);
                             }
                         }
                     }

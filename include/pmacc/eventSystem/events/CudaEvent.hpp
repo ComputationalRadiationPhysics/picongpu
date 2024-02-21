@@ -21,13 +21,14 @@
 
 #pragma once
 
+#include "pmacc/alpakaHelper/acc.hpp"
 #include "pmacc/assert.hpp"
 #include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
-    /** Wrapper for cuplaEvent_t
+    /** Wrapper for AlpakaEventType
      *
      * This class follows the RAII rules
      */
@@ -35,14 +36,12 @@ namespace pmacc
     {
     private:
         /** native cupla event */
-        cuplaEvent_t event;
+        AlpakaEventType event;
         /** native cupla stream where the event is recorded
          *
          *  only valid if isRecorded is true
          */
-        cuplaStream_t stream;
-        /** state if event is recorded */
-        bool isRecorded{false};
+        std::optional<AccStream> stream;
         /** state if a recorded event is finished
          *
          * avoid cupla driver calls after `isFinished()` returns the first time true
@@ -69,11 +68,11 @@ namespace pmacc
         /** free a registered handle */
         void releaseHandle();
 
-        /** get native cuplaEvent_t object
+        /** get native AlpakaEventType object
          *
          * @return native cupla event
          */
-        cuplaEvent_t operator*() const
+        AlpakaEventType operator*() const
         {
             return event;
         }
@@ -82,10 +81,10 @@ namespace pmacc
          *
          * @return native cupla stream
          */
-        cuplaStream_t getStream() const
+        AccStream getStream() const
         {
-            assert(isRecorded);
-            return stream;
+            assert(this->stream);
+            return *stream;
         }
 
         /** check whether the event is finished
@@ -98,6 +97,6 @@ namespace pmacc
          *
          * @param stream native cupla stream
          */
-        void recordEvent(cuplaStream_t stream);
+        void recordEvent(AccStream const& stream);
     };
 } // namespace pmacc

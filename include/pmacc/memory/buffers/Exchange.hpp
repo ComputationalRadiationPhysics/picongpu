@@ -65,12 +65,7 @@ namespace pmacc
             , exchange(extype)
             , communicationTag(commTag)
         {
-            PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
-
             DataSpace<DIM> tmp_size = memoryLayout.getDataSpaceWithoutGuarding();
-            /*
-              DataSpace<DIM> tmp_size = memoryLayout.getDataSpace() - memoryLayout.getGuard() -
-                      memoryLayout.getGuard(); delete on each side 2xguard*/
 
             DataSpace<DIM> exchangeDimensions = exchangeTypeToDim(exchange);
 
@@ -91,7 +86,7 @@ namespace pmacc
             if constexpr(DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(tmp_size, false, true);
+                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(tmp_size, false);
             }
 
             if(!Environment<>::get().isMpiDirectEnabled())
@@ -113,7 +108,7 @@ namespace pmacc
             if constexpr(DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, false, true);
+                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, false);
             }
 
             if(!Environment<>::get().isMpiDirectEnabled())
@@ -289,17 +284,30 @@ namespace pmacc
          *
          * The buffer can point to device or host memory.
          */
-        Buffer<TYPE, DIM>* getCommunicationBuffer()
+        typename Buffer<TYPE, DIM>::CPtr getCPtrCapacity()
         {
             if(Environment<>::get().isMpiDirectEnabled())
             {
                 if(hasDeviceDoubleBuffer())
-                    return &(getDeviceDoubleBuffer());
+                    return getDeviceDoubleBuffer().getCPtrCapacity();
                 else
-                    return &(getDeviceBuffer());
+                    return getDeviceBuffer().getCPtrCapacity();
             }
 
-            return &(getHostBuffer());
+            return getHostBuffer().getCPtrCapacity();
+        }
+
+        typename Buffer<TYPE, DIM>::CPtr getCPtrCurrentSize()
+        {
+            if(Environment<>::get().isMpiDirectEnabled())
+            {
+                if(hasDeviceDoubleBuffer())
+                    return getDeviceDoubleBuffer().getCPtrCurrentSize();
+                else
+                    return getDeviceBuffer().getCPtrCurrentSize();
+            }
+
+            return getHostBuffer().getCPtrCurrentSize();
         }
 
     protected:

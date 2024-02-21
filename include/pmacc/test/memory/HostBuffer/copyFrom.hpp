@@ -58,18 +58,20 @@ namespace pmacc
 
                             hostBuffer->reset();
 
+                            auto fillBox = hostBuffer->getDataBox();
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                hostBuffer->getPointer()[i] = static_cast<Data>(i);
+                                fillBox.getPointer()[i] = static_cast<Data>(i);
                             }
 
                             deviceBuffer->copyFrom(*hostBuffer);
                             hostBuffer->reset();
                             hostBuffer->copyFrom(*deviceBuffer);
 
+                            auto compareBox = hostBuffer->getDataBox();
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                REQUIRE(hostBuffer->getPointer()[i] == static_cast<Data>(i));
+                                REQUIRE(compareBox.getPointer()[i] == static_cast<Data>(i));
                             }
 
                             delete hostBuffer;

@@ -292,25 +292,25 @@ namespace picongpu
                     reduce(
                         pmacc::math::operation::Add(),
                         tmpITR.data(),
-                        incTransRad->getHostBuffer().getBasePointer(),
+                        incTransRad->getHostBuffer().data(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
                         pmacc::math::operation::Add(),
                         tmpCTRpara.data(),
-                        cohTransRadPara->getHostBuffer().getBasePointer(),
+                        cohTransRadPara->getHostBuffer().data(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
                         pmacc::math::operation::Add(),
                         tmpCTRperp.data(),
-                        cohTransRadPerp->getHostBuffer().getBasePointer(),
+                        cohTransRadPerp->getHostBuffer().data(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
                         pmacc::math::operation::Add(),
                         tmpNum.data(),
-                        numParticles->getHostBuffer().getBasePointer(),
+                        numParticles->getHostBuffer().data(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                 }

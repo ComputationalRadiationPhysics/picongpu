@@ -71,8 +71,7 @@ namespace picongpu::fields::maxwellSolver
             auto cachedJ = CachedBox::create<0, typename FieldJ::DataBoxType::ValueType>(worker, BlockArea());
 
             pmacc::math::operation::Assign assign;
-            DataSpace<simDim> const block(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const block(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
             DataSpace<simDim> const blockCell = block * MappingDesc::SuperCellSize::toRT();
 
             auto fieldJBlock = fieldJ.shift(blockCell);

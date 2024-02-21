@@ -29,8 +29,8 @@
 namespace pmacc::math
 {
     //! Calculates the smaller value of two arguments.
-    CUPLA_BINARY_MATH_FN(min, alpaka::math::ConceptMathMin, Min)
+    ALPAKA_BINARY_MATH_FN(min, alpaka::math::ConceptMathMin, Min)
 
     //! Calculates the larger value of two arguments.
-    CUPLA_BINARY_MATH_FN(max, alpaka::math::ConceptMathMax, Max)
+    ALPAKA_BINARY_MATH_FN(max, alpaka::math::ConceptMathMax, Max)
 } // namespace pmacc::math

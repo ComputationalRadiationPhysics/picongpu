@@ -38,7 +38,7 @@ namespace pmacc
          * @tparam T_Acc the accelerator type
          * @return @p ::value number of workers
          */
-        template<uint32_t T_maxWorkers, typename T_Acc = cupla::AccThreadSeq>
+        template<uint32_t T_maxWorkers, typename T_Acc = Acc<DIM1>>
         struct GetNumWorkers
         {
             static constexpr uint32_t value = T_maxWorkers;

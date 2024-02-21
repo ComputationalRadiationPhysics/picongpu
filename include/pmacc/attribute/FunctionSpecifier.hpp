@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <cupla/types.hpp>
+#include <alpaka/alpaka.hpp>
 
 
 /** Function qualifiers

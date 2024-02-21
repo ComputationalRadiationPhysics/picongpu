@@ -76,7 +76,7 @@ namespace picongpu
                 {
                     auto const idxOneD = pmacc::math::linearize(extentsDataspace, binsDataspace);
                     DepositionType depositVal = quantityFunctor(worker, particle);
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         // &(histBox(binsDataspace)),
                         &(histBox(DataSpace<1u>{static_cast<int>(idxOneD)})),
@@ -138,8 +138,7 @@ namespace picongpu
             template<typename T_Worker, typename T_Mapping>
             DINLINE void operator()(const T_Worker& worker, T_Mapping const& mapper) const
             {
-                const DataSpace<SIMDIM> superCellIdx(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+                const DataSpace<SIMDIM> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
                 /**
                  * Init the Domain info, here because of the possibility of a moving window

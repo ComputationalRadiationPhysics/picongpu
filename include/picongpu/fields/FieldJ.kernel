@@ -77,8 +77,7 @@ namespace picongpu
             {
                 using SuperCellSize = typename Mapping::SuperCellSize;
 
-                const DataSpace<simDim> superCellIdx(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+                const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
                 auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, boxPar, superCellIdx);
 

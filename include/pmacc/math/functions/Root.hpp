@@ -29,11 +29,11 @@
 namespace pmacc::math
 {
     //! Computes the square root.
-    CUPLA_UNARY_MATH_FN(sqrt, alpaka::math::ConceptMathSqrt, Sqrt)
+    ALPAKA_UNARY_MATH_FN(sqrt, alpaka::math::ConceptMathSqrt, Sqrt)
 
     //! Computes the inverse square root.
-    CUPLA_UNARY_MATH_FN(rsqrt, alpaka::math::ConceptMathRsqrt, Rsqrt)
+    ALPAKA_UNARY_MATH_FN(rsqrt, alpaka::math::ConceptMathRsqrt, Rsqrt)
 
     //! Computes the cubic root.
-    CUPLA_UNARY_MATH_FN(cbrt, alpaka::math::ConceptMathCbrt, Cbrt)
+    ALPAKA_UNARY_MATH_FN(cbrt, alpaka::math::ConceptMathCbrt, Cbrt)
 } // namespace pmacc::math

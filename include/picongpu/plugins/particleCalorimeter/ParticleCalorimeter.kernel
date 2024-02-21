@@ -61,8 +61,7 @@ namespace picongpu
             T_Filter filter) const
         {
             /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-            DataSpace<simDim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
             auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
 

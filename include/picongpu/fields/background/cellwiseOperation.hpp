@@ -77,8 +77,7 @@ namespace picongpu
             {
                 constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-                DataSpace<simDim> const block(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+                DataSpace<simDim> const block(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
                 DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
                 DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 

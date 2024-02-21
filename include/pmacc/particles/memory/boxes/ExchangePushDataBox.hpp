@@ -74,11 +74,12 @@ namespace pmacc
             DataSpace<DIM> const& superCell,
             T_Hierarchy const& hierarchy)
         {
-            TYPE oldSize = cupla::atomicAdd(worker.getAcc(), currentSizePointer, count, hierarchy); // get count VALUEs
+            TYPE oldSize
+                = alpaka::atomicAdd(worker.getAcc(), currentSizePointer, count, hierarchy); // get count VALUEs
 
             if(oldSize + count > maxSize)
             {
-                cupla::atomicExch(worker.getAcc(), currentSizePointer, maxSize, hierarchy); // reset size to maxsize
+                alpaka::atomicExch(worker.getAcc(), currentSizePointer, maxSize, hierarchy); // reset size to maxsize
                 if(oldSize >= maxSize)
                 {
                     return TileDataBox<VALUE>(nullptr, DataSpace<DIM1>(0), 0);

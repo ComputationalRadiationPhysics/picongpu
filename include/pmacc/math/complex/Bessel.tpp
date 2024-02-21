@@ -94,7 +94,7 @@ namespace pmacc
 
                     complex_T const cone = complex_T(1, 0);
 
-                    float_T const a0 = cupla::math::abs(z);
+                    float_T const a0 = pmacc::math::abs(z);
                     complex_T const z2 = z * z;
                     complex_T z1 = z;
                     if(a0 == float_T(0.0))
@@ -112,7 +112,7 @@ namespace pmacc
                         {
                             cr *= float_T(-0.25) * z2 / float_T(k * k);
                             cj0 += cr;
-                            if(cupla::math::abs(cr) < cupla::math::abs(cj0) * eps)
+                            if(pmacc::math::abs(cr) < pmacc::math::abs(cj0) * eps)
                                 break;
                         }
                     }
@@ -130,16 +130,16 @@ namespace pmacc
                         complex_T cp0 = cone;
                         for(uint32_t k = 0u; k < kz; k++)
                         {
-                            cp0 += a[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(2.0));
+                            cp0 += a[k] * math::pow(z1, float_T(-2.0) * k - float_T(2.0));
                         }
                         complex_T cq0 = float_T(-0.125) / z1;
                         for(uint32_t k = 0; k < kz; k++)
                         {
-                            cq0 += b[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(3.0));
+                            cq0 += b[k] * math::pow(z1, float_T(-2.0) * k - float_T(3.0));
                         }
                         constexpr auto doubleReciprocalPi = Pi<float_T>::doubleReciprocalValue;
-                        complex_T const cu = cupla::math::sqrt(doubleReciprocalPi / z1);
-                        cj0 = cu * (cp0 * cupla::math::cos(ct1) - cq0 * cupla::math::sin(ct1));
+                        complex_T const cu = pmacc::math::sqrt(doubleReciprocalPi / z1);
+                        cj0 = cu * (cp0 * pmacc::math::cos(ct1) - cq0 * pmacc::math::sin(ct1));
                     }
                     return cj0;
                 }
@@ -167,7 +167,7 @@ namespace pmacc
                     complex_T const cone = complex_T(1, 0);
                     complex_T const czero = complex_T(0, 0);
 
-                    float_T const a0 = cupla::math::abs(z);
+                    float_T const a0 = pmacc::math::abs(z);
                     complex_T const z2 = z * z;
                     complex_T z1 = z;
                     if(a0 == float_T(0.0))
@@ -185,7 +185,7 @@ namespace pmacc
                         {
                             cr *= float_T(-0.25) * z2 / (k * (k + float_T(1.0)));
                             cj1 += cr;
-                            if(cupla::math::abs(cr) < cupla::math::abs(cj1) * eps)
+                            if(pmacc::math::abs(cr) < pmacc::math::abs(cj1) * eps)
                                 break;
                         }
                         cj1 *= float_T(0.5) * z1;
@@ -200,19 +200,19 @@ namespace pmacc
                         else
                             kz = 12u; //   "      "     "  14
                         constexpr auto doubleReciprocalPi = Pi<float_T>::doubleReciprocalValue;
-                        complex_T const cu = cupla::math::sqrt(doubleReciprocalPi / z1);
+                        complex_T const cu = pmacc::math::sqrt(doubleReciprocalPi / z1);
                         complex_T const ct2 = z1 - float_T(0.75) * Pi<float_T>::value;
                         complex_T cp1 = cone;
                         for(uint32_t k = 0u; k < kz; k++)
                         {
-                            cp1 += a1[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(2.0));
+                            cp1 += a1[k] * math::pow(z1, float_T(-2.0) * k - float_T(2.0));
                         }
                         complex_T cq1 = float_T(0.375) / z1;
                         for(uint32_t k = 0u; k < kz; k++)
                         {
-                            cq1 += b1[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(3.0));
+                            cq1 += b1[k] * math::pow(z1, float_T(-2.0) * k - float_T(3.0));
                         }
-                        cj1 = cu * (cp1 * cupla::math::cos(ct2) - cq1 * cupla::math::sin(ct2));
+                        cj1 = cu * (cp1 * pmacc::math::cos(ct2) - cq1 * pmacc::math::sin(ct2));
                     }
                     if(z.real() < float_T(0.0))
                     {

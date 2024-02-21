@@ -24,7 +24,6 @@
 
 #include "pmacc/Environment.def"
 #include "pmacc/eventSystem/events/EventTask.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/types.hpp"
@@ -51,43 +50,10 @@ namespace pmacc
     {
     public:
         /**
-         * creates a TaskCopyHostToDevice
-         * @param src HostBuffer to copy data from
-         * @param dst DeviceBuffer to copy data to
-         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an
-         * observer
+         * creates a TaskCopy
          */
-        template<class TYPE, unsigned DIM>
-        EventTask createTaskCopyHostToDevice(
-            HostBuffer<TYPE, DIM>& src,
-            DeviceBuffer<TYPE, DIM>& dst,
-            ITask* registeringTask = nullptr);
-
-        /**
-         * creates a TaskCopyDeviceToHost
-         * @param src DeviceBuffer to copy data from
-         * @param dst HostBuffer to copy data to
-         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an
-         * observer
-         */
-        template<class TYPE, unsigned DIM>
-        EventTask createTaskCopyDeviceToHost(
-            DeviceBuffer<TYPE, DIM>& src,
-            HostBuffer<TYPE, DIM>& dst,
-            ITask* registeringTask = nullptr);
-
-        /**
-         * creates a TaskCopyDeviceToDevice
-         * @param src DeviceBuffer to copy data from
-         * @param dst DeviceBuffer to copy data to
-         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an
-         * observer
-         */
-        template<class TYPE, unsigned DIM>
-        EventTask createTaskCopyDeviceToDevice(
-            DeviceBuffer<TYPE, DIM>& src,
-            DeviceBuffer<TYPE, DIM>& dst,
-            ITask* registeringTask = nullptr);
+        template<typename T_SrcBuffer, typename T_DestBuffer>
+        EventTask createTaskCopy(T_SrcBuffer& src, T_DestBuffer& dst, ITask* registeringTask = nullptr);
 
         /**
          * Creates a TaskReceive.

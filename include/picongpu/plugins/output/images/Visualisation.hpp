@@ -282,8 +282,7 @@ namespace picongpu
 
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-            DataSpace<simDim> const suplercellIdx
-                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
+            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
@@ -396,8 +395,7 @@ namespace picongpu
              */
             auto isImageThreadCtx = lockstep::makeVar<bool>(forEachCell, false);
 
-            DataSpace<simDim> const suplercellIdx
-                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
+            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
@@ -439,9 +437,8 @@ namespace picongpu
             // shared memory box for particle counter
             SharedMem counter(PitchedBox<float_X, DIM2>(
                 (float_X*) shBlock,
-                DataSpace<DIM2>(),
                 // pitch in byte
-                SuperCellSize::toRT()[transpose.x()] * sizeof(float_X)));
+                DataSpace<DIM2>{sizeof(float_X), SuperCellSize::toRT()[transpose.x()] * sizeof(float_X)}));
 
             forEachCell(
                 [&](int32_t const idx, bool const isImageThread)
@@ -482,7 +479,7 @@ namespace picongpu
                         DataSpace<DIM2> const reducedCell(
                             particleCellOffset[transpose.x()],
                             particleCellOffset[transpose.y()]);
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             lockstepWorker.getAcc(),
                             &(counter(reducedCell)),
                             // normalize the value to avoid bad precision for large macro particle weightings
@@ -568,7 +565,7 @@ namespace picongpu
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        uint32_t tid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
+                        uint32_t tid = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
                         if(tid >= n)
                             return;
 
@@ -605,7 +602,7 @@ namespace picongpu
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        uint32_t const tid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
+                        uint32_t const tid = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
                         if(tid >= n)
                             return;
 

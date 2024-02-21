@@ -224,8 +224,8 @@ namespace picongpu
          */
         (*planeReduce)(
             pmacc::math::operation::Add(),
-            hReducedBuffer.getBasePointer(),
-            this->dBuffer->getHostBuffer().getBasePointer(),
+            hReducedBuffer.data(),
+            this->dBuffer->getHostBuffer().data(),
             bufferExtent.productOfComponents(),
             mpi::reduceMethods::Reduce());
 

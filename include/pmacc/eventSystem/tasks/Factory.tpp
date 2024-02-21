@@ -22,12 +22,9 @@
 #pragma once
 
 #include "pmacc/eventSystem/Manager.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/eventSystem/tasks/TaskCopyDeviceToDevice.hpp"
-#include "pmacc/eventSystem/tasks/TaskCopyDeviceToHost.hpp"
-#include "pmacc/eventSystem/tasks/TaskCopyHostToDevice.hpp"
+#include "pmacc/eventSystem/tasks/TaskCopy.hpp"
 #include "pmacc/eventSystem/tasks/TaskGetCurrentSizeFromDevice.hpp"
 #include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/eventSystem/tasks/TaskReceive.hpp"
@@ -44,51 +41,14 @@ namespace pmacc
 {
     /**
      * creates a TaskCopyHostToDevice
-     * @param src HostBuffer to copy data from
-     * @param dst DeviceBuffer to copy data to
+     * @param src buffer concept to copy data from
+     * @param dst buffer concept to copy data to
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template<class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyHostToDevice(
-        HostBuffer<TYPE, DIM>& src,
-        DeviceBuffer<TYPE, DIM>& dst,
-        ITask* registeringTask)
+    template<typename T_SrcBuffer, typename T_DestBuffer>
+    inline EventTask Factory::createTaskCopy(T_SrcBuffer& src, T_DestBuffer& dst, ITask* registeringTask)
     {
-        auto* task = new TaskCopyHostToDevice<TYPE, DIM>(src, dst);
-
-        return startTask(*task, registeringTask);
-    }
-
-    /**
-     * creates a TaskCopyDeviceToHost
-     * @param src DeviceBuffer to copy data from
-     * @param dst HostBuffer to copy data to
-     * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
-     */
-    template<class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyDeviceToHost(
-        DeviceBuffer<TYPE, DIM>& src,
-        HostBuffer<TYPE, DIM>& dst,
-        ITask* registeringTask)
-    {
-        auto* task = new TaskCopyDeviceToHost<TYPE, DIM>(src, dst);
-
-        return startTask(*task, registeringTask);
-    }
-
-    /**
-     * creates a TaskCopyDeviceToDevice
-     * @param src DeviceBuffer to copy data from
-     * @param dst DeviceBuffer to copy data to
-     * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
-     */
-    template<class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyDeviceToDevice(
-        DeviceBuffer<TYPE, DIM>& src,
-        DeviceBuffer<TYPE, DIM>& dst,
-        ITask* registeringTask)
-    {
-        auto* task = new TaskCopyDeviceToDevice<TYPE, DIM>(src, dst);
+        auto* task = new TaskCopy<T_SrcBuffer, T_DestBuffer>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -174,7 +134,7 @@ namespace pmacc
         size_t size,
         ITask* registeringTask)
     {
-        auto* task = new TaskSetCurrentSizeOnDevice<TYPE, DIM>(dst, size);
+        auto* task = new TaskSetCurrentSizeOnDevice<DeviceBuffer<TYPE, DIM>>(dst, size);
 
         return startTask(*task, registeringTask);
     }
@@ -189,7 +149,7 @@ namespace pmacc
         DeviceBuffer<TYPE, DIM>& buffer,
         ITask* registeringTask)
     {
-        auto* task = new TaskGetCurrentSizeFromDevice<TYPE, DIM>(buffer);
+        auto* task = new TaskGetCurrentSizeFromDevice<DeviceBuffer<TYPE, DIM>>(buffer);
 
         return startTask(*task, registeringTask);
     }

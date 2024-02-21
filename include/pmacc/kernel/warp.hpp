@@ -121,6 +121,9 @@ namespace pmacc
         {
             DINLINE T_DataType operator()(T_MaskType const mask, T_DataType const data, int const srcLaneId) const
             {
+                /* we can not use alpaka warp shfl because it assumes that all threads of the warp participating in the
+                 * call
+                 */
 #        if(BOOST_COMP_HIP)
                 return __shfl(data, srcLaneId);
 #        else

@@ -41,7 +41,7 @@ namespace pmacc
         {
 #if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
             //! Uses the CUDA XORWOW RNG but does not store state members required for normal distribution
-            template<typename T_Acc = cupla::Acc>
+            template<typename T_Acc = pmacc::Acc<DIM1>>
             class XorMin
             {
 #    if(BOOST_LANG_HIP)
@@ -132,7 +132,7 @@ namespace pmacc
             };
 #else
             //! fallback to alpaka RNG if a cpu accelerator is used
-            template<typename T_Acc = cupla::Acc>
+            template<typename T_Acc = pmacc::Acc<DIM1>>
             using XorMin = AlpakaRand<T_Acc>;
 #endif
         } // namespace methods

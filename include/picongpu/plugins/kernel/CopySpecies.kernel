@@ -91,8 +91,7 @@ namespace picongpu
 
             auto storageOffsetCtx = lockstep::makeVar<int>(forEachParticleInFrame);
 
-            DataSpace<simDim> const supcerCellIdx
-                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
+            DataSpace<simDim> const supcerCellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
             /* offset (in cells) of the supercell relative to the origin of the
              * local domain (without any guards)
              */
@@ -136,7 +135,7 @@ namespace picongpu
                     {
                         // reserve host memory for particle
                         globalOffset
-                            = cupla::atomicAdd(worker.getAcc(), counter, localCounter, ::alpaka::hierarchy::Blocks{});
+                            = alpaka::atomicAdd(worker.getAcc(), counter, localCounter, ::alpaka::hierarchy::Blocks{});
                     });
 
                 worker.sync();

@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include "pmacc/alpakaHelper/acc.hpp"
+#include "pmacc/dimensions/Definition.hpp"
+
 #include <alpaka/alpaka.hpp>
 
 #include <type_traits>
@@ -88,20 +91,13 @@ namespace pmacc::math
         {
             using ResultMathConcept = typename MathImpl<T_AccOrMathImpl>::type;
 
-            using AccMathConcept = alpaka::concepts::ImplementationBase<T_Concept, Acc<DIM3>>;
-
-            using AccThreadSeqMathConcept = alpaka::concepts::ImplementationBase<T_Concept, AccThreadSeq<DIM3>>;
-
-            // cupla Acc and AccThreadSeq should use the same math concept implementation
-            static_assert(
-                std::is_same<AccMathConcept, AccThreadSeqMathConcept>::value,
-                "The math concept implementation for the type 'Acc' and 'AccThreadSeq' must be equal");
+            using AccMathConcept = alpaka::concepts::ImplementationBase<T_Concept, pmacc::Acc<DIM1>>;
 
             return ResultMathConcept{};
         }
     } // namespace detail
 
-#define CUPLA_UNARY_MATH_FN_DETAIL(functionName, accOrMathImpl, alpakaMathConcept, alpakaMathTrait)                   \
+#define ALPAKA_UNARY_MATH_FN_DETAIL(functionName, accOrMathImpl, alpakaMathConcept, alpakaMathTrait)                  \
     /**                                                                                                               \
      * @tparam T_Type argument type                                                                                   \
      * @param arg input argument                                                                                      \
@@ -124,7 +120,7 @@ namespace pmacc::math
 /* Using the free alpaka functions `alpaka::math::*` will result into `__host__ __device__`
  * errors, therefore the alpaka math trait must be used.
  */
-#define CUPLA_BINARY_MATH_FN_DETAIL(functionName, accOrMathImpl, alpakaMathConcept, alpakaMathTrait)                  \
+#define ALPAKA_BINARY_MATH_FN_DETAIL(functionName, accOrMathImpl, alpakaMathConcept, alpakaMathTrait)                 \
     /**                                                                                                               \
      * @tparam T_Type argument type                                                                                   \
      * @param arg1 first input argument                                                                               \
@@ -149,15 +145,15 @@ namespace pmacc::math
     }
 
 #if PMACC_DEVICE_COMPILE == 0
-#    define CUPLA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                     \
-        CUPLA_UNARY_MATH_FN_DETAIL(functionName, alpaka::math::MathStdLib, alpakaMathConcept, alpakaMathTrait)
-#    define CUPLA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                    \
-        CUPLA_BINARY_MATH_FN_DETAIL(functionName, alpaka::math::MathStdLib, alpakaMathConcept, alpakaMathTrait)
+#    define ALPAKA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                    \
+        ALPAKA_UNARY_MATH_FN_DETAIL(functionName, alpaka::math::MathStdLib, alpakaMathConcept, alpakaMathTrait)
+#    define ALPAKA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                   \
+        ALPAKA_BINARY_MATH_FN_DETAIL(functionName, alpaka::math::MathStdLib, alpakaMathConcept, alpakaMathTrait)
 #else
-#    define CUPLA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                     \
-        CUPLA_UNARY_MATH_FN_DETAIL(functionName, Acc<DIM1>, alpakaMathConcept, alpakaMathTrait)
-#    define CUPLA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                    \
-        CUPLA_BINARY_MATH_FN_DETAIL(functionName, Acc<DIM1>, alpakaMathConcept, alpakaMathTrait)
+#    define ALPAKA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                    \
+        ALPAKA_UNARY_MATH_FN_DETAIL(functionName, Acc<DIM1>, alpakaMathConcept, alpakaMathTrait)
+#    define ALPAKA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)                                   \
+        ALPAKA_BINARY_MATH_FN_DETAIL(functionName, Acc<DIM1>, alpakaMathConcept, alpakaMathTrait)
 #endif
 
 } // namespace pmacc::math

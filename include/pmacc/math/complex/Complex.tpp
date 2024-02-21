@@ -63,7 +63,7 @@ namespace pmacc
 
             HDINLINE result operator()(const T_Type& magnitude, const T_Type& phase)
             {
-                return result(magnitude * cupla::math::cos(phase), magnitude * cupla::math::sin(phase));
+                return result(magnitude * pmacc::math::cos(phase), magnitude * pmacc::math::sin(phase));
             }
 
             HDINLINE result operator()(const T_Type& magnitude, const T_Type& sinValue, const T_Type& cosValue)

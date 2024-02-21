@@ -87,7 +87,8 @@ namespace pmacc
                     T_Functor func,
                     T_DestFunctor destFunc) const
                 {
-                    uint32_t const numGlobalVirtualThreadCount = cupla::gridDim(worker.getAcc()).x * T_blockSize;
+                    uint32_t const numGlobalVirtualThreadCount
+                        = pmacc::device::getGridSize(worker.getAcc()).x() * T_blockSize;
 
                     Type* s_mem = ::alpaka::getDynSharedMem<Type>(worker.getAcc());
 
@@ -98,10 +99,10 @@ namespace pmacc
                         bufferSize,
                         func,
                         s_mem,
-                        cupla::blockIdx(worker.getAcc()).x);
+                        device::getBlockIdx(worker.getAcc()).x());
 
                     lockstep::makeMaster(worker)(
-                        [&]() { destFunc(worker, destBuffer[cupla::blockIdx(worker.getAcc()).x], s_mem[0]); });
+                        [&]() { destFunc(worker, destBuffer[device::getBlockIdx(worker.getAcc()).x()], s_mem[0]); });
                 }
 
                 /** reduce a buffer
@@ -125,7 +126,7 @@ namespace pmacc
                  * @param sharedMem shared memory buffer with storage for `linearThreadIdxInBlock` elements,
                  *        buffer must implement `operator[](size_t)` (one dimensional access)
                  * @param blockIndex index of the cupla block,
-                 *                   for a global reduce: `cupla::blockIdx(worker.getAcc()).x`,
+                 *                   for a global reduce: `device::getBlockIdx(worker.getAcc()).x()`,
                  *                   for a reduce within a block: `0`
                  *
                  * @result void the result is stored in the first slot of @p sharedMem

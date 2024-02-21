@@ -209,7 +209,7 @@ namespace picongpu
                  * generator.
                  *
                  * This function will be called inline on the device which must happen BEFORE threads diverge
-                 * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
+                 * during loop execution. The reason for this is the `alpaka::syncBlockThreads( acc )` call which is
                  * necessary after initializing the field shared boxes in shared memory.
                  *
                  * @param localSuperCellOffset offset (in superCells, without any guards) relative

@@ -451,7 +451,7 @@ namespace picongpu
 
                         // Offset of the superCell (in cells, without any guards) to the origin of the local domain
                         DataSpace<simDim> supercellOffsetCells
-                            = DataSpace<simDim>(cupla::blockIdx(worker.getAcc())) * SuperCellSize::toRT();
+                            = device::getBlockIdx(worker.getAcc()) * SuperCellSize::toRT();
 
                         lockstep::makeForEach<planeSize>(worker)(
                             [&](int32_t const linearIdx)

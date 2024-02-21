@@ -57,7 +57,7 @@ namespace picongpu
                 const T_DepositedQuantity factor,
                 T_DataBox dataBox) const
             {
-                auto blockIdx = cupla::blockIdx(worker.getAcc()).x * blockSize;
+                auto blockIdx = device::getBlockIdx(worker.getAcc()).x() * blockSize;
                 auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
                 forEachElemInDataboxChunk(
                     [&](int32_t const linearIdx)
@@ -97,7 +97,7 @@ namespace picongpu
                 T_DataBox histBox) const
             {
                 // @todo check normDataBox shape is same as histBox
-                auto blockIdx = cupla::blockIdx(worker.getAcc()).x * blockSize;
+                auto blockIdx = device::getBlockIdx(worker.getAcc()).x() * blockSize;
                 auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
                 forEachElemInDataboxChunk(
                     [&](int32_t const linearIdx)
@@ -257,8 +257,8 @@ namespace picongpu
 
                     reduce(
                         pmacc::math::operation::Add(),
-                        hReducedBuffer->getBasePointer(),
-                        this->histBuffer->getHostBuffer().getBasePointer(),
+                        hReducedBuffer->data(),
+                        this->histBuffer->getHostBuffer().data(),
                         bufferExtent[0],
                         mpi::reduceMethods::Reduce());
 
@@ -309,8 +309,8 @@ namespace picongpu
 
                 reduce(
                     pmacc::math::operation::Add(),
-                    hReducedBuffer->getBasePointer(),
-                    this->histBuffer->getHostBuffer().getBasePointer(),
+                    hReducedBuffer->data(),
+                    this->histBuffer->getHostBuffer().data(),
                     bufferExtent[0], // this is a 1D dataspace, just access it?
                     mpi::reduceMethods::Reduce());
 
@@ -381,7 +381,7 @@ namespace picongpu
                     ::openPMD::Extent extent = dataset.getExtent();
                     ::openPMD::Offset offset(extent.size(), 0);
                     dataset.loadChunk(
-                        std::shared_ptr<float_X>{histBuffer->getHostBuffer().getPointer(), [](auto const*) {}},
+                        std::shared_ptr<float_X>{histBuffer->getHostBuffer().data(), [](auto const*) {}},
                         offset,
                         extent);
                     openPMDdataFile.flush();

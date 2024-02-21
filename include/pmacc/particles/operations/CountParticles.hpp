@@ -69,7 +69,7 @@ namespace pmacc
 
             PMACC_SMEM(worker, counter, int);
             DataSpace<dim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc()))));
+                mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc()))));
 
             auto onlyMaster = lockstep::makeMaster(worker);
 
@@ -101,7 +101,7 @@ namespace pmacc
 
             onlyMaster(
                 [&]() {
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         gCounter,
                         static_cast<uint64_cu>(counter),
@@ -138,7 +138,7 @@ namespace pmacc
             PMACC_LOCKSTEP_KERNEL(KernelCountParticles{}, workerCfg)
             (mapper.getGridDim())(
                 buffer.getDeviceParticlesBox(),
-                counter.getDeviceBuffer().getBasePointer(),
+                counter.getDeviceBuffer().data(),
                 filter,
                 mapper,
                 parFilter);

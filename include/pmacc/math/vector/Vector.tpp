@@ -118,7 +118,7 @@ namespace pmacc
             HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim>& vector)
             {
                 result tmp = pmacc::math::l2norm2(vector);
-                return cupla::math::sqrt(tmp);
+                return pmacc::math::sqrt(tmp);
             }
         };
 
@@ -178,7 +178,7 @@ namespace alpaka
                     PMACC_CASSERT(T_dim > 0);
                     ResultType tmp;
                     for(uint32_t i = 0; i < T_dim; ++i)
-                        tmp[i] = cupla::pow(vector[i], exponent);
+                        tmp[i] = pow(vector[i], exponent);
                     return tmp;
                 }
             };
@@ -246,6 +246,68 @@ namespace alpaka
 
         } // namespace trait
     } // namespace math
+
+    namespace trait
+    {
+        //! dimension get trait specialization
+        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+        struct DimType<pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
+        {
+            using type = ::alpaka::DimInt<T_dim>;
+        };
+
+        //! element type trait specialization
+        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+        struct ElemType<pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
+        {
+            using type = T_Type;
+        };
+
+        //! extent get trait specialization
+        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+        struct GetExtents<
+            pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>,
+            std::enable_if_t<std::is_integral_v<T_Type>>>
+        {
+            ALPAKA_FN_HOST_ACC
+            constexpr auto operator()(pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage> const& extents)
+                -> Vec<::alpaka::DimInt<T_dim>, T_Type>
+            {
+                Vec<::alpaka::DimInt<T_dim>, T_Type> result;
+                for(uint32_t i = 0u; i < T_dim; i++)
+                    result[T_dim - 1 - i] = extents[i];
+                return result;
+            }
+        };
+
+        //! offset get trait specialization
+        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+        struct GetOffsets<
+            pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>,
+            std::enable_if_t<std::is_integral_v<T_Type>>>
+        {
+            ALPAKA_FN_HOST_ACC
+            constexpr auto operator()(pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage> const& offsets)
+                -> Vec<::alpaka::DimInt<T_dim>, T_Type>
+            {
+                Vec<::alpaka::DimInt<T_dim>, T_Type> result;
+                for(uint32_t i = 0u; i < T_dim; i++)
+                    result[T_dim - 1 - i] = offsets[i];
+                return result;
+            }
+        };
+
+        //! size type trait specialization.
+        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+        struct IdxType<
+            pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>,
+            std::enable_if_t<std::is_integral_v<T_Type>>>
+        {
+            using type = T_Type;
+        };
+
+    } // namespace trait
+
 } // namespace alpaka
 
 namespace pmacc

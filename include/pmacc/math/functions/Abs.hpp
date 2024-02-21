@@ -29,5 +29,5 @@
 namespace pmacc::math
 {
     //! Computes the absolute value.
-    CUPLA_UNARY_MATH_FN(abs, alpaka::math::ConceptMathAbs, Abs)
+    ALPAKA_UNARY_MATH_FN(abs, alpaka::math::ConceptMathAbs, Abs)
 } // namespace pmacc::math

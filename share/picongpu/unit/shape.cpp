@@ -130,7 +130,7 @@ struct TestShape
         auto shapeTestKernel
             = [this] DEVICEONLY(auto const& worker, auto positionShift, auto const& positions, auto result)
         {
-            auto blockIdx = cupla::blockIdx(worker.getAcc()).x;
+            auto blockIdx = device::getBlockIdx(worker.getAcc()).x();
 
             auto forEach = lockstep::makeForEach<elemPerBlock>(worker);
 

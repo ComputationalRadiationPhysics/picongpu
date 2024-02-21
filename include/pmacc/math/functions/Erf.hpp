@@ -29,5 +29,5 @@
 namespace pmacc::math
 {
     //! Computes the error function.
-    CUPLA_UNARY_MATH_FN(erf, alpaka::math::ConceptMathErf, Erf)
+    ALPAKA_UNARY_MATH_FN(erf, alpaka::math::ConceptMathErf, Erf)
 } // namespace pmacc::math

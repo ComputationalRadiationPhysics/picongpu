@@ -29,8 +29,8 @@
 namespace pmacc::math
 {
     //! Computes the floating-point remainder of the division operation x/y.
-    CUPLA_BINARY_MATH_FN(fmod, alpaka::math::ConceptMathFmod, Fmod)
+    ALPAKA_BINARY_MATH_FN(fmod, alpaka::math::ConceptMathFmod, Fmod)
 
     //! Computes the IEEE remainder of the floating point division operation x/y.
-    CUPLA_BINARY_MATH_FN(remainder, alpaka::math::ConceptMathRemainder, Remainder)
+    ALPAKA_BINARY_MATH_FN(remainder, alpaka::math::ConceptMathRemainder, Remainder)
 } // namespace pmacc::math

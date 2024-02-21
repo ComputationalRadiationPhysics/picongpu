@@ -46,7 +46,7 @@ namespace pmacc::eventSystem
      * Synchronizes a blocking operation with events on the top-most transaction.
      *
      * @param op operation type for synchronization
-     * @return an EventStream which can be used for StreamTasks
+     * @return an AccStream which can be used for StreamTasks
      */
     void startOperation(ITask::TaskType op);
 

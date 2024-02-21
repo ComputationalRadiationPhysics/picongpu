@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/eventSystem/events/EventTask.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/transactions/Transaction.hpp"
 
 #include <stack>
@@ -59,7 +58,6 @@ namespace pmacc
          * Synchronizes a blocking operation with events on the top-most transaction.
          *
          * @param op operation type for synchronization
-         * @return an EventStream which can be used for StreamTasks
          */
         void startOperation(ITask::TaskType op);
 

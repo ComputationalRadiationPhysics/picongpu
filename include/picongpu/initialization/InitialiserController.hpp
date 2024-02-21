@@ -79,8 +79,7 @@ namespace picongpu
             Environment<>::get().PluginConnector().restartPlugins(restartStep, restartDirectory);
             eventSystem::getTransactionEvent().waitForFinished();
 
-            CUDA_CHECK(cuplaDeviceSynchronize());
-            CUDA_CHECK(cuplaGetLastError());
+            alpaka::wait(manager::Device<ComputeDevice>::get().current());
 
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
 

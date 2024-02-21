@@ -53,7 +53,7 @@ find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 # Targets
 ###############################################################################
 
-cupla_add_executable(TestRng 2DDistribution.cpp)
+alpaka_add_executable(TestRng 2DDistribution.cpp)
 target_link_libraries(TestRng PRIVATE pmacc::pmacc)
 
 add_custom_target(run

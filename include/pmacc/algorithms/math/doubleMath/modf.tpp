@@ -36,7 +36,7 @@ namespace pmacc
 
             HDINLINE double operator()(double value, double* intpart)
             {
-#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+#if(PMACC_DEVICE_COMPILE == 1) // we are on gpu
                 return ::modf(value, intpart);
 #else
                 return std::modf(value, intpart);

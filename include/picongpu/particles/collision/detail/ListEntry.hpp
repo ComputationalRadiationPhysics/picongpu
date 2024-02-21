@@ -194,7 +194,7 @@ namespace picongpu::particles::collision
                                 if(particle[multiMask_] != 0 && filter(worker, particle))
                                 {
                                     auto parLocalIndex = particle[localCellIdx_];
-                                    uint32_t parOffset = cupla::atomicAdd(
+                                    uint32_t parOffset = alpaka::atomicAdd(
                                         worker.getAcc(),
                                         &size(parLocalIndex),
                                         1u,
@@ -315,7 +315,7 @@ namespace picongpu::particles::collision
                     if(filter(worker, particle))
                     {
                         auto parLocalIndex = particle[localCellIdx_];
-                        cupla::atomicAdd(worker.getAcc(), &nppc[parLocalIndex], 1u, ::alpaka::hierarchy::Threads{});
+                        alpaka::atomicAdd(worker.getAcc(), &nppc[parLocalIndex], 1u, ::alpaka::hierarchy::Threads{});
                     }
                 });
         }

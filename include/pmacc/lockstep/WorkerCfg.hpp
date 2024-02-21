@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/device/threadInfo.hpp"
 #include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 #include "pmacc/types.hpp"
@@ -114,11 +115,11 @@ namespace pmacc::lockstep
         template<typename T_Acc>
         HDINLINE static auto getWorkerAssume1DThreads(T_Acc const& acc)
         {
-            [[maybe_unused]] auto const blockDim = cupla::blockDim(acc).x;
+            [[maybe_unused]] auto const blockDim = device::getBlockSize(acc).x();
             // validate that the kernel is started with the correct number of threads
             ALPAKA_ASSERT_ACC(blockDim == numWorkers);
 
-            return Worker<T_Acc, T_numSuggestedWorkers>(acc, cupla::threadIdx(acc).x);
+            return Worker<T_Acc, T_numSuggestedWorkers>(acc, device::getThreadIdx(acc).x());
         }
     };
 
