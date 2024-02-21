@@ -62,8 +62,14 @@ if ! [ -d "./include" ]; then
 	exit 1
 fi
 
-TMPDIR="$(mktemp -d)"
 OPTIONAL_FILENAME="picongpu-metadata.json"
+REFERENCE_FILE="picongpu-metadata.json.reference"
+TMPDIR="$(mktemp -d)"
+
+if ! [ -d "${TMPDIR}" ]; then
+	echo "Creation of temporary directory failed."
+	exit 1
+fi
 
 function cleanup {
 	rm -rf "${TMPDIR}"
@@ -71,7 +77,7 @@ function cleanup {
 
 trap cleanup EXIT
 
-cp "${OPTIONAL_FILENAME}.reference" "${TMPDIR}/${OPTIONAL_FILENAME}.reference"
+cp "${REFERENCE_FILE}" "${TMPDIR}/${REFERENCE_FILE}"
 
 pic-create -f . "${TMPDIR}" &&
 	cd "${TMPDIR}" &&
@@ -84,5 +90,5 @@ ARGS="-d 1 1 1 -g 24 24 24 "
 ${EXECUTABLE} ${ARGS} --dump-metadata "${OPTIONAL_FILENAME}" --no-start-simulation
 # doc-include-end: cmdline
 
-diff "${OPTIONAL_FILENAME}" "${OPTIONAL_FILENAME}.reference"
+diff "${OPTIONAL_FILENAME}" "${REFERENCE_FILE}"
 exit $?

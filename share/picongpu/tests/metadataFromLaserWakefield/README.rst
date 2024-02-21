@@ -14,5 +14,5 @@ This example compiles the `LaserWakefield` example from the `share/picongpu/exam
    :end-before: doc-include-end: cmdline
    :dedent:
 
-such that it outputs its metadata to `picongpu-metadata.json`. This file is compared with the reference file
+such that it outputs its metadata to `"${OPTIONAL_FILENAME}"`. This file is compared with the reference file
 `picongpu-metadata.json.reference`.
