@@ -17,9 +17,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "metadata.hpp"
-
 #include <nlohmann/json.hpp>
+#include <picongpu/MetadataAggregator.hpp>
 
 namespace picongpu
 {

@@ -21,7 +21,7 @@
 
 #include <picongpu/simulation_defines.hpp>
 
-#include "picongpu/metadata.hpp"
+#include "picongpu/MetadataAggregator.hpp"
 
 #include <functional>
 #include <numeric>

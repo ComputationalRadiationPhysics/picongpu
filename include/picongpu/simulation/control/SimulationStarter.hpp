@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/ArgsParser.hpp"
-#include "picongpu/metadata.hpp"
+#include "picongpu/MetadataAggregator.hpp"
 #include "picongpu/metadataCT.def"
 #include "picongpu/simulation/control/ISimulationStarter.hpp"
 

@@ -20,7 +20,7 @@
 #include <pmacc/boost_workaround.hpp>
 
 #include "picongpu/ArgsParser.hpp"
-#include "picongpu/metadata.hpp"
+#include "picongpu/MetadataAggregator.hpp"
 
 #include <boost/program_options/options_description.hpp>
 
