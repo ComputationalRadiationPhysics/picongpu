@@ -32,6 +32,7 @@
 #include <string>
 
 #include <nlohmann/json.hpp>
+#include <picongpu/traits/GetMetadata.hpp>
 
 
 namespace picongpu
@@ -96,30 +97,6 @@ namespace picongpu
         };
         static nlohmann::json metadata;
     };
-
-    namespace traits
-    {
-        // doc-include-start: GetMetdata trait
-        template<typename TObject>
-        struct GetMetadata
-        {
-            // for classes with compile-time information only, this can be left out:
-            TObject const& obj;
-
-            // for classes with compile-time information only, this can be left out:
-            nlohmann::json descriptionRT() const
-            {
-                return obj.metadata();
-            }
-
-            // for classes with runtime-time information only, this can be left out:
-            static nlohmann::json descriptionCT()
-            {
-                return TObject::metadata();
-            }
-        };
-        // doc-include-end: GetMetdata trait
-    } // namespace traits
 
     template<typename... T, typename... U>
     void addMetadataOf(U const&... obj)
