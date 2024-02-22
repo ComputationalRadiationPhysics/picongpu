@@ -19,18 +19,6 @@
 
 #pragma once
 
-#include <pmacc/boost_workaround.hpp>
-
-#include <pmacc/pluginSystem/IPlugin.hpp>
-
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/value_semantic.hpp>
-
-#include <filesystem>
-#include <fstream>
-#include <ostream>
-#include <string>
-
 #include <nlohmann/json.hpp>
 
 
