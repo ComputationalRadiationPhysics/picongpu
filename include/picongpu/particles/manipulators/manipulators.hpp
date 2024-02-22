@@ -26,3 +26,4 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.hpp"
 #include "picongpu/particles/manipulators/unary/Temperature.hpp"
+#include "picongpu/particles/manipulators/unary/MaxwellJuettner.hpp"
