@@ -42,7 +42,7 @@ using ::picongpu::particles::moveParticle;
 using ::picongpu::operator""_X;
 
 // TODO: dirty hack to care about another time
-nlohmann::json picongpu::MetadataPlugin::metadata;
+nlohmann::json picongpu::MetadataAggregator::metadata;
 
 const auto superCellSize = ::picongpu::SuperCellSize::toRT();
 constexpr const auto superCellVolume = ::pmacc::math::CT::volume<::picongpu::SuperCellSize>::type::value;

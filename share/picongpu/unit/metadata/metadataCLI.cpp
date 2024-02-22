@@ -31,7 +31,7 @@
 
 using boost::program_options::options_description;
 using picongpu::ArgsParser;
-using picongpu::MetadataPlugin;
+using picongpu::MetadataAggregator;
 using std::string;
 using std::vector;
 using std::filesystem::path;
@@ -74,33 +74,33 @@ struct TestableArgsParser : ArgsParser
 
 TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
 {
-    MetadataPlugin metadataPlugin;
+    MetadataAggregator metadataAggregator;
     TestableArgsParser& argsParser = TestableArgsParser::getInstance();
     argsParser.reset();
 
-    options_description description(metadataPlugin.pluginGetName());
-    metadataPlugin.pluginRegisterHelp(description);
+    options_description description(metadataAggregator.pluginGetName());
+    metadataAggregator.pluginRegisterHelp(description);
     argsParser.addOptions(description);
 
     SECTION("deactivated by default")
     {
         FictitiousArgv fictitiousArgv{{"<executable>"}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(!metadataPlugin.isSupposedToRun);
+        CHECK(!metadataAggregator.isSupposedToRun);
     }
 
     SECTION("gets activated via `--dump-metadata`")
     {
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata"}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(metadataPlugin.isSupposedToRun);
+        CHECK(metadataAggregator.isSupposedToRun);
     }
 
     SECTION("has correct default filename")
     {
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata"}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(metadataPlugin.filename == metadataPlugin.defaultFilename);
+        CHECK(metadataAggregator.filename == metadataAggregator.defaultFilename);
     }
 
     SECTION("gets activated with additional filename")
@@ -108,7 +108,7 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
         string filename{"filename"};
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(metadataPlugin.isSupposedToRun);
+        CHECK(metadataAggregator.isSupposedToRun);
     }
 
     SECTION("takes filename after `--dump-metadata`")
@@ -116,6 +116,6 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
         string filename{"filename"};
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(metadataPlugin.filename == filename);
+        CHECK(metadataAggregator.filename == filename);
     }
 }

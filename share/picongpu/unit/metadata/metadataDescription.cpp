@@ -26,9 +26,9 @@
 
 using nlohmann::json;
 using picongpu::addMetadataOf;
-using picongpu::MetadataPlugin;
+using picongpu::MetadataAggregator;
 
-json picongpu::MetadataPlugin::metadata;
+json picongpu::MetadataAggregator::metadata;
 
 // doc-include-start: adapting metadata
 struct SomethingWithRTInfo
@@ -208,7 +208,7 @@ struct picongpu::traits::GetMetadata<MyClass>
 
 TEST_CASE("unit::metadataDescription", "[metadata description test]")
 {
-    MetadataPlugin metadataPlugin;
+    MetadataAggregator metadataAggregator;
 
     SECTION("can add RT info for simple object")
     {
@@ -217,7 +217,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["info"] = obj.info;
 
         addMetadataOf(obj);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("can handle multiple pieces of information")
@@ -228,7 +228,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["character"] = obj.c;
 
         addMetadataOf(obj);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("metadata can be customised via trait")
@@ -239,7 +239,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         REQUIRE(obj.metadata() != expected); // make sure we test something non-trivial here
 
         addMetadataOf(obj);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("merges two non-overlapping sets of metadata")
@@ -253,7 +253,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
 
         addMetadataOf(obj);
         addMetadataOf(obj2);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("overlapping metadata overwrites (test for confidence and documentation)")
@@ -267,7 +267,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
 
         addMetadataOf(obj);
         addMetadataOf(obj2);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("customisation can extract private information from `.metadata()`")
@@ -279,7 +279,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["customisedInfo"] = "Some customised string.";
 
         addMetadataOf(obj);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("customisation can extract private information as a friend")
@@ -291,7 +291,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["customisedInfo"] = "Some other customised string.";
 
         addMetadataOf(obj);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("can extract default CT information")
@@ -300,7 +300,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["Info"] = SomethingWithCTInfo::Info::info;
 
         addMetadataOf<SomethingWithCTInfo>();
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("can extract customised CT information")
@@ -309,7 +309,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["Info"] = 10 * SomethingWithCustomCTInfo::Info::info;
 
         addMetadataOf<SomethingWithCTInfo>();
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
     SECTION("can extract customised CT information")
@@ -321,8 +321,8 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         expected["somethingElseThatSeemedImportant"] = "not necessarily derived from obj or MyClass";
 
         addMetadataOf(obj);
-        CHECK(metadataPlugin.metadata == expected);
+        CHECK(metadataAggregator.metadata == expected);
     }
 
-    MetadataPlugin::metadata = json::object();
+    MetadataAggregator::metadata = json::object();
 }

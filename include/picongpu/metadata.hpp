@@ -45,7 +45,7 @@ namespace picongpu
     using std::string;
     using std::filesystem::path;
 
-    struct MetadataPlugin : IPlugin
+    struct MetadataAggregator : IPlugin
     {
         string pluginGetName() const override
         {
@@ -110,8 +110,8 @@ namespace picongpu
 
         using picongpu::traits::GetMetadata;
 
-        (MetadataPlugin::metadata.merge_patch(GetMetadata<T>::descriptionCT()), ...);
-        (MetadataPlugin::metadata.merge_patch(GetMetadata<U>{obj}.descriptionRT()), ...);
+        (MetadataAggregator::metadata.merge_patch(GetMetadata<T>::descriptionCT()), ...);
+        (MetadataAggregator::metadata.merge_patch(GetMetadata<U>{obj}.descriptionRT()), ...);
     }
 
 } // namespace picongpu

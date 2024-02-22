@@ -64,7 +64,7 @@ namespace picongpu
         std::unique_ptr<SimulationClass> simulationClass;
         std::unique_ptr<InitClass> initClass;
         std::unique_ptr<PluginClass> pluginClass;
-        std::unique_ptr<MetadataPlugin> metadataClass;
+        std::unique_ptr<MetadataAggregator> metadataClass;
 
 
         MappingDesc* mappingDesc{nullptr};
@@ -76,7 +76,7 @@ namespace picongpu
             initClass = std::make_unique<InitClass>();
             simulationClass->setInitController(initClass.get());
             pluginClass = std::make_unique<PluginClass>();
-            metadataClass = std::make_unique<MetadataPlugin>();
+            metadataClass = std::make_unique<MetadataAggregator>();
         }
 
         std::string pluginGetName() const override
