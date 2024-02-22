@@ -78,6 +78,7 @@ namespace pmacc
              * http://devblogs.nvidia.com/parallelforall/cuda-pro-tip-optimized-filtering-warp-aggregated-atomics/
              * (author: Andrew Adinetz, date: October 1th, 2014)
              *
+             * For modern architectures see https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/ *
              */
             template<typename T_Type>
             struct AtomicAllIncKepler<T_Type, true>
@@ -85,6 +86,10 @@ namespace pmacc
                 template<typename T_Acc, typename T_Hierarchy>
                 HDINLINE T_Type operator()(const T_Acc& acc, T_Type* ptr, const T_Hierarchy& hierarchy)
                 {
+                    /* @attention mask must be used in any warp operation which supports a mask.
+                     * On CUDA calling activemask again could result int different results because warps are not
+                     * implicitly synchronized. This is different to HIP and old CUDA GPUs before Volta.
+                     */
                     const auto mask = alpaka::warp::activemask(acc);
                     const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
 
@@ -97,7 +102,7 @@ namespace pmacc
                             ptr,
                             static_cast<T_Type>(alpaka::popcount(acc, mask)),
                             hierarchy);
-                    result = warpBroadcast(result, leader);
+                    result = warpBroadcast(mask, result, leader);
                     /* Add offset per thread */
                     return result
                         + static_cast<T_Type>(
