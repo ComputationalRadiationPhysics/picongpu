@@ -110,8 +110,8 @@ namespace picongpu
 
         using picongpu::traits::GetMetadata;
 
-        (MetadataAggregator::metadata.merge_patch(GetMetadata<T>::descriptionCT()), ...);
-        (MetadataAggregator::metadata.merge_patch(GetMetadata<U>{obj}.descriptionRT()), ...);
+        (MetadataAggregator::metadata.merge_patch(GetMetadata<T>{}.description()), ...);
+        (MetadataAggregator::metadata.merge_patch(GetMetadata<U>{obj}.description()), ...);
     }
 
 } // namespace picongpu

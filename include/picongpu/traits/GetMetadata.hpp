@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <nlohmann/json.hpp>
 
 
@@ -26,21 +28,46 @@ namespace picongpu
 {
     namespace traits
     {
+        template<typename, typename = void>
+        inline constexpr bool hasMetadata = false;
+
+        template<typename T>
+        inline constexpr bool hasMetadata<T, std::void_t<decltype(std::declval<T>().metadata())>> = true;
+
+        template<typename, typename = void>
+        inline constexpr bool hasMetadataCT = false;
+
+        template<typename T>
+        inline constexpr bool hasMetadataCT<T, std::void_t<decltype(T::metadata())>> = true;
+
+        template<typename, typename = void>
+        inline constexpr bool hasMetadataRT = false;
+
+        template<typename T>
+        inline constexpr bool hasMetadataRT<T, std::enable_if_t<hasMetadata<T> && !hasMetadataCT<T>>> = true;
+
         // doc-include-start: GetMetdata trait
-        template<typename TObject>
+        template<typename TObject, typename = void>
         struct GetMetadata
         {
-            // for classes with compile-time information only, this can be left out:
+        };
+
+        template<typename TObject>
+        struct GetMetadata<TObject, std::enable_if_t<hasMetadataRT<TObject>>>
+        {
+            // holds a constant reference to the RT instance it's supposed to report about
             TObject const& obj;
 
-            // for classes with compile-time information only, this can be left out:
-            nlohmann::json descriptionRT() const
+            nlohmann::json description() const
             {
                 return obj.metadata();
             }
+        };
 
-            // for classes with runtime-time information only, this can be left out:
-            static nlohmann::json descriptionCT()
+        template<typename TObject>
+        struct GetMetadata<TObject, std::enable_if_t<hasMetadataCT<TObject>>>
+        {
+            nlohmann::json description() const
             {
                 return TObject::metadata();
             }

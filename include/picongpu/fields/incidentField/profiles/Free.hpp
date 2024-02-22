@@ -23,18 +23,13 @@
 
 #include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/Free.def"
+#include "picongpu/traits/GetMetadata.hpp"
 
 #include <cstdint>
 #include <string>
 #include <type_traits>
 
 #include <nlohmann/json.hpp>
-
-template<typename, typename = void>
-constexpr bool hasMetadata = false;
-
-template<typename T>
-constexpr bool hasMetadata<T, std::void_t<decltype(T::metadata())>> = true;
 
 namespace picongpu
 {
@@ -63,13 +58,13 @@ namespace picongpu
                     }
 
                 private:
-                    template<typename Functor, std::enable_if_t<hasMetadata<Functor>, bool> = true>
+                    template<typename Functor, std::enable_if_t<hasMetadataCT<Functor>, bool> = true>
                     static auto functorMetadata()
                     {
                         return Functor::metadata();
                     }
 
-                    template<typename Functor, std::enable_if_t<!hasMetadata<Functor>, bool> = true>
+                    template<typename Functor, std::enable_if_t<!hasMetadataCT<Functor>, bool> = true>
                     static nlohmann::json functorMetadata()
                     {
                         return "no metadata available";

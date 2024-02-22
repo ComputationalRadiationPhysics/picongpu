@@ -69,7 +69,7 @@ struct picongpu::traits::GetMetadata<SomethingWithCustomRTInfo>
 {
     SomethingWithCustomRTInfo const& obj;
 
-    json descriptionRT() const
+    json description() const
     {
         auto result = json::object();
         result["info"] = obj.moreInfo;
@@ -102,7 +102,7 @@ struct picongpu::traits::GetMetadata<SomethingWithPrivateInfo>
 {
     SomethingWithPrivateInfo const& obj;
 
-    json descriptionRT() const
+    json description() const
     {
         auto result = obj.metadata();
         // could also depend on the (publicly accessible members of) `obj`:
@@ -131,7 +131,7 @@ struct picongpu::traits::GetMetadata<SomethingWithoutUsefulMetadata>
 {
     SomethingWithoutUsefulMetadata const& obj;
 
-    json descriptionRT() const
+    json description() const
     {
         json result = json::object();
         result["privateInfo"] = obj.privateInfo;
@@ -163,7 +163,7 @@ struct SomethingWithCustomCTInfo : SomethingWithCTInfo
 template<>
 struct picongpu::traits::GetMetadata<SomethingWithCustomCTInfo>
 {
-    static json descriptionCT()
+    static json description()
     {
         // Maybe the value of info needs to be multiplied by a unit to get a meaningful value for metadata:
         int unit = 10;
@@ -186,7 +186,7 @@ struct MyClass
     using MyCompileTimeInformation = CompileTimeInformation;
     const int runtimeValue = 8;
     // would normally also provide a default implementation of
-    // json descriptionRT() const;
+    // json description() const;
 };
 
 // doc-include-start: metadata customisation
@@ -195,7 +195,7 @@ struct picongpu::traits::GetMetadata<MyClass>
 {
     MyClass const& obj;
 
-    json descriptionRT() const
+    json description() const
     {
         json result = json::object(); // always use objects and not arrays as root
         result["my"]["cool"]["runtimeValue"] = obj.runtimeValue;
