@@ -408,7 +408,8 @@ namespace picongpu
                     // constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
                     // float_X const electronEnergy = (gamma - float_X(1.0)) * mass * c2;
                     // float3_X const PhotonMomentum = mom/pmacc::math::l2norm(mom) * photonEnergy * SPEED_OF_LIGHT;
-                    // childPhoton[momentum_] = PhotonMomentum;
+
+                    childPhoton[momentum_] = PhotonMomentum;
 
 
                     if constexpr (T_Debug){

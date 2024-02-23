@@ -26,8 +26,8 @@
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
-#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
