@@ -55,6 +55,8 @@ namespace picongpu
 
         namespace detail
         {
+            // This one gets a template argument, so that the static_assert in to_json can print the type of TObject.
+            template<typename TObject>
             struct ReturnTypeFromDefault
             {
             };
@@ -62,8 +64,8 @@ namespace picongpu
             template<typename>
             inline constexpr bool False = false;
 
-            template<typename T = void>
-            void to_json(nlohmann::json&, ReturnTypeFromDefault const&)
+            template<typename T>
+            void to_json(nlohmann::json&, ReturnTypeFromDefault<T> const&)
             {
                 static_assert(
                     False<T>,
@@ -77,7 +79,7 @@ namespace picongpu
         template<typename TObject, typename = void>
         struct GetMetadata
         {
-            detail::ReturnTypeFromDefault description() const
+            detail::ReturnTypeFromDefault<TObject> description() const
             {
                 return {};
             }
@@ -119,7 +121,7 @@ namespace picongpu
                 return result;
             }
 
-            static nlohmann::json handle(detail::ReturnTypeFromDefault const& result)
+            static nlohmann::json handle(detail::ReturnTypeFromDefault<TObject> const& result)
             {
                 return nlohmann::json::object();
             }
