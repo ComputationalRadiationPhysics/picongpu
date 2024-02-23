@@ -46,25 +46,22 @@ namespace picongpu
         template<typename T>
         inline constexpr bool hasMetadataRT<T, std::enable_if_t<hasMetadata<T> && !hasMetadataCT<T>>> = true;
 
-        // doc-include-start: GetMetdata trait
-        template<typename TObject, bool allowMissing = false, typename = void>
+        struct Empty
+        {
+        };
+
+        template<typename TObject, typename = void>
         struct GetMetadata
         {
-            nlohmann::json description() const
+            Empty description() const
             {
-                static_assert(
-                    allowMissing,
-                    "If you reached this point, you tried to register a type or object for metadata output that does "
-                    "not "
-                    "supply the necessary information. Try to specialise picongpu::traits::GetMetadata for your type "
-                    "or "
-                    "add a `.metadata()` method to it.");
-                return nlohmann::json::object();
+                return {};
             }
         };
 
-        template<typename TObject, bool allowMissing>
-        struct GetMetadata<TObject, allowMissing, std::enable_if_t<hasMetadataRT<TObject>>>
+        // doc-include-start: GetMetdata trait
+        template<typename TObject>
+        struct GetMetadata<TObject, std::enable_if_t<hasMetadataRT<TObject>>>
         {
             // holds a constant reference to the RT instance it's supposed to report about
             TObject const& obj;
@@ -75,8 +72,8 @@ namespace picongpu
             }
         };
 
-        template<typename TObject, bool allowMissing>
-        struct GetMetadata<TObject, allowMissing, std::enable_if_t<hasMetadataCT<TObject>>>
+        template<typename TObject>
+        struct GetMetadata<TObject, std::enable_if_t<hasMetadataCT<TObject>>>
         {
             nlohmann::json description() const
             {
@@ -92,8 +89,22 @@ namespace picongpu
         };
 
         template<typename TObject>
-        struct GetMetadata<AllowMissingMetadata<TObject>> : GetMetadata<TObject, true>
+        struct GetMetadata<AllowMissingMetadata<TObject>> : GetMetadata<TObject>
         {
+            nlohmann::json description() const
+            {
+                return handle(GetMetadata<TObject>::description());
+            }
+
+            static nlohmann::json handle(nlohmann::json const& result)
+            {
+                return result;
+            }
+
+            static nlohmann::json handle(Empty const& result)
+            {
+                return nlohmann::json::object();
+            }
         };
     } // namespace traits
 } // namespace picongpu
