@@ -50,6 +50,11 @@ namespace picongpu
         template<typename TObject, typename = void>
         struct GetMetadata
         {
+            static_assert(
+                false,
+                "If you reached this point, you tried to register a type or object for metadata output that does not "
+                "supply the necessary information. Try to specialise picongpu::traits::GetMetadata for your type or "
+                "add a `.metadata()` method to it.");
         };
 
         template<typename TObject>
