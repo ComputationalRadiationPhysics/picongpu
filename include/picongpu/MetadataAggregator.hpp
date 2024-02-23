@@ -114,4 +114,14 @@ namespace picongpu
         (MetadataAggregator::metadata.merge_patch(GetMetadata<U>{obj}.description()), ...);
     }
 
+    // the following is only provided to add CT metadata via pmacc::meta::forEach, thus the very restricted interface
+    template<typename T>
+    struct AddMetadataOf
+    {
+        void operator()()
+        {
+            addMetadataOf<T>();
+        }
+    };
+
 } // namespace picongpu

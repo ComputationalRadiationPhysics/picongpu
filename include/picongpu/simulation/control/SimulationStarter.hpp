@@ -41,15 +41,6 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    template<typename T>
-    struct AddMetadataOf
-    {
-        void operator()()
-        {
-            addMetadataOf<T>();
-        }
-    };
-
     void addMetadataRegisteredAtCT()
     {
         pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<AllowMissingMetadata<boost::mpl::_1>>>{}();
