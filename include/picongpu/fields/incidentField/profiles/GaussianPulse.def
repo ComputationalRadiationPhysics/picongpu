@@ -74,9 +74,10 @@ namespace picongpu::fields::incidentField::profiles
             static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
             /** @} */
 
+            template<typename My = GaussianPulseParam>
             static nlohmann::json metadata()
             {
-                auto baseMetadata = BaseParam::metadata();
+                auto baseMetadata = BaseParam::metadata<My>();
                 auto gaussianMetadata = nlohmann::json::object();
                 gaussianMetadata["W0"] = W0_SI;
                 gaussianMetadata["PULSE_INIT"] = PULSE_INIT;
