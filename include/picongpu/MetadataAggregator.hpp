@@ -39,13 +39,12 @@ namespace picongpu
 {
     using boost::program_options::options_description;
     using boost::program_options::value;
-    using pmacc::IPlugin;
     using std::ofstream;
     using std::ostream;
     using std::string;
     using std::filesystem::path;
 
-    struct MetadataAggregator : IPlugin
+    struct MetadataAggregator : pmacc::IPlugin
     {
         string pluginGetName() const override
         {
@@ -63,7 +62,7 @@ namespace picongpu
                     ->default_value("") // this works like bool_switch -> disable if not given
                     ->implicit_value(defaultFilename) // this provides default value but only if given
                     ->notifier( // this sets `isSupposedToRun`
-                        [this](auto const& filename) { this->isSupposedToRun = filename == "" ? false : true; }));
+                        [this](auto const& filename) { this->thisIsSupposedToRun = filename == "" ? false : true; }));
         }
 
         void notify(uint32_t currentStep) override
@@ -77,18 +76,18 @@ namespace picongpu
         }
         void dump() const
         {
-            if(isSupposedToRun)
+            if(thisIsSupposedToRun)
             {
                 ofstream file{filename};
-                dump(file);
+                dumpTo(file);
             }
         }
-        void dump(ostream& stream) const
+        void dumpTo(ostream& stream) const
         {
             stream << metadata.dump(2) << "\n";
         }
 
-        bool isSupposedToRun{false};
+        bool thisIsSupposedToRun{false};
         path filename{""};
         const path defaultFilename{
             // doc-include-start: metadata default filename

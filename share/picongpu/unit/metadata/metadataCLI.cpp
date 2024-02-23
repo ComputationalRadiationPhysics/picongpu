@@ -86,14 +86,14 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
     {
         FictitiousArgv fictitiousArgv{{"<executable>"}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(!metadataAggregator.isSupposedToRun);
+        CHECK(!metadataAggregator.thisIsSupposedToRun);
     }
 
     SECTION("gets activated via `--dump-metadata`")
     {
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata"}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(metadataAggregator.isSupposedToRun);
+        CHECK(metadataAggregator.thisIsSupposedToRun);
     }
 
     SECTION("has correct default filename")
@@ -108,7 +108,7 @@ TEST_CASE("unit::metadataCLI", "[metadata CLI test]")
         string filename{"filename"};
         FictitiousArgv fictitiousArgv{{"<executable>", "--dump-metadata", filename}};
         argsParser.parse(fictitiousArgv.makeArgc(), fictitiousArgv.makeArgv());
-        CHECK(metadataAggregator.isSupposedToRun);
+        CHECK(metadataAggregator.thisIsSupposedToRun);
     }
 
     SECTION("takes filename after `--dump-metadata`")
