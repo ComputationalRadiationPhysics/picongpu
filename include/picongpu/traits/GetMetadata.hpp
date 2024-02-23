@@ -89,7 +89,8 @@ namespace picongpu
         template<typename TObject>
         struct GetMetadata<TObject, std::enable_if_t<providesMetadataAtRT<TObject>>>
         {
-            // holds a constant reference to the RT instance it's supposed to report about
+            // Holds a constant reference to the RT instance it's supposed to report about.
+            // Omit this for the CT specialisation!
             TObject const& obj;
 
             nlohmann::json description() const
@@ -101,6 +102,8 @@ namespace picongpu
         template<typename TObject>
         struct GetMetadata<TObject, std::enable_if_t<providesMetadataAtCT<TObject>>>
         {
+            // CT version has no members. Apart from that, the interface is identical to the RT version.
+
             nlohmann::json description() const
             {
                 return TObject::metadata();
