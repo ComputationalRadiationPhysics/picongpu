@@ -1,5 +1,6 @@
-/* Copyright 2014-2023 Rene Widera, Marco Garten, Alexander Grund,
+/* Copyright 2014-2024 Rene Widera, Marco Garten, Alexander Grund,
  *                     Heiko Burau, Axel Huebl, Sergei Bastrakov
+ *                     Filip Optołowicz
  *
  * This file is part of PIConGPU.
  *
