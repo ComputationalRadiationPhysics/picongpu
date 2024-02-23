@@ -50,7 +50,7 @@ namespace picongpu
             {
                 /** Check the CFL condition according to the paper, doesn't compile when failed
                  *
-                 * @return value of 'X' to fulfill the condition 'c * dt <= X`
+                 * @return upper bound on `c * dt` due to chosen cell size according to CFL condition
                  */
                 float_X operator()() const
                 {
