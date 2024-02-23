@@ -53,66 +53,87 @@ namespace pmacc
 
 
 #    if(__CUDA_ARCH__ >= 300 || BOOST_COMP_HIP)
-        /** broadcast data within a warp
+
+        /** broadcast data within a warp without using shared memory
          *
-         * required PTX ISA >=3.0
-         *
+         * @param mask mask to select threads participating in the operation
          * @param data value to broadcast
          * @param srcLaneId lane id of the source thread
          * @return value send by the source thread
-         *
-         * \{
          */
-        //! broadcast a 32bit integer
-        DINLINE int32_t warpBroadcast(const int32_t data, const int32_t srcLaneId)
+        template<typename T_MaskType, typename T_DataType>
+        DINLINE T_DataType warpBroadcast(T_MaskType const mask, T_DataType const data, int const srcLaneId);
+
+        /** check if T is equal to at least one type in the tuple list
+         *
+         * @param tuple of types, each type is checked against T
+         * @return true if T is equal to at least one type from the tuple list, else false
+         */
+        template<typename T, typename... T_TypeList>
+        inline constexpr bool matchAnyType(std::tuple<T_TypeList...>)
         {
-#        if(__CUDACC_VER_MAJOR__ >= 9)
-            return __shfl_sync(__activemask(), data, srcLaneId);
-#        else
-            return __shfl(data, srcLaneId);
+            return std::disjunction_v<std::is_same<T, T_TypeList>...>;
+        }
+
+
+        /** fallback for not natively supported types
+         *
+         * emulates the broadcast by repeating 32bit warp broadcasts
+         */
+        template<typename T_MaskType, typename T_DataType, typename T_Sfinae = void>
+        struct WarpBroadcast
+        {
+            DINLINE T_DataType operator()(T_MaskType const mask, T_DataType data, int const srcLaneId) const
+            {
+                static_assert(sizeof(T_DataType) >= sizeof(int) && (sizeof(T_DataType) % sizeof(int)) == 0);
+                int* const pData = reinterpret_cast<int*>(&data);
+                for(int i = 0; i < sizeof(T_DataType) / sizeof(int); ++i)
+                    pData[i] = warpBroadcast(mask, pData[i], srcLaneId);
+
+                return data;
+            }
+        };
+
+        /** List of types natively supported by CUDAs and HIPs shfl function interface */
+        using VendorSupportedTypesForShfl = std::tuple<
+            int,
+            unsigned,
+            float
+        /* clang as cuda compiler does not support 64 bit warp shfl.
+         * For AMD GPUs 64bit shufl will be provided by HIP.
+         */
+#        if(!BOOST_COMP_CLANG_CUDA)
+            ,
+            double,
+            unsigned long,
+            unsigned long long,
+            long,
+            long long
 #        endif
-        }
+            >;
 
-        //! Broadcast a 64bit integer by using 2 32bit broadcasts
-        DINLINE int64_cu warpBroadcast(int64_cu data, const int32_t srcLaneId)
+        /** CUDA and HIP native supported data types */
+        template<typename T_MaskType, typename T_DataType>
+        struct WarpBroadcast<
+            T_MaskType,
+            T_DataType,
+            std::enable_if_t<matchAnyType<T_DataType>(VendorSupportedTypesForShfl{})>>
         {
-            int32_t* const pData = reinterpret_cast<int32_t*>(&data);
-            pData[0] = warpBroadcast(pData[0], srcLaneId);
-            pData[1] = warpBroadcast(pData[1], srcLaneId);
-            return data;
-        }
-
-        //! Broadcast a 32bit unsigned int
-        DINLINE uint32_t warpBroadcast(const uint32_t data, const int32_t srcLaneId)
-        {
-            return static_cast<uint32_t>(warpBroadcast(static_cast<int32_t>(data), srcLaneId));
-        }
-
-        //! Broadcast a 64bit unsigned int
-        DINLINE uint64_cu warpBroadcast(const uint64_cu data, const int32_t srcLaneId)
-        {
-            return static_cast<uint64_cu>(warpBroadcast(static_cast<int64_cu>(data), srcLaneId));
-        }
-
-        //! Broadcast a 32bit float
-        DINLINE float warpBroadcast(const float data, const int32_t srcLaneId)
-        {
-#        if(__CUDACC_VER_MAJOR__ >= 9)
-            return __shfl_sync(__activemask(), data, srcLaneId);
+            DINLINE T_DataType operator()(T_MaskType const mask, T_DataType const data, int const srcLaneId) const
+            {
+#        if(BOOST_COMP_HIP)
+                return __shfl(data, srcLaneId);
 #        else
-            return __shfl(data, srcLaneId);
+                return __shfl_sync(mask, data, srcLaneId);
 #        endif
-        }
+            }
+        };
 
-        //! Broadcast a 64bit float by using 2 32bit broadcasts
-        DINLINE double warpBroadcast(double data, const int32_t srcLaneId)
+        template<typename T_MaskType, typename T_DataType>
+        DINLINE T_DataType warpBroadcast(T_MaskType const mask, T_DataType const data, int const srcLaneId)
         {
-            float* const pData = reinterpret_cast<float*>(&data);
-            pData[0] = warpBroadcast(pData[0], srcLaneId);
-            pData[1] = warpBroadcast(pData[1], srcLaneId);
-            return data;
+            return WarpBroadcast<T_MaskType, T_DataType>{}(mask, data, srcLaneId);
         }
-//! @}
 #    endif
 
     } // namespace kernel
