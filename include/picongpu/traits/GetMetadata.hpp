@@ -46,14 +46,28 @@ namespace picongpu
         template<typename T>
         inline constexpr bool hasMetadataRT<T, std::enable_if_t<hasMetadata<T> && !hasMetadataCT<T>>> = true;
 
-        struct Empty
+        struct ReturnTypeFromDefault
         {
         };
+
+        template<typename>
+        inline constexpr bool False = false;
+
+        template<typename T = void>
+        void to_json(nlohmann::json&, ReturnTypeFromDefault const&)
+        {
+            static_assert(
+                False<T>,
+                "You're missing metadata for a type supposed to provide some. There are three alternatives for you: "
+                "Specialise GetMetadata<YourType>, add a .metadata() method to your type, or use "
+                "AllowMissingMetadata<YourType> during the registration. For more infos, see "
+                "docs/source/usage/metadata.rst.");
+        }
 
         template<typename TObject, typename = void>
         struct GetMetadata
         {
-            Empty description() const
+            ReturnTypeFromDefault description() const
             {
                 return {};
             }
@@ -101,7 +115,7 @@ namespace picongpu
                 return result;
             }
 
-            static nlohmann::json handle(Empty const& result)
+            static nlohmann::json handle(ReturnTypeFromDefault const& result)
             {
                 return nlohmann::json::object();
             }
