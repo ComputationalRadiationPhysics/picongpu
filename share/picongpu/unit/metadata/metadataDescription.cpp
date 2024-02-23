@@ -277,6 +277,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         auto expected = json::object();
         expected["privateInfo"] = privateInfo;
         expected["customisedInfo"] = "Some customised string.";
+        REQUIRE(obj.metadata() != expected); // make sure we test something non-trivial here
 
         addMetadataOf(obj);
         CHECK(metadataAggregator.metadata == expected);
@@ -289,6 +290,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         auto expected = json::object();
         expected["privateInfo"] = privateInfo;
         expected["customisedInfo"] = "Some other customised string.";
+        REQUIRE(obj.metadata() != expected); // make sure we test something non-trivial here
 
         addMetadataOf(obj);
         CHECK(metadataAggregator.metadata == expected);
@@ -312,7 +314,7 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         CHECK(metadataAggregator.metadata == expected);
     }
 
-    SECTION("can extract customised CT information")
+    SECTION("check documentation example")
     {
         MyClass obj;
         auto expected = json::object();
