@@ -50,9 +50,6 @@ namespace picongpu
         template<typename TObject, bool allowMissing = false, typename = void>
         struct GetMetadata
         {
-            template<typename T>
-            inline static constexpr bool False = false;
-
             nlohmann::json description() const
             {
                 static_assert(
