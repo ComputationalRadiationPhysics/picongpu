@@ -24,6 +24,7 @@
 
 #include <boost/program_options/options_description.hpp>
 
+#include <algorithm>
 #include <filesystem>
 #include <string>
 
@@ -32,7 +33,10 @@
 using boost::program_options::options_description;
 using picongpu::ArgsParser;
 using picongpu::MetadataAggregator;
+using std::begin;
+using std::end;
 using std::string;
+using std::transform;
 using std::vector;
 using std::filesystem::path;
 
