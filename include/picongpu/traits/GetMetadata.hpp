@@ -50,11 +50,20 @@ namespace picongpu
         template<typename TObject, typename = void>
         struct GetMetadata
         {
-            static_assert(
-                false,
-                "If you reached this point, you tried to register a type or object for metadata output that does not "
-                "supply the necessary information. Try to specialise picongpu::traits::GetMetadata for your type or "
-                "add a `.metadata()` method to it.");
+            template<typename T>
+            inline static constexpr bool False = false;
+
+            nlohmann::json description() const
+            {
+                static_assert(
+                    False<TObject>, // needs to have a dependency on the template parameter, otherwise it will always
+                                    // fire!
+                    "If you reached this point, you tried to register a type or object for metadata output that does "
+                    "not "
+                    "supply the necessary information. Try to specialise picongpu::traits::GetMetadata for your type "
+                    "or "
+                    "add a `.metadata()` method to it.");
+            }
         };
 
         template<typename TObject>
@@ -78,5 +87,33 @@ namespace picongpu
             }
         };
         // doc-include-end: GetMetdata trait
+
+        template<typename, typename = void>
+        inline constexpr bool hasDescription = false;
+
+        template<typename T>
+        inline constexpr bool hasDescription<T, std::void_t<decltype(std::declval<T>().description())>> = true;
+
+        template<typename TObject>
+        struct AllowMissingMetadata
+        {
+            using type = TObject;
+        };
+
+        template<typename TObject>
+        struct GetMetadata<AllowMissingMetadata<TObject>> : GetMetadata<TObject>
+        {
+            template<typename T = TObject, typename = void>
+            nlohmann::json description() const
+            {
+                return GetMetadata<TObject>::description();
+            }
+
+            template<>
+            nlohmann::json description<TObject, std::enable_if_t<!hasDescription<GetMetadata<TObject>>, bool>>() const
+            {
+                return nlohmann::json::object();
+            }
+        };
     } // namespace traits
 } // namespace picongpu
