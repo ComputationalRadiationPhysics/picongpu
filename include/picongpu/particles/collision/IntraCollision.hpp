@@ -115,6 +115,13 @@ namespace picongpu::particles::collision
             DataSpace<simDim> const superCellIdx
                 = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
 
+            auto& superCell = pb.getSuperCell(superCellIdx);
+            uint32_t numParticles = superCell.getNumParticles();
+
+            // if we do not have particles there is no need to perform any calculations
+            if(numParticles <= 1u)
+                return;
+
             // offset of the superCell (in cells, without any guards) to the
             // origin of the local domain
             DataSpace<simDim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
