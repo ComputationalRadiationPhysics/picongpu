@@ -53,10 +53,10 @@ struct HavingCustomisedMetadata : HavingMetadata
 {
 };
 
-template<>
-struct picongpu::traits::GetMetadata<HavingCustomisedMetadata>
+template<bool allowMissing>
+struct picongpu::traits::GetMetadata<HavingCustomisedMetadata, allowMissing>
 {
-    json metadata()
+    json description()
     {
         auto original = HavingCustomisedMetadata ::metadata();
         original["customised"] = "custom string";
