@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -29,7 +29,11 @@
 
 namespace picongpu
 {
-    /** Unit of time */
+    /** Unit of time
+     *
+     * @attention atomicPhysics2 assumes that UNIT_TIME == SI:DELTA_T_SI,
+     *  otherwise need to adjust/check normalisation in rate calculation
+     */
     constexpr float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
     constexpr float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;

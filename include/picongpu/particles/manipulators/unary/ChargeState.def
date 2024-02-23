@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file defines of functors setting the charge state of macro-particles
+//! @file defines functor setting the charge state of macro-particles
 
 #pragma once
 

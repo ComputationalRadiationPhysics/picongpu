@@ -45,7 +45,7 @@ namespace picongpu
     /*--------------------------- electrons --------------------------------------*/
 
     /* ratio relative to BASE_CHARGE and BASE_MASS */
-    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier_constexpr(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
     using ParticleFlagsElectrons = MakeSeq_t<
@@ -62,7 +62,7 @@ namespace picongpu
     /*--------------------------- ions -------------------------------------------*/
 
     /* ratio relative to BASE_CHARGE and BASE_MASS */
-    value_identifier(float_X, MassRatioIons, 1.0);
+    value_identifier_constexpr(float_X, MassRatioIons, 1.0);
     value_identifier(float_X, ChargeRatioIons, -1.0);
 
     /* ratio relative to BASE_DENSITY */

@@ -1,0 +1,116 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz,
+ *                     Richard Pausch,  Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/math/operation.hpp>
+
+#include <cstdint>
+
+// particles randomly distributed, 10 macro particle per cell, 200keV initial drift
+namespace picongpu::particles
+{
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *  unit: none
+     */
+    constexpr float_X MIN_WEIGHTING = 1.0;
+
+    namespace startPosition
+    {
+        struct RandomParameter
+        {
+            /** Count of particles per cell at initial state
+             *  unit: none
+             */
+            static constexpr uint32_t numParticlesPerCell = 180u;
+        };
+        using Random = RandomImpl<RandomParameter>;
+
+        /** Define initial in-cell particle position used as parameter in OneSuperCellPosition functor.
+         *
+         * Here, macro-particles sit directly in lower corner of the cell.
+         *
+         * This defines the type InCellOffset_OneSuperCellPosition_t
+         * where every instance of this type has the preset values defined here.
+         *
+         * @attention assumes that the density functor gives the per superCell number
+         *  of physical particles for each cell in the same sueprCell
+         */
+        CONST_VECTOR(
+            /*datatype*/ float_X,
+            /*dim*/ 3,
+            /*name*/ InCellOffset_OneSuperCellPosition,
+            /*x*/ 0.0,
+            /*y*/ 0.0,
+            /*z*/ 0.0);
+        struct OneSuperCellPositionParameter
+        {
+            /** Count of particles per cell at initial state
+             *  unit: none
+             */
+            static constexpr uint32_t numParticlesPerSuperCell = 1u;
+
+            //! initial position of macro particle in-cell, as CONST_VECTOR of relative position in cell (x \in
+            //! [0.,1.), ...)
+            const InCellOffset_OneSuperCellPosition_t inCellOffset;
+
+            //! spawnCell index, @attention must be within superCell extent!
+            using spawnCellIdx = mCT::shrinkTo<mCT::UInt32<0u, 0u, 0u>, picongpu::simDim>::type;
+        };
+        using OneSuperCellPosition = OneSuperCellPositionImpl<OneSuperCellPositionParameter>;
+    } // namespace startPosition
+
+
+    /** During unit normalization, we assume this is a typical
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
+        = startPosition::OneSuperCellPositionParameter::numParticlesPerSuperCell;
+
+    namespace manipulators
+    {
+        // define a drift in X equal to 200 keV for electrons
+        CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
+        struct Drift200keVParam
+        {
+            static constexpr float_64 gamma = 1.39139;
+            const DriftParam_direction_t direction;
+        };
+        using Assign200keVDrift = unary::Drift<Drift200keVParam, pmacc::math::operation::Assign>;
+
+        struct TemperatureParam
+        {
+            /** Initial temperature
+             *  unit: keV
+             */
+            static constexpr float_64 temperature = 1.;
+        };
+        using AddTemperature = unary::Temperature<TemperatureParam>;
+
+        // definition of set initial ionization
+        using SetChargeState = unary::ChargeState<2u>;
+    } // namespace manipulators
+} // namespace picongpu::particles
