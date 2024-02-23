@@ -1,7 +1,7 @@
-/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
- *                     Brian Marre
+ *                     Brian Marre, Filip Optołowicz
  *
  * This file is part of PIConGPU.
  *
@@ -318,11 +318,7 @@ namespace picongpu
             currentBackground = std::make_shared<simulation::stage::CurrentBackground>(*cellDescription);
             dc.share(currentBackground);
 
-            SYNCH = std::make_shared<simulation::stage::SynchrotronRadiation<
-            picongpu::particles::synchrotron::params::FirstSynchrotronFunctionParam,
-            picongpu::particles::synchrotron::params::InterpolationIndexingParam,
-            picongpu::particles::synchrotron::params::numberTableEntries,
-            picongpu::particles::synchrotron::params::numberSamplePoints>>(*cellDescription);
+            synchrotronRadiation = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
 
             initFields(dc);
 
@@ -531,10 +527,8 @@ namespace picongpu
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
-            
             ParticleIonization{*cellDescription}(currentStep);
-            (*SYNCH)(currentStep);
-
+            (*synchrotronRadiation)(currentStep);
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
             fieldBackground.subtract(currentStep);
@@ -610,17 +604,15 @@ namespace picongpu
         }
 
     protected:
-        std::shared_ptr<simulation::stage::SynchrotronRadiation<
-            picongpu::particles::synchrotron::params::FirstSynchrotronFunctionParam,
-            picongpu::particles::synchrotron::params::InterpolationIndexingParam,
-            picongpu::particles::synchrotron::params::numberTableEntries,
-            picongpu::particles::synchrotron::params::numberSamplePoints>> SYNCH;
-            
+
         std::shared_ptr<DeviceHeap> deviceHeap;
 
         std::shared_ptr<fields::Solver> myFieldSolver;
         std::shared_ptr<simulation::stage::CurrentInterpolationAndAdditionToEMF> currentInterpolationAndAdditionToEMF;
         std::shared_ptr<simulation::stage::CurrentBackground> currentBackground;
+        
+        //extension: Synchrotron Radiation
+        std::shared_ptr<simulation::stage::SynchrotronRadiation> synchrotronRadiation;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
@@ -635,6 +627,7 @@ namespace picongpu
         // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::ParticleBoundaries particleBoundaries;
+        
 
         // Runtime density file stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

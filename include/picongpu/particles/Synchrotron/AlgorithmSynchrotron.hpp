@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Marco Garten, Jakob Trojok
+/* Copyright 2014-2024 Marco Garten, Jakob Trojok, Filip Optołowicz
  *
  * This file is part of PIConGPU.
  *
@@ -21,149 +21,200 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/traits/attribute/GetChargeState.hpp"
+#include "picongpu/algorithms/KinEnergy.hpp" // used in struct SynchrotronIdea
 
-// #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
-
-/** @file AlgorithmSynchrotron.hpp
+/** @file AlgorithmSynchrotron.hpp 
  *
  * Synchrotron ALGORITHM for the Synchrotron model
+ * Algorithm from the paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments" by A. Gonoskov et.Al.
+ * 
+ * This file was created based on AlgorithmIonization.hpp
+ * 
+ * @todo make better desciptions of SynchrotronRadiation.hpp and ParticleFunctors.hpp
+ * @todo remove copy of this from SynchrotronRadiation.hpp
+ * 
+ * This synchrotron extension consists of two new files:
+ *      - AlgorithmSynchrotron.hpp:     Defines the algorithm and data structures for the synchrotron model
+ *      - SynchrotronRadiation.hpp:     Initializes the class with precomputed F1 and F2 functions
+ * and modifies two existing files:
+ *      - Simulation.hpp:               Registers the SynchrotronRadiation stage
+ *      - ParticleFunctors.hpp:         Chooses which particles are affected by SynchrotronRadiation
+ * 
+ * The call structure goes like this:
+ *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParicleFunctors.hpp -> AlgortihmSynchrotron.hpp
+ * 
+ * @warning tested only on cpu -> check "m_normalizedPhotonEnergy" variable on GPU
  *
- * - implements the calculation of Synchrotron probability and changes charge states
- *   by decreasing the number of bound electrons
- * - is called with the Synchrotron MODEL, specifically by setting the flag in @see speciesDefinition.param
  */
-
 namespace picongpu
 {
     namespace particles
     {
         namespace synchrotron
         {
-                /// to access it: 
-                /// picongpu::particles::synchrotron::params
+            ///@todo remove
+            constexpr bool T_Debug = false; // Carefull -> prints out a lot of stuff. Bigger simulations will produce massive outputs
+
+            /// to access params:
+            /// picongpu::particles::synchrotron::params
             namespace params
             {
-                constexpr uint64_t numberTableEntries = 1024u; // number of synchrotron function values to precompute, stored in table
-                constexpr uint32_t numberSamplePoints = 1024u; // number of samples to use in integration in firstSynchrotronFunction
+                // Turn off or turn on the electron recoil from electrons generated.
+                constexpr bool ElectronRecoil = false;
 
-                struct FirstSynchrotronFunctionParam
+                struct FirstSynchrotronFunctionParams //Parameters how to compute first synhrotron function
                 {
-                    //! log10(100.0), arbitrary cutoff, for 2nd kind cyclic bessel function function close enough to zero
-                    static constexpr float_64 logEnd = 2.0;
+                    static constexpr float_64 logEnd = 2.0;//! log10(100.0), arbitrary cutoff, for 2nd kind cyclic bessel function -> function close enough to zero
+                    static constexpr uint32_t numberSamplePoints = 1024u; // number of sample points to use in integration in firstSynchrotronFunction
                 };
 
-                struct InterpolationIndexingParam
+                struct InterpolationParams // parameters of precomputation of interpolation table -> the table "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
                 {
-                    static constexpr float_64 minZqExponent = -15; /// -> cutoff energy -> ///@todo: make this a parameter
-                    static constexpr float_64 maxZqExponent = 1; //don't change
+                    static constexpr uint64_t numberTableEntries = 1024u; // number of synchrotron function values to precompute and store in table
+                    static constexpr float_64 minZqExponent = -15; // cutoff energy -> @todo: make this a parameter
+                    static constexpr float_64 maxZqExponent = 1; //don't change. or change. but don't change.
                 };
 
-                enum struct Accessor : uint8_t
+                enum struct Accessor : uint32_t // used for table access -> the table "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
                 {
                     f1 = 0u,
                     f2 = 1u
                 };
+                
                 static constexpr uint32_t u32(Accessor const t)
                 {
                     return static_cast<uint32_t>(t);
                 }
             }
 
-            /** \struct AlgorithmSynchrotron
-             *
-             * \brief Ammosov-Delone-Krainov
-             *        Tunneling ionization for hydrogenlike atoms
-             *
-             * @tparam T_DestSpecies type or name as PMACC_CSTRING of the electron species to be created
-             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-             * @tparam T_SrcSpecies type or name as PMACC_CSTRING of the particle species that is ionized
+            /** \struct SynchrotronIdea
+             * Main algorithm of the synchrotron radiation model.
+             * From paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments" by A. Gonoskov et.Al.
              */
             struct SynchrotronIdea
             {
                 /** Functor implementation
                  * @tparam EType type of electric field
                  * @tparam BType type of magnetic field
-                 * @tparam ParticleType type of particle to be ionized
+                 * @tparam ParticleType type of electron particle
                  *
                  * @param bField magnetic field value at t=0
                  * @param eField electric field value at t=0
-                 * @param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
+                 * @param parentElectron instance of electron with position at t=0 and momentum at t=-1/2
                  * @param randNr random number, equally distributed in range [0.:1.0]
                  *
-                 * @return ionization energy and number of new macro electrons to be created
+                 * @return photon energy if photon is created 0 otherwise
                  */
 
-                #define F1F2(zq,i) F1F2DeviceBuff(DataSpace<2>{zq,i})
+                #define F1F2(zq,i) F1F2DeviceBuff(DataSpace<2>{zq,i}) // just a shortcut to access the tableValuesF1F2 (see: InterpolationParams)
 
                 template<typename EType, typename BType, typename ParticleType>
                 HDINLINE float_X //return type -> energy of a photon relative to the electron energy
-                operator()(const BType bField, const EType eField, ParticleType& parentIon, float_X randNr1, float_X randNr2, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff) const
+                operator()(const BType bField, const EType eField, ParticleType& parentElectron, float_X randNr1, float_X randNr2, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff) const
                 {
-                    // print something from  F1F2
-                    // for (uint32_t zq = 500; zq < 999; zq++) {
-                        // std::cout << "zq = " << zq << " F1 = " << F1F2DeviceBuff(DataSpace<2>{zq,0}) << " F2 = " << F1F2DeviceBuff(DataSpace<2>{zq,1}) << std::endl;
-                        // std::cout << "zq = " << zq << " F1 = " << F1F2(zq,0) << " F2 = " << F1F2(zq,1) << std::endl;
-                    // }
+                    constexpr int16_t minZqExponent = params::InterpolationParams::minZqExponent;
+                    constexpr int16_t maxZqExponent = params::InterpolationParams::maxZqExponent;
+                    constexpr float_64 interpolationPoints = static_cast<float_64>(params::InterpolationParams::numberTableEntries);
+                    constexpr float_64 stepWidthLogatihmicScale = (static_cast<float_64>(maxZqExponent - minZqExponent) / interpolationPoints);
 
                     /// zq = 2/3 * chi^(-1) * delta / (1 - delta) ;chi - ratio of the typical photon energy to the electron kinetic energy
                     ///                                           ;delta - the ratio of the photon energy to the electron energy
-                    /// see Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments, A. Gonoskov et.Al.     
+                    /// see Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments, A. Gonoskov et.Al.
 
-                    //Check the interpolation
+                                // delta
+                    float_X const r1r1 = randNr1*randNr1;
+                    float_X const delta = r1r1*randNr1;
                     
-                    constexpr int16_t minZqExponent = params::InterpolationIndexingParam::minZqExponent;
-                    constexpr int16_t maxZqExponent = params::InterpolationIndexingParam::maxZqExponent;
-                    constexpr float_64 interpolationPoints = static_cast<float_64>(params::numberTableEntries);
+                                // calculate Heff
+                    float_X const mass = attribute::getMass(parentElectron[weighting_], parentElectron);
+                    float3_X const vel = Velocity()(parentElectron[momentum_], mass);
 
-                    // constexpr int16_t minZqExponent = -18;
-                    // constexpr int16_t maxZqExponent = 2;
-                    // constexpr uint32_t interpolationPoints = 1024u;
-                    constexpr float_64 stepWidthLogatihmicScale = (static_cast<float_64>(maxZqExponent - minZqExponent) / interpolationPoints);
+                    float_X const Vmag = pmacc::math::l2norm(vel);
+                    float3_X const crossVB = pmacc::math::cross(vel,bField);
+                    float3_X const Vnorm = vel/Vmag; // Velocity normalized -> not L2Norm
+                    float_X const dotVnormE = pmacc::math::dot(Vnorm,eField);
+                    float3_X const eFieldPlusCrossVB = eField + crossVB;
 
-                    float_64 zq = randNr1;
-                    if (zq){
-                        const float_64 zqExponent = math::log(zq)/math::log(10);
-                        const int16_t index = static_cast<int16_t>((zqExponent - minZqExponent) / stepWidthLogatihmicScale);
-                        
-                        
-                        float_64 F1 = 0;
-                        float_64 F2 = 0;
+                    float_X HeffValue =  pmacc::math::dot(eFieldPlusCrossVB,eFieldPlusCrossVB) - dotVnormE*dotVnormE;
+                    if (HeffValue <= 0)
+                    {
+                        return 0;
+                    }
+                    HeffValue = math::sqrt(HeffValue);
 
-                        if (index>=0 && index < interpolationPoints)
+
+                                // Calculate chi
+                    float_X const gamma = Gamma()(parentElectron[momentum_], mass);
+                    float_X const chi = -ELECTRON_CHARGE * HBAR * HeffValue * gamma / (ELECTRON_MASS * ELECTRON_MASS * SPEED_OF_LIGHT * SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+
+                                // zq 
+                    float_64 zq = 2 * delta / (3 * chi * (1 - delta));
+
+                                // zq convert to index and F1 and F2
+                    const float_64 zqExponent = math::log(zq)/math::log(10);
+                    const int16_t index = static_cast<int16_t>((zqExponent - minZqExponent) / stepWidthLogatihmicScale);
+                    
+                    float_64 F1 = 0;
+                    float_64 F2 = 0;
+                    if (index>=0 && index < interpolationPoints)
+                    {
+                        /// @todo interpolate
+                        F1 = F1F2(index,0);
+                        F2 = F1F2(index,1);
+                    }
+                    
+                                //  - Calculating the numeric factor: numericFactor = dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 * np.pi))
+                    float_X numericFactor = DELTA_T * (ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_MASS * SPEED_OF_LIGHT / (HBAR * HBAR * EPS0 * 4 * PI));
+                    /// @todo change and used unified requirement
+                    float_X requirement1 = numericFactor * 1.5 * math::pow(chi, 2./3.) / gamma;
+                    float_X requirement2 = numericFactor * 0.5 * chi / gamma;
+                    if constexpr (T_Debug)
+                    {
+                        ///@todo maby 0.1 is to small -> check
+                        if (requirement1 > 0.1 || requirement2 > 0.1) 
                         {
-                            F1 = F1F2(index,0);
-                            F2 = F1F2(index,1);
+                            printf("Synchrotron Extension requirement1 (should be less than 0.1): %f\n", requirement1);
+                            printf("Synchrotron Extension requirement2 (should be less than 0.1): %f\n", requirement2);
                         }
+                    }
+                    numericFactor *= math::sqrt(3)/(2 * PI);
 
-                        printf("\n");
-                        printf("zq: %f\n", zq);
-                        printf("zqExponent: %f\n", zqExponent);
-                        printf("index: %d\n", index);
-                        printf("F1: %f\n", F1);
-                        printf("F2: %f\n", F2);
+                                // Calculate propability:
+                                ///@todo check the numerical stability -> maby use one numerator
+                    float_X const numerator1 = (1 - delta)*chi;
+                    float_X const numerator2 = (F1 + 3 * delta * zq * chi / 2 * F2);
+                    float_X const denominator = gamma*delta;
+                    
+                    float_X propability = numericFactor * (numerator1/denominator*numerator2)*3*r1r1;
+
+                    if constexpr (T_Debug)
+                    if (propability > randNr2)
+                    {
+                        printf("propability: %e\n", propability);
+                        printf("delta: %e\n", delta);
+                        printf("HeffValue: %e\n", HeffValue);
+                        printf("chi: %e\n", chi);
+                        if (requirement1 > 0.1 || requirement2 > 0.1) printf("\t\t\t\tWARNING\n");
+                        printf("requirement1: %e\n", requirement1);
+                        printf("requirement2: %e\n", requirement2);
+                        printf("Returned: %e\n\n", (propability > randNr2) * delta);
                     }
 
-
-                    // printf random numbers -> they are random indeed
-                    // printf("randNr1: %f\n", randNr1);
-                    // printf("randNr2: %f\n", randNr2);
-
-                    // calculate Heff
-                    
-
-                    // Calculate chi and z_q
-                    // float_64 chi = e * hbar * HeffValue * gamma / (m_e * m_e * c * c * c);
-                    // float_64 z_q = 2 * delta / (3 * chi * (1 - delta)); // Assuming delta is defined
-
-                    // calculate propability
-                    // calculate energy of photon
-                    
-                    
-                    return float_X(1.);
+                    return (propability > randNr2) * delta;
                 }
             };
-
+            
+            /** \struct AlgorithmSynchrotron
+             * This struct is passed to creation::createParticlesFromSpecies in the file: include/picongpu/particles/ParticlesFunctors.hpp
+             * 
+             * @tparam T_DestSpecies type or name as PMACC_CSTRING of the photon species to be created
+             * @tparam T_SrcSpecies  type or name as PMACC_CSTRING of the particle species that radiates so electrons only
+             * 
+             * Takes care of: 
+             *  - random number generation
+             *  - E and B field interpolation
+             *  - maby something else as well
+             */
             template<
                 typename T_SrcSpecies,
                 typename T_DestSpecies>
@@ -188,7 +239,6 @@ namespace picongpu
                 BlockArea BlockDescription;
 
             private:
-
                 /* random number generator */
                 using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
                 using Distribution = pmacc::random::distributions::Uniform<float_X>;
@@ -213,7 +263,9 @@ namespace picongpu
                 /* host constructor initializing member : random number generator */
                 AlgorithmSynchrotron(const uint32_t currentStep, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff) : randomGen(RNGFactory::createRandom<Distribution>())
                 {
+
                     m_F1F2DeviceBuff = F1F2DeviceBuff;
+
                     DataConnector& dc = Environment<>::get().DataConnector();
                     /* initialize pointers on host-side E-(B-)field and current density databoxes */
                     auto fieldE = dc.get<FieldE>(FieldE::getName());
@@ -258,7 +310,7 @@ namespace picongpu
                 /** Initialization function on device
                  *
                  * \brief Cache EM-fields on device
-                 *         and initialize possible prerequisites for ionization, like e.g. random number generator.
+                 *         and initialize possible prerequisites for radiation, like e.g. random number generator.
                  *
                  * This function will be called inline on the device which must happen BEFORE threads diverge
                  * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is
@@ -271,7 +323,7 @@ namespace picongpu
                     const uint32_t rngIdx)
 
                 {
-                    /* initialize random number generator with the local cell index in the simulation */
+                    /* initialize random number generator with the local cell index in the simulation */ //this is old code
                     // this->randomGen.init(localCellOffset);
 
                     auto rngOffset = DataSpace<simDim>::create(0);
@@ -282,16 +334,16 @@ namespace picongpu
 
                 }
 
-                /** Determine number of new macro electrons due to ionization
+                /** Determine number of new macro photons due to radiation -> called by CreationKernel
                  *
-                 * @param ionFrame reference to frame of the to-be-ionized particles
+                 * @param electronFrame reference to frame of the electron
                  * @param localIdx local (linear) index in super cell / frame
                  */
                 template<typename T_Worker>
-                DINLINE uint32_t numNewParticles(const T_Worker& worker, FrameType& ionFrame, int localIdx)
+                DINLINE uint32_t numNewParticles(const T_Worker& worker, FrameType& electronFrame, int localIdx)
                 {
-                    /* alias for the single macro-particle */
-                    auto particle = ionFrame[localIdx];
+                    /* alias for the single macro-particle - electron */
+                    auto particle = electronFrame[localIdx];
                     /* particle position, used for field-to-particle interpolation */
                     floatD_X pos = particle[position_];
                     const int particleCellIdx = particle[localCellIdx_];
@@ -304,29 +356,29 @@ namespace picongpu
                     const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
                     ValueType_B bField = Field2ParticleInterpolation()(cachedB.shift(localCell), pos, fieldPosB());
 
+                    //use the algorithm from the SynchrotronIdea struct
                     SynchrotronIdea synchrotronAlgo;
-                    // printf("worker: %u\n", worker.getWorkerIdx());
-                    // printf("cpu rand: %f\n", this->randomGen(worker));
-
                     float_X photonEnergy = synchrotronAlgo(bField, eField, particle, this->randomGen(worker), this->randomGen(worker), m_F1F2DeviceBuff); 
                     
-                    normalizedPhotonEnergy = photonEnergy;
-                    return (photonEnergy > 0); // generate photon if energy is > 0 
+                    ///@todo check if this works in parallel
+                    m_normalizedPhotonEnergy = photonEnergy; // save to member variable to use in creation of new photon
+
+                    return (photonEnergy > 0); // generate one photon if energy is > 0 
                 }
 
-                /* Functor implementation
+                /** Functor implementation
                  *
                  * Ionization model specific particle creation
                  *
-                 * @tparam T_parentIon type of ion species that is being ionized
+                 * @tparam T_parentElectron type of ion species that is radiating
                  * @tparam T_childPhoton type of Photon species that is created
-                 * @param parentIon ion instance that is ionized
+                 * @param parentElectron electron instance that radiates
                  * @param childPhoton Photon instance that is created
                  */
                 template<typename T_parentElectron, typename T_childPhoton, typename T_Worker>
                 DINLINE void operator()(const T_Worker& worker, T_parentElectron& parentElectron, T_childPhoton& childPhoton)
                 {
-                    /* for not mixing operatElectrons::assign up with the nvidia functor assign */
+                    /* for not mixing operations::assign up with the nvidia functor assign */
                     namespace partOp = pmacc::particles::operations;
                     /* each thread sets the multiMask hard on "particle" (=1) */
                     childPhoton[multiMask_] = 1u;
@@ -346,32 +398,36 @@ namespace picongpu
                     const float_X massElectron = attribute::getMass(weighting, parentElectron);
                     const float_X massPhoton = attribute::getMass(weighting, childPhoton);
 
-                    // const float_X energyPhoton = childPhoton[energy_];
-                    double convFactor = 1.0;
-                    const float3_X PhotonMomentum(parentElectron[momentum_] * normalizedPhotonEnergy * convFactor );
+                    ///@todo decide on calculation:
+                    constexpr float_X convFactor = 1.0/SPEED_OF_LIGHT; // conversion factor from photon energy to momentum
+                    float3_X const PhotonMomentum = parentElectron[momentum_] * m_normalizedPhotonEnergy * convFactor; // if this is wrong uncomment the lines below and comment this line
 
-                    childPhoton[momentum_] = PhotonMomentum;
+                    // float3_X const mom = parentElectron[momentum_];
+                    // float_X const mass = attribute::getMass(float_X(1), parentElectron); //weighting 1
+                    // float_X const gamma = Gamma<float_X>()(mom, mass);
+                    // constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                    // float_X const electronEnergy = (gamma - float_X(1.0)) * mass * c2;
+                    // float3_X const PhotonMomentum = mom/pmacc::math::l2norm(mom) * photonEnergy * SPEED_OF_LIGHT;
+                    // childPhoton[momentum_] = PhotonMomentum;
 
-                    /* conservatElectron of momentum
-                     * \todo add conservatElectron of mass */
-                    parentElectron[momentum_] -= PhotonMomentum;
 
-                    /** ElectronizatElectron of the Electron by reducing the number of bound Photons
-                     *
-                     * @warning subtracting a float from a float can potentially
-                     *          create a negative boundPhotons number for the Electron,
-                     *          see #1850 for details
-                     */
-                    // float_X numberBoundPhotons = parentElectron[boundPhotons_];
+                    if constexpr (T_Debug){
+                        printf("parentElectron[momentum_] y: %e\n", parentElectron[momentum_].y());
+                        printf("parentElectron[momentum_] z: %e\n", parentElectron[momentum_].z());
+                        printf("PhotonMomentum.x(): %e\n", PhotonMomentum.x());
+                        printf("PhotonMomentum.y(): %e\n", PhotonMomentum.y());
+                        printf("PhotonMomentum.z(): %e\n", PhotonMomentum.z());
+                        printf("m_normalizedPhotonEnergy: %e\n\n\n", m_normalizedPhotonEnergy);
+                    }
 
-                    // numberBoundPhotons -= 1._X;
-
-                    // picongpu::particles::atomicPhysics::SetChargeState{}(parentElectron, numberBoundPhotons);
+                    /* conservatElectron of momentum */
+                    if constexpr (params::ElectronRecoil)
+                        parentElectron[momentum_] -= PhotonMomentum; 
                 }
                 private:
-                float_X normalizedPhotonEnergy; // energy of a emitted photon with respect to electron
+                float_X m_normalizedPhotonEnergy; // energy of emitted photon with respect to electron energy
 
             };// end of struct AlgorithmSynchrotron
-        } // namespace ionization
+        } // namespace synchrotron
     } // namespace particles
 } // namespace picongpu

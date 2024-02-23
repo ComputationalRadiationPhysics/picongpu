@@ -27,9 +27,7 @@
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
-
 #include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
-
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
@@ -337,9 +335,11 @@ namespace picongpu
             }
         };
 
-        /** Call all Synchrotron schemes of an ion species
+        /** Call Synchrotron Algorithm of an electron species
+         * called from: /include/picongpu/simulation/stage/SynchrotronRadiation.hpp
          *
-         * Tests if species can be ionized and calls the kernels to do that
+         * @todo test what it tests for
+         * Tests if species can radiate photons and calls the kernels to do that -> don't really know what does it test for
          *
          * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for Synchrotron
          */
@@ -352,11 +352,8 @@ namespace picongpu
             // the following line only fetches the alias
             using FoundSynchrotronAlias = typename pmacc::traits::GetFlagType<FrameType, Synchrotron<>>::type;
 
-            // this now resolves the alias into the actual object type, a list of Synchrotron
+            // this now resolves the alias into the actual object type, a list of photons
             using DestinationSpecies = typename pmacc::traits::Resolve<FoundSynchrotronAlias>::type;
-
-            // SelectSynchrotron will be either the specified one or fallback: None
-            // using SelectSynchrotronAlgorithm =
 
             /** Functor implementation
              *
@@ -364,11 +361,11 @@ namespace picongpu
              *                           that is later passed to the kernel
              * @param cellDesc logical block information like dimension and cell sizes
              * @param currentStep The current time step
+             * @param F1F2DeviceBuff GridBuffer on the device side containing F1 and F2 values for each particle
              */
             template<typename T_CellDescription>
-            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff ) const
+            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff) const
             {
-               
                 DataConnector& dc = Environment<>::get().DataConnector();
 
                 // alias for pointer on source species
@@ -383,13 +380,6 @@ namespace picongpu
                 photonsPtr->fillAllGaps();
             }
         };
-
-
-
-
-
-
-
 
     } // namespace particles
 } // namespace picongpu
