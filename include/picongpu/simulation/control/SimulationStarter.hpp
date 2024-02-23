@@ -52,7 +52,7 @@ namespace picongpu
 
     void addMetadataRegisteredAtCT()
     {
-        pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<boost::mpl::_1>>{}();
+        pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<AllowMissingMetadata<boost::mpl::_1>>>{}();
     }
 
     template<class InitClass, class PluginClass, class SimulationClass>
