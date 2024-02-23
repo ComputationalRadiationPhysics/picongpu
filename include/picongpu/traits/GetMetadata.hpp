@@ -47,7 +47,7 @@ namespace picongpu
         inline constexpr bool hasMetadataRT<T, std::enable_if_t<hasMetadata<T> && !hasMetadataCT<T>>> = true;
 
         // doc-include-start: GetMetdata trait
-        template<typename TObject, typename = void>
+        template<typename TObject, bool allowMissing = false, typename = void>
         struct GetMetadata
         {
             template<typename T>
@@ -56,18 +56,18 @@ namespace picongpu
             nlohmann::json description() const
             {
                 static_assert(
-                    False<TObject>, // needs to have a dependency on the template parameter, otherwise it will always
-                                    // fire!
+                    allowMissing,
                     "If you reached this point, you tried to register a type or object for metadata output that does "
                     "not "
                     "supply the necessary information. Try to specialise picongpu::traits::GetMetadata for your type "
                     "or "
                     "add a `.metadata()` method to it.");
+                return nlohmann::json::object();
             }
         };
 
-        template<typename TObject>
-        struct GetMetadata<TObject, std::enable_if_t<hasMetadataRT<TObject>>>
+        template<typename TObject, bool allowMissing>
+        struct GetMetadata<TObject, allowMissing, std::enable_if_t<hasMetadataRT<TObject>>>
         {
             // holds a constant reference to the RT instance it's supposed to report about
             TObject const& obj;
@@ -78,8 +78,8 @@ namespace picongpu
             }
         };
 
-        template<typename TObject>
-        struct GetMetadata<TObject, std::enable_if_t<hasMetadataCT<TObject>>>
+        template<typename TObject, bool allowMissing>
+        struct GetMetadata<TObject, allowMissing, std::enable_if_t<hasMetadataCT<TObject>>>
         {
             nlohmann::json description() const
             {
@@ -88,12 +88,6 @@ namespace picongpu
         };
         // doc-include-end: GetMetdata trait
 
-        template<typename, typename = void>
-        inline constexpr bool hasDescription = false;
-
-        template<typename T>
-        inline constexpr bool hasDescription<T, std::void_t<decltype(std::declval<T>().description())>> = true;
-
         template<typename TObject>
         struct AllowMissingMetadata
         {
@@ -101,19 +95,8 @@ namespace picongpu
         };
 
         template<typename TObject>
-        struct GetMetadata<AllowMissingMetadata<TObject>> : GetMetadata<TObject>
+        struct GetMetadata<AllowMissingMetadata<TObject>> : GetMetadata<TObject, true>
         {
-            template<typename T = TObject, typename = void>
-            nlohmann::json description() const
-            {
-                return GetMetadata<TObject>::description();
-            }
-
-            template<>
-            nlohmann::json description<TObject, std::enable_if_t<!hasDescription<GetMetadata<TObject>>, bool>>() const
-            {
-                return nlohmann::json::object();
-            }
         };
     } // namespace traits
 } // namespace picongpu
