@@ -29,20 +29,20 @@
 
 
 /** @file SynchrotronRadiation.hpp
- * 
+ *
  * @todo make better desciptions of SynchrotronRadiation.hpp and ParticleFunctors.hpp
- * 
+ *
  * This synchrotron extension consists of two new files:
  *      - AlgorithmSynchrotron.hpp:     Defines the algorithm and data structures for the synchrotron model
  *      - SynchrotronRadiation.hpp:     Initializes the class with precomputed F1 and F2 functions
  * and modifies two existing files:
  *      - Simulation.hpp:               Registers the SynchrotronRadiation stage
  *      - ParticleFunctors.hpp:         Chooses which particles are affected by SynchrotronRadiation
- * 
+ *
  * The call structure goes like this:
  *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParicleFunctors.hpp -> AlgortihmSynchrotron.hpp
- */ 
-namespace picongpu::simulation::stage 
+ */
+namespace picongpu::simulation::stage
 {
     /** Functor for the stage of the PIC loop performing synchrotron radiation
      *
@@ -52,10 +52,12 @@ namespace picongpu::simulation::stage
     {
     private:
         /** exponential integration
-         * 
-         * @brief approximate function with exponential and integrate on log scale, by using the middle point to fit the exponent
-         * 
-         * @note overestimates function below xMiddle but underestimates fucntion above xMiddle leading to better fit overal
+         *
+         * @brief approximate function with exponential and integrate on log scale, by using the middle point to fit
+         * the exponent
+         *
+         * @note overestimates function below xMiddle but underestimates function above xMiddle leading to better fit
+         * overal
          *
          * @param xLeft left point
          * @param xMiddle middle point
@@ -64,16 +66,25 @@ namespace picongpu::simulation::stage
          * @param yMiddle function value at xMiddle
          */
         template<typename T_Number>
-        static T_Number integrateAsExponential(T_Number const xLeft, T_Number const xMiddle, T_Number const xRight, T_Number const yLeft, T_Number const yMiddle) {
+        static T_Number integrateAsExponential(
+            T_Number const xLeft,
+            T_Number const xMiddle,
+            T_Number const xRight,
+            T_Number const yLeft,
+            T_Number const yMiddle)
+        {
             if constexpr(picongpu::particles::synchrotron::T_Debug)
             {
-                if (xLeft == xMiddle) {
+                if(xLeft == xMiddle)
+                {
                     throw "xLeft and xMiddle cannot be the same.";
                 }
-                if (yLeft <= 0 || yMiddle <= 0) {
+                if(yLeft <= 0 || yMiddle <= 0)
+                {
                     throw "yLeft and yMiddle must be positive.";
                 }
-                if (yLeft == yMiddle) {
+                if(yLeft == yMiddle)
+                {
                     throw "yLeft and yMiddle must not be equal.";
                 }
             }
@@ -87,10 +98,11 @@ namespace picongpu::simulation::stage
         }
 
         /// @todo insure intervals consistent
-        /** compute first synchrotorn function. See paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments" by A. Gonoskov et.Al.
+        /** compute first synchrotorn function. See paper: "Extended particle-in-cell schemes for physics in
+         * ultrastrong laser fields: Review and developments" by A. Gonoskov et.Al.
          *
          * @param zq
-         * 
+         *
          * @returns zq * (integral of 2nd kind bessel function from zq to ~infinity)
          */
         static float_64 firstSynchrotronFunction(float_64 const zq)
@@ -98,34 +110,46 @@ namespace picongpu::simulation::stage
             using namespace picongpu::particles::synchrotron::params; // for "FirstSynchrotronFunctionParams" struct
 
             float_64 const log_start = std::log10(zq); // from zq to FirstSynchrotronFunctionParams::logEnd
-            float_64 const log_step = (FirstSynchrotronFunctionParams::logEnd - log_start) / (FirstSynchrotronFunctionParams::numberSamplePoints - 1);
+            float_64 const log_step = (FirstSynchrotronFunctionParams::logEnd - log_start)
+                / (FirstSynchrotronFunctionParams::numberSamplePoints - 1);
 
             float_64 integral = 0;
 
             float_64 xLeft;
             float_64 xRight = zq;
 
-            for (int i = 0; i < FirstSynchrotronFunctionParams::numberSamplePoints - 1; ++i) {
+            for(int i = 0; i < FirstSynchrotronFunctionParams::numberSamplePoints - 1; ++i)
+            {
                 xLeft = xRight;
                 xRight = math::pow(10., log_start + log_step * (i + 1));
                 float_64 xMiddle = (xLeft + xRight) / 2.0;
 
                 // try and catch errors in the bessel function
-                try {
+                try
+                {
                     float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
                     float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
-                    integral += integrateAsExponential(xLeft, xMiddle, xRight, yLeft, yMiddle); // computes the integral over one interval: [xLeft, xRight] using the exponential approximation between: [xLeft, xMiddle]
-                } catch (std::exception& e) {
+                    integral += integrateAsExponential(
+                        xLeft,
+                        xMiddle,
+                        xRight,
+                        yLeft,
+                        yMiddle); // computes the integral over one interval: [xLeft, xRight] using the exponential
+                                  // approximation between: [xLeft, xMiddle]
+                }
+                catch(std::exception& e)
+                {
                     std::cout << "Caught exception in firstSynchrotronFunction: " << e.what() << std::endl;
                 }
             }
             return zq * integral;
         }
 
-        //! @note see paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments" by A. Gonoskov et.Al.
+        //! @note see paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
+        //! developments" by A. Gonoskov et.Al.
         static float_64 secondSynchrotronFunction(float_64 const x)
         {
-            return  x * std::cyl_bessel_k(2./3, x);
+            return x * std::cyl_bessel_k(2. / 3, x);
         }
 
     public:
@@ -135,34 +159,39 @@ namespace picongpu::simulation::stage
          */
         SynchrotronRadiation(MappingDesc const cellDescription) : cellDescription(cellDescription)
         {
-            using namespace picongpu::particles::synchrotron::params; // for "InterpolationParams" struct and "Accessor" enum and "u32" function
+            using namespace picongpu::particles::synchrotron::params; // for "InterpolationParams" struct and
+                                                                      // "Accessor" enum and "u32" function
             auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
             auto grid_layout = GridLayout<2>{data_space};
 
             tableValuesF1F2 = std::make_shared<GridBuffer<float_64, 2>>(grid_layout);
-            
+
             constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
             constexpr float_64 maxZqExp = InterpolationParams::maxZqExponent;
 
             // first and last value set to 0
             tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{0, u32(Accessor::f1)}) = 0;
             tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{0, u32(Accessor::f2)}) = 0;
-            tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{InterpolationParams::numberTableEntries - 1, u32(Accessor::f1)}) = 0;
-            tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{InterpolationParams::numberTableEntries - 1, u32(Accessor::f2)}) = 0;
+            tableValuesF1F2->getHostBuffer().getDataBox()(
+                DataSpace<2>{InterpolationParams::numberTableEntries - 1, u32(Accessor::f1)})
+                = 0;
+            tableValuesF1F2->getHostBuffer().getDataBox()(
+                DataSpace<2>{InterpolationParams::numberTableEntries - 1, u32(Accessor::f2)})
+                = 0;
 
             // precompute remaining F1 and F2 on log scale
-            for (uint32_t iZq = 1; iZq < InterpolationParams::numberTableEntries - 1; iZq++) 
+            for(uint32_t iZq = 1; iZq < InterpolationParams::numberTableEntries - 1; iZq++)
             {
-                // std::cout << "iZq = " << iZq << std::endl;
-                float_64 zq = std::pow(10, minZqExp + (maxZqExp - minZqExp) * iZq / static_cast<float_64>(InterpolationParams::numberTableEntries));
-                // std::cout << "zq = " << zq << std::endl;
+                float_64 zq = std::pow(
+                    10,
+                    minZqExp
+                        + (maxZqExp - minZqExp) * iZq
+                            / static_cast<float_64>(InterpolationParams::numberTableEntries));
                 // inverse function for index retrieval:
                 // index = (log10(zq) - minZqExp) / (maxZqExp - minZqExp) * InterpolationParams::numberTableEntries;
-                
-                float_64 const F1 = firstSynchrotronFunction(zq); 
-                // std::cout << "F1 = " << F1;
+
+                float_64 const F1 = firstSynchrotronFunction(zq);
                 float_64 const F2 = secondSynchrotronFunction(zq);
-                // std::cout << " F2 = " << F2 << std::endl;
 
                 tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f1)}) = F1;
                 tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f2)}) = F2;
@@ -171,18 +200,28 @@ namespace picongpu::simulation::stage
             tableValuesF1F2->hostToDevice();
 
             //! debug only, print F1 and F2, @todo remove
-            if constexpr (picongpu::particles::synchrotron::T_Debug){
-            int timesMore = 2;
-            for (uint32_t zq = 0; zq < InterpolationParams::numberTableEntries*timesMore; zq++) {
-                float_64 zq_ = std::pow(10,minZqExp + (maxZqExp - minZqExp) * zq / float_64(InterpolationParams::numberTableEntries*timesMore));
-                uint32_t index = (log10(zq_) - minZqExp) * (InterpolationParams::numberTableEntries) / (maxZqExp - minZqExp) ;
-                
+            if constexpr(picongpu::particles::synchrotron::T_Debug)
+            {
+                int timesMore = 2;
+                for(uint32_t zq = 0; zq < InterpolationParams::numberTableEntries * timesMore; zq++)
+                {
+                    float_64 zq_ = std::pow(
+                        10,
+                        minZqExp
+                            + (maxZqExp - minZqExp) * zq
+                                / float_64(InterpolationParams::numberTableEntries * timesMore));
+                    uint32_t index
+                        = (log10(zq_) - minZqExp) * (InterpolationParams::numberTableEntries) / (maxZqExp - minZqExp);
 
-                std::cout << "zq = " << zq/float(timesMore)  << " index = " << index << std::endl;
-                std::cout << "zq = " << zq_ << " F1 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index,0}) << " F2 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index,1}) << std::endl;
 
-                // interpolation:
-                // F1 = tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index,0});
+                    std::cout << "zq = " << zq / float(timesMore) << " index = " << index << std::endl;
+                    std::cout << "zq = " << zq_
+                              << " F1 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index, 0})
+                              << " F2 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index, 1})
+                              << std::endl;
+
+                    // interpolation:
+                    // F1 = tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index,0});
                 }
             }
         }
@@ -203,7 +242,8 @@ namespace picongpu::simulation::stage
     private:
         //! Mapping for kernels
         MappingDesc cellDescription;
-        // precomputed first and second synchrotron functions -> 2d grid of floats_64 -> tableValuesF1F2[zq][0/1] -> 0/1 = F1/F2
-        std::shared_ptr<GridBuffer<float_64,2>> tableValuesF1F2;
+        // precomputed first and second synchrotron functions:
+        // -> 2d grid of floats_64 -> tableValuesF1F2[zq][0/1] ; 0/1 = F1/F2
+        std::shared_ptr<GridBuffer<float_64, 2>> tableValuesF1F2;
     };
 } // namespace picongpu::simulation::stage

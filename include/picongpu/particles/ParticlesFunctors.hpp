@@ -23,13 +23,14 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
-#include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
-#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
+
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
@@ -339,7 +340,7 @@ namespace picongpu
          * called from: /include/picongpu/simulation/stage/SynchrotronRadiation.hpp
          *
          * @todo test what it tests for
-         * Tests if species can radiate photons and calls the kernels to do that -> don't really know what does it test for
+         * Tests if species can radiate photons and calls the kernels to do that
          *
          * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for Synchrotron
          */
@@ -364,7 +365,10 @@ namespace picongpu
              * @param F1F2DeviceBuff GridBuffer on the device side containing F1 and F2 values for each particle
              */
             template<typename T_CellDescription>
-            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep, GridBuffer<float_64,2>::DataBoxType F1F2DeviceBuff) const
+            HINLINE void operator()(
+                T_CellDescription cellDesc,
+                const uint32_t currentStep,
+                GridBuffer<float_64, 2>::DataBoxType F1F2DeviceBuff) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
 
@@ -373,7 +377,10 @@ namespace picongpu
                 // alias for pointer on destination species
                 auto photonsPtr = dc.get<DestinationSpecies>(DestinationSpecies::FrameType::getName());
 
-                auto synchrotronFunctor = particles::synchrotron::AlgorithmSynchrotron<SpeciesType,DestinationSpecies>(currentStep, F1F2DeviceBuff);
+                auto synchrotronFunctor
+                    = particles::synchrotron::AlgorithmSynchrotron<SpeciesType, DestinationSpecies>(
+                        currentStep,
+                        F1F2DeviceBuff);
 
                 creation::createParticlesFromSpecies(*srcSpeciesPtr, *photonsPtr, synchrotronFunctor, cellDesc);
 

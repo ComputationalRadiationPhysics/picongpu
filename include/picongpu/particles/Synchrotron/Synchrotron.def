@@ -20,7 +20,6 @@
 #pragma once
 
 
-
 #include <pmacc/types.hpp>
 
 namespace picongpu
@@ -56,10 +55,7 @@ namespace picongpu
              *         cannot be known in list of particle species' flags
              *         @see speciesDefinition.param
              */
-            template<
-                typename T_SynchrotronAlgorithm,
-                typename T_DestSpecies,
-                typename T_SrcSpecies = boost::mpl::_1>
+            template<typename T_SynchrotronAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = boost::mpl::_1>
             struct Synchrotron_Impl;
 
 
@@ -71,6 +67,6 @@ namespace picongpu
             };
 
 
-        } // namespace ionization
+        } // namespace Synchrotron
     } // namespace particles
 } // namespace picongpu

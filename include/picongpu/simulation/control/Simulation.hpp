@@ -35,7 +35,7 @@
 #include "picongpu/initialization/ParserGridDistribution.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/Manipulate.hpp"
-#include "picongpu/particles/ParticlesFunctors.hpp" // -> includes AlgorithmSynchrotron.hpp -> includes params of Synchrotron
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
@@ -54,9 +54,9 @@
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
 #include "picongpu/simulation/stage/ParticleBoundaries.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
-#include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
+#include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
 
 #include <pmacc/assert.hpp>
@@ -539,7 +539,6 @@ namespace picongpu
             CurrentDeposition{}(currentStep);
             (*currentInterpolationAndAdditionToEMF)(currentStep, *myFieldSolver);
             myFieldSolver->update_afterCurrent(currentStep);
-            
         }
 
         void movingWindowCheck(uint32_t currentStep) override
@@ -604,14 +603,13 @@ namespace picongpu
         }
 
     protected:
-
         std::shared_ptr<DeviceHeap> deviceHeap;
 
         std::shared_ptr<fields::Solver> myFieldSolver;
         std::shared_ptr<simulation::stage::CurrentInterpolationAndAdditionToEMF> currentInterpolationAndAdditionToEMF;
         std::shared_ptr<simulation::stage::CurrentBackground> currentBackground;
-        
-        //extension: Synchrotron Radiation
+
+        // extension: Synchrotron Radiation
         std::shared_ptr<simulation::stage::SynchrotronRadiation> synchrotronRadiation;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
@@ -627,7 +625,7 @@ namespace picongpu
         // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::ParticleBoundaries particleBoundaries;
-        
+
 
         // Runtime density file stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

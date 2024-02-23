@@ -40,5 +40,4 @@ namespace picongpu
     namespace ionization
     {
     } // namespace ionization
-}
-
+} // namespace picongpu
