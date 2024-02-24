@@ -302,7 +302,9 @@ namespace picongpu
                 else
                     log<picLog::PHYSICS>("Sliding Window is OFF");
             }
+            // doc-include-start: metadata pluginLoad
             addMetadataOf(*this);
+            // doc-include-end: metadata pluginLoad
         }
 
         void pluginUnload() override

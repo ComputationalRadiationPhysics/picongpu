@@ -5,11 +5,15 @@ Dumping Metadata
 
 Starting your simulation with
 
-``<executable> [...] --dump-metadata [<filename>] [--no-start-simulation]``
+.. literalinclude:: ../../../share/picongpu/tests/metadataFromLaserWakefield/bin/ci.sh
+   :language: bash
+   :start-after: doc-include-start: cmdline
+   :end-before: doc-include-end: cmdline
+   :dedent:
 
 will dump a `json`_ respresentation of some metadata to `<filename>`. If no `<filename>` is given, the default value
 
-.. literalinclude:: ../../../include/picongpu/metadata.hpp
+.. literalinclude:: ../../../include/picongpu/MetadataAggregator.hpp
    :language: C++
    :start-after: doc-include-start: metadata default filename
    :end-before: doc-include-end: metadata default filename
@@ -80,7 +84,7 @@ Content Creation
 The main customisation point for adding and adjusting the output related to some `typename TObject`, say a Laser or the
 `Simulation` object itself, is providing a specialisation for `picongpu::traits::GetMetadata` defaulting to
 
-.. literalinclude:: ../../../include/picongpu/metadata.hpp
+.. literalinclude:: ../../../include/picongpu/traits/GetMetadata.hpp
    :language: C++
    :start-after: doc-include-start: GetMetdata trait
    :end-before: doc-include-end: GetMetdata trait
@@ -148,12 +152,11 @@ the past, this class must register itself **before the simulation starts**. Anyt
 initialisation at runtime, e.g., :ref:`plugins <???>` should register themselves after their initialisation. To stick
 with the example, a plugin could implement
 
-.. code::
-   void pluginLoad() {
-     // ...
-
-     addMetadataOf(\*this);
-   }
+  .. literalinclude:: ../../../include/picongpu/simulation/control/Simulation.hpp
+     :language: C++
+     :start-after: doc-include-start: metadata pluginLoad
+     :end-before: doc-include-end: metadata pluginLoad
+     :dedent:
 
 Classes that only affect compile-time aspects of the program need to be registered in
 `include/picongpu/param/metadata.param` by extending the compile-time list `MetadataRegisteredAtCT`. Remember: Their
