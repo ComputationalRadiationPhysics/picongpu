@@ -28,7 +28,7 @@ The dumping happens after all initialisation immediately before the simulation s
 
  * No dynamic information about the simulation can be included (e.g. information about the state at time step 10).
  * The dumped information will represent the actual parameters used which might be different from the parameters given
-   in the input files, e.g., due to :ref:`automatic adjustment<???>`.
+   in the input files, e.g., due to automatic adjustment.
 
 .. note::
 
@@ -37,7 +37,7 @@ The dumping happens after all initialisation immediately before the simulation s
   GPUs, etc.) available as for the full simulation run even when running with `--no-start-simulation`.
 
 The content of the output is a **summary of the physical content of the simulated conditions** and the format is
-described :ref:`below <???>`. It is important to note that the structure of the content is aligned with its
+described :ref:`below <format-subsection>`. It is important to note that the structure of the content is aligned with its
 categorisation in the physical context and not (enforced to be) aligned with the internal code structure.
 
 .. note::
@@ -53,9 +53,9 @@ categorisation in the physical context and not (enforced to be) aligned with the
 
     * Reproducibility: The only faithful, feature-complete representation of the input necessary to reproduce a
       PIConGPU simulation is the complete input directory. If a more standardised and human-readable repesentation is
-      desired, :ref:`PICMI<???>` provides access to a small subset of features.
+      desired, :ref:`PICMI<picmi>` provides access to a small subset of features.
     * Completeness: This feature is intended to be fed with well-structured information considered important by the
-      researchers. It is :ref:`customisable<???>` but the design does not allow to ensure any form of completeness with
+      researchers. It is :ref:`customisable<customisation-subsection>` but the design does not allow to ensure any form of completeness with
       appropriate maintenance effort. We therefore do not aim to describe simulations exhaustively.
     * (De-)Serialisation: We do not provide infrastructure to fully or partially reconstruct C++ objects from the
       dumped information.
@@ -63,6 +63,8 @@ categorisation in the physical context and not (enforced to be) aligned with the
       useful. Any form of standardisation or generalisation beyond this scope requires a resources commitment from
       outside the PIConGPU development team. We are happy to implement any such result.
 
+
+.. _format-subsection:
 
 The Format
 ----------
@@ -74,6 +76,8 @@ high-level structure which might be supplemented with further details as appropr
 simulation:
 
 ``???``
+
+.. _customisation-subsection:
 
 Customisation
 -------------
@@ -149,7 +153,7 @@ Content Registration
 
 If you are not only adjusting existing output but instead you are adding metadata to a class that did not report any in
 the past, this class must register itself **before the simulation starts**. Anything that experiences some form of
-initialisation at runtime, e.g., :ref:`plugins <???>` should register themselves after their initialisation. To stick
+initialisation at runtime, e.g., :ref:`plugins <usage-plugins>` should register themselves after their initialisation. To stick
 with the example, a plugin could implement
 
   .. literalinclude:: ../../../include/picongpu/simulation/control/Simulation.hpp
