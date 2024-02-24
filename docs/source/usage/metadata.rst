@@ -70,12 +70,13 @@ The Format
 ----------
 
 The created file is a human-readable text file containing valid `json` the content of which is partially
-:ref:`customisable<???>`. We do not enforce a particular format but suggest that you stick as closely as possible to the
-naming conventions from :ref:`PyPIConGPU<???>` and :ref:`PICMI<???>`. By default, the output has the following
-high-level structure which might be supplemented with further details as appropriate for the described elements of the
-simulation:
+:ref:`customisable<customisation-subsection>`. We do not enforce a particular format but suggest that you stick as
+closely as possible to the naming conventions from :ref:`PyPIConGPU<pypicongpu>` and :ref:`PICMI<picmi>`. For example, the
+`LaserWakefield` example dumps the following metadata which might be supplemented with further details as appropriate
+for the described elements of the simulation:
 
-``???``
+.. literalinclude:: ../../../share/picongpu/tests/metadataFromLaserWakefield/picongpu-metadata.json.reference
+   :language: json
 
 .. _customisation-subsection:
 
