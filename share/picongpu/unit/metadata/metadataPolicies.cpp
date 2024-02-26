@@ -30,8 +30,6 @@ using picongpu::addMetadataOf;
 using picongpu::MetadataAggregator;
 using picongpu::traits::AllowMissingMetadata;
 
-json picongpu::MetadataAggregator::metadata;
-
 struct NotHavingMetadata
 {
     static constexpr int info = 42;

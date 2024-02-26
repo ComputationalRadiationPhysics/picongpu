@@ -94,7 +94,7 @@ namespace picongpu
             "picongpu-metadata.json"
             // doc-include-end: metadata default filename
         };
-        static nlohmann::json metadata;
+        inline static nlohmann::json metadata = nlohmann::json::object();
     };
 
     template<typename... T, typename... U>

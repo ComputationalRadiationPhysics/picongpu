@@ -21,8 +21,6 @@
 
 #include <picongpu/simulation_defines.hpp>
 
-#include "picongpu/MetadataAggregator.hpp"
-
 #include <functional>
 #include <numeric>
 
@@ -40,9 +38,6 @@ using ::picongpu::float_X;
 using ::picongpu::simDim;
 using ::picongpu::particles::moveParticle;
 using ::picongpu::operator""_X;
-
-// TODO: dirty hack to care about another time
-nlohmann::json picongpu::MetadataAggregator::metadata;
 
 const auto superCellSize = ::picongpu::SuperCellSize::toRT();
 constexpr const auto superCellVolume = ::pmacc::math::CT::volume<::picongpu::SuperCellSize>::type::value;

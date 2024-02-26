@@ -28,8 +28,6 @@ using nlohmann::json;
 using picongpu::addMetadataOf;
 using picongpu::MetadataAggregator;
 
-json picongpu::MetadataAggregator::metadata;
-
 // doc-include-start: adapting metadata
 struct SomethingWithRTInfo
 {
