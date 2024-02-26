@@ -24,6 +24,7 @@
 
 #include <boost/mp11/bind.hpp>
 
+#include <numeric>
 #include <type_traits>
 
 #include <nlohmann/json.hpp>
@@ -140,30 +141,44 @@ namespace picongpu
         {
         };
 
+        namespace detail
+        {
+            std::list<std::string> boundaryNames = {"XMin", "XMax", "YMin", "YMax", "ZMin", "ZMax"};
+
+            template<template<typename...> typename T_Pack, typename... Profiles>
+            nlohmann::json gatherMetadata(T_Pack<Profiles...>)
+            {
+                std::vector<nlohmann::json> collection;
+                (collection.push_back(GetMetadata<Profiles>{}.description()), ...);
+                return std::transform_reduce(
+                    cbegin(collection),
+                    cend(collection),
+                    cbegin(boundaryNames),
+                    nlohmann::json::object(),
+                    // take by value because we will return it, so it must be owned by us:
+                    [](auto final_obj, auto const& new_content)
+                    {
+                        final_obj.merge_patch(new_content);
+                        return final_obj;
+                    },
+                    [](auto const& metadata, auto const& name)
+                    {
+                        auto result = nlohmann::json::object();
+                        result[name] = metadata;
+                        return result;
+                    });
+            }
+        } // namespace detail
+
+
         template<typename Profiles>
         struct GetMetadata<IncidentFieldPolicy<Profiles>>
         {
             nlohmann::json description() const
             {
+                auto gathered = detail::gatherMetadata(Profiles{});
                 auto result = nlohmann::json::object();
-                if(boost::mp11::mp_size<Profiles>::value == 4)
-                    result["incidentField"] = {
-                        {"XMin", ""},
-                        {"XMax", ""},
-                        {"YMin", ""},
-                        {"YMax", ""},
-                    };
-                else
-                {
-                    result["incidentField"] = {
-                        {"XMin", ""},
-                        {"XMax", ""},
-                        {"YMin", ""},
-                        {"YMax", ""},
-                        {"ZMin", ""},
-                        {"ZMax", ""},
-                    };
-                }
+                result["incidentField"] = gathered;
                 return result;
             }
         };

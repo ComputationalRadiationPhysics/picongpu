@@ -67,6 +67,10 @@ struct picongpu::traits::GetMetadata<HavingCustomisedMetadata>
 
 struct FakeXMin
 {
+    static nlohmann::json metadata()
+    {
+        return "I'm FakeXMin!";
+    }
 };
 
 set<string> extractKeys(nlohmann::json const& input)
@@ -142,6 +146,23 @@ TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
             auto const& keys = extractKeys(metadataAggregator.metadata["incidentField"]);
 
             CHECK(keys == expected);
+        }
+
+        SECTION("incidentField has content for each boundary")
+        {
+            using Profiles = pmacc::MakeSeq_t<
+                FakeXMin,
+                FakeXMin,
+                FakeXMin,
+                FakeXMin,
+                std::conditional_t<TEST_DIM == 3, pmacc::MakeSeq_t<FakeXMin, FakeXMin>, pmacc::MakeSeq_t<>>>;
+
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
+
+            for(auto const& el : metadataAggregator.metadata["incidentField"])
+            {
+                CHECK(el == FakeXMin{}.metadata());
+            }
         }
     }
 
