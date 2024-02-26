@@ -23,7 +23,6 @@
 
 #include "picongpu/ArgsParser.hpp"
 #include "picongpu/MetadataAggregator.hpp"
-#include "picongpu/MetadataRegisteredAtCT.def"
 #include "picongpu/simulation/control/ISimulationStarter.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>

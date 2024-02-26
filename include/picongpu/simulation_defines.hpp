@@ -53,6 +53,10 @@ namespace picongpu
 // ##### load unitless
 #include <picongpu/_defaultUnitless.loader>
 #include <picongpu/extensionUnitless.loader>
+
+// is added last, so that any possible metadata from the param files can be added:
+#include "picongpu/param/metadata.param"
+
 // load starter after user extensions and all params are loaded
 #include <picongpu/unitless/starter.unitless>
 
