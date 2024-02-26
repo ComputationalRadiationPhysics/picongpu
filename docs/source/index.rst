@@ -68,6 +68,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    usage/examples
    usage/workflows
    usage/crosscompile
+   usage/metadata
 
 .. toctree::
    :caption: MODELS
