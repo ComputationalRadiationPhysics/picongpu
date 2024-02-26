@@ -16,6 +16,8 @@ Usage
   $PICSRC/share/picongpu/tests/KHI_growthRate/bin/ci.sh $PICSRC/share/picongpu/tests/KHI_growthRate/ <user_given_output_directory>
 
 
+Please note that the test requires the environment variable ``$PICSRC``, which points to the PIConGPU source code.
+
 References
 ----------
 
