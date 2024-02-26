@@ -89,7 +89,7 @@ include_directories(BEFORE ./include)
 # CTest
 enable_testing()
 
-# TODO: This is as much CMake magic as I can pull off. It feels very hacky.
+# We need to build and link this to check CLI aspects.
 add_library(argparser
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/ArgsParser.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.cpp"
@@ -107,7 +107,9 @@ foreach(dim 2 3)
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
-        target_link_libraries(${testExe} PUBLIC argparser)
+        if(${testExe} MATCHES ".*CLI.*")
+          target_link_libraries(${testExe} PUBLIC argparser)
+        endif()
         target_include_directories(
             ${testExe}
             SYSTEM PRIVATE
