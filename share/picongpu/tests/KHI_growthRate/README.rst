@@ -4,7 +4,7 @@ KelvinHelmholtz: Kelvin-Helmholtz Instability
 .. sectionauthor:: Richard Pausch <r.pausch (at) hzdr.de>
 .. moduleauthor:: Richard Pausch <r.pausch (at) hzdr.de>, Mika Soren Voß <m.voss (at) hzdr.de>
 
-This KHI growth rate test simulates a shear-flow instability known as the Kelvin-Helmholtz Instability in a sub-relativistic setup as studied in [Alves12]_, [Grismayer13]_, [Bussmann13]_. The setup uses a pre-ionized quasi-neutral hydrogen plasma. From the simulation, the growth of the dominant magnetic field is extracted and compared to theoretic predictions. The tests only passes if the simulation reaches the ideal theoretical growth rate with a 10% accuracy. 
+This KHI growth rate test simulates a shear-flow instability known as the Kelvin-Helmholtz Instability in a sub-relativistic setup as studied in [Alves12]_, [Grismayer13]_, [Bussmann13]_. The setup uses a pre-ionized quasi-neutral hydrogen plasma. From the simulation, the growth of the dominant magnetic field is extracted and compared to theoretical predictions. The test only passes if the simulation reaches the ideal theoretical growth rate with a 10% accuracy.
 
 
 Usage
@@ -27,7 +27,7 @@ References
 
 .. [Grismayer13]
        T. Grismayer, E.P. Alves, R.A. Fonseca, L.O. Silva.
-       *dc-magnetic-field generation in unmagnetized shear flows*,
+       *dc-Magnetic-Field Generation in Unmagnetized Shear Flows*,
        Physical Reveview Letters (2013),
        https://doi.org/10.1103/PhysRevLett.111.015005
 
