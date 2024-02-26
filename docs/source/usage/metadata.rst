@@ -53,7 +53,7 @@ categorisation in the physical context and not (enforced to be) aligned with the
 
     * Reproducibility: The only faithful, feature-complete representation of the input necessary to reproduce a
       PIConGPU simulation is the complete input directory. If a more standardised and human-readable repesentation is
-      desired, :ref:`PICMI<picmi>` provides access to a small subset of features.
+      desired, `PICMI`_ provides access to a small subset of features.
     * Completeness: This feature is intended to be fed with well-structured information considered important by the
       researchers. It is :ref:`customisable<customisation-subsection>` but the design does not allow to ensure any form of completeness with
       appropriate maintenance effort. We therefore do not aim to describe simulations exhaustively.
@@ -71,7 +71,7 @@ The Format
 
 The created file is a human-readable text file containing valid `json` the content of which is partially
 :ref:`customisable<customisation-subsection>`. We do not enforce a particular format but suggest that you stick as
-closely as possible to the naming conventions from :ref:`PyPIConGPU<pypicongpu>` and :ref:`PICMI<picmi>`. For example, the
+closely as possible to the naming conventions from :ref:`PyPIConGPU<pypicongpu>` and `PICMI`_. For example, the
 `LaserWakefield` example dumps the following metadata which might be supplemented with further details as appropriate
 for the described elements of the simulation:
 
@@ -146,7 +146,7 @@ These can be circumvented in three ways:
      :dedent:
 
   This method is preferred if your change is general enough to make it into the mainline. If so, you are invited to
-  :ref:`open a pull request<???>`. It is also the approach used to provide you with default implementations to build
+  open a pull request (see `CONTRIBUTING.md`_ for more details). It is also the approach used to provide you with default implementations to build
   upon.
 
 Content Registration
@@ -176,3 +176,5 @@ case they can be handled exactly as compile-time-only classes.
 .. _private: https://en.cppreference.com/w/cpp/language/access
 .. _protected: https://en.cppreference.com/w/cpp/language/access
 .. _friend: https://en.cppreference.com/w/cpp/language/friend
+.. _PICMI: https://picmi-standard.github.io/
+.. _CONTRIBUTING.md: https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/CONTRIBUTING.md
