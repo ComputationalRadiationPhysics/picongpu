@@ -19,6 +19,11 @@
 
 #pragma once
 
+#include "pmacc/meta/ForEach.hpp"
+#include "pmacc/meta/conversion/MakeSeq.hpp"
+
+#include <boost/mp11/bind.hpp>
+
 #include <type_traits>
 
 #include <nlohmann/json.hpp>
@@ -46,12 +51,6 @@ namespace picongpu
         template<typename T>
         inline constexpr bool
             providesMetadataAtRT<T, std::enable_if_t<providesMetadata<T> && !providesMetadataAtCT<T>>> = true;
-
-        template<typename TObject>
-        struct AllowMissingMetadata
-        {
-            using type = TObject;
-        };
 
         namespace detail
         {
@@ -112,6 +111,12 @@ namespace picongpu
         // doc-include-end: GetMetdata trait
 
         template<typename TObject>
+        struct AllowMissingMetadata
+        {
+            using type = TObject;
+        };
+
+        template<typename TObject>
         struct GetMetadata<AllowMissingMetadata<TObject>> : GetMetadata<TObject>
         {
             nlohmann::json description() const
@@ -129,5 +134,22 @@ namespace picongpu
                 return nlohmann::json::object();
             }
         };
+
+        template<typename Profiles>
+        struct IncidentFieldPolicy
+        {
+        };
+
+        template<typename Profiles>
+        struct GetMetadata<IncidentFieldPolicy<Profiles>>
+        {
+            nlohmann::json description() const
+            {
+                auto result = nlohmann::json::object();
+                result["incidentField"] = "";
+                return result;
+            }
+        };
+
     } // namespace traits
 } // namespace picongpu

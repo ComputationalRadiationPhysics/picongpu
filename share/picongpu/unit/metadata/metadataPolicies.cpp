@@ -21,6 +21,7 @@
 
 #include "picongpu/MetadataAggregator.hpp"
 #include "picongpu/traits/GetMetadata.hpp"
+#include "pmacc/meta/conversion/MakeSeq.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <nlohmann/json.hpp>
@@ -62,35 +63,52 @@ struct picongpu::traits::GetMetadata<HavingCustomisedMetadata>
     }
 };
 
+struct FakeXMin
+{
+};
+
 TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
 {
     MetadataAggregator metadataAggregator;
 
-    SECTION("adding metadata does nothing if no metadata is available")
+    SECTION("AllowMissing")
     {
-        auto expected = json::object();
+        SECTION("adding metadata does nothing if no metadata is available")
+        {
+            auto expected = json::object();
 
-        addMetadataOf<AllowMissingMetadata<NotHavingMetadata>>();
-        CHECK(metadataAggregator.metadata == expected);
+            addMetadataOf<AllowMissingMetadata<NotHavingMetadata>>();
+            CHECK(metadataAggregator.metadata == expected);
+        }
+
+        SECTION("adding metadata still respects .metadata()")
+        {
+            auto expected = json::object();
+            expected["info"] = HavingMetadata::info;
+
+            addMetadataOf<AllowMissingMetadata<HavingMetadata>>();
+            CHECK(metadataAggregator.metadata == expected);
+        }
+
+        SECTION("adding metadata still customised trait")
+        {
+            auto expected = json::object();
+            expected["info"] = HavingCustomisedMetadata::info;
+            expected["customised"] = "custom string";
+
+            addMetadataOf<AllowMissingMetadata<HavingCustomisedMetadata>>();
+            CHECK(metadataAggregator.metadata == expected);
+        }
     }
 
-    SECTION("adding metadata still respects .metadata()")
+    SECTION("IncidentFieldPolicy")
     {
-        auto expected = json::object();
-        expected["info"] = HavingMetadata::info;
-
-        addMetadataOf<AllowMissingMetadata<HavingMetadata>>();
-        CHECK(metadataAggregator.metadata == expected);
-    }
-
-    SECTION("adding metadata still customised trait")
-    {
-        auto expected = json::object();
-        expected["info"] = HavingCustomisedMetadata::info;
-        expected["customised"] = "custom string";
-
-        addMetadataOf<AllowMissingMetadata<HavingCustomisedMetadata>>();
-        CHECK(metadataAggregator.metadata == expected);
+        SECTION("metadata starts with 'incidentField'")
+        {
+            using Profiles = pmacc::MakeSeq_t<FakeXMin>;
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
+            CHECK(metadataAggregator.metadata.contains("incidentField"));
+        }
     }
 
     MetadataAggregator::metadata = json::object();
