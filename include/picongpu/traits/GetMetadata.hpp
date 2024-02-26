@@ -146,7 +146,24 @@ namespace picongpu
             nlohmann::json description() const
             {
                 auto result = nlohmann::json::object();
-                result["incidentField"] = "";
+                if(boost::mp11::mp_size<Profiles>::value == 4)
+                    result["incidentField"] = {
+                        {"XMin", ""},
+                        {"XMax", ""},
+                        {"YMin", ""},
+                        {"YMax", ""},
+                    };
+                else
+                {
+                    result["incidentField"] = {
+                        {"XMin", ""},
+                        {"XMax", ""},
+                        {"YMin", ""},
+                        {"YMax", ""},
+                        {"ZMin", ""},
+                        {"ZMax", ""},
+                    };
+                }
                 return result;
             }
         };

@@ -30,6 +30,8 @@ using nlohmann::json;
 using picongpu::addMetadataOf;
 using picongpu::MetadataAggregator;
 using picongpu::traits::AllowMissingMetadata;
+using std::set;
+using std::string;
 
 struct NotHavingMetadata
 {
@@ -66,6 +68,16 @@ struct picongpu::traits::GetMetadata<HavingCustomisedMetadata>
 struct FakeXMin
 {
 };
+
+set<string> extractKeys(nlohmann::json const& input)
+{
+    set<string> result;
+    for(auto const& [key, _] : input.items())
+    {
+        result.insert(key);
+    }
+    return result;
+}
 
 TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
 {
@@ -109,7 +121,30 @@ TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
             addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
             CHECK(metadataAggregator.metadata.contains("incidentField"));
         }
+
+        SECTION("incidentField subtree has XMin, XMax, ... as subfields")
+        {
+            using Profiles = pmacc::MakeSeq_t<
+                FakeXMin,
+                FakeXMin,
+                FakeXMin,
+                FakeXMin,
+                std::conditional_t<TEST_DIM == 3, pmacc::MakeSeq_t<FakeXMin, FakeXMin>, pmacc::MakeSeq_t<>>>;
+
+            auto expected = std::set<string>{"XMin", "XMax", "YMin", "YMax"};
+            if(TEST_DIM == 3)
+            {
+                expected.insert("ZMin");
+                expected.insert("ZMax");
+            }
+
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
+            auto const& keys = extractKeys(metadataAggregator.metadata["incidentField"]);
+
+            CHECK(keys == expected);
+        }
     }
+
 
     MetadataAggregator::metadata = json::object();
 }
