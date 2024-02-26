@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "pmacc/math/Vector.hpp"
 #include "pmacc/meta/ForEach.hpp"
 #include "pmacc/meta/conversion/MakeSeq.hpp"
 
@@ -185,3 +186,17 @@ namespace picongpu
 
     } // namespace traits
 } // namespace picongpu
+
+namespace pmacc::math
+{
+    template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
+    void to_json(nlohmann::json& j, Vector<T_Type, T_dim, T_Navigator, T_Storage> const& vec)
+    {
+        std::vector<T_Type> stdvec{};
+        for(size_t i = 0; i < T_dim; ++i)
+        {
+            stdvec.push_back(vec[i]);
+        }
+        j = stdvec;
+    }
+} // namespace pmacc::math
