@@ -51,9 +51,9 @@ namespace picongpu
                     static nlohmann::json metadata()
                     {
                         auto result = nlohmann::json::object();
-                        result["incidentField"]["name"] = "Free";
-                        result["incidentField"]["B field"] = functorMetadata<T_FunctorIncidentB>();
-                        result["incidentField"]["E field"] = functorMetadata<T_FunctorIncidentE>();
+                        result["name"] = "Free";
+                        result["B field"] = functorMetadata<T_FunctorIncidentB>();
+                        result["E field"] = functorMetadata<T_FunctorIncidentE>();
                         return result;
                     }
 

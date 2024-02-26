@@ -24,5 +24,6 @@
 #include <picongpu/fields/incidentField/Traits.hpp>
 namespace picongpu
 {
-    using MetadataRegisteredAtCT = pmacc::MakeSeq_t<picongpu::fields::incidentField::EnabledProfiles>;
+    using MetadataRegisteredAtCT
+        = pmacc::MakeSeq_t<traits::IncidentFieldPolicy<picongpu::fields::incidentField::EnabledProfiles>>;
 } // namespace picongpu

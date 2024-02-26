@@ -81,7 +81,7 @@ namespace picongpu::fields::incidentField::profiles
                 auto gaussianMetadata = nlohmann::json::object();
                 gaussianMetadata["W0"] = W0_SI;
                 gaussianMetadata["PULSE_INIT"] = PULSE_INIT;
-                baseMetadata["incidentField"]["Gaussian parameters"] = gaussianMetadata;
+                baseMetadata["Gaussian parameters"] = gaussianMetadata;
                 return baseMetadata;
             }
         };

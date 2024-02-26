@@ -198,15 +198,13 @@ namespace picongpu
                         // `template<typename My =Derived>` and should use `BaseParam::metadata<My>()` as a starting
                         // point for customisation.
 
-                        auto metadata = nlohmann::json::object();
-                        metadata["polarisation"]["direction"] = vector<float_64>{
+                        auto result = nlohmann::json::object();
+                        result["polarisation"]["direction"] = vector<float_64>{
                             {My::POLARISATION_DIRECTION_X,
                              My::POLARISATION_DIRECTION_Y,
                              My::POLARISATION_DIRECTION_Z}};
-                        metadata["polarisation"]["type"]
+                        result["polarisation"]["type"]
                             = My::Polarisation == PolarisationType::Linear ? "linear" : "circular";
-                        auto result = nlohmann::json::object();
-                        result["incidentField"] = metadata;
                         return result;
                     }
                 };
