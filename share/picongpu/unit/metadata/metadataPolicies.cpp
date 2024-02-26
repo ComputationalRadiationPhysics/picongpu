@@ -73,6 +73,22 @@ struct FakeXMin
     }
 };
 
+struct FakeXMax
+{
+    static nlohmann::json metadata()
+    {
+        return "I'm FakeXMax!";
+    }
+};
+
+struct FakeYMin
+{
+    static nlohmann::json metadata()
+    {
+        return {"I'm FakeYMin!", "So very much!}"};
+    }
+};
+
 set<string> extractKeys(nlohmann::json const& input)
 {
     set<string> result;
@@ -163,6 +179,24 @@ TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
             {
                 CHECK(el == FakeXMin{}.metadata());
             }
+        }
+
+        SECTION("incidentField can handle different content")
+        {
+            using Profiles = pmacc::MakeSeq_t<
+                FakeXMin,
+                FakeXMax,
+                FakeYMin,
+                FakeXMin,
+                std::conditional_t<TEST_DIM == 3, pmacc::MakeSeq_t<FakeXMin, FakeXMin>, pmacc::MakeSeq_t<>>>;
+
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
+
+            auto result = metadataAggregator.metadata["incidentField"];
+            CHECK(result["XMin"] == FakeXMin::metadata());
+            CHECK(result["XMax"] == FakeXMax::metadata());
+            CHECK(result["YMin"] == FakeYMin::metadata());
+            // we don't care about the rest
         }
     }
 
