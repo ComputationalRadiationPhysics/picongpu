@@ -1,4 +1,5 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov, Klaus Steiniger
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov,
+ *                     Klaus Steiniger, Lennert Sprenger
  *
  * This file is part of PIConGPU.
  *
@@ -41,8 +42,10 @@ namespace picongpu
         /** FieldSolver
          *
          * Field Solver Selection (note <> for some solvers), all in namespace maxwellSolver:
-         *  - Yee : Standard Yee solver approximating derivatives with respect to time and
+         *  - Yee: Standard Yee solver approximating derivatives with respect to time and
          * space by second order finite differences.
+         *  - CKC: Cole-Karkkainen-Cowan Solver, Dispersion free solver in the direction of the smallest
+         *  grid size.
          *  - Lehe<>: Num. Cherenkov free field solver in a chosen direction
          *  - ArbitraryOrderFDTD<4>: Solver using 4 neighbors to each direction to approximate
          * *spatial* derivatives by finite differences. The number of neighbors can be changed from 4 to any positive,

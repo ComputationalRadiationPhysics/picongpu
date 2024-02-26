@@ -1,0 +1,56 @@
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Lennert Sprenger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/MaxwellSolver/CKC/Derivative.def"
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
+#include "picongpu/fields/differentiation/Curl.def"
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            namespace ckc
+            {
+                // standard Curl with backward differentiation from the Yee solver
+                using CurlB = differentiation::Curl<differentiation::Backward>;
+
+                // modified Curl operator defined in Derivative.def
+                using CurlE = differentiation::Curl<Derivative>;
+            } // namespace ckc
+
+            /**
+             * The CKC Maxwell Solver uses the Finite-Difference-Time-Domain (FDTD) Solver
+             * with the modified version of the CurlE operator from
+             *     Phys. Rev. ST Accel. Beams 16, 041303 (2013)
+             *   https://dx.doi.org/10.1103/PhysRevSTAB.16.041303
+             *
+             * The solver is dispersionless along the axis with the smallest grid resolution (delta),
+             * if the time step dt is choosen as dt = delta/c. For stability only a time step
+             * of dt = 0.9999 * delta/c should be choosen.
+             */
+            using CKC = FDTD<ckc::CurlE, ckc::CurlB>;
+
+        } // namespace maxwellSolver
+    } // namespace fields
+} // namespace picongpu

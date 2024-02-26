@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp"
+#include "picongpu/fields/MaxwellSolver/CKC/CKC.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.hpp"
