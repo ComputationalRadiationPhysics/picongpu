@@ -1,7 +1,7 @@
 /* Copyright 2013-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
- *                     Brian Marre, Filip Optołowicz
+ *                     Brian Marre, Filip Optolowicz
  *
  * This file is part of PIConGPU.
  *
