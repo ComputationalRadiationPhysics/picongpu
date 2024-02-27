@@ -112,9 +112,12 @@ namespace picongpu
         };
         // doc-include-end: GetMetdata trait
 
+        // doc-include-start: AllowMissingMetadata
         template<typename TObject>
         struct AllowMissingMetadata
         {
+            // it's probably a nice touch to provide this, so people don't need a lot of
+            // template metaprogramming to get `TObject`
             using type = TObject;
         };
 
@@ -128,14 +131,17 @@ namespace picongpu
 
             static nlohmann::json handle(nlohmann::json const& result)
             {
+                // okay, we've found metadata, so we return it
                 return result;
             }
 
             static nlohmann::json handle(detail::ReturnTypeFromDefault<TObject> const& result)
             {
+                // also okay, we couldn't find metadata, so we'll return an empty object
                 return nlohmann::json::object();
             }
         };
+        // doc-include-end: AllowMissingMetadata
 
         template<typename Profiles>
         struct IncidentFieldPolicy

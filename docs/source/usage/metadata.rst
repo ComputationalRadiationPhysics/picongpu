@@ -23,13 +23,14 @@ the default value
 is used. This feature might in a future revision default to being active.
 
 You might want to dump metadata without actually running a simulation. In this case, you can add the
-`--no-start-simulation` flag which will make the code skip the actual simulation.
+`--no-start-simulation` flag which will make the code skip the actual simulation. If your intention is instead to also
+run the simulation afterwards, just leave it out and the program will proceed as normal.
 
-The dumping happens after all initialisation immediately before the simulation starts (or is skipped). This implies that
+The dumping happens after all initialisation work is done immediately before the simulation starts (or is skipped). This implies that
 
  * No dynamic information about the simulation can be included (e.g. information about the state at time step 10).
  * The dumped information will represent the actual parameters used which might be different from the parameters given
-   in the input files, e.g., due to automatic adjustment.
+   in the input files, e.g., due to automatic adjustment of the grid size (see :ref:`autoAdjustGrid<usage-cfg>`).
 
 .. note::
 
@@ -96,7 +97,7 @@ The main customisation point for adding and adjusting the output related to some
    :end-before: doc-include-end: GetMetdata trait
    :dedent:
 
-For example, customising the metadata for `MyClass` with some runtime as well as some compiletime information could look
+For example, customising the metadata for `MyClass` with some runtime (RT) as well as some compiletime (CT) information could look
 something like this
 
 .. literalinclude:: ../../../share/picongpu/unit/metadata/metadataDescription.cpp
@@ -156,7 +157,7 @@ Content Registration
 If you are not only adjusting existing output but instead you are adding metadata to a class that did not report any in
 the past, this class must register itself **before the simulation starts**. Anything that experiences some form of
 initialisation at runtime, e.g., :ref:`plugins <usage-plugins>` should register themselves after their initialisation. To stick
-with the example, a plugin could implement
+with the example, a plugin could add
 
   .. literalinclude:: ../../../include/picongpu/simulation/control/Simulation.hpp
      :language: C++
@@ -164,13 +165,39 @@ with the example, a plugin could implement
      :end-before: doc-include-end: metadata pluginLoad
      :dedent:
 
+at the end of its `pluginLoad()` method (see the `Simulation`_ class or an example).
+
 Classes that only affect compile-time aspects of the program need to be registered in
-`include/picongpu/param/metadata.param` by extending the compile-time list `MetadataRegisteredAtCT`. Remember: Their
-specialisation of `picongpu::traits::GetMetadata` does not hold a reference and must have a static `description` method.
+`include/picongpu/param/metadata.param` by extending the compiletime list `MetadataRegisteredAtCT`. Remember: Their
+specialisation of `picongpu::traits::GetMetadata` does not hold a reference.
 
 Classes that get instantiated within a running simulation (and not in the initialisation phase) cannot be included
 (because they are dynamic information, see above) unless their exact state could be forseen at compile time in which
 case they can be handled exactly as compile-time-only classes.
+
+Metadata Handling Via Policies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is sometimes convenient to have different strategies for handling metadata at hand which can be applied to
+independent of the exact content. Despite them not being formal entities in the code, an approach via `policies` can
+come in handy. For example, the `AllowMissingMetadata` policy can wrap any CT type in order to handle cases when no
+metadata is available. This is its implementation:
+
+.. literalinclude:: ../../../include/picongpu/traits/GetMetadata.hpp
+   :language: C++
+   :start-after: doc-include-start: AllowMissingMetadata
+   :end-before: doc-include-end: AllowMissingMetadata
+   :dedent:
+
+Another example is the categorisation of different incident fields which -- by themselves -- cannot report from which
+direction they are incident (see the `GetMetadata`_ trait). The `IncidentFieldPolicy` provides a strategy to gather all
+pertinent metadata and assemble the `incidentField` subtree of the output by providing the necessary context.
+
+Handling Custom Types
+^^^^^^^^^^^^^^^^^^^^^
+
+The `nlohmann-json`_ library in use allows to serialise arbitrary types as described `here`_. As an example, we have
+implemented a serialisation for `pmacc::math::Vector` in `GetMetadata`_.
 
 .. _json: https://www.json.org
 .. _merge_patch: https://datatracker.ietf.org/doc/html/rfc7396
@@ -179,3 +206,7 @@ case they can be handled exactly as compile-time-only classes.
 .. _friend: https://en.cppreference.com/w/cpp/language/friend
 .. _PICMI: https://picmi-standard.github.io/
 .. _CONTRIBUTING.md: https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/CONTRIBUTING.md
+.. _Simulation: https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/include/picongpu/simulation/control/Simulation.hpp
+.. _GetMetadata: https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/include/picongpu/traits/GetMetadata.hpp
+.. _nlohmann-json: https://json.nlohmann.me/
+.. _here: https://json.nlohmann.me/features/arbitrary_types/
