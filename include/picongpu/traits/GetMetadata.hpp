@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "pmacc/math/Vector.hpp"
-#include "pmacc/meta/ForEach.hpp"
-#include "pmacc/meta/conversion/MakeSeq.hpp"
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 
 #include <boost/mp11/bind.hpp>
 
