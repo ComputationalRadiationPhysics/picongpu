@@ -11,7 +11,8 @@ Starting your simulation with
    :end-before: doc-include-end: cmdline
    :dedent:
 
-will dump a `json`_ respresentation of some metadata to `<filename>`. If no `<filename>` is given, the default value
+will dump a `json`_ respresentation of some metadata to `${OPTIONAL_FILENAME}`. If no `${OPTIONAL_FILENAME}` is given,
+the default value
 
 .. literalinclude:: ../../../include/picongpu/MetadataAggregator.hpp
    :language: C++
