@@ -127,8 +127,8 @@ namespace picongpu::particles::collision
 
             PMACC_SMEM(worker, nppc, memory::Array<uint32_t, numCellsPerSuperCell>);
 
-            PMACC_SMEM(worker, parCellList0, detail::ListEntry<numCellsPerSuperCell>);
-            PMACC_SMEM(worker, parCellList1, detail::ListEntry<numCellsPerSuperCell>);
+            PMACC_SMEM(worker, parCellList0, detail::ListEntry<T_ParBox0, numCellsPerSuperCell>);
+            PMACC_SMEM(worker, parCellList1, detail::ListEntry<T_ParBox1, numCellsPerSuperCell>);
             PMACC_SMEM(worker, densityArray0, memory::Array<float_X, numCellsPerSuperCell>);
             PMACC_SMEM(worker, densityArray1, memory::Array<float_X, numCellsPerSuperCell>);
 
@@ -197,8 +197,8 @@ namespace picongpu::particles::collision
                         superCellIdx,
                         densityArray0[linearIdx],
                         densityArray1[linearIdx],
-                        parCellList0.template getParticlesAccessor<FramePtr0>(linearIdx),
-                        parCellList1.template getParticlesAccessor<FramePtr1>(linearIdx),
+                        parCellList0.getParticlesAccessor(linearIdx),
+                        parCellList1.getParticlesAccessor(linearIdx),
                         linearIdx);
                 });
 

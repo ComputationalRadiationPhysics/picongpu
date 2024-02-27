@@ -105,7 +105,7 @@ namespace picongpu::particles::collision
             constexpr uint32_t numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             PMACC_SMEM(worker, nppc, memory::Array<uint32_t, numCellsPerSuperCell>);
-            PMACC_SMEM(worker, parCellList, detail::ListEntry<numCellsPerSuperCell>);
+            PMACC_SMEM(worker, parCellList, detail::ListEntry<T_ParBox, numCellsPerSuperCell>);
             PMACC_SMEM(worker, densityArray, memory::Array<float_X, numCellsPerSuperCell>);
 
             constexpr bool ifAverageLog = !std::is_same<T_SumCoulombLogBox, std::nullptr_t>::value;
@@ -155,7 +155,7 @@ namespace picongpu::particles::collision
             auto collisionFunctorCtx = forEachCell(
                 [&](int32_t const idx)
                 {
-                    auto parAccess = parCellList.template getParticlesAccessor<FramePtr>(idx);
+                    auto parAccess = parCellList.getParticlesAccessor(idx);
                     uint32_t const sizeAll = parAccess.size();
                     uint32_t potentialPartners = sizeAll - 1u + sizeAll % 2u;
                     auto collisionFunctor = srcCollisionFunctor(
