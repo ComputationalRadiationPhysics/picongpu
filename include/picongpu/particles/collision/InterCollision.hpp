@@ -170,8 +170,22 @@ namespace picongpu::particles::collision
 
             using FramePtr0 = typename T_ParBox0::FramePtr;
             using FramePtr1 = typename T_ParBox1::FramePtr;
-            detail::cellDensity<FramePtr0>(worker, forEachCell, parCellList0, densityArray0, accFilter0);
-            detail::cellDensity<FramePtr1>(worker, forEachCell, parCellList1, densityArray1, accFilter1);
+            detail::cellDensity<FramePtr0>(
+                worker,
+                forEachCell,
+                pb0,
+                superCellIdx,
+                parCellList0,
+                densityArray0,
+                accFilter0);
+            detail::cellDensity<FramePtr1>(
+                worker,
+                forEachCell,
+                pb1,
+                superCellIdx,
+                parCellList1,
+                densityArray1,
+                accFilter1);
             worker.sync();
 
             // shuffle indices list of the longest particle list
@@ -197,8 +211,8 @@ namespace picongpu::particles::collision
                         superCellIdx,
                         densityArray0[linearIdx],
                         densityArray1[linearIdx],
-                        parCellList0.template getParticlesAccessor<FramePtr0>(linearIdx),
-                        parCellList1.template getParticlesAccessor<FramePtr1>(linearIdx),
+                        parCellList0.getParticlesAccessor(pb0, superCellIdx, linearIdx),
+                        parCellList1.getParticlesAccessor(pb1, superCellIdx, linearIdx),
                         linearIdx);
                 });
 

@@ -38,19 +38,26 @@ namespace picongpu::particles::collision
          *
          * @tparam T_FramePtrType frame pointer type
          */
-        template<typename T_FramePtrType>
+        template<typename T_ParBox>
         struct ParticleAccessor
         {
-            T_FramePtrType* m_framePtrList = nullptr;
+            using FramePtrType = typename T_ParBox::FramePtr;
+            FramePtrType m_framePtr;
             uint32_t* m_parIdxList = nullptr;
             uint32_t m_numPars = 0u;
+            T_ParBox const& m_parBox;
 
-            static constexpr uint32_t frameSize = T_FramePtrType::type::frameSize;
+            static constexpr uint32_t frameSize = FramePtrType::type::frameSize;
 
-            DINLINE ParticleAccessor(uint32_t* parIdxList, uint32_t const numParticles, T_FramePtrType* framePtrList)
-                : m_framePtrList(framePtrList)
+            DINLINE ParticleAccessor(
+                T_ParBox const& parBox,
+                uint32_t* parIdxList,
+                uint32_t const numParticles,
+                FramePtrType const& framePtr)
+                : m_framePtr(framePtr)
                 , m_parIdxList(parIdxList)
                 , m_numPars(numParticles)
+                , m_parBox(parBox)
             {
             }
 
@@ -67,8 +74,13 @@ namespace picongpu::particles::collision
              */
             DINLINE auto operator[](uint32_t idx) const
             {
-                const uint32_t inSuperCellIdx = m_parIdxList[idx];
-                return m_framePtrList[inSuperCellIdx / frameSize][inSuperCellIdx % frameSize];
+                uint32_t const inSuperCellIdx = m_parIdxList[idx];
+                uint32_t const skipFrames = inSuperCellIdx / frameSize;
+
+                auto frame = m_framePtr;
+                for(uint32_t i = 0; i < skipFrames; ++i)
+                    frame = m_parBox.getNextFrame(frame);
+                return frame[inSuperCellIdx % frameSize];
             }
         };
 
@@ -87,24 +99,10 @@ namespace picongpu::particles::collision
             //! number of particles per cell
             memory::Array<uint32_t, T_numElem> numParticles;
 
-            /** Frame pointer array.
-             *
-             * A Frame pointer contains only a pointer therefore storing data as void* is allowed (but not
-             * nice). This keeps the ListEntry signature equal for all species.
-             */
-            void** framePtr = nullptr;
-
         public:
             DINLINE uint32_t& size(uint32_t cellIdx)
             {
                 return numParticles[cellIdx];
-            }
-
-            template<typename T_FramePtrType>
-            DINLINE T_FramePtrType& frameData(uint32_t frameIdx)
-            {
-                static_assert(sizeof(void*) == sizeof(T_FramePtrType));
-                return reinterpret_cast<T_FramePtrType*>(framePtr)[frameIdx];
             }
 
             /** Get particle index array.
@@ -139,31 +137,6 @@ namespace picongpu::particles::collision
                 DataSpace<simDim> superCellIdx,
                 T_NumParticlesArray& numParArray)
             {
-                constexpr uint32_t frameSize = T_ParticlesBox::frameSize;
-                auto onlyMaster = lockstep::makeMaster(worker);
-                onlyMaster(
-                    [&]()
-                    {
-                        auto& superCell = pb.getSuperCell(superCellIdx);
-                        uint32_t numParticlesInSupercell = superCell.getNumParticles();
-
-                        uint32_t numFrames = (numParticlesInSupercell + frameSize - 1u) / frameSize;
-                        constexpr uint32_t framePtrBytes = sizeof(typename T_ParticlesBox::FramePtr);
-
-                        // Chunk size in bytes based on the typical initial number of frames within a supercell.
-                        constexpr uint32_t frameListChunkSize = cellListChunkSize * framePtrBytes;
-                        framePtr = (void**)
-                            allocMem<frameListChunkSize>(worker, numFrames * framePtrBytes, deviceHeapHandle);
-
-                        auto frame = pb.getFirstFrame(superCellIdx);
-                        uint32_t frameId = 0u;
-                        while(frame.isValid())
-                        {
-                            frameData<decltype(frame)>(frameId) = frame;
-                            frame = pb.getNextFrame(frame);
-                            ++frameId;
-                        }
-                    });
                 auto forEachCell = lockstep::makeForEach<T_numElem>(worker);
                 // memory for particle indices
                 forEachCell(
@@ -227,20 +200,6 @@ namespace picongpu::particles::collision
             template<typename T_Worker, typename T_DeviceHeapHandle>
             DINLINE void finalize(T_Worker const& worker, T_DeviceHeapHandle& deviceHeapHandle)
             {
-                auto onlyMaster = lockstep::makeMaster(worker);
-                onlyMaster(
-                    [&]()
-                    {
-                        if(framePtr != nullptr)
-                        {
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-                            deviceHeapHandle.free(worker.getAcc(), (void*) framePtr);
-#else
-                            delete(framePtr);
-#endif
-                            framePtr = nullptr;
-                        }
-                    });
                 auto forEachCell = lockstep::makeForEach<T_numElem>(worker);
                 // memory for particle indices
                 forEachCell(
@@ -265,13 +224,18 @@ namespace picongpu::particles::collision
              * @param cellIdx cell index within the supercell, range [0, number of cells in supercell)
              * @return accessor to access particles via index
              */
-            template<typename T_FramePtrType>
-            DINLINE auto getParticlesAccessor(uint32_t cellIdx)
+            template<typename T_ParBox>
+            DINLINE auto getParticlesAccessor(
+                T_ParBox const& parBox,
+                DataSpace<simDim> const& superCellIdx,
+                uint32_t cellIdx)
             {
-                return ParticleAccessor<T_FramePtrType>(
+                using FramePtrType = typename T_ParBox::FramePtr;
+                return ParticleAccessor<T_ParBox>(
+                    parBox,
                     particleIds(cellIdx),
                     size(cellIdx),
-                    reinterpret_cast<T_FramePtrType*>(framePtr));
+                    parBox.getFirstFrame(superCellIdx));
             }
 
         private:
