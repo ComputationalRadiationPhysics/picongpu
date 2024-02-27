@@ -62,7 +62,7 @@ categorisation in the physical context and not (enforced to be) aligned with the
     * (De-)Serialisation: We do not provide infrastructure to fully or partially reconstruct C++ objects from the
       dumped information.
     * Standardisation or generalisation of the format: The format and content are the result of our best effort to be
-      useful. Any form of standardisation or generalisation beyond this scope requires a resources commitment from
+      useful. Any form of standardisation or generalisation beyond this scope requires a resource commitment from
       outside the PIConGPU development team. We are happy to implement any such result.
 
 
@@ -112,6 +112,9 @@ declaration of `MyClass` itself.
 The `json` object returned from `description()` is related to the final output via a `merge_patch`_ operation but we do
 not guarantee any particular order in which these are merged. So it is effectively the responsibility of the programmer
 to make sure that no metadata entries overwrite each other.
+
+Tackling Acess Restrictions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 These external classes might run into access restrictions when attempting to dump `private`_ or `protected`_ members.
 These can be circumvented in three ways:
@@ -167,13 +170,13 @@ with the example, a plugin could add
 
 at the end of its `pluginLoad()` method (see the `Simulation`_ class or an example).
 
-Classes that only affect compile-time aspects of the program need to be registered in
+Classes that only affect compiletime aspects of the program need to be registered in
 `include/picongpu/param/metadata.param` by extending the compiletime list `MetadataRegisteredAtCT`. Remember: Their
 specialisation of `picongpu::traits::GetMetadata` does not hold a reference.
 
 Classes that get instantiated within a running simulation (and not in the initialisation phase) cannot be included
 (because they are dynamic information, see above) unless their exact state could be forseen at compile time in which
-case they can be handled exactly as compile-time-only classes.
+case they can be handled exactly as compiletime-only classes.
 
 Metadata Handling Via Policies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
