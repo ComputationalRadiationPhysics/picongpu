@@ -289,15 +289,15 @@ class Simulation(picmistandard.PICMI_Simulation):
             ratio = picmi_species.density_scale
 
             # either both None or both not None:
-            assert 1 != [layout, profile].count(None), (
-                "species need BOTH " "layout AND initial distribution set (or neither)"
-            )
+            assert 1 != [layout, profile].count(
+                None
+            ), "species need BOTH layout AND initial distribution set (or neither)"
 
             # ratio only set if
             if ratio is not None:
-                assert layout is not None and profile is not None, (
-                    "layout " "and initial distribution must be set to use density scale"
-                )
+                assert (
+                    layout is not None and profile is not None
+                ), "layout and initial distribution must be set to use density scale"
 
         # get species list
         ##
@@ -373,9 +373,7 @@ class Simulation(picmistandard.PICMI_Simulation):
                 electrons_name += "_"
 
             logging.info(
-                "no electron species for ionization available, " "creating electrons with name: {}".format(
-                    electrons_name
-                )
+                "no electron species for ionization available, creating electrons with name: {}".format(electrons_name)
             )
             electrons = PicongpuPicmiSpecies(name=electrons_name, particle_type="electron")
             self.add_species(electrons, None)
@@ -496,9 +494,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def step(self, nsteps: int = 1):
         if nsteps != self.max_steps:
             raise ValueError(
-                "PIConGPU does not support stepwise running. Invoke step() " "with max_steps (={})".format(
-                    self.max_steps
-                )
+                "PIConGPU does not support stepwise running. Invoke step() with max_steps (={})".format(self.max_steps)
             )
         self.picongpu_run()
 

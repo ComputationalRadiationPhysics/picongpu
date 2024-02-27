@@ -180,7 +180,7 @@ class Operation(RenderedObject):
             duplicate_names = [name for name in attr_names if attr_names.count(name) > 1]
             if 0 != len(duplicate_names):
                 raise ValueError(
-                    "only on attribute per type is allowed per " "species, offending: {}".format(
+                    "only on attribute per type is allowed per species, offending: {}".format(
                         ", ".join(duplicate_names)
                     )
                 )

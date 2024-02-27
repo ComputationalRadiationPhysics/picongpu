@@ -192,7 +192,7 @@ class PNGData(DataReader):
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
                 raise IndexError(
-                    "Iteration {} is not available!\n" "List of available iterations: \n" "{}".format(
+                    "Iteration {} is not available!\nList of available iterations: \n{}".format(
                         iteration, available_iterations
                     )
                 )

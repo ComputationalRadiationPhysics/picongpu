@@ -72,7 +72,7 @@ class EnergyHistogramData(DataReader):
             species + self.data_file_prefix + species_filter + self.data_file_suffix,
         )
         if not os.path.isfile(data_file_path):
-            raise IOError("The file {} does not exist.\n" "Did the simulation already run?".format(data_file_path))
+            raise IOError("The file {} does not exist.\nDid the simulation already run?".format(data_file_path))
 
         return data_file_path
 
@@ -159,7 +159,7 @@ class EnergyHistogramData(DataReader):
         # verify requested iterations exist
         if not set(iteration).issubset(data.index.values):
             raise IndexError(
-                "Iteration {} is not available!\n" "List of available iterations: \n" "{}".format(
+                "Iteration {} is not available!\nList of available iterations: \n{}".format(
                     iteration, data.index.values
                 )
             )
