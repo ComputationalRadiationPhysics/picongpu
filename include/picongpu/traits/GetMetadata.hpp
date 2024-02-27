@@ -150,7 +150,7 @@ namespace picongpu
             nlohmann::json gatherMetadata(T_Pack<Profiles...>)
             {
                 std::vector<nlohmann::json> collection;
-                (collection.push_back(GetMetadata<Profiles>{}.description()), ...);
+                (collection.push_back(GetMetadata<AllowMissingMetadata<Profiles>>{}.description()), ...);
                 return std::transform_reduce(
                     cbegin(collection),
                     cend(collection),
