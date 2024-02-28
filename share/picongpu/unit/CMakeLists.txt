@@ -65,6 +65,20 @@ add_subdirectory(
     "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json")
 
 ################################################################################
+# Find Boost
+################################################################################
+
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
+
+find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options)
+if(TARGET Boost::boost)
+    list(PREPEND HOST_LIBS Boost::boost Boost::program_options)
+else()
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    list(PREPEND HOST_LIBS ${Boost_LIBRARIES})
+endif()
+
+################################################################################
 # MPI
 ################################################################################
 
