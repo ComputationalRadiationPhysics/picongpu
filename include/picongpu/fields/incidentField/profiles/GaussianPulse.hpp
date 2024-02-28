@@ -25,6 +25,8 @@
 
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
+#include "picongpu/fields/incidentField/profiles/BaseParam.def"
+#include "picongpu/traits/GetMetadata.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 
@@ -361,9 +363,18 @@ namespace picongpu::fields::incidentField
                 return name;
             }
 
+            template<typename T = T_Params, std::enable_if_t<providesMetadataAtCT<T>, bool> = true>
             static nlohmann::json metadata()
             {
-                return T_Params::metadata();
+                // if T_Params happens to provide us with some tailored metadata, we gladly take it
+                return T_Params::template metadata<T_Params>();
+            }
+
+            template<typename T = T_Params, std::enable_if_t<!providesMetadataAtCT<T>, bool> = true>
+            static nlohmann::json metadata()
+            {
+                // alternatively, we assume that we can at least squeeze the BaseParams out of it
+                return profiles::BaseParam::metadata<T_Params>();
             }
         };
 
