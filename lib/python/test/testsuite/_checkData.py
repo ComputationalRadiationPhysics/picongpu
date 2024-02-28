@@ -24,7 +24,7 @@ checkExistVariables(variable:str) -> bool
 __all__ = ["checkDirection", "checkVariables"]
 
 import warnings
-import importlib
+import importlib.util
 import os
 
 if importlib.util.find_spec("config") is None:
