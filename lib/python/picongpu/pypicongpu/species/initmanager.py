@@ -197,8 +197,9 @@ class InitManager(RenderedObject):
                 for dependency in constant.get_species_dependencies():
                     if dependency not in self.all_species:
                         raise ReferenceError(
-                            "species {} is dependency (is required by) {}, "
-                            "but unkown to the init manager".format(dependency.name, species.name)
+                            "species {} is dependency (is required by) {}, but unkown to the init manager".format(
+                                dependency.name, species.name
+                            )
                         )
 
     def __check_species_dependencies_circular(self) -> None:
@@ -237,8 +238,7 @@ class InitManager(RenderedObject):
             # check: self in dependency closure?
             if species in dependency_closure:
                 raise RecursionError(
-                    "species {} is in circular dependency, "
-                    "all dependencies are: {}".format(
+                    "species {} is in circular dependency, all dependencies are: {}".format(
                         species.name,
                         ", ".join(map(lambda species: species.name, dependency_closure)),
                     )
@@ -332,13 +332,13 @@ class InitManager(RenderedObject):
                 for required_attr in required_attrs:
                     if not issubclass(required_attr, Attribute):
                         raise typeguard.TypeCheckError(
-                            "required attribute must be attribute type, " "got: {}".format(required_attr)
+                            "required attribute must be attribute type, got: {}".format(required_attr)
                         )
 
                     # actual check:
                     assert (
                         required_attr.PICONGPU_NAME in species_attr_names
-                    ), "constant {} of species {} requires attribute {} to " "be present, but it is not".format(
+                    ), "constant {} of species {} requires attribute {} to be present, but it is not".format(
                         constant, species.name, required_attr
                     )
 
@@ -364,7 +364,7 @@ class InitManager(RenderedObject):
                 for required_constant in required_constants:
                     if not issubclass(required_constant, Constant):
                         raise typeguard.TypeCheckError(
-                            "required constants must be of Constant type, " "got: {}".format(required_constant)
+                            "required constants must be of Constant type, got: {}".format(required_constant)
                         )
 
                     # self-references are not allowed
@@ -374,7 +374,7 @@ class InitManager(RenderedObject):
                     # check if constant exists
                     assert species.has_constant_of_type(
                         required_constant
-                    ), "species {}: required constant {} not found, " "(required by constant {})".format(
+                    ), "species {}: required constant {} not found, (required by constant {})".format(
                         species.name, required_constant, constant
                     )
 

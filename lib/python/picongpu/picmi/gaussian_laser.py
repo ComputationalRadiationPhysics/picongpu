@@ -20,9 +20,7 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
     """PICMI object for Gaussian Laser"""
 
     def scalarProduct(self, a: typing.List[float], b: typing.List[float]) -> float:
-        assert len(a) == len(
-            b
-        ), "the scalar product is only defined for two \
+        assert len(a) == len(b), "the scalar product is only defined for two \
             vector of equal dimension"
 
         result = 0.0
@@ -58,7 +56,7 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
             [16, -16],
             [16, -16],
         ],
-        **kw
+        **kw,
     ):
         if waist <= 0:
             raise ValueError("waist must be > 0")
@@ -86,7 +84,7 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
             polarization_direction,
             focal_position,
             centroid_position,
-            **kw
+            **kw,
         )
 
     def get_as_pypicongpu(self) -> laser.GaussianLaser:
@@ -123,9 +121,7 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
         ), "propagation vector must be normalized"
 
         # check centroid outside box
-        assert (
-            self.centroid_position[1] <= 0
-        ), "the laser maximum must be \
+        assert self.centroid_position[1] <= 0, "the laser maximum must be \
             outside of the \
             simulation box, otherwise it is impossible to correctly initialize\
             it using a huygens surface in the box, centroid_y <= 0"

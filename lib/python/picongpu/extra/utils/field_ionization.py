@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Field ionization models implemented in PIConGPU.
 
 This file is part of the PIConGPU.
