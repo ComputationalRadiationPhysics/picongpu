@@ -24,6 +24,9 @@
 #include <picongpu/fields/incidentField/Traits.hpp>
 namespace picongpu
 {
+    /**
+     * Customisation point for adding metadata of compiletime objects.
+     */
     using MetadataRegisteredAtCT
         = pmacc::MakeSeq_t<traits::IncidentFieldPolicy<picongpu::fields::incidentField::EnabledProfiles>>;
 } // namespace picongpu

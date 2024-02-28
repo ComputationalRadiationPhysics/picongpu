@@ -56,15 +56,27 @@ namespace picongpu
 
         namespace detail
         {
-            // This one gets a template argument, so that the static_assert in to_json can print the type of TObject.
+            /**
+             * An empty return type to distinguish the fallback implementation of GetMetadata
+             *
+             * It has a template argument, so that the static_assert in to_json can print the type of TObject.
+             */
             template<typename TObject>
             struct ReturnTypeFromDefault
             {
             };
 
+            /**
+             * A template that's always false but technically depends on its template parameter, so that its
+             * instantiated only in the second stage (and as such does not trigger a static_assert if that function is
+             * not used).
+             */
             template<typename>
             inline constexpr bool False = false;
 
+            /**
+             * Always-(CT-)failing conversion to json, so we get a nice error message at CT.
+             */
             template<typename T>
             void to_json(nlohmann::json&, ReturnTypeFromDefault<T> const&)
             {
@@ -77,6 +89,16 @@ namespace picongpu
             }
         } // namespace detail
 
+        /**
+         * Main customisation point for the content of the metadata reported
+         *
+         * As a user, provide a template specialisation for the type in question in order to customise the information
+         * reported by it. The defaults reach to the (static -- for CT) member function `metadata` to provide such
+         * information. If none is provided by the class, this attempt fails at compiletime.
+         *
+         * @tparam TObject type of the object we want to provide information about
+         * @tparam SFINAE parameter used to provide defaults for RT and CT, DO NOT TOUCH
+         */
         template<typename TObject, typename = void>
         struct GetMetadata
         {
@@ -112,6 +134,14 @@ namespace picongpu
         };
         // doc-include-end: GetMetdata trait
 
+        /**
+         * Policy to wrap another type to allow missing metadata for it.
+         *
+         * It doesn't do much by itself. Functionality is provided by the corresponding
+         * GetMetadata<AllowMissingMetadata<...>> specialisation.
+         *
+         * @tparam TObject type to apply this policy to
+         */
         // doc-include-start: AllowMissingMetadata
         template<typename TObject>
         struct AllowMissingMetadata
@@ -143,6 +173,15 @@ namespace picongpu
         };
         // doc-include-end: AllowMissingMetadata
 
+        /**
+         * Policy to provide context for incident fields
+         *
+         * Incident fields are lacking the knowledge of their own context (in particular from which direction they are
+         * incident), so we don't let them report immediately but instead use this policy to add the necessary context.
+         *
+         * @tparam Profiles a pmacc::MakeSeq_t list of profiles (typically this will be
+         * `picongpu::fields::incidentField::EnabledProfiles`).
+         */
         template<typename Profiles>
         struct IncidentFieldPolicy
         {
@@ -152,6 +191,13 @@ namespace picongpu
         {
             std::list<std::string> boundaryNames = {"XMin", "XMax", "YMin", "YMax", "ZMin", "ZMax"};
 
+            /**
+             * Gather the metadata from a list of profiles into one annotated json object.
+             *
+             * @tparam T_Pack Any class template (typically pmacc::MakeSeq_t but could be anything, e.g., std::tuple),
+             * not used directly, we're only interested in its template parameters
+             * @tparam Profiles The list of CT profiles we're actually interested in and want to report about.
+             */
             template<template<typename...> typename T_Pack, typename... Profiles>
             nlohmann::json gatherMetadata(T_Pack<Profiles...>)
             {
@@ -195,6 +241,9 @@ namespace picongpu
 
 namespace pmacc::math
 {
+    /**
+     * Provide conversion of pmacc::math::Vector to json.
+     */
     template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
     void to_json(nlohmann::json& j, Vector<T_Type, T_dim, T_Navigator, T_Storage> const& vec)
     {

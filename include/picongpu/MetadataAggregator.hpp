@@ -44,6 +44,13 @@ namespace picongpu
     using std::string;
     using std::filesystem::path;
 
+
+    /** Aggregate metadata to dump
+     *
+     * This practically wraps its `static json metadata` member and provides functionality to dump it into a json file.
+     * It inherits from IPlugin for uniformity with other components but it's not a plugin in the strict sense. To use
+     * it, you should basically load(), pluginRegisterHelp(), dump(), unload() (although some of those might be empty).
+     */
     struct MetadataAggregator : pmacc::IPlugin
     {
         string pluginGetName() const override
@@ -97,20 +104,32 @@ namespace picongpu
         inline static nlohmann::json metadata = nlohmann::json::object();
     };
 
-    template<typename... T, typename... U>
-    void addMetadataOf(U const&... obj)
+    /** Add metadata to the MetadataAggregator
+     *
+     * This function takes objects or types the metadata of which should be dumped, extracts the metadata and adds it
+     * to the MetadataAggregator. It is important to note that this is not only a registration but immediately extracts
+     * the information. So, make sure that all the information you want to add is available at the time you call this
+     * function.
+     *
+     * @tparam T_CT Compiletime type(s) the metadata of which should be added; these are NEVER deduced
+     * @tparam T_RT Runtime type(s) the metadata of which should be added; these are ALWAYS deduced and cannot be given
+     * explicitly
+     * @param obj Runtime instance(s) the metadata of which should be added
+     */
+    template<typename... T_CT, typename... T_RT>
+    void addMetadataOf(T_RT const&... obj)
     {
         // This implementation would theoretically be capable of adding multiple CT and RT metadata sets at once.
         // But it feels like a potential reason for a lot of headache for future-me, so as long as we don't need that
         // feature, we deactivate manually here.
         static_assert(
-            sizeof...(T) + sizeof...(U) == 1,
+            sizeof...(T_CT) + sizeof...(T_RT) == 1,
             "As we consider it highly likely to mess up non-trivial cases, please add your metadata one by one.");
 
         using picongpu::traits::GetMetadata;
 
-        (MetadataAggregator::metadata.merge_patch(GetMetadata<T>{}.description()), ...);
-        (MetadataAggregator::metadata.merge_patch(GetMetadata<U>{obj}.description()), ...);
+        (MetadataAggregator::metadata.merge_patch(GetMetadata<T_CT>{}.description()), ...);
+        (MetadataAggregator::metadata.merge_patch(GetMetadata<T_RT>{obj}.description()), ...);
     }
 
     // the following is only provided to add CT metadata via pmacc::meta::forEach, thus the very restricted interface
