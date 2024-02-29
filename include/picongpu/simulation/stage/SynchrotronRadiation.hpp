@@ -118,7 +118,7 @@ namespace picongpu::simulation::stage
             float_64 xLeft;
             float_64 xRight = zq;
 
-            for(int i = 0; i < FirstSynchrotronFunctionParams::numberSamplePoints - 1; ++i)
+            for(unsigned int i = 0; i < FirstSynchrotronFunctionParams::numberSamplePoints - 1; ++i)
             {
                 xLeft = xRight;
                 xRight = math::pow(10., log_start + log_step * (i + 1));
