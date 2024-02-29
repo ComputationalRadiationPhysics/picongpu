@@ -1,4 +1,4 @@
-/* Copyright 2016 Rene Widera
+/* Copyright 2024 Rene Widera
  *
  * This file is part of cupla.
  *

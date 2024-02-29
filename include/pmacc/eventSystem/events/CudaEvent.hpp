@@ -83,7 +83,7 @@ namespace pmacc
          */
         AccStream getStream() const
         {
-            assert(this->stream);
+            assert(this->stream.has_value());
             return *stream;
         }
 

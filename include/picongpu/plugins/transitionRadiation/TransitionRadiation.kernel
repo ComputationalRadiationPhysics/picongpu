@@ -117,7 +117,6 @@ namespace picongpu
                     // radiation calculation
                     PMACC_SMEM(worker, counter_s, int);
 
-                    // determine theta
                     int const theta_idx = device::getBlockIdx(worker.getAcc()).x();
 
                     // looking direction (needed for observer) used in the thread

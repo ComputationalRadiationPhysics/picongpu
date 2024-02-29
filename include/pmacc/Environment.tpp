@@ -256,29 +256,29 @@ namespace pmacc
 
         void EnvironmentContext::setDevice(int deviceNumber)
         {
-            int num_gpus = manager::Device<ComputeDevice>::get().count();
+            int numAvailableDevices = manager::Device<ComputeDevice>::get().count();
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             // ##ERROR handling
-            if(num_gpus < 1) // check if cupla device is found
+            if(numAvailableDevices < 1) // check if cupla device is found
             {
                 throw std::runtime_error("no CUDA capable devices detected");
             }
 #endif
 
-            int maxTries = num_gpus;
+            int maxTries = numAvailableDevices;
             bool deviceSelectionSuccessful = false;
 
             // search the first selectable device in the compute node
             for(int deviceOffset = 0; deviceOffset < maxTries; ++deviceOffset)
             {
                 // true if an error happened, else false
-                bool error = false;
+                bool errorOccured = false;
 
-                /* Modulo 'num_gpus' avoids invalid device indices for systems where the environment variable
-                 * `CUDA_VISIBLE_DEVICES` is used to pre-select a device.
+                /* Modulo 'numAvailableDevices' avoids invalid device indices for systems where the environment
+                 * variable `CUDA_VISIBLE_DEVICES` is used to pre-select a device.
                  */
-                const int tryDeviceId = (deviceOffset + deviceNumber) % num_gpus;
+                const int tryDeviceId = (deviceOffset + deviceNumber) % numAvailableDevices;
 
                 log<ggLog::CUDA_RT>("Trying to allocate device %1%.") % tryDeviceId;
 
@@ -312,14 +312,14 @@ namespace pmacc
                 }
                 catch(const std::system_error& e)
                 {
-                    error = true;
+                    errorOccured = true;
                 }
 
-                if(!error)
+                if(!errorOccured)
                 {
                     /* Create a dummy stream to check if the device is already used by another process. This could
                      * happen on NVIDIA devices. alpaka is performing the same check during the device selection but
-                     * not for all device types. This is a safty check if alpaka is not performing this check.
+                     * not for all device types. This is a safety check if alpaka is not performing this check.
                      */
                     try
                     {
@@ -327,11 +327,11 @@ namespace pmacc
                     }
                     catch(const std::system_error& e)
                     {
-                        error = true;
+                        errorOccured = true;
                     }
                 }
 
-                if(!error)
+                if(!errorOccured)
                 {
                     deviceSelectionSuccessful = true;
 
@@ -345,7 +345,7 @@ namespace pmacc
             }
             if(!deviceSelectionSuccessful)
             {
-                std::cerr << "Failed to select one of the " << num_gpus << " devices." << std::endl;
+                std::cerr << "Failed to select one of the " << numAvailableDevices << " devices." << std::endl;
                 throw std::runtime_error("Compute device selection failed.");
             }
 

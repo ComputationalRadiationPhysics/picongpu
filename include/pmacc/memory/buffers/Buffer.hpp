@@ -43,7 +43,7 @@ namespace pmacc
     protected:
         using CurrentSizeBufferHost = ::alpaka::Buf<HostDevice, size_t, AlpakaDim<DIM1>, MemIdxType>;
         CurrentSizeBufferHost currentSizeBufferHost;
-        MemSpace<T_dim> capasity;
+        MemSpace<T_dim> capacity;
 
     private:
         Buffer(Buffer const&) = delete;
@@ -63,7 +63,7 @@ namespace pmacc
                 manager::Device<HostDevice>::get().current(),
                 manager::Device<ComputeDevice>::get().getPlatform(),
                 MemSpace<DIM1>(1).toAlpakaMemVec()))
-            , capasity(size)
+            , capacity(size)
             , isMemoryContiguous(true)
         {
             Buffer::setCurrentSize(size.productOfComponents());
@@ -81,7 +81,7 @@ namespace pmacc
          */
         DataSpace<T_dim> getDataSpace() const
         {
-            return capasity;
+            return capacity;
         }
 
         /** give the plane C pointer to the data
@@ -139,36 +139,36 @@ namespace pmacc
             }
             if constexpr(T_dim == DIM2)
             {
-                if(current_size <= capasity[0])
+                if(current_size <= capacity[0])
                 {
                     tmp[0] = current_size;
                     tmp[1] = 1u;
                 }
                 else
                 {
-                    tmp[0] = capasity[0];
-                    tmp[1] = (current_size + capasity[0] - 1u) / capasity[0];
+                    tmp[0] = capacity[0];
+                    tmp[1] = (current_size + capacity[0] - 1u) / capacity[0];
                 }
             }
             if constexpr(T_dim == DIM3)
             {
-                if(current_size <= capasity[0])
+                if(current_size <= capacity[0])
                 {
                     tmp[0] = current_size;
                     tmp[1] = 1u;
                     tmp[2] = 1u;
                 }
-                else if(current_size <= (capasity[0] * capasity[1]))
+                else if(current_size <= (capacity[0] * capacity[1]))
                 {
-                    tmp[0] = capasity[0];
-                    tmp[1] = (current_size + capasity[0] - 1u) / capasity[0];
+                    tmp[0] = capacity[0];
+                    tmp[1] = (current_size + capacity[0] - 1u) / capacity[0];
                     tmp[2] = 1u;
                 }
                 else
                 {
-                    tmp[0] = capasity[0];
-                    tmp[1] = capasity[1];
-                    tmp[2] = (current_size + (capasity[0] * capasity[1]) - 1u) / (capasity[0] * capasity[1]);
+                    tmp[0] = capacity[0];
+                    tmp[1] = capacity[1];
+                    tmp[2] = (current_size + (capacity[0] * capacity[1]) - 1u) / (capacity[0] * capacity[1]);
                 }
             }
 
@@ -187,7 +187,7 @@ namespace pmacc
         /** get accessor to the container elements */
         virtual DataBox<PitchedBox<T_Type, T_dim>> getDataBox() = 0;
 
-        /** @return true if there are no peddings between rows of the data else false */
+        /** @return true if there are no paddings between rows of the data else false */
         inline bool isContiguous()
         {
             return isMemoryContiguous;
@@ -224,7 +224,7 @@ namespace pmacc
         virtual CPtr getCPtrCurrentSize() = 0;
 
     protected:
-        /** true if there are no peddings between rows else false */
+        /** true if there are no paddings between rows else false */
         bool isMemoryContiguous = true;
     };
 

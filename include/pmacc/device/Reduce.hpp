@@ -41,6 +41,7 @@ namespace pmacc
         class Reduce
         {
         public:
+            static constexpr uint32_t defaultSharedMmemSize = 4 * 1024;
             /** Constructor
              *
              * The memory required to hold the reduced result on the host and device will be allocated on the first
@@ -49,7 +50,7 @@ namespace pmacc
              * @param byte how many bytes in global gpu memory can reserved for the reduce algorithm
              * @param sharedMemByte limit the usage of shared memory per block on gpu
              */
-            HINLINE Reduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024)
+            HINLINE Reduce(const uint32_t byte, const uint32_t sharedMemByte = defaultSharedMmemSize)
                 : byte(byte)
                 , sharedMemByte(sharedMemByte)
             {
@@ -272,12 +273,13 @@ namespace pmacc
                 return getThreadsPerBlock(std::min(sharedBorder, n));
             }
 
-            /*global gpu buffer for reduce steps*/
-            std::unique_ptr<GridBuffer<char, DIM1>> reduceBuffer;
             /*buffer size limit in bytes on gpu*/
             uint32_t byte;
             /*shared memory limit in byte for one block*/
-            uint32_t sharedMemByte;
+            uint32_t sharedMemByte = defaultSharedMmemSize;
+
+            /*global gpu buffer for reduce steps*/
+            std::unique_ptr<GridBuffer<char, DIM1>> reduceBuffer;
         };
 
     } // namespace device

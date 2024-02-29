@@ -42,7 +42,7 @@ namespace pmacc
     /** A T_dim-dimensional vector of integers.
      *
      * The object is used to describe indices of threads in the kernel.
-     * @attention Currently this object is also used to describe memory extents. This should be avoided and is and is a
+     * @attention Currently this object is also used to describe memory extents. This should be avoided and is a
      * technical dept from the past and limits the index space to 2 giga elements.
      *
      * DataSpace describes a T_dim-dimensional data space with a specific size for each dimension.

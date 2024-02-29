@@ -685,6 +685,7 @@ namespace picongpu
 
             size_t allocatableMemory = freeDeviceMemory;
             bool memAlloced = false;
+            // tmpBuffer avoids that the memory is freed before all other MPI ranks created there test buffer
             std::optional<::alpaka::Buf<ComputeDevice, std::byte, AlpakaDim<1>, size_t>> tmpBuffer{};
 
             // Check how much memory can be allocated with a single allocation call.
@@ -692,7 +693,6 @@ namespace picongpu
             {
                 try
                 {
-                    memAlloced = true;
                     auto testBuffer = alpaka::allocBuf<std::byte, size_t>(
                         pmacc::manager::Device<ComputeDevice>::get().current(),
                         allocatableMemory);

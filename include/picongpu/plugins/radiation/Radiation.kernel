@@ -137,8 +137,7 @@ namespace picongpu
 
                     PMACC_SMEM(worker, lowpass_s, memory::Array<NyquistLowPass, frameSize>);
 
-
-                    int const theta_idx = device::getBlockIdx(worker.getAcc()).x(); // determine theta
+                    int const theta_idx = device::getBlockIdx(worker.getAcc()).x();
 
                     // simulation time (needed for retarded time)
                     picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(DELTA_T));

@@ -40,9 +40,6 @@ namespace pmacc
     class HostBuffer;
 
     template<class T_Type, unsigned T_dim>
-    class DeviceBuffer;
-
-    template<class T_Type, unsigned T_dim>
     class Buffer;
 
     /** N-dimensional device buffer
@@ -103,7 +100,7 @@ namespace pmacc
          * @param size extent for each dimension (in elements)
          * @param sizeOnDevice memory with the current size of the grid is stored on device
          *
-         * @attention offset + size must be leather equal to the size of the source buffer
+         * @attention offset + size must be less or equal to the size of the source buffer
          */
         DeviceBuffer(MemSpace<T_dim> const& size, bool sizeOnDevice = false)
             : Buffer<T_Type, T_dim>(size)
@@ -137,7 +134,7 @@ namespace pmacc
          * @param offset offset within the source (in elements)
          * @param sizeOnDevice memory with the current size of the grid is stored on device
          *
-         * @attention offset + size must be leather equal to the size of the source buffer
+         * @attention offset + size must be less or equal to the size of the source buffer
          */
         DeviceBuffer(
             DeviceBuffer<T_Type, T_dim>& source,

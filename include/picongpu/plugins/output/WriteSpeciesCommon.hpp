@@ -112,8 +112,8 @@ namespace picongpu
         template<typename InType>
         struct apply
         {
-            using ValeuType = typename pmacc::traits::Resolve<InType>::type::type;
-            using BufferType = ::alpaka::Buf<HostDevice, ValeuType, AlpakaDim<DIM1>, MemIdxType>;
+            using ValueType = typename pmacc::traits::Resolve<InType>::type::type;
+            using BufferType = ::alpaka::Buf<HostDevice, ValueType, AlpakaDim<DIM1>, MemIdxType>;
             using type = pmacc::meta::Pair<InType, std::optional<BufferType>>;
         };
     };

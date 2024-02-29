@@ -57,7 +57,7 @@ namespace pmacc
             {
                 if(m_devIdx != -1)
                 {
-                    if(m_device.has_value())
+                    if(m_devIdx == idx)
                         return *m_device;
                     else
                         throw std::runtime_error(
@@ -94,22 +94,20 @@ namespace pmacc
             /**! reset the current device
              *
              * streams, memory and events on the current device must be
-             * deleted at first by the user
-             *
-             * @return true in success case else false
+             * deleted at first by the user else the call will throw an error
              */
-            bool reset()
+            void reset()
             {
                 if(!m_device)
                 {
-                    std::cerr << "device " << m_devIdx << " can not destroyed (was never created) " << std::endl;
-                    return false;
+                    std::stringstream err;
+                    err << "device " << m_devIdx << " can not destroyed (was never created) ";
+                    throw std::runtime_error(err.str());
                 }
                 else
                 {
                     m_devIdx = -1;
                     m_device.reset();
-                    return true;
                 }
             }
 

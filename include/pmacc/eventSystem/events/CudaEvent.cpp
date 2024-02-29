@@ -32,6 +32,7 @@ namespace pmacc
 {
     CudaEvent::CudaEvent() : event(AlpakaEventType(manager::Device<ComputeDevice>::get().current()))
     {
+        log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
     }
 
 
@@ -68,7 +69,7 @@ namespace pmacc
         // avoid alpaka calls if event is already finished
         if(!finished)
         {
-            assert(stream);
+            assert(stream.has_value());
             finished = alpaka::isComplete(event);
         }
         return finished;
@@ -78,7 +79,7 @@ namespace pmacc
     void CudaEvent::recordEvent(AccStream const& stream)
     {
         /* disallow double recording */
-        assert(!this->stream);
+        assert(!this->stream.has_value());
         finished = false;
         this->stream = stream;
         alpaka::enqueue(*this->stream, event);

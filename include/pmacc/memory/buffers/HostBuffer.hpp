@@ -105,7 +105,7 @@ namespace pmacc
          * @param size extent for each dimension (in elements)
          * @param offset offset within the source (in elements)
          *
-         * @attention offset + size must be leather equal to the size of the source buffer
+         * @attention offset + size must be less or equal to the size of the source buffer
          */
         HostBuffer(HostBuffer& source, MemSpace<T_dim> size, MemSpace<T_dim> offset = MemSpace<T_dim>())
             : Buffer<T_Type, T_dim>(size)
