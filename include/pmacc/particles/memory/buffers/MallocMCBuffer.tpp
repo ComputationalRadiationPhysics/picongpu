@@ -21,7 +21,7 @@
 
 #pragma once
 
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
 
 #    include "pmacc/alpakaHelper/Device.hpp"
 #    include "pmacc/eventSystem/eventSystem.hpp"

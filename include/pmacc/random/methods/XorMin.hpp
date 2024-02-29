@@ -86,9 +86,9 @@ namespace pmacc
                 {
                     NativeStateType tmpState;
 
-#    if(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#    if(ALPAKA_ACC_GPU_HIP_ENABLED)
 #        define PMACC_RNG_INIT_FN hiprand_init
-#    elif(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+#    elif(ALPAKA_ACC_GPU_CUDA_ENABLED)
 #        define PMACC_RNG_INIT_FN curand_init
 #    endif
 

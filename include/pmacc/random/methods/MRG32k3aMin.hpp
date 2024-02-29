@@ -24,7 +24,7 @@
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED != 1)
+#if(!ALPAKA_ACC_GPU_CUDA_ENABLED)
 #    include "pmacc/random/methods/AlpakaRand.hpp"
 #else
 #    include <curand_kernel.h>
@@ -37,7 +37,7 @@ namespace pmacc
     {
         namespace methods
         {
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED != 1)
+#if(!ALPAKA_ACC_GPU_CUDA_ENABLED)
             //! fallback to alpaka RNG if a cpu accelerator is used
             template<typename T_Acc = pmacc::Acc<DIM1>>
             using MRG32k3aMin = AlpakaRand<T_Acc>;

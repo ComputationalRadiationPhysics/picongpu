@@ -1365,7 +1365,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         = std::max(0, mThreadParams.window.globalDimensions.offset[i] - localDomain.offset[i]);
                 }
 
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
                 /* copy species only one time per timestep to the host */
                 if(mThreadParams.strategy == WriteSpeciesStrategy::ADIOS && lastSpeciesSyncStep != currentStep)
                 {

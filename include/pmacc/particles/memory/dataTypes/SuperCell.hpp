@@ -69,7 +69,7 @@ namespace pmacc
         }
 
         HDINLINE uint32_t getSizeLastFrame() const
-#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1 && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
+#if(ALPAKA_ACC_GPU_HIP_ENABLED && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
             /* ROCm 5.2.0 producing particle loss in KernelShiftParticles if this method is defined as `const`.
              * see: https://github.com/ComputationalRadiationPhysics/picongpu/issues/4305
              */
@@ -81,7 +81,7 @@ namespace pmacc
         }
 
         HDINLINE uint32_t getNumParticles() const
-#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1 && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
+#if(ALPAKA_ACC_GPU_HIP_ENABLED && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) == 502)
             /* ROCm 5.2.0 producing particle loss in KernelShiftParticles if this method is defined as `const`.
              * see: https://github.com/ComputationalRadiationPhysics/picongpu/issues/4305
              */

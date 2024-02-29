@@ -52,7 +52,7 @@ namespace pmacc::math
             using type = alpaka::math::MathStdLib;
         };
 
-#if ALPAKA_ACC_GPU_CUDA_ENABLED == 1
+#if ALPAKA_ACC_GPU_CUDA_ENABLED
         /** Trait to get alpaka math implementation type for CUDA accelerator
          *
          * @tparam T_Dim dimensionality of accelerator index space
@@ -65,7 +65,7 @@ namespace pmacc::math
         };
 #endif
 
-#if ALPAKA_ACC_GPU_HIP_ENABLED == 1
+#if ALPAKA_ACC_GPU_HIP_ENABLED
         /** Trait to get alpaka math implementation type for HIP accelerator
          *
          * @tparam T_Dim dimensionality of accelerator index space

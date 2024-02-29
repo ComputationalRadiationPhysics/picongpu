@@ -52,15 +52,11 @@ namespace pmacc
              */
             void getMemoryInfo(size_t* free, size_t* total = nullptr) const
             {
-                size_t freeInternal = 0;
-                size_t totalInternal = 0;
-
                 auto& device = manager::Device<ComputeDevice>::get().current();
-                freeInternal = ::alpaka::getFreeMemBytes(device);
-                totalInternal = ::alpaka::getMemBytes(device);
 
                 if(free != nullptr)
                 {
+                    size_t freeInternal = ::alpaka::getFreeMemBytes(device);
                     if(reservedMem > freeInternal)
                         freeInternal = 0;
                     else
@@ -70,6 +66,7 @@ namespace pmacc
                 }
                 if(total != nullptr)
                 {
+                    size_t totalInternal = ::alpaka::getMemBytes(device);
                     if(reservedMem > totalInternal)
                         totalInternal = 0;
                     else
@@ -92,7 +89,7 @@ namespace pmacc
                 [[maybe_unused]] uint32_t const numRanksPerDevice,
                 [[maybe_unused]] MPI_Comm mpiComm) const
             {
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED != 1 && ALPAKA_ACC_GPU_HIP_ENABLED != 1)
+#if(!ALPAKA_ACC_GPU_CUDA_ENABLED && !ALPAKA_ACC_GPU_HIP_ENABLED)
                 return true;
 #else
                 if(numRanksPerDevice >= 2u)

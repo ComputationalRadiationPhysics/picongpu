@@ -33,37 +33,44 @@ namespace pmacc
     using AlpakaDim = ::alpaka::DimInt<T_dim>;
     using HostDevice = ::alpaka::DevCpu;
 
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED)
     using ComputeDevice = ::alpaka::DevCudaRt;
     template<uint32_t T_dim>
     using Acc = ::alpaka::AccGpuCudaRt<AlpakaDim<T_dim>, IdxType>;
-#elif ALPAKA_ACC_GPU_HIP_ENABLED
+#elif(ALPAKA_ACC_GPU_HIP_ENABLED)
     using ComputeDevice = ::alpaka::DevHipRt;
     template<uint32_t T_dim>
     using Acc = ::alpaka::AccGpuHipRt<AlpakaDim<T_dim>, IdxType>;
-#elif defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) || defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)                 \
-    || defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) || defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)                    \
-    || defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
+#elif(                                                                                                                \
+    ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED || ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED                                     \
+    || ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED || ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED                                      \
+    || ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
+
     using ComputeDevice = ::alpaka::DevCpu;
 
-#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
+#    if(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED)
     template<uint32_t T_dim>
     using Acc = ::alpaka::AccCpuOmp2Threads<AlpakaDim<T_dim>, IdxType>;
 #    endif
 
-#    if(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
+#    if(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED)
     template<uint32_t T_dim>
     using Acc = ::alpaka::AccCpuOmp2Blocks<AlpakaDim<T_dim>, IdxType>;
 #    endif
 
-#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
+#    if(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
     template<uint32_t T_dim>
     using Acc = ::alpaka::AccCpuThreads<AlpakaDim<T_dim>, IdxType>;
 #    endif
 
-#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+#    if(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
     template<uint32_t T_dim>
     using Acc = ::alpaka::AccCpuSerial<AlpakaDim<T_dim>, IdxType>;
+#    endif
+
+#    if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
+    template<uint32_t T_dim>
+    using Acc = ::alpaka::AccCpuTbbBlocks<AlpakaDim<T_dim>, IdxType>;
 #    endif
 #endif
 
