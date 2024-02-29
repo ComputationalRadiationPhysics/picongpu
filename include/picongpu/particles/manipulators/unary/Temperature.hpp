@@ -74,18 +74,20 @@ namespace picongpu
                                 float_X const macroWeighting = particle[weighting_];
                                 float_X const macroEnergy = macroWeighting * energy;
                                 float_X const macroMass = attribute::getMass(macroWeighting, particle);
-                                float_X const standardDeviation
+				
+				float_X const standardDeviation
                                     = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
                                 float3_X const mom
                                     = float3_X(standardNormalRng(), standardNormalRng(), standardNormalRng())
                                     * standardDeviation;
+                                
                                 T_ValueFunctor::operator()(particle[momentum_], mom);
                             }
                         };
 
                     } // namespace detail
 
-                    template<typename T_ParamClass, typename T_ValueFunctor>
+              	    template<typename T_ParamClass, typename T_ValueFunctor>
                     struct Temperature : public detail::TemperatureImpl<T_ValueFunctor>
                     {
                         //! Base class

@@ -144,7 +144,7 @@ namespace picongpu
                     typename T_ValueFunctor = pmacc::math::operation::Add>
                 using Temperature = generic::FreeRng<
                     acc::Temperature<T_ParamClass, T_ValueFunctor>,
-                    pmacc::random::distributions::Normal<float_X>>;
+		    pmacc::random::distributions::Normal<float_X>>;
 
                 /** Version with user-provided temperature functor
                  *
