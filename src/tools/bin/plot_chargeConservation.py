@@ -126,7 +126,7 @@ def plotError(file_pattern, slice_pos=[0.5, 0.5, 0.5], timestep=-1):
     plt.figure(figsize=(14, 5))
 
     plt.subplot(131)
-    slice_cell_z = np.int(np.floor((diff.shape[0] - 1) * slice_pos[0]))
+    slice_cell_z = int(np.floor((diff.shape[0] - 1) * slice_pos[0]))
     plt.title("slice in z at {}".format(slice_cell_z), fontsize=20)
     plt.imshow(
         diff[slice_cell_z, :, :],
@@ -149,7 +149,7 @@ def plotError(file_pattern, slice_pos=[0.5, 0.5, 0.5], timestep=-1):
     )
 
     plt.subplot(132)
-    slice_cell_y = np.int(np.floor((diff.shape[1] - 1) * slice_pos[1]))
+    slice_cell_y = int(np.floor((diff.shape[1] - 1) * slice_pos[1]))
     plt.title("slice in y at {}".format(slice_cell_y), fontsize=20)
     plt.imshow(
         diff[:, slice_cell_y, :],
@@ -172,7 +172,7 @@ def plotError(file_pattern, slice_pos=[0.5, 0.5, 0.5], timestep=-1):
     )
 
     plt.subplot(133)
-    slice_cell_x = np.int(np.floor((diff.shape[2] - 1) * slice_pos[2]))
+    slice_cell_x = int(np.floor((diff.shape[2] - 1) * slice_pos[2]))
     plt.title("slice in x at {}".format(slice_cell_x), fontsize=20)
     plt.imshow(
         diff[:, :, slice_cell_x],
@@ -231,7 +231,7 @@ if __name__ == "__main__":
         dest="x_split",
         action="store",
         default=0.5,
-        type=np.float,
+        type=float,
         help="float value between [0,1] to set slice " + "position in x (default = 0.5)",
     )
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         dest="y_split",
         action="store",
         default=0.5,
-        type=np.float,
+        type=float,
         help="float value between [0,1] to set slice " + "position in y (default = 0.5)",
     )
 
@@ -249,7 +249,7 @@ if __name__ == "__main__":
         dest="z_split",
         action="store",
         default=0.5,
-        type=np.float,
+        type=float,
         help="float value between [0,1] to set slice " + "position in z (default = 0.5)",
     )
 
