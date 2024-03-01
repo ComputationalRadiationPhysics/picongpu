@@ -107,10 +107,6 @@ alpaka 1.1.X
 """"""""""""""""
 - `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
 
-cupla 0.5.X-dev
-"""""""""""""""
-- `cupla <https://github.com/alpaka-group/cupla>`_ is included in the PIConGPU source code
-
 mallocMC 2.6.0crp-dev
 """""""""""""""""""""
 - only required for CUDA and HIP backends

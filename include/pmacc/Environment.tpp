@@ -259,10 +259,10 @@ namespace pmacc
             int numAvailableDevices = manager::Device<ComputeDevice>::get().count();
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            // ##ERROR handling
-            if(numAvailableDevices < 1) // check if cupla device is found
+            // check if device is found
+            if(numAvailableDevices < 1)
             {
-                throw std::runtime_error("no CUDA capable devices detected");
+                throw std::runtime_error("no capable alpaka compute devices detected");
             }
 #endif
 

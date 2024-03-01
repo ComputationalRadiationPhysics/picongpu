@@ -72,8 +72,8 @@ namespace pmacc::exec
 
             /** Apply grid and block extents and optionally dynamic shared memory to the wrapped functor.
              *
-             * @tparam T_VectorGrid type which defines the grid extents (type must be cast-able to cupla dim3)
-             * @tparam T_VectorBlock type which defines the block extents (type must be cast-able to cupla dim3)
+             * @tparam T_VectorGrid type which defines the grid extents
+             * @tparam T_VectorBlock type which defines the block extents
              *
              * @param gridExtent grid extent configuration for the kernel
              * @param blockExtent block extent configuration for the kernel

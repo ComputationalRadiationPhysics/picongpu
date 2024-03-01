@@ -189,7 +189,7 @@ namespace picongpu
 
             /** Default strategy for the current deposition
              *
-             * Default will be selected based on the cupla accelerator.
+             * Default will be selected based on the alpaka accelerator.
              *
              * @tparam T_Acc the accelerator type
              */

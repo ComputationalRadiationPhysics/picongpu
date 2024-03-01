@@ -95,13 +95,6 @@ namespace pmacc::exec::detail
 
             pmacc::TaskKernel* taskKernel = pmacc::Environment<>::get().Factory().createTaskKernel(kernelName);
 
-            /* The next 3 lines cast pmacc vectors or integral values used for the execution extents into alpaka
-             * vectors.
-             * Note to be cupla compatible we use currently always 3-dimensional kernels.
-             *
-             * @todo find a better way to write this part of code, in general alpaka understands PMacc vectors but
-             * PMacc has no easy way t cast integral numbers to an 3-dimensional vector.
-             */
             auto gridExtent = m_gridExtent.toAlpakaKernelVec();
             auto blockExtent = m_blockExtent.toAlpakaKernelVec();
             auto elemExtent = math::Vector<IdxType, T_dim>::create(1).toAlpakaKernelVec();

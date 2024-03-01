@@ -83,9 +83,9 @@ Otherwise, one often has to implement an own kernel.
 Writing a Kernel
 ----------------
 
-Computational kernels are written using library `cupla <https://github.com/alpaka-group/cupla>`_ which is a layer on top of library `alpaka <https://github.com/alpaka-group/alpaka>`_.
+Computational kernels are written using library `alpaka <https://github.com/alpaka-group/alpaka>`_.
 Most kernel functors are templates parametrized with the number of threads per block, often called ``numWorkers``.
-Kernel invocations are wrapped into a helper macro ``PMACC_KERNEL``.
+Kernel invocations are wrapped into a helper macro ``PMACC_KERNEL`` or ``PMACC_LOCKSTEP_KERNEL``.
 
 A vast majority of PIConGPU kernels operate on two levels of parallelism: between supercells and inside each supercell.
 This parallel pattern is covered by the mapper concept.

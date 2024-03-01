@@ -90,8 +90,8 @@ endif()
 # setup alpaka
 ################################################################################
 
-# the min and max. supported alpaka version is also copied to the cuplaConfig.cmake
-set(_PMACC_MIN_ALPAKA_VERSION 1.0.0)
+# the min and max. supported alpaka version
+set(_PMACC_MIN_ALPAKA_VERSION 1.1.0)
 set(_PMACC_MAX_ALPAKA_VERSION 1.1.0)
 
 # do not search for alpaka if it already exists

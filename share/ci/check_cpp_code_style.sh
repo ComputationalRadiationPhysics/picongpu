@@ -17,13 +17,11 @@ test/hasCudaGlobalKeyword share/picongpu/examples
 #############################################################################
 test/hasExtLibIncludeBrackets include boost
 test/hasExtLibIncludeBrackets include alpaka
-test/hasExtLibIncludeBrackets include cupla
 test/hasExtLibIncludeBrackets include mallocMC
 test/hasExtLibIncludeBrackets include/picongpu pmacc
 test/hasExtLibIncludeBrackets share/picongpu/examples pmacc
 test/hasExtLibIncludeBrackets share/picongpu/examples boost
 test/hasExtLibIncludeBrackets share/picongpu/examples alpaka
-test/hasExtLibIncludeBrackets share/picongpu/examples cupla
 test/hasExtLibIncludeBrackets share/picongpu/examples mallocMC
 test/hasExtLibIncludeBrackets share/pmacc/examples pmacc
 

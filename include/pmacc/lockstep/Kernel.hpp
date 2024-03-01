@@ -87,8 +87,8 @@ namespace pmacc::lockstep
                  *
                  * This objects contains the functor and the starting parameter.
                  *
-                 * @tparam T_VectorGrid type which defines the grid extents (type must be castable to cupla dim3)
-                 * @tparam T_VectorBlock type which defines the block extents (type must be castable to cupla dim3)
+                 * @tparam T_VectorGrid type which defines the grid extents
+                 * @tparam T_VectorBlock type which defines the block extents
                  *
                  * @param gridExtent grid extent configuration for the kernel
                  * @param blockExtent block extent configuration for the kernel

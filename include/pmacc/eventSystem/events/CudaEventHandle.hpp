@@ -60,9 +60,9 @@ namespace pmacc
         ~CudaEventHandle();
 
         /**
-         * get native cupla event
+         * get native alpaka event
          *
-         * @return native cupla event
+         * @return native alpaka event
          */
         AlpakaEventType operator*() const;
 
@@ -75,13 +75,13 @@ namespace pmacc
 
         /** get stream in which this event is recorded
          *
-         * @return native cupla stream
+         * @return native alpaka queue
          */
         AccStream getStream() const;
 
-        /** record event in a device stream
+        /** record event in a device queue
          *
-         * @param stream native cupla stream
+         * @param stream native alpaka queue
          */
         void recordEvent(AccStream const& stream);
     };

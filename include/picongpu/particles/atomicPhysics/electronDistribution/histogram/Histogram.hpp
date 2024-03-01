@@ -154,9 +154,6 @@ namespace picongpu
                             else
                             {
                                 // Otherwise we add it to a collection of new bins
-                                // Note: in current dev the namespace is different in cupla
-                                // get Index where to deposit it by atomic add to numNewBins
-                                // this assures that the same index is not used twice
                                 auto newBinIdx = alpaka::atomicAdd(
                                     worker.getAcc(),
                                     &numNewBins,

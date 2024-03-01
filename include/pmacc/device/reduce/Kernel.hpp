@@ -109,7 +109,7 @@ namespace pmacc
                  *
                  * This method can be used to reduce a chunk of an array.
                  * This method is a **collective** method and needs to be called by all
-                 * threads within a cupla block.
+                 * threads within a alpaka block.
                  *
                  * @tparam T_SrcBuffer type of the buffer
                  * @tparam T_Functor type of the binary functor to reduce two elements
@@ -125,7 +125,7 @@ namespace pmacc
                  *        first argument is the source and get the new reduced value.
                  * @param sharedMem shared memory buffer with storage for `linearThreadIdxInBlock` elements,
                  *        buffer must implement `operator[](size_t)` (one dimensional access)
-                 * @param blockIndex index of the cupla block,
+                 * @param blockIndex index of the alpaka block,
                  *                   for a global reduce: `device::getBlockIdx(worker.getAcc()).x()`,
                  *                   for a reduce within a block: `0`
                  *

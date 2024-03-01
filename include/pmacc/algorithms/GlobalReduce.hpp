@@ -37,8 +37,6 @@ namespace pmacc
         public:
             /** Constructor
              *
-             * @attetion Don't create a instance before you have set you cupla device!
-             *
              * @param byte how many bytes in global gpu memory can be reserved for the reduction algorithm
              * @param sharedMemByte limit the usage of shared memory per block on gpu
              */

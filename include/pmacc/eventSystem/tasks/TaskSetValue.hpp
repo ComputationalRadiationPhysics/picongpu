@@ -37,7 +37,7 @@ namespace pmacc
 {
     /** set a value to all elements of a box
      *
-     * @tparam T_xChunkSize number of elements in x direction to prepare with one cupla block
+     * @tparam T_xChunkSize number of elements in x direction to prepare with one alpaka block
      */
     template<uint32_t T_xChunkSize>
     struct KernelSetValue
@@ -99,7 +99,7 @@ namespace pmacc
      *
      * T_ValueType  = data type (e.g. float, float2)
      * T_dim   = dimension of the GridBuffer
-     * T_isLess128ByteAndTrivillyCopyable = true if T_ValueType can be send via kernel parameter (on cupla T_ValueType
+     * T_isLess128ByteAndTrivillyCopyable = true if T_ValueType can be send via kernel parameter (T_ValueType
      * must be <= 128 byte) and must be trivially copyable
      */
     template<
