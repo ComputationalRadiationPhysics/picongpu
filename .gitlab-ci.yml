@@ -112,6 +112,20 @@ pmacc-compile-reduced-matrix:
         job: pmacc-generate-reduced-matrix
     strategy: depend
 
+pmacc-header-generate-reduced-matrix:
+  variables:
+    PIC_INPUTS: "pmacc_header"
+    TEST_TUPLE_NUM_ELEM: 1
+  extends: ".base_generate-reduced-matrix"
+
+pmacc-header-compile-reduced-matrix:
+  stage: test
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: pmacc-header-generate-reduced-matrix
+    strategy: depend
+
 picongpu-unittest-generate-reduced-matrix:
   variables:
     PIC_INPUTS: "unit"
