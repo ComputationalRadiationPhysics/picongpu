@@ -50,12 +50,12 @@ namespace pmacc
          * Returns the cuplaStream_t object associated with this EventStream.
          * @return the internal cupla stream object
          */
-        cuplaStream_t getCudaStream() const;
+        AccStream getCudaStream() const;
 
         void waitOn(const CudaEventHandle& ev);
 
     private:
-        cuplaStream_t stream = nullptr;
+        AccStream stream;
     };
 
 } // namespace pmacc

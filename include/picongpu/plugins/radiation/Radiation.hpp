@@ -283,7 +283,7 @@ namespace picongpu
                 }
 
 
-                void checkpoint(uint32_t timeStep, const std::string restartDirectory)
+                void checkpoint(uint32_t timeStep, const std::string restartDirectory) override
                 {
                     // only write backup if radiation is calculated:
                     if(notifyPeriod.empty())
@@ -423,8 +423,6 @@ namespace picongpu
                             collectDataGPUToMaster();
                             writeAllFiles(globalOffset);
                         }
-
-                        CUDA_CHECK(cuplaGetLastError());
                     }
                 }
 
@@ -466,7 +464,7 @@ namespace picongpu
                                 GPUpos_str << "_" << currentGPUpos[dimIndex];
 
                             writeFile(
-                                radiation->getHostBuffer().getBasePointer(),
+                                radiation->getHostBuffer().data(),
                                 folderRadPerGPU + "/" + speciesName + "_radPerGPU_pos" + GPUpos_str.str() + "_time_"
                                     + last_time_step_str.str() + "-" + current_time_step_str.str() + ".dat");
                         }
@@ -490,7 +488,7 @@ namespace picongpu
                     reduce(
                         pmacc::math::operation::Add(),
                         tmp_result.data(),
-                        radiation->getHostBuffer().getBasePointer(),
+                        radiation->getHostBuffer().data(),
                         elementsAmplitude(),
                         mpi::reduceMethods::Reduce());
                 }
@@ -815,7 +813,7 @@ namespace picongpu
                         ::openPMD::Extent local_extent_amp
                             = {1, parameters::N_observer, radiation_frequencies::N_omega};
 
-                        auto srcBuffer = radiation->getHostBuffer().getBasePointer();
+                        auto srcBuffer = radiation->getHostBuffer().data();
 
                         /*
                          * numComponents includes the components of a complex number, e.g. in a 3D simulation,

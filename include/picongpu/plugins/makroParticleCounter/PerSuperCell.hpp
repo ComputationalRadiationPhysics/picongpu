@@ -51,8 +51,7 @@ namespace picongpu
         template<typename ParBox, typename CounterBox, typename Mapping, typename T_Worker>
         DINLINE void operator()(T_Worker const& worker, ParBox parBox, CounterBox counterBox, Mapping mapper) const
         {
-            const DataSpace<simDim> superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
             /* counterBox has no guarding supercells*/
             const DataSpace<simDim> superCellIdxNoGuard = superCellIdx - mapper.getGuardingSuperCells();
 
@@ -68,7 +67,7 @@ namespace picongpu
             forEachParticle(
                 [&counterValue](auto const& lockstepWorker, auto& /*particle*/)
                 {
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         lockstepWorker.getAcc(),
                         &counterValue,
                         static_cast<uint64_cu>(1LU),
@@ -234,7 +233,7 @@ namespace picongpu
                 openPmdLocalDomainExtent[simDim - d - 1] = localDomainSize[d];
             }
 
-            size_t* ptr = localResult->getHostBuffer().getPointer();
+            size_t* ptr = localResult->getHostBuffer().data();
 
             // avoid deadlock between not finished pmacc tasks and collective or blocking MPI calls in openPMD
             eventSystem::getTransactionEvent().waitForFinished();

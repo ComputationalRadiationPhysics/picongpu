@@ -24,6 +24,8 @@
 #pragma once
 
 #include "pmacc/Environment.def"
+#include "pmacc/alpakaHelper/Device.hpp"
+#include "pmacc/alpakaHelper/acc.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/types.hpp"
 
@@ -34,7 +36,7 @@
 namespace pmacc
 {
     /**
-     * Manages a pool of EventStreams and gives access to them.
+     * Manages a pool of AccStreams and gives access to them.
      * This class is a singleton.
      */
     class StreamController
@@ -68,8 +70,8 @@ namespace pmacc
 
             /* This is the single point in PIC where ALL CUDA work must be finished. */
             /* Accessing CUDA objects after this point may fail! */
-            CUDA_CHECK_NO_EXCEPT(cuplaDeviceSynchronize());
-            CUDA_CHECK_NO_EXCEPT(cuplaDeviceReset());
+            alpaka::wait(manager::Device<ComputeDevice>::get().current());
+            manager::Device<ComputeDevice>::get().reset();
         }
 
         /**

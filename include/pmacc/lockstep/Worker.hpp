@@ -90,7 +90,7 @@ namespace pmacc::lockstep
          */
         HDINLINE void sync() const
         {
-            cupla::__syncthreads(m_acc);
+            alpaka::syncBlockThreads(m_acc);
         }
 
         /** get the number of workers

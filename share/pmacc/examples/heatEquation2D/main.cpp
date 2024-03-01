@@ -217,8 +217,8 @@ auto main(int argc, char** argv) -> int
             // MPI Reduce the residual
             reduce(
                 pmacc::math::operation::Add(),
-                hReducedResidual.getBasePointer(),
-                residualBuffer->getHostBuffer().getBasePointer(),
+                hReducedResidual.data(),
+                residualBuffer->getHostBuffer().data(),
                 1, // this is a 1D dataspace, just access it?
                 pmacc::mpi::reduceMethods::Reduce());
             // Reset residuals to zero for next iteration

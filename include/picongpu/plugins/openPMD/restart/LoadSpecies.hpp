@@ -69,7 +69,6 @@ namespace picongpu
             using NewParticleDescription =
                 typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type;
 
-            using openPMDFrameType = Frame<OperatorCreateVectorBox, NewParticleDescription>;
 
             /** Load species from openPMD checkpoint storage
              *
@@ -129,16 +128,23 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD: Loading %1% particles from offset %2%")
                     % (long long unsigned) totalNumParticles % (long long unsigned) particleOffset;
 
-                // memory is visible on host and device
-                openPMDFrameType mappedFrame;
                 log<picLog::INPUT_OUTPUT>("openPMD: malloc mapped memory: %1%") % speciesName;
-                /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>> mallocMem;
-                mallocMem(mappedFrame, totalNumParticles);
 
-                meta::
-                    ForEach<typename openPMDFrameType::ValueTypeSeq, LoadParticleAttributesFromOpenPMD<boost::mpl::_1>>
-                        loadAttributes;
+                using FrameType = Frame<OperatorCreateVectorBox, NewParticleDescription>;
+                using BufferType = Frame<OperatorCreateAlpakaBuffer, NewParticleDescription>;
+
+                BufferType buffers;
+                FrameType mappedFrame;
+
+                /*malloc mapped memory*/
+                meta::ForEach<typename NewParticleDescription::ValueTypeSeq, MallocHostMemory<boost::mpl::_1>>
+                    mallocMem;
+                mallocMem(buffers, mappedFrame, totalNumParticles);
+
+                meta::ForEach<
+                    typename NewParticleDescription::ValueTypeSeq,
+                    LoadParticleAttributesFromOpenPMD<boost::mpl::_1>>
+                    loadAttributes;
                 loadAttributes(params, mappedFrame, particleSpecies, particleOffset, totalNumParticles);
 
                 if(totalNumParticles != 0)
@@ -152,10 +158,6 @@ namespace picongpu
                         totalCellIdx_,
                         *(params->cellDescription),
                         picLog::INPUT_OUTPUT());
-
-                    /*free host memory*/
-                    meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<boost::mpl::_1>> freeMem;
-                    freeMem(mappedFrame);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) load species: %1%") % speciesName;
             }

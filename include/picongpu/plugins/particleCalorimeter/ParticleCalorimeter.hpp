@@ -175,7 +175,7 @@ namespace picongpu
                 ::openPMD::Extent extent = dataset.getExtent();
                 ::openPMD::Offset offset(extent.size(), 0);
                 dataset.loadChunk(
-                    std::shared_ptr<float_X>{hBufLeftParsCalorimeter.getPointer(), [](auto const*) {}},
+                    std::shared_ptr<float_X>{hBufLeftParsCalorimeter.data(), [](auto const*) {}},
                     offset,
                     extent);
 
@@ -187,7 +187,7 @@ namespace picongpu
                 /** @todo use foreach to walk over all elements, we can do this for loop only because we know that host
                  * buffer has no pitch
                  */
-                auto* dataPtr = hBufLeftParsCalorimeter.getPointer();
+                auto* dataPtr = hBufLeftParsCalorimeter.data();
                 for(size_t i = 0u; i < hBufLeftParsCalorimeter.getCurrentSize(); ++i)
                     dataPtr[i] /= float_X(numRanks);
             }
@@ -195,7 +195,7 @@ namespace picongpu
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
             eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Bcast(
-                hBufLeftParsCalorimeter.getPointer(),
+                hBufLeftParsCalorimeter.data(),
                 hBufLeftParsCalorimeter.getCurrentSize() * sizeof(float_X),
                 MPI_CHAR,
                 0, /* rank 0 */
@@ -224,8 +224,8 @@ namespace picongpu
             /* mpi reduce */
             (*allGPU_reduce)(
                 pmacc::math::operation::Add(),
-                hBufTotal.getPointer(),
-                hBufLeftParsCalorimeter.getPointer(),
+                hBufTotal.data(),
+                hBufLeftParsCalorimeter.data(),
                 hBufTotal.getCurrentSize(),
                 mpi::reduceMethods::Reduce());
 
@@ -248,7 +248,7 @@ namespace picongpu
 
             dataset.resetDataset({::openPMD::determineDatatype<float_X>(), bufferExtent});
             dataset.storeChunk(
-                std::shared_ptr<float_X>{hBufTotal.getPointer(), [](auto const*) {}},
+                std::shared_ptr<float_X>{hBufTotal.data(), [](auto const*) {}},
                 bufferOffset,
                 bufferExtent);
             writeMeta(series, mesh, dataset, currentStep);
@@ -377,7 +377,7 @@ namespace picongpu
             auto calorimeter = mesh[::openPMD::RecordComponent::SCALAR];
             calorimeter.resetDataset({::openPMD::determineDatatype<float_X>(), extent});
             calorimeter.storeChunk(
-                std::shared_ptr<float_X>{this->hBufTotalCalorimeter->getPointer(), [](auto const*) {}},
+                std::shared_ptr<float_X>{this->hBufTotalCalorimeter->data(), [](auto const*) {}},
                 std::move(offset),
                 std::move(extent));
 
@@ -589,8 +589,8 @@ namespace picongpu
             /* mpi reduce */
             (*allGPU_reduce)(
                 pmacc::math::operation::Add(),
-                this->hBufTotalCalorimeter->getPointer(),
-                this->hBufCalorimeter->getPointer(),
+                this->hBufTotalCalorimeter->data(),
+                this->hBufCalorimeter->data(),
                 this->hBufCalorimeter->getCurrentSize(),
                 mpi::reduceMethods::Reduce());
 

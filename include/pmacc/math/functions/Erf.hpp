@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,23 +22,12 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include "pmacc/math/functions/Common.hpp"
 
-namespace pmacc
+#include <alpaka/alpaka.hpp>
+
+namespace pmacc::math
 {
-    namespace math
-    {
-        template<typename Type>
-        struct Log10;
-
-        template<typename T1>
-        HDINLINE typename Log10<T1>::result log10(const T1& value)
-        {
-            return Log10<T1>()(value);
-        }
-
-    } // namespace math
-} // namespace pmacc
-
-#include "pmacc/algorithms/math/doubleMath/exp.tpp"
-#include "pmacc/algorithms/math/floatMath/exp.tpp"
+    //! Computes the error function.
+    ALPAKA_UNARY_MATH_FN(erf, alpaka::math::ConceptMathErf, Erf)
+} // namespace pmacc::math

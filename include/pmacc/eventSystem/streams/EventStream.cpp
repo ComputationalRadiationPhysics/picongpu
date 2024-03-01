@@ -21,21 +21,23 @@
 
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 
+#include "pmacc/alpakaHelper/Device.hpp"
+#include "pmacc/alpakaHelper/acc.hpp"
+
+#include <alpaka/alpaka.hpp>
+
 namespace pmacc
 {
-    EventStream::EventStream()
+    EventStream::EventStream() : stream(AccStream(manager::Device<ComputeDevice>::get().current()))
     {
-        CUDA_CHECK(cuplaStreamCreate(&stream));
     }
 
     EventStream::~EventStream()
     {
-        // wait for all kernels in stream to finish
-        CUDA_CHECK_NO_EXCEPT(cuplaStreamSynchronize(stream));
-        CUDA_CHECK_NO_EXCEPT(cuplaStreamDestroy(stream));
+        alpaka::wait(stream);
     }
 
-    cuplaStream_t EventStream::getCudaStream() const
+    AccStream EventStream::getCudaStream() const
     {
         return stream;
     }
@@ -44,7 +46,9 @@ namespace pmacc
     {
         if(this->stream != ev.getStream())
         {
-            CUDA_CHECK(cuplaStreamWaitEvent(this->getCudaStream(), *ev, 0));
+            auto alpakaEvent = *ev;
+            auto queue = this->getCudaStream();
+            alpaka::wait(queue, alpakaEvent);
         }
     }
 } // namespace pmacc

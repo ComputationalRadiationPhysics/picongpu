@@ -23,23 +23,18 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
-    template<class TYPE, unsigned DIM>
-    class DeviceBuffer;
-
-    template<class TYPE, unsigned DIM>
+    template<typename T_DeviceBuffer>
     class TaskGetCurrentSizeFromDevice : public StreamTask
     {
     public:
-        TaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE, DIM>& buffer) : StreamTask()
+        TaskGetCurrentSizeFromDevice(T_DeviceBuffer& buff) : StreamTask(), buffer(&buff)
         {
-            this->buffer = &buffer;
         }
 
         ~TaskGetCurrentSizeFromDevice() override
@@ -58,12 +53,12 @@ namespace pmacc
 
         void init() override
         {
-            CUDA_CHECK(cuplaMemcpyAsync(
-                (void*) buffer->getCurrentSizeHostSidePointer(),
-                buffer->getCurrentSizeOnDevicePointer(),
-                sizeof(size_t),
-                cuplaMemcpyDeviceToHost,
-                this->getCudaStream()));
+            auto queue = this->getCudaStream();
+            alpaka::memcpy(
+                queue,
+                buffer->getCurrentSizeHostSideBuffer(),
+                buffer->getCurrentSizeDeviceSideBuffer(),
+                MemSpace<DIM1>(1).toAlpakaMemVec());
             this->activate();
         }
 
@@ -73,7 +68,7 @@ namespace pmacc
         }
 
     private:
-        DeviceBuffer<TYPE, DIM>* buffer;
+        T_DeviceBuffer* buffer;
     };
 
 } // namespace pmacc

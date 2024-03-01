@@ -29,25 +29,27 @@ namespace picongpu
     using namespace pmacc;
 
 
-    template<typename T_Type>
+    template<typename T_Attribute>
     struct MallocMappedMemory
     {
-        template<typename ValueType>
-        HINLINE void operator()(ValueType& v1, const size_t size) const
+        template<typename T_Buffers, typename T_Frame>
+        HINLINE void operator()(T_Buffers& buffers, T_Frame& frame, size_t const size) const
         {
-            using type = typename pmacc::traits::Resolve<T_Type>::type::type;
+            using type = typename pmacc::traits::Resolve<T_Attribute>::type::type;
 
-            bool isMappedMemorySupported = alpaka::hasMappedBufSupport<::alpaka::Platform<cupla::AccDev>>;
+            bool isMappedMemorySupported = alpaka::hasMappedBufSupport<::alpaka::Platform<pmacc::ComputeDevice>>;
 
             PMACC_VERIFY_MSG(isMappedMemorySupported, "Device must support mapped memory!");
 
-            type* ptr = nullptr;
+            frame.getIdentifier(T_Attribute()) = nullptr;
             if(size != 0)
             {
-                // Memory is automatically mapped to the device if supported.
-                CUDA_CHECK(cuplaMallocHost((void**) &ptr, size * sizeof(type)));
+                buffers.getIdentifier(T_Attribute()) = alpaka::allocMappedBufIfSupported<type, MemIdxType>(
+                    manager::Device<HostDevice>::get().current(),
+                    manager::Device<ComputeDevice>::get().getPlatform(),
+                    MemSpace<DIM1>(size).toAlpakaMemVec());
+                frame.getIdentifier(T_Attribute()) = alpaka::getPtrNative(*buffers.getIdentifier(T_Attribute()));
             }
-            v1.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
         }
     };
 
@@ -58,18 +60,20 @@ namespace picongpu
     template<typename T_Attribute>
     struct MallocHostMemory
     {
-        template<typename ValueType>
-        HINLINE void operator()(ValueType& v1, const size_t size) const
+        template<typename T_Buffers, typename T_Frame>
+        HINLINE void operator()(T_Buffers& buffers, T_Frame& frame, const size_t size) const
         {
             using Attribute = T_Attribute;
             using type = typename pmacc::traits::Resolve<Attribute>::type::type;
 
-            type* ptr = nullptr;
+            frame.getIdentifier(T_Attribute()) = nullptr;
             if(size != 0)
             {
-                ptr = new type[size];
+                buffers.getIdentifier(T_Attribute()) = alpaka::allocBuf<type, MemIdxType>(
+                    manager::Device<HostDevice>::get().current(),
+                    MemSpace<DIM1>(size).toAlpakaMemVec());
+                frame.getIdentifier(T_Attribute()) = alpaka::getPtrNative(*buffers.getIdentifier(T_Attribute()));
             }
-            v1.getIdentifier(Attribute()) = VectorDataBox<type>(ptr);
         }
     };
 
@@ -92,34 +96,6 @@ namespace picongpu
         }
     };
 
-    template<typename T_Type>
-    struct FreeMappedMemory
-    {
-        template<typename ValueType>
-        HINLINE void operator()(ValueType& value) const
-        {
-            auto* ptr = value.getIdentifier(T_Type()).getPointer();
-            if(ptr != nullptr)
-            {
-                CUDA_CHECK(cuplaFreeHost(ptr));
-            }
-        }
-    };
-
-    //! Free memory
-    template<typename T_Attribute>
-    struct FreeHostMemory
-    {
-        template<typename ValueType>
-        HINLINE void operator()(ValueType& value) const
-        {
-            using Attribute = T_Attribute;
-
-            auto* ptr = value.getIdentifier(Attribute()).getPointer();
-            delete[] ptr;
-        }
-    };
-
     /*functor to create a pair for a MapTuple map*/
     struct OperatorCreateVectorBox
     {
@@ -128,6 +104,17 @@ namespace picongpu
         {
             using type
                 = pmacc::meta::Pair<InType, pmacc::VectorDataBox<typename pmacc::traits::Resolve<InType>::type::type>>;
+        };
+    };
+
+    struct OperatorCreateAlpakaBuffer
+    {
+        template<typename InType>
+        struct apply
+        {
+            using ValueType = typename pmacc::traits::Resolve<InType>::type::type;
+            using BufferType = ::alpaka::Buf<HostDevice, ValueType, AlpakaDim<DIM1>, MemIdxType>;
+            using type = pmacc::meta::Pair<InType, std::optional<BufferType>>;
         };
     };
 

@@ -190,7 +190,7 @@ namespace picongpu
                 record.setUnitSI(get_conversion_factor(outputUnits));
 
                 record.resetDataset({::openPMD::determineDatatype<Type>(), histExtent});
-                auto base_ptr = hReducedBuffer->getBasePointer();
+                auto base_ptr = hReducedBuffer->data();
                 ::openPMD::UniquePtrWithLambda<Type> data(
                     base_ptr,
                     [hReducedBuffer

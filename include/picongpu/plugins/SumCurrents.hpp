@@ -51,7 +51,7 @@ namespace picongpu
 
             PMACC_SMEM(worker, sh_sumJ, float3_X);
 
-            const DataSpace<simDim> threadIndex(cupla::threadIdx(worker.getAcc()));
+            const DataSpace<simDim> threadIndex(device::getThreadIdx(worker.getAcc()));
 
             auto onlyMaster = lockstep::makeMaster(worker);
 
@@ -59,8 +59,7 @@ namespace picongpu
 
             worker.sync();
 
-            const DataSpace<simDim> superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
             lockstep::makeForEach<cellsPerSuperCell>(worker)(
@@ -69,9 +68,9 @@ namespace picongpu
                     const auto cellIdxInSupercell = pmacc::math::mapToND(SuperCellSize::toRT(), linearIdx);
                     const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + cellIdxInSupercell);
                     const float3_X myJ = fieldJ(cell);
-                    cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
-                    cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
-                    cupla::atomicAdd(worker.getAcc(), &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
+                    alpaka::atomicAdd(worker.getAcc(), &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
+                    alpaka::atomicAdd(worker.getAcc(), &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
+                    alpaka::atomicAdd(worker.getAcc(), &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
                 });
 
             worker.sync();
@@ -79,9 +78,9 @@ namespace picongpu
             onlyMaster(
                 [&]()
                 {
-                    cupla::atomicAdd(worker.getAcc(), &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(worker.getAcc(), &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(worker.getAcc(), &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
+                    alpaka::atomicAdd(worker.getAcc(), &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
+                    alpaka::atomicAdd(worker.getAcc(), &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
+                    alpaka::atomicAdd(worker.getAcc(), &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
                 });
         }
     };
@@ -170,7 +169,7 @@ namespace picongpu
 
             auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
             PMACC_LOCKSTEP_KERNEL(KernelSumCurrents{}, workerCfg)
-            (mapper.getGridDim())(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().getBasePointer(), mapper);
+            (mapper.getGridDim())(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().data(), mapper);
 
             sumcurrents->deviceToHost();
             return sumcurrents->getHostBuffer().getDataBox()[0];

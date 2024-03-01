@@ -94,8 +94,7 @@ namespace picongpu
             PMACC_SMEM(worker, shSumMomPos, memory::Array<float_X, SuperCellSize::y::value>);
             PMACC_SMEM(worker, shCount_e, memory::Array<float_X, SuperCellSize::y::value>);
 
-            DataSpace<simDim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
             auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
@@ -140,23 +139,23 @@ namespace picongpu
                         auto const globalCellOffset = globalOffset + localSupercellStart + frameCellOffset;
                         float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
 
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             lockstepWorker.getAcc(),
                             &(shCount_e[index_y]),
                             normedWeighting,
                             ::alpaka::hierarchy::Threads{});
                         // weighted sum of single Electron values (Momentum = particle_momentum/weighting)
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             lockstepWorker.getAcc(),
                             &(shSumMom2[index_y]),
                             mom.x() * mom.x() * normedWeighting,
                             ::alpaka::hierarchy::Threads{});
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             lockstepWorker.getAcc(),
                             &(shSumPos2[index_y]),
                             posX * posX * normedWeighting,
                             ::alpaka::hierarchy::Threads{});
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             lockstepWorker.getAcc(),
                             &(shSumMomPos[index_y]),
                             mom.x() * posX * normedWeighting,
@@ -173,23 +172,23 @@ namespace picongpu
             forEachSuperCellInY(
                 [&](uint32_t const linearIdx)
                 {
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(gSumMom2[gOffset + linearIdx]),
                         static_cast<float_64>(shSumMom2[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(gSumPos2[gOffset + linearIdx]),
                         static_cast<float_64>(shSumPos2[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
 
                         worker.getAcc(),
                         &(gSumMomPos[gOffset + linearIdx]),
                         static_cast<float_64>(shSumMomPos[linearIdx]),
                         ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(gCount_e[gOffset + linearIdx]),
                         static_cast<float_64>(shCount_e[linearIdx]),
@@ -514,29 +513,29 @@ namespace picongpu
             // add gSum values from all GPUs using MPI
             (*planeReduce)(
                 pmacc::math::operation::Add(),
-                reducedSumMom2.getBasePointer(),
-                gSumMom2->getHostBuffer().getBasePointer(),
+                reducedSumMom2.data(),
+                gSumMom2->getHostBuffer().data(),
                 reducedSumMom2.getCurrentSize(),
                 mpi::reduceMethods::Reduce());
 
             (*planeReduce)(
                 pmacc::math::operation::Add(),
-                reducedSumPos2.getBasePointer(),
-                gSumPos2->getHostBuffer().getBasePointer(),
+                reducedSumPos2.data(),
+                gSumPos2->getHostBuffer().data(),
                 reducedSumPos2.getCurrentSize(),
                 mpi::reduceMethods::Reduce());
 
             (*planeReduce)(
                 pmacc::math::operation::Add(),
-                reducedSumMomPos.getBasePointer(),
-                gSumMomPos->getHostBuffer().getBasePointer(),
+                reducedSumMomPos.data(),
+                gSumMomPos->getHostBuffer().data(),
                 reducedSumMomPos.getCurrentSize(),
                 mpi::reduceMethods::Reduce());
 
             (*planeReduce)(
                 pmacc::math::operation::Add(),
-                reducedCount_e.getBasePointer(),
-                gCount_e->getHostBuffer().getBasePointer(),
+                reducedCount_e.data(),
+                gCount_e->getHostBuffer().data(),
                 reducedCount_e.getCurrentSize(),
                 mpi::reduceMethods::Reduce());
 
@@ -576,40 +575,40 @@ namespace picongpu
             }
 
             MPI_CHECK(MPI_Gatherv(
-                reducedSumMom2.getBasePointer(),
+                reducedSumMom2.data(),
                 localDomSizeY,
                 MPI_DOUBLE,
-                globalSumMom2.getBasePointer(),
+                globalSumMom2.data(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
                 0,
                 commGather));
             MPI_CHECK(MPI_Gatherv(
-                reducedSumPos2.getBasePointer(),
+                reducedSumPos2.data(),
                 localDomSizeY,
                 MPI_DOUBLE,
-                globalSumPos2.getBasePointer(),
+                globalSumPos2.data(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
                 0,
                 commGather));
             MPI_CHECK(MPI_Gatherv(
-                reducedSumMomPos.getBasePointer(),
+                reducedSumMomPos.data(),
                 localDomSizeY,
                 MPI_DOUBLE,
-                globalSumMomPos.getBasePointer(),
+                globalSumMomPos.data(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
                 0,
                 commGather));
             MPI_CHECK(MPI_Gatherv(
-                reducedCount_e.getBasePointer(),
+                reducedCount_e.data(),
                 localDomSizeY,
                 MPI_DOUBLE,
-                globalCount_e.getBasePointer(),
+                globalCount_e.data(),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
@@ -644,13 +643,12 @@ namespace picongpu
 
                     for(int i = startWindow_y; i < endWindow_y; i++)
                     {
-                        numElec_all += static_cast<long double>(globalCount_e.getBasePointer()[i]);
-                        ux2_all += static_cast<long double>(globalSumMom2.getBasePointer()[i]) * UNIT_MASS * UNIT_MASS
+                        numElec_all += static_cast<long double>(globalCount_e.data()[i]);
+                        ux2_all += static_cast<long double>(globalSumMom2.data()[i]) * UNIT_MASS * UNIT_MASS
                             / (SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
-                        pos2_SI_all
-                            += static_cast<long double>(globalSumPos2.getBasePointer()[i]) * UNIT_LENGTH * UNIT_LENGTH;
-                        xux_all += static_cast<long double>(globalSumMomPos.getBasePointer()[i]) * UNIT_MASS
-                            * UNIT_LENGTH / SI::ELECTRON_MASS_SI;
+                        pos2_SI_all += static_cast<long double>(globalSumPos2.data()[i]) * UNIT_LENGTH * UNIT_LENGTH;
+                        xux_all += static_cast<long double>(globalSumMomPos.data()[i]) * UNIT_MASS * UNIT_LENGTH
+                            / SI::ELECTRON_MASS_SI;
                     }
                     /* the scaling with normalized weighting (weighting /
                      * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) is compendated by the division by
@@ -672,19 +670,16 @@ namespace picongpu
 
                     for(int i = startWindow_y; i < endWindow_y; i += 10)
                     {
-                        float_64 numElec = globalCount_e.getBasePointer()[i];
-                        float_64 mom2_SI
-                            = globalSumMom2.getBasePointer()[i] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
-                        float_64 pos2_SI = globalSumPos2.getBasePointer()[i] * UNIT_LENGTH * UNIT_LENGTH;
-                        float_64 mompos_SI
-                            = globalSumMomPos.getBasePointer()[i] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
+                        float_64 numElec = globalCount_e.data()[i];
+                        float_64 mom2_SI = globalSumMom2.data()[i] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
+                        float_64 pos2_SI = globalSumPos2.data()[i] * UNIT_LENGTH * UNIT_LENGTH;
+                        float_64 mompos_SI = globalSumMomPos.data()[i] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
                         for(int j = i + 1; j < i + 10 && j < endWindow_y; j++)
                         {
-                            numElec += globalCount_e.getBasePointer()[j];
-                            mom2_SI
-                                += globalSumMom2.getBasePointer()[j] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
-                            pos2_SI += globalSumPos2.getBasePointer()[j] * UNIT_LENGTH * UNIT_LENGTH;
-                            mompos_SI += globalSumMomPos.getBasePointer()[j] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
+                            numElec += globalCount_e.data()[j];
+                            mom2_SI += globalSumMom2.data()[j] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
+                            pos2_SI += globalSumPos2.data()[j] * UNIT_LENGTH * UNIT_LENGTH;
+                            mompos_SI += globalSumMomPos.data()[j] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
                         }
                         float_64 ux2
                             = mom2_SI / (UNIT_SPEED * UNIT_SPEED * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);

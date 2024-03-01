@@ -24,7 +24,6 @@
 
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 
@@ -39,16 +38,12 @@ namespace pmacc
         }
     };
 
-    template<class TYPE, unsigned DIM>
-    class DeviceBuffer;
-
-    template<class TYPE, unsigned DIM>
+    template<typename T_DeviceBuffer>
     class TaskSetCurrentSizeOnDevice : public StreamTask
     {
     public:
-        TaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size) : StreamTask(), size(size)
+        TaskSetCurrentSizeOnDevice(T_DeviceBuffer& dst, size_t size) : StreamTask(), destination(&dst), size(size)
         {
-            this->destination = &dst;
         }
 
         ~TaskSetCurrentSizeOnDevice() override
@@ -78,13 +73,23 @@ namespace pmacc
     private:
         void setSize()
         {
-            auto sizePtr = destination->getCurrentSizeOnDevicePointer();
-            CUPLA_KERNEL(KernelSetValueOnDeviceMemory)(1, 1, 0, this->getCudaStream())(sizePtr, size);
+            auto sizeBuff = destination->getCurrentSizeOnDeviceBuffer();
+
+            auto alpakaAllOne = DataSpace<DIM1>(1).toAlpakaKernelVec();
+            auto oneThread
+                = alpaka::WorkDivMembers<AlpakaDim<DIM1>, IdxType>{alpakaAllOne, alpakaAllOne, alpakaAllOne};
+            auto setValueKernel = alpaka::createTaskKernel<Acc<DIM1>>(
+                oneThread,
+                KernelSetValueOnDeviceMemory{},
+                alpaka::getPtrNative(sizeBuff),
+                size);
+            auto queue = this->getCudaStream();
+            alpaka::enqueue(queue, setValueKernel);
 
             activate();
         }
 
-        DeviceBuffer<TYPE, DIM>* destination;
+        T_DeviceBuffer* destination;
         const size_t size;
     };
 

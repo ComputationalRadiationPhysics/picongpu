@@ -34,7 +34,7 @@
 
 namespace pmacc
 {
-    /** Manages a pool of cuplaEvent_t objects and gives access to them. */
+    /** Manages a pool of EventType objects and gives access to them. */
     class EventPool
     {
     public:

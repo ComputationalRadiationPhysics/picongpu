@@ -47,7 +47,8 @@ namespace pmacc
                     forEachCell(
                         [&](int32_t const linearIdx)
                         {
-                            int32_t const linearTid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
+                            int32_t const linearTid
+                                = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
                             if(linearTid >= size.productOfComponents())
                                 return;
 

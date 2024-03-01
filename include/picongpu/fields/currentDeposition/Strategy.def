@@ -193,7 +193,7 @@ namespace picongpu
              *
              * @tparam T_Acc the accelerator type
              */
-            template<typename T_Acc = cupla::AccThreadSeq>
+            template<typename T_Acc = pmacc::Acc<simDim>>
             struct GetDefaultStrategy
             {
                 using type = strategy::StridedCachedSupercells;
@@ -203,10 +203,10 @@ namespace picongpu
              *
              * @see GetDefaultStrategy
              */
-            template<typename T_Acc = cupla::AccThreadSeq>
+            template<typename T_Acc = pmacc::Acc<simDim>>
             using GetDefaultStrategy_t = typename GetDefaultStrategy<T_Acc>::type;
 
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED)
             template<typename... T_Args>
             struct GetDefaultStrategy<alpaka::AccGpuUniformCudaHipRt<alpaka::ApiCudaRt, T_Args...>>
             {
@@ -215,7 +215,7 @@ namespace picongpu
             };
 #endif
 
-#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_HIP_ENABLED)
             template<typename... T_Args>
             struct GetDefaultStrategy<alpaka::AccGpuUniformCudaHipRt<alpaka::ApiHipRt, T_Args...>>
             {

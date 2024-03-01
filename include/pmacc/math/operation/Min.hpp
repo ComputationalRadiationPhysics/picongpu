@@ -37,7 +37,7 @@ namespace pmacc
                 template<typename Dst, typename Src>
                 HDINLINE void operator()(Dst& dst, const Src& src) const
                 {
-                    dst = cupla::math::min(dst, src);
+                    dst = pmacc::math::min(dst, src);
                 }
 
                 template<typename Dst, typename Src, typename T_Worker>

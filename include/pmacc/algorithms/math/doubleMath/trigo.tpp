@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include "pmacc/math/math.hpp"
 #include "pmacc/types.hpp"
 
 #include <cfloat>
@@ -39,8 +40,8 @@ namespace pmacc
             HDINLINE void operator()(double arg, double& sinValue, double& cosValue)
             {
 #if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
-                sinValue = cupla::math::sin(arg);
-                cosValue = cupla::math::cos(arg);
+                sinValue = pmacc::math::sin(arg);
+                cosValue = pmacc::math::cos(arg);
 #else
                 ::sincos(arg, &sinValue, &cosValue);
 #endif
@@ -55,10 +56,10 @@ namespace pmacc
 
             HDINLINE double operator()(const double& value)
             {
-                if(cupla::math::abs(value) < DBL_EPSILON)
+                if(pmacc::math::abs(value) < DBL_EPSILON)
                     return 1.0;
                 else
-                    return cupla::math::sin(value) / value;
+                    return pmacc::math::sin(value) / value;
             }
         };
 

@@ -544,7 +544,7 @@ namespace picongpu
                         template<typename T_Worker>
                         DINLINE void addDeltaWeight(T_Worker const& worker, uint16_t index, float_X deltaWeight)
                         {
-                            cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), deltaWeight);
+                            alpaka::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), deltaWeight);
                         }
 
                         /** record energy taken/added from/to a given bin
@@ -562,7 +562,7 @@ namespace picongpu
                         template<typename T_Worker>
                         DINLINE void addDeltaEnergy(T_Worker const& worker, uint16_t index, float_X deltaEnergy)
                         {
-                            cupla::atomicAdd(worker.getAcc(), &(this->binDeltaEnergy[index]), deltaEnergy);
+                            alpaka::atomicAdd(worker.getAcc(), &(this->binDeltaEnergy[index]), deltaEnergy);
                         }
 
                         /** tries to reduce the weight of the specified bin by deltaWeight,
@@ -584,7 +584,7 @@ namespace picongpu
                             if(this->binWeight[index] + this->binDeltaWeight[index] - deltaWeight >= 0._X)
                             {
                                 // updates deltaWeight instead of binWeight
-                                cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), -deltaWeight);
+                                alpaka::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), -deltaWeight);
                                 return true;
                             }
                             return false;
@@ -594,7 +594,7 @@ namespace picongpu
                         template<typename T_Worker>
                         DINLINE void removeWeightFromBin(T_Worker const& worker, uint16_t index, float_X deltaWeight)
                         {
-                            cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), -deltaWeight);
+                            alpaka::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), -deltaWeight);
                         }
 
                         /** tries to add the delta energy to the specified bin, unless this
@@ -621,7 +621,7 @@ namespace picongpu
                                    + deltaEnergy
                                >= 0.0)
                             {
-                                cupla::atomicAdd(worker.getAcc(), &(this->binDeltaEnergy[index]), deltaEnergy);
+                                alpaka::atomicAdd(worker.getAcc(), &(this->binDeltaEnergy[index]), deltaEnergy);
                                 return true;
                             }
                             return false;
@@ -654,7 +654,7 @@ namespace picongpu
                             // the value, as another thread may contribute to the same bin
                             if(index < maxNumBins) // bin already exists
                             {
-                                cupla::atomicAdd(worker.getAcc(), &(this->binWeight[index]), weight);
+                                alpaka::atomicAdd(worker.getAcc(), &(this->binWeight[index]), weight);
                             }
                             else
                             {
@@ -662,10 +662,11 @@ namespace picongpu
 
                                 // get Index where to deposit it by atomic add to numNewBins
                                 // this assures that the same index is not used twice
-                                auto newBinIdx = cupla::atomicAdd<alpaka::hierarchy::Threads>(
+                                auto newBinIdx = alpaka::atomicAdd(
                                     worker.getAcc(),
                                     &numNewBins,
-                                    uint32_t(1u));
+                                    uint32_t(1u),
+                                    alpaka::hierarchy::Threads{});
                                 if(newBinIdx < maxNumNewBins)
                                 {
                                     newBinsWeights[newBinIdx] = weight;
@@ -712,17 +713,18 @@ namespace picongpu
                             // the value, as another thread may contribute to the same bin
                             if(index < maxNumBins) // bin already exists
                             {
-                                cupla::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), weight);
+                                alpaka::atomicAdd(worker.getAcc(), &(this->binDeltaWeight[index]), weight);
                             }
                             else
                             {
                                 // Otherwise we add it to a collection of new bins
                                 // get Index where to deposit it by atomic add to numNewBins
                                 // this assures that the same index is not used twice
-                                auto newBinIdx = cupla::atomicAdd<alpaka::hierarchy::Threads>(
+                                auto newBinIdx = alpaka::atomicAdd(
                                     worker.getAcc(),
                                     &numNewBins,
-                                    uint32_t(1u));
+                                    uint32_t(1u),
+                                    alpaka::hierarchy::Threads{});
                                 if(newBinIdx < maxNumNewBins)
                                 {
                                     newBinsWeights[newBinIdx] = weight;

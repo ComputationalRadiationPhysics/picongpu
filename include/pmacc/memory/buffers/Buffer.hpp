@@ -32,175 +32,200 @@
 
 namespace pmacc
 {
-    /**
-     * Minimal function description of a buffer,
+    /** Minimal function description of a buffer,
      *
-     * @tparam TYPE data type stored in the buffer
-     * @tparam DIM dimension of the buffer (1-3)
+     * @tparam T_Type data type stored in the buffer
+     * @tparam T_dim dimension of the buffer (1-3)
      */
-    template<class TYPE, unsigned DIM>
+    template<class T_Type, unsigned T_dim>
     class Buffer
     {
+    protected:
+        using CurrentSizeBufferHost = ::alpaka::Buf<HostDevice, size_t, AlpakaDim<DIM1>, MemIdxType>;
+        CurrentSizeBufferHost currentSizeBufferHost;
+        MemSpace<T_dim> capacity;
+
+    private:
+        Buffer(Buffer const&) = delete;
+        Buffer& operator=(Buffer const&) = delete;
+
     public:
-        using DataBoxType = DataBox<PitchedBox<TYPE, DIM>>;
+        using DataBoxType = DataBox<PitchedBox<T_Type, T_dim>>;
 
         /** constructor
          *
          * @param size extent for each dimension (in elements)
          *             if the buffer is a view to an existing buffer the size
          *             can be less than `physicalMemorySize`
-         * @param physicalMemorySize size of the physical memory (in elements)
          */
-        Buffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize)
-            : data_space(size)
-            , m_physicalMemorySize(physicalMemorySize)
-            , current_size(nullptr)
-            , data1D(true)
+        Buffer(MemSpace<T_dim> size)
+            : currentSizeBufferHost(alpaka::allocMappedBufIfSupported<size_t, MemIdxType>(
+                manager::Device<HostDevice>::get().current(),
+                manager::Device<ComputeDevice>::get().getPlatform(),
+                MemSpace<DIM1>(1).toAlpakaMemVec()))
+            , capacity(size)
+            , isMemoryContiguous(true)
         {
-            CUDA_CHECK(cuplaMallocHost((void**) &current_size, sizeof(size_t)));
-            *current_size = size.productOfComponents();
+            Buffer::setCurrentSize(size.productOfComponents());
         }
 
-        /**
-         * destructor
-         */
         virtual ~Buffer()
         {
-            CUDA_CHECK_NO_EXCEPT(cuplaFreeHost(current_size));
+            eventSystem::startOperation(ITask::TASK_HOST);
         }
 
-        /*! Get base pointer to memory
-         * @return pointer to this buffer in memory
+        /** get the capacity of the buffer
+         *
+         * @todo should be changed to MemSpace but we need to check if the values are used by MPI calls where
+         * currently int vector is assumed
          */
-        virtual TYPE* getBasePointer() = 0;
-
-        /*! Get pointer that includes all offsets
-         * @return pointer to a point in a memory array
-         */
-        virtual TYPE* getPointer() = 0;
-
-        /*! Get max spread (elements) of any dimension
-         * @return spread (elements) per dimension
-         */
-        virtual DataSpace<DIM> getDataSpace() const
+        DataSpace<T_dim> getDataSpace() const
         {
-            return data_space;
+            return capacity;
         }
 
-        /** get size of the physical memory (in elements)
+        /** give the plane C pointer to the data
+         *
+         * @attention Memory must be contiguous else the call will fail in debug mode.
+         *
+         * @return pointer to the data
          */
-        DataSpace<DIM> getPhysicalMemorySize() const
+        virtual T_Type* data() = 0;
+
+        /** get number of elements
+         *
+         * @return count of current elements per dimension
+         */
+        virtual size_t getCurrentSize()
         {
-            return m_physicalMemorySize;
+            eventSystem::startOperation(ITask::TASK_HOST);
+            return alpaka::getPtrNative(this->currentSizeBufferHost)[0];
         }
 
+        /** set total number of elements
+         *
+         * @param newSize number of elements per dimension
+         */
+        virtual void setCurrentSize(size_t const newSize)
+        {
+            eventSystem::startOperation(ITask::TASK_HOST);
+            PMACC_ASSERT(static_cast<size_t>(newSize) <= static_cast<size_t>(getDataSpace().productOfComponents()));
+            alpaka::getPtrNative(this->currentSizeBufferHost)[0] = newSize;
+        }
 
-        virtual DataSpace<DIM> getCurrentDataSpace()
+        /** Total number of elements mapped to the N-dimensional size of the buffer */
+        virtual MemSpace<T_dim> getCurrentDataSpace()
         {
             return getCurrentDataSpace(getCurrentSize());
         }
 
-        /*! Spread of memory per dimension which is currently used
+        /** Spread of memory per dimension which is currently used
+         *
          * @return if DIM == DIM1 than return count of elements (x-direction)
          * if DIM == DIM2 than return how many lines (y-direction) of memory is used
          * if DIM == DIM3 than return how many slides (z-direction) of memory is used
          */
-        virtual DataSpace<DIM> getCurrentDataSpace(size_t currentSize)
+        virtual MemSpace<T_dim> getCurrentDataSpace(size_t size)
         {
-            DataSpace<DIM> tmp;
-            auto current_size = static_cast<int64_t>(currentSize);
+            MemSpace<T_dim> tmp;
+            auto current_size = size;
 
             //!\todo: current size can be changed if it is a DeviceBuffer and current size is on device
             // call first get current size (but const not allow this)
 
-            if constexpr(DIM == DIM1)
+            if constexpr(T_dim == DIM1)
             {
                 tmp[0] = current_size;
             }
-            if constexpr(DIM == DIM2)
+            if constexpr(T_dim == DIM2)
             {
-                if(current_size <= data_space[0])
+                if(current_size <= capacity[0])
                 {
                     tmp[0] = current_size;
-                    tmp[1] = 1;
+                    tmp[1] = 1u;
                 }
                 else
                 {
-                    tmp[0] = data_space[0];
-                    tmp[1] = (current_size + data_space[0] - 1) / data_space[0];
+                    tmp[0] = capacity[0];
+                    tmp[1] = (current_size + capacity[0] - 1u) / capacity[0];
                 }
             }
-            if constexpr(DIM == DIM3)
+            if constexpr(T_dim == DIM3)
             {
-                if(current_size <= data_space[0])
+                if(current_size <= capacity[0])
                 {
                     tmp[0] = current_size;
-                    tmp[1] = 1;
-                    tmp[2] = 1;
+                    tmp[1] = 1u;
+                    tmp[2] = 1u;
                 }
-                else if(current_size <= (data_space[0] * data_space[1]))
+                else if(current_size <= (capacity[0] * capacity[1]))
                 {
-                    tmp[0] = data_space[0];
-                    tmp[1] = (current_size + data_space[0] - 1) / data_space[0];
-                    tmp[2] = 1;
+                    tmp[0] = capacity[0];
+                    tmp[1] = (current_size + capacity[0] - 1u) / capacity[0];
+                    tmp[2] = 1u;
                 }
                 else
                 {
-                    tmp[0] = data_space[0];
-                    tmp[1] = data_space[1];
-                    tmp[2] = (current_size + (data_space[0] * data_space[1]) - 1) / (data_space[0] * data_space[1]);
+                    tmp[0] = capacity[0];
+                    tmp[1] = capacity[1];
+                    tmp[2] = (current_size + (capacity[0] * capacity[1]) - 1u) / (capacity[0] * capacity[1]);
                 }
             }
 
             return tmp;
         }
 
-        /*! returns the current size (count of elements)
-         * @return current size
-         */
-        virtual size_t getCurrentSize()
-        {
-            eventSystem::startOperation(ITask::TASK_HOST);
-            return *current_size;
-        }
-
-        /*! sets the current size (count of elements)
-         * @param newsize new current size
-         */
-        virtual void setCurrentSize(const size_t newsize)
-        {
-            eventSystem::startOperation(ITask::TASK_HOST);
-            PMACC_ASSERT(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
-            *current_size = newsize;
-        }
-
+        /** set all data to zero and reset current size to the capacity of the container */
         virtual void reset(bool preserveData = false) = 0;
 
-        virtual void setValue(const TYPE& value) = 0;
+        /** set all data to the same value
+         *
+         * @param value value assigned to each element of the buffer
+         */
+        virtual void setValue(T_Type const& value) = 0;
 
-        virtual DataBox<PitchedBox<TYPE, DIM>> getDataBox() = 0;
+        /** get accessor to the container elements */
+        virtual DataBox<PitchedBox<T_Type, T_dim>> getDataBox() = 0;
 
-        inline bool is1D()
+        /** @return true if there are no paddings between rows of the data else false */
+        inline bool isContiguous()
         {
-            return data1D;
+            return isMemoryContiguous;
         }
+
+        struct CPtr
+        {
+            T_Type* ptr;
+            size_t size;
+
+            /** @return number of valid bytes the pointer is pointing to */
+            size_t sizeInBytes() const
+            {
+                return size * sizeof(T_Type);
+            }
+
+            /** @return reinterprets the pointer to char* */
+            char* asCharPtr() const
+            {
+                return reinterpret_cast<char*>(ptr);
+            }
+        };
+
+        /** Get a C representation of the full memory represented by the capacity.
+         *
+         * Memory must be contiguous else the call will fail in debug mode.
+         */
+        virtual CPtr getCPtrCapacity() = 0;
+
+        /** Get a C representation of the full memory represented by the current size.
+         *
+         * Memory must be contiguous else the call will fail in debug mode.
+         */
+        virtual CPtr getCPtrCurrentSize() = 0;
 
     protected:
-        /*! Check if my DataSpace is greater than other.
-         * @param other other DataSpace
-         * @return true if my DataSpace (one dimension) is greater than other, false otherwise
-         */
-        virtual bool isMyDataSpaceGreaterThan(DataSpace<DIM> other)
-        {
-            return !other.isOneDimensionGreaterThan(data_space);
-        }
-
-        DataSpace<DIM> data_space;
-        DataSpace<DIM> m_physicalMemorySize;
-
-        size_t* current_size;
-
-        bool data1D;
+        /** true if there are no paddings between rows else false */
+        bool isMemoryContiguous = true;
     };
 
 } // namespace pmacc

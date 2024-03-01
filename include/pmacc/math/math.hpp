@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,29 +22,13 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
-#include <cmath>
-
-
-namespace pmacc
-{
-    namespace math
-    {
-        template<>
-        struct Log10<float>
-        {
-            using result = float;
-
-            HDINLINE float operator()(const float& value)
-            {
-#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
-                return ::log10f(value);
-#else
-                return ::log10(value);
-#endif
-            }
-        };
-
-    } // namespace math
-} // namespace pmacc
+#include "pmacc/math/functions/Abs.hpp"
+#include "pmacc/math/functions/Comparison.hpp"
+#include "pmacc/math/functions/Erf.hpp"
+#include "pmacc/math/functions/Exp.hpp"
+#include "pmacc/math/functions/Log.hpp"
+#include "pmacc/math/functions/Mod.hpp"
+#include "pmacc/math/functions/Pow.hpp"
+#include "pmacc/math/functions/Root.hpp"
+#include "pmacc/math/functions/Round.hpp"
+#include "pmacc/math/functions/Trigo.hpp"

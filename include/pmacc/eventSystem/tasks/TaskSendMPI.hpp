@@ -43,12 +43,12 @@ namespace pmacc
 
         void init() override
         {
-            auto* src = exchange->getCommunicationBuffer();
+            auto cPtr = exchange->getCPtrCurrentSize();
 
             this->request = Environment<DIM>::get().EnvironmentController().getCommunicator().startSend(
                 exchange->getExchangeType(),
-                reinterpret_cast<char*>(src->getPointer()),
-                src->getCurrentSize() * sizeof(TYPE),
+                cPtr.asCharPtr(),
+                cPtr.sizeInBytes(),
                 exchange->getCommunicationTag());
         }
 

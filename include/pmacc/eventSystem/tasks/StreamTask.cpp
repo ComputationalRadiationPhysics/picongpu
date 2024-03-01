@@ -24,7 +24,6 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/assert.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
 
 namespace pmacc
 {
@@ -74,7 +73,7 @@ namespace pmacc
         this->stream = newStream;
     }
 
-    cuplaStream_t StreamTask::getCudaStream()
+    AccStream StreamTask::getCudaStream()
     {
         if(stream == nullptr)
             stream = eventSystem::getEventStream(TASK_DEVICE);

@@ -87,45 +87,43 @@ if(NOT DEFINED alpaka_CXX_STANDARD)
 endif()
 
 ################################################################################
-# Find cupla
+# setup alpaka
 ################################################################################
 
-# set path to internal
-set(PMACC_CUPLA_PROVIDER "intern" CACHE STRING "Select which cupla is used")
-set_property(CACHE PMACC_CUPLA_PROVIDER PROPERTY STRINGS "intern;extern")
-mark_as_advanced(PMACC_CUPLA_PROVIDER)
+# the min and max. supported alpaka version is also copied to the cuplaConfig.cmake
+set(_PMACC_MIN_ALPAKA_VERSION 1.0.0)
+set(_PMACC_MAX_ALPAKA_VERSION 1.1.0)
 
-# force activate CUDA backend if CMAKE_CUDA_ARCHITECTURES is defined
-if(
-(CMAKE_CUDA_ARCHITECTURES) AND
-(NOT alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE) AND
-(NOT alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE) AND
-(NOT alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE) AND
-(NOT alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE) AND
-(NOT alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE) AND
-(NOT alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE) AND
-(NOT alpaka_ACC_CPU_BT_OMP4_ENABLE)
-)
-    option(alpaka_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" ON)
-    option(alpaka_ACC_GPU_CUDA_ONLY_MODE
-            "Only back-ends using CUDA can be enabled in this mode \
-        (This allows to mix alpaka code with native CUDA code)."
-            ON)
-endif()
+# do not search for alpaka if it already exists
+# for example, a project that includes alpaka via add_subdirectory before including pmacc via add_subdirectory
+if(NOT TARGET alpaka::alpaka)
+    # the alpaka provider for the internal alpaka is only available,
+    # if pmacc is used via add_subdirectory in another project
+    # or examples are build
 
-if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
-    add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla ${CMAKE_BINARY_DIR}/cupla)
-else()
-    find_package("cupla" PATHS $ENV{CUPLA_ROOT} REQUIRED)
-endif()
+    set(PMACC_ALPAKA_PROVIDER "internal" CACHE STRING "Select which alpaka is used")
+    set_property(CACHE PMACC_ALPAKA_PROVIDER PROPERTY STRINGS "internal;external")
+    mark_as_advanced(PMACC_ALPAKA_PROVIDER)
 
-# disable CUDA only mode if cuda backend is disabled
-if((NOT alpaka_ACC_GPU_CUDA_ENABLE) AND alpaka_ACC_GPU_CUDA_ONLY_MODE)
-    set(alpaka_ACC_GPU_CUDA_ONLY_MODE OFF CACHE BOOL
-            "Only back-ends using CUDA can be enabled in this mode \
-        (This allows to mix alpaka code with native CUDA code)."
-            FORCE)
-    message(WARNING "alpaka_ACC_GPU_CUDA_ONLY_MODE is set to OFF because cuda backend is not activated")
+    if(${PMACC_ALPAKA_PROVIDER} STREQUAL "internal")
+        set(alpaka_BUILD_EXAMPLES OFF)
+        set(BUILD_TESTING OFF)
+        add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla/alpaka ${CMAKE_BINARY_DIR}/alpaka)
+    else()
+        find_package(alpaka ${_PMACC_MAX_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
+        if(NOT TARGET alpaka::alpaka)
+            message(STATUS "Could not find alpaka ${_PMACC_MAX_ALPAKA_VERSION}. Now searching for alpaka ${_PMACC_MIN_ALPAKA_VERSION}")
+            find_package(alpaka ${_PMACC_MIN_ALPAKA_VERSION} REQUIRED HINTS $ENV{ALPAKA_ROOT})
+        endif()
+        if(alpaka_VERSION VERSION_GREATER _PMACC_MAX_ALPAKA_VERSION)
+            message(WARNING "Unsupported alpaka version ${alpaka_VERSION}. "
+                    "Supported versions [${_PMACC_MIN_ALPAKA_VERSION},${_PMACC_MAX_ALPAKA_VERSION}].")
+        endif()
+    endif()
+
+    if(NOT TARGET alpaka::alpaka)
+        message(FATAL_ERROR "Required PMacc dependency alpaka could not be found!")
+    endif()
 endif()
 
 ################################################################################
@@ -151,7 +149,7 @@ target_include_directories(pmacc
 set_target_properties(pmacc PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(pmacc::pmacc ALIAS pmacc)
-target_link_libraries(pmacc PUBLIC cupla::cupla)
+target_link_libraries(pmacc PUBLIC alpaka::alpaka)
 
 # Create traget pmacc::filesystem to handle system where std::filesystem is experimental.
 # e.g. on systems with an old libstdc++ <= 7
@@ -395,6 +393,10 @@ endif()
 # PMacc options
 ################################################################################
 
+option(PMACC_ASYNC_QUEUES "Enable asynchronous alpaka queues" ON)
+if(PMACC_ASYNC_QUEUES)
+    target_compile_definitions(pmacc PUBLIC "PMACC_USE_ASYNC_QUEUES=1")
+endif()
 option(PMACC_BLOCKING_KERNEL
     "activate checks for every kernel call and synch after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)

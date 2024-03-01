@@ -129,7 +129,7 @@ include_directories(include)
 
 file(GLOB SRCFILES "*.cpp")
 
-cupla_add_executable(gameOfLife
+alpaka_add_executable(gameOfLife
     ${SRCFILES}
 )
 

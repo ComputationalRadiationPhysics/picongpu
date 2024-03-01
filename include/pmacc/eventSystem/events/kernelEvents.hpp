@@ -37,6 +37,18 @@ namespace pmacc::exec
 {
     namespace detail
     {
+        template<typename T, typename T_Sfinae = void>
+        struct GetDim
+        {
+            static constexpr uint32_t dim = T::dim;
+        };
+
+        template<typename T>
+        struct GetDim<T, std::enable_if_t<std::is_integral_v<T>>>
+        {
+            static constexpr uint32_t dim = 1;
+        };
+
         /** Wraps a user kernel functor to prepare the execution on the device.
          *
          * This objects contains the kernel functor, kernel meta information.
@@ -72,7 +84,7 @@ namespace pmacc::exec
              */
             template<typename T_VectorGrid, typename T_VectorBlock>
             HINLINE auto operator()(T_VectorGrid const& gridExtent, T_VectorBlock const& blockExtent) const
-                -> KernelLauncher<T_KernelFunctor>;
+                -> KernelLauncher<T_KernelFunctor, GetDim<T_VectorGrid>::dim>;
 
             /**
              * @param sharedMemByte dynamic shared memory used by the kernel (in byte)
@@ -81,7 +93,8 @@ namespace pmacc::exec
             HINLINE auto operator()(
                 T_VectorGrid const& gridExtent,
                 T_VectorBlock const& blockExtent,
-                size_t const sharedMemByte) const -> KernelLauncher<KernelWithDynSharedMem<T_KernelFunctor>>;
+                size_t const sharedMemByte) const
+                -> KernelLauncher<KernelWithDynSharedMem<T_KernelFunctor>, GetDim<T_VectorGrid>::dim>;
             /**@}*/
         };
     } // namespace detail

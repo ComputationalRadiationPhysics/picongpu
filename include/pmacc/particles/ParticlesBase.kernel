@@ -79,7 +79,7 @@ namespace pmacc
             using FramePtr = typename T_ParBox::FramePtr;
 
             DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())));
+                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
 
             PMACC_SMEM(worker, lastFrame, FramePtr);
             PMACC_SMEM(worker, gapIndices_sh, memory::Array<int, frameSize>);
@@ -202,7 +202,7 @@ namespace pmacc
             constexpr uint32_t dim = T_Mapping::Dim;
 
             DataSpace<dim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc()))));
+                mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc()))));
 
             // data copied from right (last) to left (first)
             PMACC_SMEM(worker, firstFrame, FramePtr);
@@ -406,7 +406,7 @@ namespace pmacc
             PMACC_SMEM(worker, isProcessedSupercell, bool);
 
             DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())));
+                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
 
             lockstep::makeMaster(worker)(
                 [&]()
@@ -487,7 +487,7 @@ namespace pmacc
                             int direction = frameIter[idx % frameSize][multiMask_] - 2;
                             if(direction >= 0)
                             {
-                                destParticleIdx = cupla::atomicAdd(
+                                destParticleIdx = alpaka::atomicAdd(
                                     lockstepWorker.getAcc(),
                                     &(destFramesCounter[direction]),
                                     1u,
@@ -658,7 +658,7 @@ namespace pmacc
             constexpr uint32_t frameSize = ParticleBox::frameSize;
 
             DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())));
+                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
 
             PMACC_SMEM(worker, frame, FramePtr);
 
@@ -735,7 +735,7 @@ namespace pmacc
             using FramePtr = typename T_ParBox::FramePtr;
 
             DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(worker.getAcc())));
+                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
 
             // number of particles in the current handled frame
             PMACC_SMEM(worker, numParticles, int);
@@ -889,7 +889,7 @@ namespace pmacc
             onlyMaster(
                 [&](auto& compressedSuperCellIdx)
                 {
-                    exchangeChunk = exchangeBox.get(cupla::blockIdx(worker.getAcc()).x, compressedSuperCellIdx);
+                    exchangeChunk = exchangeBox.get(device::getBlockIdx(worker.getAcc()).x(), compressedSuperCellIdx);
                     elementCount = exchangeChunk.getSize();
                     if(elementCount > 0u)
                     {

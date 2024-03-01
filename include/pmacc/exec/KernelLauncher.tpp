@@ -38,16 +38,16 @@
  * this flag must set by the compiler or inside of the Makefile
  */
 #if(PMACC_SYNC_KERNEL == 1)
-#    define CUDA_CHECK_KERNEL_MSG(...) CUDA_CHECK_MSG(__VA_ARGS__)
+#    define PMACC_CHECK_KERNEL_MSG(...) PMACC_CHECK_ALPAKA_CALL_MSG(__VA_ARGS__)
 #else
 /*no synchronize and check of kernel calls*/
-#    define CUDA_CHECK_KERNEL_MSG(...) ;
+#    define PMACC_CHECK_KERNEL_MSG(...) ;
 #endif
 
 
 namespace pmacc::exec::detail
 {
-    template<typename T_Kernel>
+    template<typename T_Kernel, uint32_t T_dim>
     struct KernelLauncher
     {
         //! kernel functor
@@ -55,9 +55,9 @@ namespace pmacc::exec::detail
         //! Debug meta data for the kernel functor.
         KernelMetaData const m_metaData;
         //! grid extents for the kernel
-        cupla::dim3 const m_gridExtent;
+        math::Vector<IdxType, T_dim> const m_gridExtent;
         //! block extents for the kernel
-        cupla::dim3 const m_blockExtent;
+        math::Vector<IdxType, T_dim> const m_blockExtent;
 
         /** kernel starter object
          *
@@ -71,8 +71,8 @@ namespace pmacc::exec::detail
             T_VectorBlock const& blockExtent)
             : m_kernel(kernel)
             , m_metaData(kernelMetaData)
-            , m_gridExtent(DataSpace<traits::GetNComponents<T_VectorGrid>::value>(gridExtent).toDim3())
-            , m_blockExtent(DataSpace<traits::GetNComponents<T_VectorBlock>::value>(blockExtent).toDim3())
+            , m_gridExtent(gridExtent)
+            , m_blockExtent(blockExtent)
         {
         }
 
@@ -90,7 +90,8 @@ namespace pmacc::exec::detail
             std::string const kernelInfo = kernelName + std::string(" [") + m_metaData.getFile() + std::string(":")
                 + std::to_string(m_metaData.getLine()) + std::string(" ]");
 
-            CUDA_CHECK_KERNEL_MSG(cuplaDeviceSynchronize(), std::string("Crash before kernel call ") + kernelInfo);
+            PMACC_CHECK_KERNEL_MSG(alpaka::wait(manager::Device<ComputeDevice>::get().current());
+                                   , std::string("Crash before kernel call ") + kernelInfo);
 
             pmacc::TaskKernel* taskKernel = pmacc::Environment<>::get().Factory().createTaskKernel(kernelName);
 
@@ -101,24 +102,24 @@ namespace pmacc::exec::detail
              * @todo find a better way to write this part of code, in general alpaka understands PMacc vectors but
              * PMacc has no easy way t cast integral numbers to an 3-dimensional vector.
              */
-            auto gridExtent = cupla::IdxVec3(m_gridExtent.z, m_gridExtent.y, m_gridExtent.x);
-            auto blockExtent = cupla::IdxVec3(m_blockExtent.z, m_blockExtent.y, m_blockExtent.x);
-            auto elemExtent = cupla::IdxVec3::ones();
+            auto gridExtent = m_gridExtent.toAlpakaKernelVec();
+            auto blockExtent = m_blockExtent.toAlpakaKernelVec();
+            auto elemExtent = math::Vector<IdxType, T_dim>::create(1).toAlpakaKernelVec();
             auto workDiv
-                = ::alpaka::WorkDivMembers<cupla::KernelDim, cupla::IdxType>(gridExtent, blockExtent, elemExtent);
+                = ::alpaka::WorkDivMembers<::alpaka::DimInt<T_dim>, IdxType>(gridExtent, blockExtent, elemExtent);
 
             auto const kernelTask
-                = ::alpaka::createTaskKernel<cupla::Acc>(workDiv, m_kernel, std::forward<T_Args>(args)...);
+                = ::alpaka::createTaskKernel<Acc<T_dim>>(workDiv, m_kernel, std::forward<T_Args>(args)...);
 
-            auto cuplaStream = taskKernel->getCudaStream();
-            auto& stream = cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(cuplaStream);
+            auto queue = taskKernel->getCudaStream();
 
-            ::alpaka::enqueue(stream, kernelTask);
+            ::alpaka::enqueue(queue, kernelTask);
 
-            CUDA_CHECK_KERNEL_MSG(cuplaGetLastError(), std::string("Last error after kernel launch ") + kernelInfo);
-            CUDA_CHECK_KERNEL_MSG(cuplaDeviceSynchronize(), std::string("Crash after kernel launch ") + kernelInfo);
+            PMACC_CHECK_KERNEL_MSG(alpaka::wait(manager::Device<ComputeDevice>::get().current());
+                                   , std::string("Crash after kernel launch ") + kernelInfo);
             taskKernel->activateChecks();
-            CUDA_CHECK_KERNEL_MSG(cuplaDeviceSynchronize(), std::string("Crash after kernel activation") + kernelInfo);
+            PMACC_CHECK_KERNEL_MSG(alpaka::wait(manager::Device<ComputeDevice>::get().current());
+                                   , std::string("Crash after kernel activation") + kernelInfo);
         }
     };
 

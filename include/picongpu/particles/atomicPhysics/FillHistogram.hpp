@@ -54,7 +54,7 @@ namespace picongpu
                 T_AtomicDataBox atomicDataBox)
             {
                 pmacc::DataSpace<simDim> const superCellIdx(
-                    mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+                    mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
 
                 auto frame = electronBox.getLastFrame(superCellIdx);
                 auto particlesInSuperCell = electronBox.getSuperCell(superCellIdx).getSizeLastFrame();

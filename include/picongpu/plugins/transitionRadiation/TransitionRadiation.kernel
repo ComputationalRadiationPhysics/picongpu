@@ -117,9 +117,7 @@ namespace picongpu
                     // radiation calculation
                     PMACC_SMEM(worker, counter_s, int);
 
-
-                    int const theta_idx
-                        = cupla::blockIdx(worker.getAcc()).x; // cupla::blockIdx(acc).x is used to determine theta
+                    int const theta_idx = device::getBlockIdx(worker.getAcc()).x();
 
                     // looking direction (needed for observer) used in the thread
                     float3_X const look = transitionRadiation::observationDirection(theta_idx);

@@ -32,6 +32,7 @@
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/methods/AlpakaRand.hpp>
+#include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/types.hpp>
 
 #include <cstdint>
@@ -66,7 +67,8 @@ namespace pmacc
                     forEachCell(
                         [&](int32_t const linearIdx)
                         {
-                            uint32_t const linearTid = cupla::blockIdx(worker.getAcc()).x * T_blockSize + linearIdx;
+                            int32_t const linearTid
+                                = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
 
                             if(linearTid >= boxSize.productOfComponents())
                                 return;
@@ -78,7 +80,7 @@ namespace pmacc
                             for(uint32_t i = 0u; i < numSamples; i++)
                             {
                                 Space2D idx = vWorkerRand(worker, boxSize);
-                                cupla::atomicAdd(worker.getAcc(), &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
+                                alpaka::atomicAdd(worker.getAcc(), &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
                             }
                         });
                 }
@@ -111,7 +113,7 @@ namespace pmacc
                 }
 
             private:
-                PMACC_ALIGN8(rand, Random);
+                Random rand;
             };
 
             /** Write in PGM grayscale file format (easy to read/interpret) */
@@ -165,38 +167,26 @@ namespace pmacc
                 T_DeviceBuffer& buffer,
                 const T_Random& rand)
             {
-                cuplaEvent_t start, stop;
-                CUDA_CHECK(cuplaEventCreate(&start));
-                CUDA_CHECK(cuplaEventCreate(&stop));
+                pmacc::TimeIntervall timer;
+                timer.toggleStart();
 
                 constexpr uint32_t blockSize = 256;
 
                 uint32_t gridSize = (rngSize.productOfComponents() + blockSize - 1u) / blockSize;
 
-                CUDA_CHECK(cuplaEventRecord(
-                    start,
-                    /* we need to pass a stream to avoid that we record the event in
-                     * an empty or wrong stream
-                     */
-                    pmacc::eventSystem::getEventStream(pmacc::ITask::TASK_DEVICE)->getCudaStream()));
+                eventSystem::getTransactionEvent().waitForFinished();
+                timer.toggleStart();
 
                 auto workerCfg = lockstep::makeWorkerCfg<blockSize>();
 
                 PMACC_LOCKSTEP_KERNEL(RandomFiller<blockSize>{}, workerCfg)
                 (gridSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
 
-                CUDA_CHECK(cuplaEventRecord(
-                    stop,
-                    /* we need to pass a stream to avoid that we record the event in
-                     * an empty or wrong stream
-                     */
-                    pmacc::eventSystem::getEventStream(pmacc::ITask::TASK_DEVICE)->getCudaStream()));
-                CUDA_CHECK(cuplaEventSynchronize(stop));
-                float milliseconds = 0;
-                CUDA_CHECK(cuplaEventElapsedTime(&milliseconds, start, stop));
+                eventSystem::getTransactionEvent().waitForFinished();
+                timer.toggleEnd();
+
+                float milliseconds = timer.getInterval();
                 std::cout << "Done in " << milliseconds << "ms" << std::endl;
-                CUDA_CHECK(cuplaEventDestroy(start));
-                CUDA_CHECK(cuplaEventDestroy(stop));
             }
 
             template<class T_Method>
@@ -255,7 +245,7 @@ namespace pmacc
                 // Expected value: (n-1)/2
                 double Ex = (size.productOfComponents() - 1) / 2.;
                 // Variance: (n^2 - 1) / 12
-                double var = (cupla::pow(static_cast<double>(size.productOfComponents()), 2.0) - 1.) / 12.;
+                double var = (math::pow(static_cast<double>(size.productOfComponents()), 2.0) - 1.) / 12.;
                 // Mean value
                 mean /= totalNumSamples;
                 double errSq = 0;
@@ -267,7 +257,7 @@ namespace pmacc
                         Space2D idx(x, y);
                         uint32_t val = box(idx);
                         errSq += val
-                            * cupla::pow(
+                            * math::pow(
                                      static_cast<double>(pmacc::math::linearize(size.shrink<1>(1), idx) - mean),
                                      2.0);
                     }
@@ -298,7 +288,7 @@ int main(int argc, char** argv)
 
     const uint32_t numSamples = (argc > 1) ? atoi(argv[1]) : 100;
 
-    runTest<random::methods::AlpakaRand<cupla::Acc>>(numSamples);
+    runTest<random::methods::AlpakaRand<pmacc::Acc<DIM1>>>(numSamples);
 
     /* finalize the pmacc context */
     Environment<>::get().finalize();

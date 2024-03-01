@@ -915,7 +915,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 auto& buffer = rngProvider->getStateBuffer();
                 // getPointer() will wait for device->host transfer
-                ValueType* nativePtr = buffer.getHostBuffer().getPointer();
+                ValueType* nativePtr = buffer.getHostBuffer().data();
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
                 mrc.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
                 params->openPMDSeries->flush(PreferredFlushTarget::Disk);
@@ -963,7 +963,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 recordOffsetDims[0] *= sizeof(ValueType);
 
                 auto& buffer = rngProvider->getStateBuffer();
-                ValueType* nativePtr = buffer.getHostBuffer().getPointer();
+                ValueType* nativePtr = buffer.getHostBuffer().data();
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
                 /* Explicit template parameters to asStandardVector required
                  * as we need to change the element type as well
@@ -1365,7 +1365,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         = std::max(0, mThreadParams.window.globalDimensions.offset[i] - localDomain.offset[i]);
                 }
 
-#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
                 /* copy species only one time per timestep to the host */
                 if(mThreadParams.strategy == WriteSpeciesStrategy::ADIOS && lastSpeciesSyncStep != currentStep)
                 {

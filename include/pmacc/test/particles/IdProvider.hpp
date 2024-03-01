@@ -52,7 +52,7 @@ namespace pmacc
                 {
                     using namespace ::pmacc;
 
-                    uint32_t const blockId = cupla::blockIdx(worker.getAcc()).x * T_numIdsPerBlock;
+                    uint32_t const blockId = device::getBlockIdx(worker.getAcc()).x() * T_numIdsPerBlock;
 
                     lockstep::makeForEach<T_numIdsPerBlock>(worker)(
                         [&](uint32_t const linearId)

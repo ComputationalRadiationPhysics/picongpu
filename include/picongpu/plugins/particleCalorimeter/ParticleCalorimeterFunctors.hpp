@@ -145,7 +145,7 @@ namespace picongpu
                     energyBin = energyBin > 0 ? energyBin : 0;
                 }
 
-                cupla::atomicAdd(
+                alpaka::atomicAdd(
                     worker.getAcc(),
                     &this->m_calorimeterBox(DataSpace<DIM3>(yawBin, pitchBin, energyBin)),
                     energy * normedWeighting,

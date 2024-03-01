@@ -28,6 +28,7 @@
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <cstdint>
+#include <memory>
 
 
 namespace picongpu
@@ -244,7 +245,7 @@ namespace picongpu
                     size[0] = detail::getOuterLayerBoxLinearSize(gridLayout, globalThickness);
                     auto const guardSize = pmacc::DataSpace<simDim>::create(0);
                     auto const layout = pmacc::GridLayout<simDim>(size, guardSize);
-                    data.reset(new Buffer(layout));
+                    data = std::make_unique<Buffer>(layout);
                 }
 
                 Field::Buffer& Field::getGridBuffer()

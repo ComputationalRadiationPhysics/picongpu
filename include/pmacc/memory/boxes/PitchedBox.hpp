@@ -66,16 +66,13 @@ namespace pmacc
          *
          * @tparam T_MemoryIdxType Index type
          * @param pointer pointer to the memory
-         * @param extent extent of the memory in elements
-         * @param pitch line pitch in bytes
+         * @param pitchBytes pitch in bytes per dimension
          */
         template<typename T_MemoryIdxType>
-        HDINLINE PitchedBox(ValueType* pointer, math::Vector<T_MemoryIdxType, T_dim> const& extent, size_t const pitch)
+        HDINLINE PitchedBox(ValueType* pointer, math::Vector<T_MemoryIdxType, T_dim> const& pitchBytes)
             : m_ptr(pointer)
+            , m_pitch(pitchBytes.template shrink<T_dim - 1u>(1u))
         {
-            m_pitch.x() = pitch;
-            for(uint32_t d = 1; d < T_dim - 1; ++d)
-                m_pitch[d] = m_pitch[d - 1u] * static_cast<size_t>(extent[d]);
         }
 
         PitchedBox(PitchedBox const&) = default;
@@ -164,14 +161,10 @@ namespace pmacc
          *
          * @tparam T_MemoryIdxType Index type
          * @param pointer pointer to the memory
-         * @param extent extent of the memory in elements
-         * @param pitch line pitch in bytes
+         * @param pitchBytes pitch in bytes per dimension
          */
         template<typename T_MemoryIdxType>
-        HDINLINE PitchedBox(
-            ValueType* pointer,
-            [[maybe_unused]] math::Vector<T_MemoryIdxType, DIM1> const& extent,
-            [[maybe_unused]] size_t const pitch)
+        HDINLINE PitchedBox(ValueType* pointer, [[maybe_unused]] math::Vector<T_MemoryIdxType, DIM1> const& pitchBytes)
             : m_ptr(pointer)
         {
         }

@@ -56,7 +56,7 @@ namespace pmacc
                             const Data value = 255;
                             hostBuffer.setValue(value);
 
-                            auto ptr = hostBuffer.getPointer();
+                            auto ptr = hostBuffer.data();
                             for(size_t j = 0; j < static_cast<size_t>(dataSpace.productOfComponents()); ++j)
                             {
                                 REQUIRE(ptr[j] == value);

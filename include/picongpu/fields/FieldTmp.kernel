@@ -81,8 +81,7 @@ namespace picongpu
             using FramePtr = typename T_ParBox::FramePtr;
             using SuperCellSize = typename T_BlockDescription::SuperCellSize;
 
-            DataSpace<simDim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
             auto accFilter = particleFilter(worker, superCellIdx - mapper.getGuardingSuperCells());
 
             namespace particleAccAlgos = pmacc::particles::algorithm::acc;
@@ -136,8 +135,7 @@ namespace picongpu
         DINLINE void operator()(T_Worker const& worker, T_Mapper const mapper, T_Box1 box1, T_Box2 const& box2) const
         {
             // Shift the fields to the supercell processed by current block.
-            DataSpace<simDim> const block(
-                mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc()))));
+            DataSpace<simDim> const block(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
             DataSpace<simDim> const blockCell = block * T_SuperCellSize::toRT();
             auto box1Block = box1.shift(blockCell);
             auto box2Block = box2.shift(blockCell);

@@ -78,8 +78,7 @@ namespace picongpu
                     uint32_t const minMacroparticlesPerSupercell,
                     T_EstimateBox estimateBox) const
                 {
-                    auto const supercellIdx
-                        = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
+                    auto const supercellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
                     auto& supercell = electronBox.getSuperCell(supercellIdx);
                     if(supercell.getNumParticles() >= minMacroparticlesPerSupercell)
                         process(worker, electronBox, supercellIdx, estimateBox);
@@ -142,19 +141,19 @@ namespace picongpu
                             supercellSumMomentumSquared = float3_64::create(0.0);
                         });
                     worker.sync();
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &supercellSumWeighting,
                         sumWeighting,
                         ::alpaka::hierarchy::Threads{});
                     for(uint32_t d = 0; d < 3; d++)
                     {
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             worker.getAcc(),
                             &(supercellSumMomentum[d]),
                             sumMomentum[d],
                             ::alpaka::hierarchy::Threads{});
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             worker.getAcc(),
                             &(supercellSumMomentumSquared[d]),
                             sumMomentumSquared[d],
@@ -223,28 +222,28 @@ namespace picongpu
                         maxCellSize = math::max(maxCellSize, cellSize[d]);
                     bool const isDebyeLengthUnderOneCell = (debyeLength < maxCellSize);
 
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(estimateBox(0).numUsedSupercells),
                         1u,
                         ::alpaka::hierarchy::Blocks{});
                     if(isDebyeLengthUnderOneCell)
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             worker.getAcc(),
                             &(estimateBox(0).numFailingSupercells),
                             1u,
                             ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(estimateBox(0).sumWeighting),
                         sumWeighting,
                         ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(estimateBox(0).sumTemperatureKeV),
                         sumWeighting * temperatureKeV,
                         ::alpaka::hierarchy::Blocks{});
-                    cupla::atomicAdd(
+                    alpaka::atomicAdd(
                         worker.getAcc(),
                         &(estimateBox(0).sumDebyeLength),
                         sumWeighting * debyeLength,

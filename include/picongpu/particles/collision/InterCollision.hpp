@@ -137,8 +137,7 @@ namespace picongpu::particles::collision
             constexpr bool ifTimesCollided = !std::is_same<T_TimesCollidedBox, std::nullptr_t>::value;
             constexpr bool ifDebug = ifAverageLog && ifAverageSParam && ifTimesCollided;
 
-            DataSpace<simDim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(worker.getAcc())));
+            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
 
             auto& superCell0 = pb0.getSuperCell(superCellIdx);
             uint32_t numParticles0 = superCell0.getNumParticles();
@@ -228,17 +227,17 @@ namespace picongpu::particles::collision
                         const auto timesUsed = static_cast<uint64_t>(collisionFunctor.timesUsed);
                         if(timesUsed > 0u)
                         {
-                            cupla::atomicAdd(
+                            alpaka::atomicAdd(
                                 worker.getAcc(),
                                 &sumCoulombLogBlock,
                                 static_cast<float_X>(collisionFunctor.sumCoulombLog),
                                 ::alpaka::hierarchy::Threads{});
-                            cupla::atomicAdd(
+                            alpaka::atomicAdd(
                                 worker.getAcc(),
                                 &sumSParamBlock,
                                 static_cast<float_X>(collisionFunctor.sumSParam),
                                 ::alpaka::hierarchy::Threads{});
-                            cupla::atomicAdd(
+                            alpaka::atomicAdd(
 
                                 worker.getAcc(),
                                 &timesCollidedBlock,
@@ -253,17 +252,17 @@ namespace picongpu::particles::collision
                 onlyMaster(
                     [&]()
                     {
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             worker.getAcc(),
                             &(sumCoulombLogBox[0]),
                             sumCoulombLogBlock,
                             ::alpaka::hierarchy::Blocks{});
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             worker.getAcc(),
                             &(sumSParamBox[0]),
                             sumSParamBlock,
                             ::alpaka::hierarchy::Blocks{});
-                        cupla::atomicAdd(
+                        alpaka::atomicAdd(
                             worker.getAcc(),
                             &(timesCollidedBox[0]),
                             timesCollidedBlock,
@@ -403,19 +402,19 @@ namespace picongpu::particles::collision
                 reduce(
                     pmacc::math::operation::Add(),
                     &reducedAverageCoulombLog,
-                    sumCoulombLog.getHostBuffer().getBasePointer(),
+                    sumCoulombLog.getHostBuffer().data(),
                     1,
                     mpi::reduceMethods::Reduce());
                 reduce(
                     pmacc::math::operation::Add(),
                     &reducedSParam,
-                    sumSParam.getHostBuffer().getBasePointer(),
+                    sumSParam.getHostBuffer().data(),
                     1,
                     mpi::reduceMethods::Reduce());
                 reduce(
                     pmacc::math::operation::Add(),
                     &reducedTimesCollided,
-                    timesCollided.getHostBuffer().getBasePointer(),
+                    timesCollided.getHostBuffer().data(),
                     1,
                     mpi::reduceMethods::Reduce());
 

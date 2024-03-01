@@ -64,7 +64,7 @@ struct StencilFourPoint
             typename pmacc::math::CT::make_Int<SuperCellSize::dim, 1>::type>;
 
         pmacc::DataSpace<DIM2> const block(
-            mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(cupla::blockIdx(worker.getAcc()))));
+            mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(pmacc::device::getBlockIdx(worker.getAcc()))));
         pmacc::DataSpace<DIM2> const blockCell = block * T_Mapping::SuperCellSize::toRT();
 
         constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -100,7 +100,7 @@ struct StencilFourPoint
                 }
                 stencil_sum = alpha * dt * 0.25 * (stencil_sum - 4 * cache(cellIdx)) / (dx * dx);
 
-                cupla::atomicAdd(
+                alpaka::atomicAdd(
                     worker.getAcc(),
                     &(boxResidual[0]),
                     pmacc::math::cPow<float>(stencil_sum, 2u),

@@ -112,7 +112,7 @@ namespace pmacc
                                 /* apply for work for the full block, counter[0] contains the
                                  * offset in srcFrame to load N particles
                                  */
-                                sharedSrcParticleOffset = cupla::atomicAdd(
+                                sharedSrcParticleOffset = alpaka::atomicAdd(
                                     worker.getAcc(),
                                     &(counter[0]),
                                     particlesPerFrame,

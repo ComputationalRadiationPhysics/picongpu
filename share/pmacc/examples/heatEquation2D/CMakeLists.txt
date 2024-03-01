@@ -128,7 +128,7 @@ include_directories(include)
 
 file(GLOB SRCFILES "*.cpp")
 
-cupla_add_executable(heatEq
+alpaka_add_executable(heatEq
     ${SRCFILES}
 )
 

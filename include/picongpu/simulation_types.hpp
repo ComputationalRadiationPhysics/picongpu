@@ -25,12 +25,12 @@
 #include <pmacc/algorithms/PromoteType.hpp>
 #include <pmacc/algorithms/TypeCast.hpp>
 #include <pmacc/algorithms/math.hpp>
+#include <pmacc/math/math.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 #include <pmacc/traits/NumberOfExchanges.hpp>
 
-#include <cupla/device/math.hpp>
 
 namespace picongpu
 {
@@ -44,7 +44,7 @@ namespace picongpu
         using precisionType = double;
     }
 
-    namespace math = cupla::device::math;
+    namespace math = pmacc::math;
     /** g++ 9 creates compile issues when pulling definitions into picongpu namepsace via 'using namespace
      * pmacc::algorithms::precisionCast;' therefore we pull the class and function separate
      */

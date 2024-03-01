@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,26 +22,13 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include "pmacc/math/functions/Common.hpp"
 
-#include <cmath>
+#include <alpaka/alpaka.hpp>
 
-
-namespace pmacc
+namespace pmacc::math
 {
-    namespace math
-    {
-        template<>
-        struct Log10<double>
-        {
-            using result = double;
+    //! Computes the value of base raised to the power exp.
+    ALPAKA_BINARY_MATH_FN(pow, alpaka::math::ConceptMathPow, Pow)
 
-            HDINLINE double operator()(const double& value)
-            {
-                return ::log10(value);
-            }
-        };
-
-
-    } // namespace math
-} // namespace pmacc
+} // namespace pmacc::math

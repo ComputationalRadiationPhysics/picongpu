@@ -24,6 +24,7 @@
 
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/math/vector/navigator/IdentityNavigator.hpp"
+#include "pmacc/memory/Align.hpp"
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
@@ -79,7 +80,7 @@ namespace pmacc
                 }
 
                 /*align full vector*/
-                PMACC_ALIGN(v[dim], type);
+                PMACC_ALIGN(v[dim], type) = {};
 
                 HDINLINE
                 constexpr type& operator[](const uint32_t idx)
@@ -143,15 +144,22 @@ namespace pmacc
                     (*this)[i] = other[i];
             }
 
-            template<
-                typename T_OtherType,
-
-                typename T_OtherNavigator,
-                typename T_OtherStorage>
+            template<typename T_OtherType, typename T_OtherNavigator, typename T_OtherStorage>
             HDINLINE explicit Vector(const Vector<T_OtherType, dim, T_OtherNavigator, T_OtherStorage>& other)
             {
                 for(uint32_t i = 0u; i < dim; i++)
                     (*this)[i] = static_cast<type>(other[i]);
+            }
+
+            /** Transforms an alpaka vector into the corresponding PMacc vector
+             *
+             * The order of members is automatically permuted from z,y,x to x,y,z.
+             */
+            template<typename T_MemberType>
+            HDINLINE explicit Vector(alpaka::Vec<::alpaka::DimInt<T_dim>, T_MemberType> const& value)
+            {
+                for(uint32_t i = 0u; i < T_dim; i++)
+                    (*this)[T_dim - 1 - i] = value[i];
             }
 
             /** Allow static_cast / explicit cast to member type for 1D vector */
@@ -505,12 +513,35 @@ namespace pmacc
                 return stream.str();
             }
 
-            HDINLINE cupla::dim3 toDim3() const
+            /** Transforms a Vector into alpaka vector used for memory extent descriptions.
+             *
+             * The order of members is automatically permuted from x,y,z to z,y,x.
+             * The member data type will be MemIdxType.
+             *
+             * Only integral types are supported. The method is performing an static cast to MemIdxType.
+             */
+            HDINLINE alpaka::Vec<::alpaka::DimInt<T_dim>, MemIdxType> toAlpakaMemVec() const
             {
-                cupla::dim3 result;
-                unsigned int* ptr = &result.x;
-                for(uint32_t d = 0u; d < dim; ++d)
-                    ptr[d] = (*this)[d];
+                static_assert(std::is_integral_v<T_Type>);
+                alpaka::Vec<::alpaka::DimInt<T_dim>, MemIdxType> result;
+                for(uint32_t i = 0u; i < T_dim; i++)
+                    result[T_dim - 1 - i] = static_cast<MemIdxType>((*this)[i]);
+                return result;
+            }
+
+            /** Transforms a Vector into alpaka vector used for kernel extent descriptions.
+             *
+             * The order of members is automatically permuted from x,y,z to z,y,x.
+             * The member data type will be IdxType to fit with the accelerator index type.
+             *
+             * Only integral types are supported. The method is performing an static cast to IdxType.
+             */
+            HDINLINE alpaka::Vec<::alpaka::DimInt<T_dim>, IdxType> toAlpakaKernelVec() const
+            {
+                static_assert(std::is_integral_v<T_Type>);
+                alpaka::Vec<::alpaka::DimInt<T_dim>, IdxType> result;
+                for(uint32_t i = 0u; i < T_dim; i++)
+                    result[T_dim - 1 - i] = static_cast<IdxType>((*this)[i]);
                 return result;
             }
         };

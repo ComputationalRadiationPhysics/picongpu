@@ -21,13 +21,15 @@
 
 #pragma once
 
+#include "pmacc/alpakaHelper/acc.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/dimensions/Definition.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <string>
 
-#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
 
 #    include <memory>
 
@@ -40,6 +42,7 @@ namespace pmacc
     {
     public:
         using DeviceHeap = T_DeviceHeap;
+        using BufferType = ::alpaka::Buf<HostDevice, uint8_t, AlpakaDim<DIM1>, MemIdxType>;
 
         MallocMCBuffer(const std::shared_ptr<DeviceHeap>& deviceHeap);
 
@@ -63,7 +66,7 @@ namespace pmacc
         void synchronize() override;
 
     private:
-        char* hostPtr;
+        std::optional<BufferType> hostBuffer;
         int64_t hostBufferOffset;
         mallocMC::HeapInfo deviceHeapInfo;
     };

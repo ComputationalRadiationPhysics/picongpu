@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <pmacc/device/threadInfo.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -59,7 +60,7 @@ struct SetBoundaryConditions
 
         // get position in grid in units of SuperCells from blockID
         pmacc::DataSpace<DIM2> const block(
-            mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(cupla::blockIdx(worker.getAcc()))));
+            mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(pmacc::device::getBlockIdx(worker.getAcc()))));
         // convert position in unit of cells
         pmacc::DataSpace<DIM2> const blockCell = block * SuperCellSize::toRT();
 

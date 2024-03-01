@@ -72,7 +72,7 @@ namespace gol
                 using BlockArea = SuperCellDescription<SuperCellSize, math::CT::Int<1, 1>, math::CT::Int<1, 1>>;
                 auto cache = CachedBox::create<0, Type>(worker, BlockArea());
 
-                Space const block(mapper.getSuperCellIndex(Space(cupla::blockIdx(worker.getAcc()))));
+                Space const block(mapper.getSuperCellIndex(Space(device::getBlockIdx(worker.getAcc()))));
                 Space const blockCell = block * T_Mapping::SuperCellSize::toRT();
 
                 constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -139,7 +139,7 @@ namespace gol
                 constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
                 // get position in grid in units of SuperCells from blockID
-                Space const block(mapper.getSuperCellIndex(Space(cupla::blockIdx(worker.getAcc()))));
+                Space const block(mapper.getSuperCellIndex(Space(device::getBlockIdx(worker.getAcc()))));
                 // convert position in unit of cells
                 Space const blockCell = block * T_Mapping::SuperCellSize::toRT();
 

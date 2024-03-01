@@ -23,6 +23,8 @@
 
 
 #include "pmacc/Environment.def"
+#include "pmacc/alpakaHelper/Device.hpp"
+#include "pmacc/alpakaHelper/acc.hpp"
 #include "pmacc/types.hpp"
 
 #include <pmacc/communication/manager_common.hpp>
@@ -50,13 +52,11 @@ namespace pmacc
              */
             void getMemoryInfo(size_t* free, size_t* total = nullptr) const
             {
-                size_t freeInternal = 0;
-                size_t totalInternal = 0;
-
-                CUDA_CHECK(cuplaMemGetInfo(&freeInternal, &totalInternal));
+                auto& device = manager::Device<ComputeDevice>::get().current();
 
                 if(free != nullptr)
                 {
+                    size_t freeInternal = ::alpaka::getFreeMemBytes(device);
                     if(reservedMem > freeInternal)
                         freeInternal = 0;
                     else
@@ -66,6 +66,7 @@ namespace pmacc
                 }
                 if(total != nullptr)
                 {
+                    size_t totalInternal = ::alpaka::getMemBytes(device);
                     if(reservedMem > totalInternal)
                         totalInternal = 0;
                     else
@@ -88,7 +89,7 @@ namespace pmacc
                 [[maybe_unused]] uint32_t const numRanksPerDevice,
                 [[maybe_unused]] MPI_Comm mpiComm) const
             {
-#if(PMACC_CUDA_ENABLED != 1 && ALPAKA_ACC_GPU_HIP_ENABLED != 1)
+#if(!ALPAKA_ACC_GPU_CUDA_ENABLED && !ALPAKA_ACC_GPU_HIP_ENABLED)
                 return true;
 #else
                 if(numRanksPerDevice >= 2u)
