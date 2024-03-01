@@ -42,7 +42,7 @@ pull-request-validation:
     - source $CI_PROJECT_DIR/share/ci/git_merge.sh
     - pip3 install -U -r requirements_pre-commit.txt
     - pre-commit install
-    - pre-commit run --all-files --hook-stage manual
+    - pre-commit run --all-files --hook-stage manual --show-diff-on-failure
   tags:
     - x86_64
     - cpuonly
