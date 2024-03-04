@@ -1,0 +1,1086 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="236.56773mm"
+   height="584.47296mm"
+   viewBox="0 0 236.56773 584.47296"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="job_generator_flow.svg">
+  <defs
+     id="defs2">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path880"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lstart"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path877"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-1"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-9"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-4"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-7"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-5"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-5"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-47"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-6"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-5-0"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-5-7"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-47-8"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-6-6"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-6"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-4"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-9"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-5"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-9"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-49"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-0"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-9"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-4"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-8"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-1"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-2"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-1-2-48"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-2-0-1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-3-2-2-03"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path880-5-9-3-0"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="-100.02344"
+     inkscape:cy="1096.1123"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1142"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     fit-margin-left="2"
+     fit-margin-top="2"
+     fit-margin-bottom="2"
+     fit-margin-right="2" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-4.6415702,-3.1197373)">
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815"
+       width="102.05357"
+       height="32.694939"
+       x="10.205358"
+       y="6.6197925"
+       ry="4.7080145"
+       rx="6.0309305" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="28.348215"
+       y="25.235117"
+       id="text819"><tspan
+         sodipodi:role="line"
+         id="tspan817"
+         x="28.348215"
+         y="26.701349"
+         style="stroke-width:0.26458332" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.148083"
+       y="21.702223"
+       id="text823"><tspan
+         sodipodi:role="line"
+         id="tspan821"
+         x="62.045185"
+         y="21.702223"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">assemble different software </tspan><tspan
+         sodipodi:role="line"
+         x="61.148083"
+         y="27.346668"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825">versions as input for generator</tspan></text>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2, 1;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-3"
+       width="102.05357"
+       height="32.694939"
+       x="136.61835"
+       y="6.6197925"
+       ry="0"
+       rx="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.48589"
+       y="18.880001"
+       id="text823-6"><tspan
+         sodipodi:role="line"
+         x="188.38298"
+         y="18.880001"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-5">e.g. different compilers and </tspan><tspan
+         sodipodi:role="line"
+         x="188.38298"
+         y="24.524445"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan869">versions of it </tspan><tspan
+         sodipodi:role="line"
+         x="187.48589"
+         y="30.16889"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan867">-&gt; defined in version.py</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 61.232144,40.814786 V 62.196349"
+       id="path875"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="63.217293"
+       y="50.234081"
+       id="text873"><tspan
+         sodipodi:role="line"
+         id="tspan871"
+         x="63.217293"
+         y="50.234081"
+         style="stroke-width:0.26458332">List of Input paramater</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3)"
+       d="M 136.11123,22.967262 H 114.72967"
+       id="path875-6"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-7"
+       width="102.05357"
+       height="32.694939"
+       x="10.205358"
+       y="64.667084"
+       ry="4.7080145"
+       rx="6.030931" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.168755"
+       y="82.571739"
+       id="text823-0"><tspan
+         sodipodi:role="line"
+         x="61.168755"
+         y="82.571739"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-3">generate sparse job matrix</tspan></text>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-3-6"
+       width="102.05357"
+       height="32.694939"
+       x="136.61835"
+       y="64.667084"
+       ry="0"
+       rx="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.80559"
+       y="80.296593"
+       id="text823-6-0"><tspan
+         sodipodi:role="line"
+         x="187.80559"
+         y="80.296593"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan867-6">apply different filter rules</tspan><tspan
+         id="tspan2029"
+         sodipodi:role="line"
+         x="187.80559"
+         y="85.94104"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">to avoid invalid combination</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1)"
+       d="M 61.232144,98.862076 V 120.24365"
+       id="path875-1"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="64.804794"
+       y="108.28137"
+       id="text873-8"><tspan
+         sodipodi:role="line"
+         id="tspan871-7"
+         x="64.804794"
+         y="108.28137"
+         style="line-height:1;stroke-width:0.26458332">Job matrix with different combinations of the input paramater</tspan><tspan
+         id="tspan2031"
+         sodipodi:role="line"
+         x="64.804794"
+         y="113.92582"
+         style="line-height:1;stroke-width:0.26458332">e.g. host compiler: gcc 10 + device compier: nvcc 11.4</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2)"
+       d="M 136.11123,81.014555 H 114.72967"
+       id="path875-6-9"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-7-5"
+       width="102.05357"
+       height="32.694939"
+       x="8.1416254"
+       y="529.04547"
+       ry="4.7080145"
+       rx="6.030931" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="59.200108"
+       y="547.49719"
+       id="text823-0-9"><tspan
+         sodipodi:role="line"
+         x="59.200108"
+         y="547.49719"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-3-2">write to file</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2)"
+       d="m 59.168411,563.24046 v 21.38157"
+       id="path875-1-1"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.153557"
+       y="572.65973"
+       id="text873-8-2"><tspan
+         sodipodi:role="line"
+         id="tspan871-7-9"
+         x="61.153557"
+         y="572.65973"
+         style="stroke-width:0.26458332">gitlab-ci.yaml</tspan></text>
+    <g
+       id="g1900-7-8"
+       transform="translate(46.965013,46.473847)">
+      <rect
+         rx="6.030931"
+         ry="4.7080145"
+         y="76.24054"
+         x="-36.759655"
+         height="32.694939"
+         width="102.05357"
+         id="rect815-7-5-4"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+      <text
+         id="text823-0-9-5"
+         y="91.322968"
+         x="14.183071"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan825-3-2-3"
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="91.322968"
+           x="15.080173"
+           sodipodi:role="line">add or change parameter of job </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="96.967415"
+           x="14.183071"
+           sodipodi:role="line"
+           id="tspan2191">matrix</tspan></text>
+      <rect
+         rx="0"
+         ry="0"
+         y="76.24054"
+         x="89.653336"
+         height="32.694939"
+         width="102.05357"
+         id="rect815-3-6-8-6"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+      <text
+         id="text823-6-0-9-1"
+         y="88.500748"
+         x="140.52089"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan867-6-6-3"
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="88.500748"
+           x="141.418"
+           sodipodi:role="line">e.g. decide which job is </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="94.145195"
+           x="140.52089"
+           sodipodi:role="line"
+           id="tspan2198">compile only or run also tests</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path875-1-1-2"
+         d="M 14.267131,110.43553 V 131.8171"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-1)" />
+      <text
+         id="text873-8-2-0"
+         y="119.85483"
+         x="16.252277"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.26458332"
+           y="119.85483"
+           x="16.252277"
+           id="tspan871-7-9-6"
+           sodipodi:role="line">Job matrix</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path875-6-9-3-1"
+         d="M 89.146218,92.588009 H 67.764658"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-4)" />
+    </g>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-7-5-6"
+       width="102.05357"
+       height="32.694939"
+       x="10.205358"
+       y="180.76167"
+       ry="4.7080145"
+       rx="6.030931" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.148083"
+       y="198.66632"
+       id="text823-0-9-9"><tspan
+         sodipodi:role="line"
+         x="61.148083"
+         y="198.66632"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-3-2-7">shuffle jobs</tspan></text>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-3-6-8-4"
+       width="102.05357"
+       height="32.694939"
+       x="136.61835"
+       y="180.76167"
+       ry="0"
+       rx="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.62643"
+       y="190.19966"
+       id="text823-6-0-9-5"><tspan
+         sodipodi:role="line"
+         x="188.52354"
+         y="190.19966"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan867-6-6-4">the output of the job generator has </tspan><tspan
+         id="tspan2483"
+         sodipodi:role="line"
+         x="187.62643"
+         y="195.8441"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">systematic like first all gcc versions</tspan><tspan
+         id="tspan2485"
+         sodipodi:role="line"
+         x="188.52353"
+         y="201.48856"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">-&gt; increase test coverage </tspan><tspan
+         id="tspan2487"
+         sodipodi:role="line"
+         x="187.62643"
+         y="207.133"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">in the first jobs</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-5)"
+       d="m 61.232144,214.95667 v 21.38157"
+       id="path875-1-1-7"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="63.217289"
+       y="224.37596"
+       id="text873-8-2-4"><tspan
+         sodipodi:role="line"
+         id="tspan871-7-9-4"
+         x="63.217289"
+         y="224.37596"
+         style="stroke-width:0.26458332">Job matrix</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-47)"
+       d="M 136.11123,197.10915 H 114.72967"
+       id="path875-6-9-3-3"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-7-5-6-8"
+       width="102.05357"
+       height="32.694939"
+       x="10.205358"
+       y="238.80898"
+       ry="4.7080145"
+       rx="6.030931" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.113632"
+       y="256.71362"
+       id="text823-0-9-9-4"><tspan
+         sodipodi:role="line"
+         x="61.113632"
+         y="256.71362"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-3-2-7-1">reorder jobs</tspan></text>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-3-6-8-4-4"
+       width="102.05357"
+       height="32.694939"
+       x="136.61835"
+       y="238.80898"
+       ry="0"
+       rx="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.38528"
+       y="251.06918"
+       id="text823-6-0-9-5-9"><tspan
+         sodipodi:role="line"
+         x="188.28239"
+         y="251.06918"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan867-6-6-4-6">move specific jobs to a </tspan><tspan
+         sodipodi:role="line"
+         x="188.28239"
+         y="256.71362"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan2554">specific position in the </tspan><tspan
+         sodipodi:role="line"
+         x="187.38528"
+         y="262.35806"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan2556">job execution queue</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-5-0)"
+       d="m 61.232144,273.00397 v 21.38157"
+       id="path875-1-1-7-8"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="63.217289"
+       y="282.42328"
+       id="text873-8-2-4-9"><tspan
+         sodipodi:role="line"
+         id="tspan871-7-9-4-2"
+         x="63.217289"
+         y="282.42328"
+         style="stroke-width:0.26458332">Job matrix</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-47-8)"
+       d="M 136.11123,255.15645 H 114.72967"
+       id="path875-6-9-3-3-6"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-7-5-48"
+       width="102.05357"
+       height="32.694939"
+       x="10.205358"
+       y="296.85629"
+       ry="4.7080145"
+       rx="6.030931" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.226631"
+       y="314.76096"
+       id="text823-0-9-7"><tspan
+         sodipodi:role="line"
+         x="61.226631"
+         y="314.76096"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-3-2-72">generate yaml code</tspan></text>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-3-6-8-7"
+       width="102.05357"
+       height="32.694939"
+       x="136.61835"
+       y="296.85629"
+       ry="0"
+       rx="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.48589"
+       y="306.29428"
+       id="text823-6-0-9-2"><tspan
+         sodipodi:role="line"
+         x="188.383"
+         y="306.29428"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan867-6-6-1">depending of parameters of each </tspan><tspan
+         id="tspan2733"
+         sodipodi:role="line"
+         x="188.383"
+         y="311.93872"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">job in the job matrix </tspan><tspan
+         id="tspan2735"
+         sodipodi:role="line"
+         x="188.38298"
+         y="317.58316"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">generate script, variable, </tspan><tspan
+         id="tspan2737"
+         sodipodi:role="line"
+         x="187.48589"
+         y="323.2276"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">tag and other section</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-6)"
+       d="m 61.232144,331.05127 v 21.38157"
+       id="path875-1-1-0"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="63.217289"
+       y="340.47058"
+       id="text873-8-2-6"><tspan
+         sodipodi:role="line"
+         id="tspan871-7-9-1"
+         x="63.217289"
+         y="340.47058"
+         style="stroke-width:0.26458332">List of jobs, defined in GitLab CI yaml</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-9)"
+       d="M 136.11123,313.20375 H 114.72967"
+       id="path875-6-9-3-5"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-7-5-7"
+       width="102.05357"
+       height="32.694939"
+       x="10.205358"
+       y="354.90356"
+       ry="4.7080145"
+       rx="6.030931" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="61.200451"
+       y="372.80823"
+       id="text823-0-9-71"><tspan
+         sodipodi:role="line"
+         x="61.200451"
+         y="372.80823"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan825-3-2-5">add custom jobs</tspan></text>
+    <rect
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-3-6-8-9"
+       width="102.05357"
+       height="32.694939"
+       x="136.61835"
+       y="354.90356"
+       ry="0"
+       rx="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.83038"
+       y="369.98599"
+       id="text823-6-0-9-7"><tspan
+         sodipodi:role="line"
+         x="187.83038"
+         y="369.98599"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan867-6-6-7">the jobs are written in GitLab Ci</tspan><tspan
+         id="tspan2957"
+         sodipodi:role="line"
+         x="187.83038"
+         y="375.63043"
+         style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332">yaml and loaded from file</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-9)"
+       d="m 61.232144,389.09857 v 21.38157"
+       id="path875-1-1-3"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="63.217289"
+       y="398.51785"
+       id="text873-8-2-65"><tspan
+         sodipodi:role="line"
+         id="tspan871-7-9-63"
+         x="63.217289"
+         y="398.51785"
+         style="stroke-width:0.26458332">List of jobs, defined in GitLab CI yaml</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-0)"
+       d="M 136.11123,371.25105 H 114.72967"
+       id="path875-6-9-3-9"
+       inkscape:connector-curvature="0" />
+    <g
+       id="g3534"
+       transform="translate(0,-4.0583092)">
+      <rect
+         rx="6.030931"
+         ry="4.7080145"
+         y="417.00919"
+         x="8.1416254"
+         height="32.694939"
+         width="102.05357"
+         id="rect815-7-5-3"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+      <text
+         id="text823-0-9-90"
+         y="434.91385"
+         x="59.136715"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan825-3-2-8"
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="434.91385"
+           x="59.136715"
+           sodipodi:role="line">apply filter and reorder rules</tspan></text>
+      <rect
+         rx="0"
+         ry="0"
+         y="417.00919"
+         x="134.55461"
+         height="32.694939"
+         width="102.05357"
+         id="rect815-3-6-8-5"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+      <text
+         id="text823-6-0-9-0"
+         y="429.26938"
+         x="185.42215"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan867-6-6-38"
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="429.26938"
+           x="186.31924"
+           sodipodi:role="line">the rules are temporary and </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="434.91382"
+           x="186.31924"
+           sodipodi:role="line"
+           id="tspan3175">defined in a git commit message </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="440.55826"
+           x="185.42215"
+           sodipodi:role="line"
+           id="tspan3177">-&gt; filter by job name</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path875-1-1-5"
+         d="m 59.168411,451.20417 v 21.38157"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-4)" />
+      <text
+         id="text873-8-2-61"
+         y="460.62347"
+         x="61.153557"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.26458332"
+           y="460.62347"
+           x="61.153557"
+           id="tspan871-7-9-15"
+           sodipodi:role="line">List of jobs, defined in GitLab CI yaml</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path875-6-9-3-98"
+         d="M 134.0475,433.35665 H 112.66594"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-1)" />
+      <rect
+         rx="6.030931"
+         ry="4.7080145"
+         y="475.05649"
+         x="8.1416254"
+         height="32.694939"
+         width="102.05357"
+         id="rect815-7-5-44"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3.00011039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+      <text
+         id="text823-0-9-4"
+         y="493.50821"
+         x="59.150497"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan825-3-2-6"
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="493.50821"
+           x="59.150497"
+           sodipodi:role="line">distribute to waves</tspan></text>
+      <rect
+         rx="0"
+         ry="0"
+         y="475.05649"
+         x="134.55461"
+         height="32.694939"
+         width="102.05357"
+         id="rect815-3-6-8-3"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:2.00000002, 1.00000001;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+      <text
+         id="text823-6-0-9-17"
+         y="485.04156"
+         x="185.57787"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan867-6-6-6"
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="485.04156"
+           x="186.47496"
+           sodipodi:role="line">waves contains n jobs and runs </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="490.686"
+           x="186.47498"
+           sodipodi:role="line"
+           id="tspan3454">sequential, the jobs inside </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="496.33044"
+           x="186.47498"
+           sodipodi:role="line"
+           id="tspan3456">a wave runs in parallel </tspan><tspan
+           style="line-height:1;text-align:center;text-anchor:middle;stroke-width:0.26458332"
+           y="501.97488"
+           x="185.57787"
+           sodipodi:role="line"
+           id="tspan3458">-&gt; enable fair use of CI ressources</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path875-1-1-21"
+         d="m 59.168411,509.25147 v 21.38157"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-1-2-48)" />
+      <text
+         id="text873-8-2-7"
+         y="518.67078"
+         x="61.153557"
+         style="font-style:normal;font-weight:normal;font-size:5.64444447px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.26458332"
+           y="518.67078"
+           x="61.153557"
+           id="tspan871-7-9-8"
+           sodipodi:role="line">List of lists of jobs, defined in GitLab CI yaml</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path875-6-9-3-57"
+         d="M 134.0475,491.40395 H 112.66594"
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend-3-2-2-03)" />
+    </g>
+  </g>
+</svg>

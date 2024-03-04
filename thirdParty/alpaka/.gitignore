@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: MPL-2.0
+
+/docs/doxygen/*
+/docs/source/_build
+/docs/cheatsheet/cheatsheet.pdf
+
+**/build*
+
+# tmp files
+*~
+
+# netbeans project files
+/nbproject/
+
+# Code::Blocks project files
+/*.cbp
+/*.layout
+
+# original backup files
+*.orig
+
+# Vim project files
+.vimrc
+.exrc
+tags
+
+# IDE & tmp build
+.idea/
+cmake-build-*/
+.kdev?/
+*.kdev?
+spack-build*
+build/
+
+# Eclipse project files
+/.project
+/.cproject
+/.settings/
+
+# Visual Studio Code project files
+.vscode
+
+# Visual Studio project files
+.vs/
+out
+
+# clangd files
+.cache/
+compile_commands.json
+
+# python chache
+__pycache__
+
+# default name of the job_generator.py output
+jobs.yml
+
+# pipenv files
+Pipfile
+Pipfile.lock
+
+# user specific cmake preset settings
+CMakeUserPresets.json

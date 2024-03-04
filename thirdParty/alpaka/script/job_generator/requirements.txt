@@ -1,0 +1,6 @@
+alpaka-job-coverage == 1.5.8
+allpairspy == 2.5.0
+typeguard < 3.0.0
+pyaml
+types-PyYAML
+python-gitlab

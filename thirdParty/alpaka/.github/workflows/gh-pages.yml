@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MPL-2.0
+
+name: Publish documentation to gh-pages
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  gh-pages:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install doxygen
+      run: |
+          cd ${GITHUB_WORKSPACE}
+          ./script/install_doxygen.sh
+    - name: Run doxygen
+      run: |
+          cd ${GITHUB_WORKSPACE}
+          ./script/run_doxygen.sh ${{ github.repository }} ${{ secrets.github_token }}
+    - name: Publish documentation
+      run: |
+          cd ${GITHUB_WORKSPACE}
+          ./script/push_doc.sh

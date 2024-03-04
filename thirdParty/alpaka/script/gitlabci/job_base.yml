@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: MPL-2.0
+
+.base:
+  variables:
+    alpaka_DEBUG: 0
+    BOOST_LIBRARYDIR: "/opt/boost/${ALPAKA_BOOST_VERSION}/lib"
+    ALPAKA_CI_OS_NAME: "Linux"
+    # $CI_CPUS is defined by the HZDR gitlab CI
+    ALPAKA_CI_BUILD_JOBS: "$CI_CPUS"
+    OMP_NUM_THREADS: "$CI_CPUS"
+  script:
+    - source ./script/gitlabci/print_env.sh
+    - source ./script/gitlab_ci_run.sh
+  interruptible: true
+
+# ------ CUDA gcc ------
+.basecfg_cuda_gcc:
+  image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    CC: gcc
+    CXX: g++
+    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
+    alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "OFF"
+    alpaka_ACC_GPU_CUDA_ENABLE: "ON"
+    CMAKE_CUDA_COMPILER: nvcc
+    ALPAKA_CI_STDLIB: libstdc++
+    # CI contains a Quadro P5000 (sm_61)
+    CMAKE_CUDA_ARCHITECTURES: "61"
+    CMAKE_BUILD_TYPE: Release
+  extends: .base
+
+
+.base_cuda_gcc_compile_only:
+  extends: .basecfg_cuda_gcc
+  variables:
+    ALPAKA_CI_RUN_TESTS: "OFF"
+  tags:
+    - cpuonly
+    - x86_64
+
+.base_cuda_gcc:
+  extends: .basecfg_cuda_gcc
+  tags:
+    - cuda
+    - intel
+
+# ------ CUDA clang ------
+.basecfg_cuda_clang:
+  image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    CC: clang
+    CXX: clang++
+    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
+    alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "OFF"
+    alpaka_ACC_GPU_CUDA_ENABLE: "ON"
+    CMAKE_CUDA_COMPILER: clang++
+    ALPAKA_CI_STDLIB: libstdc++
+    # CI contains a Quadro P5000 (sm_61)
+    CMAKE_CUDA_ARCHITECTURES: "61"
+    CMAKE_BUILD_TYPE: Release
+  extends: .base
+  tags:
+    - cuda
+    - intel
+
+.base_cuda_clang_compile_only:
+  extends: .basecfg_cuda_clang
+  variables:
+    ALPAKA_CI_RUN_TESTS: "OFF"
+  tags:
+    - cpuonly
+    - x86_64
+
+.base_cuda_clang:
+  extends: .basecfg_cuda_clang
+  tags:
+    - cuda
+    - intel
+
+# -------- clang ---------
+
+.basecfg_clang:
+  image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "22.04"
+    CC: clang
+    CXX: clang++
+    ALPAKA_CI_SANITIZERS: ""
+    ALPAKA_CI_ANALYSIS: "OFF"
+    ALPAKA_CI_TBB_VERSION: 2021.4.0
+    ALPAKA_CI_RUN_TESTS: "ON"
+    alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE: "ON"
+    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
+    alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: "ON"
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
+    alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "ON"
+    alpaka_ACC_GPU_CUDA_ENABLE: "OFF"
+    alpaka_ACC_GPU_CUDA_ONLY_MODE: "OFF"
+    alpaka_ACC_GPU_HIP_ENABLE: "OFF"
+    alpaka_ACC_GPU_HIP_ONLY_MODE: "OFF"
+  extends: .base
+
+.base_clang:
+  extends: .basecfg_clang
+  tags:
+    - cpuonly
+    - x86_64
