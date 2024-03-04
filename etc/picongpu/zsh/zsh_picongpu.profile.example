@@ -1,0 +1,46 @@
+#!/usr/bin/env zsh
+# Name and Path of this Script ############################### (DO NOT change!)
+# Following this answer by Hui Zheng under CC BY-SA 3.0 
+# https://stackoverflow.com/questions/9901210/bash-source0-equivalent-in-zsh/23259585#23259585
+export PIC_PROFILE=$(cd $(dirname ${(%):-%N}) && pwd)"/"$(basename ${(%):-%N})
+
+# Self-Build Software #########################################################
+# Optional, not required.
+# Needs to be compiled by the user.
+# Set environment variables required for compiling and linking PIConGPU here.
+#export PIC_LIBS=$HOME/lib
+
+# For example install openPMD-api yourself
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#openpmd-api
+#export OPENPMD_ROOT=$PIC_LIBS/openPMD-api
+#export CMAKE_PREFIX_PATH="$OPENPMD_ROOT:$CMAKE_PREFIX_PATH"
+#export LD_LIBRARY_PATH="$OPENPMD_ROOT/lib:$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH"
+
+# For example install pngwriter yourself:
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#pngwriter
+#export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
+#export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
+#export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+
+# Environment #################################################################
+#
+export PIC_BACKEND="omp2b:native" # running on cpu
+# For more examples on possible backends, depending on your hardware, see
+# https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
+# or the provided profiles of other systems.
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/zsh"}
+
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="zsh"
+export TBG_TPLFILE="etc/picongpu/zsh/mpirun.tpl"
