@@ -84,12 +84,12 @@ repository should *not* be made in the `thirdParty/` directory but in
      https://github.com/ComputationalRadiationPhysics/cuda_memtest
    for further reference.
 
-- `thirdParty/cupla`:
-   cupla is a simple user interface for alpaka. It provides a software layer
-   that follows a similar concept as the Nvidia CUDA API, allowing to write
-   kernels more efficiently.
+- `thirdParty/alpaka`:
+   The alpaka library is a header-only C++17 abstraction library for accelerator development.  
+   It aims to provide performance portability across accelerators through the abstraction (not hiding!)
+   of the underlying levels of parallelism.
    Please visit
-     https://github.com/ComputationalRadiationPhysics/cupla
+     https://github.com/alpaka-group/alpaka
    for further details and contributions.
 
 - `thirdParty/nlohmann_json`:

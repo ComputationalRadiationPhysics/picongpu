@@ -78,7 +78,7 @@ set_property(CACHE PMACC_alpaka_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(PMACC_alpaka_PROVIDER)
 
 if(${PMACC_alpaka_PROVIDER} STREQUAL "intern")
-    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
+    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/alpaka")
 endif()
 
 # Set alpaka CXX standard because the default is currently C++14.
@@ -108,7 +108,7 @@ if(NOT TARGET alpaka::alpaka)
     if(${PMACC_ALPAKA_PROVIDER} STREQUAL "internal")
         set(alpaka_BUILD_EXAMPLES OFF)
         set(BUILD_TESTING OFF)
-        add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla/alpaka ${CMAKE_BINARY_DIR}/alpaka)
+        add_subdirectory(${PMacc_DIR}/../../thirdParty/alpaka ${CMAKE_BINARY_DIR}/alpaka)
     else()
         find_package(alpaka ${_PMACC_MAX_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
         if(NOT TARGET alpaka::alpaka)
