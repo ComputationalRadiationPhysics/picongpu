@@ -71,7 +71,7 @@ namespace picongpu
          *
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_BinBox pmacc::DataBox, box type for the histogram in global memory
-         * @tparam T_Mapping type of the mapper to map a cupla block to a supercell index
+         * @tparam T_Mapping type of the mapper to map an alpaka block to a supercell index
          * @tparam T_Worker lockstep worker type
          *
          * @param acc alpaka accelerator
@@ -80,7 +80,7 @@ namespace picongpu
          * @param numBins number of bins in the histogram (must be fit into the shared memory)
          * @param minEnergy particle energy for the first bin
          * @param maxEnergy particle energy for the last bin
-         * @param mapper functor to map a cupla block to a supercells index
+         * @param mapper functor to map an alpaka block to a supercells index
          */
         template<typename T_ParBox, typename T_BinBox, typename T_Mapping, typename T_Filter, typename T_Worker>
         DINLINE void operator()(

@@ -35,16 +35,16 @@ namespace pmacc
     class CudaEvent
     {
     private:
-        /** native cupla event */
+        /** native alpaka event */
         AlpakaEventType event;
-        /** native cupla stream where the event is recorded
+        /** native alpaka queue where the event is recorded
          *
          *  only valid if isRecorded is true
          */
         std::optional<AccStream> stream;
         /** state if a recorded event is finished
          *
-         * avoid cupla driver calls after `isFinished()` returns the first time true
+         * avoids that alpaka calls backend API methods after `isFinished()` returns the first time true
          */
         bool finished{true};
 
@@ -55,7 +55,7 @@ namespace pmacc
     public:
         /** Constructor
          *
-         * if called before the cupla device is initialized the behavior is undefined
+         * if called before the alpaka device is initialized the behavior is undefined
          */
         CudaEvent();
 
@@ -70,7 +70,7 @@ namespace pmacc
 
         /** get native AlpakaEventType object
          *
-         * @return native cupla event
+         * @return native alpaka event
          */
         AlpakaEventType operator*() const
         {
@@ -79,7 +79,7 @@ namespace pmacc
 
         /** get stream in which this event is recorded
          *
-         * @return native cupla stream
+         * @return native alpaka queue
          */
         AccStream getStream() const
         {
@@ -95,7 +95,7 @@ namespace pmacc
 
         /** record event in a device stream
          *
-         * @param stream native cupla stream
+         * @param stream native alpaka queue
          */
         void recordEvent(AccStream const& stream);
     };

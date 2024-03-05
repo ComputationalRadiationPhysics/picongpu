@@ -29,17 +29,11 @@ namespace pmacc
 {
     class EventStream;
 
-    /**
-     * Abstract base class for all tasks which depend on cupla streams.
+    /** Abstract base class for all tasks which depend on alpaka queue.
      */
     class StreamTask : public ITask
     {
     public:
-        /**
-         * Constructor
-         *
-         * @param stream the AccStream this StreamTask will use
-         */
         StreamTask();
 
         /**
@@ -47,59 +41,53 @@ namespace pmacc
          */
         ~StreamTask() override = default;
 
-        /**
-         * Returns the cupla event associated with this task.
+        /** Returns the alpaka event associated with this task.
+         *
          * An event has to be recorded or set before calling this.
          *
-         * @return the task's cupla event
+         * @return the task's alpaka event
          */
         CudaEventHandle getCudaEventHandle() const;
 
-        /**
-         * Sets the
+        /** Sets the
          *
-         * @param cuplaEvent
+         * @param alpakaEvent
          */
-        void setCudaEventHandle(const CudaEventHandle& cuplaEvent);
+        void setCudaEventHandle(const CudaEventHandle& alpakaEvent);
 
-        /**
-         * Returns if this task is finished.
+        /** Returns if this task is finished.
          *
          * @return true if the task is finished, else otherwise
          */
         bool isFinished();
 
-        /**
-         * Returns the EventStream this StreamTask is using.
+        /** Returns the EventStream this StreamTask is using.
          *
          * @return pointer to the EventStream
          */
         EventStream* getEventStream();
 
-        /**
-         * Sets the EventStream for this StreamTask.
+        /** Sets the EventStream for this StreamTask.
          *
          * @param newStream new event stream
          */
         void setEventStream(EventStream* newStream);
 
-        /**
-         * Returns the cupla stream of the underlying EventStream.
+        /** Returns the alpaka queue of the underlying EventStream.
          *
-         * @return the associated cupla stream
+         * @return the associated alpaka queue
          */
         AccStream getCudaStream();
 
 
     protected:
-        /**
-         * Activates this task by recording an event on its stream.
+        /** Activates this task by recording an event on its stream.
          */
         void activate();
 
 
         EventStream* stream{nullptr};
-        CudaEventHandle cuplaEvent;
+        CudaEventHandle m_alpakaEvent;
         bool hasCudaEventHandle{false};
         bool alwaysFinished{false};
     };

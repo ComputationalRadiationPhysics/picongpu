@@ -24,7 +24,6 @@ digraph PIConGPU {
 
     compiler -> alpaka;
     boost -> alpaka;
-    alpaka -> cupla;
 
     mallocmc [label="mallocMC"]
     alpaka -> mallocmc;
@@ -53,7 +52,6 @@ digraph PIConGPU {
 
     picongpu [label="PIConGPU"];
     alpaka -> picongpu;
-    cupla -> picongpu;
     mpi -> picongpu;
     boost -> picongpu;
     mallocmc -> picongpu;

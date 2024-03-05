@@ -27,28 +27,24 @@
 
 namespace pmacc
 {
-    /**
-     * Wrapper for a single cupla stream.
-     * Allows recording cupla events on the stream.
+    /** Wrapper for a single alpaka queue.
+     *
+     * Allows recording alpaka events on the queue.
      */
     class EventStream
     {
     public:
-        /**
-         * Constructor.
-         * Creates the cuplaStream_t object.
-         */
         EventStream();
 
-        /**
-         * Destructor.
+        /** Destructor.
+         *
          * Waits for the stream to finish and destroys it.
          */
         virtual ~EventStream();
 
-        /**
-         * Returns the cuplaStream_t object associated with this EventStream.
-         * @return the internal cupla stream object
+        /** Returns the alpaka queue object associated with this EventStream.
+         *
+         * @return the internal alpaka queue object
          */
         AccStream getCudaStream() const;
 

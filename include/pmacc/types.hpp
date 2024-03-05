@@ -30,9 +30,6 @@
 #include <alpaka/alpaka.hpp>
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-/* include mallocMC before cupla renaming is activated, else we need the variable acc
- * to call atomic cuda functions
- */
 #    include <mallocMC/mallocMC.hpp>
 #endif
 

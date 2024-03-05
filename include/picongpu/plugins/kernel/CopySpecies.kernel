@@ -40,7 +40,7 @@ namespace picongpu
          * @tparam T_Filter type of filer with particle selection rules
          * @tparam T_Space type of coordinate description
          * @tparam T_Identifier type of identifier for the particle cellIdx
-         * @tparam T_Mapping type of the mapper to map cupla idx to supercells
+         * @tparam T_Mapping type of the mapper to map alpaka idx to supercells
          * @tparam T_Worker lockstep worker type
          *
          * @param worker lockstep worker
@@ -54,7 +54,7 @@ namespace picongpu
          * @param domainCellIdxIdentifier the identifier for the particle cellIdx
          *                                that is calculated with respect to
          *                                domainOffset
-         * @param mapper map cupla idx to supercells
+         * @param mapper map alpaka idx to supercells
          */
         template<
             typename T_DestFrame,

@@ -35,13 +35,13 @@ namespace pmacc
     CudaEventHandle StreamTask::getCudaEventHandle() const
     {
         PMACC_ASSERT(hasCudaEventHandle);
-        return cuplaEvent;
+        return m_alpakaEvent;
     }
 
-    void StreamTask::setCudaEventHandle(const CudaEventHandle& cuplaEvent)
+    void StreamTask::setCudaEventHandle(const CudaEventHandle& alpakaEvent)
     {
         this->hasCudaEventHandle = true;
-        this->cuplaEvent = cuplaEvent;
+        this->m_alpakaEvent = alpakaEvent;
     }
 
     bool StreamTask::isFinished()
@@ -50,7 +50,7 @@ namespace pmacc
             return true;
         if(hasCudaEventHandle)
         {
-            if(cuplaEvent.isFinished())
+            if(m_alpakaEvent.isFinished())
             {
                 alwaysFinished = true;
                 return true;
@@ -82,8 +82,8 @@ namespace pmacc
 
     void StreamTask::activate()
     {
-        cuplaEvent = Environment<>::get().EventPool().pop();
-        cuplaEvent.recordEvent(getCudaStream());
+        m_alpakaEvent = Environment<>::get().EventPool().pop();
+        m_alpakaEvent.recordEvent(getCudaStream());
         hasCudaEventHandle = true;
     }
 

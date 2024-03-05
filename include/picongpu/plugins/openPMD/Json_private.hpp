@@ -32,7 +32,7 @@
  * Note:
  * This header is included only into hostonly .cpp files because CMake
  * will not use -isystem for system include paths on NVCC targets created
- * with cupla_add_executable.
+ * with alpaka_add_executable.
  * Since <nlohmann/json.hpp> throws a number of warnings, this design
  * ensures that NVCC never sees that library.
  */

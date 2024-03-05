@@ -78,7 +78,7 @@ set_property(CACHE PMACC_alpaka_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(PMACC_alpaka_PROVIDER)
 
 if(${PMACC_alpaka_PROVIDER} STREQUAL "intern")
-    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
+    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/alpaka")
 endif()
 
 # Set alpaka CXX standard because the default is currently C++14.
@@ -90,8 +90,8 @@ endif()
 # setup alpaka
 ################################################################################
 
-# the min and max. supported alpaka version is also copied to the cuplaConfig.cmake
-set(_PMACC_MIN_ALPAKA_VERSION 1.0.0)
+# the min and max. supported alpaka version
+set(_PMACC_MIN_ALPAKA_VERSION 1.1.0)
 set(_PMACC_MAX_ALPAKA_VERSION 1.1.0)
 
 # do not search for alpaka if it already exists
@@ -108,7 +108,7 @@ if(NOT TARGET alpaka::alpaka)
     if(${PMACC_ALPAKA_PROVIDER} STREQUAL "internal")
         set(alpaka_BUILD_EXAMPLES OFF)
         set(BUILD_TESTING OFF)
-        add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla/alpaka ${CMAKE_BINARY_DIR}/alpaka)
+        add_subdirectory(${PMacc_DIR}/../../thirdParty/alpaka ${CMAKE_BINARY_DIR}/alpaka)
     else()
         find_package(alpaka ${_PMACC_MAX_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
         if(NOT TARGET alpaka::alpaka)

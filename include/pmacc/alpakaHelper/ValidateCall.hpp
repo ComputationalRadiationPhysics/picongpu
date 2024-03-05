@@ -29,8 +29,7 @@
 #include <stdexcept>
 
 
-/**
- * Print a cupla error message including file/line info to stderr
+/** Print a error message including file/line info to stderr
  */
 #define PMACC_PRINT_ALPAKA_ERROR(msg)                                                                                 \
     do                                                                                                                \
@@ -38,8 +37,7 @@
         std::cerr << "[alpaka] Error: <" << __FILE__ << ">:" << __LINE__ << " " << msg << std::endl;                  \
     } while(false)
 
-/**
- * Print a cupla error message including file/line info to stderr and raises an exception
+/** Print a error message including file/line info to stderr and raises an exception
  */
 #define PMACC_PRINT_ALPAKA_ERROR_AND_THROW(msg)                                                                       \
     do                                                                                                                \
@@ -48,10 +46,9 @@
         throw std::runtime_error(std::string("[alpaka] Error: ") + msg);                                              \
     } while(false)
 
-/**
- * Captures CUDA errors and prints messages to stdout, including line number and file.
+/** Captures an expression in a catch throw block and prints messages to stdout, including line number and file.
  *
- * @param cmd command with cuplaError_t return value to check
+ * @param ... expression to capture in a catch throw block
  */
 #define PMACC_CHECK_ALPAKA_CALL(...)                                                                                  \
     do                                                                                                                \
