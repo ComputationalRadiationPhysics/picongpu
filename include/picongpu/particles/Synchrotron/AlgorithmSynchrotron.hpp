@@ -42,7 +42,7 @@
  *      - ParticleFunctors.hpp:         Chooses which particles are affected by SynchrotronRadiation
  *
  * The call structure goes like this:
- *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParicleFunctors.hpp -> AlgortihmSynchrotron.hpp
+ *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParticleFunctors.hpp -> AlgorithmSynchrotron.hpp
  *
  * @warning tested only on cpu -> check "m_normalizedPhotonEnergy" variable on GPU
  *

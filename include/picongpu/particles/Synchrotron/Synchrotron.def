@@ -22,23 +22,6 @@
 
 #include <pmacc/types.hpp>
 
-namespace picongpu
-{
-    namespace particles
-    {
-        namespace Synchrotron
-        {
-            /** return type for Synchrotron algorithms
-             */
-            struct SynchrotronReturn
-            {
-                float_X SynchrotronEnergy = 0._X;
-                uint32_t newMacroElectrons = 0u;
-            };
-        } // namespace Synchrotron
-    } // namespace particles
-} // namespace picongpu
-
 
 namespace picongpu
 {
