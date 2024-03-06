@@ -95,7 +95,7 @@ namespace picongpu
             PMACC_SMEM(worker, srcFrame, SrcFramePtr);
             PMACC_SMEM(worker, destFrame, DestFramePtr);
 
-            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(worker.blockDomIdxND());
 
             // offset of the superCell (in cells, without any guards) to the origin of the local domain
             DataSpace<simDim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
@@ -201,7 +201,7 @@ namespace picongpu
             T_ParticleFunctor particleFunctor,
             T_Mapping mapper) const
         {
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
             // relative offset (in cells) to the supercell (including the guard)
             DataSpace<simDim> const superCellOffset = superCellIdx * SuperCellSize::toRT();
@@ -266,8 +266,7 @@ namespace picongpu
                      */
                     if(mustShiftSupercell == 1)
                     {
-                        pb.getSuperCell(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())))
-                            .setMustShift(true);
+                        pb.getSuperCell(mapper.getSuperCellIndex(worker.blockDomIdxND())).setMustShift(true);
                     }
                 });
         }

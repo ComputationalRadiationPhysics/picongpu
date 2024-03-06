@@ -196,21 +196,18 @@ namespace picongpu
                 GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
                 auto const mapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
 
-                auto workerCfg
-                    = lockstep::makeWorkerCfg<RunParameters::SpeciesType::element_type::FrameType::frameSize>();
-
                 /* this sanity check costs a little bit of time but hdf5 writing is
                  * slower */
-                PMACC_LOCKSTEP_KERNEL(CopySpecies{}, workerCfg)
-                (mapper.getGridDim())(
-                    counterBuffer.getDeviceBuffer().data(),
-                    this->frame,
-                    rp.speciesTmp->getDeviceParticlesBox(),
-                    rp.filter,
-                    rp.particleToTotalDomainOffset,
-                    totalCellIdx_,
-                    mapper,
-                    rp.particleFilter);
+                PMACC_LOCKSTEP_KERNEL(CopySpecies{})
+                    .config(mapper.getGridDim(), *rp.speciesTmp)(
+                        counterBuffer.getDeviceBuffer().data(),
+                        this->frame,
+                        rp.speciesTmp->getDeviceParticlesBox(),
+                        rp.filter,
+                        rp.particleToTotalDomainOffset,
+                        totalCellIdx_,
+                        mapper,
+                        rp.particleFilter);
                 counterBuffer.deviceToHost();
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) copy particle to host: %1%") % name;
                 eventSystem::getTransactionEvent().waitForFinished();

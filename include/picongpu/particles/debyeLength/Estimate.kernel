@@ -78,7 +78,7 @@ namespace picongpu
                     uint32_t const minMacroparticlesPerSupercell,
                     T_EstimateBox estimateBox) const
                 {
-                    auto const supercellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+                    auto const supercellIdx = mapper.getSuperCellIndex(worker.blockDomIdxND());
                     auto& supercell = electronBox.getSuperCell(supercellIdx);
                     if(supercell.getNumParticles() >= minMacroparticlesPerSupercell)
                         process(worker, electronBox, supercellIdx, estimateBox);

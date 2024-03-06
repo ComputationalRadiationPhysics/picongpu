@@ -26,6 +26,7 @@
 #    include <mallocMC/mallocMC.hpp>
 #endif
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/boxes/PitchedBox.hpp"
 #include "pmacc/particles/Identifier.hpp"
@@ -310,5 +311,17 @@ namespace pmacc
             return BaseType::operator()(idx);
         }
     };
+
+    namespace lockstep::traits
+    {
+        //! Specialization to create a lockstep block configuration out of a particle buffer.
+        template<class T_Frame, typename T_DeviceHeapHandle, typename T_SuperCellSize, unsigned T_dim>
+        struct MakeBlockCfg<ParticlesBox<T_Frame, T_DeviceHeapHandle, T_SuperCellSize, T_dim>> : std::true_type
+        {
+            static constexpr uint32_t frameSize
+                = ParticlesBox<T_Frame, T_DeviceHeapHandle, T_SuperCellSize, T_dim>::FrameType::frameSize;
+            using type = BlockCfg<math::CT::UInt32<frameSize>>;
+        };
+    } // namespace lockstep::traits
 
 } // namespace pmacc

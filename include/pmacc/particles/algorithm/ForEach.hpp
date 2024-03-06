@@ -99,7 +99,7 @@ namespace pmacc::particles::algorithm
             static constexpr uint32_t dim = T_ParBox::Dim;
 
             static constexpr uint32_t frameSize = T_ParBox::frameSize;
-            static constexpr uint32_t numWorkers = T_Worker::numWorkers;
+            static constexpr uint32_t numWorkers = T_Worker::numWorkers();
 
             /** Number of frames to skip.
              *
@@ -384,7 +384,7 @@ namespace pmacc::particles::algorithm
                     constexpr uint32_t dim = T_ParBox::Dim;
 
                     DataSpace<dim> const superCellIdx(
-                        mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc()))));
+                        mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND())));
 
                     auto forEachParticle = makeForEach(worker, pb, superCellIdx);
 
@@ -436,11 +436,9 @@ namespace pmacc::particles::algorithm
     template<typename T_Species, typename T_Functor, typename T_AreaMapperFactory>
     HINLINE void forEach(T_Species&& species, T_Functor functor, T_AreaMapperFactory const& areaMapperFactory)
     {
-        using FrameType = typename std::remove_reference_t<T_Species>::FrameType;
-        auto workerCfg = pmacc::lockstep::makeWorkerCfg<FrameType::frameSize>();
         auto const mapper = areaMapperFactory(species.getCellDescription());
-        PMACC_LOCKSTEP_KERNEL(acc::detail::KernelForEachParticle{}, workerCfg)
-        (mapper.getGridDim())(std::move(functor), mapper, species.getDeviceParticlesBox());
+        PMACC_LOCKSTEP_KERNEL(acc::detail::KernelForEachParticle{})
+            .config(mapper.getGridDim(), species)(std::move(functor), mapper, species.getDeviceParticlesBox());
     }
 
     /** Version for a fixed area

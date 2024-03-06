@@ -309,17 +309,16 @@ namespace pmacc
                         % (i * chunkSize) % currentChunkSize % leftOverParticles;
 
                     constexpr uint32_t frameSize = T_SrcFrame::frameSize;
-                    auto workerCfg = lockstep::makeWorkerCfg<frameSize>();
 
-                    PMACC_LOCKSTEP_KERNEL(detail::KernelSplitIntoListOfFrames{}, workerCfg)
-                    (math::float2int_ru(double(currentChunkSize) / double(frameSize)))(
-                        counterBuffer.getDeviceBuffer().getDataBox(),
-                        destSpecies.getDeviceParticlesBox(),
-                        srcFrame,
-                        static_cast<int>(numParticles),
-                        cellOffsetToTotalDomain,
-                        domainCellIdxIdentifier,
-                        cellDesc);
+                    PMACC_LOCKSTEP_KERNEL(detail::KernelSplitIntoListOfFrames{})
+                        .template config<frameSize>(math::float2int_ru(double(currentChunkSize) / double(frameSize)))(
+                            counterBuffer.getDeviceBuffer().getDataBox(),
+                            destSpecies.getDeviceParticlesBox(),
+                            srcFrame,
+                            static_cast<int>(numParticles),
+                            cellOffsetToTotalDomain,
+                            domainCellIdxIdentifier,
+                            cellDesc);
                     destSpecies.fillAllGaps();
                     leftOverParticles -= currentChunkSize;
                 }

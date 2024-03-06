@@ -126,9 +126,6 @@ auto main(int argc, char** argv) -> int
         buff2->addExchange(pmacc::GUARD, pmacc::Mask(i), guardingCells, 1u);
     }
 
-    /** Make locktep workercfg, takes in supercell size */
-    auto workerCfg = pmacc::lockstep::makeWorkerCfg(typename MappingDesc::SuperCellSize{});
-
     // define mappers which run over the certain area, with a supercell size
     pmacc::AreaMapping<pmacc::type::CORE, MappingDesc> coreMapper(*mapping);
     pmacc::AreaMapping<pmacc::type::BORDER, MappingDesc> borderMapper(*mapping);
@@ -138,16 +135,16 @@ auto main(int argc, char** argv) -> int
     /** the databox should be accessed from the buffer->getDataBox,
      *  as the state of the databox can change when someone else writes to the buffer
      */
-    PMACC_LOCKSTEP_KERNEL(setBoundaryConditions, workerCfg)
-    (borderMapper.getGridDim())(
+    auto kernel = PMACC_LOCKSTEP_KERNEL(setBoundaryConditions)
+                      .config(borderMapper.getGridDim(), typename MappingDesc::SuperCellSize{});
+    kernel(
         buff1->getDeviceBuffer().getDataBox(),
         NUM_DEVICES_PER_DIM,
         gc.getPosition(),
         subGrid.getLocalDomain().offset,
         gridSize,
         borderMapper);
-    PMACC_LOCKSTEP_KERNEL(setBoundaryConditions, workerCfg)
-    (borderMapper.getGridDim())(
+    kernel(
         buff2->getDeviceBuffer().getDataBox(),
         NUM_DEVICES_PER_DIM,
         gc.getPosition(),
@@ -171,44 +168,45 @@ auto main(int argc, char** argv) -> int
         // run the simulation for steps
         for(uint32_t i = 0; i < NUM_STEPS; i++)
         {
+            using SuperCell = typename MappingDesc::SuperCellSize;
             auto splitEvent = pmacc::eventSystem::getTransactionEvent();
             auto send = buff1->asyncCommunication(splitEvent);
 
             /* Update Core Cells */
-            PMACC_LOCKSTEP_KERNEL(StencilFourPoint{}, workerCfg)
-            (coreMapper.getGridDim())(
-                buff1->getDeviceBuffer().getDataBox(),
-                buff2->getDeviceBuffer().getDataBox(),
-                residualBuffer->getDeviceBuffer().getDataBox(),
-                THERMAL_DIFFUSIVITY,
-                DX,
-                DT,
-                coreMapper);
+            PMACC_LOCKSTEP_KERNEL(StencilFourPoint{})
+                .config(coreMapper.getGridDim(), SuperCell{})(
+                    buff1->getDeviceBuffer().getDataBox(),
+                    buff2->getDeviceBuffer().getDataBox(),
+                    residualBuffer->getDeviceBuffer().getDataBox(),
+                    THERMAL_DIFFUSIVITY,
+                    DX,
+                    DT,
+                    coreMapper);
 
             /** Reset boundary borders to boundary conditions
              * not required for iter 0 as borders havent been updated yet, but is done anyway
              */
-            PMACC_LOCKSTEP_KERNEL(SetBoundaryConditions{}, workerCfg)
-            (borderMapper.getGridDim())(
-                buff1->getDeviceBuffer().getDataBox(),
-                NUM_DEVICES_PER_DIM,
-                gc.getPosition(),
-                subGrid.getLocalDomain().offset,
-                gridSize,
-                borderMapper);
+            PMACC_LOCKSTEP_KERNEL(SetBoundaryConditions{})
+                .config(borderMapper.getGridDim(), SuperCell{})(
+                    buff1->getDeviceBuffer().getDataBox(),
+                    NUM_DEVICES_PER_DIM,
+                    gc.getPosition(),
+                    subGrid.getLocalDomain().offset,
+                    gridSize,
+                    borderMapper);
 
             pmacc::eventSystem::setTransactionEvent(send);
 
             /* Update Border Cells */
-            PMACC_LOCKSTEP_KERNEL(StencilFourPoint{}, workerCfg)
-            (borderMapper.getGridDim())(
-                buff1->getDeviceBuffer().getDataBox(),
-                buff2->getDeviceBuffer().getDataBox(),
-                residualBuffer->getDeviceBuffer().getDataBox(),
-                THERMAL_DIFFUSIVITY,
-                DX,
-                DT,
-                borderMapper);
+            PMACC_LOCKSTEP_KERNEL(StencilFourPoint{})
+                .config(borderMapper.getGridDim(), SuperCell{})(
+                    buff1->getDeviceBuffer().getDataBox(),
+                    buff2->getDeviceBuffer().getDataBox(),
+                    residualBuffer->getDeviceBuffer().getDataBox(),
+                    THERMAL_DIFFUSIVITY,
+                    DX,
+                    DT,
+                    borderMapper);
 
             // Swap the read and write buffers
             std::swap(buff1, buff2);

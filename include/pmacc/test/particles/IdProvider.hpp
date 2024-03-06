@@ -52,7 +52,7 @@ namespace pmacc
                 {
                     using namespace ::pmacc;
 
-                    uint32_t const blockId = device::getBlockIdx(worker.getAcc()).x() * T_numIdsPerBlock;
+                    uint32_t const blockId = worker.blockDomIdxND().x() * T_numIdsPerBlock;
 
                     lockstep::makeForEach<T_numIdsPerBlock>(worker)(
                         [&](uint32_t const linearId)
@@ -135,9 +135,9 @@ namespace pmacc
                     // Generate the same IDs on the device
                     HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
 
-                    auto workerCfg = lockstep::makeWorkerCfg<numIdsPerBlock>();
-                    PMACC_LOCKSTEP_KERNEL(GenerateIds<numIdsPerBlock, IdProvider>{}, workerCfg)
-                    (numBlocks)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
+                    PMACC_LOCKSTEP_KERNEL(GenerateIds<numIdsPerBlock, IdProvider>{})
+                        .template config<numIdsPerBlock>(
+                            numBlocks)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
                     idBuf.deviceToHost();
                     REQUIRE(numIds == ids.size());
                     auto hostBox = idBuf.getHostBuffer().getDataBox();

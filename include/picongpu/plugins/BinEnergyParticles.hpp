@@ -93,7 +93,7 @@ namespace picongpu
             T_Mapping const mapper,
             T_Filter filter) const
         {
-            constexpr uint32_t numWorkers = T_Worker::getNumWorkers();
+            constexpr uint32_t numWorkers = T_Worker::numWorkers();
 
             /* shBins index can go from 0 to (numBins+2)-1
              * 0 is for <minEnergy
@@ -104,7 +104,7 @@ namespace picongpu
 
             int const realNumBins = numBins + 2;
 
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
             auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
@@ -431,11 +431,8 @@ namespace picongpu
 
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
-
-            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelBinEnergyParticles{}, workerCfg)(
-                mapper.getGridDim(),
-                realNumBins * sizeof(float_X));
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelBinEnergyParticles{})
+                              .configSMem(mapper.getGridDim(), *particles, realNumBins * sizeof(float_X));
 
             auto bindKernel = std::bind(
                 kernel,

@@ -352,19 +352,18 @@ namespace picongpu
                     using Kernel = AtomicPhysicsKernel<picongpu::atomicPhysics::maxNumBins>;
                     auto kernel = Kernel{RngFactoryInt{step}, RngFactoryFloat{step}};
 
-                    auto workerCfg = lockstep::makeWorkerCfg<IonFrameType::frameSize>();
-
                     // macro for call of kernel, once for every super cell
-                    PMACC_LOCKSTEP_KERNEL(kernel, workerCfg)
-                    (mapper.getGridDim() // how many blocks = how many supercells in local domain
-
-                     )(electrons.getDeviceParticlesBox(),
-                       ions.getDeviceParticlesBox(),
-                       mapper,
-                       atomicData->getDeviceDataBox(this->numberStates, this->numberTransitions),
-                       picongpu::atomicPhysics::initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
-                       picongpu::atomicPhysics::relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
-                       step);
+                    PMACC_LOCKSTEP_KERNEL(kernel).config(
+                        // how many blocks = how many supercells in local domain,
+                        mapper.getGridDim(),
+                        ions)(
+                        electrons.getDeviceParticlesBox(),
+                        ions.getDeviceParticlesBox(),
+                        mapper,
+                        atomicData->getDeviceDataBox(this->numberStates, this->numberTransitions),
+                        picongpu::atomicPhysics::initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
+                        picongpu::atomicPhysics::relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
+                        step);
                 }
             };
 

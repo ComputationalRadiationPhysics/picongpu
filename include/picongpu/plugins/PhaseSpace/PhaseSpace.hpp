@@ -248,15 +248,13 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg<TParticlesBox::frameSize>();
                 auto functorBlock = FunctorBlock<Species, float_PS, num_pbins, r_dir, T_Filter>(
                     particlesBox,
                     phaseSpaceBox,
                     p_element,
                     axis_p_range,
                     filter);
-                PMACC_LOCKSTEP_KERNEL(functorBlock, workerCfg)
-                (mapper.getGridDim())(mapper);
+                PMACC_LOCKSTEP_KERNEL(functorBlock).config(mapper.getGridDim(), particlesBox)(mapper);
             }
         };
 

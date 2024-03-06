@@ -91,7 +91,7 @@ namespace picongpu
 
             auto storageOffsetCtx = lockstep::makeVar<int>(forEachParticleInFrame);
 
-            DataSpace<simDim> const supcerCellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+            DataSpace<simDim> const supcerCellIdx = mapper.getSuperCellIndex(worker.blockDomIdxND());
             /* offset (in cells) of the supercell relative to the origin of the
              * local domain (without any guards)
              */

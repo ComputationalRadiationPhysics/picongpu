@@ -67,8 +67,7 @@ namespace pmacc
                     forEachCell(
                         [&](int32_t const linearIdx)
                         {
-                            int32_t const linearTid
-                                = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
+                            int32_t const linearTid = worker.blockDomIdxND().x() * T_blockSize + linearIdx;
 
                             if(linearTid >= boxSize.productOfComponents())
                                 return;
@@ -177,10 +176,9 @@ namespace pmacc
                 eventSystem::getTransactionEvent().waitForFinished();
                 timer.toggleStart();
 
-                auto workerCfg = lockstep::makeWorkerCfg<blockSize>();
-
-                PMACC_LOCKSTEP_KERNEL(RandomFiller<blockSize>{}, workerCfg)
-                (gridSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
+                PMACC_LOCKSTEP_KERNEL(RandomFiller<blockSize>{})
+                    .template config<blockSize>(
+                        gridSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
 
                 eventSystem::getTransactionEvent().waitForFinished();
                 timer.toggleEnd();

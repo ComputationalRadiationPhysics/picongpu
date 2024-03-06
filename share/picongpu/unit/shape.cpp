@@ -130,7 +130,7 @@ struct TestShape
         auto shapeTestKernel
             = [this] DEVICEONLY(auto const& worker, auto positionShift, auto const& positions, auto result)
         {
-            auto blockIdx = device::getBlockIdx(worker.getAcc()).x();
+            auto blockIdx = worker.blockDomIdxND().x();
 
             auto forEach = lockstep::makeForEach<elemPerBlock>(worker);
 
@@ -154,10 +154,10 @@ struct TestShape
                 });
         };
 
-        auto workerCfg = lockstep::makeWorkerCfg<elemPerBlock>();
         auto numBlocks = (numValues + elemPerBlock - 1) / elemPerBlock;
-        PMACC_LOCKSTEP_KERNEL(shapeTestKernel, workerCfg)
-        (numBlocks)(posShiftFunctor, deviceInCellPositionBuffer.getDataBox(), resultDevice.getDataBox());
+        PMACC_LOCKSTEP_KERNEL(shapeTestKernel)
+            .template config<elemPerBlock>(
+                numBlocks)(posShiftFunctor, deviceInCellPositionBuffer.getDataBox(), resultDevice.getDataBox());
 
         resultHost.copyFrom(resultDevice);
 

@@ -47,8 +47,7 @@ namespace pmacc
                     forEachCell(
                         [&](int32_t const linearIdx)
                         {
-                            int32_t const linearTid
-                                = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
+                            int32_t const linearTid = worker.blockDomIdxND().x() * T_blockSize + linearIdx;
                             if(linearTid >= size.productOfComponents())
                                 return;
 
@@ -75,14 +74,12 @@ namespace pmacc
         {
             constexpr uint32_t blockSize = 256;
 
-            auto workerCfg = lockstep::makeWorkerCfg<blockSize>();
-
             const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
 
             auto bufferBox = buffer->getDeviceBuffer().getDataBox();
 
-            PMACC_LOCKSTEP_KERNEL(kernel::InitRNGProvider<blockSize, RNGMethod>{}, workerCfg)
-            (gridSize)(bufferBox, seed, m_size);
+            PMACC_LOCKSTEP_KERNEL(kernel::InitRNGProvider<blockSize, RNGMethod>{})
+                .template config<blockSize>(gridSize)(bufferBox, seed, m_size);
         }
 
         template<uint32_t T_dim, class T_RNGMethod>

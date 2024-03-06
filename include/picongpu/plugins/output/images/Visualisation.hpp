@@ -282,7 +282,7 @@ namespace picongpu
 
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(worker.blockDomIdxND());
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
@@ -395,7 +395,7 @@ namespace picongpu
              */
             auto isImageThreadCtx = lockstep::makeVar<bool>(forEachCell, false);
 
-            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+            DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(worker.blockDomIdxND());
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
@@ -565,7 +565,7 @@ namespace picongpu
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        uint32_t tid = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
+                        uint32_t tid = worker.blockDomIdxND().x() * T_blockSize + linearIdx;
                         if(tid >= n)
                             return;
 
@@ -602,7 +602,7 @@ namespace picongpu
                 forEachCell(
                     [&](uint32_t const linearIdx)
                     {
-                        uint32_t const tid = device::getBlockIdx(worker.getAcc()).x() * T_blockSize + linearIdx;
+                        uint32_t const tid = worker.blockDomIdxND().x() * T_blockSize + linearIdx;
                         if(tid >= n)
                             return;
 
@@ -717,20 +717,18 @@ namespace picongpu
 
             auto const mapper = makeAreaMapper<CORE + BORDER>(*cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
-
             // create image fields
-            PMACC_LOCKSTEP_KERNEL(KernelPaintFields{}, workerCfg)
-            (mapper.getGridDim())(
-                fieldE->getDeviceDataBox(),
-                fieldB->getDeviceDataBox(),
-                fieldJ->getDeviceDataBox(),
-                img->getDeviceBuffer().getDataBox(),
-                m_transpose,
-                sliceOffset,
-                localDomainOffset,
-                sliceDim,
-                mapper);
+            PMACC_LOCKSTEP_KERNEL(KernelPaintFields{})
+                .config(mapper.getGridDim(), SuperCellSize{})(
+                    fieldE->getDeviceDataBox(),
+                    fieldB->getDeviceDataBox(),
+                    fieldJ->getDeviceDataBox(),
+                    img->getDeviceBuffer().getDataBox(),
+                    m_transpose,
+                    sliceOffset,
+                    localDomainOffset,
+                    sliceDim,
+                    mapper);
 
             // find maximum for img.x()/y and z and return it as float3_X
             int elements = img->getGridLayout().getDataSpace().productOfComponents();
@@ -762,29 +760,30 @@ namespace picongpu
              * (because of the runtime dimension selection in any plugin),
              * thus we must use a one dimension kernel and no mapper
              */
-            PMACC_LOCKSTEP_KERNEL(vis_kernels::DivideAnyCell<cellsPerSupercell>{}, workerCfg)
-            ((elements + cellsPerSupercell - 1u) / cellsPerSupercell)(d1access, elements, max);
+            PMACC_LOCKSTEP_KERNEL(vis_kernels::DivideAnyCell<cellsPerSupercell>{})
+                .config(
+                    (elements + cellsPerSupercell - 1u) / cellsPerSupercell,
+                    SuperCellSize{})(d1access, elements, max);
 #endif
 
             // convert channels to RGB
-            PMACC_LOCKSTEP_KERNEL(vis_kernels::ChannelsToRGB<cellsPerSupercell>{}, workerCfg)
-            ((elements + cellsPerSupercell - 1u) / cellsPerSupercell)(d1access, elements);
+            PMACC_LOCKSTEP_KERNEL(vis_kernels::ChannelsToRGB<cellsPerSupercell>{})
+                .config((elements + cellsPerSupercell - 1u) / cellsPerSupercell, SuperCellSize{})(d1access, elements);
 
             // add density color channel
             DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
             DataSpace<DIM2> blockSize2D(blockSize[m_transpose.x()], blockSize[m_transpose.y()]);
 
-            auto particleWorkerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
             // create image particles
-            PMACC_LOCKSTEP_KERNEL(KernelPaintParticles3D{}, particleWorkerCfg)
-            (mapper.getGridDim(), blockSize2D.productOfComponents() * sizeof(float_X))(
-                particles->getDeviceParticlesBox(),
-                img->getDeviceBuffer().getDataBox(),
-                m_transpose,
-                sliceOffset,
-                localDomainOffset,
-                sliceDim,
-                mapper);
+            PMACC_LOCKSTEP_KERNEL(KernelPaintParticles3D{})
+                .configSMem(mapper.getGridDim(), *particles, blockSize2D.productOfComponents() * sizeof(float_X))(
+                    particles->getDeviceParticlesBox(),
+                    img->getDeviceBuffer().getDataBox(),
+                    m_transpose,
+                    sliceOffset,
+                    localDomainOffset,
+                    sliceDim,
+                    mapper);
 
             // send the RGB image back to host
             img->deviceToHost();

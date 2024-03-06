@@ -209,7 +209,7 @@ namespace picongpu
 
         auto const chargeDeviation = [] ALPAKA_FN_ACC(auto const& worker, auto mapper, auto rohBox, auto fieldEBox)
         {
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
             DataSpace<simDim> const supercellCellIdx = superCellIdx * SuperCellSize::toRT();
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
@@ -231,12 +231,12 @@ namespace picongpu
         };
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(*this->cellDescription);
-        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
-        PMACC_LOCKSTEP_KERNEL(chargeDeviation, workerCfg)
-        (mapper.getGridDim())(
-            mapper,
-            fieldTmp->getGridBuffer().getDeviceBuffer().getDataBox(),
-            fieldE->getGridBuffer().getDeviceBuffer().getDataBox());
+
+        PMACC_LOCKSTEP_KERNEL(chargeDeviation)
+            .config(mapper.getGridDim(), SuperCellSize{})(
+                mapper,
+                fieldTmp->getGridBuffer().getDeviceBuffer().getDataBox(),
+                fieldE->getGridBuffer().getDeviceBuffer().getDataBox());
 
         // find global max error
         auto memLayoutRoh = fieldTmp->getGridLayout();

@@ -201,63 +201,53 @@ namespace pmacc
             {
                 if(threads >= 512u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<512u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 512u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<512u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 256u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<256u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 256u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<256u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 128u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<128u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 128u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<128u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 64u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<64u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 64u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<64u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 32u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<32u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 32u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<32u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 16u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<16u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 16u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<16u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 8u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<8u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 8u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<8u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 4u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<4u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 4u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<4u>(blocks, sharedMemSize)(args...);
                 }
                 else if(threads >= 2u)
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<2u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 2u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<2u>(blocks, sharedMemSize)(args...);
                 }
                 else
                 {
-                    auto workerCfg = lockstep::makeWorkerCfg<1u>();
-                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type, 1u>{}, workerCfg)
-                    (blocks, sharedMemSize)(args...);
+                    PMACC_LOCKSTEP_KERNEL(reduce::Kernel<Type>{})
+                        .template configSMem<1u>(blocks, sharedMemSize)(args...);
                 }
             }
 

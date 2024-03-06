@@ -78,8 +78,7 @@ namespace pmacc
 
             using FramePtr = typename T_ParBox::FramePtr;
 
-            DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND()));
 
             PMACC_SMEM(worker, lastFrame, FramePtr);
             PMACC_SMEM(worker, gapIndices_sh, memory::Array<int, frameSize>);
@@ -201,8 +200,7 @@ namespace pmacc
             constexpr uint32_t frameSize = T_ParBox::frameSize;
             constexpr uint32_t dim = T_Mapping::Dim;
 
-            DataSpace<dim> const superCellIdx(
-                mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc()))));
+            DataSpace<dim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND())));
 
             // data copied from right (last) to left (first)
             PMACC_SMEM(worker, firstFrame, FramePtr);
@@ -405,8 +403,7 @@ namespace pmacc
 
             PMACC_SMEM(worker, isProcessedSupercell, bool);
 
-            DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND()));
 
             lockstep::makeMaster(worker)(
                 [&]()
@@ -657,8 +654,7 @@ namespace pmacc
             constexpr uint32_t dim = T_Mapping::Dim;
             constexpr uint32_t frameSize = ParticleBox::frameSize;
 
-            DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND()));
 
             PMACC_SMEM(worker, frame, FramePtr);
 
@@ -734,8 +730,7 @@ namespace pmacc
 
             using FramePtr = typename T_ParBox::FramePtr;
 
-            DataSpace<dim> const superCellIdx
-                = mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())));
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND()));
 
             // number of particles in the current handled frame
             PMACC_SMEM(worker, numParticles, int);
@@ -889,7 +884,7 @@ namespace pmacc
             onlyMaster(
                 [&](auto& compressedSuperCellIdx)
                 {
-                    exchangeChunk = exchangeBox.get(device::getBlockIdx(worker.getAcc()).x(), compressedSuperCellIdx);
+                    exchangeChunk = exchangeBox.get(worker.blockDomIdxND().x(), compressedSuperCellIdx);
                     elementCount = exchangeChunk.getSize();
                     if(elementCount > 0u)
                     {

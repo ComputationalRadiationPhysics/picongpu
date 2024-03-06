@@ -51,15 +51,13 @@ namespace picongpu
 
             PMACC_SMEM(worker, sh_sumJ, float3_X);
 
-            const DataSpace<simDim> threadIndex(device::getThreadIdx(worker.getAcc()));
-
             auto onlyMaster = lockstep::makeMaster(worker);
 
             onlyMaster([&]() { sh_sumJ = float3_X::create(0.0); });
 
             worker.sync();
 
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
             lockstep::makeForEach<cellsPerSuperCell>(worker)(
@@ -167,9 +165,10 @@ namespace picongpu
 
             auto const mapper = makeAreaMapper<CORE + BORDER>(*cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
-            PMACC_LOCKSTEP_KERNEL(KernelSumCurrents{}, workerCfg)
-            (mapper.getGridDim())(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().data(), mapper);
+            PMACC_LOCKSTEP_KERNEL(KernelSumCurrents{})
+                .config(
+                    mapper.getGridDim(),
+                    SuperCellSize{})(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().data(), mapper);
 
             sumcurrents->deviceToHost();
             return sumcurrents->getHostBuffer().getDataBox()[0];
