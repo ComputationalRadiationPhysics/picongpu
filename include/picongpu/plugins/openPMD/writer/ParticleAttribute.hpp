@@ -147,7 +147,7 @@ namespace picongpu
                 /* @todo check if always correct at this point,
                  * depends on attribute and MW-solver/pusher implementation
                  */
-                float_X const timeOffset = 0.0;
+                float_32 const timeOffset = 0.0;
                 record.setAttribute("timeOffset", timeOffset);
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) write species attribute: %1%") % Identifier::getName();
