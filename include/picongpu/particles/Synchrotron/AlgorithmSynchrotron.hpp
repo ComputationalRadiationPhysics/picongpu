@@ -177,11 +177,21 @@ namespace picongpu
 
                     float_64 F1 = 0;
                     float_64 F2 = 0;
-                    if(index >= 0 && index < interpolationPoints)
+                    float_64 Ftemp = 0;
+                    if(index >= 0 && index < interpolationPoints - 1)
                     {
-                        /// @todo interpolate
+                        float_64 zq1 = math::pow(10, minZqExponent + stepWidthLogatihmicScale * index);
+                        float_64 zq2 = math::pow(10, minZqExponent + stepWidthLogatihmicScale * (index + 1));
+                        float_64 f = (zq - zq1) / (zq2 - zq1);
+
+                        /// @todo Test Logarithmic interpolation
                         F1 = F1F2(index, 0);
+                        Ftemp = F1F2(index + 1, 0);
+                        F1 = math::pow(F1, 1 - f) * math::pow(Ftemp, f); // F1 = F1**((1-f)) * Ftemp**f
+
                         F2 = F1F2(index, 1);
+                        Ftemp = F1F2(index + 1, 1);
+                        F2 = math::pow(F2, 1 - f) * math::pow(Ftemp, f); // F2 = F2**((1-f)) * Ftemp**f
                     }
 
                     //  - Calculating the numeric factor: numericFactor = dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 *
