@@ -84,6 +84,18 @@ namespace picongpu
                 PMACC_ASSERT(unit.size() == components); // unitSI for each component
                 PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
+                auto unitMap = convertToUnitDimension(unitDimension);
+
+                record.setUnitDimension(unitMap);
+                record.setAttribute("macroWeighted", macroWeighted);
+                record.setAttribute("weightingPower", weightingPower);
+
+                /* @todo check if always correct at this point,
+                 * depends on attribute and MW-solver/pusher implementation
+                 */
+                float_X const timeOffset = 0.0;
+                record.setAttribute("timeOffset", timeOffset);
+
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
 
                 std::shared_ptr<ComponentType> storeBfr;
@@ -137,18 +149,6 @@ namespace picongpu
 
                     params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                 }
-
-                auto unitMap = convertToUnitDimension(unitDimension);
-
-                record.setUnitDimension(unitMap);
-                record.setAttribute("macroWeighted", macroWeighted);
-                record.setAttribute("weightingPower", weightingPower);
-
-                /* @todo check if always correct at this point,
-                 * depends on attribute and MW-solver/pusher implementation
-                 */
-                float_X const timeOffset = 0.0;
-                record.setAttribute("timeOffset", timeOffset);
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) write species attribute: %1%") % Identifier::getName();
             }
