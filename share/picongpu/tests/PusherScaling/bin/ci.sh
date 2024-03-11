@@ -23,10 +23,6 @@ help()
   echo ""
 }
 
-## not used at the moment
-currentPath=$(cd `dirname $0` && pwd)
-currentPath=$(absolute_path $currentPath)
-
 
 #####################
 ## option handling ##
@@ -88,7 +84,7 @@ if [ $ret_build -eq 0 ] ; then
 
   mkdir -p $simPath
 
-  # use absolut path's
+  # use absolut path
   simPath=$(absolute_path $simPath)
   echo "$simPath"
 

@@ -52,26 +52,26 @@ def get_params(path):
                          "make sure, there are at least two")
 
     elif len(np.array(i.particles)) != 1:
-        raise ValueError("There is just 1 iteration in the series"
-                         "make sure, there are at least two")
+        raise ValueError("There is not only 1 particle in the series"
+                         "make sure, there is only one")
 
     else:
         # read parameters of the simulation
-        cell_depth = i.get_attribute("cell_depth")
-        cell_height = i.get_attribute("cell_height")
-        cell_width = i.get_attribute("cell_width")
-        dt = i.get_attribute("dt")
-        unit_time = i.get_attribute("unit_time")
-        unit_length = i.get_attribute("unit_length")
-        unit_charge = i.get_attribute("unit_charge")
-        unit_bfield = i.get_attribute("unit_bfield")
-        unit_speed = i.get_attribute("unit_speed")
-        unit_mass = i.get_attribute("unit_mass")
+        params = {
+            "cell_depth": i.get_attribute("cell_depth"),
+            "cell_height": i.get_attribute("cell_height"),
+            "cell_width": i.get_attribute("cell_width"),
+            "dt": i.get_attribute("dt"),
+            "unit_time": i.get_attribute("unit_time"),
+            "unit_length": i.get_attribute("unit_length"),
+            "unit_charge": i.get_attribute("unit_charge"),
+            "unit_bfield": i.get_attribute("unit_bfield"),
+            "unit_speed": i.get_attribute("unit_speed"),
+            "unit_mass": i.get_attribute("unit_mass")
+            }
+        
 
-        return series, [
-            cell_depth, cell_height, cell_width, dt, unit_time, unit_charge,
-            unit_length, unit_mass, unit_speed, unit_bfield
-            ]
+        return series, params
 
 
 def read_series(series):
@@ -149,73 +149,20 @@ def read_series(series):
             charge, mass, num_iter, periode)
 
 
-def compare_momentum(x_momentum, y_momentum,
-                     charge, mass, B, params, num_iter, periode):
-    """Tests if the change in radius from one revolution to the other is
-    greater than epsilon = 1e-5.
-    The radii are calculated by the momenta (and q*B) in the x-y-plane.
-
-    Parameters:
-    x/y_momentum(array): Series of the momenta of the particle in x/y-direction
-    charge (float): Charge of the particle
-    mass (float): Mass of the particle
-    B (float): Magnitude of the magnetic field B in the test
-    params (list): Simulation parameters
-    num_iter (int): Number of iterations in the series
-    period (int): openPMD period of the simulation
-
-    Returns:
-    0: if the radius of gyration does not vary much (<epsilon)
-    42: if the change in radius of gyration large (>epsilon)
-
-    """
-    # the greatest change in of the radius, measured between 2 turns
-    # (2000 Turns simulated) is ca. 4e-6. Doubling this value yields epsilon
-    # as an approximation of the maximal uncertanty PIConGPU should have.
-    # Therefore the test uses this value to test the radius change against
-    # PIConGPU run September 2023
-    epsilon = 1e-5
-
-    # calculating the value of gamma for the determination of the periodic time
-    abs_momentum = np.sqrt(x_momentum[0]**2 + y_momentum[0]**2)
-    gamma = 1/np.sqrt(1 - abs_momentum**2/(abs_momentum**2 + 1))
-    # periodic time / timestep
-    steps_per_revolution = ((2*np.pi * gamma * mass[0]/(abs(charge[0])
-                            * B/params[9])) / params[3])
-
-    revolutions_in_series = int(num_iter / steps_per_revolution)
-
-    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params[7] * params[8] /
-              (abs(charge[0]) * params[5] * B) / params[0] / params[6])
-    # relative comparison
-    for k in range(revolutions_in_series):
-        index_of_revolution = int(steps_per_revolution/periode) * k
-        compare_radii = (
-            abs(radius[index_of_revolution] - radius[index_of_revolution + 1])
-            / radius[index_of_revolution])
-
-        if compare_radii > epsilon:
-            print("pusher is not valid (position)")
-            print("please check the simulation")
-            return 42
-
-    print("pusher is valid (momentum)")
-    return 0
-
-
-def compare_positions(x_poss, y_poss, x_offSet, y_offSet,
+def compare_radius(x_poss, y_poss, x_offSet, y_offSet,
                       x_momentum, y_momentum,
                       charge, mass, B, params, num_iter, periode):
     """Tests if the change in radius from one revolution to the other is
     greater than epsilon = 1e-5.
-    The radii are calculated by the positions of the particle in the x-y-plane.
+    The radii are calculated by the positions of the particle in the x-y-plane
+    in one test and by the momenta (and q*B) in the x-y-plane in the other one.
 
     Parameters:
     x/y_momentum(array): Series of the momenta of the particle in x/y-direction
     charge (float): Charge of the particle
     mass( float): Mass of the particle
     B (float): Magnitude of the magnetic field B in the test
-    params (list): Simulation parameters
+    params (dict): Simulation parameters
     num_iter (int): Number of iterations in the series
     period (int): openPMD period of the simulation
 
@@ -236,10 +183,15 @@ def compare_positions(x_poss, y_poss, x_offSet, y_offSet,
     gamma = 1/np.sqrt(1 - abs_momentum**2/(abs_momentum**2 + 1))
     # periodic time / timestep
     steps_per_revolution = ((2*np.pi * gamma * mass[0]/(abs(charge[0])
-                            * B/params[9])) / params[3])
+                            * B/params["unit_bfield"])) / params["dt"])
 
     revolutions_in_series = int(num_iter / steps_per_revolution)
 
+    compare_result_momentum = 0
+    compare_result_positions = 0
+
+    
+    #compare with position
     radius = np.sqrt((x_poss + x_offSet)**2 + (y_poss + y_offSet)**2)
 
     # relative comparison
@@ -252,10 +204,32 @@ def compare_positions(x_poss, y_poss, x_offSet, y_offSet,
         if compare_radii > epsilon:
             print("pusher is not valid (position)")
             print("please check the simulation")
-            return 43
+            compare_result_positions += 42
 
-    print("pusher is valid (position)")
-    return 0
+        else:
+            print("pusher is valid (position)")
+       
+    # comparision with momentum
+    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"] 
+              * params["unit_speed"] / (abs(charge[0]) * params["unit_charge"]
+                                        * B) / params["cell_depth"] /
+              params["unit_length"])
+    # relative comparison
+    for k in range(revolutions_in_series):
+        index_of_revolution = int(steps_per_revolution/periode) * k
+        compare_radii = (
+            abs(radius[index_of_revolution] - radius[index_of_revolution + 1])
+            / radius[index_of_revolution])
+    
+        if compare_radii > epsilon:
+            print("pusher is not valid (position)")
+            print("please check the simulation")
+            compare_result_momentum += 46
+    
+        else:
+            print("pusher is valid (momentum)")
+
+    return compare_result_momentum + compare_result_positions
 
 
 def compare_phases(x_poss, y_poss, x_offSet, y_offSet,
@@ -270,7 +244,7 @@ def compare_phases(x_poss, y_poss, x_offSet, y_offSet,
     charge (float): Charge of the particle
     mass (float): Mass of the particle
     B (float): Magnitude of the magnetic field B in the test
-    params (list): Simulation parameters
+    params (dict): Simulation parameters
     num_iter (int): Number of iterations in the series
     period (int): openPMD period of the simulation
 
@@ -280,10 +254,10 @@ def compare_phases(x_poss, y_poss, x_offSet, y_offSet,
 
     """
     # The measured phase difference between two revolutions is approximately
-    # 0.125. Doubling this value represents the maximal error to be accepted
+    # 0.08rad. Doubling this value represents the maximal error to be accepted
     # for the phase difference in the PIConGPU.
     # PIConGPU run of September 2023.
-    delta = 0.25
+    delta = 0.16
 
     # calculating gamma for the calculation of the periodic time
     # (gamma factor for motion in the x-y plane)
@@ -291,38 +265,42 @@ def compare_phases(x_poss, y_poss, x_offSet, y_offSet,
     gamma = 1/np.sqrt(1 - abs_momentum**2/(abs_momentum**2 + 1))
     # periodic time / timestep
     steps_per_revolution = ((2*np.pi * gamma * mass[0]/(abs(charge[0])
-                            * B/params[9])) / params[3])
+                            * B/params["unit_bfield"])) / params["dt"])
 
     revolutions_in_series = int(num_iter / steps_per_revolution)
 
     x = x_poss + x_offSet     # real x coordinates
-    R_c = np.mean(np.sqrt(x_momentum**2 + y_momentum**2) * params[7]
-                  * params[8] / (abs(charge[0])*params[5] * B) / params[0] /
-                  params[6])
+    R_c = np.mean((np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"] 
+              * params["unit_speed"] / (abs(charge[0]) * params["unit_charge"]
+                                        * B) / params["cell_depth"] /
+              params["unit_length"]))
     theta = np.arccos(x/R_c)  # calculate the phase
 
     for k in range(revolutions_in_series):
         index_of_revolution = int(steps_per_revolution/periode)*k
-        # compare neigboring points
+        # compare the phase after 1 periodic time
         compare_phases = (
             abs(theta[index_of_revolution] - theta[index_of_revolution
                 + int(steps_per_revolution/periode)]))
-        # compare with 90 degrees
+        # compare with theoretical, i.e. stationary phase
         compare_ana_phases = (
-            abs(theta[index_of_revolution] - np.pi/2 - 2*np.pi/100))
+            abs(theta[index_of_revolution] - np.pi/2 + 2*np.pi/100))
+
+        compare_result_phases = 0
 
         if compare_phases > delta:
             print("pusher is not valid (phases)")
             print("please check the simulation")
-            return 1
+            compare_result_phases += 1
 
         if compare_ana_phases > (k+1)*delta:
             print("pusher is not valid (phases_analytical)")
             print("please check the simulation")
-            return 2
+            compare_result_phases += 2
 
-    print("pusher is valid (phases)")
-    return 0
+        else:
+            print("pusher is valid (phases)")
+    return compare_result_phases
 
 
 def main(dataPath):
@@ -344,9 +322,12 @@ def main(dataPath):
     (x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum, charge,
      mass, num_iter, periode) = read_series(series)
 
+
     # all radii in the series
-    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params[7] * params[8] /
-              (abs(charge[0])*params[5]*B) / params[0] / params[6])
+    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"] 
+              * params["unit_speed"] / (abs(charge[0]) * params["unit_charge"]
+                                        * B) / params["cell_depth"] /
+              params["unit_length"])
     R_c = radius[0]  # original radius
 
     # transformation for the correct calculation of the radii by position
@@ -357,10 +338,7 @@ def main(dataPath):
     y_offSet = y_offSet - 5 - int(R_c)
 
     # tests
-    compare_result_momentum = compare_momentum(x_momentum, y_momentum,
-                                               charge, mass, B, params,
-                                               num_iter, periode)
-    compare_result_positions = compare_positions(x_poss, y_poss,
+    compare_result_radius = compare_radius(x_poss, y_poss,
                                                  x_offSet, y_offSet,
                                                  x_momentum, y_momentum,
                                                  charge, mass, B, params,
@@ -371,17 +349,12 @@ def main(dataPath):
                                            num_iter, periode)
 
     # yield both tests/comparisions a positive result?
-    compare_result = (compare_result_momentum + compare_result_positions +
-                      compare_result_phases)
+    compare_result = compare_result_radius + compare_result_phases
 
     return compare_result
 
 
 if __name__ == "__main__":
-    try:
-        arg = sys.argv[1]
-    except IndexError:
-        raise SystemExit(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
-    if len(sys.argv[1:]) > 1:
+    if len(sys.argv) != 2:
         raise SystemExit(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
     main(sys.argv[1])

@@ -11,7 +11,7 @@ The thresholds epsilon and delta were determined as follows:
 epsilon: The greatest change in the radius measured between 2 turns (2000 Turns simulated) is approximately 4e-6. This doubled yields epsilon as an approximation 
 -------- of the maximal uncertainty PIConGPU should have. Therefore, the test uses this value to check the radius change.
 
-delta: The measured phase difference between 2 revolutions is approximately 0.125rad. This doubled is the maximal error to be accepted for the phase difference between 2 turns. 
+delta: The measured phase difference between 2 revolutions is approximately 0.08rad. This doubled is the maximal error to be accepted for the phase difference between 2 turns. 
 ------
 
 PIConGPU run September 2023; 50 steps per turn.

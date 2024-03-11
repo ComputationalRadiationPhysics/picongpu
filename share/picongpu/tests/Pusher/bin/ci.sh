@@ -19,14 +19,10 @@ help()
   echo "Usage: ci.sh"
   echo ""
   echo "Options"
-  echo "-t | --flag                   - flag number of cmakeFlags"
   echo "-h | --help                   - show help"
+  echo "-t | --flag                   - flag number of cmakeFlags"
   echo ""
 }
-
-## not used at the moment
-currentPath=$(cd `dirname $0` && pwd)
-currentPath=$(absolute_path $currentPath)
 
 
 #####################
@@ -87,7 +83,7 @@ if [ $ret_build -eq 0 ] ; then
 
   mkdir -p $simPath
 
-  # use absolut path's
+  # use absolut path
   simPath=$(absolute_path $simPath)
 
   cd $simPath

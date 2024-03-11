@@ -60,26 +60,22 @@ class compare:
 
         elif len(np.array(i.particles)) != 1:
             raise ValueError("There is not only 1 particle in the series"
-                             "make sure, there is onle least one")
+                             "make sure, there is only least one")
 
         else:
             # read parameters of the simulation
-            cell_depth = i.get_attribute("cell_depth")
-            cell_height = i.get_attribute("cell_height")
-            cell_width = i.get_attribute("cell_width")
-            dt = i.get_attribute("dt")
-            unit_time = i.get_attribute("unit_time")
-            unit_length = i.get_attribute("unit_length")
-            unit_charge = i.get_attribute("unit_charge")
-            unit_bfield = i.get_attribute("unit_bfield")
-            unit_speed = i.get_attribute("unit_speed")
-            unit_mass = i.get_attribute("unit_mass")
-
-            params = [
-                cell_depth, cell_height, cell_width, dt, unit_time,
-                unit_charge, unit_length, unit_mass, unit_speed, unit_bfield
-                ]
-
+            params = {
+                "cell_depth": i.get_attribute("cell_depth"),
+                "cell_height": i.get_attribute("cell_height"),
+                "cell_width": i.get_attribute("cell_width"),
+                "dt": i.get_attribute("dt"),
+                "unit_time": i.get_attribute("unit_time"),
+                "unit_length": i.get_attribute("unit_length"),
+                "unit_charge": i.get_attribute("unit_charge"),
+                "unit_bfield": i.get_attribute("unit_bfield"),
+                "unit_speed": i.get_attribute("unit_speed"),
+                "unit_mass": i.get_attribute("unit_mass"),
+                }
             self.series = series
             self.params = params
 
@@ -158,15 +154,16 @@ class compare:
             y_momentum[array_index] = p_y
 
         # all radii in the series
-        radius = (np.sqrt(x_momentum**2 + y_momentum**2) * self.params[7]
-                  * self.params[8] /
-                  (abs(self.charge[0]) * self.params[5] * self.B) /
-                  self.params[0] / self.params[6])
+        radius = (np.sqrt(x_momentum**2 + y_momentum**2) *
+                  self.params["unit_mass"] * self.params["unit_speed"] /
+                  (abs(self.charge[0]) * self.params["unit_charge"] * self.B) /
+                  self.params["cell_depth"] / self.params["unit_length"])
 
         R_c = radius[0]  # original radius
 
         # half_step
-        steps_per_turn = 0.825e-12 / (self.params[3] * self.params[4])
+        steps_per_turn = 0.825e-12 / (self.params["dt"] * 
+                                      self.params["unit_time"])
         halfStepPhase = np.pi/steps_per_turn
 
         # coordinate transformation to reposition the origin at the center of
@@ -208,7 +205,7 @@ class compare:
         res_cos = x/np.sqrt(x**2+y**2)
         theta = np.arccos(res_cos)
 
-        timestep = self.params[3] * self.params[4]
+        timestep = self.params["dt"] * self.params["unit_time"]
 
         total_phasediff = 0
         for counter in range(0, len(theta)-1, 1):
