@@ -162,7 +162,7 @@ class compare:
         R_c = radius[0]  # original radius
 
         # half_step
-        steps_per_turn = 0.825e-12 / (self.params["dt"] * 
+        steps_per_turn = 0.825e-12 / (self.params["dt"] *
                                       self.params["unit_time"])
         halfStepPhase = np.pi/steps_per_turn
 

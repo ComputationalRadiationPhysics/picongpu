@@ -69,7 +69,6 @@ def get_params(path):
             "unit_speed": i.get_attribute("unit_speed"),
             "unit_mass": i.get_attribute("unit_mass")
             }
-        
 
         return series, params
 
@@ -149,9 +148,8 @@ def read_series(series):
             charge, mass, num_iter, periode)
 
 
-def compare_radius(x_poss, y_poss, x_offSet, y_offSet,
-                      x_momentum, y_momentum,
-                      charge, mass, B, params, num_iter, periode):
+def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
+                   charge, mass, B, params, num_iter, periode):
     """Tests if the change in radius from one revolution to the other is
     greater than epsilon = 1e-5.
     The radii are calculated by the positions of the particle in the x-y-plane
@@ -190,8 +188,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet,
     compare_result_momentum = 0
     compare_result_positions = 0
 
-    
-    #compare with position
+    # compare with position
     radius = np.sqrt((x_poss + x_offSet)**2 + (y_poss + y_offSet)**2)
 
     # relative comparison
@@ -208,9 +205,9 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet,
 
         else:
             print("pusher is valid (position)")
-       
+
     # comparision with momentum
-    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"] 
+    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
               * params["unit_speed"] / (abs(charge[0]) * params["unit_charge"]
                                         * B) / params["cell_depth"] /
               params["unit_length"])
@@ -220,12 +217,12 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet,
         compare_radii = (
             abs(radius[index_of_revolution] - radius[index_of_revolution + 1])
             / radius[index_of_revolution])
-    
+
         if compare_radii > epsilon:
             print("pusher is not valid (position)")
             print("please check the simulation")
             compare_result_momentum += 46
-    
+
         else:
             print("pusher is valid (momentum)")
 
@@ -270,10 +267,11 @@ def compare_phases(x_poss, y_poss, x_offSet, y_offSet,
     revolutions_in_series = int(num_iter / steps_per_revolution)
 
     x = x_poss + x_offSet     # real x coordinates
-    R_c = np.mean((np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"] 
-              * params["unit_speed"] / (abs(charge[0]) * params["unit_charge"]
-                                        * B) / params["cell_depth"] /
-              params["unit_length"]))
+    R_c = np.mean((np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
+                   * params["unit_speed"] /
+                   (abs(charge[0]) *params["unit_charge"]* B) /
+                   params["cell_depth"] / params["unit_length"]))
+
     theta = np.arccos(x/R_c)  # calculate the phase
 
     for k in range(revolutions_in_series):
@@ -322,12 +320,11 @@ def main(dataPath):
     (x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum, charge,
      mass, num_iter, periode) = read_series(series)
 
-
     # all radii in the series
-    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"] 
-              * params["unit_speed"] / (abs(charge[0]) * params["unit_charge"]
-                                        * B) / params["cell_depth"] /
-              params["unit_length"])
+    radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
+              * params["unit_speed"] /
+              (abs(charge[0]) * params["unit_charge"]* B) /
+              params["cell_depth"] / params["unit_length"])
     R_c = radius[0]  # original radius
 
     # transformation for the correct calculation of the radii by position
@@ -338,15 +335,12 @@ def main(dataPath):
     y_offSet = y_offSet - 5 - int(R_c)
 
     # tests
-    compare_result_radius = compare_radius(x_poss, y_poss,
-                                                 x_offSet, y_offSet,
-                                                 x_momentum, y_momentum,
-                                                 charge, mass, B, params,
-                                                 num_iter, periode)
+    compare_result_radius = compare_radius(x_poss, y_poss, x_offSet, y_offSet,
+                                           x_momentum, y_momentum, charge,
+                                           mass, B, params, num_iter, periode)
     compare_result_phases = compare_phases(x_poss, y_poss, x_offSet, y_offSet,
-                                           x_momentum, y_momentum,
-                                           charge, mass, B, params,
-                                           num_iter, periode)
+                                           x_momentum, y_momentum, charge,
+                                           mass, B, params, num_iter, periode)
 
     # yield both tests/comparisions a positive result?
     compare_result = compare_result_radius + compare_result_phases
