@@ -43,7 +43,7 @@ module load pngwriter/0.7.0
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="cuda:70"
+export PIC_BACKEND="cuda:60"
 
 # Path to the required templates of the system,
 # relative to the PIConGPU source code of the tool bin/pic-create.
