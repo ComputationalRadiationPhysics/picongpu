@@ -269,7 +269,7 @@ def compare_phases(x_poss, y_poss, x_offSet, y_offSet,
     x = x_poss + x_offSet     # real x coordinates
     R_c = np.mean((np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
                    * params["unit_speed"] /
-                   (abs(charge[0]) *params["unit_charge"]* B) /
+                   (abs(charge[0]) * params["unit_charge"] * B) /
                    params["cell_depth"] / params["unit_length"]))
 
     theta = np.arccos(x/R_c)  # calculate the phase
@@ -323,7 +323,7 @@ def main(dataPath):
     # all radii in the series
     radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
               * params["unit_speed"] /
-              (abs(charge[0]) * params["unit_charge"]* B) /
+              (abs(charge[0]) * params["unit_charge"] * B) /
               params["cell_depth"] / params["unit_length"])
     R_c = radius[0]  # original radius
 
