@@ -46,7 +46,7 @@ if [ -z "$dataPath" ] ; then
     dataPath=$0/../simOutput/openPMD/simData_%T.bp
 fi
 
-MAINTEST="./lib/python/test/PusherScaling"
+MAINTEST="./lib/python/test/Pusher"
 if [ -d $MAINTEST ] ; then
    python3 $MAINTEST/MainTest.py $@
    exit $?

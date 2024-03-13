@@ -54,7 +54,6 @@ done
 ############################
 ## build and run picongpu ##
 ############################
-mkdir ./allOutputs
 
 declare -a pathArray # Array for different simulation paths
 j=5 # variable for calculation of the number of steps in a simulation run at a set time
