@@ -128,13 +128,13 @@ namespace pmacc::lockstep
                     auto blockCfg = lockstep::makeBlockCfg(m_UserKernelFunctor);
                     using BlockConfiguration = decltype(blockCfg);
                     constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
-                    auto blockExtent = DataSpace<dim>::create(1);
-                    blockExtent.x() = BlockConfiguration::numWorkers();
+                    auto blockSizeND = DataSpace<dim>::create(1);
+                    blockSizeND.x() = BlockConfiguration::numWorkers();
                     return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
                         m_UserKernelFunctor,
                         m_metaData,
                         gridSize,
-                        blockExtent};
+                        blockSizeND};
                 }
 
                 /**

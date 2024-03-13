@@ -10,7 +10,7 @@ Lockstep Programming Model
 .. sectionauthor:: René Widera, Axel Huebl
 
 The *lockstep programming model* structures code that is evaluated collectively and independently by workers (physical threads) within a alpaka block.
-Actual processing is described by one-dimensional compile time known index domains of which can even be changed within a kernel.
+Actual processing is described by one-dimensional index domains which are known compile time and can even be changed within a kernel.
 
 An index domain is **independent** of the data but **can** be mapped to a data domain, e.g. one to one or with more complex mappings.
 A index domain is processed collectively by all workers.
@@ -132,8 +132,8 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
         }
     );
 
-    // store old linear index into oldVIdx
-    auto oldVIdx = forEachExample(
+    // store old linear index into oldElemIdx
+    auto oldElemIdx = forEachExample(
         [&](lockstep::Idx const idx) -> int32_t
         {
             int32_t old = elemIdx[idx];
@@ -150,7 +150,7 @@ A context variable must be defined outside of ``ForEach`` and should be accessed
         {
             printf("nothing changed: %u == %u - 256 == %u\n", oldIndex, vIndex, idx);
         },
-        oldVIdx,
+        oldElemIdx,
         elemIdx
     );
 
@@ -184,7 +184,7 @@ Collective Loop over particles
     }
 
 
-Non-Collective Loop oder particles
+Non-Collective Loop over particles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * each element index of the domain increments a private variable
@@ -240,7 +240,7 @@ Practical Examples
 ------------------
 
 If possible kernels should be written without assuming any lockstep domain size and number of alpaka blocks selected at the kernel start.
-This ensure that the kernel results are always correct even if the user not chose the right parameters for the kernel execution.
+This ensure that the kernel results are always correct even if the user doesn't chose the right parameters for the kernel execution.
 
   .. literalinclude:: ../../../include/pmacc/test/lockstep/lockstepUT.cpp
      :language: C++
@@ -256,10 +256,10 @@ The block domain size can also be derived from a instance of any object if the t
      :end-before: doc-include-end: lockstep generic kernel buffer selected domain size
      :dedent:
 
-Sometimes it is not possible to write a generic the kernel and a hard coded block domain size is required to fulfill stencil condition or other requirements.
-In this case it is possible to use in on device ``pmacc::lockstep::makeForEach<hardCodedBlockDomSize>(wroker)``.
+Sometimes it is not possible to write a generic kernel and a hard coded block domain size is required to fulfill stencil condition or other requirements.
+In this case it is possible to use on device ``pmacc::lockstep::makeForEach<hardCodedBlockDomSize>(worker)``.
 The problem is that the user needs to know this hard coded requirement during the kernel call else it could be the kernel is running slow.
-To many worker threads are idling during the execution because the selected block domain during the kernel call is larger than the required block domain within the kernel.
+It is possible that too many worker threads are idling during the execution because the selected block domain during the kernel call is larger than the required block domain within the kernel.
 By defining the member variable ``blockDomSize`` and not providing the block domain size during the kernel configuration the kernel will
 be executed automatically with the block domain size specialized by the kernel.
 Overwriting the block domain size during the kernel execution is triggering a static assertion during compiling.
