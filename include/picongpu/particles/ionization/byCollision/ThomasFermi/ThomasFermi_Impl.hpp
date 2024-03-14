@@ -179,7 +179,7 @@ namespace picongpu
                  *
                  * @param worker lockstep worker
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
-                 * @param workerCfg configuration of the worker
+                 * @param blockCfg configuration of the worker
                  */
                 template<typename T_Worker>
                 DINLINE void collectiveInit(const T_Worker& worker, const DataSpace<simDim>& blockCell)

@@ -121,8 +121,7 @@ namespace picongpu
                 T_Histogram const& histogram,
                 T_AtomicDataBox atomicDataBox)
             {
-                pmacc::DataSpace<simDim> const superCellIdx(
-                    mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+                pmacc::DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
                 auto frame = electronBox.getLastFrame(superCellIdx);
                 auto particlesInSuperCell = electronBox.getSuperCell(superCellIdx).getSizeLastFrame();

@@ -55,8 +55,8 @@ namespace pmacc
                     return smem;
                 }
 
-                template<typename T_Acc, uint32_t T_numSuggestedWorkers>
-                DINLINE static T_Type& get(pmacc::lockstep::Worker<T_Acc, T_numSuggestedWorkers> const& worker)
+                template<typename T_Acc, typename T_BlockCfg>
+                DINLINE static T_Type& get(pmacc::lockstep::Worker<T_Acc, T_BlockCfg> const& worker)
                 {
                     auto& smem = ::alpaka::declareSharedVar<T_Type, T_uniqueId>(worker.getAcc());
                     return smem;

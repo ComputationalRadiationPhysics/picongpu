@@ -81,12 +81,11 @@ namespace picongpu
                 // stride 1u means each supercell is used
                 auto mapper = makeStrideAreaMapper<T_area, skipSuperCells + 1u>(cellDescription);
 
-                auto workerCfg
-                    = pmacc::lockstep::makeWorkerCfg<T_ParticleBox::frameSize * T_Strategy::workerMultiplier>();
+                constexpr auto numElemtPerBlock = T_ParticleBox::frameSize * T_Strategy::workerMultiplier;
                 do
                 {
-                    PMACC_LOCKSTEP_KERNEL(depositionKernel, workerCfg)
-                    (mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
+                    PMACC_LOCKSTEP_KERNEL(depositionKernel)
+                        .template config<numElemtPerBlock>(mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
                 } while(mapper.next());
             }
         };
@@ -114,10 +113,9 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<T_area>(cellDescription);
 
-                auto workerCfg
-                    = pmacc::lockstep::makeWorkerCfg<T_ParticleBox::frameSize * T_Strategy::workerMultiplier>();
-                PMACC_LOCKSTEP_KERNEL(depositionKernel, workerCfg)
-                (mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
+                constexpr auto numElemtPerBlock = T_ParticleBox::frameSize * T_Strategy::workerMultiplier;
+                PMACC_LOCKSTEP_KERNEL(depositionKernel)
+                    .template config<numElemtPerBlock>(mapper.getGridDim())(jBox, parBox, frameSolver, mapper);
             }
         };
 

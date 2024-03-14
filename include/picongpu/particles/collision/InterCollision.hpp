@@ -137,7 +137,7 @@ namespace picongpu::particles::collision
             constexpr bool ifTimesCollided = !std::is_same<T_TimesCollidedBox, std::nullptr_t>::value;
             constexpr bool ifDebug = ifAverageLog && ifAverageSParam && ifTimesCollided;
 
-            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()));
+            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(worker.blockDomIdxND());
 
             auto& superCell0 = pb0.getSuperCell(superCellIdx);
             uint32_t numParticles0 = superCell0.getNumParticles();
@@ -153,7 +153,7 @@ namespace picongpu::particles::collision
             // origin of the local domain
             DataSpace<simDim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
             auto rngOffset = DataSpace<simDim>::create(0);
-            rngOffset.x() = worker.getWorkerIdx();
+            rngOffset.x() = worker.workerIdx();
             auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
             numRNGsPerSuperCell.x() = numFrameSlots;
             rngHandle.init(localSuperCellOffset * numRNGsPerSuperCell + rngOffset);
@@ -366,8 +366,6 @@ namespace picongpu::particles::collision
             //! random number generator
             using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
             using Kernel = typename CollisionFunctor::CallingInterKernel;
-            auto workerCfg = lockstep::makeWorkerCfg<FrameType0::frameSize>();
-
             constexpr bool ifDebug = CollisionFunctor::ifDebug_m;
             if constexpr(ifDebug)
             {
@@ -377,8 +375,7 @@ namespace picongpu::particles::collision
                 sumSParam.getDeviceBuffer().setValue(0.0_X);
                 GridBuffer<uint64_t, DIM1> timesCollided(DataSpace<DIM1>(1));
                 timesCollided.getDeviceBuffer().setValue(0u);
-                PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
-                (mapper.getGridDim())(
+                PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), *species0)(
                     species0->getDeviceParticlesBox(),
                     species1->getDeviceParticlesBox(),
                     mapper,
@@ -433,8 +430,8 @@ namespace picongpu::particles::collision
             }
             else
             {
-                PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
-                (mapper.getGridDim())(
+                PMACC_LOCKSTEP_KERNEL(Kernel{})
+                (mapper.getGridDim(), *species0)(
                     species0->getDeviceParticlesBox(),
                     species1->getDeviceParticlesBox(),
                     mapper,

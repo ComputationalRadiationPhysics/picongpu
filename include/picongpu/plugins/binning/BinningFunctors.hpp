@@ -138,7 +138,7 @@ namespace picongpu
             template<typename T_Worker, typename T_Mapping>
             DINLINE void operator()(const T_Worker& worker, T_Mapping const& mapper) const
             {
-                const DataSpace<SIMDIM> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+                const DataSpace<SIMDIM> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
                 /**
                  * Init the Domain info, here because of the possibility of a moving window

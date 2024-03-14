@@ -59,8 +59,7 @@ struct SetBoundaryConditions
         constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
         // get position in grid in units of SuperCells from blockID
-        pmacc::DataSpace<DIM2> const block(
-            mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(pmacc::device::getBlockIdx(worker.getAcc()))));
+        pmacc::DataSpace<DIM2> const block(mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(worker.blockDomIdxND())));
         // convert position in unit of cells
         pmacc::DataSpace<DIM2> const blockCell = block * SuperCellSize::toRT();
 

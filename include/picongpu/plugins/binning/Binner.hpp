@@ -57,7 +57,7 @@ namespace picongpu
                 const T_DepositedQuantity factor,
                 T_DataBox dataBox) const
             {
-                auto blockIdx = device::getBlockIdx(worker.getAcc()).x() * blockSize;
+                auto blockIdx = worker.blockDomIdxND().x() * blockSize;
                 auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
                 forEachElemInDataboxChunk(
                     [&](int32_t const linearIdx)
@@ -97,7 +97,7 @@ namespace picongpu
                 T_DataBox histBox) const
             {
                 // @todo check normDataBox shape is same as histBox
-                auto blockIdx = device::getBlockIdx(worker.getAcc()).x() * blockSize;
+                auto blockIdx = worker.blockDomIdxND().x() * blockSize;
                 auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
                 forEachElemInDataboxChunk(
                     [&](int32_t const linearIdx)
@@ -201,19 +201,14 @@ namespace picongpu
                         constexpr uint32_t blockSize = 256u;
                         // @todo is + blocksize - 1/ blocksize a better ceil for ints
                         auto gridSize = (bufferExtent[0] + blockSize - 1) / blockSize;
-                        // auto gridSize = ceil(
-                        //     static_cast<double>(bufferExtent[0]) /
-                        //     static_cast<double>(blockSize));
-
-                        auto workerCfg = pmacc::lockstep::makeWorkerCfg<blockSize>();
 
                         auto productKernel = ProductKernel<blockSize, TBinningData::getNAxes()>();
 
-                        PMACC_LOCKSTEP_KERNEL(productKernel, workerCfg)
-                        (gridSize)(
-                            binningData.axisExtentsND,
-                            factor,
-                            this->histBuffer->getDeviceBuffer().getDataBox());
+                        PMACC_LOCKSTEP_KERNEL(productKernel)
+                            .template config<blockSize>(gridSize)(
+                                binningData.axisExtentsND,
+                                factor,
+                                this->histBuffer->getDeviceBuffer().getDataBox());
                     }
 
                     // A copy in case units change during normalization, and we need the original units for OpenPMD
@@ -227,18 +222,16 @@ namespace picongpu
                         // ceil
                         auto gridSize = (bufferExtent[0] + blockSize - 1) / blockSize;
 
-                        auto workerCfg = pmacc::lockstep::makeWorkerCfg<blockSize>();
-
                         auto normKernel = BinNormalizationKernel<blockSize, TBinningData::getNAxes()>();
 
                         auto axisKernels
                             = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
 
-                        PMACC_LOCKSTEP_KERNEL(normKernel, workerCfg)
-                        (gridSize)(
-                            binningData.axisExtentsND,
-                            axisKernels,
-                            this->histBuffer->getDeviceBuffer().getDataBox());
+                        PMACC_LOCKSTEP_KERNEL(normKernel)
+                            .template config<blockSize>(gridSize)(
+                                binningData.axisExtentsND,
+                                axisKernels,
+                                this->histBuffer->getDeviceBuffer().getDataBox());
 
                         // change output dimensions
                         apply(
@@ -419,8 +412,6 @@ namespace picongpu
                 auto globalOffset = Environment<SIMDIM>::get().SubGrid().getGlobalDomain().offset;
                 auto localOffset = Environment<SIMDIM>::get().SubGrid().getLocalDomain().offset;
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg<Species::FrameType::frameSize>();
-
                 auto axisKernels = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
 
                 using TAxisTuple = decltype(axisKernels);
@@ -439,8 +430,7 @@ namespace picongpu
                     currentStep,
                     binningData.axisExtentsND);
 
-                PMACC_LOCKSTEP_KERNEL(functorBlock, workerCfg)
-                (mapper.getGridDim())(mapper);
+                PMACC_LOCKSTEP_KERNEL(functorBlock).config(mapper.getGridDim(), particlesBox)(mapper);
             }
 
             void pluginLoad() override

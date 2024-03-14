@@ -73,8 +73,7 @@ namespace picongpu
                     T_ParBoxTarget targetBox,
                     T_Mapping const& mapper) const
                 {
-                    const DataSpace<simDim> superCellIdx(
-                        mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+                    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
                     DataSpace<simDim> const supercellCellOffset = superCellIdx * SuperCellSize::toRT();
 

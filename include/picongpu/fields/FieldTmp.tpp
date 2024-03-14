@@ -181,11 +181,10 @@ namespace picongpu
         const uint32_t currentStep = Environment<>::get().SimulationDescription().getCurrentStep();
         auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep};
 
-        auto workerCfg = lockstep::makeWorkerCfg<ParticlesClass::ParticlesBoxType::FrameType::frameSize>();
         do
         {
-            PMACC_LOCKSTEP_KERNEL(KernelComputeSupercells<BlockArea>{}, workerCfg)
-            (mapper.getGridDim())(tmpBox, pBox, solver, iFilter, mapper);
+            PMACC_LOCKSTEP_KERNEL(KernelComputeSupercells<BlockArea>{})
+                .config(mapper.getGridDim(), pBox)(tmpBox, pBox, solver, iFilter, mapper);
         } while(mapper.next());
     }
 
@@ -196,9 +195,8 @@ namespace picongpu
         FieldTmp::DataBoxType thisBox = this->fieldTmp->getDeviceBuffer().getDataBox();
         const auto modifyingBox = modifyingField.getGridBuffer().getDeviceBuffer().getDataBox();
 
-        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
         using Kernel = ModifyByFieldKernel<T_ModifyingOperation, MappingDesc::SuperCellSize>;
-        PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)(mapper.getGridDim())(mapper, thisBox, modifyingBox);
+        PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), SuperCellSize{})(mapper, thisBox, modifyingBox);
     }
 
     SimulationDataId FieldTmp::getUniqueId(uint32_t slotId)

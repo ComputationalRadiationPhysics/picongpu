@@ -118,8 +118,8 @@ namespace pmacc
         class ForEach;
 
         template<typename T_Worker, uint32_t T_domainSize, uint32_t T_simdSize>
-        class ForEach<T_Worker, Config<T_domainSize, T_Worker::numWorkers, T_simdSize>>
-            : Config<T_domainSize, T_Worker::numWorkers, T_simdSize>
+        class ForEach<T_Worker, Config<T_domainSize, T_Worker::numWorkers(), T_simdSize>>
+            : Config<T_domainSize, T_Worker::numWorkers(), T_simdSize>
             , T_Worker
         {
             /** Get the result of a functor invocation.
@@ -147,7 +147,7 @@ namespace pmacc
                 = std::is_void_v<InvokeResult_t<detail::FunctorWrapper, T_Functor, Idx, T_CtxVars...>>;
 
         public:
-            using BaseConfig = Config<T_domainSize, T_Worker::numWorkers, T_simdSize>;
+            using BaseConfig = Config<T_domainSize, T_Worker::numWorkers(), T_simdSize>;
 
             using BaseConfig::domainSize;
             using BaseConfig::numWorkers;
@@ -202,7 +202,7 @@ namespace pmacc
                     for(uint32_t i = 0u; i < peeledIterations; ++i)
                     {
                         uint32_t const beginWorker = i * simdSize;
-                        uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
+                        uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->workerIdx();
                         for(uint32_t s = 0u; s < simdSize; ++s)
                             detail::FunctorWrapper{}(
                                 std::forward<T_Functor>(functor),
@@ -218,10 +218,10 @@ namespace pmacc
                     constexpr uint32_t leftOverIndices = domainSize - (peeledIterations * numWorkers * simdSize);
                     for(uint32_t s = 0u; s < simdSize; ++s)
                     {
-                        if(this->getWorkerIdx() * simdSize + s < leftOverIndices)
+                        if(this->workerIdx() * simdSize + s < leftOverIndices)
                         {
                             constexpr uint32_t beginWorker = peeledIterations * simdSize;
-                            uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
+                            uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->workerIdx();
                             detail::FunctorWrapper{}(
                                 std::forward<T_Functor>(functor),
                                 Idx(beginIdx + s, beginWorker + s),
@@ -238,7 +238,7 @@ namespace pmacc
                 std::enable_if_t<resultIsVoid<T_Functor, T_CtxVars...> && domainSize == 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor, T_CtxVars&&... ctxVars) const
             {
-                if(this->getWorkerIdx() == 0u)
+                if(this->workerIdx() == 0u)
                     detail::FunctorWrapper{}(functor, Idx(0u, 0u), std::forward<T_CtxVars>(ctxVars)...);
             }
 
@@ -282,12 +282,12 @@ namespace pmacc
             /** @} */
         };
 
-        inline namespace traits
+        namespace traits
         {
             template<typename T_Worker, uint32_t T_domainSize, uint32_t T_simdSize = 1u>
             struct MakeForEach
             {
-                using type = ForEach<T_Worker, Config<T_domainSize, T_Worker::numWorkers, T_simdSize>>;
+                using type = ForEach<T_Worker, Config<T_domainSize, T_Worker::numWorkers(), T_simdSize>>;
             };
 
             template<typename T_Worker, uint32_t T_domainSize, uint32_t T_simdSize = 1u>
@@ -299,12 +299,26 @@ namespace pmacc
          * The executor is invoking a functor foreach index in the domain. @see ForEach
          * @see ForEach to got more information about synchronization behaviors.
          *
-         * @tparam T_domainSize number of indices in the domain
          *
          * @param worker lockstep worker
          * @return ForEach executor which can be invoked with a functor as argument.
          *
          * @{
+         */
+
+        /**
+         *
+         * The domain size is equal to the block size given at the kernel start.
+         */
+        template<typename T_Worker>
+        HDINLINE auto makeForEach(T_Worker const& worker)
+        {
+            return traits::MakeForEach_t<T_Worker, T_Worker::blockDomSize()>(worker);
+        }
+
+        /**
+         *
+         * @tparam T_domainSize number of indices in the domain
          */
         template<uint32_t T_domainSize, typename T_Worker>
         HDINLINE auto makeForEach(T_Worker const& worker)
@@ -315,6 +329,7 @@ namespace pmacc
         /**
          *
          * @tparam T_simdSize SIMD width
+         * @tparam T_domainSize number of indices in the domain
          */
         template<uint32_t T_domainSize, uint32_t T_simdSize, typename T_Worker>
         HDINLINE auto makeForEach(T_Worker const& worker)

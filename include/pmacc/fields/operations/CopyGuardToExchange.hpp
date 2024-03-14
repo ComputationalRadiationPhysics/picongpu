@@ -76,8 +76,7 @@ namespace pmacc
                     PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
 
                     DataSpace<dim> const blockCell(
-                        mapper.getSuperCellIndex(DataSpace<dim>(device::getBlockIdx(worker.getAcc())))
-                        * SuperCellSize::toRT());
+                        mapper.getSuperCellIndex(DataSpace<dim>(worker.blockDomIdxND())) * SuperCellSize::toRT());
 
                     // origin in area from local GPU
                     DataSpace<dim> nullSourceCell(mapper.getSuperCellIndex(DataSpace<dim>()) * SuperCellSize::toRT());
@@ -166,15 +165,13 @@ namespace pmacc
 
                     DataSpace<dim> const direction = Mask::getRelativeDirections<dim>(mapper.getExchangeType());
 
-                    auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
-
-                    PMACC_LOCKSTEP_KERNEL(KernelCopyGuardToExchange{}, workerCfg)
-                    (mapper.getGridDim())(
-                        srcBuffer.getSendExchange(exchangeType).getDeviceBuffer().getDataBox(),
-                        srcBuffer.getDeviceBuffer().getDataBox(),
-                        srcBuffer.getSendExchange(exchangeType).getDeviceBuffer().getDataSpace(),
-                        direction,
-                        mapper);
+                    PMACC_LOCKSTEP_KERNEL(KernelCopyGuardToExchange{})
+                        .config(mapper.getGridDim(), SuperCellSize{})(
+                            srcBuffer.getSendExchange(exchangeType).getDeviceBuffer().getDataBox(),
+                            srcBuffer.getDeviceBuffer().getDataBox(),
+                            srcBuffer.getSendExchange(exchangeType).getDeviceBuffer().getDataSpace(),
+                            direction,
+                            mapper);
                 }
             };
 

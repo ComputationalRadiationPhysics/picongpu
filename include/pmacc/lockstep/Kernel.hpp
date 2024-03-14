@@ -26,8 +26,8 @@
 #include "pmacc/exec/KernelLauncher.hpp"
 #include "pmacc/exec/KernelMetaData.hpp"
 #include "pmacc/exec/KernelWithDynSharedMem.hpp"
+#include "pmacc/lockstep/BlockCfg.hpp"
 #include "pmacc/lockstep/Worker.hpp"
-#include "pmacc/lockstep/WorkerCfg.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc::lockstep
@@ -36,7 +36,7 @@ namespace pmacc::lockstep
     {
         namespace detail
         {
-            template<typename T_Kernel, typename T_WorkerCfg>
+            template<typename T_Kernel, typename T_BlockCfg>
             struct LockStepKernel : private T_Kernel
             {
                 LockStepKernel(T_Kernel const& kernel) : T_Kernel(kernel)
@@ -55,7 +55,7 @@ namespace pmacc::lockstep
                 template<typename T_Acc, typename... T_Args>
                 HDINLINE void operator()(T_Acc const& acc, T_Args&&... args) const
                 {
-                    auto const worker = lockstep::detail::WorkerCfgAssume1DBlock::getWorker<T_WorkerCfg>(acc);
+                    auto const worker = lockstep::detail::BlockCfgAssume1DBlock::getWorker<T_BlockCfg>(acc);
                     T_Kernel::template operator()(worker, std::forward<T_Args>(args)...);
                 }
             };
@@ -67,65 +67,185 @@ namespace pmacc::lockstep
              * Object is used to apply the grid and block extents and optionally the amount of dynamic shared memory to
              * the kernel.
              */
-            template<typename T_KernelFunctor, typename T_WorkerCfg>
+            template<typename T_UserKernelFunctor>
             struct KernelPreperationWrapper
             {
-                using KernelFunctor = detail::LockStepKernel<T_KernelFunctor, T_WorkerCfg>;
-                KernelFunctor const m_kernelFunctor;
+                template<typename T_BlockCfg>
+                using KernelFunctor = detail::LockStepKernel<T_UserKernelFunctor, T_BlockCfg>;
+
+                T_UserKernelFunctor const m_UserKernelFunctor;
                 pmacc::exec::detail::KernelMetaData const m_metaData;
 
                 HINLINE KernelPreperationWrapper(
-                    T_KernelFunctor const& kernelFunctor,
+                    T_UserKernelFunctor const& kernelFunctor,
                     std::string const& file = std::string(),
                     size_t const line = 0)
-                    : m_kernelFunctor(kernelFunctor)
+                    : m_UserKernelFunctor(kernelFunctor)
                     , m_metaData(file, line)
                 {
                 }
 
                 /** Configured kernel object.
                  *
-                 * This objects contains the functor and the starting parameter.
-                 *
                  * @tparam T_VectorGrid type which defines the grid extents
-                 * @tparam T_VectorBlock type which defines the block extents
+                 * @tparam T_blockSize number of block indices
                  *
-                 * @param gridExtent grid extent configuration for the kernel
-                 * @param blockExtent block extent configuration for the kernel
+                 * @param gridSize grid extent configuration for the kernel
                  *
                  * @return object to bind arguments to a kernel
                  *
                  * @{
                  */
-                template<typename T_VectorGrid>
-                HINLINE auto operator()(T_VectorGrid const& gridExtent) const
+                template<uint32_t T_blockSize, typename T_VectorGrid>
+                HINLINE auto config(T_VectorGrid const& gridSize) const
                 {
+                    static_assert(
+                        lockstep::traits::hasBlockCfg_v<T_UserKernelFunctor> == false,
+                        "You are not allowed to overwrite the block size defined by the kernel!");
+                    auto blockCfg = lockstep::makeBlockCfg<T_blockSize>();
+                    using BlockConfiguration = decltype(blockCfg);
                     constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
                     auto blockExtent = DataSpace<dim>::create(1);
-                    blockExtent.x() = T_WorkerCfg::getNumWorkers();
-                    return pmacc::exec::detail::KernelLauncher<KernelFunctor, dim>{
-                        m_kernelFunctor,
+                    blockExtent.x() = BlockConfiguration::numWorkers();
+                    return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
+                        m_UserKernelFunctor,
                         m_metaData,
-                        gridExtent,
+                        gridSize,
                         blockExtent};
                 }
 
                 /**
+                 * The block size is derived from the kernel functor.
+                 * The kernel must define the member type `BlockDomSizeND` or the compile time constance
+                 * `blockDomSize`.
+                 */
+                template<typename T_VectorGrid>
+                HINLINE auto config(T_VectorGrid const& gridSize) const
+                {
+                    static_assert(
+                        lockstep::traits::hasBlockCfg_v<T_UserKernelFunctor> == true,
+                        "Kernel must define the type BlockDomSizeND or the value blockDomSize!");
+                    auto blockCfg = lockstep::makeBlockCfg(m_UserKernelFunctor);
+                    using BlockConfiguration = decltype(blockCfg);
+                    constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
+                    auto blockSizeND = DataSpace<dim>::create(1);
+                    blockSizeND.x() = BlockConfiguration::numWorkers();
+                    return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
+                        m_UserKernelFunctor,
+                        m_metaData,
+                        gridSize,
+                        blockSizeND};
+                }
+
+                /**
+                 * @param blockSizeConcept Object which describe the number of required indices within the block.
+                 *                         Object must be supported by lockstep::makeBlockCfg().
+                 */
+                template<typename T_VectorGrid, typename T_BlockSizeConcept>
+                HINLINE auto config(T_VectorGrid const& gridSize, T_BlockSizeConcept const& blockSizeConcept) const
+                {
+                    static_assert(
+                        lockstep::traits::hasBlockCfg_v<T_UserKernelFunctor> == false,
+                        "You are not allowed to overwrite the block size defined by the kernel!");
+                    auto blockCfg = lockstep::makeBlockCfg(blockSizeConcept);
+                    using BlockConfiguration = decltype(blockCfg);
+                    constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
+
+                    auto blockExtent = DataSpace<dim>::create(1);
+                    blockExtent.x() = BlockConfiguration::numWorkers();
+                    return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
+                        m_UserKernelFunctor,
+                        m_metaData,
+                        gridSize,
+                        blockExtent};
+                }
+
+                /**
+                 * @param blockSize block extent configuration for the kernel
+                 * @param sharedMemByte dynamic shared memory used by the kernel (in byte)
+                 */
+                template<uint32_t T_blockSize, typename T_VectorGrid>
+                HINLINE auto configSMem(T_VectorGrid const& gridSize, size_t const sharedMemByte) const
+                {
+                    static_assert(
+                        lockstep::traits::hasBlockCfg_v<T_UserKernelFunctor> == false,
+                        "You are not allowed to overwrite the block size defined by the kernel!");
+                    auto blockCfg = lockstep::makeBlockCfg<T_blockSize>();
+                    using BlockConfiguration = decltype(blockCfg);
+                    constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
+                    auto blockExtent = DataSpace<dim>::create(1);
+                    blockExtent.x() = BlockConfiguration::numWorkers();
+                    return pmacc::exec::detail::KernelLauncher<
+                        pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>,
+                        dim>{
+                        pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>(
+                            m_UserKernelFunctor,
+                            sharedMemByte),
+                        m_metaData,
+                        gridSize,
+                        blockExtent};
+                }
+
+                /**
+                 * The block size is derived from the kernel functor.
+                 * The kernel must define the member type `BlockDomSizeND` or the compile time constance
+                 * `blockDomSize`.
+                 *
                  * @param sharedMemByte dynamic shared memory used by the kernel (in byte)
                  */
                 template<typename T_VectorGrid>
-                HINLINE auto operator()(T_VectorGrid const& gridExtent, size_t const sharedMemByte) const
+                HINLINE auto configSMem(T_VectorGrid const& gridSize, size_t const sharedMemByte) const
                 {
+                    static_assert(
+                        lockstep::traits::hasBlockCfg_v<T_UserKernelFunctor> == true,
+                        "Kernel must define the type BlockDomSizeND or the value blockDomSize!");
+                    auto blockCfg = lockstep::makeBlockCfg(m_UserKernelFunctor);
+                    using BlockConfiguration = decltype(blockCfg);
                     constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
                     auto blockExtent = DataSpace<dim>::create(1);
-                    blockExtent.x() = T_WorkerCfg::getNumWorkers();
-                    return pmacc::exec::detail::
-                        KernelLauncher<pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor>, dim>{
-                            pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor>(m_kernelFunctor, sharedMemByte),
-                            m_metaData,
-                            gridExtent,
-                            blockExtent};
+                    blockExtent.x() = BlockConfiguration::numWorkers();
+                    return pmacc::exec::detail::KernelLauncher<
+                        pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>,
+                        dim>{
+                        pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>(
+                            m_UserKernelFunctor,
+                            sharedMemByte),
+                        m_metaData,
+                        gridSize,
+                        blockExtent};
                 }
+
+                /**
+                 * @param blockSizeConcept Object which describe the number of required indices within the block.
+                 *                         Object must be supported by lockstep::makeBlockCfg().
+                 * @param sharedMemByte dynamic shared memory used by the kernel (in byte)
+                 */
+                template<typename T_VectorGrid, typename T_BlockSizeConcept>
+                HINLINE auto configSMem(
+                    T_VectorGrid const& gridSize,
+                    T_BlockSizeConcept const& blockSizeConcept,
+                    size_t const sharedMemByte) const
+                {
+                    static_assert(
+                        lockstep::traits::hasBlockCfg_v<T_UserKernelFunctor> == false,
+                        "You are not allowed to overwrite the block size defined by the kernel!");
+                    auto blockCfg = lockstep::makeBlockCfg(blockSizeConcept);
+                    using BlockConfiguration = decltype(blockCfg);
+                    constexpr uint32_t dim = pmacc::exec::detail::GetDim<T_VectorGrid>::dim;
+
+                    auto blockExtent = DataSpace<dim>::create(1);
+                    blockExtent.x() = BlockConfiguration::numWorkers();
+                    return pmacc::exec::detail::KernelLauncher<
+                        pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>,
+                        dim>{
+                        pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>(
+                            m_UserKernelFunctor,
+                            sharedMemByte),
+                        m_metaData,
+                        gridSize,
+                        blockExtent};
+                }
+
                 /**@}*/
             };
         } // namespace detail
@@ -145,19 +265,15 @@ namespace pmacc::lockstep
          * @param file file name (for debug)
          * @param line line number in the file (for debug)
          */
-        template<typename T_KernelFunctor, uint32_t T_numSuggestedWorkers>
+        template<typename T_KernelFunctor>
         inline auto kernel(
             T_KernelFunctor const& kernelFunctor,
-            WorkerCfg<T_numSuggestedWorkers> const& /*workerCfg*/,
             std::string const& file = std::string(),
-            size_t const line = 0)
-            -> detail::KernelPreperationWrapper<T_KernelFunctor, WorkerCfg<T_numSuggestedWorkers>>
+            size_t const line = 0) -> detail::KernelPreperationWrapper<T_KernelFunctor>
         {
-            return detail::KernelPreperationWrapper<T_KernelFunctor, WorkerCfg<T_numSuggestedWorkers>>(
-                kernelFunctor,
-                file,
-                line);
+            return detail::KernelPreperationWrapper<T_KernelFunctor>(kernelFunctor, file, line);
         }
+
 
     } // namespace exec
 } // namespace pmacc::lockstep

@@ -94,7 +94,7 @@ namespace picongpu
             PMACC_SMEM(worker, shSumMomPos, memory::Array<float_X, SuperCellSize::y::value>);
             PMACC_SMEM(worker, shCount_e, memory::Array<float_X, SuperCellSize::y::value>);
 
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
             auto forEachParticle = pmacc::particles::algorithm::acc::makeForEach(worker, pb, superCellIdx);
 
@@ -465,8 +465,7 @@ namespace picongpu
 
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
-            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelCalcEmittance{}, workerCfg)(mapper.getGridDim());
+            auto kernel = PMACC_LOCKSTEP_KERNEL(KernelCalcEmittance{}).config(mapper.getGridDim(), *particles);
 
             // Some variables required so that it is possible for the kernel
             // to calculate the absolute position of the particles

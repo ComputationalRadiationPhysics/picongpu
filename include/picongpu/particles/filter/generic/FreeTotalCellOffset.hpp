@@ -114,7 +114,7 @@ namespace picongpu
                      * @param worker lockstep worker
                      * @param localSupercellOffset offset (in superCells, without any guards) relative
                      *                        to the origin of the local domain
-                     * @param workerCfg configuration of the worker
+                     * @param blockCfg configuration of the worker
                      */
                     template<typename T_Worker>
                     HDINLINE auto operator()(T_Worker const& worker, DataSpace<simDim> const& localSupercellOffset)

@@ -262,20 +262,15 @@ namespace pmacc
         };
 
     } // namespace traits
-    namespace lockstep
+    namespace lockstep::traits
     {
-        //! Specialization to create a lockstep worker configuration out of a particle species.
+        //! Specialization to create a lockstep block configuration out of a particle species.
         template<typename T_Name, typename T_Flags, typename T_Attributes>
-        HDINLINE auto makeWorkerCfg(picongpu::Particles<T_Name, T_Flags, T_Attributes> const&)
+        struct MakeBlockCfg<picongpu::Particles<T_Name, T_Flags, T_Attributes>> : std::true_type
         {
-            return makeWorkerCfg<picongpu::Particles<T_Name, T_Flags, T_Attributes>::FrameType::frameSize>();
-        }
-
-        //! Specialization to create a lockstep worker configuration out of a shared pointer to a particle species.
-        template<typename T_Name, typename T_Flags, typename T_Attributes>
-        HDINLINE auto makeWorkerCfg(std::shared_ptr<picongpu::Particles<T_Name, T_Flags, T_Attributes>> const&)
-        {
-            return makeWorkerCfg<picongpu::Particles<T_Name, T_Flags, T_Attributes>::FrameType::frameSize>();
-        }
-    } // namespace lockstep
+            static constexpr uint32_t frameSize
+                = picongpu::Particles<T_Name, T_Flags, T_Attributes>::FrameType::frameSize;
+            using type = BlockCfg<math::CT::UInt32<frameSize>>;
+        };
+    } // namespace lockstep::traits
 } // namespace pmacc

@@ -338,9 +338,10 @@ namespace picongpu
 
                     auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName());
 
-                    auto workerCfg = lockstep::makeWorkerCfg(BlockSize{});
-                    PMACC_LOCKSTEP_KERNEL(ApplyIncidentFieldKernel<BlockSize>{}, workerCfg)
-                    (gridBlocks)(functor, updatedField.getDeviceDataBox(), beginGridIdx, endGridIdx);
+                    PMACC_LOCKSTEP_KERNEL(ApplyIncidentFieldKernel<BlockSize>{})
+                        .config(
+                            gridBlocks,
+                            BlockSize{})(functor, updatedField.getDeviceDataBox(), beginGridIdx, endGridIdx);
                 }
 
                 /** Functor to update a field with the given incidentField normally to the given axis

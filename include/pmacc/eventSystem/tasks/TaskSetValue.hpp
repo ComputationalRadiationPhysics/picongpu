@@ -25,7 +25,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/lockstep.hpp"
-#include "pmacc/lockstep/WorkerCfg.hpp"
+#include "pmacc/lockstep/BlockCfg.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
@@ -48,24 +48,19 @@ namespace pmacc
          * @tparam T_ValueType type of the value
          * @tparam T_SizeVecType pmacc::math::Vector, index type
          * @tparam T_Acc alpaka accelerator type
-         * @tparam T_WorkerCfg lockstep worker configuration type
+         * @tparam T_BlockCfg lockstep worker configuration type
          *
          * @param memBox box of which all elements shall be set to value
          * @param value value to set to all elements of memBox
          * @param size extents of memBox
          */
-        template<
-            typename T_DataBox,
-            typename T_ValueType,
-            typename T_SizeVecType,
-            typename T_Acc,
-            typename T_WorkerCfg>
+        template<typename T_DataBox, typename T_ValueType, typename T_SizeVecType, typename T_Acc, typename T_BlockCfg>
         DINLINE void operator()(
             T_Acc const& acc,
             T_DataBox memBox,
             T_ValueType const& value,
             T_SizeVecType const& size,
-            T_WorkerCfg const& workerCfg) const
+            T_BlockCfg const& blockCfg) const
         {
             using SizeVecType = T_SizeVecType;
 
@@ -73,7 +68,7 @@ namespace pmacc
             SizeVecType blockSize(SizeVecType::create(1));
             blockSize.x() = T_xChunkSize;
 
-            lockstep::makeForEach<T_xChunkSize>(workerCfg.getWorker(acc))(
+            lockstep::makeForEach<T_xChunkSize>(blockCfg.getWorker(acc))(
                 [&](uint32_t const linearIdx)
                 {
                     auto virtualWorkerIdx(SizeVecType::create(0));
@@ -184,10 +179,10 @@ namespace pmacc
                 // number of blocks in x direction
                 gridSize.x() = ceil(static_cast<double>(gridSize.x()) / static_cast<double>(xChunkSize));
 
-                auto workerCfg = lockstep::makeWorkerCfg<xChunkSize>();
+                auto blockCfg = lockstep::makeBlockCfg<xChunkSize>();
                 auto destBox = this->destination->getDataBox();
                 auto blockSize = DataSpace<dim>::create(1);
-                blockSize.x() = workerCfg.getNumWorkers();
+                blockSize.x() = blockCfg.numWorkers();
 
                 auto one = DataSpace<dim>::create(1);
                 auto workDiv = alpaka::WorkDivMembers<AlpakaDim<dim>, IdxType>{
@@ -200,7 +195,7 @@ namespace pmacc
                     destBox,
                     this->value,
                     area_size,
-                    workerCfg);
+                    blockCfg);
                 auto queue = this->getCudaStream();
                 alpaka::enqueue(queue, kernel);
             }
@@ -257,10 +252,10 @@ namespace pmacc
                 auto queue = this->getCudaStream();
                 alpaka::memcpy(queue, firstElemBuffer, *valueBuffer, MemSpace<DIM1>(1).toAlpakaMemVec());
 
-                auto workerCfg = lockstep::makeWorkerCfg<xChunkSize>();
+                auto blockCfg = lockstep::makeBlockCfg<xChunkSize>();
                 auto destBox = this->destination->getDataBox();
                 auto blockSize = DataSpace<dim>::create(1);
-                blockSize.x() = workerCfg.getNumWorkers();
+                blockSize.x() = blockCfg.numWorkers();
 
                 auto one = DataSpace<dim>::create(1);
                 auto workDiv = alpaka::WorkDivMembers<AlpakaDim<dim>, IdxType>{
@@ -273,7 +268,7 @@ namespace pmacc
                     destBox,
                     alpaka::getPtrNative(firstElemBuffer),
                     area_size,
-                    workerCfg);
+                    blockCfg);
                 alpaka::enqueue(queue, kernel);
             }
 

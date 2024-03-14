@@ -77,7 +77,7 @@ namespace picongpu
             {
                 constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-                DataSpace<simDim> const block(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+                DataSpace<simDim> const block(mapper.getSuperCellIndex(worker.blockDomIdxND()));
                 DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
                 DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
@@ -132,15 +132,14 @@ namespace picongpu
 
                 auto const mapper = makeAreaMapper<T_Area>(m_cellDescription);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
-                PMACC_LOCKSTEP_KERNEL(KernelCellwiseOperation{}, workerCfg)
-                (mapper.getGridDim())(
-                    field->getDeviceDataBox(),
-                    opFunctor,
-                    valFunctor,
-                    totalDomainOffset,
-                    currentStep,
-                    mapper);
+                PMACC_LOCKSTEP_KERNEL(KernelCellwiseOperation{})
+                    .config(mapper.getGridDim(), SuperCellSize{})(
+                        field->getDeviceDataBox(),
+                        opFunctor,
+                        valFunctor,
+                        totalDomainOffset,
+                        currentStep,
+                        mapper);
             }
         };
 

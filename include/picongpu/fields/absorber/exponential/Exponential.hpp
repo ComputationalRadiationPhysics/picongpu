@@ -100,9 +100,10 @@ namespace picongpu
 
                                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
 
-                                auto workerCfg = pmacc::lockstep::makeWorkerCfg(SuperCellSize{});
-                                PMACC_LOCKSTEP_KERNEL(KernelAbsorbBorder{}, workerCfg)
-                                (mapper.getGridDim())(deviceBox, thickness, absorber_strength, mapper);
+                                PMACC_LOCKSTEP_KERNEL(KernelAbsorbBorder{})
+                                    .config(
+                                        mapper.getGridDim(),
+                                        SuperCellSize{})(deviceBox, thickness, absorber_strength, mapper);
                             }
                         }
                     }

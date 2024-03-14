@@ -137,7 +137,7 @@ namespace picongpu
 
                     PMACC_SMEM(worker, lowpass_s, memory::Array<NyquistLowPass, frameSize>);
 
-                    int const theta_idx = device::getBlockIdx(worker.getAcc()).x();
+                    int const theta_idx = worker.blockDomIdxND().x();
 
                     // simulation time (needed for retarded time)
                     picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(DELTA_T));
@@ -156,8 +156,8 @@ namespace picongpu
                     // get absolute number of relevant super cells
                     int const numSuperCells = superCellsCount.productOfComponents();
 
-                    int const numJobs = device::getGridSize(worker.getAcc()).y();
-                    int const jobIdx = device::getBlockIdx(worker.getAcc()).y();
+                    int const numJobs = worker.gridDomSizeND().y();
+                    int const jobIdx = worker.blockDomIdxND().y();
 
                     /* go over all super cells on GPU with a stride depending on number of temporary results
                      * but ignore all guarding supercells

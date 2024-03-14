@@ -70,15 +70,15 @@ namespace picongpu::fields::maxwellSolver
             auto fieldE = dc.get<FieldE>(FieldE::getName());
             auto fieldB = dc.get<FieldB>(FieldB::getName());
             auto const mapper = makeAreaMapper<T_area>(cellDescription);
-            auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
-            PMACC_LOCKSTEP_KERNEL(KernelAddCurrentDensity{}, workerCfg)
-            (mapper.getGridDim())(
-                fieldE->getDeviceDataBox(),
-                fieldB->getDeviceDataBox(),
-                dataBoxJ,
-                currentInterpolationFunctor,
-                coeff,
-                mapper);
+
+            PMACC_LOCKSTEP_KERNEL(KernelAddCurrentDensity{})
+                .config(mapper.getGridDim(), SuperCellSize{})(
+                    fieldE->getDeviceDataBox(),
+                    fieldB->getDeviceDataBox(),
+                    dataBoxJ,
+                    currentInterpolationFunctor,
+                    coeff,
+                    mapper);
         }
 
     private:

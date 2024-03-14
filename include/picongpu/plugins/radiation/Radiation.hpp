@@ -1208,21 +1208,19 @@ namespace picongpu
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
                     globalOffset.y() += (localSize.y() * numSlides);
 
-                    auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
-
                     // PIC-like kernel call of the radiation kernel
-                    PMACC_LOCKSTEP_KERNEL(KernelRadiationParticles{}, workerCfg)
-                    (DataSpace<2>(gridDim_rad, numJobs))(
-                        /*Pointer to particles memory on the device*/
-                        particles->getDeviceParticlesBox(),
+                    PMACC_LOCKSTEP_KERNEL(KernelRadiationParticles{})
+                        .config(DataSpace<2>(gridDim_rad, numJobs), *particles)(
+                            /*Pointer to particles memory on the device*/
+                            particles->getDeviceParticlesBox(),
 
-                        /*Pointer to memory of radiated amplitude on the device*/
-                        radiation->getDeviceBuffer().getDataBox(),
-                        globalOffset,
-                        currentStep,
-                        *cellDescription,
-                        freqFkt,
-                        subGrid.getGlobalDomain().size);
+                            /*Pointer to memory of radiated amplitude on the device*/
+                            radiation->getDeviceBuffer().getDataBox(),
+                            globalOffset,
+                            currentStep,
+                            *cellDescription,
+                            freqFkt,
+                            subGrid.getGlobalDomain().size);
 
                     if(dumpPeriod != 0 && currentStep % dumpPeriod == 0)
                     {

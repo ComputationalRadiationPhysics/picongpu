@@ -33,13 +33,13 @@ namespace pmacc::lockstep
 {
     namespace detail
     {
-        /** Helper to manage visibility for methods in WorkerCfg.
+        /** Helper to manage visibility for methods in BlockCfg.
          *
-         * This object provides an optimized access to the one dimensional worker index of WorkerCfg.
+         * This object provides an optimized access to the one dimensional worker index of BlockCfg.
          * This indirection avoids that the user is accessing the optimized method from a kernel which is not
          * guaranteed launched with a one dimensional block size.
          */
-        struct WorkerCfgAssume1DBlock
+        struct BlockCfgAssume1DBlock
         {
             /** Get the lockstep worker index.
              *
@@ -47,37 +47,53 @@ namespace pmacc::lockstep
              * dimension block size. In general this method should only be used from
              * lockstep::exec::detail::LockStepKernel.
              *
-             * @tparam T_WorkerCfg lockstep worker configuration
+             * @tparam T_BlockCfg lockstep block configuration
              * @tparam T_Acc alpaka accelerator type
              * @param acc alpaka accelerator
              * @return worker index
              */
-            template<typename T_WorkerCfg, typename T_Acc>
+            template<typename T_BlockCfg, typename T_Acc>
             HDINLINE static auto getWorker(T_Acc const& acc)
             {
-                return T_WorkerCfg::getWorkerAssume1DThreads(acc);
+                return T_BlockCfg::getWorkerAssume1DThreads(acc);
             }
         };
     } // namespace detail
     /** Configuration of worker used for a lockstep kernel
      *
-     * @tparam T_numSuggestedWorkers Suggested number of lockstep workers. Do not assume that the suggested number of
-     *                               workers is used within the kernel. The real used number of worker can be queried
-     *                               with getNumWorkers() or via the member variable numWorkers.
+     * @tparam T_BlockSize Compile time block size of type pmacc::math::CT::Vector
      *
      * @attention: The real number of workers used for the lockstep kernel depends on the alpaka backend and will
      * be adjusted by this class via the trait pmacc::traits::GetNumWorkers.
      */
-    template<uint32_t T_numSuggestedWorkers>
-    struct WorkerCfg
+    template<typename T_BlockSize>
+    struct BlockCfg
     {
-        friend struct detail::WorkerCfgAssume1DBlock;
+        friend struct detail::BlockCfgAssume1DBlock;
+
+        using BlockDomSizeND = T_BlockSize;
+
+        static constexpr uint32_t dim()
+        {
+            return BlockDomSizeND::dim;
+        }
+
+        //! number of workers operating collectively within the block domain
+        static constexpr uint32_t blockDomSize()
+        {
+            return pmacc::math::CT::volume<BlockDomSizeND>::type::value;
+        }
 
         /** adjusted number of workers
          *
          * This number is taking the block size restriction of the alpaka backend into account.
+         *
+         * @return number of workers
          */
-        static constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<T_numSuggestedWorkers>::value;
+        static constexpr uint32_t numWorkers()
+        {
+            return pmacc::traits::GetNumWorkers<blockDomSize()>::value;
+        }
 
         /** get the worker index
          *
@@ -90,19 +106,10 @@ namespace pmacc::lockstep
             auto const blockExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
 
             // validate that the kernel is started with the correct number of threads
-            ALPAKA_ASSERT_ACC(blockExtent.prod() == numWorkers);
+            ALPAKA_ASSERT_ACC(blockExtent.prod() == numWorkers());
 
             auto const linearThreadIdx = alpaka::mapIdx<1u>(localThreadIdx, blockExtent)[0];
-            return Worker<T_Acc, T_numSuggestedWorkers>(acc, linearThreadIdx);
-        }
-
-        /** get the number of workers
-         *
-         * @return number of workers
-         */
-        HDINLINE static constexpr uint32_t getNumWorkers()
-        {
-            return numWorkers;
+            return Worker<T_Acc, BlockCfg>(acc, linearThreadIdx);
         }
 
     private:
@@ -117,56 +124,73 @@ namespace pmacc::lockstep
         {
             [[maybe_unused]] auto const blockDim = device::getBlockSize(acc).x();
             // validate that the kernel is started with the correct number of threads
-            ALPAKA_ASSERT_ACC(blockDim == numWorkers);
+            ALPAKA_ASSERT_ACC(blockDim == numWorkers());
 
-            return Worker<T_Acc, T_numSuggestedWorkers>(acc, device::getThreadIdx(acc).x());
+            return Worker<T_Acc, BlockCfg>(acc, device::getThreadIdx(acc).x());
         }
     };
 
-    inline namespace traits
+    namespace traits
     {
         /** Factory to create a worker config from a PMacc compile time vector.
          *
-         * @tparam T_CTVector PMacc compile time vector
-         * @treturn ::type worker configuration type
+         * @tparam T_BlockSizeConcept
+         * @treturn ::type block configuration type
          */
-        template<typename T_CTVector>
-        struct MakeWorkerCfg;
-
-        template<typename T_X, typename T_Y, typename T_Z>
-        struct MakeWorkerCfg<math::CT::Vector<T_X, T_Y, T_Z>>
+        template<typename T_BlockSizeConcept, typename T_Sfinae = void>
+        struct MakeBlockCfg : std::false_type
         {
-            using Size = math::CT::Vector<T_X, T_Y, T_Z>;
-            using type = WorkerCfg<math::CT::volume<Size>::type::value>;
         };
 
-        //! Factory alias to get the worker configuration type.
-        template<typename T_CTVector>
-        using MakeWorkerCfg_t = typename MakeWorkerCfg<T_CTVector>::type;
+        template<typename T_X, typename T_Y, typename T_Z>
+        struct MakeBlockCfg<math::CT::Vector<T_X, T_Y, T_Z>> : std::true_type
+        {
+            using Size = math::CT::Vector<T_X, T_Y, T_Z>;
+            using type = BlockCfg<Size>;
+        };
+
+        template<typename T_BlockSizeConcept>
+        struct MakeBlockCfg<T_BlockSizeConcept, std::void_t<typename T_BlockSizeConcept::BlockDomSizeND>>
+            : std::true_type
+        {
+            using type = typename MakeBlockCfg<typename T_BlockSizeConcept::BlockDomSizeND>::type;
+        };
+
+        template<typename T_BlockSizeConcept>
+        struct MakeBlockCfg<T_BlockSizeConcept, std::enable_if_t<T_BlockSizeConcept::blockDomSize != 0>>
+            : std::true_type
+        {
+            using type = BlockCfg<math::CT::UInt32<T_BlockSizeConcept::blockDomSize>>;
+        };
+
+        //! Factory alias to get the block configuration type.
+        template<typename T_BlockSizeConcept>
+        using MakeBlockCfg_t = typename MakeBlockCfg<T_BlockSizeConcept>::type;
+
+        template<typename T_BlockSizeConcept>
+        constexpr bool hasBlockCfg_v = MakeBlockCfg<T_BlockSizeConcept>::value;
     } // namespace traits
 
-    /** Creates a lockstep worker configuration.
+    /** Creates a lockstep block configuration.
      *
      * @tparam T_numSuggestedWorkers Suggested number of lockstep workers.
-     * @return lockstep worker configuration
+     * @return lockstep block configuration
      */
     template<uint32_t T_numSuggestedWorkers>
-    HDINLINE auto makeWorkerCfg()
+    HDINLINE auto makeBlockCfg()
     {
-        return WorkerCfg<T_numSuggestedWorkers>{};
+        return BlockCfg<math::CT::UInt32<T_numSuggestedWorkers>>{};
     }
 
-    /** Specialization to create a lockstep worker configuration out of a PMacc compile time vector.
+    /** Specialization to create a lockstep block configuration out of a PMacc compile time vector.
      *
-     * @tparam T_X number of elements in X
-     * @tparam T_Y number of elements in Y
-     * @tparam T_Z number of elements in Z
-     * @return lockstep worker configuration
+     * @tparam T_BlockSizeConcept Type where the trait MakeBlockCfg is specialized for.
+     * @return lockstep block configuration
      */
-    template<typename T_X, typename T_Y, typename T_Z>
-    HDINLINE auto makeWorkerCfg(math::CT::Vector<T_X, T_Y, T_Z> const&)
+    template<typename T_BlockSizeConcept>
+    HDINLINE auto makeBlockCfg(T_BlockSizeConcept const&)
     {
-        using Size = math::CT::Vector<T_X, T_Y, T_Z>;
-        return MakeWorkerCfg_t<Size>{};
+        return traits::MakeBlockCfg_t<T_BlockSizeConcept>{};
     }
+
 } // namespace pmacc::lockstep

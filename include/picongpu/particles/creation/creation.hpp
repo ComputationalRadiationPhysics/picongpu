@@ -53,13 +53,12 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                auto workerCfg = pmacc::lockstep::makeWorkerCfg<T_SourceSpecies::FrameType::frameSize>();
-                PMACC_LOCKSTEP_KERNEL(CreateParticlesKernel{}, workerCfg)
-                (mapper.getGridDim())(
-                    particleCreator,
-                    sourceSpecies.getDeviceParticlesBox(),
-                    targetSpecies.getDeviceParticlesBox(),
-                    mapper);
+                PMACC_LOCKSTEP_KERNEL(CreateParticlesKernel{})
+                    .config(mapper.getGridDim(), sourceSpecies)(
+                        particleCreator,
+                        sourceSpecies.getDeviceParticlesBox(),
+                        targetSpecies.getDeviceParticlesBox(),
+                        mapper);
 
                 /* Make sure to leave no gaps in newly created frames */
                 targetSpecies.fillAllGaps();

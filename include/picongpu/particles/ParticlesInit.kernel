@@ -100,8 +100,9 @@ namespace picongpu
             T_Mapping mapper) const
         {
             constexpr int frameSize = T_ParBox::frameSize;
+#if 1
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-
+#endif
             using FramePtr = typename T_ParBox::FramePtr;
             using FrameType = typename T_ParBox::FrameType;
             using ParticleType = typename FrameType::ParticleType;
@@ -117,7 +118,7 @@ namespace picongpu
              */
             PMACC_SMEM(worker, destCounter, int);
 
-            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
             /* offset of the superCell relative to the local domain [in supercells] (without guarding supercells) */
             DataSpace<simDim> const localSuperCellOffset(superCellIdx - mapper.getGuardingSuperCells());

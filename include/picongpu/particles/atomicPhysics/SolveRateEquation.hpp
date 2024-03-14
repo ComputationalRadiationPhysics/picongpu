@@ -753,8 +753,7 @@ namespace picongpu
                 constexpr uint16_t numSubDivisions = 2000u;
                 constexpr float_X timePerAtomicPhyiscsSubStep = picongpu::SI::DELTA_T_SI / numSubDivisions;
 
-                pmacc::DataSpace<simDim> const supercellIdx(
-                    mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+                pmacc::DataSpace<simDim> const supercellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
                 constexpr uint32_t frameSize = T_IonBox::frameSize;
 

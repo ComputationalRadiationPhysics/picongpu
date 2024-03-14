@@ -163,8 +163,8 @@ namespace picongpu
                         /* Each block processes all cells of a supercell,
                          * the index includes guards, same as all indices in this kernel
                          */
-                        auto const beginCellIdx = mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc()))
-                            * MappingDesc::SuperCellSize::toRT();
+                        auto const beginCellIdx
+                            = mapper.getSuperCellIndex(worker.blockDomIdxND()) * MappingDesc::SuperCellSize::toRT();
 
                         // Description of the area and guards where the stencil is performed.
                         using StencilCfg = pmacc::SuperCellDescription<

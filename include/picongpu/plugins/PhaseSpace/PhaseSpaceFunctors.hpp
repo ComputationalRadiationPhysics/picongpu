@@ -153,7 +153,7 @@ namespace picongpu
         template<typename T_Worker, typename T_Mapping>
         DINLINE void operator()(const T_Worker& worker, T_Mapping const& mapper) const
         {
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
             /* create shared mem */
             constexpr int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;

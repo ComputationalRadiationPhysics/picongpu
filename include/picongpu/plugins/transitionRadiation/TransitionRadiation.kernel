@@ -117,7 +117,7 @@ namespace picongpu
                     // radiation calculation
                     PMACC_SMEM(worker, counter_s, int);
 
-                    int const theta_idx = device::getBlockIdx(worker.getAcc()).x();
+                    int const theta_idx = worker.blockDomIdxND().x();
 
                     // looking direction (needed for observer) used in the thread
                     float3_X const look = transitionRadiation::observationDirection(theta_idx);
@@ -281,8 +281,8 @@ namespace picongpu
                             worker.sync();
 
                             // run over all  valid omegas for this thread
-                            for(uint32_t o = worker.getWorkerIdx(); o < transitionRadiation::frequencies::nOmega;
-                                o += T_Worker::getNumWorkers())
+                            for(uint32_t o = worker.workerIdx(); o < transitionRadiation::frequencies::nOmega;
+                                o += T_Worker::numWorkers())
                             {
                                 float_X itrSum = 0.0;
                                 float_X totalParticles = 0.0;

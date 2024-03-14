@@ -236,7 +236,6 @@ namespace picongpu
                     template<uint32_t T_Area>
                     void updateBHalf(float_X const currentStep, bool const updatePsiB)
                     {
-                        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
                         using Kernel = fdtd::KernelUpdateField;
                         auto const mapper = pmacc::makeAreaMapper<T_Area>(cellDescription);
 
@@ -247,8 +246,7 @@ namespace picongpu
                             auto& pmlImpl = absorberImpl.asPmlImpl();
                             auto const updateFunctor
                                 = pmlImpl.template getUpdateBHalfFunctor<CurlE>(currentStep, updatePsiB);
-                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
-                            (mapper.getGridDim())(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), SuperCellSize{})(
                                 mapper,
                                 updateFunctor,
                                 fieldE->getDeviceDataBox(),
@@ -256,8 +254,7 @@ namespace picongpu
                         }
                         else
                         {
-                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
-                            (mapper.getGridDim())(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), SuperCellSize{})(
                                 mapper,
                                 fdtd::UpdateBHalfFunctor<CurlE>{},
                                 fieldE->getDeviceDataBox(),
@@ -275,7 +272,6 @@ namespace picongpu
                     template<uint32_t T_Area>
                     void updateE(float_X currentStep)
                     {
-                        auto const workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
                         using Kernel = fdtd::KernelUpdateField;
                         auto const mapper = pmacc::makeAreaMapper<T_Area>(cellDescription);
 
@@ -285,8 +281,7 @@ namespace picongpu
                         {
                             auto& pmlImpl = absorberImpl.asPmlImpl();
                             auto const updateFunctor = pmlImpl.template getUpdateEFunctor<CurlB>(currentStep);
-                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
-                            (mapper.getGridDim())(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), SuperCellSize{})(
                                 mapper,
                                 updateFunctor,
                                 fieldB->getDeviceDataBox(),
@@ -294,8 +289,7 @@ namespace picongpu
                         }
                         else
                         {
-                            PMACC_LOCKSTEP_KERNEL(Kernel{}, workerCfg)
-                            (mapper.getGridDim())(
+                            PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), SuperCellSize{})(
                                 mapper,
                                 fdtd::UpdateEFunctor<CurlB>{},
                                 fieldB->getDeviceDataBox(),

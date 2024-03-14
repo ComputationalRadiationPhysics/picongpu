@@ -479,22 +479,20 @@ namespace picongpu
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
                     globalOffset.y() += (localSize.y() * numSlides);
 
-                    auto workerCfg = lockstep::makeWorkerCfg<T_ParticlesType::FrameType::frameSize>();
                     // PIC-like kernel call of the radiation kernel
-                    PMACC_LOCKSTEP_KERNEL(KernelTransRadParticles{}, workerCfg)
-                    (gridDim_rad)(
-                        /*Pointer to particles memory on the device*/
-                        particles->getDeviceParticlesBox(),
-
-                        /*Pointer to memory of radiated amplitude on the device*/
-                        incTransRad->getDeviceBuffer().getDataBox(),
-                        cohTransRadPara->getDeviceBuffer().getDataBox(),
-                        cohTransRadPerp->getDeviceBuffer().getDataBox(),
-                        numParticles->getDeviceBuffer().getDataBox(),
-                        globalOffset,
-                        *cellDescription,
-                        freqFkt,
-                        subGrid.getGlobalDomain().size);
+                    PMACC_LOCKSTEP_KERNEL(KernelTransRadParticles{})
+                        .config(gridDim_rad, *particles)(
+                            /*Pointer to particles memory on the device*/
+                            particles->getDeviceParticlesBox(),
+                            /*Pointer to memory of radiated amplitude on the device*/
+                            incTransRad->getDeviceBuffer().getDataBox(),
+                            cohTransRadPara->getDeviceBuffer().getDataBox(),
+                            cohTransRadPerp->getDeviceBuffer().getDataBox(),
+                            numParticles->getDeviceBuffer().getDataBox(),
+                            globalOffset,
+                            *cellDescription,
+                            freqFkt,
+                            subGrid.getGlobalDomain().size);
                 }
             };
 

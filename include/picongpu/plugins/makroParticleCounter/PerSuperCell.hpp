@@ -51,7 +51,7 @@ namespace picongpu
         template<typename ParBox, typename CounterBox, typename Mapping, typename T_Worker>
         DINLINE void operator()(T_Worker const& worker, ParBox parBox, CounterBox counterBox, Mapping mapper) const
         {
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(device::getBlockIdx(worker.getAcc())));
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
             /* counterBox has no guarding supercells*/
             const DataSpace<simDim> superCellIdxNoGuard = superCellIdx - mapper.getGuardingSuperCells();
 
@@ -204,12 +204,11 @@ namespace picongpu
             using SuperCellSize = MappingDesc::SuperCellSize;
             auto const mapper = makeAreaMapper<AREA>(*cellDescription);
 
-            auto workerCfg = lockstep::makeWorkerCfg<ParticlesType::FrameType::frameSize>();
-            PMACC_LOCKSTEP_KERNEL(CountMakroParticle{}, workerCfg)
-            (mapper.getGridDim())(
-                particles->getDeviceParticlesBox(),
-                localResult->getDeviceBuffer().getDataBox(),
-                mapper);
+            PMACC_LOCKSTEP_KERNEL(CountMakroParticle{})
+                .config(mapper.getGridDim(), *particles)(
+                    particles->getDeviceParticlesBox(),
+                    localResult->getDeviceBuffer().getDataBox(),
+                    mapper);
 
             localResult->deviceToHost();
 

@@ -353,16 +353,14 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
-        auto workerCfg = pmacc::lockstep::makeWorkerCfg(*this);
-
-        PMACC_LOCKSTEP_KERNEL(KernelMoveAndMarkParticles<BlockArea>{}, workerCfg)
-        (mapper.getGridDim())(
-            this->getDeviceParticlesBox(),
-            fieldE->getDeviceDataBox(),
-            fieldB->getDeviceDataBox(),
-            currentStep,
-            FrameSolver(),
-            mapper);
+        PMACC_LOCKSTEP_KERNEL(KernelMoveAndMarkParticles<BlockArea>{})
+            .config(mapper.getGridDim(), *this)(
+                this->getDeviceParticlesBox(),
+                fieldE->getDeviceDataBox(),
+                fieldB->getDeviceDataBox(),
+                currentStep,
+                FrameSolver(),
+                mapper);
 
         // The move-and-mark kernel sets mustShift for supercells, so we can call the optimized version of shift
         auto const onlyProcessMustShiftSupercells = true;
@@ -394,14 +392,13 @@ namespace picongpu
         totalGpuCellOffset.y() += numSlides * localCells.y();
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
-        auto workerCfg = lockstep::makeWorkerCfg(SuperCellSize{});
-        PMACC_LOCKSTEP_KERNEL(KernelFillGridWithParticles<Particles>{}, workerCfg)
-        (mapper.getGridDim())(
-            densityFunctor,
-            positionFunctor,
-            totalGpuCellOffset,
-            this->particlesBuffer->getDeviceParticleBox(),
-            mapper);
+        PMACC_LOCKSTEP_KERNEL(KernelFillGridWithParticles<Particles>{})
+            .config(mapper.getGridDim(), SuperCellSize{})(
+                densityFunctor,
+                positionFunctor,
+                totalGpuCellOffset,
+                this->particlesBuffer->getDeviceParticleBox(),
+                mapper);
 
         this->fillAllGaps();
     }
@@ -422,15 +419,13 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
-        auto workerCfg = lockstep::makeWorkerCfg(*this);
-
-        PMACC_LOCKSTEP_KERNEL(KernelDeriveParticles{}, workerCfg)
-        (mapper.getGridDim())(
-            this->getDeviceParticlesBox(),
-            src.getDeviceParticlesBox(),
-            manipulatorFunctor,
-            srcFilterFunctor,
-            mapper);
+        PMACC_LOCKSTEP_KERNEL(KernelDeriveParticles{})
+            .config(mapper.getGridDim(), *this)(
+                this->getDeviceParticlesBox(),
+                src.getDeviceParticlesBox(),
+                manipulatorFunctor,
+                srcFilterFunctor,
+                mapper);
         this->fillAllGaps();
     }
 

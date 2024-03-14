@@ -63,8 +63,7 @@ struct StencilFourPoint
             typename pmacc::math::CT::make_Int<SuperCellSize::dim, 1>::type,
             typename pmacc::math::CT::make_Int<SuperCellSize::dim, 1>::type>;
 
-        pmacc::DataSpace<DIM2> const block(
-            mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(pmacc::device::getBlockIdx(worker.getAcc()))));
+        pmacc::DataSpace<DIM2> const block(mapper.getSuperCellIndex(pmacc::DataSpace<DIM2>(worker.blockDomIdxND())));
         pmacc::DataSpace<DIM2> const blockCell = block * T_Mapping::SuperCellSize::toRT();
 
         constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
