@@ -172,7 +172,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
     """
     # the  change in of the radius, measured between 2 turns
     # is ca. 2e-5 (calculated with position)
-    # Doubling this value yields epsilon as an approximation of the maximal 
+    # Doubling this value yields epsilon as an approximation of the maximal
     # uncertanty PIConGPU should have when the test uses the position.
     # Therefore the test uses this value to test the radius change against.
     # PIConGPU run September 2023
@@ -210,7 +210,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
 
     # the greatest change in of the radius, measured between 2 turns
     # (2000 Turns simulated) is ca. 4e-6 (calculated with momentum)
-    # Doubling this value yields epsilon as an approximation of the maximal 
+    # Doubling this value yields epsilon as an approximation of the maximal
     # uncertanty PIConGPU should have when the test uses the momentum.
     # Therefore the test uses this value to test the radius change against.
     # PIConGPU run September 2023
