@@ -165,16 +165,18 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
     period (int): openPMD period of the simulation
 
     Returns:
-    0: if the radius of gyration does not vary much (<epsilon)
-    43: if the change in radius of gyration large (>epsilon)
+    compare_result (int):
+        == 0 if the radius of gyration does not vary much (<epsilon)
+        != 0 if the change in radius of gyration large (>epsilon)
 
     """
-    # the greatest change in of the radius, measured between 2 turns
-    # (2000 Turns simulated) is ca. 4e-6. Doubling this value yields epsilon
-    # as an approximation of the maximal uncertanty PIConGPU should have.
-    # Therefore the test uses this value to test the radius change against
+    # the  change in of the radius, measured between 2 turns
+    # is ca. 2e-5 (calculated with position)
+    # Doubling this value yields epsilon as an approximation of the maximal 
+    # uncertanty PIConGPU should have when the test uses the position.
+    # Therefore the test uses this value to test the radius change against.
     # PIConGPU run September 2023
-    epsilon = 1e-5
+    epsilon = 5e-5
 
     # calculating gamma for the calculation of the periodic time
     abs_momentum = np.sqrt(x_momentum[0]**2 + y_momentum[0]**2)
@@ -205,6 +207,14 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
 
         else:
             print("pusher is valid (position)")
+
+    # the greatest change in of the radius, measured between 2 turns
+    # (2000 Turns simulated) is ca. 4e-6 (calculated with momentum)
+    # Doubling this value yields epsilon as an approximation of the maximal 
+    # uncertanty PIConGPU should have when the test uses the momentum.
+    # Therefore the test uses this value to test the radius change against.
+    # PIConGPU run September 2023
+    epsilon = 1e-5
 
     # comparision with momentum
     radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
