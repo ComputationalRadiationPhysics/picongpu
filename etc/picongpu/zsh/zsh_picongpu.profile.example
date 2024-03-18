@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Name and Path of this Script ############################### (DO NOT change!)
-# Following this answer by Hui Zheng under CC BY-SA 3.0 
+# Following this answer by Hui Zheng under CC BY-SA 3.0
 # https://stackoverflow.com/questions/9901210/bash-source0-equivalent-in-zsh/23259585#23259585
 export PIC_PROFILE=$(cd $(dirname ${(%):-%N}) && pwd)"/"$(basename ${(%):-%N})
 
