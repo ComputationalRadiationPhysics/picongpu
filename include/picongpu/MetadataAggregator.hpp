@@ -21,12 +21,13 @@
 
 #include <pmacc/boost_workaround.hpp>
 
+#include "pmacc/filesystem.hpp"
+
 #include <pmacc/pluginSystem/IPlugin.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
-#include <filesystem>
 #include <fstream>
 #include <ostream>
 #include <string>
@@ -42,7 +43,6 @@ namespace picongpu
     using std::ofstream;
     using std::ostream;
     using std::string;
-    using std::filesystem::path;
 
 
     /** Aggregate metadata to dump
@@ -62,7 +62,7 @@ namespace picongpu
         {
             description.add_options()(
                 "dump-metadata",
-                value<path>(&filename)
+                value<stdfs::path>(&filename)
                     // TODO: One could theoretically use this convention to deactivate explicitly via
                     // `<executable> --dump-metadata ""` which might not quite be the expected behaviour.
                     // We should decide if we want something cleverer here to circumvent this.
@@ -95,8 +95,8 @@ namespace picongpu
         }
 
         bool thisIsSupposedToRun{false};
-        path filename{""};
-        const path defaultFilename{
+        stdfs::path filename{""};
+        const stdfs::path defaultFilename{
             // doc-include-start: metadata default filename
             "picongpu-metadata.json"
             // doc-include-end: metadata default filename
