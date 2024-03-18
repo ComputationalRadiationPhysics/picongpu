@@ -182,15 +182,13 @@ namespace picongpu
          * @tparam Profiles a pmacc::MakeSeq_t list of profiles (typically this will be
          * `picongpu::fields::incidentField::EnabledProfiles`).
          */
-        template<typename Profiles>
+        template<typename BoundaryName, typename Profiles>
         struct IncidentFieldPolicy
         {
         };
 
         namespace detail
         {
-            std::list<std::string> boundaryNames = {"XMin", "XMax", "YMin", "YMax", "ZMin", "ZMax"};
-
             /**
              * Gather the metadata from a list of profiles into one annotated json object.
              *
@@ -203,35 +201,18 @@ namespace picongpu
             {
                 std::vector<nlohmann::json> collection;
                 (collection.push_back(GetMetadata<AllowMissingMetadata<Profiles>>{}.description()), ...);
-                return std::transform_reduce(
-                    cbegin(collection),
-                    cend(collection),
-                    cbegin(boundaryNames),
-                    nlohmann::json::object(),
-                    // take by value because we will return it, so it must be owned by us:
-                    [](auto final_obj, auto const& new_content)
-                    {
-                        final_obj.merge_patch(new_content);
-                        return final_obj;
-                    },
-                    [](auto const& metadata, auto const& name)
-                    {
-                        auto result = nlohmann::json::object();
-                        result[name] = metadata;
-                        return result;
-                    });
+                return collection;
             }
         } // namespace detail
 
 
-        template<typename Profiles>
-        struct GetMetadata<IncidentFieldPolicy<Profiles>>
+        template<typename BoundaryName, typename Profiles>
+        struct GetMetadata<IncidentFieldPolicy<BoundaryName, Profiles>>
         {
             nlohmann::json description() const
             {
-                auto gathered = detail::gatherMetadata(Profiles{});
                 auto result = nlohmann::json::object();
-                result["incidentField"] = gathered;
+                result["incidentField"][BoundaryName::str()] = detail::gatherMetadata(pmacc::MakeSeq_t<Profiles>{});
                 return result;
             }
         };

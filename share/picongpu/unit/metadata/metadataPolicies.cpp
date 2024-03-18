@@ -21,6 +21,7 @@
 
 #include "picongpu/MetadataAggregator.hpp"
 #include "picongpu/traits/GetMetadata.hpp"
+#include "pmacc/meta/String.hpp"
 #include "pmacc/meta/conversion/MakeSeq.hpp"
 
 #include <catch2/catch_test_macros.hpp>
@@ -138,7 +139,7 @@ TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
         SECTION("metadata starts with 'incidentField'")
         {
             using Profiles = pmacc::MakeSeq_t<FakeXMin>;
-            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("XMin"), Profiles>>();
             CHECK(metadataAggregator.metadata.contains("incidentField"));
         }
 

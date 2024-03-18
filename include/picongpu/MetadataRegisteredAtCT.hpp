@@ -19,11 +19,16 @@
 
 #pragma once
 
-#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include "picongpu/simulation_defines.hpp"
 
-#include <picongpu/fields/incidentField/Traits.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 namespace picongpu
 {
-    using MetadataRegisteredAtCT
-        = pmacc::MakeSeq_t<traits::IncidentFieldPolicy<picongpu::fields::incidentField::EnabledProfiles>>;
+    using MetadataRegisteredAtCT = pmacc::MakeSeq_t<
+        traits::IncidentFieldPolicy<PMACC_CSTRING("XMin"), picongpu::fields::incidentField::XMin>,
+        traits::IncidentFieldPolicy<PMACC_CSTRING("XMax"), picongpu::fields::incidentField::XMax>,
+        traits::IncidentFieldPolicy<PMACC_CSTRING("YMin"), picongpu::fields::incidentField::YMin>,
+        traits::IncidentFieldPolicy<PMACC_CSTRING("YMax"), picongpu::fields::incidentField::YMax>,
+        traits::IncidentFieldPolicy<PMACC_CSTRING("ZMin"), picongpu::fields::incidentField::ZMin>,
+        traits::IncidentFieldPolicy<PMACC_CSTRING("ZMax"), picongpu::fields::incidentField::ZMax>>;
 } // namespace picongpu
