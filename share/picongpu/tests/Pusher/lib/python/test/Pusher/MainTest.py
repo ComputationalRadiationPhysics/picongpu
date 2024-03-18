@@ -176,7 +176,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
     # uncertanty PIConGPU should have when the test uses the position.
     # Therefore the test uses this value to test the radius change against.
     # PIConGPU run September 2023
-    epsilon = 5e-5
+    epsilon_position = 5e-5
 
     # calculating gamma for the calculation of the periodic time
     abs_momentum = np.sqrt(x_momentum[0]**2 + y_momentum[0]**2)
@@ -200,7 +200,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
             abs(radius[index_of_revolution] - radius[index_of_revolution + 1])
             / radius[index_of_revolution])
 
-        if compare_radii > epsilon:
+        if compare_radii > epsilon_position:
             print("pusher is not valid (position)")
             print("please check the simulation")
             compare_result_positions += 42
@@ -214,7 +214,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
     # uncertanty PIConGPU should have when the test uses the momentum.
     # Therefore the test uses this value to test the radius change against.
     # PIConGPU run September 2023
-    epsilon = 1e-5
+    epsilon_momentum = 1e-5
 
     # comparision with momentum
     radius = (np.sqrt(x_momentum**2 + y_momentum**2) * params["unit_mass"]
@@ -228,7 +228,7 @@ def compare_radius(x_poss, y_poss, x_offSet, y_offSet, x_momentum, y_momentum,
             abs(radius[index_of_revolution] - radius[index_of_revolution + 1])
             / radius[index_of_revolution])
 
-        if compare_radii > epsilon:
+        if compare_radii > epsilon_momentum:
             print("pusher is not valid (position)")
             print("please check the simulation")
             compare_result_momentum += 46
