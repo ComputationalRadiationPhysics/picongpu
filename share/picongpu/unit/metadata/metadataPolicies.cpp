@@ -74,14 +74,6 @@ struct FakeXMin
     }
 };
 
-struct FakeXMax
-{
-    static nlohmann::json metadata()
-    {
-        return "I'm FakeXMax!";
-    }
-};
-
 struct FakeYMin
 {
     static nlohmann::json metadata()
@@ -89,16 +81,6 @@ struct FakeYMin
         return {"I'm FakeYMin!", "So very much!}"};
     }
 };
-
-set<string> extractKeys(nlohmann::json const& input)
-{
-    set<string> result;
-    for(auto const& [key, _] : input.items())
-    {
-        result.insert(key);
-    }
-    return result;
-}
 
 TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
 {
@@ -143,64 +125,64 @@ TEST_CASE("unit::metadataAllowMissing", "[metadata allow missing test]")
             CHECK(metadataAggregator.metadata.contains("incidentField"));
         }
 
-        SECTION("incidentField subtree has XMin, XMax, ... as subfields")
+        SECTION("metadata contains boundary name")
         {
-            using Profiles = pmacc::MakeSeq_t<
-                FakeXMin,
-                FakeXMin,
-                FakeXMin,
-                FakeXMin,
-                std::conditional_t<TEST_DIM == 3, pmacc::MakeSeq_t<FakeXMin, FakeXMin>, pmacc::MakeSeq_t<>>>;
-
-            auto expected = std::set<string>{"XMin", "XMax", "YMin", "YMax"};
-            if(TEST_DIM == 3)
-            {
-                expected.insert("ZMin");
-                expected.insert("ZMax");
-            }
-
-            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
-            auto const& keys = extractKeys(metadataAggregator.metadata["incidentField"]);
-
-            CHECK(keys == expected);
+            using Profiles = pmacc::MakeSeq_t<FakeXMin>;
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("BoundaryName"), Profiles>>();
+            CHECK(metadataAggregator.metadata["incidentField"].contains("BoundaryName"));
         }
 
-        SECTION("incidentField has content for each boundary")
+        SECTION("metadata contains profile entries as array")
         {
-            using Profiles = pmacc::MakeSeq_t<
-                FakeXMin,
-                FakeXMin,
-                FakeXMin,
-                FakeXMin,
-                std::conditional_t<TEST_DIM == 3, pmacc::MakeSeq_t<FakeXMin, FakeXMin>, pmacc::MakeSeq_t<>>>;
-
-            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
-
-            for(auto const& el : metadataAggregator.metadata["incidentField"])
-            {
-                CHECK(el == FakeXMin{}.metadata());
-            }
+            using Profiles = pmacc::MakeSeq_t<FakeXMin>;
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("BoundaryName"), Profiles>>();
+            CHECK(
+                metadataAggregator.metadata["incidentField"]["BoundaryName"].type() == nlohmann::json::value_t::array);
         }
 
-        SECTION("incidentField can handle different content")
+        SECTION("metadata contains information from the profile")
         {
-            using Profiles = pmacc::MakeSeq_t<
-                FakeXMin,
-                FakeXMax,
-                FakeYMin,
-                FakeXMin,
-                std::conditional_t<TEST_DIM == 3, pmacc::MakeSeq_t<FakeXMin, FakeXMin>, pmacc::MakeSeq_t<>>>;
+            using Profiles = pmacc::MakeSeq_t<FakeXMin>;
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("BoundaryName"), Profiles>>();
+            CHECK(metadataAggregator.metadata["incidentField"]["BoundaryName"][0] == FakeXMin::metadata());
+        }
 
-            addMetadataOf<picongpu::traits::IncidentFieldPolicy<Profiles>>();
+        SECTION("metadata can describe multiple profiles per boundary")
+        {
+            using Profiles = pmacc::MakeSeq_t<FakeXMin, FakeXMin>;
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("BoundaryName"), Profiles>>();
+            CHECK(metadataAggregator.metadata["incidentField"]["BoundaryName"].size() == 2);
+        }
 
-            auto result = metadataAggregator.metadata["incidentField"];
-            CHECK(result["XMin"] == FakeXMin::metadata());
-            CHECK(result["XMax"] == FakeXMax::metadata());
-            CHECK(result["YMin"] == FakeYMin::metadata());
-            // we don't care about the rest
+        SECTION("metadata can describe multiple boundaries")
+        {
+            using XMin = pmacc::MakeSeq_t<FakeXMin>;
+            using YMin = pmacc::MakeSeq_t<FakeYMin>;
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("XMin"), XMin>>();
+            addMetadataOf<picongpu::traits::IncidentFieldPolicy<PMACC_CSTRING("YMin"), YMin>>();
+
+            SECTION("correct number of boundaries")
+            {
+                CHECK(metadataAggregator.metadata["incidentField"].size() == 2);
+            }
+            SECTION("contains XMin")
+            {
+                CHECK(metadataAggregator.metadata["incidentField"].contains("XMin"));
+            }
+            SECTION("contains YMin")
+            {
+                CHECK(metadataAggregator.metadata["incidentField"].contains("YMin"));
+            }
+            SECTION("correct content of XMin")
+            {
+                CHECK(metadataAggregator.metadata["incidentField"]["XMin"][0] == FakeXMin::metadata());
+            }
+            SECTION("correct content of YMin")
+            {
+                CHECK(metadataAggregator.metadata["incidentField"]["YMin"][0] == FakeYMin::metadata());
+            }
         }
     }
-
 
     MetadataAggregator::metadata = json::object();
 }
