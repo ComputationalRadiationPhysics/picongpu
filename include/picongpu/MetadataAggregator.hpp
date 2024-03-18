@@ -38,13 +38,6 @@
 
 namespace picongpu
 {
-    using boost::program_options::options_description;
-    using boost::program_options::value;
-    using std::ofstream;
-    using std::ostream;
-    using std::string;
-
-
     /** Aggregate metadata to dump
      *
      * This practically wraps its `static json metadata` member and provides functionality to dump it into a json file.
@@ -53,16 +46,16 @@ namespace picongpu
      */
     struct MetadataAggregator : pmacc::IPlugin
     {
-        string pluginGetName() const override
+        std::string pluginGetName() const override
         {
             return "MetadataPlugin";
         }
 
-        void pluginRegisterHelp(options_description& description) override
+        void pluginRegisterHelp(boost::program_options::options_description& description) override
         {
             description.add_options()(
                 "dump-metadata",
-                value<stdfs::path>(&filename)
+                boost::program_options::value<stdfs::path>(&filename)
                     // TODO: One could theoretically use this convention to deactivate explicitly via
                     // `<executable> --dump-metadata ""` which might not quite be the expected behaviour.
                     // We should decide if we want something cleverer here to circumvent this.
@@ -85,11 +78,11 @@ namespace picongpu
         {
             if(thisIsSupposedToRun)
             {
-                ofstream file{filename};
+                std::ofstream file{filename};
                 dumpTo(file);
             }
         }
-        void dumpTo(ostream& stream) const
+        void dumpTo(std::ostream& stream) const
         {
             stream << metadata.dump(2) << "\n";
         }
