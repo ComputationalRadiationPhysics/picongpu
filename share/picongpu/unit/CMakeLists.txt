@@ -109,6 +109,8 @@ add_library(argparser
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.cpp"
 )
 
+target_link_libraries(argparser ${HOST_LIBS})
+
 # Test cases
 # Each *UT.cpp file is an independent executable with one or more test cases
 file(GLOB_RECURSE TESTS *.cpp)
