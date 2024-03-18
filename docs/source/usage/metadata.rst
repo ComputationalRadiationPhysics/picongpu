@@ -29,8 +29,9 @@ run the simulation afterwards, just leave it out and the program will proceed as
 The dumping happens after all initialisation work is done immediately before the simulation starts (or is skipped). This implies that
 
  * No dynamic information about the simulation can be included (e.g. information about the state at time step 10).
- * The dumped information will represent the actual parameters used which might be different from the parameters given
-   in the input files, e.g., due to automatic adjustment of the grid size (see :ref:`autoAdjustGrid<usage-cfg>`).
+ * The dumped information will represent the actual parameters used. This implies that the parameters reported by this
+   feature will differ from the ones provided on the commandline if, e.g., automatic adjustment of the grid size (see 
+   :ref:`autoAdjustGrid<usage-cfg>`) kicks in.
 
 .. note::
 
