@@ -288,7 +288,8 @@ TEST_CASE("unit::metadataDescription", "[metadata description test]")
         auto expected = json::object();
         expected["privateInfo"] = privateInfo;
         expected["customisedInfo"] = "Some other customised string.";
-        REQUIRE(obj.metadata() != expected); // make sure we test something non-trivial here
+        // make sure we test something non-trivial here
+        REQUIRE(obj.metadata() != expected);
 
         addMetadataOf(obj);
         CHECK(metadataAggregator.metadata == expected);
