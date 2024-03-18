@@ -1,20 +1,32 @@
 {
   "incidentField": {
-    "XMax": {},
-    "XMin": {},
-    "YMax": {},
-    "YMin": {
-      "polarisation": {
-        "direction": [
-          1.0,
-          0.0,
-          0.0
-        ],
-        "type": "circular"
+    "XMax": [
+      {}
+    ],
+    "XMin": [
+      {}
+    ],
+    "YMax": [
+      {}
+    ],
+    "YMin": [
+      {
+        "polarisation": {
+          "direction": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "type": "circular"
+        }
       }
-    },
-    "ZMax": {},
-    "ZMin": {}
+    ],
+    "ZMax": [
+      {}
+    ],
+    "ZMin": [
+      {}
+    ]
   },
   "simulation": {
     "steps": 0
