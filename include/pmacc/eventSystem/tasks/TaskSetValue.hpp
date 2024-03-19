@@ -163,13 +163,13 @@ namespace pmacc
         void init() override
         {
             // number of elements in destination
-            size_t const current_size = this->destination->getCurrentSize();
+            size_t const current_size = this->destination->size();
             // n-dimensional size of destination based on `current_size`
-            MemSpace<dim> const area_size(this->destination->getCurrentDataSpace(current_size));
+            MemSpace<dim> const areaSizeND(this->destination->sizeND(current_size));
 
-            if(area_size.productOfComponents() != 0)
+            if(areaSizeND.productOfComponents() != 0)
             {
-                auto gridSize = area_size;
+                auto gridSize = areaSizeND;
 
                 /* number of elements in x direction used to chunk the destination buffer
                  * for block parallel processing
@@ -194,7 +194,7 @@ namespace pmacc
                     KernelSetValue<xChunkSize>{},
                     destBox,
                     this->value,
-                    area_size,
+                    areaSizeND,
                     blockCfg);
                 auto queue = this->getCudaStream();
                 alpaka::enqueue(queue, kernel);
@@ -232,11 +232,11 @@ namespace pmacc
 
         void init() override
         {
-            size_t current_size = this->destination->getCurrentSize();
-            const MemSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
-            if(area_size.productOfComponents() != 0)
+            size_t size = this->destination->size();
+            const MemSpace<dim> areaSizeND(this->destination->sizeND(size));
+            if(areaSizeND.productOfComponents() != 0)
             {
-                auto gridSize = area_size;
+                auto gridSize = areaSizeND;
 
                 /* number of elements in x direction used to chunk the destination buffer
                  * for block parallel processing
@@ -267,7 +267,7 @@ namespace pmacc
                     KernelSetValue<xChunkSize>{},
                     destBox,
                     alpaka::getPtrNative(firstElemBuffer),
-                    area_size,
+                    areaSizeND,
                     blockCfg);
                 alpaka::enqueue(queue, kernel);
             }

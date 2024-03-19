@@ -66,7 +66,7 @@ namespace pmacc
             , m_capacityND(size)
             , isMemoryContiguous(true)
         {
-            Buffer::setCurrentSize(size.productOfComponents());
+            Buffer::setSize(size.productOfComponents());
         }
 
         virtual ~Buffer()
@@ -96,7 +96,7 @@ namespace pmacc
          *
          * @return count of current elements per dimension
          */
-        virtual size_t getCurrentSize()
+        virtual size_t size()
         {
             eventSystem::startOperation(ITask::TASK_HOST);
             return alpaka::getPtrNative(this->currentSizeBufferHost)[0];
@@ -106,7 +106,7 @@ namespace pmacc
          *
          * @param newSize number of elements per dimension
          */
-        virtual void setCurrentSize(size_t const newSize)
+        virtual void setSize(size_t const newSize)
         {
             eventSystem::startOperation(ITask::TASK_HOST);
             PMACC_ASSERT(static_cast<size_t>(newSize) <= static_cast<size_t>(capacityND().productOfComponents()));
@@ -114,9 +114,9 @@ namespace pmacc
         }
 
         /** Total number of elements mapped to the N-dimensional size of the buffer */
-        virtual MemSpace<T_dim> getCurrentDataSpace()
+        virtual MemSpace<T_dim> sizeND()
         {
-            return getCurrentDataSpace(getCurrentSize());
+            return sizeND(size());
         }
 
         /** Spread of memory per dimension which is currently used
@@ -125,7 +125,7 @@ namespace pmacc
          * if DIM == DIM2 than return how many lines (y-direction) of memory is used
          * if DIM == DIM3 than return how many slides (z-direction) of memory is used
          */
-        virtual MemSpace<T_dim> getCurrentDataSpace(size_t size)
+        virtual MemSpace<T_dim> sizeND(size_t size)
         {
             MemSpace<T_dim> tmp;
             auto current_size = size;
