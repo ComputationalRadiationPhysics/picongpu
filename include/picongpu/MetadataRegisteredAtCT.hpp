@@ -29,6 +29,10 @@ namespace picongpu
         traits::IncidentFieldPolicy<PMACC_CSTRING("XMax"), picongpu::fields::incidentField::XMax>,
         traits::IncidentFieldPolicy<PMACC_CSTRING("YMin"), picongpu::fields::incidentField::YMin>,
         traits::IncidentFieldPolicy<PMACC_CSTRING("YMax"), picongpu::fields::incidentField::YMax>,
-        traits::IncidentFieldPolicy<PMACC_CSTRING("ZMin"), picongpu::fields::incidentField::ZMin>,
-        traits::IncidentFieldPolicy<PMACC_CSTRING("ZMax"), picongpu::fields::incidentField::ZMax>>;
+        std::conditional_t<
+            simDim == 2,
+            pmacc::MakeSeq_t<>,
+            pmacc::MakeSeq_t<
+                traits::IncidentFieldPolicy<PMACC_CSTRING("ZMin"), picongpu::fields::incidentField::ZMin>,
+                traits::IncidentFieldPolicy<PMACC_CSTRING("ZMax"), picongpu::fields::incidentField::ZMax>>>>;
 } // namespace picongpu
