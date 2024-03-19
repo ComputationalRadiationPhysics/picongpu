@@ -71,17 +71,17 @@ namespace pmacc
 
         BufferType1D as1DBuffer()
         {
-            auto currentSize = this->getCurrentSize();
+            auto numElements = this->size();
             eventSystem::startOperation(ITask::TASK_DEVICE);
             return BufferType1D(
                 alpaka::getPtrNative(*view),
                 alpaka::getDev(*devBuffer),
-                MemSpace<DIM1>(currentSize).toAlpakaMemVec());
+                MemSpace<DIM1>(numElements).toAlpakaMemVec());
         }
 
         BufferType1D as1DBufferNElem(size_t const numElements)
         {
-            PMACC_ASSERT(numElements < this->getCurrentSize());
+            PMACC_ASSERT(numElements < this->size());
             eventSystem::startOperation(ITask::TASK_DEVICE);
             return BufferType1D(
                 alpaka::getPtrNative(*view),
@@ -122,7 +122,7 @@ namespace pmacc
             {
                 createSizeOnDeviceBuffers();
             }
-            this->setCurrentSize(size.productOfComponents());
+            this->setSize(size.productOfComponents());
             this->isMemoryContiguous = true;
             reset(false);
         }
@@ -154,7 +154,7 @@ namespace pmacc
             {
                 createSizeOnDeviceBuffers();
             }
-            this->setCurrentSize(size.productOfComponents());
+            this->setSize(size.productOfComponents());
             this->isMemoryContiguous = T_dim == DIM1;
             reset(true);
         }
@@ -166,7 +166,7 @@ namespace pmacc
 
         void reset(bool preserveData = true) override
         {
-            this->setCurrentSize(Buffer<T_Type, T_dim>::capacityND().productOfComponents());
+            this->setSize(Buffer<T_Type, T_dim>::capacityND().productOfComponents());
 
             eventSystem::startOperation(ITask::TASK_DEVICE);
             if(!preserveData)
@@ -205,7 +205,7 @@ namespace pmacc
          *
          * @return device side current size buffer
          */
-        CurrentSizeBufferDevice getCurrentSizeOnDeviceBuffer()
+        CurrentSizeBufferDevice sizeOnDeviceBuffer()
         {
             eventSystem::startOperation(ITask::TASK_DEVICE);
             if(!hasCurrentSizeOnDevice())
@@ -219,13 +219,13 @@ namespace pmacc
          *
          * @return host side current size buffer
          */
-        typename Buffer<T_Type, T_dim>::CurrentSizeBufferHost getCurrentSizeHostSideBuffer()
+        typename Buffer<T_Type, T_dim>::CurrentSizeBufferHost sizeHostSideBuffer()
         {
             eventSystem::startOperation(ITask::TASK_HOST);
             return this->currentSizeBufferHost;
         }
 
-        size_t getCurrentSize() override
+        size_t size() override
         {
             if(hasCurrentSizeOnDevice())
             {
@@ -234,12 +234,12 @@ namespace pmacc
                 eventSystem::endTransaction().waitForFinished();
             }
 
-            return Buffer<T_Type, T_dim>::getCurrentSize();
+            return Buffer<T_Type, T_dim>::size();
         }
 
-        void setCurrentSize(const size_t newSize) override
+        void setSize(const size_t newSize) override
         {
-            Buffer<T_Type, T_dim>::setCurrentSize(newSize);
+            Buffer<T_Type, T_dim>::setSize(newSize);
 
             if(hasCurrentSizeOnDevice())
             {
@@ -270,7 +270,7 @@ namespace pmacc
             Environment<>::get().Factory().createTaskSetValue(*this, value);
         };
 
-        auto getCurrentSizeDeviceSideBuffer()
+        auto sizeDeviceSideBuffer()
         {
             eventSystem::startOperation(ITask::TASK_DEVICE);
             return currentSizeBufferDevice.value();
@@ -279,7 +279,7 @@ namespace pmacc
         typename Buffer<T_Type, T_dim>::CPtr getCPtrCurrentSize() final
         {
             PMACC_ASSERT_MSG(this->isContiguous(), "Memory must be contiguous!");
-            size_t const size = this->getCurrentSize();
+            size_t const size = this->size();
             eventSystem::startOperation(ITask::TASK_DEVICE);
             return {alpaka::getPtrNative(*view), size};
         }

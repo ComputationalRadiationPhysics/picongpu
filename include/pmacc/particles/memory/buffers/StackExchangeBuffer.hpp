@@ -73,11 +73,11 @@ namespace pmacc
             PMACC_ASSERT(stackIndexer.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
             return ExchangePushDataBox<vint_t, FRAME, DIM>(
                 stack.getDeviceBuffer().data(),
-                (vint_t*) alpaka::getPtrNative(stack.getDeviceBuffer().getCurrentSizeDeviceSideBuffer()),
+                (vint_t*) alpaka::getPtrNative(stack.getDeviceBuffer().sizeDeviceSideBuffer()),
                 stack.getDeviceBuffer().capacityND().productOfComponents(),
                 PushDataBox<vint_t, FRAMEINDEX>(
                     stackIndexer.getDeviceBuffer().data(),
-                    (vint_t*) alpaka::getPtrNative(stackIndexer.getDeviceBuffer().getCurrentSizeDeviceSideBuffer())));
+                    (vint_t*) alpaka::getPtrNative(stackIndexer.getDeviceBuffer().sizeDeviceSideBuffer())));
         }
 
         /**
@@ -92,25 +92,25 @@ namespace pmacc
                 stackIndexer.getDeviceBuffer().getDataBox());
         }
 
-        void setCurrentSize(const size_t size)
+        void setSize(const size_t size)
         {
-            // do host and device setCurrentSize parallel
+            // do host and device setSize parallel
             EventTask split = eventSystem::getTransactionEvent();
             EventTask e1;
 
             if(!Environment<>::get().isMpiDirectEnabled())
             {
                 eventSystem::startTransaction(split);
-                stackIndexer.getHostBuffer().setCurrentSize(size);
-                stack.getHostBuffer().setCurrentSize(size);
+                stackIndexer.getHostBuffer().setSize(size);
+                stack.getHostBuffer().setSize(size);
                 e1 = eventSystem::endTransaction();
             }
 
             eventSystem::startTransaction(split);
-            stackIndexer.getDeviceBuffer().setCurrentSize(size);
+            stackIndexer.getDeviceBuffer().setSize(size);
             EventTask e2 = eventSystem::endTransaction();
             eventSystem::startTransaction(split);
-            stack.getDeviceBuffer().setCurrentSize(size);
+            stack.getDeviceBuffer().setSize(size);
             EventTask e3 = eventSystem::endTransaction();
 
             eventSystem::setTransactionEvent(e1 + e2 + e3);
@@ -120,29 +120,29 @@ namespace pmacc
         {
             size_t result = 0u;
             if(Environment<>::get().isMpiDirectEnabled())
-                result = stackIndexer.getDeviceBuffer().getCurrentSize();
+                result = stackIndexer.getDeviceBuffer().size();
             else
-                result = stackIndexer.getHostBuffer().getCurrentSize();
+                result = stackIndexer.getHostBuffer().size();
 
             return result;
         }
 
         size_t getDeviceCurrentSize()
         {
-            return stackIndexer.getDeviceBuffer().getCurrentSize();
+            return stackIndexer.getDeviceBuffer().size();
         }
 
         size_t getDeviceParticlesCurrentSize()
         {
-            return stack.getDeviceBuffer().getCurrentSize();
+            return stack.getDeviceBuffer().size();
         }
 
         size_t getHostParticlesCurrentSize()
         {
             if(Environment<>::get().isMpiDirectEnabled())
-                return stack.getDeviceBuffer().getCurrentSize();
+                return stack.getDeviceBuffer().size();
 
-            return stack.getHostBuffer().getCurrentSize();
+            return stack.getHostBuffer().size();
         }
 
         size_t getMaxParticlesCount()

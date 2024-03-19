@@ -514,28 +514,28 @@ namespace picongpu
                 pmacc::math::operation::Add(),
                 reducedSumMom2.data(),
                 gSumMom2->getHostBuffer().data(),
-                reducedSumMom2.getCurrentSize(),
+                reducedSumMom2.size(),
                 mpi::reduceMethods::Reduce());
 
             (*planeReduce)(
                 pmacc::math::operation::Add(),
                 reducedSumPos2.data(),
                 gSumPos2->getHostBuffer().data(),
-                reducedSumPos2.getCurrentSize(),
+                reducedSumPos2.size(),
                 mpi::reduceMethods::Reduce());
 
             (*planeReduce)(
                 pmacc::math::operation::Add(),
                 reducedSumMomPos.data(),
                 gSumMomPos->getHostBuffer().data(),
-                reducedSumMomPos.getCurrentSize(),
+                reducedSumMomPos.size(),
                 mpi::reduceMethods::Reduce());
 
             (*planeReduce)(
                 pmacc::math::operation::Add(),
                 reducedCount_e.data(),
                 gCount_e->getHostBuffer().data(),
-                reducedCount_e.getCurrentSize(),
+                reducedCount_e.size(),
                 mpi::reduceMethods::Reduce());
 
 

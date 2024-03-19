@@ -40,15 +40,22 @@ namespace pmacc
     public:
         using PushType = ExchangeMemoryIndex<TYPE, DIM>;
 
+        /**
+         *
+         * @param data particle data storage
+         * @param particleCount current fill level of data
+         * @param maxSize max capacity of data
+         * @param indexTable index table which holds meta data to link particles in data to supercells
+         */
         HDINLINE ExchangePushDataBox(
             VALUE* data,
-            TYPE* currentSizePointer,
+            TYPE* particleCount,
             TYPE maxSize,
-            PushDataBox<TYPE, PushType> virtualMemory)
+            PushDataBox<TYPE, PushType> indexTable)
             : DataBox<PitchedBox<VALUE, DIM1>>(PitchedBox<VALUE, DIM1>(data))
-            , virtualMemory(virtualMemory)
-            , currentSizePointer(currentSizePointer)
-            , maxSize(maxSize)
+            , m_indexTable(indexTable)
+            , m_particleCount(particleCount)
+            , m_maxSize(maxSize)
         {
         }
 
@@ -74,21 +81,22 @@ namespace pmacc
             DataSpace<DIM> const& superCell,
             T_Hierarchy const& hierarchy)
         {
-            TYPE oldSize
-                = alpaka::atomicAdd(worker.getAcc(), currentSizePointer, count, hierarchy); // get count VALUEs
+            // offset in destination array for our particle data
+            TYPE oldSize = alpaka::atomicAdd(worker.getAcc(), m_particleCount, count, hierarchy);
 
-            if(oldSize + count > maxSize)
+            if(oldSize + count > m_maxSize)
             {
-                alpaka::atomicExch(worker.getAcc(), currentSizePointer, maxSize, hierarchy); // reset size to maxsize
-                if(oldSize >= maxSize)
+                // reset size to maxsize
+                alpaka::atomicExch(worker.getAcc(), m_particleCount, m_maxSize, hierarchy);
+                if(oldSize >= m_maxSize)
                 {
                     return TileDataBox<VALUE>(nullptr, DataSpace<DIM1>(0), 0);
                 }
                 else
-                    count = maxSize - oldSize;
+                    count = m_maxSize - oldSize;
             }
 
-            TileDataBox<PushType> tmp = virtualMemory.pushN(worker, 1, hierarchy);
+            TileDataBox<PushType> tmp = m_indexTable.pushN(worker, 1, hierarchy);
             tmp[0].setSuperCell(superCell);
             tmp[0].setCount(count);
             tmp[0].setStartIndex(oldSize);
@@ -97,9 +105,9 @@ namespace pmacc
 
 
     protected:
-        PMACC_ALIGN8(virtualMemory, PushDataBox<TYPE, PushType>);
-        PMACC_ALIGN(currentSizePointer, TYPE*);
-        PMACC_ALIGN(maxSize, TYPE);
+        PMACC_ALIGN8(m_indexTable, PushDataBox<TYPE, PushType>);
+        PMACC_ALIGN(m_particleCount, TYPE*);
+        PMACC_ALIGN(m_maxSize, TYPE);
     };
 
 } // namespace pmacc

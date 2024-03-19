@@ -62,12 +62,12 @@ namespace pmacc
 
         BufferType1D as1DBuffer()
         {
-            auto currentSize = this->getCurrentSize();
+            auto numElements = this->size();
             eventSystem::startOperation(ITask::TASK_HOST);
             return BufferType1D(
                 alpaka::getPtrNative(*view),
                 alpaka::getDev(*hostBuffer),
-                MemSpace<DIM1>(currentSize).toAlpakaMemVec());
+                MemSpace<DIM1>(numElements).toAlpakaMemVec());
         }
 
         ViewType getAlpakaView() const
@@ -144,7 +144,7 @@ namespace pmacc
         void reset(bool preserveData = true) override
         {
             eventSystem::startOperation(ITask::TASK_HOST);
-            this->setCurrentSize(this->capacityND().productOfComponents());
+            this->setSize(this->capacityND().productOfComponents());
             if(!preserveData)
             {
                 /* if it is a pointer out of other memory we can not assume that
@@ -170,7 +170,7 @@ namespace pmacc
         {
             // getDataBox is notifying the event system, no need to do it manually
             auto memBox = this->getDataBox();
-            auto current_size = static_cast<int64_t>(this->getCurrentSize());
+            auto current_size = static_cast<int64_t>(this->size());
             using D1Box = DataBoxDim1Access<DataBoxType>;
             D1Box d1Box(memBox, this->capacityND());
 #pragma omp parallel for
@@ -190,8 +190,8 @@ namespace pmacc
         typename Buffer<T_Type, T_dim>::CPtr getCPtrCurrentSize() final
         {
             PMACC_ASSERT_MSG(this->isContiguous(), "Memory must be contiguous!");
-            // getCurrentSize is notifying the event system, no need to do it manually
-            size_t const size = this->getCurrentSize();
+            // size is notifying the event system, no need to do it manually
+            size_t const size = this->size();
             return {alpaka::getPtrNative(*view), size};
         }
 

@@ -188,7 +188,7 @@ namespace picongpu
                  * buffer has no pitch
                  */
                 auto* dataPtr = hBufLeftParsCalorimeter.data();
-                for(size_t i = 0u; i < hBufLeftParsCalorimeter.getCurrentSize(); ++i)
+                for(size_t i = 0u; i < hBufLeftParsCalorimeter.size(); ++i)
                     dataPtr[i] /= float_X(numRanks);
             }
 
@@ -196,7 +196,7 @@ namespace picongpu
             eventSystem::getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Bcast(
                 hBufLeftParsCalorimeter.data(),
-                hBufLeftParsCalorimeter.getCurrentSize() * sizeof(float_X),
+                hBufLeftParsCalorimeter.size() * sizeof(float_X),
                 MPI_CHAR,
                 0, /* rank 0 */
                 comm.getMPIComm()));
@@ -226,7 +226,7 @@ namespace picongpu
                 pmacc::math::operation::Add(),
                 hBufTotal.data(),
                 hBufLeftParsCalorimeter.data(),
-                hBufTotal.getCurrentSize(),
+                hBufTotal.size(),
                 mpi::reduceMethods::Reduce());
 
             if(!this->allGPU_reduce->hasResult(mpi::reduceMethods::Reduce()))
@@ -369,8 +369,8 @@ namespace picongpu
 
             auto offset = twoDimensional(::openPMD::Offset{0, 0, 0});
 
-            auto dataSize = this->hBufTotalCalorimeter->getCurrentDataSpace();
-            auto dataSize64Bit = precisionCast<size_t>(dataSize);
+            auto dataSizeND = this->hBufTotalCalorimeter->sizeND();
+            auto dataSize64Bit = precisionCast<size_t>(dataSizeND);
             auto extent = twoDimensional(::openPMD::Extent{dataSize64Bit.z(), dataSize64Bit.y(), dataSize64Bit.x()});
 
             auto mesh = series.iterations[currentStep].meshes["calorimeter"];
@@ -590,7 +590,7 @@ namespace picongpu
                 pmacc::math::operation::Add(),
                 this->hBufTotalCalorimeter->data(),
                 this->hBufCalorimeter->data(),
-                this->hBufCalorimeter->getCurrentSize(),
+                this->hBufCalorimeter->size(),
                 mpi::reduceMethods::Reduce());
 
             if(!this->allGPU_reduce->hasResult(mpi::reduceMethods::Reduce()))

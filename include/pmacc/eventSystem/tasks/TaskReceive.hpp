@@ -72,11 +72,11 @@ namespace pmacc
                 {
                     if(Environment<>::get().isMpiDirectEnabled())
                     {
-                        exchange->getDeviceDoubleBuffer().setCurrentSize(newBufferSize);
+                        exchange->getDeviceDoubleBuffer().setSize(newBufferSize);
                     }
                     else
                     {
-                        exchange->getHostBuffer().setCurrentSize(newBufferSize);
+                        exchange->getHostBuffer().setSize(newBufferSize);
                         Environment<>::get().Factory().createTaskCopy(
                             exchange->getHostBuffer(),
                             exchange->getDeviceDoubleBuffer());
@@ -91,8 +91,8 @@ namespace pmacc
                 {
                     if(Environment<>::get().isMpiDirectEnabled())
                     {
-                        exchange->getDeviceBuffer().setCurrentSize(newBufferSize);
-                        /* We can not be notified from setCurrentSize() therefore
+                        exchange->getDeviceBuffer().setSize(newBufferSize);
+                        /* We can not be notified from setSize() therefore
                          * we need to wait that the current event is finished.
                          */
                         setSizeEvent = eventSystem::getTransactionEvent();
@@ -100,7 +100,7 @@ namespace pmacc
                     }
                     else
                     {
-                        exchange->getHostBuffer().setCurrentSize(newBufferSize);
+                        exchange->getHostBuffer().setSize(newBufferSize);
                         Environment<>::get().Factory().createTaskCopy(
                             exchange->getHostBuffer(),
                             exchange->getDeviceBuffer(),
