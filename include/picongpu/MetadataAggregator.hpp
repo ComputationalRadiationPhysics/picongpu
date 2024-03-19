@@ -21,8 +21,7 @@
 
 #include <pmacc/boost_workaround.hpp>
 
-#include "pmacc/filesystem.hpp"
-
+#include <pmacc/filesystem.hpp>
 #include <pmacc/pluginSystem/IPlugin.hpp>
 
 #include <boost/program_options/options_description.hpp>
