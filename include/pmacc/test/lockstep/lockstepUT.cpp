@@ -54,7 +54,7 @@ struct IotaGenericKernel
         constexpr uint32_t blockDomSize = T_Worker::blockDomSize();
         auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
 
-        // block-strided loop over the chunked data
+        // grid-strided loop over the chunked data
         for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
         {
             auto dataBlockOffset = dataBlock * blockDomSize;
@@ -104,7 +104,7 @@ inline void iotaGernericBufferDerivedChunksize(T_DeviceBuffer& devBuffer)
 }
 // doc-include-end: lockstep generic kernel buffer selected domain size
 
-// doc-include-end: lockstep generic kernel hard coded domain size
+// doc-include-start: lockstep generic kernel hard coded domain size
 struct IotaFixedChunkSizeKernel
 {
     static constexpr uint32_t blockDomSize = 42;
@@ -116,7 +116,7 @@ struct IotaFixedChunkSizeKernel
 
         auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
 
-        // block-strided loop over the chunked data
+        // grid-strided loop over the chunked data
         for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
         {
             auto dataBlockOffset = dataBlock * blockDomSize;
@@ -143,7 +143,6 @@ inline void iotaFixedChunkSize(T_DeviceBuffer& devBuffer)
     constexpr uint32_t numBlocks = 10;
     PMACC_LOCKSTEP_KERNEL(IotaFixedChunkSizeKernel{}).config(numBlocks)(devBuffer.getDataBox(), bufferSize);
 }
-
 // doc-include-end: lockstep generic kernel hard coded domain size
 
 // doc-include-start: lockstep generic kernel hard coded N dimensional domain size
@@ -158,7 +157,7 @@ struct IotaFixedChunkSizeKernelND
 
         static_assert(blockDomSize == T_Worker::blockDomSize());
 
-        // block-strided loop over the chunked data
+        // grid-strided loop over the chunked data
         auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
 
         for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
@@ -200,7 +199,7 @@ struct IotaGenericKernelWithDynSharedMem
 
         uint32_t* s_mem = ::alpaka::getDynSharedMem<uint32_t>(worker.getAcc());
 
-        // block-strided loop over the chunked data
+        // grid-strided loop over the chunked data
         for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
         {
             auto dataBlockOffset = dataBlock * blockDomSize;
