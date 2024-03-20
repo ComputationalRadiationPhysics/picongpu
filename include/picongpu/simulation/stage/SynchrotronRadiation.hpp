@@ -109,7 +109,7 @@ namespace picongpu::simulation::stage
         {
             using namespace picongpu::particles::synchrotron::params; // for "FirstSynchrotronFunctionParams" struct
 
-            float_64 const log_start = std::log10(zq); // from zq to FirstSynchrotronFunctionParams::logEnd
+            float_64 const log_start = std::log2(zq); // from zq to FirstSynchrotronFunctionParams::logEnd
             float_64 const log_step = (FirstSynchrotronFunctionParams::logEnd - log_start)
                 / (FirstSynchrotronFunctionParams::numberSamplePoints - 1);
 
@@ -121,7 +121,7 @@ namespace picongpu::simulation::stage
             for(unsigned int i = 0; i < FirstSynchrotronFunctionParams::numberSamplePoints - 1; ++i)
             {
                 xLeft = xRight;
-                xRight = math::pow(10., log_start + log_step * (i + 1));
+                xRight = math::pow(2., log_start + log_step * (i + 1));
                 float_64 xMiddle = (xLeft + xRight) / 2.0;
 
                 // try and catch errors in the bessel function
@@ -168,27 +168,24 @@ namespace picongpu::simulation::stage
 
             constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
             constexpr float_64 maxZqExp = InterpolationParams::maxZqExponent;
-
+            constexpr float_64 tableEntries = InterpolationParams::numberTableEntries;
+#define tableAccess(i, j) tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{i, j}) // for easier access
             // first and last value set to 0
-            tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{0, u32(Accessor::f1)}) = 0;
-            tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{0, u32(Accessor::f2)}) = 0;
-            tableValuesF1F2->getHostBuffer().getDataBox()(
-                DataSpace<2>{InterpolationParams::numberTableEntries - 1, u32(Accessor::f1)})
-                = 0;
-            tableValuesF1F2->getHostBuffer().getDataBox()(
-                DataSpace<2>{InterpolationParams::numberTableEntries - 1, u32(Accessor::f2)})
-                = 0;
+            tableAccess(0, u32(Accessor::f1)) = 0;
+            tableAccess(0, u32(Accessor::f2)) = 0;
+            tableAccess(tableEntries - 1, u32(Accessor::f1)) = 0;
+            tableAccess(tableEntries - 1, u32(Accessor::f2)) = 0;
 
             // precompute remaining F1 and F2 on log scale
             for(uint32_t iZq = 1; iZq < InterpolationParams::numberTableEntries - 1; iZq++)
             {
                 float_64 zq = std::pow(
-                    10,
+                    2,
                     minZqExp
                         + (maxZqExp - minZqExp) * iZq
                             / static_cast<float_64>(InterpolationParams::numberTableEntries));
                 // inverse function for index retrieval:
-                // index = (log10(zq) - minZqExp) / (maxZqExp - minZqExp) * InterpolationParams::numberTableEntries;
+                // index = (log2(zq) - minZqExp) / (maxZqExp - minZqExp) * InterpolationParams::numberTableEntries;
 
                 float_64 const F1 = firstSynchrotronFunction(zq);
                 float_64 const F2 = secondSynchrotronFunction(zq);
@@ -206,12 +203,12 @@ namespace picongpu::simulation::stage
                 for(uint32_t zq = 0; zq < InterpolationParams::numberTableEntries * timesMore; zq++)
                 {
                     float_64 zq_ = std::pow(
-                        10,
+                        2,
                         minZqExp
                             + (maxZqExp - minZqExp) * zq
                                 / float_64(InterpolationParams::numberTableEntries * timesMore));
                     uint32_t index
-                        = (log10(zq_) - minZqExp) * (InterpolationParams::numberTableEntries) / (maxZqExp - minZqExp);
+                        = (log2(zq_) - minZqExp) * (InterpolationParams::numberTableEntries) / (maxZqExp - minZqExp);
 
 
                     std::cout << "zq = " << zq / float(timesMore) << " index = " << index << std::endl;

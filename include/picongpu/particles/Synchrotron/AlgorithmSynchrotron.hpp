@@ -66,7 +66,7 @@ namespace picongpu
 
                 struct FirstSynchrotronFunctionParams // Parameters how to compute first synhrotron function
                 {
-                    static constexpr float_64 logEnd = 2.0; //! log10(100.0), arbitrary cutoff, for 2nd kind cyclic
+                    static constexpr float_64 logEnd = 6.6; //! log2(100.0), arbitrary cutoff, for 2nd kind cyclic
                                                             //! bessel function -> function close enough to zero
                     static constexpr uint32_t numberSamplePoints = 1024u; // number of sample points to use in
                                                                           // integration in firstSynchrotronFunction
@@ -77,8 +77,8 @@ namespace picongpu
                 {
                     static constexpr uint64_t numberTableEntries = 1024u; // number of synchrotron function values
                                                                           // to precompute and store in table
-                    static constexpr float_64 minZqExponent = -15; // cutoff energy -> @todo: make this a parameter
-                    static constexpr float_64 maxZqExponent = 1; // don't change. or change. but don't change.
+                    static constexpr float_64 minZqExponent = -32; // cutoff energy -> @todo: make this a parameter
+                    static constexpr float_64 maxZqExponent = 3.3; // don't change. or change. but don't change.
                 };
 
                 enum struct Accessor : uint32_t // used for table access -> the table "tableValuesF1F2" is in
@@ -171,7 +171,7 @@ namespace picongpu
                     float_64 zq = 2 * delta / (3 * chi * (1 - delta));
 
                     // zq convert to index and F1 and F2
-                    const float_64 zqExponent = math::log(zq) / math::log(10);
+                    const float_64 zqExponent = math::log2(zq);
                     const int16_t index
                         = static_cast<int16_t>((zqExponent - minZqExponent) / stepWidthLogatihmicScale);
 
@@ -180,8 +180,8 @@ namespace picongpu
                     float_64 Ftemp = 0;
                     if(index >= 0 && index < interpolationPoints - 1)
                     {
-                        float_64 zq1 = math::pow(10, minZqExponent + stepWidthLogatihmicScale * index);
-                        float_64 zq2 = math::pow(10, minZqExponent + stepWidthLogatihmicScale * (index + 1));
+                        float_64 zq1 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * index);
+                        float_64 zq2 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * (index + 1));
                         float_64 f = (zq - zq1) / (zq2 - zq1);
 
                         /// @todo Test Logarithmic interpolation
