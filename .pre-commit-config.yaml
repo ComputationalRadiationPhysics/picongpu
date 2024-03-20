@@ -1,4 +1,5 @@
 minimum_pre_commit_version: 3.2.0  # necessitated by Lucas-C's hooks
+default_install_hook_types: [pre-commit, pre-push]
 exclude: 'thirdParty'
 repos:
 - repo: https://github.com/pre-commit/mirrors-clang-format
@@ -50,10 +51,10 @@ repos:
       pass_filenames: false
       # This hook runs on all files which is why it feels a bit too heavy-weight
       # for running before every commit. The CI currently runs manually, so it's
-      # still running there and can be run manually on demand.
+      # still running there and can be run manually and pre-push on demand.
       # TODO: Adjust the script to take filenames, so that we can pass the
       # filenames and speed things up before commits.
-      stages: [manual]
+      stages: [manual, pre-push]
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
   rev: v0.2.1
