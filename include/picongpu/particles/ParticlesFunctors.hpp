@@ -369,7 +369,8 @@ namespace picongpu
             HINLINE void operator()(
                 T_CellDescription cellDesc,
                 const uint32_t currentStep,
-                GridBuffer<float_64, 2>::DataBoxType F1F2DeviceBuff) const
+                GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
+                std::shared_ptr<GridBuffer<bool, 1>> failedRequirementQ) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
 
@@ -381,10 +382,10 @@ namespace picongpu
                 auto synchrotronFunctor
                     = particles::synchrotron::AlgorithmSynchrotron<SpeciesType, DestinationSpecies>(
                         currentStep,
-                        F1F2DeviceBuff);
+                        F1F2DeviceBuff,
+                        failedRequirementQ->getDeviceBuffer().getDataBox());
 
                 creation::createParticlesFromSpecies(*srcSpeciesPtr, *photonsPtr, synchrotronFunctor, cellDesc);
-
                 photonsPtr->fillAllGaps();
             }
         };
