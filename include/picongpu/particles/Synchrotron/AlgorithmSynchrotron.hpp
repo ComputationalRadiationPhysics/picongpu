@@ -87,6 +87,11 @@ namespace picongpu
                     static constexpr float_64 maxZqExponent = 10; // in log2 don't change. or change. but don't change.
                 };
 
+                constexpr bool supressRequirementWarning = false;
+                // if true, the warning for the requirement 1 and 2 is suppressed
+                // maby speeds the simulationa little bit because there is no call to global memory
+                // but there is no change in memory consumption
+
                 enum struct Accessor : uint32_t // used for table access -> the table "tableValuesF1F2" is in
                                                 // simulation/stage/SynchrotronRadiation.hpp
                 {
@@ -207,13 +212,17 @@ namespace picongpu
                     float_X numericFactor = DELTA_T
                         * (ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_MASS * SPEED_OF_LIGHT
                            / (HBAR * HBAR * EPS0 * 4 * PI));
-                    /// @todo change and use unified requirement
-                    float_X requirement1 = numericFactor * 1.5 * math::pow(chi, 2. / 3.) / gamma;
-                    float_X requirement2 = numericFactor * 0.5 * chi / gamma;
 
-                    /// @todo use atomic. Check if is false and than write. -> use worker
-                    if(requirement1 > 0.1 || requirement2 > 0.1)
-                        failedRequirementQBuff(DataSpace<1>{0}) = true;
+                    if constexpr(params::supressRequirementWarning == false)
+                    {
+                        /// @todo change and use unified requirement
+                        float_X requirement1 = numericFactor * 1.5 * math::pow(chi, 2. / 3.) / gamma;
+                        float_X requirement2 = numericFactor * 0.5 * chi / gamma;
+
+                        if(requirement1 > 0.1 || requirement2 > 0.1)
+                            failedRequirementQBuff(DataSpace<1>{0})
+                                = true; ///@todo use atomic. Check if is false and than write. -> use worker
+                    }
 
                     numericFactor *= math::sqrt(3) / (2 * PI);
 
@@ -224,20 +233,6 @@ namespace picongpu
                     float_X const denominator = gamma;
 
                     float_X propability = numericFactor * (numerator1 / denominator * numerator2) * 3 * r1r1;
-
-                    if constexpr(T_Debug)
-                        if(propability > randNr2)
-                        {
-                            printf("propability: %e\n", propability);
-                            printf("delta: %e\n", delta);
-                            printf("HeffValue: %e\n", HeffValue);
-                            printf("chi: %e\n", chi);
-                            if(requirement1 > 0.1 || requirement2 > 0.1)
-                                printf("\t\t\t\tWARNING\n");
-                            printf("requirement1: %e\n", requirement1);
-                            printf("requirement2: %e\n", requirement2);
-                            printf("Returned: %e\n\n", (propability > randNr2) * delta);
-                        }
 
                     return (propability > randNr2) * delta;
                 }
