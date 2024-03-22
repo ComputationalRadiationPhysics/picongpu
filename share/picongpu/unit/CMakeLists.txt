@@ -51,6 +51,33 @@ find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../i
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/catch2 ${CMAKE_BINARY_DIR}/catch2)
 
+###############################################################################
+# JSON
+###############################################################################
+
+ set(JSON_BuildTests OFF CACHE INTERNAL "")
+ set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
+ set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
+ set(JSON_Install OFF CACHE INTERNAL "")  # only used PRIVATE
+
+add_subdirectory(
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/nlohmann_json"
+    "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json")
+
+################################################################################
+# Find Boost
+################################################################################
+
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
+
+find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options)
+if(TARGET Boost::boost)
+    list(PREPEND HOST_LIBS Boost::boost Boost::program_options)
+else()
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    list(PREPEND HOST_LIBS ${Boost_LIBRARIES})
+endif()
+
 ################################################################################
 # MPI
 ################################################################################
@@ -76,6 +103,15 @@ include_directories(BEFORE ./include)
 # CTest
 enable_testing()
 
+# We need to build and link this to check CLI aspects.
+add_library(argparser
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/ArgsParser.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.cpp"
+)
+
+target_link_libraries(argparser PRIVATE ${HOST_LIBS})
+target_link_libraries(argparser PRIVATE pmacc::pmacc)
+
 # Test cases
 # Each *UT.cpp file is an independent executable with one or more test cases
 file(GLOB_RECURSE TESTS *.cpp)
@@ -88,6 +124,14 @@ foreach(dim 2 3)
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
+        if(${testExe} MATCHES ".*CLI.*")
+          target_link_libraries(${testExe} PUBLIC argparser)
+        endif()
+        target_include_directories(
+            ${testExe}
+            SYSTEM PRIVATE
+            $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
+        target_link_libraries(${testExe} PRIVATE nlohmann_json::nlohmann_json)
         add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe})
     endforeach()
     string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")

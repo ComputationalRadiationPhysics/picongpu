@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Sergei Bastrakov, Rene Widera
+/* Copyright 2020-2024 Sergei Bastrakov, Rene Widera, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "picongpu/fields/incidentField/profiles/BaseParam.def"
 #include "picongpu/fields/incidentField/profiles/profiles.def"
 
 #ifndef PARAM_LASERPROFILE
@@ -202,6 +203,12 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                 /** @} */
+
+                template<typename My = PlaneWaveParams>
+                static nlohmann::json metadata()
+                {
+                    return profiles::BaseParam::metadata<My>();
+                }
             };
 
             using PlaneWaveBeam = profiles::PlaneWave<PlaneWaveParams>;

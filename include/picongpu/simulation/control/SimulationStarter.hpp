@@ -22,12 +22,15 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/MetadataAggregator.hpp"
+#include "picongpu/MetadataRegisteredAtCT.hpp"
 #include "picongpu/simulation/control/ISimulationStarter.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
 #include <boost/program_options/options_description.hpp>
@@ -38,6 +41,16 @@ namespace picongpu
 {
     using namespace pmacc;
 
+    /**
+     * Add the compiletime metadata at runtime.
+     *
+     * This function runs over the CT list `MetadataRegisteredAtCT` and adds all of them to the MetadataAggregator.
+     */
+    void addMetadataRegisteredAtCT()
+    {
+        pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<boost::mpl::_1>>{}();
+    }
+
     template<class InitClass, class PluginClass, class SimulationClass>
     class SimulationStarter : public ISimulationStarter
     {
@@ -47,6 +60,7 @@ namespace picongpu
         std::unique_ptr<SimulationClass> simulationClass;
         std::unique_ptr<InitClass> initClass;
         std::unique_ptr<PluginClass> pluginClass;
+        std::unique_ptr<MetadataAggregator> metadataClass;
 
 
         MappingDesc* mappingDesc{nullptr};
@@ -58,6 +72,7 @@ namespace picongpu
             initClass = std::make_unique<InitClass>();
             simulationClass->setInitController(initClass.get());
             pluginClass = std::make_unique<PluginClass>();
+            metadataClass = std::make_unique<MetadataAggregator>();
         }
 
         std::string pluginGetName() const override
@@ -71,6 +86,7 @@ namespace picongpu
             pluginConnector.loadPlugins();
             log<picLog::SIMULATION_STATE>("Startup");
             simulationClass->setInitController(initClass.get());
+            metadataClass->dump();
             simulationClass->startSimulation();
         }
 
@@ -99,6 +115,10 @@ namespace picongpu
             pluginClass->pluginRegisterHelp(pluginDesc);
             ap.addOptions(pluginDesc);
 
+            po::options_description metadataDesc(metadataClass->pluginGetName());
+            metadataClass->pluginRegisterHelp(metadataDesc);
+            ap.addOptions(metadataDesc);
+
             // setup all boost::program_options and add to ArgsParser
             BoostOptionsList options = pluginConnector.registerHelp();
 
@@ -115,6 +135,8 @@ namespace picongpu
         void pluginLoad() override
         {
             simulationClass->load();
+            metadataClass->load();
+            addMetadataRegisteredAtCT();
             mappingDesc = simulationClass->getMappingDescription();
             pluginClass->setMappingDescription(mappingDesc);
             initClass->setMappingDescription(mappingDesc);
@@ -126,6 +148,7 @@ namespace picongpu
             pluginConnector.unloadPlugins();
             initClass->unload();
             pluginClass->unload();
+            metadataClass->unload();
             simulationClass->unload();
         }
 

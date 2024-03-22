@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Sergei Bastrakov
+/* Copyright 2013-2024 Axel Huebl, Sergei Bastrakov, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -42,6 +42,12 @@ namespace picongpu
                         /** The laser pulse will be initialized after TIME_DELAY_SI half of PULSE_INIT times of the
                          * PULSE_DURATION before and after the plateau unit: none */
                         static constexpr float_64 RAMP_INIT = 20.6146;
+
+                        template<typename My = PlaneWaveParam>
+                        static nlohmann::json metadata()
+                        {
+                            return BaseParam::metadata<My>();
+                        }
                     };
                 } // namespace defaults
 

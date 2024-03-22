@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Sergei Bastrakov
+/* Copyright 2022-2024 Sergei Bastrakov, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -23,10 +23,13 @@
 
 #include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/Free.def"
+#include "picongpu/traits/GetMetadata.hpp"
 
 #include <cstdint>
 #include <string>
+#include <type_traits>
 
+#include <nlohmann/json.hpp>
 
 namespace picongpu
 {
@@ -43,6 +46,28 @@ namespace picongpu
                     HINLINE static std::string getName()
                     {
                         return "Free";
+                    }
+
+                    static nlohmann::json metadata()
+                    {
+                        auto result = nlohmann::json::object();
+                        result["name"] = "Free";
+                        result["B field"] = functorMetadata<T_FunctorIncidentB>();
+                        result["E field"] = functorMetadata<T_FunctorIncidentE>();
+                        return result;
+                    }
+
+                private:
+                    template<typename Functor, std::enable_if_t<providesMetadataAtCT<Functor>, bool> = true>
+                    static auto functorMetadata()
+                    {
+                        return Functor::metadata();
+                    }
+
+                    template<typename Functor, std::enable_if_t<!providesMetadataAtCT<Functor>, bool> = true>
+                    static nlohmann::json functorMetadata()
+                    {
+                        return "no metadata available";
                     }
                 };
             } // namespace profiles

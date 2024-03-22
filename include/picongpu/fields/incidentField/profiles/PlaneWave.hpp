@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,11 @@ namespace picongpu
                     HINLINE static std::string getName()
                     {
                         return "PlaneWave";
+                    }
+
+                    static nlohmann::json metadata()
+                    {
+                        return T_Params::metadata();
                     }
                 };
 

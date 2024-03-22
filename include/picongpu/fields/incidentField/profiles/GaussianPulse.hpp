@@ -1,5 +1,6 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
+ *                     Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +25,8 @@
 
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
+#include "picongpu/fields/incidentField/profiles/BaseParam.def"
+#include "picongpu/traits/GetMetadata.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 
@@ -32,6 +35,8 @@
 #include <limits>
 #include <string>
 #include <type_traits>
+
+#include <nlohmann/json.hpp>
 
 
 namespace picongpu::fields::incidentField
@@ -356,6 +361,20 @@ namespace picongpu::fields::incidentField
                 std::string name = isTilted ? "PulseFrontTilt" : "GaussianPulse";
                 name += "_with_" + LongitudinalEnvelope::getName();
                 return name;
+            }
+
+            template<typename T = T_Params, std::enable_if_t<providesMetadataAtCT<T>, bool> = true>
+            static nlohmann::json metadata()
+            {
+                // if T_Params happens to provide us with some tailored metadata, we gladly take it
+                return T_Params::template metadata<T_Params>();
+            }
+
+            template<typename T = T_Params, std::enable_if_t<!providesMetadataAtCT<T>, bool> = true>
+            static nlohmann::json metadata()
+            {
+                // alternatively, we assume that we can at least squeeze the BaseParams out of it
+                return profiles::BaseParam::metadata<T_Params>();
             }
         };
 

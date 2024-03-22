@@ -1,5 +1,6 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
+                       Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +22,8 @@
 #pragma once
 
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
+
+#include <nlohmann/json.hpp>
 
 
 namespace picongpu::fields::incidentField::profiles
@@ -70,6 +73,17 @@ namespace picongpu::fields::incidentField::profiles
             using LAGUERREPHASES_t = gaussianPulse::LAGUERREPHASES_t;
             static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
             /** @} */
+
+            template<typename My = GaussianPulseParam>
+            static nlohmann::json metadata()
+            {
+                auto baseMetadata = BaseParam::metadata<My>();
+                auto gaussianMetadata = nlohmann::json::object();
+                gaussianMetadata["W0"] = W0_SI;
+                gaussianMetadata["PULSE_INIT"] = PULSE_INIT;
+                baseMetadata["Gaussian parameters"] = gaussianMetadata;
+                return baseMetadata;
+            }
         };
     } // namespace defaults
 

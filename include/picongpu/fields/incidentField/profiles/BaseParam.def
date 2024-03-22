@@ -1,4 +1,4 @@
-/* Copyright 2023 Sergei Bastrakov, Finn-Ole Carstens
+/* Copyright 2023-2024 Sergei Bastrakov, Finn-Ole Carstens, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <nlohmann/json.hpp>
 namespace picongpu
 {
+    using std::vector;
     namespace fields
     {
         namespace incidentField
@@ -187,6 +189,24 @@ namespace picongpu
                     static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                     static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                     /** @} */
+
+                    template<typename My = BaseParam>
+                    static nlohmann::json metadata()
+                    {
+                        // We make this a function template in order to gain control over the type we are applying this
+                        // to. A derived class of the BaseParam should similarly make their own `.metadata()` member a
+                        // `template<typename My =Derived>` and should use `BaseParam::metadata<My>()` as a starting
+                        // point for customisation.
+
+                        auto result = nlohmann::json::object();
+                        result["polarisation"]["direction"] = vector<float_64>{
+                            {My::POLARISATION_DIRECTION_X,
+                             My::POLARISATION_DIRECTION_Y,
+                             My::POLARISATION_DIRECTION_Z}};
+                        result["polarisation"]["type"]
+                            = My::Polarisation == PolarisationType::Linear ? "linear" : "circular";
+                        return result;
+                    }
                 };
             } // namespace profiles
         } // namespace incidentField
