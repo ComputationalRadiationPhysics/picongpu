@@ -243,19 +243,23 @@ namespace picongpu::simulation::stage
             // failedRequirementQ device to host
             failedRequirementQ->deviceToHost();
             // check if the requirements are met
-            if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}))
+            if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
             {
-                if((failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0})) == false)
+                if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}))
                 {
-                    printf("Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
-                           "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
-                           "synchrotron.params\n");
-                    printf("This warning is printed only once per simulation. Next warnings are dots.\n");
-                    failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0}) = true;
+                    if((failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0})) == false)
+                    {
+                        printf(
+                            "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
+                            "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
+                            "synchrotron.params\n");
+                        printf("This warning is printed only once per simulation. Next warnings are dots.\n");
+                        failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0}) = true;
+                    }
+                    printf(".");
+                    failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
+                    failedRequirementQ->hostToDevice();
                 }
-                printf(".");
-                failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
-                failedRequirementQ->hostToDevice();
             }
         }
 
