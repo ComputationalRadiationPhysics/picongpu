@@ -94,7 +94,7 @@ namespace pmacc
          * @param sizeOnDevice if true, size information exists on device, too.
          */
         GridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false)
-            : Parent(gridLayout.getDataSpace(), sizeOnDevice)
+            : Parent(gridLayout.sizeND(), sizeOnDevice)
             , hasOneExchange(false)
             , gridLayout(gridLayout)
             , maxExchange(0)
@@ -136,7 +136,7 @@ namespace pmacc
             DeviceBuffer<TYPE, DIM>& otherDeviceBuffer,
             const GridLayout<DIM>& gridLayout,
             bool sizeOnDevice = false)
-            : Parent(otherDeviceBuffer, gridLayout.getDataSpace(), sizeOnDevice)
+            : Parent(otherDeviceBuffer, gridLayout.sizeND(), sizeOnDevice)
             , hasOneExchange(false)
             , gridLayout(gridLayout)
             , maxExchange(0)
@@ -151,13 +151,7 @@ namespace pmacc
             const DataSpace<DIM>& offsetDevice,
             const GridLayout<DIM>& gridLayout,
             bool sizeOnDevice = false)
-            : Parent(
-                otherHostBuffer,
-                offsetHost,
-                otherDeviceBuffer,
-                offsetDevice,
-                gridLayout.getDataSpace(),
-                sizeOnDevice)
+            : Parent(otherHostBuffer, offsetHost, otherDeviceBuffer, offsetDevice, gridLayout.sizeND(), sizeOnDevice)
             , hasOneExchange(false)
             , gridLayout(gridLayout)
             , maxExchange(0)

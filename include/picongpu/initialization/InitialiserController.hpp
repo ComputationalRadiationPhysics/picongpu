@@ -145,8 +145,7 @@ namespace picongpu
                                      "   It does not cover other forms of initialization");
                 logOmegaP();
 
-                const int localNrOfCells
-                    = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
+                const int localNrOfCells = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
                 log<picLog::PHYSICS>("macro particles per device: %1%")
                     % (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
                        * (pmacc::mp_size<VectorAllSpecies>::value));

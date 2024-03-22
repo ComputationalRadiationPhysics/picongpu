@@ -121,11 +121,10 @@ namespace picongpu
                             collision::Sqrt1DimVector>;
                         DataBoxDim1Access<SqrtBox> d1access(
                             SqrtBox(screeningLengthSquared->getDeviceDataBox().shift(
-                                screeningLengthSquared->getGridLayout().getGuard())),
-                            screeningLengthSquared->getGridLayout().getDataSpaceWithoutGuarding());
-                        const auto elements = static_cast<uint32_t>(screeningLengthSquared->getGridLayout()
-                                                                        .getDataSpaceWithoutGuarding()
-                                                                        .productOfComponents());
+                                screeningLengthSquared->getGridLayout().guardSizeND())),
+                            screeningLengthSquared->getGridLayout().sizeWithoutGuardND());
+                        const auto elements = static_cast<uint32_t>(
+                            screeningLengthSquared->getGridLayout().sizeWithoutGuardND().productOfComponents());
                         auto reducedValue = globalReduce(pmacc::math::operation::Add(), d1access, elements);
 
                         mpi::MPIReduce reduce{};

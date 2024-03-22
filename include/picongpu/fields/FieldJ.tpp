@@ -62,7 +62,7 @@ namespace picongpu
         , buffer(cellDescription.getGridLayout())
         , fieldJrecv(nullptr)
     {
-        const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout().getDataSpaceWithoutGuarding();
+        const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout().sizeWithoutGuardND();
 
         /* cell margins the current might spread to due to particle shapes */
         using AllSpeciesWithCurrent =

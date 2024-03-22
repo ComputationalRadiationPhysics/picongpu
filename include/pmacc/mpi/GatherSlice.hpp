@@ -171,7 +171,7 @@ namespace pmacc
                 // get number of elements per participating mpi rank
                 auto extentPerDevice = std::vector<DataSpace<DIM2>>(numRanksInPlane);
 
-                auto localSliceSize = localInputSlice.getDataSpace();
+                auto localSliceSize = localInputSlice.capacityND();
 
                 // gather extents
                 MPI_CHECK(MPI_Gather(

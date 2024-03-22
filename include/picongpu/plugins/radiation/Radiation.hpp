@@ -1202,7 +1202,7 @@ namespace picongpu
 
                     // Some funny things that make it possible for the kernel to calculate
                     // the absolute position of the particles
-                    DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+                    DataSpace<simDim> localSize(cellDescription->getGridLayout().sizeWithoutGuardND());
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);

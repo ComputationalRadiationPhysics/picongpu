@@ -191,7 +191,7 @@ namespace picongpu
                 ++accumulateCounter;
                 if(accumulateCounter >= binningData.dumpPeriod)
                 {
-                    auto bufferExtent = this->histBuffer->getHostBuffer().getDataSpace();
+                    auto bufferExtent = this->histBuffer->getHostBuffer().capacityND();
 
                     // Do time Averaging
                     if(binningData.dumpPeriod > 1 && binningData.timeAveraging)
@@ -294,7 +294,7 @@ namespace picongpu
 
                 // do the mpi reduce (can be avoided if the notify did a data dump and histBuffer is empty)
                 this->histBuffer->deviceToHost();
-                auto bufferExtent = this->histBuffer->getHostBuffer().getDataSpace();
+                auto bufferExtent = this->histBuffer->getHostBuffer().capacityND();
 
                 // allocate this only once?
                 // using a unique_ptr here since HostBuffer does not implement move semantics

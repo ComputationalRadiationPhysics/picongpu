@@ -469,7 +469,7 @@ namespace picongpu
 
             // Some variables required so that it is possible for the kernel
             // to calculate the absolute position of the particles
-            DataSpace<simDim> localSize(m_cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+            DataSpace<simDim> localSize(m_cellDescription->getGridLayout().sizeWithoutGuardND());
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             const int globalDomainSizeY = subGrid.getGlobalDomain().size.y();
             auto movingWindow = MovingWindow::getInstance().getWindow(currentStep);

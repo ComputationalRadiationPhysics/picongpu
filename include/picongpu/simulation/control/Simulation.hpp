@@ -292,8 +292,7 @@ namespace picongpu
             SimulationHelper<simDim>::pluginLoad();
 
             GridLayout<simDim> layout(gridSizeLocal, GuardSize::toRT() * SuperCellSize::toRT());
-            cellDescription
-                = std::make_unique<MappingDesc>(layout.getDataSpace(), DataSpace<simDim>(GuardSize::toRT()));
+            cellDescription = std::make_unique<MappingDesc>(layout.sizeND(), DataSpace<simDim>(GuardSize::toRT()));
 
             if(gc.getGlobalRank() == 0)
             {

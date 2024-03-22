@@ -66,7 +66,7 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("Begin loading field '%1%'") % objectName;
 
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(numComponents);
-                const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
+                const DataSpace<simDim> field_guard = field.getGridLayout().guardSizeND();
 
                 const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
@@ -83,7 +83,7 @@ namespace picongpu
                 if(!isDomainBound)
                 {
                     auto const field_layout = field.getGridLayout();
-                    auto const field_no_guard = field_layout.getDataSpaceWithoutGuarding();
+                    auto const field_no_guard = field_layout.sizeWithoutGuardND();
                     auto const elementCount = field_no_guard.productOfComponents();
 
                     /* Scan the PML buffer local size along all local domains

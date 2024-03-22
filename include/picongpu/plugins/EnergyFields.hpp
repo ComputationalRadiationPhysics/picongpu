@@ -247,8 +247,8 @@ namespace picongpu
             using D1Box = DataBoxDim1Access<Box64bit>;
 
             /* reduce field E*/
-            DataSpace<simDim> fieldSize = field->getGridLayout().getDataSpaceWithoutGuarding();
-            DataSpace<simDim> fieldGuard = field->getGridLayout().getGuard();
+            DataSpace<simDim> fieldSize = field->getGridLayout().sizeWithoutGuardND();
+            DataSpace<simDim> fieldGuard = field->getGridLayout().guardSizeND();
 
             TransformedBox fieldTransform(field->getDeviceDataBox().shift(fieldGuard));
             Box64bit field64bit(fieldTransform);

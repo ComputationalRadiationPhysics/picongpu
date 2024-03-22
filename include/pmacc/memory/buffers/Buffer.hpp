@@ -43,7 +43,7 @@ namespace pmacc
     protected:
         using CurrentSizeBufferHost = ::alpaka::Buf<HostDevice, size_t, AlpakaDim<DIM1>, MemIdxType>;
         CurrentSizeBufferHost currentSizeBufferHost;
-        MemSpace<T_dim> capacity;
+        MemSpace<T_dim> m_capacityND;
 
     private:
         Buffer(Buffer const&) = delete;
@@ -63,7 +63,7 @@ namespace pmacc
                 manager::Device<HostDevice>::get().current(),
                 manager::Device<ComputeDevice>::get().getPlatform(),
                 MemSpace<DIM1>(1).toAlpakaMemVec()))
-            , capacity(size)
+            , m_capacityND(size)
             , isMemoryContiguous(true)
         {
             Buffer::setCurrentSize(size.productOfComponents());
@@ -79,9 +79,9 @@ namespace pmacc
          * @todo should be changed to MemSpace but we need to check if the values are used by MPI calls where
          * currently int vector is assumed
          */
-        DataSpace<T_dim> getDataSpace() const
+        DataSpace<T_dim> capacityND() const
         {
-            return capacity;
+            return m_capacityND;
         }
 
         /** give the plane C pointer to the data
@@ -109,7 +109,7 @@ namespace pmacc
         virtual void setCurrentSize(size_t const newSize)
         {
             eventSystem::startOperation(ITask::TASK_HOST);
-            PMACC_ASSERT(static_cast<size_t>(newSize) <= static_cast<size_t>(getDataSpace().productOfComponents()));
+            PMACC_ASSERT(static_cast<size_t>(newSize) <= static_cast<size_t>(capacityND().productOfComponents()));
             alpaka::getPtrNative(this->currentSizeBufferHost)[0] = newSize;
         }
 
@@ -139,36 +139,37 @@ namespace pmacc
             }
             if constexpr(T_dim == DIM2)
             {
-                if(current_size <= capacity[0])
+                if(current_size <= m_capacityND[0])
                 {
                     tmp[0] = current_size;
                     tmp[1] = 1u;
                 }
                 else
                 {
-                    tmp[0] = capacity[0];
-                    tmp[1] = (current_size + capacity[0] - 1u) / capacity[0];
+                    tmp[0] = m_capacityND[0];
+                    tmp[1] = (current_size + m_capacityND[0] - 1u) / m_capacityND[0];
                 }
             }
             if constexpr(T_dim == DIM3)
             {
-                if(current_size <= capacity[0])
+                if(current_size <= m_capacityND[0])
                 {
                     tmp[0] = current_size;
                     tmp[1] = 1u;
                     tmp[2] = 1u;
                 }
-                else if(current_size <= (capacity[0] * capacity[1]))
+                else if(current_size <= (m_capacityND[0] * m_capacityND[1]))
                 {
-                    tmp[0] = capacity[0];
-                    tmp[1] = (current_size + capacity[0] - 1u) / capacity[0];
+                    tmp[0] = m_capacityND[0];
+                    tmp[1] = (current_size + m_capacityND[0] - 1u) / m_capacityND[0];
                     tmp[2] = 1u;
                 }
                 else
                 {
-                    tmp[0] = capacity[0];
-                    tmp[1] = capacity[1];
-                    tmp[2] = (current_size + (capacity[0] * capacity[1]) - 1u) / (capacity[0] * capacity[1]);
+                    tmp[0] = m_capacityND[0];
+                    tmp[1] = m_capacityND[1];
+                    tmp[2] = (current_size + (m_capacityND[0] * m_capacityND[1]) - 1u)
+                        / (m_capacityND[0] * m_capacityND[1]);
                 }
             }
 

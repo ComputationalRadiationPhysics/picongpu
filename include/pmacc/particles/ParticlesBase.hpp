@@ -83,10 +83,8 @@ namespace pmacc
             : SimulationFieldHelper<MappingDesc>(description)
             , particlesBuffer(nullptr)
         {
-            particlesBuffer = new BufferType(
-                deviceHeap,
-                description.getGridLayout().getDataSpace(),
-                MappingDesc::SuperCellSize::toRT());
+            particlesBuffer
+                = new BufferType(deviceHeap, description.getGridLayout().sizeND(), MappingDesc::SuperCellSize::toRT());
         }
 
         ~ParticlesBase() override

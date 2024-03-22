@@ -155,7 +155,7 @@ namespace picongpu
     public:
         void restart(uint32_t restartStep, const std::string& restartDirectory) override
         {
-            HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->getDataSpace());
+            HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->capacityND());
 
             pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
             pmacc::CommunicatorMPI<simDim>& comm = gridCon.getCommunicator();
@@ -213,7 +213,7 @@ namespace picongpu
              */
             Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(
                 checkpointDirectory + "/" + this->foldername);
-            auto dataSize = this->dBufLeftParsCalorimeter->getDataSpace();
+            auto dataSize = this->dBufLeftParsCalorimeter->capacityND();
             HBufCalorimeter hBufLeftParsCalorimeter(dataSize);
             HBufCalorimeter hBufTotal(dataSize);
 

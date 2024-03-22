@@ -280,7 +280,7 @@ namespace pmacc
         DataSpace<DIM> getSuperCellsCount()
         {
             PMACC_ASSERT(superCells != nullptr);
-            return superCells->getGridLayout().getDataSpace();
+            return superCells->getGridLayout().sizeND();
         }
 
         /**
