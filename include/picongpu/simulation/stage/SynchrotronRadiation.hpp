@@ -164,42 +164,43 @@ namespace picongpu::simulation::stage
             auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
             auto grid_layout = GridLayout<2>{data_space};
 
-            tableValuesF1F2 = std::make_shared<GridBuffer<float_64, 2>>(grid_layout);
+            // capture the space for table and variables
+            tableValuesF1F2 = std::make_shared<GridBuffer<float_X, 2>>(grid_layout);
+            failedRequirementQ = std::make_shared<GridBuffer<bool, 1>>(DataSpace<1>{1});
+            failedRequirementPrinted = std::make_shared<GridBuffer<bool, 1>>(DataSpace<1>{1});
+            // set the values of variables to false
+            failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
+            failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
 
             constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
             constexpr float_64 maxZqExp = InterpolationParams::maxZqExponent;
             constexpr float_64 tableEntries = InterpolationParams::numberTableEntries;
-#define tableAccess(i, j) tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{i, j}) // for easier access
-            // first and last value set to 0
-            tableAccess(0, u32(Accessor::f1)) = 0;
-            tableAccess(0, u32(Accessor::f2)) = 0;
-            tableAccess(tableEntries - 1, u32(Accessor::f1)) = 0;
-            tableAccess(tableEntries - 1, u32(Accessor::f2)) = 0;
 
-            // precompute remaining F1 and F2 on log scale
-            for(uint32_t iZq = 1; iZq < InterpolationParams::numberTableEntries - 1; iZq++)
+            // precompute F1 and F2 on log scale
+            for(uint32_t iZq = 0; iZq < tableEntries; iZq++)
             {
-                float_64 zq = std::pow(
-                    2,
-                    minZqExp
-                        + (maxZqExp - minZqExp) * iZq
-                            / static_cast<float_64>(InterpolationParams::numberTableEntries));
+                float_64 zq
+                    = std::pow(2, minZqExp + (maxZqExp - minZqExp) * iZq / static_cast<float_64>(tableEntries - 1));
                 // inverse function for index retrieval:
-                // index = (log2(zq) - minZqExp) / (maxZqExp - minZqExp) * InterpolationParams::numberTableEntries;
+                // index = (log2(zq) - minZqExp) / (maxZqExp - minZqExp) * (tableEntries-1);
 
                 float_64 const F1 = firstSynchrotronFunction(zq);
                 float_64 const F2 = secondSynchrotronFunction(zq);
 
-                tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f1)}) = F1;
-                tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f2)}) = F2;
+                tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f1)})
+                    = static_cast<float_X>(F1);
+                tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f2)})
+                    = static_cast<float_X>(F2);
             }
 
             tableValuesF1F2->hostToDevice();
+            failedRequirementQ->hostToDevice();
+            failedRequirementPrinted->hostToDevice();
 
             //! debug only, print F1 and F2, @todo remove
             if constexpr(picongpu::particles::synchrotron::T_Debug)
             {
-                int timesMore = 2;
+                int timesMore = 1;
                 for(uint32_t zq = 0; zq < InterpolationParams::numberTableEntries * timesMore; zq++)
                 {
                     float_64 zq_ = std::pow(
@@ -211,7 +212,7 @@ namespace picongpu::simulation::stage
                         = (log2(zq_) - minZqExp) * (InterpolationParams::numberTableEntries) / (maxZqExp - minZqExp);
 
 
-                    std::cout << "zq = " << zq / float(timesMore) << " index = " << index << std::endl;
+                    std::cout << "fractional index = " << zq / float(timesMore) << " index = " << index << std::endl;
                     std::cout << "zq = " << zq_
                               << " F1 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index, 0})
                               << " F2 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index, 1})
@@ -233,7 +234,29 @@ namespace picongpu::simulation::stage
             using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, Synchrotron<>>::type;
             pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
                 synchrotronRadiation;
-            synchrotronRadiation(cellDescription, step, tableValuesF1F2->getDeviceBuffer().getDataBox());
+            synchrotronRadiation(
+                cellDescription,
+                step,
+                tableValuesF1F2->getDeviceBuffer().getDataBox(),
+                failedRequirementQ);
+
+            // failedRequirementQ device to host
+            failedRequirementQ->deviceToHost();
+            // check if the requirements are met
+            if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}))
+            {
+                if((failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0})) == false)
+                {
+                    printf("Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
+                           "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
+                           "synchrotron.params\n");
+                    printf("This warning is printed only once per simulation. Next warnings are dots.\n");
+                    failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0}) = true;
+                }
+                printf(".");
+                failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
+                failedRequirementQ->hostToDevice();
+            }
         }
 
     private:
@@ -241,6 +264,9 @@ namespace picongpu::simulation::stage
         MappingDesc cellDescription;
         // precomputed first and second synchrotron functions:
         // -> 2d grid of floats_64 -> tableValuesF1F2[zq][0/1] ; 0/1 = F1/F2
-        std::shared_ptr<GridBuffer<float_64, 2>> tableValuesF1F2;
+        std::shared_ptr<GridBuffer<float_X, 2>> tableValuesF1F2;
+        // flag to check if the requirements 1 and 2 are met
+        std::shared_ptr<GridBuffer<bool, 1>> failedRequirementQ;
+        std::shared_ptr<GridBuffer<bool, 1>> failedRequirementPrinted; // this doesn't need to be sheared.
     };
 } // namespace picongpu::simulation::stage

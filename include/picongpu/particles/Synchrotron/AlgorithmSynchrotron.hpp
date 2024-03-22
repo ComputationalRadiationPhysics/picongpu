@@ -44,6 +44,12 @@
  * The call structure goes like this:
  *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParticleFunctors.hpp -> AlgorithmSynchrotron.hpp
  *
+ * file locations:
+ * picongpu/include/picongpu/simulation/control/Simulation.hpp
+ * picongpu/include/picongpu/simulation/stage/SynchrotronRadiation.hpp
+ * picongpu/include/picongpu/particles/ParticleFunctors.hpp
+ * picongpu/include/picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp
+ *
  * @warning tested only on cpu -> check "m_normalizedPhotonEnergy" variable on GPU
  *
  */
@@ -66,19 +72,19 @@ namespace picongpu
 
                 struct FirstSynchrotronFunctionParams // Parameters how to compute first synhrotron function
                 {
-                    static constexpr float_64 logEnd = 6.6; //! log2(100.0), arbitrary cutoff, for 2nd kind cyclic
-                                                            //! bessel function -> function close enough to zero
-                    static constexpr uint32_t numberSamplePoints = 1024u; // number of sample points to use in
+                    static constexpr float_64 logEnd = 7; //! log2(100.0), arbitrary cutoff, for 2nd kind cyclic
+                                                          //! bessel function -> function close enough to zero
+                    static constexpr uint32_t numberSamplePoints = 8096u; // number of sample points to use in
                                                                           // integration in firstSynchrotronFunction
                 };
 
                 struct InterpolationParams // parameters of precomputation of interpolation table -> the table
                                            // "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
                 {
-                    static constexpr uint64_t numberTableEntries = 1024u; // number of synchrotron function values
-                                                                          // to precompute and store in table
-                    static constexpr float_64 minZqExponent = -32; // cutoff energy -> @todo: make this a parameter
-                    static constexpr float_64 maxZqExponent = 3.3; // don't change. or change. but don't change.
+                    static constexpr uint64_t numberTableEntries = 128; // number of synchrotron function values
+                                                                        // to precompute and store in table
+                    static constexpr float_64 minZqExponent = -50; // in log2 cutoff energy @todo: make this a paramete
+                    static constexpr float_64 maxZqExponent = 10; // in log2 don't change. or change. but don't change.
                 };
 
                 enum struct Accessor : uint32_t // used for table access -> the table "tableValuesF1F2" is in
@@ -117,22 +123,24 @@ namespace picongpu
 // just a shortcut to access the tableValuesF1F2 (see: InterpolationParams)
 #define F1F2(zq, i) F1F2DeviceBuff(DataSpace<2>{zq, i})
 
-                template<typename EType, typename BType, typename ParticleType>
+                template<typename T_Worker, typename EType, typename BType, typename ParticleType>
                 HDINLINE float_X // return type -> energy of a photon relative to the electron energy
                 operator()(
+                    const T_Worker& worker,
                     const BType bField,
                     const EType eField,
                     ParticleType& parentElectron,
-                    float_X randNr1,
-                    float_X randNr2,
-                    GridBuffer<float_64, 2>::DataBoxType F1F2DeviceBuff) const
+                    float_64 randNr1,
+                    float_64 randNr2,
+                    GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
+                    GridBuffer<bool, 1>::DataBoxType failedRequirementQBuff) const
                 {
                     constexpr int16_t minZqExponent = params::InterpolationParams::minZqExponent;
                     constexpr int16_t maxZqExponent = params::InterpolationParams::maxZqExponent;
-                    constexpr float_64 interpolationPoints
-                        = static_cast<float_64>(params::InterpolationParams::numberTableEntries);
-                    constexpr float_64 stepWidthLogatihmicScale
-                        = (static_cast<float_64>(maxZqExponent - minZqExponent) / interpolationPoints);
+                    constexpr float_X interpolationPoints
+                        = static_cast<float_X>(params::InterpolationParams::numberTableEntries - 1);
+                    constexpr float_X stepWidthLogatihmicScale
+                        = (static_cast<float_X>(maxZqExponent - minZqExponent) / interpolationPoints);
 
                     /// zq = 2/3 * chi^(-1) * delta / (1 - delta) ;
                     ///     chi - ratio of the typical photon energy to the electron kinetic energy
@@ -168,21 +176,22 @@ namespace picongpu
                         / (ELECTRON_MASS * ELECTRON_MASS * SPEED_OF_LIGHT * SPEED_OF_LIGHT * SPEED_OF_LIGHT);
 
                     // zq
-                    float_64 zq = 2 * delta / (3 * chi * (1 - delta));
+                    float_64 oneMinusDeltaOverDelta = (1 - delta) / delta;
+                    float_X zq = 2. / (3 * chi) / oneMinusDeltaOverDelta;
 
                     // zq convert to index and F1 and F2
-                    const float_64 zqExponent = math::log2(zq);
+                    const float_X zqExponent = math::log2(zq);
                     const int16_t index
                         = static_cast<int16_t>((zqExponent - minZqExponent) / stepWidthLogatihmicScale);
 
-                    float_64 F1 = 0;
-                    float_64 F2 = 0;
-                    float_64 Ftemp = 0;
+                    float_X F1 = 0;
+                    float_X F2 = 0;
+                    float_X Ftemp = 0;
                     if(index >= 0 && index < interpolationPoints - 1)
                     {
-                        float_64 zq1 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * index);
-                        float_64 zq2 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * (index + 1));
-                        float_64 f = (zq - zq1) / (zq2 - zq1);
+                        float_X zq1 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * (index));
+                        float_X zq2 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * (index + 1));
+                        float_X f = (zq - zq1) / (zq2 - zq1);
 
                         /// @todo Test Logarithmic interpolation
                         F1 = F1F2(index, 0);
@@ -194,30 +203,25 @@ namespace picongpu
                         F2 = math::pow(F2, 1 - f) * math::pow(Ftemp, f); // F2 = F2**((1-f)) * Ftemp**f
                     }
 
-                    //  - Calculating the numeric factor: numericFactor = dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 *
-                    //  np.pi))
+                    // Calculating the numeric factor: dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 * np.pi))
                     float_X numericFactor = DELTA_T
                         * (ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_MASS * SPEED_OF_LIGHT
                            / (HBAR * HBAR * EPS0 * 4 * PI));
-                    /// @todo change and used unified requirement
+                    /// @todo change and use unified requirement
                     float_X requirement1 = numericFactor * 1.5 * math::pow(chi, 2. / 3.) / gamma;
                     float_X requirement2 = numericFactor * 0.5 * chi / gamma;
-                    if constexpr(T_Debug)
-                    {
-                        ///@todo maby 0.1 is to small -> check
-                        if(requirement1 > 0.1 || requirement2 > 0.1)
-                        {
-                            printf("Synchrotron Extension requirement1 (should be less than 0.1): %f\n", requirement1);
-                            printf("Synchrotron Extension requirement2 (should be less than 0.1): %f\n", requirement2);
-                        }
-                    }
+
+                    /// @todo use atomic. Check if is false and than write. -> use worker
+                    if(requirement1 > 0.1 || requirement2 > 0.1)
+                        failedRequirementQBuff(DataSpace<1>{0}) = true;
+
                     numericFactor *= math::sqrt(3) / (2 * PI);
 
                     // Calculate propability:
                     ///@todo check the numerical stability -> maby use one numerator
-                    float_X const numerator1 = (1 - delta) * chi;
+                    float_X const numerator1 = oneMinusDeltaOverDelta * chi;
                     float_X const numerator2 = (F1 + 3 * delta * zq * chi / 2 * F2);
-                    float_X const denominator = gamma * delta;
+                    float_X const denominator = gamma;
 
                     float_X propability = numericFactor * (numerator1 / denominator * numerator2) * 3 * r1r1;
 
@@ -276,7 +280,7 @@ namespace picongpu
             private:
                 /* random number generator */
                 using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
-                using Distribution = pmacc::random::distributions::Uniform<float_X>;
+                using Distribution = pmacc::random::distributions::Uniform<float_64>;
                 using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
                 RandomGen randomGen;
 
@@ -292,14 +296,19 @@ namespace picongpu
                 PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize, 0>>);
 
                 // F1F2DeviceBuff_ is a pointer to a databox containing F1 and F2 values. m stands for member
-                GridBuffer<float_64, 2>::DataBoxType m_F1F2DeviceBuff;
+                GridBuffer<float_X, 2>::DataBoxType m_F1F2DeviceBuff;
+                GridBuffer<bool, 1>::DataBoxType m_failedRequirementQBuff;
 
             public:
                 /* host constructor initializing member : random number generator */
-                AlgorithmSynchrotron(const uint32_t currentStep, GridBuffer<float_64, 2>::DataBoxType F1F2DeviceBuff)
+                AlgorithmSynchrotron(
+                    const uint32_t currentStep,
+                    GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
+                    GridBuffer<bool, 1>::DataBoxType failedRequirementQBuff)
                     : randomGen(RNGFactory::createRandom<Distribution>())
                 {
                     m_F1F2DeviceBuff = F1F2DeviceBuff;
+                    m_failedRequirementQBuff = failedRequirementQBuff;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
                     /* initialize pointers on host-side E-(B-)field and current density databoxes */
@@ -389,12 +398,14 @@ namespace picongpu
                     // use the algorithm from the SynchrotronIdea struct
                     SynchrotronIdea synchrotronAlgo;
                     float_X photonEnergy = synchrotronAlgo(
+                        worker,
                         bField,
                         eField,
                         particle,
                         this->randomGen(worker),
                         this->randomGen(worker),
-                        m_F1F2DeviceBuff);
+                        m_F1F2DeviceBuff,
+                        m_failedRequirementQBuff);
 
                     ///@todo check if this works in parallel
                     // save to member variable to use in creation of new photon
