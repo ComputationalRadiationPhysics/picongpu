@@ -79,20 +79,16 @@ def check_params(num_iterations):
                 ) = ts.get_field(iteration=i, field=field, coord=coord)
         for field in fields:
             for coord in coords:
-                field_param["field_epsilon_relative"] *= np.abs(
-                    field_param[f"{field}{coord}"]
-                )
+                field_param["field_epsilon_relative"] *= np.abs(field_param[f"{field}{coord}"])
                 value = field_data[field][coord]
                 # Check if the field values are within a tolerance range
                 if not np.logical_and(
                     np.less_equal(
-                        field_param[f"{field}{coord}"]
-                        - field_param["field_epsilon_relative"],
+                        field_param[f"{field}{coord}"] - field_param["field_epsilon_relative"],
                         value,
                     ),
                     np.greater_equal(
-                        field_param[f"{field}{coord}"]
-                        + field_param["field_epsilon_relative"],
+                        field_param[f"{field}{coord}"] + field_param["field_epsilon_relative"],
                         value,
                     ),
                 ).all():
@@ -117,24 +113,18 @@ def check_params(num_iterations):
         density_data = {}
         for density in densities:
             density_data[density] = {}
-            density_data[density], info = ts.get_field(
-                iteration=i, field=density
-            )
+            density_data[density], info = ts.get_field(iteration=i, field=density)
         for density in densities:
-            field_param["density_epsilon_relative"] *= np.abs(
-                field_param[f"{density}"]
-            )
+            field_param["density_epsilon_relative"] *= np.abs(field_param[f"{density}"])
             value = density_data[density]
             # Check if the density values are within a tolerance range
             if not np.logical_and(
                 np.less_equal(
-                    field_param[f"{density}"]
-                    - field_param["density_epsilon_relative"],
+                    field_param[f"{density}"] - field_param["density_epsilon_relative"],
                     density_data[density],
                 ),
                 np.greater_equal(
-                    field_param[f"{density}"]
-                    + field_param["density_epsilon_relative"],
+                    field_param[f"{density}"] + field_param["density_epsilon_relative"],
                     density_data[density],
                 ),
             ).all():
@@ -181,9 +171,7 @@ def check_params(num_iterations):
             for item in array
         ]
         if not all(
-            0.5 - particle_param["location_epsilon"]
-            < value
-            < 0.5 + particle_param["location_epsilon"]
+            0.5 - particle_param["location_epsilon"] < value < 0.5 + particle_param["location_epsilon"]
             for value in center_map
         ):
             return False
@@ -204,13 +192,11 @@ def check_params(num_iterations):
             # Check if the momentum values are within a tolerance range
         if not np.logical_and(
             np.less_equal(
-                particle_param[f"{momentum}"]
-                - particle_param["momentum_epsilon"],
+                particle_param[f"{momentum}"] - particle_param["momentum_epsilon"],
                 momentum_data[momentum],
             ),
             np.greater_equal(
-                particle_param[f"{momentum}"]
-                + particle_param["momentum_epsilon"],
+                particle_param[f"{momentum}"] + particle_param["momentum_epsilon"],
                 momentum_data[momentum],
             ),
         ).all():
