@@ -1,0 +1,111 @@
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Sergei Bastrakov, Klaus Steiniger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configure existing or define new normalized density profiles here.
+ * During particle species creation in `speciesInitialization.param`,
+ * those profiles can be translated to spatial particle distributions.
+ *
+ * This profile is normalized to units of `picongpu::SI::BASE_DENSITY_SI`, also defined in this file.
+ * Note that it only operates with physical density, and does not concern macroparticles.
+ * The number and sampling of macroparticles per cell are defined independently of a density profile.
+ * Please refer to documentation of `picongpu::particles::CreateDensity<>` for further details on this interaction.
+ *
+ * Available profiles:
+ *  - HomogenousImpl          : homogeneous density in whole simulation volume
+ *  - GaussianImpl<>          : Gaussian profile in 'y', optionally with preceeding vacuum
+ *  - GaussianCloudImpl<>     : Gaussian profile in all axes, optionally with preceeding vacuum in 'y'
+ *  - LinearExponentialImpl<> : linear ramping of density in 'y' into exponential slope after
+ *  - SphereFlanksImpl<>      : composition of 1D profiles, each in form of
+ *                              exponential increasing flank, constant sphere, exponential decreasing flank
+ *  - EveryNthCellImpl<>      : checkerboard profile matching the grid, particles are only present in cells
+ *                              with the given stride from one another in all directions
+ *  - FreeFormulaImpl<>       : apply user-defined functor for calculating density,
+ *                              refer to `picongpu::densityProfiles::IProfile` for interface requirements
+ *  - FromOpenPMDImpl<>       : load density values from a given file, requires openPMD API dependency
+ *
+ * In the end, this file typically defines an alias for each density profile to be used.
+ * These aliases do not have to follow any naming convention, but serve as template parameters for
+ * invocations of `picongpu::particles::CreateDensity<>` in `speciesInitialization.param`.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+
+
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         *
+         * One particle per cell with weighting 1.0:
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1.0 / (CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI);
+
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        struct FreeFormulaFunctor
+        {
+            /**
+             * This formula uses SI quantities only
+             * The profile will be multiplied by BASE_DENSITY_SI.
+             *
+             * @param position_SI total offset including all slides [in meter]
+             * @param cellSize_SI cell sizes [in meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                const pmacc::math::UInt64<simDim> cell_id(position_SI / cellSize_SI.shrink<simDim>());
+
+                // add particle in cell in at [ 32 5 16 ]
+                // X=32: middle of X plane (gyro-motion in X-Y)
+                // Y=5:  do not start fully at border, e.g., if someone wants to increase E, and so mass over time
+                // Z=16: middle of box in Z, move slowly in positive Z as E-field drift
+                const pmacc::math::UInt64<DIM3> cell_start(8u, 8u, 8u);
+
+                bool isStartCell = true;
+                for(uint64_t d = 0; d < simDim; ++d)
+                    if(cell_id[d] != cell_start[d])
+                        isStartCell = false;
+
+                if(isStartCell)
+                    return 1.0;
+
+                return 0.0;
+            }
+        };
+
+        /* definition of free formula profile */
+        using FreeFormula = FreeFormulaImpl<FreeFormulaFunctor>;
+    } // namespace densityProfiles
+} // namespace picongpu
