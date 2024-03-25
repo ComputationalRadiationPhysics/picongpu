@@ -671,7 +671,7 @@ class TestPicmiSimulation(unittest.TestCase):
 
         invalid_paths = [1, ["/"], {}]
         for invalid_path in invalid_paths:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 picmi.Simulation(
                     time_step_size=17,
                     max_steps=4,
