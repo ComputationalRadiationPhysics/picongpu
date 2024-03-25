@@ -122,7 +122,7 @@ namespace picongpu
             desc.add_options()(
                 "versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(),
                 "print version information once and start")
-                ("no-start-simulation", po::bool_switch(&skipSimulation)->default_value(true), "Do not actually run the simulation but initialise everything, skip simulation and finalise.")
+                ("no-start-simulation", po::bool_switch(&skipSimulation)->default_value(false), "Do not actually run the simulation but initialise everything, skip simulation and finalise.")
                 ("devices,d", po::value<std::vector<uint32_t>>(&devices)->multitoken(),
                  "number of devices in each dimension")
                 ("grid,g", po::value<std::vector<uint32_t>>(&gridSize)->multitoken(),
