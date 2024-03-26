@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/StaticField.hpp"
 #include "picongpu/particles/densityProfiles/IProfile.def"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
@@ -221,6 +222,96 @@ namespace picongpu
                 speciesPtr->fillAllGaps();
             }
         };
+
+        /** Time step conditional functor execution
+         *
+         * @tparam T_time Timestep to compare
+         * @tparam T_Functor Functor which is executed any time the condition is true.
+         *
+         * @{
+         */
+
+        //! Equal
+        template<uint32_t T_time, typename T_Functor>
+        struct ExecuteIfTimeStepEq
+        {
+            HINLINE void operator()(const uint32_t currentStep)
+            {
+                if(currentStep == T_time)
+                    T_Functor{}(currentStep);
+            }
+        };
+
+        //! Greater than
+        template<uint32_t T_time, typename T_Functor>
+        struct ExecuteIfTimeStepGt
+        {
+            HINLINE void operator()(const uint32_t currentStep)
+            {
+                if(currentStep > T_time)
+                    T_Functor{}(currentStep);
+            }
+        };
+
+        //! Greater or Equal
+        template<uint32_t T_time, typename T_Functor>
+        struct ExecuteIfTimeStepGe
+        {
+            HINLINE void operator()(const uint32_t currentStep)
+            {
+                if(currentStep >= T_time)
+                    T_Functor{}(currentStep);
+            }
+        };
+
+        //! Less than
+        template<uint32_t T_time, typename T_Functor>
+        struct ExecuteIfTimeStepLt
+        {
+            HINLINE void operator()(const uint32_t currentStep)
+            {
+                if(currentStep < T_time)
+                    T_Functor{}(currentStep);
+            }
+        };
+
+        //! Less or  Equal
+        template<uint32_t T_time, typename T_Functor>
+        struct ExecuteIfTimeStepLe
+        {
+            HINLINE void operator()(const uint32_t currentStep)
+            {
+                if(currentStep <= T_time)
+                    T_Functor{}(currentStep);
+            }
+        };
+
+        /** @} */
+
+        /** Create static field from the particles current.
+         *
+         * Calculates the current of all species and propagates the electrical and magnetic field T_numFieldSolverSteps
+         * times. The current includes the current background for the corresponding time step.
+         *
+         * @tparam T_numFieldSolverSteps number of steps the field solver should be executed to propagate the field.
+         *
+         * @{
+         */
+        template<uint32_t T_numFieldSolverSteps>
+        struct CreateStaticField
+        {
+            HINLINE void operator()(const uint32_t currentStep)
+            {
+                StaticField{}(currentStep, T_numFieldSolverSteps);
+            }
+        };
+
+        /** Creates the static field only for the in the initial time step. */
+        template<uint32_t T_numFieldSolverSteps>
+        using CreateInitialStaticField = ExecuteIfTimeStepEq<0u, CreateStaticField<T_numFieldSolverSteps>>;
+
+        /** @} */
+
 
     } // namespace particles
 } // namespace picongpu
