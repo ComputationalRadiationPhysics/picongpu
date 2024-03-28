@@ -6,7 +6,7 @@
 
 .. note::
 
-   If you are a scientific user at a supercomputing facility we might have already prepared a software setup for you.
+   If you are a scientific user at a super computing facility we might have already prepared a software setup for you.
    See the :ref:`following chapter <install-profile>` if you can skip this step fully or in part by loading existing modules on those systems.
 
 Dependencies
@@ -44,8 +44,8 @@ Compiler
   - if the installed version of **gcc** is too new, `compile an older gcc <https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53>`_
 - *Spack:*
 
-  - ``spack install gcc@11.3.0``
-  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@8.5.0``
+  - ``spack install gcc@12.2.0``
+  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@12.2.0``
 
 CMake
 """""
