@@ -430,8 +430,7 @@ namespace picongpu::particles::collision
             }
             else
             {
-                PMACC_LOCKSTEP_KERNEL(Kernel{})
-                (mapper.getGridDim(), *species0)(
+                PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), *species0)(
                     species0->getDeviceParticlesBox(),
                     species1->getDeviceParticlesBox(),
                     mapper,
