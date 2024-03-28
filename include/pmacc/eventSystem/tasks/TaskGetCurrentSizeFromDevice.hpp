@@ -56,8 +56,8 @@ namespace pmacc
             auto queue = this->getCudaStream();
             alpaka::memcpy(
                 queue,
-                buffer->getCurrentSizeHostSideBuffer(),
-                buffer->getCurrentSizeDeviceSideBuffer(),
+                buffer->sizeHostSideBuffer(),
+                buffer->sizeDeviceSideBuffer(),
                 MemSpace<DIM1>(1).toAlpakaMemVec());
             this->activate();
         }
