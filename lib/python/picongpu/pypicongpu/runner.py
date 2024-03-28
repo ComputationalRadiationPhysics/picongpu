@@ -10,7 +10,7 @@ from . import util
 from .rendering import Renderer
 
 from os import path, environ, chdir
-from typeguard import typechecked
+import typeguard
 from functools import reduce
 import tempfile
 import subprocess
@@ -62,7 +62,7 @@ def get_tmpdir_with_name(name, parent: str = None):
     return dir_name
 
 
-@typechecked
+@typeguard.typechecked
 class Runner:
     """
     Accepts a PyPIConGPU Simulation and runs it
@@ -191,7 +191,9 @@ class Runner:
         elif isinstance(sim, picmi.Simulation):
             self.sim = sim.get_as_pypicongpu()
         else:
-            raise TypeError("sim must be pypicongpu simulation or picmi simulation, " "got: {}".format(type(sim)))
+            raise typeguard.TypeCheckError(
+                "sim must be pypicongpu simulation or picmi simulation, " "got: {}".format(type(sim))
+            )
 
         # use helper to perform various checks
         # note that the order matters: run_dir depends on scratch_dir

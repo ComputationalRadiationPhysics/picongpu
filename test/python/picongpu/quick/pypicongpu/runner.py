@@ -121,13 +121,13 @@ class TestRunner(unittest.TestCase):
         # also check that correct usage works:
         Runner(self.sim)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             Runner(self.sim, pypicongpu_template_dir=1)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             Runner(self.sim, scratch_dir=["/", "tmp"])
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             Runner(self.sim, setup_dir={})
-        with self.assertRaises(TypeError):
+        with self.assertRaises(typeguard.TypeCheckError):
             Runner(self.sim, run_dir=lambda x: x)
 
         r = Runner(self.sim)
@@ -403,7 +403,7 @@ class TestRunner(unittest.TestCase):
         Runner(self.picmi_sim)
 
         for invalid_sim in [None, {}, 0, ""]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(typeguard.TypeCheckError):
                 Runner(invalid_sim)
 
     def test_applies_templates(self):
