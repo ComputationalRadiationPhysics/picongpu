@@ -38,3 +38,4 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.def"
 #include "picongpu/particles/manipulators/unary/RandomPosition.def"
 #include "picongpu/particles/manipulators/unary/Temperature.def"
+#include "picongpu/particles/manipulators/unary/MaxwellJuettner.def"

@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera,
+/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Rene Widera,
  *                     Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
@@ -36,51 +36,64 @@ namespace picongpu
                 {
                     namespace detail
                     {
-                        /** Functor to modify particle momentum based on temperature
-                         *
-                         * This functor is for the non-relativistic case only.
-                         * In this case the added momentum follows the Maxwell-Boltzmann distribution.
+                        /** Functor to modify particle momentum based on temperature for relativistic case
+                         * Use Maxwell Juettner Distribution, implementation based on https://doi.org/10.1063/1.4919383
+                         * This functor is for the highly-relativistic case.
+                         * In this case the added momentum follows the Maxwell-Juettner distribution.
                          *
                          * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
                          *                        add a new momentum to an old one
                          */
-                        template<typename T_ValueFunctor>
-                        struct TemperatureImpl : private T_ValueFunctor
+                        /** USE THIS IN THE SAME WAY AS Temperature.hpp JUST REPLACE Temperature with MaxwellJuettner FOR ALL FUNCTOR AND TEMPLATE NAMES**/
+			template<typename T_ValueFunctor>
+                        struct MaxwellJuettnerImpl : private T_ValueFunctor
                         {
                             /** Manipulate the momentum of the given macroparticle
                              *
-                             * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
+                             * @tparam T_UniformRng functor::misc::RngWrapper, standard
                              *                             normal random number generator type
                              * @tparam T_Particle particle type
                              *
-                             * @param standardNormalRng standard normal random number generator
+                             * @param uniformRng random number generator
                              * @param particle particle to be manipulated
                              * @param temperatureKeV temperature value in keV
                              */
-                            template<typename T_StandardNormalRng, typename T_Particle, typename T_Temperature>
+                            template<typename T_UniformNoZeroRng, typename T_Particle, typename T_MaxwellJuettner>
                             HDINLINE void operator()(
-                                T_StandardNormalRng& standardNormalRng,
+                                T_UniformNoZeroRng& uniformNoZeroRng,
                                 T_Particle& particle,
-                                T_Temperature temperatureKeV) const
+                                T_MaxwellJuettner temperatureKeV) const
                             {
-                                /* In the non-relativistic case, the added momentum follows
-                                 * the Maxwell-Boltzmann distribution: each component is
-                                 * independently normally distributed with zero mean and variance of
-                                 * m * k * T = m * E.
-                                 * For the macroweighted momentums we store as particle[ momentum_ ],
-                                 * the same relation holds, just m and E are also macroweighted
-                                 */
                                 float_X const energy = (temperatureKeV * UNITCONV_keV_to_Joule) / UNIT_ENERGY;
                                 float_X const macroWeighting = particle[weighting_];
-                                float_X const macroEnergy = macroWeighting * energy;
                                 float_X const macroMass = attribute::getMass(macroWeighting, particle);
+				float_X const mass = macroMass/macroWeighting;
+				float_X const theta = energy / (mass*SPEED_OF_LIGHT*SPEED_OF_LIGHT);
 				
-				float_X const standardDeviation
-                                    = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
-                                float3_X const mom
-                                    = float3_X(standardNormalRng(), standardNormalRng(), standardNormalRng())
-                                    * standardDeviation;
+				float_X x1, x2, x3, x4, u, nu;
+				bool rejected = true;
+				while (rejected) {
+
+					x1 = uniformNoZeroRng();
+					x2 = uniformNoZeroRng();
+					x3 = uniformNoZeroRng();
+					
+					u = (-1._X) * theta * math::log(x1 * x2 * x3);
+				
+					x4 = uniformNoZeroRng();
+					nu = (-1._X) * theta * log(x1 * x2 * x3 * x4);
+					
+					if (nu * nu - u * u > 1._X) {
+						rejected = false;
+					}
+				}
                                 
+				float_X momAbs = u * macroWeighting * mass;
+				float_X y1 = uniformNoZeroRng();
+				float_X y2 = uniformNoZeroRng();
+				
+				float3_X mom = float3_X(momAbs*(2._X*y1 - 1._X), 2._X*momAbs*math::sqrt(y1*(1._X-y1))*math::cos(2._X*PI*y2), 2._X*momAbs*math::sqrt(y1*(1._X - y1))*math::sin(2._X*PI*y2));		
+				
                                 T_ValueFunctor::operator()(particle[momentum_], mom);
                             }
                         };
@@ -88,68 +101,68 @@ namespace picongpu
                     } // namespace detail
 
               	    template<typename T_ParamClass, typename T_ValueFunctor>
-                    struct Temperature : public detail::TemperatureImpl<T_ValueFunctor>
+                    struct MaxwellJuettner : public detail::MaxwellJuettnerImpl<T_ValueFunctor>
                     {
                         //! Base class
-                        using Base = detail::TemperatureImpl<T_ValueFunctor>;
+                        using Base = detail::MaxwellJuettnerImpl<T_ValueFunctor>;
 
                         /** Manipulate the momentum of the given macroparticle
                          *
-                         * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
-                         *                             normal random number generator type
+                         * @tparam T_UniformRng functor::misc::RngWrapper, 
+                         *                             uniform random number generator type
                          * @tparam T_Particle particle type
                          * @tparam T_Args arbitrary number of argument types, unused
                          *
-                         * @param standardNormalRng standard normal random number generator
+                         * @param uniform random number generator
                          * @param particle particle to be manipulated
                          * @param ... unused parameters
                          */
-                        template<typename T_StandardNormalRng, typename T_Particle, typename... T_Args>
+                        template<typename T_UniformRng, typename T_Particle, typename... T_Args>
                         HDINLINE void operator()(
-                            T_StandardNormalRng& standardNormalRng,
+                            T_UniformRng& uniformRng,
                             T_Particle& particle,
                             T_Args&&...)
                         {
                             auto const temperatureKeV = T_ParamClass::temperature;
-                            Base::operator()(standardNormalRng, particle, temperatureKeV);
+                            Base::operator()(uniformRng, particle, temperatureKeV);
                         }
                     };
 
-                    template<typename T_TemperatureFunctor, typename T_ValueFunctor>
-                    struct FreeTemperature
-                        : public detail::TemperatureImpl<T_ValueFunctor>
-                        , public particles::functor::User<T_TemperatureFunctor>
+                    template<typename T_MaxwellJuettnerFunctor, typename T_ValueFunctor>
+                    struct FreeMaxwellJuettner
+                        : public detail::MaxwellJuettnerImpl<T_ValueFunctor>
+                        , public particles::functor::User<T_MaxwellJuettnerFunctor>
                     {
                         //! Base implementation class
-                        using Base = detail::TemperatureImpl<T_ValueFunctor>;
+                        using Base = detail::MaxwellJuettnerImpl<T_ValueFunctor>;
 
                         //! Wrapper around user-provided functor
-                        using UserFunctor = particles::functor::User<T_TemperatureFunctor>;
+                        using UserFunctor = particles::functor::User<T_MaxwellJuettnerFunctor>;
 
                         /** Create a functor instance, including instances for user functor and its wrapper
                          *
                          * @param currentStep current time iteration
                          */
-                        FreeTemperature(uint32_t const currentStep) : UserFunctor(currentStep)
+                        FreeMaxwellJuettner(uint32_t const currentStep) : UserFunctor(currentStep)
                         {
                         }
 
                         /** Manipulate the momentum of the given macroparticle
                          *
-                         * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
-                         *                             normal random number generator type
+                         * @tparam T_UniformRng functor::misc::RngWrapper, standard
+                         *                             uniform random number generator type
                          * @tparam T_Particle particle type
                          * @tparam T_Args arbitrary number of argument types, unused
                          *
                          * @param totalCellOffset total offset including all slides [in cells]
-                         * @param standardNormalRng standard normal random number generator
+                         * @param uniformRng uniform random number generator
                          * @param particle particle to be manipulated
                          * @param ... unused parameters
                          */
-                        template<typename T_StandardNormalRng, typename T_Particle, typename... T_Args>
+                        template<typename T_UniformRng, typename T_Particle, typename... T_Args>
                         HDINLINE void operator()(
                             DataSpace<simDim> const& totalCellOffset,
-                            T_StandardNormalRng& standardNormalRng,
+                            T_UniformRng& uniformRng,
                             T_Particle& particle,
                             T_Args&&...)
                         {
@@ -159,7 +172,7 @@ namespace picongpu
                                                       + precisionCast<float_64>(particle[position_]))
                                 * cellSize_SI.shrink<simDim>();
                             auto const temperatureKeV = UserFunctor::operator()(position_SI, cellSize_SI);
-                            Base::operator()(standardNormalRng, particle, temperatureKeV);
+                            Base::operator()(uniformRng, particle, temperatureKeV);
                         }
                     };
 

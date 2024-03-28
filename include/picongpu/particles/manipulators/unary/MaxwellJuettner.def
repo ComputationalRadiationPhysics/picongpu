@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera, Sergei Bastrakov
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -25,7 +25,7 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.def"
 
 #include <pmacc/math/operation.hpp>
-#include <pmacc/random/distributions/Normal.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
 
 #include <cstdint>
 
@@ -40,40 +40,42 @@ namespace picongpu
             {
                 namespace acc
                 {
-                    /** Functors implementing modifying particle momentum based on temperature
-                     *
-                     * Sample a random momentum value distributed according to the given
-                     * temperature and add it to the existing particle momentum.
-                     * These functors are for the non-relativistic case only.
-                     * In this case the added momentum follows the Maxwell-Boltzmann distribution.
-                     *
-                     * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
+                     /** Functor to modify particle momentum based on temperature for relativistic case
+                         * Use Maxwell Juettner Distribution, implementation based on https://doi.org/10.1063/1.4919383
+                         * This functor is for the highly-relativistic case.
+                         * In this case the added momentum follows the Maxwell-Juettner distribution.
+                         *
+                         * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
+                         *                        add a new momentum to an old one
+                     */
+                     /** @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
                      *                        add a new momentum to an old one
                      * @{
                      */
 
                     /** Version with fixed temperature given via parameter struct
                      *
-                     * @tparam T_ParamClass configuration parameter, follows requirements of param::TemperatureCfg
+                     * @tparam T_ParamClass configuration parameter, follows requirements of param::MaxwellJuettnerCfg
                      */
+		    /** USE THIS IN THE SAME WAY AS Temperature.hpp JUST REPLACE Temperature with MaxwellJuettner FOR ALL FUNCTOR AND TEMPLATE NAMES**/
                     template<typename T_ParamClass, typename T_ValueFunctor>
-                    struct Temperature;
+                    struct MaxwellJuettner;
 
                     /** Version with user-provided temperature functor
                      *
-                     * @tparam T_TemperatureFunctor temperature functor, follows requirements of
-                     * param::TemperatureFunctor
+                     * @tparam T_MaxwellJuettnerFunctor temperature functor, follows requirements of
+                     * param::MaxwellJuettnerFunctor
                      */
                     template<typename T_Functor, typename T_ValueFunctor>
-                    struct FreeTemperature;
+                    struct FreeMaxwellJuettner;
 
                     /** @} */
                 } // namespace acc
 
                 namespace param
                 {
-                    //! Configuration struct for the unary manipulator Temperature
-                    struct TemperatureCfg
+                    //! Configuration struct for the unary manipulator MaxwellJuettner
+                    struct MaxwellJuettnerCfg
                     {
                         /** Initial temperature
                          *  unit: keV
@@ -81,8 +83,8 @@ namespace picongpu
                         static constexpr float_64 temperature = 0.0;
                     };
 
-                    //! Configuration functor for the unary manipulator FreeTemperature
-                    struct TemperatureFunctor
+                    //! Configuration functor for the unary manipulator FreeMaxwellJuettner
+                    struct MaxwellJuettnerFunctor
                     {
                         /** Constructors
                          *
@@ -93,7 +95,7 @@ namespace picongpu
                          */
 
                         //! Default constructor
-                        HINLINE TemperatureFunctor()
+                        HINLINE MaxwellJuettnerFunctor()
                         {
                         }
 
@@ -101,7 +103,7 @@ namespace picongpu
                          *
                          * @param currentStep current time iteration
                          */
-                        HINLINE TemperatureFunctor(uint32_t currentStep)
+                        HINLINE MaxwellJuettnerFunctor(uint32_t currentStep)
                         {
                         }
 
@@ -137,25 +139,25 @@ namespace picongpu
 
                 /** Version with fixed temperature given via parameter struct
                  *
-                 * @tparam T_ParamClass configuration parameter, follows requirements of param::TemperatureCfg
+                 * @tparam T_ParamClass configuration parameter, follows requirements of param::MaxwellJuettnerCfg
                  */
                 template<
-                    typename T_ParamClass = param::TemperatureCfg,
+                    typename T_ParamClass = param::MaxwellJuettnerCfg,
                     typename T_ValueFunctor = pmacc::math::operation::Add>
-                using Temperature = generic::FreeRng<
-                    acc::Temperature<T_ParamClass, T_ValueFunctor>,
-		    pmacc::random::distributions::Normal<float_X>>;
+                using MaxwellJuettner = generic::FreeRng<
+                    acc::MaxwellJuettner<T_ParamClass, T_ValueFunctor>,
+                    pmacc::random::distributions::Uniform<pmacc::random::distributions::uniform::ExcludeZero<float_X>> >;
 
                 /** Version with user-provided temperature functor
                  *
-                 * @tparam T_TemperatureFunctor temperature functor, follows requirements of param::TemperatureFunctor
+                 * @tparam T_MaxwellJuettnerFunctor temperature functor, follows requirements of param::MaxwellJuettnerFunctor
                  */
                 template<
-                    typename T_TemperatureFunctor = param::TemperatureFunctor,
+                    typename T_MaxwellJuettnerFunctor = param::MaxwellJuettnerFunctor,
                     typename T_ValueFunctor = pmacc::math::operation::Add>
-                using FreeTemperature = FreeTotalCellOffsetRng<
-                    acc::FreeTemperature<T_TemperatureFunctor, T_ValueFunctor>,
-                    pmacc::random::distributions::Normal<float_X>>;
+                using FreeMaxwellJuettner = FreeTotalCellOffsetRng<
+                    acc::FreeMaxwellJuettner<T_MaxwellJuettnerFunctor, T_ValueFunctor>,
+                    pmacc::random::distributions::Uniform<pmacc::random::distributions::uniform::ExcludeZero<float_X>> >;
 
                 /** @} */
 
