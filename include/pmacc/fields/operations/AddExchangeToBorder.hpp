@@ -167,9 +167,9 @@ namespace pmacc
                      * @warning pmacc restriction: all dimension must have the some number of guarding
                      * supercells
                      */
-                    auto const numGuardSuperCells = destBuffer.getGridLayout().getGuard() / SuperCellSize::toRT();
+                    auto const numGuardSuperCells = destBuffer.getGridLayout().guardSizeND() / SuperCellSize::toRT();
 
-                    MappingDesc const mappingDesc(destBuffer.getGridLayout().getDataSpace(), numGuardSuperCells);
+                    MappingDesc const mappingDesc(destBuffer.getGridLayout().sizeND(), numGuardSuperCells);
 
                     ExchangeMapping<GUARD, MappingDesc> mapper(mappingDesc, exchangeType);
 
@@ -179,7 +179,7 @@ namespace pmacc
                         .config(mapper.getGridDim(), SuperCellSize{})(
                             destBuffer.getDeviceBuffer().getDataBox(),
                             destBuffer.getReceiveExchange(exchangeType).getDeviceBuffer().getDataBox(),
-                            destBuffer.getReceiveExchange(exchangeType).getDeviceBuffer().getDataSpace(),
+                            destBuffer.getReceiveExchange(exchangeType).getDeviceBuffer().capacityND(),
                             direction,
                             mapper);
                 }

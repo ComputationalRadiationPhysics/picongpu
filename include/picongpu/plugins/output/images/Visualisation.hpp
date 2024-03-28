@@ -676,7 +676,7 @@ namespace picongpu
         void notify(uint32_t currentStep) override
         {
             PMACC_ASSERT(cellDescription != nullptr);
-            const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+            const DataSpace<simDim> localSize(cellDescription->getGridLayout().sizeWithoutGuardND());
             Window window(MovingWindow::getInstance().getWindow(currentStep));
 
             /*sliceOffset is only used in 3D*/
@@ -731,11 +731,11 @@ namespace picongpu
                     mapper);
 
             // find maximum for img.x()/y and z and return it as float3_X
-            int elements = img->getGridLayout().getDataSpace().productOfComponents();
+            int elements = img->getGridLayout().sizeND().productOfComponents();
 
             // Add one dimension access to 2d DataBox
             using D1Box = DataBoxDim1Access<typename GridBuffer<float3_X, 2U>::DataBoxType>;
-            D1Box d1access(img->getDeviceBuffer().getDataBox(), img->getGridLayout().getDataSpace());
+            D1Box d1access(img->getDeviceBuffer().getDataBox(), img->getGridLayout().sizeND());
 
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
@@ -793,7 +793,7 @@ namespace picongpu
 
             eventSystem::getTransactionEvent().waitForFinished(); // wait for copy picture
 
-            DataSpace<DIM2> size = img->getGridLayout().getDataSpace();
+            DataSpace<DIM2> size = img->getGridLayout().sizeND();
             if(picongpu::white_box_per_GPU)
             {
                 // mark local cell slice edges
@@ -836,7 +836,7 @@ namespace picongpu
             if(!m_notifyPeriod.empty())
             {
                 PMACC_ASSERT(cellDescription != nullptr);
-                const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+                const DataSpace<simDim> localSize(cellDescription->getGridLayout().sizeWithoutGuardND());
 
                 Window window(MovingWindow::getInstance().getWindow(0));
                 sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * m_slicePoint)

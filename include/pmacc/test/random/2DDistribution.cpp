@@ -119,7 +119,7 @@ namespace pmacc
             template<class T_Buffer>
             void writePGM(const std::string& filePath, T_Buffer& buffer)
             {
-                const Space2D size = buffer.getDataSpace();
+                const Space2D size = buffer.capacityND();
                 uint32_t maxVal = 0;
                 for(int y = 0; y < size.y(); y++)
                 {
@@ -177,8 +177,7 @@ namespace pmacc
                 timer.toggleStart();
 
                 PMACC_LOCKSTEP_KERNEL(RandomFiller<blockSize>{})
-                    .template config<blockSize>(
-                        gridSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
+                    .template config<blockSize>(gridSize)(buffer.getDataBox(), buffer.capacityND(), rand, numSamples);
 
                 eventSystem::getTransactionEvent().waitForFinished();
                 timer.toggleEnd();

@@ -82,7 +82,7 @@ namespace picongpu
          *  Problem: buffers don't allow "bigger" exchange during run time.
          *           so let's stay with the maximum guards.
          */
-        const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout().getDataSpaceWithoutGuarding();
+        const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout().sizeWithoutGuardND();
 
         using VectorSpeciesWithInterpolation =
             typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, interpolation<>>::type;

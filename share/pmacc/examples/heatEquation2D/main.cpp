@@ -55,11 +55,11 @@ inline auto createPng(uint32_t currentStep, T_Gather& gather, std::unique_ptr<T_
     {
         const pmacc::SubGrid<DIM2>& subGrid = pmacc::Environment<DIM2>::get().SubGrid();
         auto bufferLayout = gridBuffer->getGridLayout();
-        auto localDataExtents = bufferLayout.getDataSpaceWithoutGuarding();
+        auto localDataExtents = bufferLayout.sizeWithoutGuardND();
         auto view = std::make_unique<pmacc::DeviceBuffer<float, DIM2>>(
             gridBuffer->getDeviceBuffer(),
             localDataExtents,
-            bufferLayout.getGuard());
+            bufferLayout.guardSizeND());
         // create a contiguous buffer required for gathering the data
         auto dataWithoutGuard = std::make_unique<pmacc::HostBuffer<float, DIM2>>(localDataExtents);
         dataWithoutGuard->copyFrom(*view.get());
@@ -69,7 +69,7 @@ inline auto createPng(uint32_t currentStep, T_Gather& gather, std::unique_ptr<T_
             subGrid.getLocalDomain().offset);
         PngCreator png;
         if(gather->isMaster())
-            png(currentStep, picture->getDataBox(), picture->getDataSpace());
+            png(currentStep, picture->getDataBox(), picture->capacityND());
     }
 }
 
@@ -107,7 +107,7 @@ auto main(int argc, char** argv) -> int
      *  takes in the grid layout - CELLS dataspace + guard, and num of SUPERCELLS in guard
      */
     pmacc::DataSpace<DIM2> guardingSuperCells{1, 1};
-    auto mapping = std::make_unique<MappingDesc>(layout.getDataSpace(), guardingSuperCells);
+    auto mapping = std::make_unique<MappingDesc>(layout.sizeND(), guardingSuperCells);
 
     /** define grid buffers, two because we dont do in place writes */
 

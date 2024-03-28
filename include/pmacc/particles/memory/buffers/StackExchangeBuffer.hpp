@@ -74,7 +74,7 @@ namespace pmacc
             return ExchangePushDataBox<vint_t, FRAME, DIM>(
                 stack.getDeviceBuffer().data(),
                 (vint_t*) alpaka::getPtrNative(stack.getDeviceBuffer().getCurrentSizeDeviceSideBuffer()),
-                stack.getDeviceBuffer().getDataSpace().productOfComponents(),
+                stack.getDeviceBuffer().capacityND().productOfComponents(),
                 PushDataBox<vint_t, FRAMEINDEX>(
                     stackIndexer.getDeviceBuffer().data(),
                     (vint_t*) alpaka::getPtrNative(stackIndexer.getDeviceBuffer().getCurrentSizeDeviceSideBuffer())));
@@ -149,9 +149,9 @@ namespace pmacc
         {
             size_t result = 0u;
             if(Environment<>::get().isMpiDirectEnabled())
-                result = stack.getDeviceBuffer().getDataSpace().productOfComponents();
+                result = stack.getDeviceBuffer().capacityND().productOfComponents();
             else
-                result = stack.getHostBuffer().getDataSpace().productOfComponents();
+                result = stack.getHostBuffer().capacityND().productOfComponents();
 
             return result;
         }

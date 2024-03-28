@@ -27,15 +27,15 @@
 namespace pmacc
 {
     /**
-     * Describes layout of a DIM-dimensional data grid including the actual grid and optional guards.
+     * Describes layout of a T_dim-dimensional data grid including the actual grid and optional guards.
      *
-     * @tparam DIM dimension of the grid
+     * @tparam T_dim dimension of the grid
      */
-    template<unsigned DIM>
+    template<unsigned T_dim>
     class GridLayout
     {
     public:
-        HDINLINE GridLayout() : dataSpace(DataSpace<DIM>::create(1)), guard(DataSpace<DIM>::create(0))
+        HDINLINE GridLayout() : m_sizeND(DataSpace<T_dim>::create(1)), m_guardSizeND(DataSpace<T_dim>::create(0))
         {
         }
 
@@ -45,39 +45,42 @@ namespace pmacc
          * @param guard DataSpace defining size of the guard cells. Guard is added to actual grid (dataSpace). Will be
          * initialized to 0.
          */
-        HDINLINE GridLayout(const DataSpace<DIM>& dataSpace, DataSpace<DIM> guard = DataSpace<DIM>())
-            : dataSpace(dataSpace)
-            , guard(guard)
+        HDINLINE GridLayout(DataSpace<T_dim> const& sizeND, DataSpace<T_dim> const& guardSizeND = DataSpace<T_dim>())
+            : m_sizeND(sizeND)
+            , m_guardSizeND(guardSizeND)
         {
         }
 
-        /**
-         * returns the DataSpace for the data
-         * (include guarding for overlap neighbor areas)
-         * @return the data DataSpace
+        /** N-dimensional size of the domain
+         *
+         * @return number of cells per dimension including guard cells
          */
-        HDINLINE DataSpace<DIM> getDataSpace() const
+        HDINLINE DataSpace<T_dim> sizeND() const
         {
-            return dataSpace + guard + guard;
+            return m_sizeND + m_guardSizeND + m_guardSizeND;
         }
 
-        HDINLINE DataSpace<DIM> getDataSpaceWithoutGuarding() const
-        {
-            return dataSpace;
-        }
-
-        /**
-         * returns the DataSpace for the guard
-         * @return the guard DataSpace
+        /** N-dimensional size of the domain
+         *
+         * @return number of cells per dimension without guard cells
          */
-        HDINLINE DataSpace<DIM> getGuard() const
+        HDINLINE DataSpace<T_dim> sizeWithoutGuardND() const
         {
-            return guard;
+            return m_sizeND;
+        }
+
+        /** N-dimensional size of the guard
+         *
+         * @return number of cells in the guard area
+         */
+        HDINLINE DataSpace<T_dim> guardSizeND() const
+        {
+            return m_guardSizeND;
         }
 
     private:
-        DataSpace<DIM> dataSpace;
-        DataSpace<DIM> guard;
+        DataSpace<T_dim> m_sizeND;
+        DataSpace<T_dim> m_guardSizeND;
     };
 
 } // namespace pmacc

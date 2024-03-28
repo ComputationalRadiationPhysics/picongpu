@@ -1529,10 +1529,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 /* data to describe source buffer */
                 GridLayout<simDim> bufferGridLayout = buffer.getGridLayout();
-                DataSpace<simDim> bufferSize = bufferGridLayout.getDataSpace();
+                DataSpace<simDim> bufferSize = bufferGridLayout.sizeND();
 
                 DataSpace<simDim> localWindowSize = params->window.localDimensions.size;
-                DataSpace<simDim> bufferOffset = bufferGridLayout.getGuard() + params->localWindowToDomainOffset;
+                DataSpace<simDim> bufferOffset = bufferGridLayout.guardSizeND() + params->localWindowToDomainOffset;
                 std::vector<char>& fieldBuffer = params->fieldBuffer;
 
                 pmacc::math::UInt64<simDim> recordLocalSizeDims = localWindowSize;
@@ -1544,8 +1544,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                  */
                 if(!isDomainBound)
                 {
-                    localWindowSize = bufferGridLayout.getDataSpaceWithoutGuarding();
-                    bufferOffset = bufferGridLayout.getGuard();
+                    localWindowSize = bufferGridLayout.sizeWithoutGuardND();
+                    bufferOffset = bufferGridLayout.guardSizeND();
 
                     recordLocalSizeDims = precisionCast<uint64_t>(localWindowSize);
 

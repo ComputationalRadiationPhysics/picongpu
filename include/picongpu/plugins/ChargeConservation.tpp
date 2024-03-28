@@ -240,13 +240,13 @@ namespace picongpu
 
         // find global max error
         auto memLayoutRoh = fieldTmp->getGridLayout();
-        int localSizeRoh = memLayoutRoh.getDataSpaceWithoutGuarding().productOfComponents();
+        int localSizeRoh = memLayoutRoh.sizeWithoutGuardND().productOfComponents();
 
         using D1Box = DataBoxDim1Access<typename FieldTmp::DataBoxType>;
         // ignore guards and operate on CORE+BORDER only
         D1Box d1access(
-            fieldTmp->getGridBuffer().getDeviceBuffer().getDataBox().shift(memLayoutRoh.getGuard()),
-            memLayoutRoh.getDataSpaceWithoutGuarding());
+            fieldTmp->getGridBuffer().getDeviceBuffer().getDataBox().shift(memLayoutRoh.guardSizeND()),
+            memLayoutRoh.sizeWithoutGuardND());
 
         auto maxChargeDiff = (*globalReduce)(pmacc::math::operation::Max(), d1access, localSizeRoh, mpiReduceMethod);
 

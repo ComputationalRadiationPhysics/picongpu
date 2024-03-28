@@ -65,7 +65,7 @@ namespace pmacc
             , exchange(extype)
             , communicationTag(commTag)
         {
-            DataSpace<DIM> tmp_size = memoryLayout.getDataSpaceWithoutGuarding();
+            DataSpace<DIM> tmp_size = memoryLayout.sizeWithoutGuardND();
 
             DataSpace<DIM> exchangeDimensions = exchangeTypeToDim(exchange);
 
@@ -151,8 +151,8 @@ namespace pmacc
             DataSpace<DIM> guardingCells,
             uint32_t area) const
         {
-            DataSpace<DIM> size = memoryLayout.getDataSpace();
-            DataSpace<DIM> border = memoryLayout.getGuard();
+            DataSpace<DIM> size = memoryLayout.sizeND();
+            DataSpace<DIM> border = memoryLayout.guardSizeND();
             Mask mask(exchange);
             DataSpace<DIM> tmp_offset;
             if constexpr(DIM >= DIM1)

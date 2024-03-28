@@ -68,7 +68,7 @@ namespace picongpu
                         Thickness const& globalThickness)
                     {
                         // All sizes are without guard, since Pml is only on the internal area
-                        auto const gridDataSpace = gridLayout.getDataSpaceWithoutGuarding();
+                        auto const gridDataSpace = gridLayout.sizeWithoutGuardND();
                         auto const nonPmlDataSpace = gridDataSpace
                             - (globalThickness.getPositiveBorder() + globalThickness.getNegativeBorder());
                         auto const numGridCells = gridDataSpace.productOfComponents();
@@ -111,7 +111,7 @@ namespace picongpu
                     Thickness const& globalThickness,
                     DataBox box)
                     : box(box)
-                    , guardSize(gridLayout.getGuard())
+                    , guardSize(gridLayout.guardSizeND())
 
                 {
                     auto const negativeSize = globalThickness.getNegativeBorder();
@@ -119,7 +119,7 @@ namespace picongpu
                     /* The region of interest is grid without guard,
                      * which consists of PML and internal area
                      */
-                    auto const gridSize = gridLayout.getDataSpaceWithoutGuarding();
+                    auto const gridSize = gridLayout.sizeWithoutGuardND();
                     auto const positiveBegin = gridSize - positiveSize;
 
                     // Note: since this should compile for 2d, .z( ) can't be used
@@ -270,9 +270,8 @@ namespace picongpu
 
                 Field::OuterLayerBoxType Field::getDeviceOuterLayerBox()
                 {
-                    auto const boxWrapper1d = pmacc::DataBoxDim1Access<DataBoxType>{
-                        getDeviceDataBox(),
-                        data->getGridLayout().getDataSpace()};
+                    auto const boxWrapper1d
+                        = pmacc::DataBoxDim1Access<DataBoxType>{getDeviceDataBox(), data->getGridLayout().sizeND()};
                     /* Note: the outer layer box type just provides access to data,
                      * it does not own or make copy of the data (nor is that required)
                      */

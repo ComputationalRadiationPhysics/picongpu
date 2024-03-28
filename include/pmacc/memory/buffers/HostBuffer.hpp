@@ -144,7 +144,7 @@ namespace pmacc
         void reset(bool preserveData = true) override
         {
             eventSystem::startOperation(ITask::TASK_HOST);
-            this->setCurrentSize(this->getDataSpace().productOfComponents());
+            this->setCurrentSize(this->capacityND().productOfComponents());
             if(!preserveData)
             {
                 /* if it is a pointer out of other memory we can not assume that
@@ -154,7 +154,7 @@ namespace pmacc
                     memset(
                         reinterpret_cast<void*>(alpaka::getPtrNative(*view)),
                         0,
-                        this->getDataSpace().productOfComponents() * sizeof(T_Type));
+                        this->capacityND().productOfComponents() * sizeof(T_Type));
                 else
                 {
                     // Using Array is a workaround for types without default constructor
@@ -172,7 +172,7 @@ namespace pmacc
             auto memBox = this->getDataBox();
             auto current_size = static_cast<int64_t>(this->getCurrentSize());
             using D1Box = DataBoxDim1Access<DataBoxType>;
-            D1Box d1Box(memBox, this->getDataSpace());
+            D1Box d1Box(memBox, this->capacityND());
 #pragma omp parallel for
             for(int64_t i = 0; i < current_size; i++)
             {
@@ -198,7 +198,7 @@ namespace pmacc
         typename Buffer<T_Type, T_dim>::CPtr getCPtrCapacity() final
         {
             PMACC_ASSERT_MSG(this->isContiguous(), "Memory must be contiguous!");
-            size_t const size = this->getDataSpace().productOfComponents();
+            size_t const size = this->capacityND().productOfComponents();
             eventSystem::startOperation(ITask::TASK_HOST);
             return {alpaka::getPtrNative(*view), size};
         }

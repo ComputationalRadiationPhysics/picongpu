@@ -767,7 +767,7 @@ namespace picongpu
                     else
                     {
                         const int localNrOfCells
-                            = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
+                            = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
                         cellCount = localNrOfCells * numProc;
                         particleCount = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
                             * (pmacc::mp_size<VectorAllSpecies>::type::value) * numProc;

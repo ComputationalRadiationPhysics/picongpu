@@ -166,7 +166,7 @@ namespace pmacc
 
         void reset(bool preserveData = true) override
         {
-            this->setCurrentSize(Buffer<T_Type, T_dim>::getDataSpace().productOfComponents());
+            this->setCurrentSize(Buffer<T_Type, T_dim>::capacityND().productOfComponents());
 
             eventSystem::startOperation(ITask::TASK_DEVICE);
             if(!preserveData)
@@ -288,7 +288,7 @@ namespace pmacc
         {
             PMACC_ASSERT_MSG(this->isContiguous(), "Memory must be contiguous!");
             eventSystem::startOperation(ITask::TASK_DEVICE);
-            size_t const size = this->getDataSpace().productOfComponents();
+            size_t const size = this->capacityND().productOfComponents();
             return {alpaka::getPtrNative(*view), size};
         }
     };
@@ -305,7 +305,7 @@ namespace pmacc
     HINLINE std::unique_ptr<DeviceBuffer<T_Type, T_dim>> makeDeepCopy(DeviceBuffer<T_Type, T_dim>& source)
     {
         // We have to call this constructor to allocate a new data storage and not shallow-copy the source
-        auto result = std::make_unique<DeviceBuffer<T_Type, T_dim>>(source.getDataSpace());
+        auto result = std::make_unique<DeviceBuffer<T_Type, T_dim>>(source.capacityND());
         result->copyFrom(source);
         // Wait for copy to finish, so that the resulting object is safe to use after return
         eventSystem::getTransactionEvent().waitForFinished();

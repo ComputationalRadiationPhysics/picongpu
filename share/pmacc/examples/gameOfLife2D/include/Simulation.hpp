@@ -145,7 +145,7 @@ namespace gol
              * MappingDesc stores the layout regarding Core, Border and Guard     *
              * in units of SuperCells.                                            *
              * This is saved by init to be used by the kernel to identify itself. */
-            evo.init(layout.getDataSpace(), Space::create(1));
+            evo.init(layout.sizeND(), Space::create(1));
 
             buff1 = std::make_unique<Buffer>(layout, false);
             buff2 = std::make_unique<Buffer>(layout, false);
@@ -215,11 +215,11 @@ namespace gol
             {
                 const SubGrid<DIM2>& subGrid = Environment<DIM2>::get().SubGrid();
                 auto bufferLayout = write->getGridLayout();
-                auto localDataExtents = bufferLayout.getDataSpaceWithoutGuarding();
+                auto localDataExtents = bufferLayout.sizeWithoutGuardND();
                 auto view = std::make_unique<DeviceBuffer<uint8_t, DIM2>>(
                     write->getDeviceBuffer(),
                     localDataExtents,
-                    bufferLayout.getGuard());
+                    bufferLayout.guardSizeND());
                 // create a contiguous buffer required for gathering the data
                 auto dataWithoutGuard = std::make_unique<HostBuffer<uint8_t, DIM2>>(localDataExtents);
                 dataWithoutGuard->copyFrom(*view.get());
@@ -229,7 +229,7 @@ namespace gol
                     subGrid.getLocalDomain().offset);
                 PngCreator png;
                 if(isMaster)
-                    png(currentStep, picture->getDataBox(), picture->getDataSpace());
+                    png(currentStep, picture->getDataBox(), picture->capacityND());
             }
         }
     };

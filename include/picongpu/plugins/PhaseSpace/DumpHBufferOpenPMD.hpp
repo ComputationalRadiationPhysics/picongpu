@@ -95,7 +95,7 @@ namespace picongpu
                 softwareVersion << "-" << PICONGPU_VERSION_LABEL;
             series.setSoftware(software, softwareVersion.str());
 
-            auto bufferExtents = hBuffer.getDataSpace();
+            auto bufferExtents = hBuffer.capacityND();
 
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);

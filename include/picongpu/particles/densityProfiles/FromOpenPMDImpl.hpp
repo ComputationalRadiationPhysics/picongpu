@@ -114,7 +114,7 @@ namespace picongpu
                     auto& fieldBuffer = fieldTmp->getGridBuffer();
                     // Set all values to the default values, the values present in the file will be overwritten
                     fieldBuffer.getHostBuffer().setValue(ParamClass::defaultDensity);
-                    auto const guards = fieldBuffer.getGridLayout().getGuard();
+                    auto const guards = fieldBuffer.getGridLayout().guardSizeND();
                     deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox().shift(guards);
 
                     /* Open a series (this does not read the dataset itself).
