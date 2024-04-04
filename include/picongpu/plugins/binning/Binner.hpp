@@ -89,11 +89,11 @@ namespace picongpu
             }
 
             // @todo check if type stored in histBox is same as axisKernelTuple Type
-            template<typename T_Worker, typename T_DataSpace, typename T_AxisKernelTuple, typename T_DataBox>
+            template<typename T_Worker, typename T_DataSpace, typename T_BinWidthKernelTuple, typename T_DataBox>
             HDINLINE void operator()(
                 const T_Worker& worker,
                 const T_DataSpace& extentsDataspace,
-                const T_AxisKernelTuple& axisKernelTuple,
+                const T_BinWidthKernelTuple& binWidthsKernelTuple,
                 T_DataBox histBox) const
             {
                 // @todo check normDataBox shape is same as histBox
@@ -108,13 +108,13 @@ namespace picongpu
                             pmacc::DataSpace<nAxes> const nDIdx = pmacc::math::mapToND(extentsDataspace, linearTid);
                             float_X factor = 1.;
                             apply(
-                                [&](auto const&... tupleArgs)
+                                [&](auto const&... binWidthsKernel)
                                 {
                                     // uses bin width for axes without dimensions as well should those be ignored?
                                     uint32_t i = 0;
-                                    ((factor *= tupleArgs.getBinWidth(nDIdx[i++])), ...);
+                                    ((factor *= binWidthsKernel.getBinWidth(nDIdx[i++])), ...);
                                 },
-                                axisKernelTuple);
+                                binWidthsKernelTuple);
 
                             histBox(linearTid) *= 1 / factor;
                         }
@@ -224,13 +224,13 @@ namespace picongpu
 
                         auto normKernel = BinNormalizationKernel<blockSize, TBinningData::getNAxes()>();
 
-                        auto axisKernels
-                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
+                        auto binWidthsKernelTuple
+                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getBinWidthKernel(); });
 
                         PMACC_LOCKSTEP_KERNEL(normKernel)
                             .template config<blockSize>(gridSize)(
                                 binningData.axisExtentsND,
-                                axisKernels,
+                                binWidthsKernelTuple,
                                 this->histBuffer->getDeviceBuffer().getDataBox());
 
                         // change output dimensions

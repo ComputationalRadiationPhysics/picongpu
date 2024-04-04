@@ -22,6 +22,8 @@
 #include "picongpu/plugins/binning/Axis.hpp"
 #include "picongpu/plugins/binning/BinningCreator.hpp"
 #include "picongpu/plugins/binning/FunctorDescription.hpp"
+#include "picongpu/plugins/binning/axis/LinearAxis.hpp"
+#include "picongpu/plugins/binning/axis/LogAxis.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
 #include <pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp>
