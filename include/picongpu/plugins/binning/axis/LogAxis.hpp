@@ -22,7 +22,8 @@
 #include "picongpu/plugins/binning/Axis.hpp"
 #include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/UnitConversion.hpp"
-#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 
 #include <array>
 #include <cstdint>
