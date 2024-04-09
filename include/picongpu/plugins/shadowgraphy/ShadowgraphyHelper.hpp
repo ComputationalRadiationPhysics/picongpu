@@ -470,6 +470,90 @@ namespace picongpu
                     freeFFTW();
                 }
 
+                //! Get shadowgram as a 2D image
+                vec2r getShadowgram() const
+                {
+                    return shadowgram;
+                }
+
+                //! Get x coordinate in SI units for openPMD output
+                float_X getX(int i) const
+                {
+                    return xMin + i * xStep;
+                }
+
+                //! Get y coordinate in SI units for openPMD output
+                float_X getY(int j) const
+                {
+                    return yMin + j * yStep;
+                }
+
+                //! Return Shadowgram buffer for openPMD output
+                auto getShadowgramBuf()
+                {
+                    auto retBuffer
+                        = std::make_shared<HostBuffer<float_64, DIM2>>(DataSpace<DIM2>(getSizeX(), getSizeY()));
+                    auto dataBox = retBuffer->getDataBox();
+
+                    for(int j = 0; j < getSizeY(); ++j)
+                    {
+                        for(int i = 0; i < getSizeX(); ++i)
+                        {
+                            dataBox({i, j}) = static_cast<float_64>(shadowgram[i][j]);
+                        }
+                    }
+
+                    return retBuffer;
+                }
+
+                /** Return Fourier domain buffer for openPMD output
+                 *
+                 * @param index description of parameter from 0 to 7. The indices stand for:
+                 * 0: Ex positive
+                 * 1: Ex negative
+                 * 2: Ey positive
+                 * 3: Ey negative
+                 * 4: Bx positive
+                 * 5: Bx negative
+                 * 6: By positive
+                 * 7: By negative
+                 *
+                 * @return description of return value
+                 */
+                auto getFourierBuf(int index)
+                {
+                    auto retBufferF = std::make_shared<HostBuffer<std::complex<float_64>, DIM3>>(
+                        DataSpace<DIM3>(getSizeX(), getSizeY(), getNumOmegas() / 2));
+                    auto dataBox = retBufferF->getDataBox();
+
+                    // The fields are split into 2 parts in the output, because the omega-domain
+                    // is not necessarily continuous due to band-pass filters
+                    vec3c* retField;
+                    if(index <= 1)
+                        retField = &ExOmega;
+                    else if(index <= 3)
+                        retField = &EyOmega;
+                    else if(index <= 5)
+                        retField = &BxOmega;
+                    else if(index <= 7)
+                        retField = &ByOmega;
+
+                    for(int i = 0; i < getSizeX(); ++i)
+                    {
+                        for(int j = 0; j < getSizeY(); ++j)
+                        {
+                            for(int o = 0; o < getNumOmegas() / 2; ++o)
+                            {
+                                int const oSigned = ((index % 2) == 0) ? o : o + getNumOmegas() / 2;
+                                dataBox({i, j, o}) = static_cast<std::complex<float_64>>((*retField)[i][j][oSigned]);
+                            }
+                        }
+                    }
+
+                    return retBufferF;
+                }
+
+
                 /** Calculate angular frequency in SI units
                  *
                  * @param i frequency index for trimmed plugin array

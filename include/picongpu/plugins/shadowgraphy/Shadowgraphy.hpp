@@ -23,6 +23,10 @@
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/plugins/common/openPMDAttributes.hpp"
+#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/plugins/shadowgraphy/ShadowgraphyHelper.hpp"
 
@@ -314,6 +318,19 @@ namespace picongpu
                     {
                         if(gather->isMaster())
                         {
+                            if(m_help->optionFourierOutput.get(m_id))
+                            {
+                                writeFourierOutputToOpenPMDFile(currentStep);
+                            }
+
+                            helper->propagateFieldsAndCalculateShadowgram();
+
+                            std::ostringstream filename;
+                            filename << m_help->optionFileName.get(m_id) << "_" << startTime << ":" << currentStep
+                                     << ".dat";
+
+                            writeToOpenPMDFile(currentStep);
+
                             // delete helper and free all memory
                             helper.reset(nullptr);
                         }
@@ -369,6 +386,245 @@ namespace picongpu
                         }
 
                     return sliceBuffer;
+                }
+
+                //! Write shadowgram to openPMD file
+                void writeToOpenPMDFile(uint32_t currentStep)
+                {
+                    std::stringstream filename;
+                    filename << m_help->optionFileName.get(m_id) << "_%T." << m_help->optionFileExtention.get(m_id);
+                    ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
+
+                    ::openPMD::Extent extent
+                        = {static_cast<unsigned long int>(helper->getSizeY()),
+                           static_cast<unsigned long int>(helper->getSizeX())};
+                    ::openPMD::Offset offset = {0, 0};
+                    ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_64>();
+                    ::openPMD::Dataset dataset{datatype, extent};
+
+                    auto mesh = series.iterations[currentStep].meshes["shadowgram"];
+                    mesh.setAxisLabels(std::vector<std::string>{"x", "y"});
+                    mesh.setDataOrder(::openPMD::Mesh::DataOrder::F);
+                    mesh.setGridUnitSI(1);
+                    mesh.setGridSpacing(std::vector<double>{1.0, 1.0});
+                    mesh.setAttribute<int>("duration", m_help->optionDuration.get(m_id));
+                    mesh.setAttribute<float_X>("dt", UNIT_TIME * params::tRes);
+                    mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    auto shadowgram = mesh[::openPMD::RecordComponent::SCALAR];
+                    shadowgram.resetDataset(dataset);
+
+                    // Do not delete this object before dataPtr is not required anymore
+                    auto data = helper->getShadowgramBuf();
+                    auto sharedDataPtr = std::shared_ptr<float_64>{data->data(), [](auto const*) {}};
+
+                    shadowgram.storeChunk(sharedDataPtr, offset, extent);
+
+
+                    ::openPMD::Mesh spatialMesh = series.iterations[currentStep].meshes["Spatial positions"];
+                    spatialMesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    spatialMesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    spatialMesh.setGridSpacing(std::vector<double>{1.0});
+                    spatialMesh.setGridGlobalOffset(std::vector<double>{0.0});
+                    spatialMesh.setGridUnitSI(1.0);
+                    spatialMesh.setAxisLabels(std::vector<std::string>{"Spatial x index", "Spatial y index"});
+                    spatialMesh.setUnitDimension(
+                        std::map<::openPMD::UnitDimension, double>{{::openPMD::UnitDimension::L, 1.0}});
+
+                    auto xs = std::vector<float_X>(helper->getSizeX());
+                    for(int i = 0; i < helper->getSizeX(); ++i)
+                    {
+                        xs[i] = helper->getX(i);
+                    }
+                    ::openPMD::MeshRecordComponent xMRC = spatialMesh["x"];
+                    xMRC.setPosition(std::vector<double>{0.0});
+                    ::openPMD::Datatype datatype_x = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Extent extent_x = {1, static_cast<unsigned long int>(helper->getSizeX())};
+                    ::openPMD::Dataset dataset_x = ::openPMD::Dataset(datatype_x, extent_x);
+                    xMRC.resetDataset(dataset_x);
+
+                    // Write actual data
+                    ::openPMD::Offset offset_x = {0};
+                    xMRC.storeChunk(xs, offset_x, extent_x);
+
+
+                    auto ys = std::vector<float_X>(helper->getSizeY());
+                    for(int i = 0; i < helper->getSizeY(); ++i)
+                    {
+                        ys[i] = helper->getY(i);
+                    }
+
+                    ::openPMD::MeshRecordComponent yMRC = spatialMesh["y"];
+                    yMRC.setPosition(std::vector<double>{0.0});
+
+                    ::openPMD::Datatype datatype_y = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Extent extent_y = {static_cast<unsigned long int>(helper->getSizeY()), 1};
+                    ::openPMD::Dataset dataset_y = ::openPMD::Dataset(datatype_y, extent_y);
+                    yMRC.resetDataset(dataset_y);
+
+                    // Write actual data
+                    ::openPMD::Offset offset_y = {0};
+                    yMRC.storeChunk(ys, offset_y, extent_y);
+
+
+                    series.iterations[currentStep].close();
+                }
+
+                //! Write Fourier output to openPMD file
+                void writeFourierOutputToOpenPMDFile(uint32_t currentStep)
+                {
+                    std::stringstream filename;
+                    filename << m_help->optionFileName.get(m_id) << "_fourierdata_%T."
+                             << m_help->optionFileExtention.get(m_id);
+                    ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
+
+                    auto meshNeg = series.iterations[currentStep].meshes["Fourier Domain Fields - negative"];
+                    meshNeg.setGeometry(::openPMD::Mesh::Geometry::cartesian);
+                    meshNeg.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshNeg.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
+                    meshNeg.setGridGlobalOffset(
+                        std::vector<double>{static_cast<double>(helper->getOmegaIndex(0)), 0.0, 0.0});
+                    meshNeg.setGridUnitSI(1.0);
+                    meshNeg.setAxisLabels(std::vector<std::string>{
+                        "Spatial x index",
+                        "Spatial y index",
+                        "Fourier transform frequency index"});
+                    meshNeg.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                        {::openPMD::UnitDimension::L, 1.0},
+                        {::openPMD::UnitDimension::M, 1.0},
+                        {::openPMD::UnitDimension::T, -3.0},
+                        {::openPMD::UnitDimension::I, -1.0}});
+
+                    // Reshape abstract MeshRecordComponent
+                    ::openPMD::Datatype datatype = ::openPMD::determineDatatype<std::complex<float_64>>();
+                    ::openPMD::Extent extent
+                        = {static_cast<unsigned long int>(helper->getNumOmegas() / 2),
+                           static_cast<unsigned long int>(helper->getSizeY()),
+                           static_cast<unsigned long int>(helper->getSizeX())};
+                    ::openPMD::Offset offset = {0, 0, 0};
+
+                    // Go through all 8 different fields components
+                    for(int i = 0; i < 8; i += 2)
+                    {
+                        std::string dir = helper->dataLabelsFieldComponent(i);
+                        // Do not delete this object before dataPtr is not required anymore
+                        auto data = helper->getFourierBuf(i);
+                        auto sharedDataPtr
+                            = std::shared_ptr<std::complex<picongpu::float_64>>{data->data(), [](auto const*) {}};
+                        meshNeg[dir].setUnitSI(1.0);
+                        meshNeg[dir].setPosition(std::vector<double>{0.0, 0.0, 0.0});
+                        ::openPMD::Dataset dataset = ::openPMD::Dataset(datatype, extent);
+                        meshNeg[dir].resetDataset(dataset);
+                        meshNeg[dir].storeChunk(sharedDataPtr, offset, extent);
+                        series.flush();
+                    }
+
+                    auto meshPos = series.iterations[currentStep].meshes["Fourier Domain Fields - positive"];
+                    meshPos.setGeometry(::openPMD::Mesh::Geometry::cartesian);
+                    meshPos.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshPos.setGridSpacing(std::vector<double>{1.0, 1.0, 1.0});
+                    meshPos.setGridGlobalOffset(std::vector<double>{
+                        static_cast<double>(helper->getOmegaIndex(helper->getNumOmegas() / 2)),
+                        0.0,
+                        0.0});
+                    meshPos.setGridUnitSI(1.0);
+                    meshPos.setAxisLabels(std::vector<std::string>{
+                        "Spatial x index",
+                        "Spatial y index",
+                        "Fourier transform frequency index"});
+                    meshPos.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                        {::openPMD::UnitDimension::L, 1.0},
+                        {::openPMD::UnitDimension::M, 1.0},
+                        {::openPMD::UnitDimension::T, -3.0},
+                        {::openPMD::UnitDimension::I, -1.0}});
+                    for(int i = 1; i < 8; i += 2)
+                    {
+                        std::string dir = helper->dataLabelsFieldComponent(i);
+                        // do not delete this object before dataPtr is not required anymore
+                        auto data = helper->getFourierBuf(i);
+                        auto sharedDataPtr
+                            = std::shared_ptr<std::complex<picongpu::float_64>>{data->data(), [](auto const*) {}};
+                        meshPos[dir].setUnitSI(1.0);
+                        meshPos[dir].setPosition(std::vector<double>{0.0, 0.0, 0.0});
+                        ::openPMD::Dataset dataset = ::openPMD::Dataset(datatype, extent);
+                        meshPos[dir].resetDataset(dataset);
+                        meshPos[dir].storeChunk(sharedDataPtr, offset, extent);
+                        series.flush();
+                    }
+
+                    auto omegas = std::vector<float_X>(helper->getNumOmegas());
+                    for(int i = 0; i < helper->getNumOmegas(); ++i)
+                    {
+                        omegas[i] = helper->omega(helper->getOmegaIndex(i));
+                    }
+                    ::openPMD::Mesh meshOmega = series.iterations[currentStep].meshes["Fourier Transform Frequencies"];
+                    meshOmega.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    meshOmega.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshOmega.setGridSpacing(std::vector<double>{1.0});
+                    meshOmega.setGridGlobalOffset(std::vector<double>{0.0});
+                    meshOmega.setGridUnitSI(1.0);
+                    meshOmega.setAxisLabels(std::vector<std::string>{"Fourier transform frequency index"});
+                    meshOmega.setUnitDimension(
+                        std::map<::openPMD::UnitDimension, double>{{::openPMD::UnitDimension::T, -1.0}});
+                    ::openPMD::MeshRecordComponent omegaMRC = meshOmega["omegas"];
+                    omegaMRC.setPosition(std::vector<double>{0.0});
+
+                    ::openPMD::Datatype datatype_omega = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Extent extent_omega = {static_cast<unsigned long int>(helper->getNumOmegas()), 1, 1};
+                    ::openPMD::Dataset dataset_omega = ::openPMD::Dataset(datatype_omega, extent_omega);
+                    omegaMRC.resetDataset(dataset_omega);
+
+                    // Write actual data
+                    ::openPMD::Offset offset_omega = {0};
+                    omegaMRC.storeChunk(omegas, offset_omega, extent_omega);
+
+                    ::openPMD::Mesh spatialMesh = series.iterations[currentStep].meshes["Spatial positions"];
+                    spatialMesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    spatialMesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    spatialMesh.setGridSpacing(std::vector<double>{1.0});
+                    spatialMesh.setGridGlobalOffset(std::vector<double>{0.0});
+                    spatialMesh.setGridUnitSI(1.0);
+                    spatialMesh.setAxisLabels(std::vector<std::string>{"Spatial x index", "Spatial y index", "None"});
+                    spatialMesh.setUnitDimension(
+                        std::map<::openPMD::UnitDimension, double>{{::openPMD::UnitDimension::L, 1.0}});
+
+                    auto xs = std::vector<float_X>(helper->getSizeX());
+                    for(int i = 0; i < helper->getSizeX(); ++i)
+                    {
+                        xs[i] = helper->getX(i);
+                    }
+                    ::openPMD::MeshRecordComponent xMRC = spatialMesh["x"];
+                    xMRC.setPosition(std::vector<double>{0.0});
+                    ::openPMD::Datatype datatype_x = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Extent extent_x = {1, 1, static_cast<unsigned long int>(helper->getSizeX())};
+                    ::openPMD::Dataset dataset_x = ::openPMD::Dataset(datatype_x, extent_x);
+                    xMRC.resetDataset(dataset_x);
+
+                    // Write actual data
+                    ::openPMD::Offset offset_x = {0};
+                    xMRC.storeChunk(xs, offset_x, extent_x);
+
+
+                    auto ys = std::vector<float_X>(helper->getSizeY());
+                    for(int i = 0; i < helper->getSizeY(); ++i)
+                    {
+                        ys[i] = helper->getY(i);
+                    }
+
+                    ::openPMD::MeshRecordComponent yMRC = spatialMesh["y"];
+                    yMRC.setPosition(std::vector<double>{0.0});
+
+                    ::openPMD::Datatype datatype_y = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Extent extent_y = {1, static_cast<unsigned long int>(helper->getSizeY()), 1};
+                    ::openPMD::Dataset dataset_y = ::openPMD::Dataset(datatype_y, extent_y);
+                    yMRC.resetDataset(dataset_y);
+
+                    // Write actual data
+                    ::openPMD::Offset offset_y = {0};
+                    yMRC.storeChunk(ys, offset_y, extent_y);
+
+
+                    series.iterations[currentStep].close();
                 }
             };
 
