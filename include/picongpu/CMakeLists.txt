@@ -43,6 +43,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{FFTW3_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
@@ -458,6 +459,32 @@ endif()
 PIC_dependency_set_status(ISAAC ${ISAAC_FOUND})
 
 ################################################################################
+# Find FFTW3
+################################################################################
+
+PIC_dependency(FFTW3 "FFT library for shadowgraphy plugin" AUTO)
+
+if(PIC_SEARCH_FFTW3)
+    # look at https://stackoverflow.com/questions/44277114/how-to-use-fftw-library-in-cmake for the PkgConfig-things
+    # find PkgConfig installation for FFTW3
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(FFTW3 fftw3 IMPORTED_TARGET)
+        if(TARGET PkgConfig::FFTW3)
+            message(STATUS "Found FFTW3: ${FFTW3_LIBRARY_DIRS}")
+        else()
+            message(STATUS "Could NOT find FFTW3 - "
+                    "set FFTW3_Dir or check your CMAKE_PREFIX_PATH")
+        endif()
+    else(PkgConfig_FOUND)
+        message(STATUS "Could NOT find PkgConfig for fftw3- "
+                       "set Pkgconfig_DIR or check your CMAKE_PREFIX_PATH")
+    endif(PkgConfig_FOUND)
+endif(PIC_SEARCH_FFTW3)
+
+PIC_dependency_set_status(FFTW3 ${FFTW3_FOUND})
+
+################################################################################
 # PIConGPU Workarounds
 ################################################################################
 
@@ -523,6 +550,12 @@ alpaka_add_executable(picongpu
 
 target_link_libraries(picongpu PUBLIC ${LIBS} ${HOST_LIBS} picongpu-hostonly)
 target_link_libraries(picongpu PRIVATE pmacc::pmacc)
+
+#PIC_dependency(FFTW3 "FFT library for shadowgraphy plugin" AUTO)
+if(PIC_HAVE_FFTW3)
+    target_link_libraries(picongpu PRIVATE PkgConfig::FFTW3)
+    target_compile_definitions(picongpu PUBLIC "-DPIC_ENABLE_FFTW3=1")
+endif(PIC_HAVE_FFTW3)
 
 # Including <nlohmann/json.hpp> will throw loads of warnings. Quiet them.
 # (Doesn't work for nvcc??)

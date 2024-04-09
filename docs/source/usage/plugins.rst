@@ -20,6 +20,7 @@ Plugin name                                                                     
 :ref:`phase space <usage-plugins-phaseSpace>` [#f2]_ [#f5]_ [#f6]_                   calculate 2D phase space [Huebl2014]_
 :ref:`PNG <usage-plugins-PNG>` [#f6]_                                                pictures of 2D slices
 :ref:`radiation <usage-plugins-radiation>` [#f2]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
+:ref:`shadowgraphy <usage-plugins-shadowgraphy>` [#f6]_                              compute synthetic shadowgrams
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
 :ref:`sum currents <usage-plugins-sumCurrents>` [#f5]_                               compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-transitionRadiation>`                       compute emitted electromagnetic spectra
