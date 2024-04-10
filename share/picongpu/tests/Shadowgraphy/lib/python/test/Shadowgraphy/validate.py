@@ -66,8 +66,8 @@ def main(path):
 
     nx = 208
     ny = 208
-    dx = 40e-8
-    dy = 40e-8
+    dx_param = 40e-8
+    dy_param = 40e-8
 
     ########################################
     ########## Theoretical values ##########
@@ -83,8 +83,8 @@ def main(path):
     energy_theory = power * tau * np.sqrt(np.pi * 2)
 
     # Focus position
-    focus_x = nx * dx / 2
-    focus_y = ny * dy / 2
+    focus_x = nx * dx_param / 2
+    focus_y = ny * dy_param / 2
 
     # Bandwidth
     tau_fwhm_intensity = 2 * np.sqrt(2 * np.log(2)) * tau
@@ -100,27 +100,25 @@ def main(path):
     series = io.Series(path + "/shadowgraphy_" + "%T." + "bp5", io.Access.read_only)
     i = series.iterations[[i for i in series.iterations][0]]
 
-    chunkdata = i.meshes["shadowgram"][io.Mesh_Record_Component.SCALAR].load_chunk()
+    shadowgram = i.meshes["shadowgram"][io.Mesh_Record_Component.SCALAR].load_chunk()
     unit = i.meshes["shadowgram"].get_attribute("unitSI")
     series.flush()
 
-    shadowgram = chunkdata * unit
+    shadowgram *= unit
 
-    xspace_tmp = i.meshes["Spatial positions"]["x"].load_chunk()
+    xspace = i.meshes["Spatial positions"]["x"].load_chunk()
     xunit = i.meshes["Spatial positions"]["x"].get_attribute("unitSI")
     series.flush()
 
-    yspace_tmp = i.meshes["Spatial positions"]["y"].load_chunk()
+    yspace = i.meshes["Spatial positions"]["y"].load_chunk()
     yunit = i.meshes["Spatial positions"]["y"].get_attribute("unitSI")
     series.flush()
 
-    xspace = xspace_tmp * xunit
-    yspace = yspace_tmp * yunit
+    xspace *= xunit
+    yspace *= yunit
 
     dx = xspace[0, 1] - xspace[0, 0]
     dy = yspace[1, 0] - yspace[0, 0]
-
-    xm, ym = np.meshgrid(xspace, yspace)
 
     # Test energy in shadowgram
     energy_shadowgram = np.sum(shadowgram) * dx * dy
@@ -164,16 +162,16 @@ def main(path):
 
         fourier_field_raw = chunkdata * unit
 
-        xspace_tmp = i.meshes["Spatial positions"]["x"].load_chunk()
+        xspace = i.meshes["Spatial positions"]["x"].load_chunk()
         xunit = i.meshes["Spatial positions"]["x"].get_attribute("unitSI")
         series.flush()
 
-        yspace_tmp = i.meshes["Spatial positions"]["y"].load_chunk()
+        yspace = i.meshes["Spatial positions"]["y"].load_chunk()
         yunit = i.meshes["Spatial positions"]["y"].get_attribute("unitSI")
         series.flush()
 
-        xspace = xspace_tmp * xunit
-        yspace = yspace_tmp * yunit
+        xspace *= xunit
+        yspace *= yunit
 
         omegaspace_tmp = i.meshes["Fourier Transform Frequencies"]["omegas"].load_chunk()
         omegaunit = i.meshes["Fourier Transform Frequencies"]["omegas"].get_attribute("unitSI")

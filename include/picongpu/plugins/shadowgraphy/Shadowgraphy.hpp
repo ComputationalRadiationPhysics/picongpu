@@ -503,7 +503,7 @@ namespace picongpu
                            static_cast<unsigned long int>(helper->getSizeX())};
                     ::openPMD::Offset offset = {0, 0, 0};
 
-                    // Go through all 8 different fields components
+                    // Go through all 8 different fields components: +Ex, -Ex, +Ey, -Ey, +Bx, -Bx, +By, -By
                     for(int i = 0; i < 8; i += 2)
                     {
                         std::string dir = helper->dataLabelsFieldComponent(i);

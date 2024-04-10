@@ -7,7 +7,7 @@ Computes a 2D image by time-integrating the Poynting-Vectors in a fixed plane in
 This can be used to extract a laser from an simulation, which obtains the full laser-plasma interactions through the PIC code.
 If the probe laser propagates through plasma structures, the plasma structures lead to modulations in the probe laser's intensity, resulting in a synthetic shadowgram of the plasma structures.
 The plugin performs the time-integration of the probe laser and the application of various masks on the probe pulse in Fourier space.
-Thus, one needs to manually add the probe pulse to the simulation with e.g. the [incident field] param files.
+Thus, one needs to manually add the probe pulse to the simulation with e.g. the :ref:`incident field <usage/param/core:incidentField.param>` param files.
 Since the plugin currently only works in the xy-plane, the probe pulse should propagate in z direction.
 The integration plane for the plugin must lie within the simulation volume and the position of the field absorber should be considered when placing the plugin plane.
 
@@ -37,6 +37,19 @@ Command line option                       Description
 .. note::
    Currently the plugin only supports an integration slice in the xy-plane, which means that for probing setups the probe pulse should propagate in z direction.
    The moving window can't be activated or deactivated during the plugin integration loop.
+
+========================================= ==============================================================================================================================
+Reqired param file options                Description
+========================================= ==============================================================================================================================
+``tRes``                                  Use the fields at each tRes'th time-step of simulation
+``xRes``                                  Use each xRes'th field value in x direction
+``yRes``                                  Use each yRes'th field value in y direction
+``omegaWfMin``                            Minimum non-zero value for abs(omega)
+``omegaWfMax``                            Maximum non-zero value for abs(omega)
+``masks::positionWf``                     Mask that is multiplied to E and B field when gathering the slice
+``masks::timeWf``                         Mask that is multiplied to E and B field during the time integration
+``masks::maskFourier``                    Mask that is multiplied to E and B field in Fourier domain
+========================================= ==============================================================================================================================
 
 
 Output
@@ -76,7 +89,7 @@ Plot the first shadowgram that is stored in the simulation output directory ``si
       return np.meshgrid(xspace, yspace)
 
 
-   path = "/home/carste06/SCRATCH/runs/2024_ShadowgraphyDev/movingwindow11/simOutput"
+   path = "PATH/TO/simOutput"
 
    series = io.Series(path + "/shadowgraphy_" + "%T." + "bp5", io.Access.read_only)
    shadowgram = load_shadowgram(series)
@@ -90,7 +103,7 @@ Plot the first shadowgram that is stored in the simulation output directory ``si
 
 Shadowgram Size and Moving Window
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The size of the pixels is the size of the cells in the simulation divided by the resolution in the plugin ``CELL_WIDTH_SI / shadowgraphy::params::xRes`` and ``CELL_HEIGHT_SI / shadowgraphy::params::yRes``.
+The size of the pixels is the size of the cells in the simulation divided by the resolution in the plugin ``CELL_WIDTH_SI * shadowgraphy::params::xRes`` and ``CELL_HEIGHT_SI * shadowgraphy::params::yRes``.
 The shadowgram itself does not include cells that lie outside of the field absorber in both x and y direction.
 When the moving window is activated, the resulting shadowgram is smaller in moving window propagation direction ``y``. 
 The size difference is equal to the speed of light times the time it would take for light to propagate from the ``-z`` border of the simulation box to the plugin integration plane plus the integration duration.

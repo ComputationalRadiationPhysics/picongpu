@@ -1,24 +1,27 @@
+/* Copyright 2023 Finn-Ole Carstens
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-//#include "picongpu/include/picongpu/param/grid.param"
-
-
-#ifndef PARAM_TRES
-#    define PARAM_TRES 4
-#endif
-#ifndef PARAM_BANDWIDTH
-#    define PARAM_BANDWIDTH 400
-#endif
-#ifndef PARAM_XRES
-#    define PARAM_XRES 4
-#endif
-#ifndef PARAM_NA
-#    define PARAM_NA 0.3
-#endif
 
 namespace picongpu
 {
@@ -42,7 +45,7 @@ namespace picongpu
                  *  if tWfBuffer != 0. The sinusoidal slopes have a duration of tWfBuffer / tRes in PIConGPU
                  *  timesteps.
                  */
-                constexpr unsigned int tRes = PARAM_TRES;
+                constexpr unsigned int tRes = 4;
                 constexpr unsigned int tWfBuffer = 0;
 
                 /** position domain parameters
@@ -55,8 +58,8 @@ namespace picongpu
                  *  applied if posWfSizeY
                  * != 0. The slope length is posWfSizeY. cells.
                  */
-                constexpr unsigned int xRes = PARAM_XRES;
-                constexpr unsigned int yRes = PARAM_XRES;
+                constexpr unsigned int xRes = 4;
+                constexpr unsigned int yRes = 4;
 
                 constexpr unsigned int posWfSize = 12;
 
@@ -74,12 +77,12 @@ namespace picongpu
                  * omegaWfMin : Sinusoidal slopes from omegaWfMin to omegaMin, set to 0 if not required
                  * omegaWfMax : Sinusoidal slopes from omegaMax to omegaWfMax, set to 0 if not required
                  */
-                constexpr float numericalAperture = PARAM_NA;
+                constexpr float numericalAperture = 0.3;
                 constexpr float numericalApertureWfSize = 0.1;
 
                 constexpr float centralLambda = 800e-9;
                 constexpr float centralOmega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / centralLambda;
-                constexpr float dLambda = PARAM_BANDWIDTH * 1e-9;
+                constexpr float dLambda = 400 * 1e-9;
                 constexpr float dLambdaWf = 20e-9;
 
                 constexpr float omegaMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda);
@@ -243,11 +246,6 @@ namespace picongpu
                     return frequencyFilter(omega) * numericalAperture(kx, ky, omega);
                 }
             } // namespace masks
-            // The amount of cells to remove from each (!) side of the simulation box
-            // This is necessary to remove the boundary artifacts from the PIConGPU simulation
-            // constexpr unsigned int x_gap = 16;
-            // constexpr unsigned int y_gap = 16;
-
         } // namespace shadowgraphy
     } // namespace plugins
 } // namespace picongpu

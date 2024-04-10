@@ -1,5 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Sergei Bastrakov
+/* Copyright 2013-2023 Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -17,12 +16,11 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
+/** @file This file is included for clarity and better usability.
+ * There are no particles in the simulation
+ *
+ */
 #pragma once
-
-#include "picongpu/particles/densityProfiles/profiles.def"
-/* preprocessor struct generator */
-
 
 namespace picongpu
 {

@@ -433,7 +433,7 @@ namespace picongpu
 
                             fftw_execute(planBackward);
 
-                            // Yoink fields from fftw array
+                            // Get fields from fftw array
                             for(int i = 0; i < pluginNumX; ++i)
                             {
                                 for(int j = 0; j < pluginNumY; ++j)
@@ -522,8 +522,9 @@ namespace picongpu
                  */
                 auto getFourierBuf(int index)
                 {
+                    const int nOmegasHalf = numOmegas / 2;
                     auto retBufferF = std::make_shared<HostBuffer<std::complex<float_64>, DIM3>>(
-                        DataSpace<DIM3>(getSizeX(), getSizeY(), getNumOmegas() / 2));
+                        DataSpace<DIM3>(getSizeX(), getSizeY(), nOmegasHalf));
                     auto dataBox = retBufferF->getDataBox();
 
                     // The fields are split into 2 parts in the output, because the omega-domain
@@ -542,9 +543,9 @@ namespace picongpu
                     {
                         for(int j = 0; j < getSizeY(); ++j)
                         {
-                            for(int o = 0; o < getNumOmegas() / 2; ++o)
+                            for(int o = 0; o < nOmegasHalf; ++o)
                             {
-                                int const oSigned = ((index % 2) == 0) ? o : o + getNumOmegas() / 2;
+                                int const oSigned = ((index % 2) == 0) ? o : o + nOmegasHalf;
                                 dataBox({i, j, o}) = static_cast<std::complex<float_64>>((*retField)[i][j][oSigned]);
                             }
                         }
@@ -586,13 +587,14 @@ namespace picongpu
                  */
                 int getOmegaIndex(int i) const
                 {
-                    if(i < numOmegas / 2)
+                    const int nOmegasHalf = numOmegas / 2;
+                    if(i < nOmegasHalf)
                     {
-                        return duration / params::tRes - getOmegaMinIndex() - numOmegas / 2 + i + 1;
+                        return duration / params::tRes - getOmegaMinIndex() - nOmegasHalf + i + 1;
                     }
                     else
                     {
-                        return (i % (numOmegas / 2)) + getOmegaMinIndex();
+                        return (i % (nOmegasHalf)) + getOmegaMinIndex();
                     }
                 }
 

@@ -257,6 +257,8 @@ FFTW3
   - ``mkdir -p ~/src ~/lib``
   - ``cd ~/src``
   - ``wget -O fftw-3.3.10.tar.gz http://fftw.org/fftw-3.3.10.tar.gz``
+  - ``tar -xf fftw-3.3.10.tar.gz``
+  - ``cd fftw-3.3.10``
   - ``./configure --prefix="$FFTW_ROOT"``
   - ``make``
   - ``make install``

@@ -20,7 +20,7 @@ Plugin name                                                                     
 :ref:`phase space <usage-plugins-phaseSpace>` [#f2]_ [#f5]_ [#f6]_                   calculate 2D phase space [Huebl2014]_
 :ref:`PNG <usage-plugins-PNG>` [#f6]_                                                pictures of 2D slices
 :ref:`radiation <usage-plugins-radiation>` [#f2]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
-:ref:`shadowgraphy <usage-plugins-shadowgraphy>` [#f6]_                              compute synthetic shadowgrams
+:ref:`shadowgraphy <usage-plugins-shadowgraphy>` [#f6]_                              compute synthetic shadowgrams [Carstens2022]_
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
 :ref:`sum currents <usage-plugins-sumCurrents>` [#f5]_                               compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-transitionRadiation>`                       compute emitted electromagnetic spectra
@@ -125,3 +125,9 @@ If you would like to help in developing those classes for a plugin of your choic
         *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles*,
         Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 909, pp. 419-422 (2018)
         `arXiv:1802.03972 <https://arxiv.org/abs/1802.03972>`_, `DOI:10.1016/j.nima.2018.02.020 <https://doi.org/10.1016/j.nima.2018.02.020>`_
+
+.. [Carstens2022]
+        F.-O. Carstens,
+        *Synthetic few-cycle shadowgraphy diagnostics in particle-in-cell codes for characterizing laser-plasma accelerators*
+        Master Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2022)
+        `DOI:10.5281/zenodo.7755263<https://doi.org/10.5281/zenodo.7755263>`_
