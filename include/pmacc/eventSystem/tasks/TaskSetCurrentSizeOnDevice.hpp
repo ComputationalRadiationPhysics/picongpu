@@ -73,7 +73,7 @@ namespace pmacc
     private:
         void setSize()
         {
-            auto sizeBuff = destination->getCurrentSizeOnDeviceBuffer();
+            auto sizeBuff = destination->sizeOnDeviceBuffer();
 
             auto alpakaAllOne = DataSpace<DIM1>(1).toAlpakaKernelVec();
             auto oneThread

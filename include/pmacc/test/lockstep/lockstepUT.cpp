@@ -77,7 +77,7 @@ struct IotaGenericKernel
 template<uint32_t T_chunkSize, typename T_DeviceBuffer>
 inline void iotaGerneric(T_DeviceBuffer& devBuffer)
 {
-    auto bufferSize = devBuffer.getCurrentSize();
+    auto bufferSize = devBuffer.size();
     // use only half of the blocks needed to process the full data
     uint32_t const numBlocks = bufferSize / T_chunkSize / 2u;
     PMACC_LOCKSTEP_KERNEL(IotaGenericKernel{}).config<T_chunkSize>(numBlocks)(devBuffer.getDataBox(), bufferSize);
@@ -98,7 +98,7 @@ namespace pmacc::lockstep::traits
 template<typename T_DeviceBuffer>
 inline void iotaGernericBufferDerivedChunksize(T_DeviceBuffer& devBuffer)
 {
-    auto bufferSize = devBuffer.getCurrentSize();
+    auto bufferSize = devBuffer.size();
     constexpr uint32_t numBlocks = 9;
     PMACC_LOCKSTEP_KERNEL(IotaGenericKernel{}).config(numBlocks, devBuffer)(devBuffer.getDataBox(), bufferSize);
 }
@@ -139,7 +139,7 @@ struct IotaFixedChunkSizeKernel
 template<typename T_DeviceBuffer>
 inline void iotaFixedChunkSize(T_DeviceBuffer& devBuffer)
 {
-    auto bufferSize = devBuffer.getCurrentSize();
+    auto bufferSize = devBuffer.size();
     constexpr uint32_t numBlocks = 10;
     PMACC_LOCKSTEP_KERNEL(IotaFixedChunkSizeKernel{}).config(numBlocks)(devBuffer.getDataBox(), bufferSize);
 }
@@ -182,7 +182,7 @@ struct IotaFixedChunkSizeKernelND
 template<typename T_DeviceBuffer>
 inline void iotaFixedChunkSizeND(T_DeviceBuffer& devBuffer)
 {
-    auto bufferSize = devBuffer.getCurrentSize();
+    auto bufferSize = devBuffer.size();
     constexpr uint32_t numBlocks = 11;
     PMACC_LOCKSTEP_KERNEL(IotaFixedChunkSizeKernelND{}).config(numBlocks)(devBuffer.getDataBox(), bufferSize);
 }
@@ -223,7 +223,7 @@ struct IotaGenericKernelWithDynSharedMem
 template<uint32_t T_chunkSize, typename T_DeviceBuffer>
 inline void iotaGernericWithDynSharedMem(T_DeviceBuffer& devBuffer)
 {
-    auto bufferSize = devBuffer.getCurrentSize();
+    auto bufferSize = devBuffer.size();
     // use only half of the blocks needed to process the full data
     uint32_t const numBlocks = bufferSize / T_chunkSize / 2u;
     constexpr size_t requiredSharedMemBytes = T_chunkSize * sizeof(uint32_t);
@@ -235,10 +235,10 @@ inline void iotaGernericWithDynSharedMem(T_DeviceBuffer& devBuffer)
 template<typename T_HostBuffer>
 void validate(T_HostBuffer& results, T_HostBuffer& reference)
 {
-    auto refBufferSize = reference.getCurrentSize();
+    auto refBufferSize = reference.size();
     auto* refPtr = reference.data();
 
-    auto resultBufferSize = results.getCurrentSize();
+    auto resultBufferSize = results.size();
     auto* resultPtr = results.data();
 
     PMACC_VERIFY(resultBufferSize == refBufferSize);

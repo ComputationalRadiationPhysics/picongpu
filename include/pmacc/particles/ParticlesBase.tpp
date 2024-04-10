@@ -65,7 +65,7 @@ namespace pmacc
         {
             ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-            particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
+            particlesBuffer->getSendExchangeStack(exchangeType).setSize(0);
 
             PMACC_LOCKSTEP_KERNEL(KernelCopyGuardToExchange{})
                 .config(mapper.getGridDim(), *particlesBuffer)(
