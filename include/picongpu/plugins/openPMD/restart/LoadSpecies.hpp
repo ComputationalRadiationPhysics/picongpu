@@ -137,7 +137,7 @@ namespace picongpu
                 FrameType mappedFrame;
 
                 /*malloc mapped memory*/
-                meta::ForEach<typename NewParticleDescription::ValueTypeSeq, MallocHostMemory<boost::mpl::_1>>
+                meta::ForEach<typename NewParticleDescription::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>>
                     mallocMem;
                 mallocMem(buffers, mappedFrame, totalNumParticles);
 
