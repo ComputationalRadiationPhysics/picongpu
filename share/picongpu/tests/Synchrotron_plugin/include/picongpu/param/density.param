@@ -1,0 +1,79 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+#ifndef PARAM_BASE_DENSITY_SI
+#    define PARAM_BASE_DENSITY_SI 1.e25
+#endif
+        constexpr float_64 BASE_DENSITY_SI = PARAM_BASE_DENSITY_SI;
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        using Homogenous = HomogenousImpl;
+        struct GaussianCloudParam
+        {
+            /** Profile Formula:
+             *     exponent = |globalCellPos - center| / sigma
+             *     density = e^[ gasFactor * exponent^gasPower ]
+             */
+            static constexpr float_X gasFactor = -0.5;
+            static constexpr float_X gasPower = 2.0;
+
+            /** height of vacuum area on top border
+             *
+             * this vacuum is important because of the laser initialization,
+             * which is done in the first cells of the simulation and
+             * assumes a charge-free volume
+             * unit: cells
+             */
+            static constexpr uint32_t vacuumCellsY = 0;
+
+            /** The central position of the gas distribution
+             *  unit: meter
+             */
+            static constexpr floatD_64 center_SI
+                = float3_64(24 / 2 * 0.1772e-6, 24 / 2 * 0.1772e-6, 24 / 2 * 0.1772e-6).shrink<simDim>();
+
+            /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+             *  unit: meter */
+            static constexpr floatD_64 sigma_SI = float3_64(0.1772e-4, 0.1772e-4, 0.1772e-4).shrink<simDim>();
+        };
+
+        /* definition of cloud profile */
+        using GaussianCloud = GaussianCloudImpl<GaussianCloudParam>;
+
+    } // namespace densityProfiles
+} // namespace picongpu

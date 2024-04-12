@@ -1,0 +1,126 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
+#pragma once
+
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+
+#include <pmacc/math/operation.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            /** Define Lorentz factor of initial particle drift. */
+            struct DriftParamNegative
+            {
+                static constexpr float_64 gamma = 1000;
+                /** Define initial particle drift direction vector.
+                 */
+                static constexpr auto driftDirection = float3_X(0.0, -1.0, 0.0);
+            };
+            /** Definition of manipulator that assigns a drift in X
+             *  using parameters from struct DriftParam.
+             */
+            using AssignYDriftNegative = unary::Drift<DriftParamNegative, pmacc::math::operation::Assign>;
+
+            /** call simple free user defined manipulators
+             *
+             * @tparam T_Functor user defined manipulators
+             *                   **optional**: can implement **one** host side constructor
+             *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+             *
+             * example for `particle.param`: set in cell position to zero
+             *   @code{.cpp}
+
+             *   @endcode
+             */
+            // template<typename T_Functor>
+            // struct Free;
+
+            struct FunctorPhotonMomentum
+            {
+                template<typename T_Particle>
+                HDINLINE void operator()(T_Particle& particle)
+                {
+                    if(particle[weighting_])
+                        particle[momentum_] = floatD_X::create(1) / particle[weighting_];
+                    //    particle[ momentum_ ].x() = float_X(1);
+                }
+                static constexpr char const* name = "FunctorPhotonMomentum";
+            };
+
+            using PhotonMomentum = generic::Free<FunctorPhotonMomentum>;
+        } // namespace manipulators
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *
+         *  unit: none */
+        constexpr float_X MIN_WEIGHTING = 1.0;
+
+        namespace startPosition
+        {
+            /** Define target number for marco-particles per cell
+             * to be used in Random start position functor.
+             */
+            struct RandomParameter
+            {
+                /** Maximum number of macro-particles per cell during density profile evaluation.
+                 *
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 40u;
+            };
+            /** Definition of start position functor that randomly distributes macro-particles within a cell. */
+
+            using Random = RandomImpl<RandomParameter>;
+
+        } // namespace startPosition
+
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
+
+        namespace manipulators
+        {
+            //! Definition of manipulator that sets boundElectrons attribute to neutral value
+            using SetBoundElectrons = unary::ChargeState<0u>;
+
+        } // namespace manipulators
+    } // namespace particles
+} // namespace picongpu
