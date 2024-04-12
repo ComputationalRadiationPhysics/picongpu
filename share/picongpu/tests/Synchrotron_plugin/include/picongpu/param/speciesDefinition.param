@@ -81,7 +81,7 @@ namespace picongpu
         massRatio<MassRatioElectrons>,
         chargeRatio<ChargeRatioElectrons>,
 
-        Synchrotron<PIC_Photons>>;
+        synchrotron<PIC_Photons>>;
 
     /* define species: electrons */
     using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;

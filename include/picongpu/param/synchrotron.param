@@ -1,0 +1,81 @@
+/* Copyright 2014-2024 Filip Optolowicz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ * This file contains parameters for synchrotron extension
+ */
+
+#pragma once
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace synchrotron
+        {
+            ///@todo remove
+            constexpr bool T_Debug = false;
+            // Carefull -> prints out a lot of stuff. Bigger simulations will produce massive outputs
+
+
+            ///@todo printf(
+            // "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
+            // "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
+            // "checkSynchrotronRequirements.py\n");
+
+            // picongpu::particles::synchrotron::params::
+            namespace params
+            {
+                /// Turn off or turn on the electron recoil from electrons generated.
+                constexpr bool ElectronRecoil = true;
+                /// @todo bool for turning on or off the photon generation
+
+                // energy HiPass filter: accept only photons with energy higher than this value
+                // in PIC units: use HBAR, DELTA_T etc. from /picongpu/include/picongpu/unitless/*.unitless
+                constexpr float_64 minEnergy = HBAR / DELTA_T;
+
+                struct FirstSynchrotronFunctionParams // Parameters how to compute first synhrotron function
+                {
+                    static constexpr float_64 logEnd = 7; //! log2(100.0), arbitrary cutoff, for 2nd kind cyclic
+                                                          //! bessel function -> function close enough to zero
+                    static constexpr uint32_t numberSamplePoints = 8096u; // number of sample points to use in
+                                                                          // integration in firstSynchrotronFunction
+                };
+
+                struct InterpolationParams // parameters of precomputation of interpolation table -> the table
+                                           // "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
+                {
+                    static constexpr uint64_t numberTableEntries = 512; // number of synchrotron function values
+                                                                        // to precompute and store in table
+                    static constexpr float_64 minZqExponent = -50; // in log2 cutoff energy
+                    static constexpr float_64 maxZqExponent = 10; // in log2 don't change. or change. but don't change.
+                };
+
+                constexpr bool supressRequirementWarning = false;
+                // if true, the warning for the requirement 1 and 2 is suppressed
+                // maby speeds the simulationa little bit because there is no call to global memory
+                //
+                // this warning means that the propability of generating a photon is high for given dt (higher
+                /// than 10%) this means that we generate photons possibly every timestep (numerical artefacts)
+                // and the radiation is underestimeted. The timestep should be reduced.
+
+            } // namespace params
+        } // namespace synchrotron
+    } // namespace particles
+} // namespace picongpu

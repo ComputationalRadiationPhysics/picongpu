@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "picongpu/param/synchrotron.param"
+
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 
@@ -38,6 +40,7 @@
  * and modifies two existing files:
  *      - Simulation.hpp:               Registers the SynchrotronRadiation stage
  *      - ParticleFunctors.hpp:         Chooses which particles are affected by SynchrotronRadiation
+ *                                      (which species have "synchrotron" alias assigned in speciesAttributes.param)
  *
  * The call structure goes like this:
  *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParicleFunctors.hpp -> AlgortihmSynchrotron.hpp
@@ -159,18 +162,16 @@ namespace picongpu::simulation::stage
          */
         SynchrotronRadiation(MappingDesc const cellDescription) : cellDescription(cellDescription)
         {
-            using namespace picongpu::particles::synchrotron::params; // for "InterpolationParams" struct and
-                                                                      // "Accessor" enum and "u32" function
+            using namespace picongpu::particles::synchrotron::params; // for "InterpolationParams" struct
             auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
             auto grid_layout = GridLayout<2>{data_space};
 
             // capture the space for table and variables
             tableValuesF1F2 = std::make_shared<GridBuffer<float_X, 2>>(grid_layout);
-            failedRequirementQ = std::make_shared<GridBuffer<bool, 1>>(DataSpace<1>{1});
-            failedRequirementPrinted = std::make_shared<GridBuffer<bool, 1>>(DataSpace<1>{1});
+            failedRequirementQ = std::make_shared<GridBuffer<int32_t, 1>>(DataSpace<1>{1});
             // set the values of variables to false
             failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
-            failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
+            failedRequirementPrinted = false;
 
             constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
             constexpr float_64 maxZqExp = InterpolationParams::maxZqExponent;
@@ -195,7 +196,6 @@ namespace picongpu::simulation::stage
 
             tableValuesF1F2->hostToDevice();
             failedRequirementQ->hostToDevice();
-            failedRequirementPrinted->hostToDevice();
 
             //! debug only, print F1 and F2, @todo remove
             if constexpr(picongpu::particles::synchrotron::T_Debug)
@@ -228,10 +228,10 @@ namespace picongpu::simulation::stage
          *
          * @param step index of time iteration
          */
-        void operator()(uint32_t const step) const
+        void operator()(uint32_t const step)
         {
             using pmacc::particles::traits::FilterByFlag;
-            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, Synchrotron<>>::type;
+            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
             pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
                 synchrotronRadiation;
             synchrotronRadiation(
@@ -247,17 +247,18 @@ namespace picongpu::simulation::stage
             {
                 if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}))
                 {
-                    if((failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0})) == false)
+                    if((failedRequirementPrinted) == false)
                     {
                         printf(
                             "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
                             "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
                             "synchrotron.params\n");
                         printf("This warning is printed only once per simulation. Next warnings are dots.\n");
-                        failedRequirementPrinted->getHostBuffer().getDataBox()(DataSpace<1>{0}) = true;
+                        failedRequirementPrinted = true;
                     }
                     printf(".");
-                    failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
+                    failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0})
+                        = static_cast<int32_t>(false); // reset the requirement flag
                     failedRequirementQ->hostToDevice();
                 }
             }
@@ -266,11 +267,28 @@ namespace picongpu::simulation::stage
     private:
         //! Mapping for kernels
         MappingDesc cellDescription;
+
+        /// <CACHE F1F2>
         // precomputed first and second synchrotron functions:
         // -> 2d grid of floats_64 -> tableValuesF1F2[zq][0/1] ; 0/1 = F1/F2
         std::shared_ptr<GridBuffer<float_X, 2>> tableValuesF1F2;
-        // flag to check if the requirements 1 and 2 are met
-        std::shared_ptr<GridBuffer<bool, 1>> failedRequirementQ;
-        std::shared_ptr<GridBuffer<bool, 1>> failedRequirementPrinted; // this doesn't need to be sheared.
+        // used for table access
+        enum struct Accessor : uint32_t
+        {
+            f1 = 0u,
+            f2 = 1u
+        };
+        static constexpr uint32_t u32(Accessor const t)
+        {
+            return static_cast<uint32_t>(t);
+        }
+        /// <END CACHE F1F2>
+
+        // flag to check if the requirements 1 and 2 are met -> in
+        // picongpu/include/picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp <- in class SynchrotronIdea(); we
+        // check the requirements
+        std::shared_ptr<GridBuffer<int32_t, 1>> failedRequirementQ;
+        bool failedRequirementPrinted; // this means that the operator() can't be const anymore
+                                       //@idea: maby using shared pointer for this will be faster?
     };
 } // namespace picongpu::simulation::stage

@@ -148,8 +148,8 @@ namespace picongpu
     //! alias for particle ionizers, see also ionizer.param
     alias(ionizers);
 
-    //! alias for particle Synchrotron, see also Synchrotron.param
-    alias(Synchrotron);
+    //! alias for particle that emmits synchrotron radiation, see also synchrotron.param
+    alias(synchrotron);
 
     //! alias for ionization energy container, see also ionizationEnergies.param
     alias(ionizationEnergies);

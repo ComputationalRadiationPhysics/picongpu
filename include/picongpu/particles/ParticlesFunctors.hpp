@@ -352,7 +352,8 @@ namespace picongpu
             using FrameType = typename SpeciesType::FrameType;
 
             // the following line only fetches the alias
-            using FoundSynchrotronAlias = typename pmacc::traits::GetFlagType<FrameType, Synchrotron<>>::type;
+            using FoundSynchrotronAlias =
+                typename pmacc::traits::GetFlagType<FrameType, picongpu::synchrotron<>>::type;
 
             // this now resolves the alias into the actual object type, a list of photons
             using DestinationSpecies = typename pmacc::traits::Resolve<FoundSynchrotronAlias>::type;
@@ -370,7 +371,7 @@ namespace picongpu
                 T_CellDescription cellDesc,
                 const uint32_t currentStep,
                 GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
-                std::shared_ptr<GridBuffer<bool, 1>> failedRequirementQ) const
+                std::shared_ptr<GridBuffer<int32_t, 1>> failedRequirementQ) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
 

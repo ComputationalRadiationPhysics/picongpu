@@ -27,29 +27,10 @@ namespace picongpu
 {
     namespace particles
     {
-        namespace Synchrotron
+        namespace synchrotron
         {
-            /** Barrier Suppression Synchrotron - Implementation
-             *
-             * @tparam T_DestSpecies electron species to be created
-             * @tparam T_SynchrotronCurrent select type of Synchrotron current (None or EnergyConservation)
-             * @tparam T_SrcSpecies particle species that is ionized
-             *         default is boost::mpl placeholder because specialization
-             *         cannot be known in list of particle species' flags
-             *         @see speciesDefinition.param
-             */
-            template<typename T_SynchrotronAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = boost::mpl::_1>
-            struct Synchrotron_Impl;
+            ///@todo this
 
-
-            template<typename T_DestSpecies, typename T_SynchrotronCurrent = current::None>
-            struct Synchrotron
-            {
-                using SynchrotronAlgorithm = particles::Synchrotron::AlgorithmSynchrotron;
-                using type = Synchrotron_Impl<SynchrotronAlgorithm, T_DestSpecies, T_SynchrotronCurrent>;
-            };
-
-
-        } // namespace Synchrotron
+        } // namespace synchrotron
     } // namespace particles
 } // namespace picongpu
