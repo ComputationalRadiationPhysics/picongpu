@@ -33,6 +33,7 @@ module load c-blosc/1.21.4
 module load adios2/2.9.2-cuda121
 module load openpmd/0.15.2-cuda121
 module load cmake/3.26.1
+module load fftw/3.3.10-ompi415-cuda121-gdr
 
 module load libpng/1.6.39
 module load pngwriter/0.7.0

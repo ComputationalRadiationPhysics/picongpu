@@ -61,10 +61,10 @@ namespace picongpu
                 constexpr unsigned int xRes = 4;
                 constexpr unsigned int yRes = 4;
 
-                constexpr unsigned int posWfSize = 12;
+                constexpr int posWfSize = 12;
 
-                constexpr unsigned int posWfSizeX = posWfSize / xRes;
-                constexpr unsigned int posWfSizeY = posWfSize / yRes;
+                constexpr int posWfSizeX = posWfSize / xRes;
+                constexpr int posWfSizeY = posWfSize / yRes;
 
                 /** Fourier space parameters
                  *
