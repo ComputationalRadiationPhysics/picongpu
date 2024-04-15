@@ -22,9 +22,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-//#include "picongpu/include/picongpu/param/grid.param"
-
 namespace picongpu
 {
     namespace plugins
@@ -68,20 +65,21 @@ namespace picongpu
                 constexpr int posWfSizeX = posWfSize / xRes;
                 constexpr int posWfSizeY = posWfSize / yRes;
 
-                /** Fourier space parameters
+                /** Numerical Aperture
                  *
                  * numericalAperture : size of the numerical aperture to remove side-scattered light
                  * numericalApertureWfSize : Sinusoidal slopes over NA * k < k_perp < (NA * k + NA * k_probe)
                  *  in the numerical aperture
-                 *
+                 */
+                constexpr float numericalAperture = 0.23;
+                constexpr float numericalApertureWfSize = 0.5;
+
+                /** Band Pass Filter
                  * omegaMin : Smallest frequency for plateau value in band-pass filter
                  * omegaMax : Largest frequency for plateau value in band-pass filter
                  * omegaWfMin : Sinusoidal slopes from omegaWfMin to omegaMin, set to 0 if not required
                  * omegaWfMax : Sinusoidal slopes from omegaMax to omegaWfMax, set to 0 if not required
                  */
-                constexpr float numericalAperture = 0.23;
-                constexpr float numericalApertureWfSize = 0.5;
-
                 constexpr float centralLambda = 750e-9;
                 constexpr float centralOmega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / centralLambda;
                 constexpr float dLambda = 20e-9;
@@ -105,7 +103,7 @@ namespace picongpu
                  * @param j cell index in y direction
                  * @param pluginNumX amount of cells in x direction for resulting shadowgram
                  * @param pluginNumY amount of cells in y direction for resulting shadowgram
-                 * @return value between 0.0 and 1.0
+                 * @return value in the range [0.0, 1.0]
                  */
                 HINLINE float_64 positionWf(int i, int j, int pluginNumX, int pluginNumY)
                 {
@@ -146,7 +144,7 @@ namespace picongpu
                  *
                  * @param t timestep from 0 to simNumT
                  * @param simNumT amount of total time steps for time integration from plugin
-                 * @return value between 0.0 and 1.0
+                 * @return value in the range [0.0, 1.0]
                  */
                 HINLINE float_64 timeWf(int t, int simNumT)
                 {
@@ -175,7 +173,7 @@ namespace picongpu
                  * ringing artifacts before the inverse DFT back to time domain.
                  *
                  * @param omeganonabs frequency in SI units
-                 * @return value between 0.0 and 1.0
+                 * @return value in the range [0.0, 1.0]
                  */
                 HINLINE float_64 frequencyFilter(float_64 omeganonabs)
                 {
@@ -210,7 +208,7 @@ namespace picongpu
                  * @param kx perpendicular k vector component in SI units
                  * @param ky perpendicular k vector component in SI units
                  * @param omega frequency in SI units
-                 * @return value between 0.0 and 1.0
+                 * @return value in the range [0.0, 1.0]
                  */
                 HINLINE float_64 numericalAperture(float_64 kx, float_64 ky, float_64 omega)
                 {
@@ -241,7 +239,7 @@ namespace picongpu
                  * @param kx perpendicular k vector component in SI units
                  * @param ky perpendicular k vector component in SI units
                  * @param omega frequency in SI units
-                 * @return value between 0.0 and 1.0
+                 * @return value in the range [0.0, 1.0]
                  */
                 HINLINE float_64 maskFourier(float_64 kx, float_64 ky, float_64 omega)
                 {
