@@ -77,7 +77,7 @@ namespace pmacc
          *
          * @return the associated alpaka queue
          */
-        AccStream getCudaStream();
+        ComputeQueue getCudaStream();
 
 
     protected:

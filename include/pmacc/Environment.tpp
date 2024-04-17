@@ -323,7 +323,7 @@ namespace pmacc
                      */
                     try
                     {
-                        auto testStream = AccStream(manager::Device<ComputeDevice>::get().current());
+                        auto testStream = ComputeQueue(manager::Device<ComputeDevice>::get().current());
                     }
                     catch(const std::system_error& e)
                     {

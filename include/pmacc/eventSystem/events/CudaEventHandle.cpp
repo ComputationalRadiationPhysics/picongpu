@@ -55,7 +55,7 @@ namespace pmacc
         event = nullptr;
     }
 
-    AlpakaEventType CudaEventHandle::operator*() const
+    ComputeEvent CudaEventHandle::operator*() const
     {
         assert(event);
         return **event;
@@ -67,13 +67,13 @@ namespace pmacc
         return event->isFinished();
     }
 
-    AccStream CudaEventHandle::getStream() const
+    ComputeQueue CudaEventHandle::getStream() const
     {
         PMACC_ASSERT(event);
         return event->getStream();
     }
 
-    void CudaEventHandle::recordEvent(AccStream const& stream)
+    void CudaEventHandle::recordEvent(ComputeQueue const& stream)
     {
         PMACC_ASSERT(event);
         event->recordEvent(stream);

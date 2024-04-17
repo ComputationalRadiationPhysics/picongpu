@@ -28,7 +28,7 @@
 
 namespace pmacc
 {
-    EventStream::EventStream() : stream(AccStream(manager::Device<ComputeDevice>::get().current()))
+    EventStream::EventStream() : stream(ComputeQueue(manager::Device<ComputeDevice>::get().current()))
     {
     }
 
@@ -37,7 +37,7 @@ namespace pmacc
         alpaka::wait(stream);
     }
 
-    AccStream EventStream::getCudaStream() const
+    ComputeQueue EventStream::getCudaStream() const
     {
         return stream;
     }

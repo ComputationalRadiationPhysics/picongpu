@@ -30,7 +30,7 @@
 
 namespace pmacc
 {
-    CudaEvent::CudaEvent() : event(AlpakaEventType(manager::Device<ComputeDevice>::get().current()))
+    CudaEvent::CudaEvent() : event(ComputeEvent(manager::Device<ComputeDevice>::get().current()))
     {
         log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
     }
@@ -76,7 +76,7 @@ namespace pmacc
     }
 
 
-    void CudaEvent::recordEvent(AccStream const& stream)
+    void CudaEvent::recordEvent(ComputeQueue const& stream)
     {
         /* disallow double recording */
         assert(!this->stream.has_value());

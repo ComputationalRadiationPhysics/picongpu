@@ -73,7 +73,7 @@ namespace pmacc
         this->stream = newStream;
     }
 
-    AccStream StreamTask::getCudaStream()
+    ComputeQueue StreamTask::getCudaStream()
     {
         if(stream == nullptr)
             stream = eventSystem::getEventStream(TASK_DEVICE);

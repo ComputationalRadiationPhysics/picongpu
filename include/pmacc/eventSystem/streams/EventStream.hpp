@@ -46,12 +46,12 @@ namespace pmacc
          *
          * @return the internal alpaka queue object
          */
-        AccStream getCudaStream() const;
+        ComputeQueue getCudaStream() const;
 
         void waitOn(const CudaEventHandle& ev);
 
     private:
-        AccStream stream;
+        ComputeQueue stream;
     };
 
 } // namespace pmacc

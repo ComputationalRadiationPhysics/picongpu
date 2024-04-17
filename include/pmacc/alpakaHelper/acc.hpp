@@ -76,12 +76,12 @@ namespace pmacc
 #endif
 
 #if(PMACC_USE_ASYNC_QUEUES == 1)
-    using AccStream = ::alpaka::Queue<ComputeDevice, ::alpaka::NonBlocking>;
+    using ComputeQueue = ::alpaka::Queue<ComputeDevice, ::alpaka::NonBlocking>;
 #else
-    using AccStream = ::alpaka::Queue<ComputeDevice, ::alpaka::Blocking>;
+    using ComputeQueue = ::alpaka::Queue<ComputeDevice, ::alpaka::Blocking>;
 #endif
 
-    using AlpakaEventType = alpaka::Event<AccStream>;
+    using ComputeEvent = alpaka::Event<ComputeQueue>;
 
     /*! device compile flag
      *

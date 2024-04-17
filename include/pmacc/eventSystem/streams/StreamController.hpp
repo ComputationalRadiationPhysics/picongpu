@@ -36,7 +36,7 @@
 namespace pmacc
 {
     /**
-     * Manages a pool of AccStreams and gives access to them.
+     * Manages a pool of ComputeQueues and gives access to them.
      * This class is a singleton.
      */
     class StreamController

@@ -369,7 +369,7 @@ namespace picongpu
             using VisualizationType = IsaacVisualization<
                 pmacc::HostDevice,
                 pmacc::Acc<DIM3>,
-                pmacc::AccStream,
+                pmacc::ComputeQueue,
                 pmacc::AlpakaDim<DIM3>,
                 SourceList,
                 VectorFieldSourceList,

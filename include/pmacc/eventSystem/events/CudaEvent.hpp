@@ -28,7 +28,7 @@
 
 namespace pmacc
 {
-    /** Wrapper for AlpakaEventType
+    /** Wrapper for ComputeEvent
      *
      * This class follows the RAII rules
      */
@@ -36,12 +36,12 @@ namespace pmacc
     {
     private:
         /** native alpaka event */
-        AlpakaEventType event;
+        ComputeEvent event;
         /** native alpaka queue where the event is recorded
          *
          *  only valid if isRecorded is true
          */
-        std::optional<AccStream> stream;
+        std::optional<ComputeQueue> stream;
         /** state if a recorded event is finished
          *
          * avoids that alpaka calls backend API methods after `isFinished()` returns the first time true
@@ -68,11 +68,11 @@ namespace pmacc
         /** free a registered handle */
         void releaseHandle();
 
-        /** get native AlpakaEventType object
+        /** get native ComputeEvent object
          *
          * @return native alpaka event
          */
-        AlpakaEventType operator*() const
+        ComputeEvent operator*() const
         {
             return event;
         }
@@ -81,7 +81,7 @@ namespace pmacc
          *
          * @return native alpaka queue
          */
-        AccStream getStream() const
+        ComputeQueue getStream() const
         {
             assert(this->stream.has_value());
             return *stream;
@@ -97,6 +97,6 @@ namespace pmacc
          *
          * @param stream native alpaka queue
          */
-        void recordEvent(AccStream const& stream);
+        void recordEvent(ComputeQueue const& stream);
     };
 } // namespace pmacc

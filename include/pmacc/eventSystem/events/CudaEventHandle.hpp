@@ -64,7 +64,7 @@ namespace pmacc
          *
          * @return native alpaka event
          */
-        AlpakaEventType operator*() const;
+        ComputeEvent operator*() const;
 
         /** check whether the event is finished
          *
@@ -77,12 +77,12 @@ namespace pmacc
          *
          * @return native alpaka queue
          */
-        AccStream getStream() const;
+        ComputeQueue getStream() const;
 
         /** record event in a device queue
          *
          * @param stream native alpaka queue
          */
-        void recordEvent(AccStream const& stream);
+        void recordEvent(ComputeQueue const& stream);
     };
 } // namespace pmacc
