@@ -251,15 +251,18 @@ namespace picongpu
                 {
                     return std::shared_ptr<plugins::multi::IHelp>(new Help{});
                 }
-
-                //! Implementation of base class function.
-                void notify(uint32_t currentStep) override
+                .
+                    /** Implementation of base class function.
+                     *
+                     * Called every tRes'th step of the simulation after plugin start.
+                     */
+                    void
+                    notify(uint32_t currentStep) override
                 {
                     // skip notify, slice is not intersecting the local domain
                     if(!gather->isParticipating())
                         return;
-                    /* notification callback for simulation step currentStep
-                     * called every notifyPeriod steps */
+
                     // First time the plugin is called:
                     if(isIntegrating == false)
                     {

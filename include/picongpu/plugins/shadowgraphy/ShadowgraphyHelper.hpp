@@ -348,6 +348,7 @@ namespace picongpu
                     auto BxOmegaPropagated = vec3c(pluginNumX, vec2c(pluginNumY, vec1c(numOmegas)));
                     auto ByOmegaPropagated = vec3c(pluginNumX, vec2c(pluginNumY, vec1c(numOmegas)));
 
+                    // fieldIndex 0: Ex, 1: Ey, 2: Bx, 3: By
                     for(int fieldIndex = 0; fieldIndex < 4; fieldIndex++)
                     {
                         for(int o = 0; o < numOmegas; ++o)

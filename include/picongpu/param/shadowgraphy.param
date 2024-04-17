@@ -30,72 +30,69 @@ namespace picongpu
         {
             namespace params
             {
-                // Make sure that the Time-Bandwidth product is fulfilled @TODO
-                //     omega_n = simNumT
-                //     domega = 2pi / (tRes * dt)
-                //     domega * omega_n * fwhm_probe[t] / 2 pi > 0.441 (for gauss)
-
-                /** time domain parameters
-                 *
-                 * tRes : The time integration part of the plugin will be called each tRes'ed step
-                 *  until simNumT / tRes steps after the start of the integration in the .cfg file.
-                 *  Make sure that the Nyquist-Shannon theorem is fulfilled `tRes * dt * c < lambda_probe / 2`
-                 *  tWfBuffer : A Tukey-like, time-domain window function with sinusoidal slopes will be applied
-                 *  if tWfBuffer != 0. The sinusoidal slopes have a duration of tWfBuffer / tRes in PIConGPU
-                 *  timesteps.
+                /**
+                 * The time integration part of the plugin will be called each tRes'ed step
+                 * until simNumT / tRes steps after the start of the integration in the .cfg file.
+                 * Make sure that the Nyquist-Shannon theorem is fulfilled `tRes * dt * c < lambda_probe / 2`
                  */
                 constexpr unsigned int tRes = 2;
+                /**
+                 * A Tukey-like, time-domain window function with sinusoidal slopes will be applied
+                 * if tWfBuffer != 0. The sinusoidal slopes have a duration of tWfBuffer / tRes in PIConGPU
+                 * timesteps.
+                 */
                 constexpr unsigned int tWfBuffer = 32;
 
-                /** position domain parameters
-                 *
-                 * xRes : transverse resolution of shadowgram
-                 * yRes : transverse resolution of shadowgram
-                 * posWfSizeX : A Tukey-like, time-domain window function with sinusoidal slopes will be
-                 *  applied if posWfSizeX != 0. The slope length is posWfSizeX.
-                 * posWfSizeY : A Tukey-like, time-domain window function with sinusoidal slopes will be
-                 *  applied if posWfSizeY
-                 * != 0. The slope length is posWfSizeY. cells.
-                 */
+                //! Transverse resolution of shadowgram in x direction
                 constexpr unsigned int xRes = 1;
+                //! Transverse resolution of shadowgram in y direction
                 constexpr unsigned int yRes = 1;
-
+                // Helper variable for symmetric window function size
                 constexpr int posWfSize = 12;
-
+                /**
+                 * A Tukey-like, time-domain window function with sinusoidal slopes will be
+                 *  applied if posWfSizeX != 0. The slope length is posWfSizeX.
+                 */
                 constexpr int posWfSizeX = posWfSize / xRes;
+                /**
+                 * A Tukey-like, time-domain window function with sinusoidal slopes will be
+                 *  applied if posWfSizeX != 0. The slope length is posWfSizeX.
+                 */
                 constexpr int posWfSizeY = posWfSize / yRes;
 
-                /** Numerical Aperture
-                 *
-                 * numericalAperture : size of the numerical aperture to remove side-scattered light
-                 * numericalApertureWfSize : Sinusoidal slopes over NA * k < k_perp < (NA * k + NA * k_probe)
-                 *  in the numerical aperture
-                 */
+                // Numerical Aperture
+                //! Size of the numerical aperture to remove side-scattered light
                 constexpr float numericalAperture = 0.23;
+                //! Sinusoidal slopes over NA * k < k_perp < (NA * k + NA * k_probe) in the numerical aperture
                 constexpr float numericalApertureWfSize = 0.5;
 
-                /** Band Pass Filter
-                 * omegaMin : Smallest frequency for plateau value in band-pass filter
-                 * omegaMax : Largest frequency for plateau value in band-pass filter
-                 * omegaWfMin : Sinusoidal slopes from omegaWfMin to omegaMin, set to 0 if not required
-                 * omegaWfMax : Sinusoidal slopes from omegaMax to omegaWfMax, set to 0 if not required
-                 */
+                // Bandpass filter
+                //! Central wavelength for the band-pass filter
                 constexpr float centralLambda = 750e-9;
+                //! Central frequency for the band-pass filter
                 constexpr float centralOmega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / centralLambda;
+                //! Plateaue size for band-pass filter
                 constexpr float dLambda = 20e-9;
+                //! Ramp size for band-pass filter window function
                 constexpr float dLambdaWf = 20e-9;
 
+                //! Smallest frequency for plateau value in band-pass filter
                 constexpr float omegaMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda);
+                //! Largest frequency for plateau value in band-pass filter
                 constexpr float omegaMax = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda);
 
+                //! Smallest frequency for window function
                 constexpr float omegaWfMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda + dLambdaWf);
+                //! Largest frequency for window function
                 constexpr float omegaWfMax = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda - dLambdaWf);
             } // namespace params
 
 
             namespace masks
             {
-                /** Time domain window function that will be multiplied with the electric and magnetic fields
+                /** Tukey-like position domain window function
+                 *
+                 * Time domain window function that will be multiplied with the electric and magnetic fields
                  * in time-position domain to reduce ringing artifacts in the omega domain after the DFT.
                  * The implemented window function is a Tukey-Window with sinusoidal slopes.
                  *
@@ -138,7 +135,9 @@ namespace picongpu
                     return xFactor * yFactor;
                 }
 
-                /** Time domain window function that will be multiplied with the electric and magnetic fields
+                /**  Tukey-like time domain window function
+                 *
+                 * Time domain window function that will be multiplied with the electric and magnetic fields
                  * in time-position domain to reduce ringing artifacts in the omega domain after the DFT.
                  * The implemented window function is a Tukey-Window with sinusoidal slopes.
                  *
@@ -167,7 +166,9 @@ namespace picongpu
                 }
 
 
-                /** Calculate filter for electric and magnetic field in Fourier space.
+                /** Band-pass filter with sinusoidal slopes
+                 *
+                 * Calculate filter for electric and magnetic field in Fourier space.
                  * The function returns 1 for frequencies between `params::omegaMin` and `params::omegaMax`.
                  * Furthermore, sinusoidal slopes are implemented like a Tukey window function, that reduce
                  * ringing artifacts before the inverse DFT back to time domain.
@@ -200,7 +201,9 @@ namespace picongpu
                     }
                 }
 
-                /** Calculate filter for electric and magnetic field in Fourier space.
+                /** Numerical aperture with sinusoidal slopes
+                 *
+                 * Calculate filter for electric and magnetic field in Fourier space.
                  * The function mimics the Numerical Aperture of lenses in an experimental setup by returning
                  * 0 for side-scattered light. Additionally, sinusoidal slopes are implemented like a Tukey
                  * window function to reduce ringing artifacts before the inverse DFT back to position domain.
@@ -234,7 +237,9 @@ namespace picongpu
                     }
                 }
 
-                /** Calculate filter which will be multiplied to the electric and magnetic field in Fourier space.
+                /** General mask function for electric and magnetic fields
+                 *
+                 * Calculate filter which will be multiplied to the electric and magnetic field in Fourier space.
                  *
                  * @param kx perpendicular k vector component in SI units
                  * @param ky perpendicular k vector component in SI units
