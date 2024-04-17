@@ -114,7 +114,7 @@ namespace picongpu
                         uint32_t binIdx = 0;
                         bool enableBinning = overflowEnabled; // @todo check if disableBinning is better
 
-                        if(0. < val)
+                        if(static_cast<T>(0.) < val)
                         {
                             auto logVal = math::log2(val);
 
@@ -191,7 +191,7 @@ namespace picongpu
                     // do conversion to PIC units here, if not auto
                     // auto picRange = toPICUnits(axSplit.range, units);
                     auto min = toPICUnits(axisSplit.m_range.min, units);
-                    PMACC_ASSERT(0. < min);
+                    PMACC_VERIFY(0. < min);
                     auto logMin = std::log2(min);
                     auto logMax = std::log2(toPICUnits(axisSplit.m_range.max, units));
 
