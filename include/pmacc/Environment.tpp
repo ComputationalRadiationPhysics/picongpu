@@ -48,12 +48,12 @@ namespace pmacc
 {
     namespace detail
     {
-        pmacc::StreamController& Environment::StreamController()
+        pmacc::QueueController& Environment::QueueController()
         {
             PMACC_ASSERT_MSG(
                 EnvironmentContext::getInstance().isDeviceSelected(),
                 "Environment< DIM >::initDevices() must be called before this method!");
-            return StreamController::getInstance();
+            return QueueController::getInstance();
         }
 
         pmacc::EnvironmentController& Environment::EnvironmentController()
@@ -168,7 +168,7 @@ namespace pmacc
 
         detail::EnvironmentContext::getInstance().setDevice(static_cast<int>(GridController().getHostRank()));
 
-        StreamController().activate();
+        QueueController().activate();
 
         MemoryInfo();
 
@@ -247,7 +247,7 @@ namespace pmacc
                 alpaka::wait(manager::Device<ComputeDevice>::get().current());
                 m_isMpiInitialized = false;
                 /* Free the MPI context.
-                 * The gpu context is freed by the `StreamController`, because
+                 * The gpu context is freed by the `QueueController`, because
                  * MPI and CUDA are independent.
                  */
                 MPI_CHECK(MPI_Finalize());
@@ -323,7 +323,7 @@ namespace pmacc
                      */
                     try
                     {
-                        auto testStream = AccStream(manager::Device<ComputeDevice>::get().current());
+                        auto testStream = ComputeDeviceQueue(manager::Device<ComputeDevice>::get().current());
                     }
                     catch(const std::system_error& e)
                     {

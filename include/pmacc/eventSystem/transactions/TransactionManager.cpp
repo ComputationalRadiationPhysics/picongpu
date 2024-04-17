@@ -72,12 +72,12 @@ namespace pmacc
         transactions.top().operation(op);
     }
 
-    EventStream* TransactionManager::getEventStream(ITask::TaskType op)
+    Queue* TransactionManager::getComputeDeviceQueue(ITask::TaskType op)
     {
         if(transactions.size() == 0)
             throw std::runtime_error("Calling startOperation on empty transaction stack is not allowed");
 
-        return transactions.top().getEventStream(op);
+        return transactions.top().getComputeDeviceQueue(op);
     }
 
     EventTask TransactionManager::setTransactionEvent(const EventTask& event)

@@ -70,7 +70,7 @@ namespace pmacc
             (uint8_t*) deviceHeapInfo.p,
             manager::Device<ComputeDevice>::get().current(),
             alpakaBufferSize);
-        auto alpakaStream = pmacc::eventSystem::getEventStream(ITask::TASK_DEVICE)->getCudaStream();
+        auto alpakaStream = pmacc::eventSystem::getComputeDeviceQueue(ITask::TASK_DEVICE)->getAlpakaQueue();
         alpaka::memcpy(alpakaStream, *hostBuffer, devView, alpakaBufferSize);
         alpaka::wait(alpakaStream);
     }

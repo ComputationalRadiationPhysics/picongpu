@@ -19,24 +19,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/events/ComputeEventHandle.hpp"
 
 #include "pmacc/alpakaHelper/acc.hpp"
 
 namespace pmacc
 {
-    CudaEventHandle::CudaEventHandle(CudaEvent* const evPointer) : event(evPointer)
+    ComputeEventHandle::ComputeEventHandle(ComputeEvent* const evPointer) : event(evPointer)
     {
         event->registerHandle();
     }
 
-    CudaEventHandle::CudaEventHandle(const CudaEventHandle& other)
+    ComputeEventHandle::ComputeEventHandle(const ComputeEventHandle& other)
     {
         /* register and release handle is done by the assign operator */
         *this = other;
     }
 
-    CudaEventHandle& CudaEventHandle::operator=(const CudaEventHandle& other)
+    ComputeEventHandle& ComputeEventHandle::operator=(const ComputeEventHandle& other)
     {
         /* check if an old event is overwritten */
         if(event)
@@ -48,32 +48,32 @@ namespace pmacc
         return *this;
     }
 
-    CudaEventHandle::~CudaEventHandle()
+    ComputeEventHandle::~ComputeEventHandle()
     {
         if(event)
             event->releaseHandle();
         event = nullptr;
     }
 
-    AlpakaEventType CudaEventHandle::operator*() const
+    ComputeDeviceEvent ComputeEventHandle::operator*() const
     {
         assert(event);
         return **event;
     }
 
-    bool CudaEventHandle::isFinished()
+    bool ComputeEventHandle::isFinished()
     {
         PMACC_ASSERT(event);
         return event->isFinished();
     }
 
-    AccStream CudaEventHandle::getStream() const
+    ComputeDeviceQueue ComputeEventHandle::getStream() const
     {
         PMACC_ASSERT(event);
         return event->getStream();
     }
 
-    void CudaEventHandle::recordEvent(AccStream const& stream)
+    void ComputeEventHandle::recordEvent(ComputeDeviceQueue const& stream)
     {
         PMACC_ASSERT(event);
         event->recordEvent(stream);

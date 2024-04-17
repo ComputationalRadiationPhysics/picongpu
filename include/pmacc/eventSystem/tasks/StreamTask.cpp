@@ -32,15 +32,15 @@ namespace pmacc
         this->setTaskType(ITask::TASK_DEVICE);
     }
 
-    CudaEventHandle StreamTask::getCudaEventHandle() const
+    ComputeEventHandle StreamTask::getComputeEventHandle() const
     {
-        PMACC_ASSERT(hasCudaEventHandle);
+        PMACC_ASSERT(hasComputeEventHandle);
         return m_alpakaEvent;
     }
 
-    void StreamTask::setCudaEventHandle(const CudaEventHandle& alpakaEvent)
+    void StreamTask::setComputeEventHandle(const ComputeEventHandle& alpakaEvent)
     {
-        this->hasCudaEventHandle = true;
+        this->hasComputeEventHandle = true;
         this->m_alpakaEvent = alpakaEvent;
     }
 
@@ -48,7 +48,7 @@ namespace pmacc
     {
         if(alwaysFinished)
             return true;
-        if(hasCudaEventHandle)
+        if(hasComputeEventHandle)
         {
             if(m_alpakaEvent.isFinished())
             {
@@ -59,32 +59,32 @@ namespace pmacc
         return false;
     }
 
-    EventStream* StreamTask::getEventStream()
+    Queue* StreamTask::getComputeDeviceQueue()
     {
         if(stream == nullptr)
-            stream = eventSystem::getEventStream(TASK_DEVICE);
+            stream = eventSystem::getComputeDeviceQueue(TASK_DEVICE);
         return stream;
     }
 
-    void StreamTask::setEventStream(EventStream* newStream)
+    void StreamTask::setQueue(Queue* newStream)
     {
         PMACC_ASSERT(newStream != nullptr);
         PMACC_ASSERT(stream == nullptr); // it is only allowed to set a stream if no stream is set before
         this->stream = newStream;
     }
 
-    AccStream StreamTask::getCudaStream()
+    ComputeDeviceQueue StreamTask::getAlpakaQueue()
     {
         if(stream == nullptr)
-            stream = eventSystem::getEventStream(TASK_DEVICE);
-        return stream->getCudaStream();
+            stream = eventSystem::getComputeDeviceQueue(TASK_DEVICE);
+        return stream->getAlpakaQueue();
     }
 
     void StreamTask::activate()
     {
         m_alpakaEvent = Environment<>::get().EventPool().pop();
-        m_alpakaEvent.recordEvent(getCudaStream());
-        hasCudaEventHandle = true;
+        m_alpakaEvent.recordEvent(getAlpakaQueue());
+        hasComputeEventHandle = true;
     }
 
 } // namespace pmacc

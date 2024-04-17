@@ -379,7 +379,7 @@ namespace picongpu
             dc.consume(std::move(rngFactory));
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            auto alpakaQueue = pmacc::eventSystem::getEventStream(ITask::TASK_DEVICE)->getCudaStream();
+            auto alpakaQueue = pmacc::eventSystem::getComputeDeviceQueue(ITask::TASK_DEVICE)->getAlpakaQueue();
             auto alpakaDevice = manager::Device<ComputeDevice>::get().current();
             /* Create an empty allocator. This one is resized after all exchanges
              * for particles are created */
@@ -437,8 +437,8 @@ namespace picongpu
             IdProvider<simDim>::init();
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-            /* add CUDA streams to the StreamController for concurrent execution */
-            Environment<>::get().StreamController().addStreams(6);
+            /* add CUDA streams to the QueueController for concurrent execution */
+            Environment<>::get().QueueController().addQueues(6);
 #endif
         }
 

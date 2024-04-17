@@ -196,7 +196,7 @@ namespace pmacc
                     this->value,
                     areaSizeND,
                     blockCfg);
-                auto queue = this->getCudaStream();
+                auto queue = this->getAlpakaQueue();
                 alpaka::enqueue(queue, kernel);
             }
             this->activate();
@@ -249,7 +249,7 @@ namespace pmacc
                 auto firstElemBuffer = this->destination->as1DBufferNElem(1);
                 alpaka::getPtrNative(*valueBuffer)[0] = this->value; // copy value to new place
 
-                auto queue = this->getCudaStream();
+                auto queue = this->getAlpakaQueue();
                 alpaka::memcpy(queue, firstElemBuffer, *valueBuffer, MemSpace<DIM1>(1).toAlpakaMemVec());
 
                 auto blockCfg = lockstep::makeBlockCfg<xChunkSize>();

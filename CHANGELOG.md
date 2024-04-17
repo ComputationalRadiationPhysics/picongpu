@@ -1874,7 +1874,7 @@ for detailed instructions.
    - `MapTuple`: broken compile with icc #1648
    - Missing '%%' to use ptx special register #1737
    - `ConstVector`: check arguments init full length #1803
-   - `CudaEvent`: cyclic include #1836
+   - `ComputeEvent`: cyclic include #1836
    - Add missing `HDINLINE` #1825
    - Remove `BOOST_BIND_NO_PLACEHOLDERS` #1849
    - Remove CUDA native static shared memory #1929
@@ -2099,7 +2099,7 @@ rounded to the closest supercell (`IfRelativeGlobalPositionImpl`).
  - PMacc:
    - remove `BOOST_BIND_NO_PLACEHOLDERS` #1849
    - add missing `HDINLINE` #1825
-   - `CudaEvent`: cyclic include #1836
+   - `ComputeEvent`: cyclic include #1836
  - plugins:
    - std includes: never inside namespaces #1835
    - HDF5/ADIOS openPMD:

@@ -24,7 +24,7 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/events/EventTask.hpp"
-#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/queues/QueueController.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 namespace pmacc
@@ -63,7 +63,7 @@ namespace pmacc
         baseEvent.waitForFinished();
     }
 
-    EventStream* Transaction::getEventStream(ITask::TaskType)
+    Queue* Transaction::getComputeDeviceQueue(ITask::TaskType)
     {
         Manager& manager = Manager::getInstance();
         ITask* baseTask = manager.getITaskIfNotFinished(this->baseEvent.getTaskId());
@@ -76,11 +76,11 @@ namespace pmacc
                  * that the dependency chain not brake
                  */
                 auto* task = static_cast<StreamTask*>(baseTask);
-                return task->getEventStream();
+                return task->getComputeDeviceQueue();
             }
             baseEvent.waitForFinished();
         }
-        return Environment<>::get().StreamController().getNextStream();
+        return Environment<>::get().QueueController().getNextStream();
     }
 
 } // namespace pmacc

@@ -76,7 +76,7 @@ namespace pmacc
          */
         EventTask getTransactionEvent();
 
-        EventStream* getEventStream(ITask::TaskType op);
+        Queue* getComputeDeviceQueue(ITask::TaskType op);
 
         static TransactionManager& getInstance()
         {
