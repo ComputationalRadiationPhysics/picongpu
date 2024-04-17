@@ -701,7 +701,7 @@ namespace picongpu
                     visualization = std::make_unique<VisualizationType>(
                         pmacc::manager::Device<pmacc::HostDevice>::get().current(),
                         pmacc::manager::Device<pmacc::ComputeDevice>::get().current(),
-                        eventSystem::getEventStream(pmacc::ITask::TASK_DEVICE)->getCudaStream(),
+                        eventSystem::getComputeDeviceQueue(pmacc::ITask::TASK_DEVICE)->getAlpakaQueue(),
                         name,
                         0,
                         url,

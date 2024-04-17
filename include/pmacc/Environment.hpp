@@ -29,7 +29,7 @@
 #include "pmacc/device/MemoryInfo.hpp"
 #include "pmacc/eventSystem/eventSystem.hpp"
 #include "pmacc/eventSystem/events/EventPool.hpp"
-#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/queues/QueueController.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
@@ -58,11 +58,11 @@ namespace pmacc
                 EnvironmentContext::getInstance().finalize();
             }
 
-            /** get the singleton StreamController
+            /** get the singleton QueueController
              *
-             * @return instance of StreamController
+             * @return instance of QueueController
              */
-            HINLINE pmacc::StreamController& StreamController();
+            HINLINE pmacc::QueueController& QueueController();
 
             /** get the singleton EnvironmentController
              *

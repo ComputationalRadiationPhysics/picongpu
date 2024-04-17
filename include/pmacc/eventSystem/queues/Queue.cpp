@@ -19,7 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/queues/Queue.hpp"
 
 #include "pmacc/alpakaHelper/Device.hpp"
 #include "pmacc/alpakaHelper/acc.hpp"
@@ -28,26 +28,26 @@
 
 namespace pmacc
 {
-    EventStream::EventStream() : stream(AccStream(manager::Device<ComputeDevice>::get().current()))
+    Queue::Queue() : queue(AccStream(manager::Device<ComputeDevice>::get().current()))
     {
     }
 
-    EventStream::~EventStream()
+    Queue::~Queue()
     {
-        alpaka::wait(stream);
+        alpaka::wait(queue);
     }
 
-    AccStream EventStream::getCudaStream() const
+    AccStream Queue::getAlpakaQueue() const
     {
-        return stream;
+        return queue;
     }
 
-    void EventStream::waitOn(const CudaEventHandle& ev)
+    void Queue::waitOn(const CudaEventHandle& ev)
     {
-        if(this->stream != ev.getStream())
+        if(queue != ev.getStream())
         {
             auto alpakaEvent = *ev;
-            auto queue = this->getCudaStream();
+            auto queue = this->getAlpakaQueue();
             alpaka::wait(queue, alpakaEvent);
         }
     }

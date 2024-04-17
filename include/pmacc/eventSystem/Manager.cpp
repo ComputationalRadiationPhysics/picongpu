@@ -22,7 +22,7 @@
 #include "pmacc/eventSystem/Manager.hpp"
 
 #include "pmacc/assert.hpp"
-#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/queues/QueueController.hpp"
 
 #include <cstdio>
 #include <cstdlib>

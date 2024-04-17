@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/eventSystem/Manager.hpp"
-#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/queues/QueueController.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/TaskCopy.hpp"
 #include "pmacc/eventSystem/tasks/TaskGetCurrentSizeFromDevice.hpp"

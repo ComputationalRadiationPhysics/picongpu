@@ -27,7 +27,7 @@
 
 namespace pmacc
 {
-    class EventStream;
+    class Queue;
 
     /**
      * Represents a single transaction in the task/event synchronization system.
@@ -64,11 +64,11 @@ namespace pmacc
          */
         void operation(ITask::TaskType operation);
 
-        /* Get a EventStream which include all dependencies
+        /* Get a Queue which include all dependencies
          * @param operation type of operation to perform
-         * @return EventStream with solved dependencies
+         * @return Queue with solved dependencies
          */
-        EventStream* getEventStream(ITask::TaskType operation);
+        Queue* getComputeDeviceQueue(ITask::TaskType operation);
 
     private:
         EventTask baseEvent;

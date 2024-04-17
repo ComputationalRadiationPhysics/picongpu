@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/eventSystem/events/EventTask.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/queues/Queue.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/waitForAllTasks.hpp"
 
@@ -65,12 +65,12 @@ namespace pmacc::eventSystem
      */
     EventTask getTransactionEvent();
 
-    /** get a `EventStream` that must be used for cuda calls
+    /** get a `Queue` that must be used for compute tasks
      *
      * depended on the opType this method is blocking
      *
      * @param opType place were the operation is running
      *               possible places are: `ITask::TASK_DEVICE`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
      */
-    EventStream* getEventStream(ITask::TaskType op);
+    Queue* getComputeDeviceQueue(ITask::TaskType op);
 } // namespace pmacc::eventSystem

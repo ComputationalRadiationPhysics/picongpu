@@ -52,8 +52,8 @@ namespace pmacc::eventSystem
         return TransactionManager::getInstance().getTransactionEvent();
     }
 
-    EventStream* getEventStream(ITask::TaskType op)
+    Queue* getComputeDeviceQueue(ITask::TaskType op)
     {
-        return TransactionManager::getInstance().getEventStream(op);
+        return TransactionManager::getInstance().getComputeDeviceQueue(op);
     }
 } // namespace pmacc::eventSystem

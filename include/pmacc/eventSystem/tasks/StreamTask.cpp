@@ -59,31 +59,31 @@ namespace pmacc
         return false;
     }
 
-    EventStream* StreamTask::getEventStream()
+    Queue* StreamTask::getComputeDeviceQueue()
     {
         if(stream == nullptr)
-            stream = eventSystem::getEventStream(TASK_DEVICE);
+            stream = eventSystem::getComputeDeviceQueue(TASK_DEVICE);
         return stream;
     }
 
-    void StreamTask::setEventStream(EventStream* newStream)
+    void StreamTask::setQueue(Queue* newStream)
     {
         PMACC_ASSERT(newStream != nullptr);
         PMACC_ASSERT(stream == nullptr); // it is only allowed to set a stream if no stream is set before
         this->stream = newStream;
     }
 
-    AccStream StreamTask::getCudaStream()
+    AccStream StreamTask::getAlpakaQueue()
     {
         if(stream == nullptr)
-            stream = eventSystem::getEventStream(TASK_DEVICE);
-        return stream->getCudaStream();
+            stream = eventSystem::getComputeDeviceQueue(TASK_DEVICE);
+        return stream->getAlpakaQueue();
     }
 
     void StreamTask::activate()
     {
         m_alpakaEvent = Environment<>::get().EventPool().pop();
-        m_alpakaEvent.recordEvent(getCudaStream());
+        m_alpakaEvent.recordEvent(getAlpakaQueue());
         hasCudaEventHandle = true;
     }
 

@@ -31,27 +31,27 @@ namespace pmacc
      *
      * Allows recording alpaka events on the queue.
      */
-    class EventStream
+    class Queue
     {
     public:
-        EventStream();
+        Queue();
 
         /** Destructor.
          *
-         * Waits for the stream to finish and destroys it.
+         * Waits for the queue to finish and destroys it.
          */
-        virtual ~EventStream();
+        virtual ~Queue();
 
-        /** Returns the alpaka queue object associated with this EventStream.
+        /** Returns the alpaka queue object associated with this Queue.
          *
          * @return the internal alpaka queue object
          */
-        AccStream getCudaStream() const;
+        AccStream getAlpakaQueue() const;
 
         void waitOn(const CudaEventHandle& ev);
 
     private:
-        AccStream stream;
+        AccStream queue;
     };
 
 } // namespace pmacc
