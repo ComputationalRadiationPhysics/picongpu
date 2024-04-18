@@ -77,10 +77,10 @@ namespace pmacc
                     ITask::TaskType type = task->getTaskType();
                     if(type == ITask::TASK_DEVICE)
                     {
-                        this->stream = static_cast<StreamTask*>(task)->getEventStream();
+                        this->stream = static_cast<StreamTask*>(task)->getComputeDeviceQueue();
                         this->setTaskType(ITask::TASK_DEVICE);
-                        this->m_alpakaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
-                        this->hasCudaEventHandle = true;
+                        this->m_alpakaEvent = static_cast<StreamTask*>(task)->getComputeEventHandle();
+                        this->hasComputeEventHandle = true;
                     }
                 }
             }
@@ -94,10 +94,10 @@ namespace pmacc
                     ITask::TaskType type = task->getTaskType();
                     if(type == ITask::TASK_DEVICE)
                     {
-                        this->stream = static_cast<StreamTask*>(task)->getEventStream();
+                        this->stream = static_cast<StreamTask*>(task)->getComputeDeviceQueue();
                         this->setTaskType(ITask::TASK_DEVICE);
-                        this->m_alpakaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
-                        this->hasCudaEventHandle = true;
+                        this->m_alpakaEvent = static_cast<StreamTask*>(task)->getComputeEventHandle();
+                        this->hasComputeEventHandle = true;
                     }
                 }
             }
@@ -124,9 +124,10 @@ namespace pmacc
             if(s1->getTaskType() == ITask::TASK_DEVICE && s2->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_DEVICE);
-                this->setEventStream(static_cast<StreamTask*>(s2)->getEventStream());
-                if(static_cast<StreamTask*>(s1)->getEventStream() != static_cast<StreamTask*>(s2)->getEventStream())
-                    this->getEventStream()->waitOn(static_cast<StreamTask*>(s1)->getCudaEventHandle());
+                this->setQueue(static_cast<StreamTask*>(s2)->getComputeDeviceQueue());
+                if(static_cast<StreamTask*>(s1)->getComputeDeviceQueue()
+                   != static_cast<StreamTask*>(s2)->getComputeDeviceQueue())
+                    this->getComputeDeviceQueue()->waitOn(static_cast<StreamTask*>(s1)->getComputeEventHandle());
                 this->activate();
             }
             else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_DEVICE)

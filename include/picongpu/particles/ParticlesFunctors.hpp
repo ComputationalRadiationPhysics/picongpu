@@ -90,7 +90,7 @@ namespace picongpu
             HINLINE void operator()(const std::shared_ptr<T_DeviceHeap>& deviceHeap) const
             {
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-                auto alpakaStream = pmacc::eventSystem::getEventStream(ITask::TASK_DEVICE)->getCudaStream();
+                auto alpakaStream = pmacc::eventSystem::getComputeDeviceQueue(ITask::TASK_DEVICE)->getAlpakaQueue();
                 log<picLog::MEMORY>("mallocMC: free slots for species %3%: %1% a %2%")
                     % deviceHeap->getAvailableSlots(
                         manager::Device<ComputeDevice>::get().current(),

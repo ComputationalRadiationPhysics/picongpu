@@ -55,7 +55,7 @@ namespace pmacc
 
         void init() override
         {
-            /* @attention: `setSize()` must be called before `getCudaStream()` is called else `setSize()`
+            /* @attention: `setSize()` must be called before `getAlpakaQueue()` is called else `setSize()`
              * is not handled as part of this task. The reason for this is that is not registered to the eventsystem
              * before `init()` is finished.
              */
@@ -66,7 +66,7 @@ namespace pmacc
                 // increasing the latency
                 auto size = alpaka::getExtents(src);
                 destination->setSize(size[0]);
-                auto queue = this->getCudaStream();
+                auto queue = this->getAlpakaQueue();
                 alpaka::memcpy(queue, destination->as1DBuffer(), src, size);
             }
             else
@@ -74,7 +74,7 @@ namespace pmacc
                 size_t currentSize = source->size();
                 destination->setSize(currentSize);
                 auto sizeND = source->sizeND(currentSize);
-                auto queue = this->getCudaStream();
+                auto queue = this->getAlpakaQueue();
                 alpaka::memcpy(queue, destination->getAlpakaView(), source->getAlpakaView(), sizeND.toAlpakaMemVec());
             }
 

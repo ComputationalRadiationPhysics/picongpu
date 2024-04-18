@@ -28,27 +28,27 @@
 
 namespace pmacc
 {
-    /** Wrapper for AlpakaEventType
+    /** Wrapper for ComputeDeviceEvent
      *
      * This class follows the RAII rules
      */
-    class CudaEvent
+    class ComputeEvent
     {
     private:
         /** native alpaka event */
-        AlpakaEventType event;
+        ComputeDeviceEvent event;
         /** native alpaka queue where the event is recorded
          *
          *  only valid if isRecorded is true
          */
-        std::optional<AccStream> stream;
+        std::optional<ComputeDeviceQueue> stream;
         /** state if a recorded event is finished
          *
          * avoids that alpaka calls backend API methods after `isFinished()` returns the first time true
          */
         bool finished{true};
 
-        /** number of CudaEventHandle's to the instance */
+        /** number of ComputeEventHandle's to the instance */
         uint32_t refCounter{0u};
 
 
@@ -57,10 +57,10 @@ namespace pmacc
          *
          * if called before the alpaka device is initialized the behavior is undefined
          */
-        CudaEvent();
+        ComputeEvent();
 
         /** Destructor */
-        ~CudaEvent();
+        ~ComputeEvent();
 
         /** register a existing handle to a event instance */
         void registerHandle();
@@ -68,11 +68,11 @@ namespace pmacc
         /** free a registered handle */
         void releaseHandle();
 
-        /** get native AlpakaEventType object
+        /** get native ComputeDeviceEvent object
          *
          * @return native alpaka event
          */
-        AlpakaEventType operator*() const
+        ComputeDeviceEvent operator*() const
         {
             return event;
         }
@@ -81,7 +81,7 @@ namespace pmacc
          *
          * @return native alpaka queue
          */
-        AccStream getStream() const
+        ComputeDeviceQueue getStream() const
         {
             assert(this->stream.has_value());
             return *stream;
@@ -97,6 +97,6 @@ namespace pmacc
          *
          * @param stream native alpaka queue
          */
-        void recordEvent(AccStream const& stream);
+        void recordEvent(ComputeDeviceQueue const& stream);
     };
 } // namespace pmacc

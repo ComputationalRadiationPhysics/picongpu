@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/events/ComputeEventHandle.hpp"
+#include "pmacc/eventSystem/queues/Queue.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 
 namespace pmacc
 {
-    class EventStream;
+    class Queue;
 
     /** Abstract base class for all tasks which depend on alpaka queue.
      */
@@ -47,13 +47,13 @@ namespace pmacc
          *
          * @return the task's alpaka event
          */
-        CudaEventHandle getCudaEventHandle() const;
+        ComputeEventHandle getComputeEventHandle() const;
 
         /** Sets the
          *
          * @param alpakaEvent
          */
-        void setCudaEventHandle(const CudaEventHandle& alpakaEvent);
+        void setComputeEventHandle(const ComputeEventHandle& alpakaEvent);
 
         /** Returns if this task is finished.
          *
@@ -61,23 +61,23 @@ namespace pmacc
          */
         bool isFinished();
 
-        /** Returns the EventStream this StreamTask is using.
+        /** Returns the Queue this StreamTask is using.
          *
-         * @return pointer to the EventStream
+         * @return pointer to the Queue
          */
-        EventStream* getEventStream();
+        Queue* getComputeDeviceQueue();
 
-        /** Sets the EventStream for this StreamTask.
+        /** Sets the Queue for this StreamTask.
          *
          * @param newStream new event stream
          */
-        void setEventStream(EventStream* newStream);
+        void setQueue(Queue* newStream);
 
-        /** Returns the alpaka queue of the underlying EventStream.
+        /** Returns the alpaka queue of the underlying Queue.
          *
          * @return the associated alpaka queue
          */
-        AccStream getCudaStream();
+        ComputeDeviceQueue getAlpakaQueue();
 
 
     protected:
@@ -86,9 +86,9 @@ namespace pmacc
         void activate();
 
 
-        EventStream* stream{nullptr};
-        CudaEventHandle m_alpakaEvent;
-        bool hasCudaEventHandle{false};
+        Queue* stream{nullptr};
+        ComputeEventHandle m_alpakaEvent;
+        bool hasComputeEventHandle{false};
         bool alwaysFinished{false};
     };
 

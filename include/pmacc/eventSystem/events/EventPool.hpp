@@ -24,8 +24,8 @@
 
 #include "pmacc/Environment.def"
 #include "pmacc/debug/VerboseLog.hpp"
-#include "pmacc/eventSystem/events/CudaEvent.hpp"
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/events/ComputeEvent.hpp"
+#include "pmacc/eventSystem/events/ComputeEventHandle.hpp"
 #include "pmacc/types.hpp"
 
 #include <list>
@@ -42,11 +42,11 @@ namespace pmacc
          *
          * @return free alpaka event
          */
-        CudaEventHandle pop()
+        ComputeEventHandle pop()
         {
             if(freeEvents.size() != 0)
             {
-                CudaEventHandle result = freeEvents.front();
+                ComputeEventHandle result = freeEvents.front();
                 freeEvents.pop_front();
                 return result;
             }
@@ -55,19 +55,19 @@ namespace pmacc
         }
 
 
-        /** add CudaEvent to the pool
+        /** add ComputeEvent to the pool
          *
          * the pool takes the ownership of the pointer
          *
-         * @param ev pointer to CudaEvent
+         * @param ev pointer to ComputeEvent
          */
-        void push(CudaEvent* const ev)
+        void push(ComputeEvent* const ev)
         {
             /* Guard that no event is added during the pool is closed (shutdown phase).
              * This method is also called during the evaluation of the destructor.
              */
             if(!isClosed)
-                freeEvents.push_back(CudaEventHandle(ev));
+                freeEvents.push_back(ComputeEventHandle(ev));
         }
 
         /** create and add an alpaka events to the pool
@@ -78,7 +78,7 @@ namespace pmacc
         {
             for(size_t i = 0u; i < count; i++)
             {
-                auto* nativeEvent = new CudaEvent();
+                auto* nativeEvent = new ComputeEvent();
                 events.push_back(nativeEvent);
                 push(nativeEvent);
             }
@@ -114,18 +114,18 @@ namespace pmacc
             log(ggLog::CUDA_RT() + ggLog::EVENT(), "shutdown EventPool with %1% events") % getEventsCount();
             isClosed = true;
             freeEvents.clear();
-            for(std::vector<CudaEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter)
+            for(std::vector<ComputeEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter)
             {
                 delete *iter;
             }
             events.clear();
         }
 
-        //! hold all CudaEvents
-        std::vector<CudaEvent*> events;
+        //! hold all ComputeEvents
+        std::vector<ComputeEvent*> events;
 
-        //! hold currently free CudaEventHandle's
-        std::list<CudaEventHandle> freeEvents;
+        //! hold currently free ComputeEventHandle's
+        std::list<ComputeEventHandle> freeEvents;
 
         /**! state if the pool is closed
          *

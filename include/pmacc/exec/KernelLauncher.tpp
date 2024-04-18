@@ -104,7 +104,7 @@ namespace pmacc::exec::detail
             auto const kernelTask
                 = ::alpaka::createTaskKernel<Acc<T_dim>>(workDiv, m_kernel, std::forward<T_Args>(args)...);
 
-            auto queue = taskKernel->getCudaStream();
+            auto queue = taskKernel->getAlpakaQueue();
 
             ::alpaka::enqueue(queue, kernelTask);
 

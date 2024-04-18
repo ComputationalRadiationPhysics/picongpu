@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/events/ComputeEventHandle.hpp"
 #include "pmacc/types.hpp"
 
 
@@ -31,27 +31,27 @@ namespace pmacc
      *
      * Allows recording alpaka events on the queue.
      */
-    class EventStream
+    class Queue
     {
     public:
-        EventStream();
+        Queue();
 
         /** Destructor.
          *
-         * Waits for the stream to finish and destroys it.
+         * Waits for the queue to finish and destroys it.
          */
-        virtual ~EventStream();
+        virtual ~Queue();
 
-        /** Returns the alpaka queue object associated with this EventStream.
+        /** Returns the alpaka queue object associated with this Queue.
          *
          * @return the internal alpaka queue object
          */
-        AccStream getCudaStream() const;
+        ComputeDeviceQueue getAlpakaQueue() const;
 
-        void waitOn(const CudaEventHandle& ev);
+        void waitOn(const ComputeEventHandle& ev);
 
     private:
-        AccStream stream;
+        ComputeDeviceQueue queue;
     };
 
 } // namespace pmacc

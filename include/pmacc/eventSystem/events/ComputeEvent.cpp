@@ -20,35 +20,35 @@
  */
 
 
-#include "pmacc/eventSystem/events/CudaEvent.hpp"
+#include "pmacc/eventSystem/events/ComputeEvent.hpp"
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/alpakaHelper/Device.hpp"
 #include "pmacc/alpakaHelper/acc.hpp"
-#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/events/ComputeEventHandle.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    CudaEvent::CudaEvent() : event(AlpakaEventType(manager::Device<ComputeDevice>::get().current()))
+    ComputeEvent::ComputeEvent() : event(ComputeDeviceEvent(manager::Device<ComputeDevice>::get().current()))
     {
         log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
     }
 
 
-    CudaEvent::~CudaEvent()
+    ComputeEvent::~ComputeEvent()
     {
         PMACC_ASSERT(refCounter == 0u);
         log(ggLog::CUDA_RT() + ggLog::EVENT(), "sync and delete event");
         alpaka::wait(event);
     }
 
-    void CudaEvent::registerHandle()
+    void ComputeEvent::registerHandle()
     {
         ++refCounter;
     }
 
-    void CudaEvent::releaseHandle()
+    void ComputeEvent::releaseHandle()
     {
         assert(refCounter != 0u);
         // get old value and decrement
@@ -64,7 +64,7 @@ namespace pmacc
     }
 
 
-    bool CudaEvent::isFinished()
+    bool ComputeEvent::isFinished()
     {
         // avoid alpaka calls if event is already finished
         if(!finished)
@@ -76,7 +76,7 @@ namespace pmacc
     }
 
 
-    void CudaEvent::recordEvent(AccStream const& stream)
+    void ComputeEvent::recordEvent(ComputeDeviceQueue const& stream)
     {
         /* disallow double recording */
         assert(!this->stream.has_value());

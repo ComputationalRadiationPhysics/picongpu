@@ -26,7 +26,7 @@
 #include "pmacc/Environment.def"
 #include "pmacc/alpakaHelper/Device.hpp"
 #include "pmacc/alpakaHelper/acc.hpp"
-#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/queues/Queue.hpp"
 #include "pmacc/types.hpp"
 
 #include <stdexcept>
@@ -36,37 +36,37 @@
 namespace pmacc
 {
     /**
-     * Manages a pool of AccStreams and gives access to them.
+     * Manages a pool of ComputeDeviceQueues and gives access to them.
      * This class is a singleton.
      */
-    class StreamController
+    class QueueController
     {
     public:
         /**
-         * Returns a pointer to the next EventStream in the controller's queue.
-         * @return pointer to next EventStream
+         * Returns a pointer to the next Queue in the controller's queue.
+         * @return pointer to next Queue
          */
-        EventStream* getNextStream()
+        Queue* getNextStream()
         {
             if(!isActivated)
                 throw std::runtime_error(
-                    std::string("StreamController is not activated but getNextStream() was called"));
+                    std::string("QueueController is not activated but getNextStream() was called"));
             size_t oldIndex = currentStreamIndex;
             currentStreamIndex++;
-            if(currentStreamIndex == streams.size())
+            if(currentStreamIndex == queues.size())
                 currentStreamIndex = 0;
 
-            return streams[oldIndex].get();
+            return queues[oldIndex].get();
         }
 
         /**
          * Destructor.
          * Deletes internal streams. Tears down CUDA.
          */
-        virtual ~StreamController()
+        virtual ~QueueController()
         {
             // First delete the streams
-            streams.clear();
+            queues.clear();
 
             /* This is the single point in PIC where ALL CUDA work must be finished. */
             /* Accessing CUDA objects after this point may fail! */
@@ -75,34 +75,34 @@ namespace pmacc
         }
 
         /**
-         * Add additional EventStreams to the queue.
-         * @param count number of EventStreams to add.
+         * Add additional Queues to the queue.
+         * @param count number of Queues to add.
          */
-        void addStreams(size_t count)
+        void addQueues(size_t count)
         {
             for(size_t i = 0; i < count; i++)
             {
-                streams.push_back(std::make_shared<EventStream>());
+                queues.push_back(std::make_shared<Queue>());
             }
         }
 
-        /** enable StreamController and add one stream
+        /** enable QueueController and add one stream
          *
-         * If StreamController is not activated getNextStream() will crash on its first call
+         * If QueueController is not activated getNextStream() will crash on its first call
          */
         void activate()
         {
-            addStreams(1);
+            addQueues(1);
             isActivated = true;
         }
 
         /**
-         * Returns the number of available EventStreams in the queue.
-         * @return number of EventStreams
+         * Returns the number of available Queues in the queue.
+         * @return number of Queues
          */
         size_t getStreamsCount()
         {
-            return streams.size();
+            return queues.size();
         }
 
     private:
@@ -111,20 +111,20 @@ namespace pmacc
         /**
          * Constructor.
          */
-        StreamController() = default;
+        QueueController() = default;
 
         /**
          * Get instance of this class.
          * This class is a singleton class.
          * @return an instance
          */
-        static StreamController& getInstance()
+        static QueueController& getInstance()
         {
-            static StreamController instance;
+            static QueueController instance;
             return instance;
         }
 
-        std::vector<std::shared_ptr<EventStream>> streams;
+        std::vector<std::shared_ptr<Queue>> queues;
         size_t currentStreamIndex{0};
         bool isActivated{false};
     };

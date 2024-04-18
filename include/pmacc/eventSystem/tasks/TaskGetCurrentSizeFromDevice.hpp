@@ -53,7 +53,7 @@ namespace pmacc
 
         void init() override
         {
-            auto queue = this->getCudaStream();
+            auto queue = this->getAlpakaQueue();
             alpaka::memcpy(
                 queue,
                 buffer->sizeHostSideBuffer(),

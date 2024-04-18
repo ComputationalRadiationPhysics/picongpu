@@ -83,7 +83,7 @@ namespace pmacc
                 KernelSetValueOnDeviceMemory{},
                 alpaka::getPtrNative(sizeBuff),
                 size);
-            auto queue = this->getCudaStream();
+            auto queue = this->getAlpakaQueue();
             alpaka::enqueue(queue, setValueKernel);
 
             activate();
