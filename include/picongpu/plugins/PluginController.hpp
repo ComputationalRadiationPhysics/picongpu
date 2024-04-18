@@ -43,6 +43,10 @@
  */
 #include "picongpu/plugins/PngPlugin.hpp"
 
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1)
+#    include "picongpu/plugins/shadowgraphy/Shadowgraphy.hpp"
+#endif
+
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #    include "picongpu/plugins/binning/BinningDispatcher.hpp"
@@ -137,7 +141,10 @@ namespace picongpu
             EnergyFields,
             ChargeConservation,
             SumCurrents
-
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1)
+            ,
+            plugins::multi::Master<plugins::shadowgraphy::Shadowgraphy>
+#endif
 #if(ENABLE_OPENPMD == 1)
             ,
             plugins::binning::BinningDispatcher,

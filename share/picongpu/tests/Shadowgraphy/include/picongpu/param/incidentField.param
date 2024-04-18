@@ -1,0 +1,124 @@
+/* Copyright 2020-2023 Sergei Bastrakov, Finn-Ole Carstens
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/incidentField/profiles/profiles.def"
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            /** Base class with laser parameters and common functionality
+             *
+             * It is not required to have a base class, but in this case convenient to keep all laser-related things
+             * together.
+             */
+
+            namespace profiles
+            {
+                struct MyGaussianParam
+                {
+                    static constexpr float_64 WAVE_LENGTH_SI = 800e-9; // TIME_PERIOD_SI * SI::SPEED_OF_LIGHT_SI;
+                    static constexpr float_64 TIME_PERIOD_SI = WAVE_LENGTH_SI / SI::SPEED_OF_LIGHT_SI;
+                    static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
+                        / SI::ELECTRON_CHARGE_SI;
+                    static constexpr float_64 A0 = 1.0;
+                    static constexpr float_64 AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                    static constexpr float_64 PULSE_DURATION_SI = 10e-15; // 0.026 ns
+
+                    static constexpr float_X LASER_PHASE = 0.0_X;
+
+                    static constexpr float_64 DIRECTION_X = 0.0;
+                    static constexpr float_64 DIRECTION_Y = 0.0;
+                    static constexpr float_64 DIRECTION_Z = 1.0;
+
+                    static constexpr Origin FOCUS_ORIGIN_X = Origin::Center;
+                    static constexpr Origin FOCUS_ORIGIN_Y = Origin::Center;
+                    static constexpr Origin FOCUS_ORIGIN_Z = Origin::Center;
+
+                    static constexpr float_64 FOCUS_POSITION_X_SI = 0.0e-6;
+                    static constexpr float_64 FOCUS_POSITION_Y_SI = 0.0e-6;
+                    static constexpr float_64 FOCUS_POSITION_Z_SI = 0.0e-6;
+
+                    static constexpr PolarisationType Polarisation = PolarisationType::Linear;
+
+                    static constexpr float_64 POLARISATION_DIRECTION_X = 0.0;
+                    static constexpr float_64 POLARISATION_DIRECTION_Y = 1.0;
+                    static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
+
+                    static constexpr float_64 W0_SI = 10e-6;
+
+                    static constexpr float_64 PULSE_INIT = 16.0;
+
+                    using LAGUERREMODES_t = defaults::gaussianPulse::LAGUERREMODES_t;
+                    using LAGUERREPHASES_t = defaults::gaussianPulse::LAGUERREPHASES_t;
+                    static constexpr uint32_t MODENUMBER = defaults::gaussianPulse::MODENUMBER;
+                    /** @} */
+                };
+            } // namespace profiles
+
+            //! Source of incident E and B fields
+            using TestBeamProfile = profiles::GaussianPulse<profiles::MyGaussianParam>;
+
+            /**@{*/
+            /** Incident field profile types along each boundary, these 6 types (or aliases) are required.
+             *
+             * Here we generate one Gaussian pulse propagating inwards from Zmin
+             */
+            using XMin = TestBeamProfile;
+            using XMax = TestBeamProfile;
+            using YMin = TestBeamProfile;
+            using YMax = TestBeamProfile;
+            using ZMin = TestBeamProfile;
+            using ZMax = TestBeamProfile;
+            /**@}*/
+
+            /** Position in cells of the Huygens surface relative to start of the total domain
+             *
+             * The position is set as an offset, in cells, counted from the start of the total domain.
+             * For the max boundaries, negative position values are allowed.
+             * These negative values are treated as position at (global_domain_size[d] + POSITION[d][1]).
+             * It is also possible to specify the position explicitly as a positive number.
+             * Then it is on a user to make sure the position is correctly calculated wrt the grid size.
+             *
+             * Except moving window simulations, the position must be inside the global domain.
+             * The distance between the Huygens surface and each global domain boundary must be at least
+             * absorber_thickness + (FDTD_spatial_order / 2 - 1). However beware of setting position = direction *
+             * (absorber_thickness + const), as then changing absorber parameters will affect laser positioning. When
+             * all used profiles are None, the check for POSITION validity is skipped.
+             *
+             * For moving window simulations, POSITION for the YMax side can be located outside the initially simulated
+             * volume. In this case, parts of the generation surface outside of the currently simulated volume is are
+             * treated as if they had zero incident field and it is user's responsibility to apply a source matching
+             * such a case.
+             */
+            constexpr int32_t POSITION[3][2] = {
+                {16, -16}, // x direction [negative, positive]
+                {16, -16}, // y direction [negative, positive]
+                {16, -16} // z direction [negative, positive]
+            };
+
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu

@@ -248,3 +248,21 @@ ISAAC
 - *Spack:* ``spack install isaac``
 - *from source:* build the *in situ library* and its dependencies as described in `ISAAC's INSTALL.md <https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md>`_
 - *environment:* set environment variable ``CMAKE_PREFIX_PATH`` for each dependency and the ISAAC in situ library
+
+FFTW3
+"""""
+- required for Shadowgraphy plugin
+- *from tarball:*
+
+  - ``mkdir -p ~/src ~/lib``
+  - ``cd ~/src``
+  - ``wget -O fftw-3.3.10.tar.gz http://fftw.org/fftw-3.3.10.tar.gz``
+  - ``tar -xf fftw-3.3.10.tar.gz``
+  - ``cd fftw-3.3.10``
+  - ``./configure --prefix="$FFTW_ROOT"``
+  - ``make``
+  - ``make install``
+- *environment:* (assumes install from source in ``$HOME/lib/fftw-3.3.10``)
+
+  - ``export FFTW3_ROOT =$HOME/lib/fftw-3.3.10
+  - ``export LD_LIBRARY_PATH=$FFTW3_ROOT/lib:$LD_LIBRARY_PATH``
