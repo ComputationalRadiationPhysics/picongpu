@@ -250,6 +250,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "respectively.",
                    "doubleBuffer"};
 
+            plugins::multi::Option<std::string> particleIOChunkSize
+                = {"particleIOChunkSize",
+                   "Particle data will be written in chunks of the given size. unit: MiB",
+                   "10240"};
+
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
              * the creation of checkpoints.
@@ -339,7 +344,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {&jsonRestartConfig,
                  std::nullopt,
                  &PluginParameters::jsonRestartParams,
-                 ApplyParameter::OnlyInCheckpoint}};
+                 ApplyParameter::OnlyInCheckpoint},
+                {&particleIOChunkSize, "particleIOChunkSize", &PluginParameters::particleIOChunkSizeString}};
 
             std::vector<toml::TomlParameter> tomlParameters()
             {
@@ -653,6 +659,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             /* window selection */
             auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
             window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
+            particleIOChunkSize = std::stoull(particleIOChunkSizeString);
         }
 
         /** Writes simulation data to openPMD.

@@ -35,9 +35,12 @@
 #include "pmacc/traits/GetFlagType.hpp"
 #include "pmacc/traits/HasFlag.hpp"
 #include "pmacc/traits/HasIdentifier.hpp"
+#include "pmacc/traits/Resolve.hpp"
 #include "pmacc/types.hpp"
 
+#include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/plus.hpp>
 
 #include <type_traits>
 
@@ -55,6 +58,16 @@ namespace pmacc
     template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
     struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     {
+    private:
+        /** Get the size in bytes for a value identifier */
+        template<typename T_ValueIdentifier>
+        struct GetSizeOfValueIdentifier
+        {
+            using ResolvedValueIdentifier = typename pmacc::traits::Resolve<T_ValueIdentifier>::type;
+            using type = boost::mpl::integral_c<size_t, sizeof(typename ResolvedValueIdentifier::type)>;
+        };
+
+    public:
         using FrameType = T_FrameType;
         using ValueTypeSeq = T_ValueTypeSeq;
         using Name = typename FrameType::Name;
@@ -62,6 +75,19 @@ namespace pmacc
         // required to map local `cellIdx` to a cell within a supercell
         using SuperCellSize = typename FrameType::SuperCellSize;
         using MethodsList = typename FrameType::MethodsList;
+
+        /** The sum of the bytes required to store all value identifiers (attributes) of a particle.
+         *
+         * @return size in bytes
+         */
+        static constexpr size_t sizeInByte()
+        {
+            namespace bmpl = boost::mpl;
+            return bmpl::accumulate<
+                ValueTypeSeq,
+                bmpl::integral_c<size_t, 0u>,
+                bmpl::plus<bmpl::_1, GetSizeOfValueIdentifier<bmpl::_2>>>::type::value;
+        }
 
         /** pointer to parent frame where this particle is from
          *

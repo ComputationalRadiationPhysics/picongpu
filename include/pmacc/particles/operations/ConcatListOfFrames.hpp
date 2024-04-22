@@ -43,14 +43,9 @@ namespace pmacc
              * - remove species attributes `multiMask` and `localCellIdx`
              * - add new cellIdx attribute relative to a user-defined domain
              */
-            template<unsigned T_dim>
             struct ConcatListOfFrames
             {
-                DataSpace<T_dim> m_gridSize;
-
-                ConcatListOfFrames(const DataSpace<T_dim>& gridSize) : m_gridSize(gridSize)
-                {
-                }
+                ConcatListOfFrames() = default;
 
                 /** concatenate list of frames to single frame
                  *
@@ -83,15 +78,16 @@ namespace pmacc
                     const T_Filter particleFilter,
                     const T_Space domainOffset,
                     const T_Identifier domainCellIdxIdentifier,
-                    const T_Mapping mapper,
+                    T_Mapping mapper,
                     T_ParticleFilter& parFilter)
                 {
+                    auto gridSize = mapper.getGridDim();
 #pragma omp parallel for
-                    for(int linearBlockIdx = 0; linearBlockIdx < m_gridSize.productOfComponents(); ++linearBlockIdx)
+                    for(int linearBlockIdx = 0; linearBlockIdx < gridSize.productOfComponents(); ++linearBlockIdx)
                     {
                         // local copy for each omp thread
                         T_Filter filter = particleFilter;
-                        DataSpace<T_dim> blockIndex = pmacc::math::mapToND(m_gridSize, linearBlockIdx);
+                        auto blockIndexND = pmacc::math::mapToND(gridSize, linearBlockIdx);
 
                         using namespace pmacc::particles::operations;
 
@@ -106,7 +102,7 @@ namespace pmacc
                         const int particlesPerFrame = T_SrcBox::frameSize;
                         int localIdxs[particlesPerFrame];
 
-                        const DataSpace<Mapping::Dim> superCellIdx = mapper.getSuperCellIndex(blockIndex);
+                        const DataSpace<Mapping::Dim> superCellIdx = mapper.getSuperCellIndex(blockIndexND);
                         const DataSpace<Mapping::Dim> superCellPosition(
                             (superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
                         filter.setSuperCellPosition(superCellPosition);
