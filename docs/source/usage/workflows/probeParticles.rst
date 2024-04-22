@@ -62,23 +62,33 @@ and add it to ``VectorAllSpecies``:
 
 .. code-block:: cpp
 
-   CONST_VECTOR(
-       float_X,
-       3,
-       InCellOffset,
-       /* each x, y, z in-cell position component
-        * in range [0.0, 1.0) */
-       0.0,
-       0.0,
-       0.0
-   );
-   struct OnePositionParameter
-   {
-       static constexpr uint32_t numParticlesPerCell = 1u;
-       const InCellOffset_t inCellOffset;
-   };
+    namespace startPosition
+    {
+        //! Configuration of initial in-cell particle position
+        struct OnePositionParameter
+        {
+            /** Maximum number of macro-particles per cell during density profile evaluation.
+             *
+             * Determines the weighting of a macro particle as well as the number of
+             * macro-particles which sample the evolution of the particle distribution
+             * function in phase space.
+             *
+             * unit: none
+             */
+            static constexpr uint32_t numParticlesPerCell = <PARTICLES_PER_CELL_TO_SPAWN>;
 
-   using OnePosition = OnePositionImpl< OnePositionParameter >;
+            /** each x, y, z in-cell position component in range [0.0, 1.0)
+             *
+             * @details in 2D the last component is ignored
+             */
+            static constexpr auto inCellOffset = float3_X(0., 0., 0.);
+        };
+
+        /** Definition of OnePosition start position functor that
+         * places macro-particles at the initial in-cell position defined above.
+         */
+        using OnePosition = OnePositionImpl<OnePositionParameter>;
+    } // namespace startPosition
 
 * ``speciesInitialization.param``: initialize particles for the probe just as with regular particles
 

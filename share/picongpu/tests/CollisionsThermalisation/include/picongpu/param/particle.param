@@ -105,21 +105,10 @@ namespace picongpu
 
         namespace startPosition
         {
-            /** Define initial in-cell particle position used as parameter in OnePosition functor.
+            /** Configuration of initial in-cell particle position
              *
              * Here, macro-particles sit directly in lower corner of the cell.
-             *
-             * This defines the type InCellOffset_t
-             * where every instance of this type has the preset values defined here.
              */
-            CONST_VECTOR(
-                float_X,
-                3,
-                InCellOffset,
-                /* each x, y, z in-cell position component in range [0.0, 1.0) */
-                0.0,
-                0.0,
-                0.0);
             template<uint32_t numParticles>
             struct OnePositionParam
             {
@@ -133,7 +122,11 @@ namespace picongpu
                  */
                 static constexpr uint32_t numParticlesPerCell = numParticles;
 
-                const InCellOffset_t inCellOffset;
+                /** each x, y, z in-cell position component in range [0.0, 1.0)
+                 *
+                 * @details in 2D the last component is ignored
+                 */
+                static constexpr auto inCellOffset = float3_X(0., 0., 0.);
             };
             /** Definition of start position functor that
              * places macro-particles at the initial in-cell position defined above.
