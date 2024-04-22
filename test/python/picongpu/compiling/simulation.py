@@ -47,6 +47,7 @@ class TestSimulation(unittest.TestCase):
         sim.grid.boundary_condition_y = pypicongpu.grid.BoundaryCondition.PERIODIC
         sim.grid.boundary_condition_z = pypicongpu.grid.BoundaryCondition.PERIODIC
         sim.laser = None
+        sim.custom_user_input = None
         sim.solver = pypicongpu.solver.YeeSolver()
         sim.init_manager = pypicongpu.species.InitManager()
 

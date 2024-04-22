@@ -7,3 +7,4 @@ from .species import *  # pyflakes.ignore
 from .output import *  # pyflakes.ignore
 from .rendering import *  # pyflakes.ignore
 from .laser import *  # pyflakes.ignore
+from .customuserinput import *  # pyflakes.ignore

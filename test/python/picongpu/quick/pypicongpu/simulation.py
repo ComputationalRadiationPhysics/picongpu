@@ -7,7 +7,7 @@ License: GPLv3+
 
 from picongpu.pypicongpu.simulation import Simulation
 from picongpu.pypicongpu.laser import GaussianLaser
-from picongpu.pypicongpu import grid, solver, species
+from picongpu.pypicongpu import grid, solver, species, customuserinput
 from picongpu.pypicongpu import rendering
 
 import unittest
@@ -44,6 +44,7 @@ class TestSimulation(unittest.TestCase):
         self.s.grid.boundary_condition_z = grid.BoundaryCondition.PERIODIC
         self.s.solver = solver.YeeSolver()
         self.s.laser = None
+        self.s.custom_user_input = None
         self.s.init_manager = species.InitManager()
 
         self.laser = GaussianLaser()
@@ -62,6 +63,9 @@ class TestSimulation(unittest.TestCase):
         self.laser.laguerre_phases = [2.4, 3.4]
         self.laser.huygens_surface_positions = [[1, -1], [1, -1], [1, -1]]
 
+        self.customData_1 = [{"test_data_1": 1}, "tag_1"]
+        self.customData_2 = [{"test_data_2": 2}, "tag_2"]
+
     def test_basic(self):
         s = self.s
         self.assertEqual(13.37, s.delta_t_si)
@@ -79,6 +83,10 @@ class TestSimulation(unittest.TestCase):
             s.time_steps = 14.3
         with self.assertRaises(typeguard.TypeCheckError):
             s.grid = [42, 13, 37]
+        with self.assertRaises(typeguard.TypeCheckError):
+            s.custom_user_input = {"test": 15}
+        with self.assertRaises(typeguard.TypeCheckError):
+            s.custom_user_input = customuserinput.CustomUserInput()
 
     def test_mandatory(self):
         # there are two main ways these objects are mandatory:
@@ -198,3 +206,60 @@ class TestSimulation(unittest.TestCase):
         for time_steps in [1, 17, 99]:
             self.s.time_steps = time_steps
             self.assertEqual(1, self.s.get_rendering_context()["output"]["auto"]["period"])
+
+    def test_custom_input_pass_thru(self):
+        i = customuserinput.CustomUserInput()
+
+        i.addToCustomInput(self.customData_1[0], self.customData_1[1])
+        i.addToCustomInput(self.customData_2[0], self.customData_2[1])
+
+        self.s.add_custom_user_input(i)
+
+        renderingContextGoodResult = {"test_data_1": 1, "test_data_2": 2, "tags": ["tag_1", "tag_2"]}
+        self.assertEqual(renderingContextGoodResult, self.s.get_rendering_context()["customuserinput"])
+
+    def test_combination_of_several_custom_inputs(self):
+        i_1 = customuserinput.CustomUserInput()
+        i_2 = customuserinput.CustomUserInput()
+
+        i_1.addToCustomInput(self.customData_1[0], self.customData_1[1])
+        i_2.addToCustomInput(self.customData_2[0], self.customData_2[1])
+
+        self.s.add_custom_user_input(i_1)
+        self.s.add_custom_user_input(i_2)
+
+        renderingContextGoodResult = {"test_data_1": 1, "test_data_2": 2, "tags": ["tag_1", "tag_2"]}
+        self.assertEqual(renderingContextGoodResult, self.s.get_rendering_context()["customuserinput"])
+
+    def test_duplicated_tag_over_different_custom_inputs(self):
+        i_1 = customuserinput.CustomUserInput()
+        i_2 = customuserinput.CustomUserInput()
+
+        i_1.addToCustomInput(self.customData_1[0], self.customData_1[1])
+        i_2.addToCustomInput(self.customData_2[0], self.customData_1[1])
+
+        self.s.add_custom_user_input(i_1)
+        self.s.add_custom_user_input(i_2)
+
+        with self.assertRaisesRegex(ValueError, "duplicate tag provided!, tags must be unique!"):
+            self.s.get_rendering_context()
+
+    def test_duplicated_key_over_different_custom_inputs(self):
+        i = customuserinput.CustomUserInput()
+        i_sameValue = customuserinput.CustomUserInput()
+        i_differentValue = customuserinput.CustomUserInput()
+
+        duplicateKeyData_differentValue = {"test_data_1": 3}
+        duplicateKeyData_sameValue = {"test_data_1": 1}
+
+        i.addToCustomInput(self.customData_1[0], self.customData_1[1])
+        i_sameValue.addToCustomInput(duplicateKeyData_sameValue, "tag_2")
+        i_differentValue.addToCustomInput(duplicateKeyData_differentValue, "tag_3")
+
+        self.s.add_custom_user_input(i)
+
+        # should work
+        self.s.add_custom_user_input(i_sameValue)
+        with self.assertRaisesRegex(ValueError, "Key test_data_1 exist already, and specified values differ."):
+            self.s.add_custom_user_input(i_differentValue)
+            self.s.get_rendering_context()

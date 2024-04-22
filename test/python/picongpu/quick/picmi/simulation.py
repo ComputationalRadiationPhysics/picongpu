@@ -114,7 +114,7 @@ class TestPicmiSimulation(unittest.TestCase):
 
     def test_cfl_not_yee(self):
         # if the solver is not yee, cfl and timestep can be set however
-        # -> none of this raises an erorr
+        # -> none of this raises an error
         get_sim_cfl_helper(7.14500557764070900528e-9, 0.99, (3, 4, 5), "CKC")
         get_sim_cfl_helper(42, 0.99, (3, 4, 5), "CKC")
         get_sim_cfl_helper(None, 0.99, (3, 4, 5), "CKC")
@@ -128,7 +128,8 @@ class TestPicmiSimulation(unittest.TestCase):
         sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver)
 
         profile = picmi.UniformDistribution(density=42)
-        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        layout3 = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        layout4 = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
 
         # species list empty by default
         self.assertEqual([], sim.get_as_pypicongpu().init_manager.all_species)
@@ -136,19 +137,58 @@ class TestPicmiSimulation(unittest.TestCase):
         # not placed
         sim.add_species(picmi.Species(name="dummy1", mass=5), None)
 
-        # placed with entire placement
-        sim.add_species(
-            picmi.Species(name="dummy2", mass=3, density_scale=4, initial_distribution=profile),
-            layout,
-        )
+        # placed with entire placement and 3ppc
+        sim.add_species(picmi.Species(name="dummy2", mass=3, density_scale=4, initial_distribution=profile), layout3)
 
-        # placed with default ratio of 1
-        sim.add_species(picmi.Species(name="dummy3", mass=3, initial_distribution=profile), layout)
+        # placed with default ratio of 1 and 4ppc
+        sim.add_species(picmi.Species(name="dummy3", mass=3, initial_distribution=profile), layout4)
 
         picongpu = sim.get_as_pypicongpu()
         self.assertEqual(3, len(picongpu.init_manager.all_species))
         species_names = set(map(lambda species: species.name, picongpu.init_manager.all_species))
         self.assertEqual({"dummy1", "dummy2", "dummy3"}, species_names)
+
+        # check typical ppc is derived
+        self.assertEqual(picongpu.typical_ppc, 2)
+
+    def test_explicit_typical_ppc(self):
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=15)
+
+        profile = picmi.UniformDistribution(density=42)
+        layout3 = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        layout4 = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+
+        # placed with entire placement and 3ppc
+        sim.add_species(picmi.Species(name="dummy2", mass=3, density_scale=4, initial_distribution=profile), layout3)
+        # placed with default ratio of 1 and 4ppc
+        sim.add_species(picmi.Species(name="dummy3", mass=3, initial_distribution=profile), layout4)
+
+        picongpu = sim.get_as_pypicongpu()
+        self.assertEqual(2, len(picongpu.init_manager.all_species))
+        species_names = set(map(lambda species: species.name, picongpu.init_manager.all_species))
+        self.assertEqual({"dummy2", "dummy3"}, species_names)
+
+        # check explicitly set typical ppc is respected
+        self.assertEqual(picongpu.typical_ppc, 15)
+
+    def test_wrong_explicitly_set_typical_ppc(self):
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+
+        wrongValues = [0, -1, -15]
+        for value in wrongValues:
+            sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
+            with self.assertRaisesRegex(ValueError, "typical_ppc must be >= 1"):
+                sim.get_as_pypicongpu()
+
+        wrongTypes = [0.0, -1.0, -15.0, 1.0, 15.0]
+        for value in wrongTypes:
+            with self.assertRaisesRegex(
+                typeguard.TypeCheckError, '"picongpu_typical_ppc" .* did not match any element in the union'
+            ):
+                sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
 
     def test_invalid_placement(self):
         profile = picmi.UniformDistribution(density=42)

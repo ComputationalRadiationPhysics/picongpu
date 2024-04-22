@@ -1,0 +1,19 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.customrenderingcontext.CustomRenderingContext",
+    "description": "additional input provided by user directly to the PyPIConGPU simulation object for use in custom templates",
+    "type": "object",
+    "properties": {
+        "tags":{
+            "description": "list of unique strings identifying the version/content of the custom input",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "tags"
+        ],
+    "unevaluatedProperties": true
+}

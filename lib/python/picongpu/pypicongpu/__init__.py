@@ -12,6 +12,7 @@ from . import solver
 from . import species
 from . import util
 from . import output
+from . import customuserinput
 
 __all__ = [
     "Simulation",
@@ -23,6 +24,7 @@ __all__ = [
     "species",
     "util",
     "grid",
+    "customuserinput",
 ]
 
 # note: put down here b/c linter complains if imports are not at top
