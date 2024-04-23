@@ -23,17 +23,17 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 #include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
     template<typename T_DeviceBuffer>
-    class TaskGetCurrentSizeFromDevice : public StreamTask
+    class TaskGetCurrentSizeFromDevice : public DeviceTask
     {
     public:
-        TaskGetCurrentSizeFromDevice(T_DeviceBuffer& buff) : StreamTask(), buffer(&buff)
+        TaskGetCurrentSizeFromDevice(T_DeviceBuffer& buff) : DeviceTask(), buffer(&buff)
         {
         }
 

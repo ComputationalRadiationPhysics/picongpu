@@ -20,31 +20,31 @@
  */
 
 
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/assert.hpp"
 
 namespace pmacc
 {
-    StreamTask::StreamTask() : ITask()
+    DeviceTask::DeviceTask() : ITask()
     {
         this->setTaskType(ITask::TASK_DEVICE);
     }
 
-    ComputeEventHandle StreamTask::getComputeEventHandle() const
+    ComputeEventHandle DeviceTask::getComputeEventHandle() const
     {
         PMACC_ASSERT(hasComputeEventHandle);
         return m_alpakaEvent;
     }
 
-    void StreamTask::setComputeEventHandle(const ComputeEventHandle& alpakaEvent)
+    void DeviceTask::setComputeEventHandle(const ComputeEventHandle& alpakaEvent)
     {
         this->hasComputeEventHandle = true;
         this->m_alpakaEvent = alpakaEvent;
     }
 
-    bool StreamTask::isFinished()
+    bool DeviceTask::isFinished()
     {
         if(alwaysFinished)
             return true;
@@ -59,28 +59,28 @@ namespace pmacc
         return false;
     }
 
-    Queue* StreamTask::getComputeDeviceQueue()
+    Queue* DeviceTask::getComputeDeviceQueue()
     {
         if(stream == nullptr)
             stream = eventSystem::getComputeDeviceQueue(TASK_DEVICE);
         return stream;
     }
 
-    void StreamTask::setQueue(Queue* newStream)
+    void DeviceTask::setQueue(Queue* newStream)
     {
         PMACC_ASSERT(newStream != nullptr);
         PMACC_ASSERT(stream == nullptr); // it is only allowed to set a stream if no stream is set before
         this->stream = newStream;
     }
 
-    ComputeDeviceQueue StreamTask::getAlpakaQueue()
+    ComputeDeviceQueue DeviceTask::getAlpakaQueue()
     {
         if(stream == nullptr)
             stream = eventSystem::getComputeDeviceQueue(TASK_DEVICE);
         return stream->getAlpakaQueue();
     }
 
-    void StreamTask::activate()
+    void DeviceTask::activate()
     {
         m_alpakaEvent = Environment<>::get().EventPool().pop();
         m_alpakaEvent.recordEvent(getAlpakaQueue());

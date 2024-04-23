@@ -23,14 +23,14 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 
 namespace pmacc
 {
-    class TaskKernel : public StreamTask
+    class TaskKernel : public DeviceTask
     {
     public:
-        TaskKernel(std::string kernelName) : StreamTask(), canBeChecked(false), kernelName(kernelName)
+        TaskKernel(std::string kernelName) : DeviceTask(), canBeChecked(false), kernelName(kernelName)
         {
         }
 

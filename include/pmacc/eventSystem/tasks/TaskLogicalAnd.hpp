@@ -25,22 +25,22 @@
 
 
 #include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 namespace pmacc
 {
     /**
      * TaskLogicalAnd AND-connects tasks to a new single task
      */
-    class TaskLogicalAnd : public StreamTask
+    class TaskLogicalAnd : public DeviceTask
     {
     public:
         /**
-         * s1 and s1 must be a valid IStreamTask
+         * s1 and s1 must be a valid DeviceTasks
          * constructor
          */
-        TaskLogicalAnd(ITask* s1, ITask* s2) : StreamTask(), task1(s1->getId()), task2(s2->getId())
+        TaskLogicalAnd(ITask* s1, ITask* s2) : DeviceTask(), task1(s1->getId()), task2(s2->getId())
         {
             combine(s1, s2);
         }
@@ -77,9 +77,9 @@ namespace pmacc
                     ITask::TaskType type = task->getTaskType();
                     if(type == ITask::TASK_DEVICE)
                     {
-                        this->stream = static_cast<StreamTask*>(task)->getComputeDeviceQueue();
+                        this->stream = static_cast<DeviceTask*>(task)->getComputeDeviceQueue();
                         this->setTaskType(ITask::TASK_DEVICE);
-                        this->m_alpakaEvent = static_cast<StreamTask*>(task)->getComputeEventHandle();
+                        this->m_alpakaEvent = static_cast<DeviceTask*>(task)->getComputeEventHandle();
                         this->hasComputeEventHandle = true;
                     }
                 }
@@ -94,9 +94,9 @@ namespace pmacc
                     ITask::TaskType type = task->getTaskType();
                     if(type == ITask::TASK_DEVICE)
                     {
-                        this->stream = static_cast<StreamTask*>(task)->getComputeDeviceQueue();
+                        this->stream = static_cast<DeviceTask*>(task)->getComputeDeviceQueue();
                         this->setTaskType(ITask::TASK_DEVICE);
-                        this->m_alpakaEvent = static_cast<StreamTask*>(task)->getComputeEventHandle();
+                        this->m_alpakaEvent = static_cast<DeviceTask*>(task)->getComputeEventHandle();
                         this->hasComputeEventHandle = true;
                     }
                 }
@@ -124,10 +124,10 @@ namespace pmacc
             if(s1->getTaskType() == ITask::TASK_DEVICE && s2->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_DEVICE);
-                this->setQueue(static_cast<StreamTask*>(s2)->getComputeDeviceQueue());
-                if(static_cast<StreamTask*>(s1)->getComputeDeviceQueue()
-                   != static_cast<StreamTask*>(s2)->getComputeDeviceQueue())
-                    this->getComputeDeviceQueue()->waitOn(static_cast<StreamTask*>(s1)->getComputeEventHandle());
+                this->setQueue(static_cast<DeviceTask*>(s2)->getComputeDeviceQueue());
+                if(static_cast<DeviceTask*>(s1)->getComputeDeviceQueue()
+                   != static_cast<DeviceTask*>(s2)->getComputeDeviceQueue())
+                    this->getComputeDeviceQueue()->waitOn(static_cast<DeviceTask*>(s1)->getComputeEventHandle());
                 this->activate();
             }
             else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_DEVICE)

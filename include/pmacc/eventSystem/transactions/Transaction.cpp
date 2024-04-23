@@ -25,7 +25,7 @@
 #include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/eventSystem/events/EventTask.hpp"
 #include "pmacc/eventSystem/queues/QueueController.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 
 namespace pmacc
 {
@@ -72,10 +72,10 @@ namespace pmacc
         {
             if(baseTask->getTaskType() == ITask::TASK_DEVICE)
             {
-                /* `StreamTask` from previous task must be reused to guarantee
+                /* DeviceTasks from previous task must be reused to guarantee
                  * that the dependency chain not brake
                  */
-                auto* task = static_cast<StreamTask*>(baseTask);
+                auto* task = static_cast<DeviceTask*>(baseTask);
                 return task->getComputeDeviceQueue();
             }
             baseEvent.waitForFinished();
