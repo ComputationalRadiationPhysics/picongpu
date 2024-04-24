@@ -28,6 +28,7 @@
 
 namespace picongpu::particles::startPosition::acc
 {
+    //! @details shrinks T_ParamClass::inCellOffset to correct length for simDim
     template<typename T_ParamClass>
     struct OnePositionImpl
     {
@@ -42,7 +43,8 @@ namespace picongpu::particles::startPosition::acc
         template<typename T_Particle, typename... T_Args>
         HDINLINE void operator()(T_Particle& particle, T_Args&&...)
         {
-            particle[position_] = T_ParamClass{}.inCellOffset.template shrink<simDim>();
+            constexpr auto initialPosition = T_ParamClass::inCellOffset;
+            particle[position_] = initialPosition.template shrink<simDim>();
 
             // set the weighting attribute if the particle species has it
             constexpr bool hasWeighting

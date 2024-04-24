@@ -46,8 +46,8 @@ namespace picongpu
              * All macro particles are set to the same in cell position defined in
              * T_ParamClass.
              *
-             * @tparam T_ParamClass Parameter class with off `InCellOffset` defined as
-             *                      CONST_VECTOR of 3 float_X [0.0, 1.0).
+             * @tparam T_ParamClass Parameter class with off `InCellOffset` defined as static constexpr float3_X
+             *                      with each component in [0.0, 1.0).
              */
             template<typename T_ParamClass>
             using OnePositionImpl = generic::Free<acc::OnePositionImpl<T_ParamClass>>;
