@@ -145,7 +145,23 @@ CUDA
 - `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <https://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
 
-  - ``export CUDA_ROOT=<CUDA_INSTALL>``
+  - ``export CMAKE_PREFIX_PATH=<CUDA_INSTALL>:$CMAKE_PREFIX_PATH``
+
+ROCm/HIP
+""""""""
+- `5.1+ <https://rocm.docs.amd.com/projects/HIP/en/latest/install/install.html>`_
+- required if you want to run on AMD GPUs
+- *Debian/Ubuntu:*
+  - ``export ROCM_VER=5.5.0``
+  - ``apt install rocm-llvm${ROCM_VER} hip-runtime-amd${ROCM_VER} rocm-dev${ROCM_VER} rocm-utils${ROCM_VER} rocrand-dev${ROCM_VER} rocm-cmake${ROCM_VER} rocm-device-libs${ROCM_VER} rocm-core${ROCM_VER}``
+  - for ROCM 6.0+ additionally ``apt install hiprand-dev${ROCM_VER}``
+- at least one **HIP** capable **GPU**
+- *LLVM target*: ``gfx906`` or higher
+- `full list <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html#supported-gpus>`_ of AMD GPUs and their *LLVM target*
+- *environment:*
+
+  - ``export CMAKE_PREFIX_PATH=<ROCM_INSTALL>:$CMAKE_PREFIX_PATH``
+  - ``export PATH=<ROCM_INSTALL>/llvm/bin:$PATH``
 
 If you do not install the following libraries, you will not have the full amount of PIConGPU plugins.
 We recommend to install at least **pngwriter** and **openPMD**.
