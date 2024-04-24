@@ -93,6 +93,9 @@ namespace picongpu
 
             Window window; /* window describing the volume to be dumped */
 
+            //! defines the maximal particle data chunk size
+            size_t particleIOChunkSize = 1024llu * 10llu;
+
             /** Offset from local moving window to local domain.
              *  Value for all components will always be >= 0.
              */
