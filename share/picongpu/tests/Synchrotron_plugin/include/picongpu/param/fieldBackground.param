@@ -48,7 +48,7 @@ namespace picongpu
          * @param currentStep The current time step */
         HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
-            constexpr float_X field_Strength_SI = 1000000000000000.0;
+            constexpr float_X field_Strength_SI = 1.00e+15;
             return float3_X(field_Strength_SI / m_unitField[1], 0.0, 0.0);
         }
     };

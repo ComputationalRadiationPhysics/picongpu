@@ -30,11 +30,15 @@ eps0 = const.epsilon_0  # Vacuum permittivity in F/m
 Es = m_e**2 * c**3 / e / hbar  # Schwinger limit in V/m
 
 
+#  Function to calculate Heff as described in the paper:
+#  "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
+#  developments" by A. Gonoskov et.Al.
 def Heff_(v, B, E):
-    vmag = (v**2).sum(-1)
+    vmag = (v**2).sum()
     return np.sqrt(((np.cross(v, B) + E) ** 2).sum(-1) - (np.dot(v / vmag, E)) ** 2)
 
 
+# calculate Heff given a0 assuming 800nm laser
 def Heff_a0(a0, gamma):
     w = 2 * np.pi * c / 800e-9  # Angular frequency for 800nm laser
     El = a0 * m_e * w * c / e  # Electric field strength in V/m

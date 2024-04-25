@@ -29,22 +29,6 @@
 
 #include <cstdint>
 
-
-/** @file SynchrotronRadiation.hpp
- *
- * @todo make better desciptions of SynchrotronRadiation.hpp and ParticleFunctors.hpp
- *
- * This synchrotron extension consists of two new files:
- *      - AlgorithmSynchrotron.hpp:     Defines the algorithm and data structures for the synchrotron model
- *      - SynchrotronRadiation.hpp:     Initializes the class with precomputed F1 and F2 functions
- * and modifies two existing files:
- *      - Simulation.hpp:               Registers the SynchrotronRadiation stage
- *      - ParticleFunctors.hpp:         Chooses which particles are affected by SynchrotronRadiation
- *                                      (which species have "synchrotron" alias assigned in speciesAttributes.param)
- *
- * The call structure goes like this:
- *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParicleFunctors.hpp -> AlgortihmSynchrotron.hpp
- */
 namespace picongpu::simulation::stage
 {
     /** Functor for the stage of the PIC loop performing synchrotron radiation
@@ -56,11 +40,12 @@ namespace picongpu::simulation::stage
     private:
         /** exponential integration
          *
-         * @brief approximate function with exponential and integrate on log scale, by using the middle point to fit
-         * the exponent
+         * @brief
+         * 1) approximate function with exponential function by using the xLeft and xMiddle point to fit the exponent
+         * 2) integrate the exponential function on log scale,
          *
          * @note overestimates function below xMiddle but underestimates function above xMiddle leading to better fit
-         * overal
+         * overal (for bessel function).
          *
          * @param xLeft left point
          * @param xMiddle middle point
@@ -142,7 +127,8 @@ namespace picongpu::simulation::stage
                 }
                 catch(std::exception& e)
                 {
-                    std::cout << "Caught exception in firstSynchrotronFunction: " << e.what() << std::endl;
+                    std::cout << "Caught exception when precomputing firstSynchrotronFunction: " << e.what()
+                              << std::endl;
                 }
             }
             return zq * integral;
@@ -180,8 +166,7 @@ namespace picongpu::simulation::stage
             // precompute F1 and F2 on log scale
             for(uint32_t iZq = 0; iZq < tableEntries; iZq++)
             {
-                float_64 zq
-                    = std::pow(2, minZqExp + (maxZqExp - minZqExp) * iZq / static_cast<float_64>(tableEntries - 1));
+                float_64 zq = std::pow(2, minZqExp + (maxZqExp - minZqExp) * iZq / (tableEntries - 1));
                 // inverse function for index retrieval:
                 // index = (log2(zq) - minZqExp) / (maxZqExp - minZqExp) * (tableEntries-1);
 
@@ -193,7 +178,7 @@ namespace picongpu::simulation::stage
                 tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f2)})
                     = static_cast<float_X>(F2);
             }
-
+            // move the data to the device
             tableValuesF1F2->hostToDevice();
             failedRequirementQ->hostToDevice();
 
@@ -217,9 +202,6 @@ namespace picongpu::simulation::stage
                               << " F1 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index, 0})
                               << " F2 = " << tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index, 1})
                               << std::endl;
-
-                    // interpolation:
-                    // F1 = tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{index,0});
                 }
             }
         }
@@ -232,27 +214,30 @@ namespace picongpu::simulation::stage
         {
             using pmacc::particles::traits::FilterByFlag;
             using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
+
+            // call the synchrotron radiation for each particle species with the synchrotron attribute
             pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
                 synchrotronRadiation;
+
             synchrotronRadiation(
                 cellDescription,
                 step,
                 tableValuesF1F2->getDeviceBuffer().getDataBox(),
                 failedRequirementQ);
 
-            // failedRequirementQ device to host
-            failedRequirementQ->deviceToHost();
             // check if the requirements are met
             if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
             {
-                if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}))
+                // retrieve the failedRequirementQ from the device
+                failedRequirementQ->deviceToHost();
+                if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) == true)
                 {
                     if((failedRequirementPrinted) == false)
                     {
-                        printf(
-                            "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
-                            "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
-                            "synchrotron.params\n");
+                        printf("Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
+                               "reduce the timestep. \n\tCheck the requrement by specifying the predicted maxHeff and "
+                               "maxGamma in"
+                               "\n\tpicongpu/docs/source/usage/workflows/synchrotronRequirements.py\n");
                         printf("This warning is printed only once per simulation. Next warnings are dots.\n");
                         failedRequirementPrinted = true;
                     }
@@ -285,7 +270,7 @@ namespace picongpu::simulation::stage
         /// <END CACHE F1F2>
 
         // flag to check if the requirements 1 and 2 are met -> in
-        // picongpu/include/picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp <- in class SynchrotronIdea(); we
+        // picongpu/include/picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp <- in class SynchrotronIdea(); we
         // check the requirements
         std::shared_ptr<GridBuffer<int32_t, 1>> failedRequirementQ;
         bool failedRequirementPrinted; // this means that the operator() can't be const anymore

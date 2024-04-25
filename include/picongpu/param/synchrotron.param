@@ -33,12 +33,6 @@ namespace picongpu
             constexpr bool T_Debug = false;
             // Carefull -> prints out a lot of stuff. Bigger simulations will produce massive outputs
 
-
-            ///@todo printf(
-            // "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
-            // "reduce the timestep. \n\tCheck the requrement by specifying the maxHeff and maxGamma in "
-            // "checkSynchrotronRequirements.py\n");
-
             // picongpu::particles::synchrotron::params::
             namespace params
             {
@@ -67,13 +61,15 @@ namespace picongpu
                     static constexpr float_64 maxZqExponent = 10; // in log2 don't change. or change. but don't change.
                 };
 
+                /* supressRequirementWarning
+                 * if true, the warning for the requirement 1 and 2 is suppressed
+                 * maby speeds the simulation a little bit because there is no call to global memory
+                 *
+                 * this warning means that the propability of generating a photon is high for given dt (higher
+                 * than 10%) this means that we generate photons possibly every timestep (numerical artefacts)
+                 * and the radiation is underestimeted if propability is grater than 1. The timestep should be reduced.
+                 */
                 constexpr bool supressRequirementWarning = false;
-                // if true, the warning for the requirement 1 and 2 is suppressed
-                // maby speeds the simulation a little bit because there is no call to global memory
-                //
-                // this warning means that the propability of generating a photon is high for given dt (higher
-                /// than 10%) this means that we generate photons possibly every timestep (numerical artefacts)
-                // and the radiation is underestimeted. The timestep should be reduced.
 
             } // namespace params
         } // namespace synchrotron

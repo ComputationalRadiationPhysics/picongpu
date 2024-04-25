@@ -542,7 +542,6 @@ namespace picongpu
             using namespace simulation::stage;
 
             IterationStart{}(currentStep);
-            // if(currentStep % 10) std::cout<<"Hello from iteration: "<< currentStep<<"\n";
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
@@ -644,7 +643,6 @@ namespace picongpu
         // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::ParticleBoundaries particleBoundaries;
-
 
         // Runtime density file stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

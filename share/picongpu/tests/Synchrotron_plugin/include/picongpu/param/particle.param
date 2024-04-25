@@ -43,7 +43,7 @@ namespace picongpu
             /** Define Lorentz factor of initial particle drift. */
             struct DriftParamNegative
             {
-                static constexpr float_64 gamma = 1000;
+                static constexpr float_64 gamma = 1.000e+03;
                 /** Define initial particle drift direction vector.
                  */
                 static constexpr auto driftDirection = float3_X(0.0, -1.0, 0.0);
@@ -67,19 +67,6 @@ namespace picongpu
             // template<typename T_Functor>
             // struct Free;
 
-            struct FunctorPhotonMomentum
-            {
-                template<typename T_Particle>
-                HDINLINE void operator()(T_Particle& particle)
-                {
-                    if(particle[weighting_])
-                        particle[momentum_] = floatD_X::create(1) / particle[weighting_];
-                    //    particle[ momentum_ ].x() = float_X(1);
-                }
-                static constexpr char const* name = "FunctorPhotonMomentum";
-            };
-
-            using PhotonMomentum = generic::Free<FunctorPhotonMomentum>;
         } // namespace manipulators
         /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
@@ -116,11 +103,5 @@ namespace picongpu
          */
         constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
 
-        namespace manipulators
-        {
-            //! Definition of manipulator that sets boundElectrons attribute to neutral value
-            using SetBoundElectrons = unary::ChargeState<0u>;
-
-        } // namespace manipulators
     } // namespace particles
 } // namespace picongpu

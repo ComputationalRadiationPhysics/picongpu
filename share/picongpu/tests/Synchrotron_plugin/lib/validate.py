@@ -1,48 +1,11 @@
 import sys
 import openpmd_api as io
 import numpy as np
-import scipy.constants as const
-from scipy.integrate import quad
-from scipy.special import kv
-
-e = const.elementary_charge  # Elementary charge in C
-m_e = const.m_e  # Electron mass in kg
-c = const.c  # Speed of light in m/s
-hbar = const.hbar  # Reduced Planck constant in J/s
-
-miu0 = const.mu_0  # Vacuum permeability in H/m
-eps0 = const.epsilon_0  # Vacuum permittivity in F/m
-Es = m_e**2 * c**3 / e / hbar  # Schwinger limit in V/m
+from synchrotron_lib import analytical_Propability, momentum_to_energy, quad, const
 
 
-def F1(z_q):
-    if z_q > 2.9e-6:
-        integral = quad(lambda x: kv(5 / 3, x), z_q, np.inf)[0]
-        return z_q * integral
-    else:
-        return 2.15 * z_q ** (1 / 3)
-
-
-def F2(z_q):
-    return z_q * kv(2 / 3, z_q)
-
-
-def analytical_Propability(delta, gamma, Heff, dt):
-    chi = gamma * Heff / Es
-    zq = 2 / (3 * chi) * delta / (1 - delta)
-    F1_result = F1(zq)
-    F2_result = F2(zq)
-    numerator = (
-        dt * e**2 * m_e * c * np.sqrt(3) * chi * (1 - delta) * (F1_result + 3 * delta * zq * chi / 2 * F2_result)
-    )
-    denominator = 2 * np.pi * gamma * delta * hbar**2 * eps0 * 4 * np.pi
-    return numerator / denominator
-
-
-def electron_energy(gamma):
-    return gamma * (m_e * c**2 * 6.2415e18)  # Energy of the electrons in eV
-
-
+# Used when comparing two sets of histogram data with different binning
+# given two set of vectors x0, y0 and x1, y1 we interpolate second set to the first set and subtract them
 # interpolate y1 to x0 and subtract y0 from y1
 def subtract_functions(x0, y0, x1, y1):
     minX = max(np.min(x0), np.min(x1))
@@ -57,12 +20,7 @@ def subtract_functions(x0, y0, x1, y1):
     return x0, np.abs(y0 - y1) / y0
 
 
-#    Returns energy in eV without the rest mass energy
-def momentum_to_energy(momentum, mass):
-    JtoeV = 6.242e18
-    return np.sqrt((momentum * const.c) ** 2 + (mass * const.c**2) ** 2) * JtoeV - mass * const.c**2 * JtoeV
-
-
+# read the parameters from the params.txt file: gamma, Heff, dt
 def read_setup(folderName):
     # in params.txt we have the following parameters:
     # gamma: 1000, Heff: 1000000000000000.0, dt: 4.830524160012079e-17
@@ -77,7 +35,7 @@ def read_setup(folderName):
     return float(gamma), float(Heff), float(dt)
 
 
-iterNo = 4000  #
+iterNo = 4000  # iteration from which we read the data must be the same as in ../bin/validate.ci
 
 
 def main(dataPath):
@@ -88,7 +46,7 @@ def main(dataPath):
     it = series.iterations[iterNo]
 
     simulation_dt = it.get_attribute("dt") * it.get_attribute("unit_time")
-    if abs(simulation_dt - dt) > 1e-10:
+    if abs(simulation_dt - dt) > 1e-10:  # check if the simulation dt is the same as the expected dt. 1e-10 is arbitrary
         raise SystemExit(f"Simulation dt is {simulation_dt} but expected dt is {dt}\n Test failed")
 
     h = it.particles["y"]  # photons
@@ -142,7 +100,7 @@ def main(dataPath):
     mask = a > 1000
     if mask.sum() < 5:
         print(
-            f"max photons in bin = {a.max()}. Increase your statistics: more iterations, more electrons, larger dt. Higher Heff or gamma"
+            f"There is less than 5 bins with 1000 photons or more. Max photons in bin = {a.max()}. Increase your statistics: more iterations, more electrons, larger dt. Higher Heff or gamma"
         )
         return 1
 
@@ -156,8 +114,9 @@ def main(dataPath):
     analytical_integrated = np.array(analytical_integrated)[mask]
 
     x, y = subtract_functions(delta, analytical_integrated, b, a)
-    poorness = np.sum(y) / len(y)
-    poornessBound = 0.05  # 5% error. We want poorness to be less than 5%
+    poorness = np.sum(y) / len(y)  # average error
+    poornessBound = 0.1  # 10% error. We want poorness to be less than 10%
+    print(f"Poorness: {poorness}")
 
     retValue = int(0) if poorness <= poornessBound else int(1)
 

@@ -17,6 +17,7 @@ help()
 {
   echo "Simulate a bunch of electrons, no pusher, with constant gamma and constant background field. "
   echo "Electrons emit synchrotron radiation in the direction of momentum vector. They don't move."
+  echo "Generated spectrum is compared to analytical prediction."
   echo ""
   echo "Usage:"
   echo "    (1) Change current working directory to direcectory where the include directory of the setup is located"
@@ -98,7 +99,8 @@ ret_build=$?
 if [ $ret_build -eq 0 ] ; then
   cd $simPath
   echo "Run setup!"
-  # run the sim
+  # run the sim: 1 node, 24x24x24 cells, 4000 steps, openPMD output
+  # (In this setup we have about 0.5M macro-Particles bc 80 particles per cell)
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 24 24 24 --periodic 1 1 1 -s 4000 \
     --openPMD.period 4000:4000:1 --openPMD.ext bp --openPMD.file simData_test
   cd ..

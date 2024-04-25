@@ -32,9 +32,6 @@
  *
  * This file was created based on AlgorithmIonization.hpp
  *
- * @todo make better desciptions of SynchrotronRadiation.hpp and ParticleFunctors.hpp
- * @todo remove copy of this from SynchrotronRadiation.hpp
- *
  * This synchrotron extension consists of three new files:
  *      - synchrotron.param:            Contains the parameters for the synchrotron model and initialization
  *      - AlgorithmSynchrotron.hpp:     Defines the algorithm and data structures for the synchrotron model
@@ -45,16 +42,15 @@
  *
  * The call structure goes like this:
  *     Simulation.hpp -> SynchrotronRadiation.hpp -> ParticleFunctors.hpp -> AlgorithmSynchrotron.hpp
- *                (++)                       (++)                     (++)                       (++)
+ *                (--)                       (++)                     (--)                       (++)
  * (++) = containt references to the synchrotron.param file
  *
  * file locations:
  * picongpu/include/picongpu/param/synchrotron.param
- * picongpu/include/picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp
+ * picongpu/include/picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp
  * picongpu/include/picongpu/simulation/stage/SynchrotronRadiation.hpp
  * picongpu/include/picongpu/simulation/control/Simulation.hpp
  * picongpu/include/picongpu/particles/ParticleFunctors.hpp
- *
  */
 namespace picongpu
 {
@@ -69,6 +65,20 @@ namespace picongpu
              */
             struct SynchrotronIdea
             {
+                // logInterpolation is a helper function for the logarithmic interpolation
+                HDINLINE void logInterpolation(
+                    int16_t const index,
+                    float_X& F,
+                    float_X& Ftemp,
+                    float_X const f,
+                    int const i,
+                    GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff) const
+                {
+                    F = F1F2DeviceBuff(DataSpace<2>{index, i});
+                    Ftemp = F1F2DeviceBuff(DataSpace<2>{index + 1, i});
+                    F = math::pow(F, 1 - f) * math::pow(Ftemp, f); // F1 = F1**((1-f)) * Ftemp**f
+                }
+
                 /** Functor implementation
                  * @tparam EType type of electric field
                  * @tparam BType type of magnetic field
@@ -82,9 +92,6 @@ namespace picongpu
                  * @return photon energy if photon is created 0 otherwise
                  */
 
-// just a shortcut to access the tableValuesF1F2 (see: InterpolationParams)
-#define F1F2(zq, i) F1F2DeviceBuff(DataSpace<2>{zq, i})
-
                 template<typename T_Worker, typename EType, typename BType, typename ParticleType>
                 HDINLINE float_X // return type -> energy of a photon relative to the electron energy
                 operator()(
@@ -97,20 +104,21 @@ namespace picongpu
                     GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
                     GridBuffer<int32_t, 1>::DataBoxType failedRequirementQBuff) const
                 {
-                    constexpr int16_t minZqExponent = params::InterpolationParams::minZqExponent;
-                    constexpr int16_t maxZqExponent = params::InterpolationParams::maxZqExponent;
+                    constexpr float_64 minZqExponent = params::InterpolationParams::minZqExponent;
+                    constexpr float_64 maxZqExponent = params::InterpolationParams::maxZqExponent;
                     constexpr float_X interpolationPoints
                         = static_cast<float_X>(params::InterpolationParams::numberTableEntries - 1);
                     constexpr float_X stepWidthLogatihmicScale
                         = (static_cast<float_X>(maxZqExponent - minZqExponent) / interpolationPoints);
 
-                    /// zq = 2/3 * chi^(-1) * delta / (1 - delta) ;
-                    ///     chi - ratio of the typical photon energy to the electron kinetic energy
-                    ///     delta - the ratio of the photon energy to the electron energy
-                    /// see Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
-                    /// developments, A. Gonoskov et.Al.
+                    /* zq = 2/3 * chi^(-1) * delta / (1 - delta) ;
+                     *     chi - ratio of the typical photon energy to the electron kinetic energy:
+                     *          if larger than 1 the radiation is in the quantum regime
+                     *     delta - the ratio of the photon energy to the electron energy
+                     * see Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
+                     * developments, A. Gonoskov et.Al. */
 
-                    // delta
+                    // delta = randNr1^3 but we use randNr1^2 later so we calculate it here
                     float_X const r1r1 = randNr1 * randNr1;
                     float_X const delta = r1r1 * randNr1;
 
@@ -125,6 +133,7 @@ namespace picongpu
                     float3_X const eFieldPlusCrossVB = eField + crossVB;
 
                     float_X HeffValue = pmacc::math::dot(eFieldPlusCrossVB, eFieldPlusCrossVB) - dotVnormE * dotVnormE;
+                    // this check is important
                     if(HeffValue <= 0)
                     {
                         return 0;
@@ -134,8 +143,9 @@ namespace picongpu
 
                     // Calculate chi
                     float_X const gamma = Gamma()(parentElectron[momentum_], mass);
-                    float_X const chi = -ELECTRON_CHARGE * HBAR * HeffValue * gamma
+                    float_X const inverse_E_Schwinger = (-ELECTRON_CHARGE * HBAR)
                         / (ELECTRON_MASS * ELECTRON_MASS * SPEED_OF_LIGHT * SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+                    float_X const chi = HeffValue * gamma * inverse_E_Schwinger;
 
                     // zq
                     float_64 oneMinusDeltaOverDelta = (1 - delta) / delta;
@@ -149,20 +159,23 @@ namespace picongpu
                     float_X F1 = 0;
                     float_X F2 = 0;
                     float_X Ftemp = 0;
+
                     if(index >= 0 && index < interpolationPoints - 2)
                     {
                         float_X zq1 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * (index));
                         float_X zq2 = math::pow(2, minZqExponent + stepWidthLogatihmicScale * (index + 1));
                         float_X f = (zq - zq1) / (zq2 - zq1);
 
-                        /// @todo Test Logarithmic interpolation
-                        F1 = F1F2(index, 0);
-                        Ftemp = F1F2(index + 1, 0);
-                        F1 = math::pow(F1, 1 - f) * math::pow(Ftemp, f); // F1 = F1**((1-f)) * Ftemp**f
+                        /// @todo Test Logarithmic interpolation:
+                        //      1) how slow is it?
+                        //      2) how much more accurate it is? (propably not much)
+                        //      3) if not worth to do it replace with:
+                        //          F1 = F1F2DeviceBuff(DataSpace<2>{index, 0});
+                        //          F2 = F1F2DeviceBuff(DataSpace<2>{index, 1});
 
-                        F2 = F1F2(index, 1);
-                        Ftemp = F1F2(index + 1, 1);
-                        F2 = math::pow(F2, 1 - f) * math::pow(Ftemp, f); // F2 = F2**((1-f)) * Ftemp**f
+                        // logInterpolate F1 and F2 -> passed by reference
+                        logInterpolation(index, F1, Ftemp, f, 0, F1F2DeviceBuff);
+                        logInterpolation(index, F2, Ftemp, f, 1, F1F2DeviceBuff);
                     }
 
                     // Calculating the numeric factor: dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 * np.pi))
@@ -177,8 +190,8 @@ namespace picongpu
                         float_X requirement2 = numericFactor * 0.5 * chi / gamma;
 
                         /// this warning means that the propability of generating a photon is high for given dt (higher
-                        /// than @todo check exactly) this means that we generate photons every timestep and
-                        /// underestimate the radiation the solution would be to implement substepping
+                        /// than 10%) this means that we possibly generate photons every timestep and
+                        /// underestimate the radiation. The solution would be to implement substepping
                         if(requirement1 > 0.1
                            || requirement2 > 0.1) // if requirement is not met send warning at every iteration
                             alpaka::atomicExch(worker.getAcc(), &(failedRequirementQBuff(DataSpace<1>{0})), 1);
@@ -187,12 +200,10 @@ namespace picongpu
                     numericFactor *= math::sqrt(3) / (2 * PI);
 
                     // Calculate propability:
-                    ///@todo check the numerical stability -> maby use one numerator
-                    float_X const numerator1 = oneMinusDeltaOverDelta * chi;
-                    float_X const numerator2 = (F1 + 3 * delta * zq * chi / 2 * F2);
+                    float_X const numerator = oneMinusDeltaOverDelta * chi * (F1 + 3 * delta * zq * chi / 2 * F2);
                     float_X const denominator = gamma; // the delta is in oneMinusDeltaOverDelta in numerator1
 
-                    float_X propability = numericFactor * (numerator1 / denominator * numerator2) * 3 * r1r1;
+                    float_X propability = numericFactor * numerator / denominator * 3 * r1r1;
 
                     return (propability > randNr2) * delta;
                 }
@@ -291,7 +302,7 @@ namespace picongpu
                     cachedB = CachedBox::create<0, ValueType_B>(worker, BlockArea());
                     cachedE = CachedBox::create<1, ValueType_E>(worker, BlockArea());
 
-                    /* instance of nvidia assignment operator */
+                    /* instance of alpaka assignment operator */
                     pmacc::math::operation::Assign assign;
                     /* copy fields from global to shared */
                     auto fieldBBlock = bBox.shift(blockCell);
@@ -405,14 +416,6 @@ namespace picongpu
                     partOp::assign(targetPhotonClone, partOp::deselect<particleId>(parentElectron));
 
                     childPhoton[momentum_] = m_PhotonMomentum;
-
-
-                    if constexpr(T_Debug)
-                    {
-                        printf("parentElectron[momentum_] y: %e\n", parentElectron[momentum_].y());
-                        printf("parentElectron[momentum_] z: %e\n", parentElectron[momentum_].z());
-                        printf("m_PhotonMomentum: %e\n\n\n", m_PhotonMomentum);
-                    }
 
                     /* conservatElectron of momentum */
                     if constexpr(params::ElectronRecoil)

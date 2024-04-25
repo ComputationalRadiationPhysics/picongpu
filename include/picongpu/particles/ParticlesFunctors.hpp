@@ -24,9 +24,9 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
-#include "picongpu/particles/Synchrotron/AlgorithmSynchrotron.hpp"
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/creation/creation.hpp"
+#include "picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/Environment.hpp>

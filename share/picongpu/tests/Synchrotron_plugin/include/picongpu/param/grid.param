@@ -48,7 +48,7 @@ namespace picongpu
     {
         /** Duration of one timestep
          *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 4.830524160012079e-17;
+        constexpr float_64 DELTA_T_SI = 1.35e-17;
 
         /** equals X
          *  unit: meter */

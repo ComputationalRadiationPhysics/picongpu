@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # This file is part of PIConGPU.
-# Copyright 2023 PIConGPU contributors
-# Authors: Mika Soren Voss, Rene Widera, Hannes Wolf, Klaus Steiniger
+# Copyright 2024 PIConGPU contributors
+# Authors: Mika Soren Voss, Rene Widera, Hannes Wolf, Klaus Steiniger, Filip Optolowicz
 # License: GPLv3+
 #
 
@@ -34,7 +34,7 @@ fi
 
 help()
 {
-  echo "Validate field absorber test output data."
+  echo "Validate synchrotron radiation test output data."
   echo ""
   echo "Usage:"
   echo "    validate.sh [-d dataPath] [inputSetPath]"
@@ -71,7 +71,7 @@ while true ; do
     shift
 done
 
-MAINTEST="./lib/python/test/SynchrotronRadiation"
+MAINTEST="./lib"
 
 if [ -z "$dataPath" ]; then
     dataPath="$( dirname -- "${currentDir}" )"
