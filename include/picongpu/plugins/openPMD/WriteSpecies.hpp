@@ -480,6 +480,9 @@ namespace picongpu
                             globalNumParticles,
                             myParticleOffset + particleOffset);
 
+                        log<picLog::INPUT_OUTPUT>("openPMD: flush particle records for %1%, dumping round %2%")
+                            % T_SpeciesFilter::getName() % dumpIteration;
+
                         params->openPMDSeries->flush(PreferredFlushTarget::Disk);
 
                         log<picLog::INPUT_OUTPUT>("openPMD: (end) write particle records for %1%, dumping round %2%")
