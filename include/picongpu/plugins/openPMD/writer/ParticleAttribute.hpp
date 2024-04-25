@@ -49,6 +49,8 @@ namespace picongpu
         {
             /** write attribute to openPMD series
              *
+             * @attention This is a MPI_Collective operation and all MPI ranks must participate.
+             *
              * @param params wrapped params
              * @param elements elements of this attribute
              */
@@ -98,8 +100,6 @@ namespace picongpu
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
 
-                std::shared_ptr<ComponentType> storeBfr;
-
                 for(uint32_t d = 0; d < components; d++)
                 {
                     ::openPMD::RecordComponent recordComponent
@@ -115,30 +115,16 @@ namespace picongpu
 
                     if(elements == 0)
                     {
-                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                         continue;
                     }
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
                     // ask openPMD to create a buffer for us
-                    // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = recordComponent
-                                    .storeChunk<ComponentType>(
-                                        ::openPMD::Offset{globalOffset},
-                                        ::openPMD::Extent{elements},
-                                        [&storeBfr](size_t size)
-                                        {
-                                            // if there is no special backend support for creating buffers,
-                                            // reuse the storeBfr
-                                            if(!storeBfr && size > 0)
-                                            {
-                                                storeBfr = std::shared_ptr<ComponentType>{
-                                                    new ComponentType[size],
-                                                    [](ComponentType* ptr) { delete[] ptr; }};
-                                            }
-                                            return storeBfr;
-                                        })
-                                    .currentBuffer();
+                    // in some backends (ADIOS2), this allows avoiding memory copies
+                    auto span
+                        = recordComponent
+                              .storeChunk<ComponentType>(::openPMD::Offset{globalOffset}, ::openPMD::Extent{elements})
+                              .currentBuffer();
 
 /* copy strided data from source to temporary buffer */
 #pragma omp parallel for simd
@@ -146,8 +132,6 @@ namespace picongpu
                     {
                         span[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
                     }
-
-                    params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                 }
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) write species attribute: %1%") % Identifier::getName();
