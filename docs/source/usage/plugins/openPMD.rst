@@ -136,7 +136,7 @@ PIConGPU command line option          description
 ``--openPMD.toml``                    Alternatively configure the openPMD plugin via a TOML file (see below).
 ``--openPMD.particleIOChunkSize``     Particle data will be written in chunks of the given size. unit: MiB
                                       The memory footprint on the host side is reduced compared to writing all particles with one write call.
-                                      Currently the memory footprint is only reduced bp5 is used, HDF5 and bp4 does not support partial data dump.
+                                      Currently the memory footprint is only reduced if bp5 is used, HDF5 and bp4 does not support partial data dump.
                                       If your system host memory is small compared to the accelerator memory you should use ``--openPMD.dataPreparationStrategy mappedMemory`` to have
                                       a smaller host memory footprint.
                                       The memory footprint required to dump fields will not be affected by this parameter.
@@ -260,7 +260,7 @@ As soon as the openPMD plugin is compiled in, one extra ``mallocMC`` heap for th
 During I/O, particle attributes are allocated one after another.
 Using ``--openPMD.dataPreparationStrategy doubleBuffer`` (default) will require at least 2x the GPU memory on the host side.
 For a smaller host side memory footprint (<< GPU main memory) pick ``--openPMD.dataPreparationStrategy mappedMemory``.
-By using additional to the mapped memory strategy ``--openPMD.particleIOChunkSize N`` you can reduce the memory footprint for particle IO to less than ``2*N`` MiB.
+In addition to using the mapped-memory strategy, you can reduce the memory footprint for particle IO to less than ``2*N`` MiB ``--openPMD.particleIOChunkSize N``.
 
 Additional Tools
 ^^^^^^^^^^^^^^^^
