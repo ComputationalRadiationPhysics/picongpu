@@ -39,30 +39,14 @@ namespace picongpu
 
         static const std::string name_lookup[] = {"x", "y", "z"};
 
-
-        /** write attribute of a particle to openPMD series
-         *
-         * @tparam T_Identifier identifier of a particle attribute
-         */
         template<typename T_Identifier>
-        struct ParticleAttribute
+        struct InitParticleAttribute
         {
-            /** write attribute to openPMD series
-             *
-             * @attention This is a MPI_Collective operation and all MPI ranks must participate.
-             *
-             * @param params wrapped params
-             * @param elements elements of this attribute
-             */
-            template<typename FrameType>
             HINLINE void operator()(
                 ThreadParams* params,
-                FrameType& frame,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
                 std::string const& basepath,
-                const size_t elements,
-                const size_t globalElements,
-                const size_t globalOffset)
+                size_t const globalElements)
             {
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
@@ -98,8 +82,6 @@ namespace picongpu
                 float_X const timeOffset = 0.0;
                 record.setAttribute("timeOffset", timeOffset);
 
-                log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
-
                 for(uint32_t d = 0; d < components; d++)
                 {
                     ::openPMD::RecordComponent recordComponent
@@ -112,11 +94,54 @@ namespace picongpu
                     {
                         recordComponent.setUnitSI(unit[d]);
                     }
+                }
+            }
+        };
 
+
+        /** write attribute of a particle to openPMD series
+         *
+         * @tparam T_Identifier identifier of a particle attribute
+         */
+        template<typename T_Identifier>
+        struct ParticleAttribute
+        {
+            /** write attribute to openPMD series
+             *
+             * @attention This is a MPI_Collective operation and all MPI ranks must participate.
+             *
+             * @param params wrapped params
+             * @param elements elements of this attribute
+             */
+            template<typename FrameType>
+            HINLINE void operator()(
+                ThreadParams* params,
+                FrameType& frame,
+                ::openPMD::Container<::openPMD::Record>& particleSpecies,
+                std::string const& basepath,
+                const size_t elements,
+                const size_t globalElements,
+                const size_t globalOffset)
+            {
+                using Identifier = T_Identifier;
+                using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
+                const uint32_t components = GetNComponents<ValueType>::value;
+                using ComponentType = typename GetComponentsType<ValueType>::type;
+
+                OpenPMDName<T_Identifier> openPMDName;
+                ::openPMD::Record record = particleSpecies[openPMDName()];
+
+                log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
+
+                for(uint32_t d = 0; d < components; d++)
+                {
                     if(elements == 0)
                     {
                         continue;
                     }
+
+                    ::openPMD::RecordComponent recordComponent
+                        = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
                     // ask openPMD to create a buffer for us

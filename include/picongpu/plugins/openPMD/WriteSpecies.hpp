@@ -436,6 +436,14 @@ namespace picongpu
 
                     auto hostFrame = strategy->malloc(T_SpeciesFilter::getName(), particleIoChunkInfo.largestChunk);
 
+                    {
+                        meta::ForEach<
+                            typename NewParticleDescription::ValueTypeSeq,
+                            openPMD::InitParticleAttribute<boost::mpl::_1>>
+                            initParticleAttributes;
+                        initParticleAttributes(params, particleSpecies, basename, globalNumParticles);
+                    }
+
                     /** Offset within our global chunk where we are allowed to write particles too.
                      *  The offset is updated each dumping iteration.
                      */
