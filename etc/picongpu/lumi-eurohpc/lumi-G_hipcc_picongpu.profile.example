@@ -48,13 +48,17 @@ module load buildtools/23.03
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 
-export CXX=hipcc
+export PATH=$ROCM_PATH/llvm/bin:$PATH
+export CC=clang
+export CXX=clang++
+
 export CXXFLAGS="$CXXFLAGS -I${MPICH_DIR}/include"
+export HIPFLAGS=$CXXFLAGS
 export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a}"
 
 # Other Software ##############################################################
 #
-libpng/1.6.38-cpeCray-23.03
+module load libpng/1.6.38-cpeCray-23.03
 module load freetype/2.12.1-cpeCray-23.03
 
 # ATTENTION: blosc2 is used, please check your cfg's and replace blosc with blosc2
