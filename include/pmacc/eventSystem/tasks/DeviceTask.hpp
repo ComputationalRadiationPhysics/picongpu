@@ -31,15 +31,15 @@ namespace pmacc
 
     /** Abstract base class for all tasks which depend on alpaka queue.
      */
-    class StreamTask : public ITask
+    class DeviceTask : public ITask
     {
     public:
-        StreamTask();
+        DeviceTask();
 
         /**
          * Destructor.
          */
-        ~StreamTask() override = default;
+        ~DeviceTask() override = default;
 
         /** Returns the alpaka event associated with this task.
          *
@@ -61,13 +61,13 @@ namespace pmacc
          */
         bool isFinished();
 
-        /** Returns the Queue this StreamTask is using.
+        /** Returns the Queue this DeviceTasks is using.
          *
          * @return pointer to the Queue
          */
         Queue* getComputeDeviceQueue();
 
-        /** Sets the Queue for this StreamTask.
+        /** Sets the Queue for this DeviceTasks.
          *
          * @param newStream new event stream
          */

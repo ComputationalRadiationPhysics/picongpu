@@ -23,19 +23,19 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 #include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
     template<typename T_SrcBuffer, typename T_DestBuffer>
-    class TaskCopy : public StreamTask
+    class TaskCopy : public DeviceTask
     {
         static_assert(std::is_same_v<typename T_SrcBuffer::DataBoxType, typename T_DestBuffer::DataBoxType>);
 
     public:
-        TaskCopy(T_SrcBuffer& src, T_DestBuffer& dst) : StreamTask(), source(&src), destination(&dst)
+        TaskCopy(T_SrcBuffer& src, T_DestBuffer& dst) : DeviceTask(), source(&src), destination(&dst)
         {
         }
 

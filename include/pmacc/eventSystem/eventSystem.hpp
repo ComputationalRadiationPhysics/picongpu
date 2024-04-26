@@ -46,7 +46,7 @@ namespace pmacc::eventSystem
      * Synchronizes a blocking operation with events on the top-most transaction.
      *
      * @param op operation type for synchronization
-     * @return an ComputeDeviceQueue which can be used for StreamTasks
+     * @return an ComputeDeviceQueue which can be used for DeviceTasks
      */
     void startOperation(ITask::TaskType op);
 

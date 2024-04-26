@@ -24,7 +24,7 @@
 
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 
 
 namespace pmacc
@@ -39,10 +39,10 @@ namespace pmacc
     };
 
     template<typename T_DeviceBuffer>
-    class TaskSetCurrentSizeOnDevice : public StreamTask
+    class TaskSetCurrentSizeOnDevice : public DeviceTask
     {
     public:
-        TaskSetCurrentSizeOnDevice(T_DeviceBuffer& dst, size_t size) : StreamTask(), destination(&dst), size(size)
+        TaskSetCurrentSizeOnDevice(T_DeviceBuffer& dst, size_t size) : DeviceTask(), destination(&dst), size(size)
         {
         }
 

@@ -23,7 +23,7 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/tasks/DeviceTask.hpp"
 #include "pmacc/lockstep.hpp"
 #include "pmacc/lockstep/BlockCfg.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
@@ -105,14 +105,14 @@ namespace pmacc
     class TaskSetValue;
 
     template<class T_ValueType, unsigned T_dim>
-    class TaskSetValueBase : public StreamTask
+    class TaskSetValueBase : public DeviceTask
     {
     public:
         using ValueType = T_ValueType;
         static constexpr uint32_t dim = T_dim;
 
         TaskSetValueBase(DeviceBuffer<ValueType, dim>& dst, const ValueType& value)
-            : StreamTask()
+            : DeviceTask()
             , destination(&dst)
             , value(value)
         {
