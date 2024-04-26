@@ -42,6 +42,12 @@ namespace picongpu
         template<typename T_Identifier>
         struct InitParticleAttribute
         {
+            /** create attribute metadata in openPMD series
+             *
+             * @attention This is a MPI_Collective operation and all MPI ranks must participate.
+             *
+             * @param params wrapped params
+             */
             HINLINE void operator()(
                 ThreadParams* params,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
@@ -78,6 +84,8 @@ namespace picongpu
 
                 /* @todo check if always correct at this point,
                  * depends on attribute and MW-solver/pusher implementation
+                 * Note: This attribute is written again in ParticleAttribute::operator() as a workaround for another
+                 * bug. When changing this attribute, also change the below one.
                  */
                 float_X const timeOffset = 0.0;
                 record.setAttribute("timeOffset", timeOffset);
@@ -108,8 +116,6 @@ namespace picongpu
         {
             /** write attribute to openPMD series
              *
-             * @attention This is a MPI_Collective operation and all MPI ranks must participate.
-             *
              * @param params wrapped params
              * @param elements elements of this attribute
              */
@@ -125,21 +131,36 @@ namespace picongpu
             {
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
-                const uint32_t components = GetNComponents<ValueType>::value;
                 using ComponentType = typename GetComponentsType<ValueType>::type;
 
+                const uint32_t components = GetNComponents<ValueType>::value;
                 OpenPMDName<T_Identifier> openPMDName;
                 ::openPMD::Record record = particleSpecies[openPMDName()];
+
+                /*
+                 * Bug workaround: Ensure that the containing iteration is flushed. Write some attribute again in order
+                 * to forcibly mark it dirty.
+                 *
+                 * First, smaller bug:
+                 *     Only on dev branch, introduced by https://github.com/openPMD/openPMD-api/pull/1598,
+                 *     fixed by: https://github.com/openPMD/openPMD-api/pull/1615.
+                 *
+                 * Second, more troublesome bug, needs a long-term fix upstream:
+                 *     https://github.com/openPMD/openPMD-api/issues/1616.
+                 */
+                {
+                    float_X const timeOffset = 0.0;
+                    record.setAttribute("timeOffset", timeOffset);
+                }
+                if(elements == 0)
+                {
+                    return;
+                }
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
 
                 for(uint32_t d = 0; d < components; d++)
                 {
-                    if(elements == 0)
-                    {
-                        continue;
-                    }
-
                     ::openPMD::RecordComponent recordComponent
                         = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
 
