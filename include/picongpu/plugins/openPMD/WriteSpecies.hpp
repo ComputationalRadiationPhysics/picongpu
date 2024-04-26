@@ -102,9 +102,7 @@ namespace picongpu
                 uint32_t const currentStep,
                 std::string name,
                 RunParameters,
-                uint64_t myNumParticles,
-                uint64_t begin,
-                uint64_t end)
+                ChunkDescription const& chunkDesc)
                 = 0;
 
             virtual ~Strategy() = default;
@@ -133,9 +131,7 @@ namespace picongpu
                 uint32_t const currentStep,
                 std::string name,
                 RunParameters rp,
-                uint64_t myNumParticles,
-                uint64_t begin,
-                uint64_t end) override
+                ChunkDescription const& chunkDesc) override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) copy particle host (with hierarchy) to "
                                           "host (without hierarchy): %1%")
@@ -143,7 +139,7 @@ namespace picongpu
 
                 int particlesProcessed = 0;
                 auto const areaMapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
-                auto rangeMapper = makeRangeMapper(areaMapper, begin, end);
+                auto rangeMapper = makeRangeMapper(areaMapper, chunkDesc.beginSupercellIdx, chunkDesc.endSupercellIdx);
 
                 pmacc::particles::operations::ConcatListOfFrames concatListOfFrames{};
 
@@ -179,7 +175,7 @@ namespace picongpu
 
                 /* this costs a little bit of time but writing to external is
                  * slower in general */
-                PMACC_VERIFY((uint64_cu) particlesProcessed == myNumParticles);
+                PMACC_VERIFY((uint64_cu) particlesProcessed == chunkDesc.numberOfParticles);
             }
         };
 
@@ -202,19 +198,14 @@ namespace picongpu
                 return this->frame;
             }
 
-            void prepare(
-                uint32_t currentStep,
-                std::string name,
-                RunParameters rp,
-                uint64_t myNumParticles,
-                uint64_t begin,
-                uint64_t end) override
+            void prepare(uint32_t currentStep, std::string name, RunParameters rp, ChunkDescription const& chunkDesc)
+                override
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) copy particle to host: %1%") % name;
 
                 GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
                 auto const areaMapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
-                auto rangeMapper = makeRangeMapper(areaMapper, begin, end);
+                auto rangeMapper = makeRangeMapper(areaMapper, chunkDesc.beginSupercellIdx, chunkDesc.endSupercellIdx);
 
                 /* this sanity check costs a little bit of time but hdf5 writing is
                  * slower */
@@ -233,7 +224,7 @@ namespace picongpu
                 eventSystem::getTransactionEvent().waitForFinished();
                 log<picLog::INPUT_OUTPUT>("openPMD:  all events are finished: %1%") % name;
 
-                PMACC_VERIFY((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == myNumParticles);
+                PMACC_VERIFY((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == chunkDesc.numberOfParticles);
             }
         };
 
@@ -471,13 +462,7 @@ namespace picongpu
 
                         if(chunk.numberOfParticles > 0)
                         {
-                            strategy->prepare(
-                                currentStep,
-                                T_SpeciesFilter::getName(),
-                                runParameters,
-                                chunk.numberOfParticles,
-                                chunk.beginSupercellIdx,
-                                chunk.endSupercellIdx);
+                            strategy->prepare(currentStep, T_SpeciesFilter::getName(), runParameters, chunk);
                         }
                         log<picLog::INPUT_OUTPUT>("openPMD: (begin) write particle records for %1%, dumping round %2%")
                             % T_SpeciesFilter::getName() % dumpIteration;
