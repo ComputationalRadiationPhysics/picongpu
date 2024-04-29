@@ -4,10 +4,11 @@
 
 cmake_minimum_required(VERSION 3.16.0)
 
-
 ################################################################################
 # Project
 ################################################################################
+
+include(CheckLanguage) # check for CUDA/HIP language support
 
 project(CUDA_memtest LANGUAGES CXX)
 
@@ -70,15 +71,26 @@ else()
     # Find HIP
     ################################################################################
     # supported HIP version range
-    set(CUDA_MEMTEST_HIP_MIN_VER 4.0)
-    set(CUDA_MEMTEST_HIP_MAX_VER 5.0)
-    find_package(hip "${CUDA_MEMTEST_HIP_MAX_VER}")
-    if(NOT TARGET hip)
-        message(STATUS "Could not find HIP ${CUDA_MEMTEST_HIP_MAX_VER}. Now searching for HIP ${CUDA_MEMTEST_HIP_MIN_VER}")
-        find_package(hip "${CUDA_MEMTEST_HIP_MIN_VER}")
-    endif()
+    check_language(HIP)
 
-    if(NOT TARGET hip)
+    if(CMAKE_HIP_COMPILER)
+        enable_language(HIP)
+        find_package(hip REQUIRED)
+
+        set(CUDA_MEMTEST_HIP_MIN_VER 5.2)
+        set(CUDA_MEMTEST_HIP_MAX_VER 6.1)
+
+        # construct hip version only with major and minor level
+        # cannot use hip_VERSION because of the patch level
+        # 6.0 is smaller than 6.0.1234, so CUDA_MEMTEST_HIP_MAX_VER would have to be defined with a large patch level or
+        # the next minor level, e.g. 6.1, would have to be used.
+        set(_hip_MAJOR_MINOR_VERSION "${hip_VERSION_MAJOR}.${hip_VERSION_MINOR}")
+
+        if(${_hip_MAJOR_MINOR_VERSION} VERSION_LESS ${CUDA_MEMTEST_HIP_MIN_VER} OR ${_hip_MAJOR_MINOR_VERSION} VERSION_GREATER ${CUDA_MEMTEST_HIP_MAX_VER})
+            message(WARNING "HIP ${_hip_MAJOR_MINOR_VERSION} is not official supported by cuda_memtest. Supported versions: ${CUDA_MEMTEST_HIP_MIN_VER} - ${CUDA_MEMTEST_HIP_MAX_VER}")
+        endif()
+
+    else()
         message(FATAL_ERROR "Optional alpaka dependency HIP could not be found!")
     endif()
 endif()
@@ -135,6 +147,7 @@ if(CUDA_MEMTEST_BACKEND STREQUAL "cuda")
 else()
     target_link_libraries(cuda_memtest PRIVATE hip::host)
     target_link_libraries(cuda_memtest PRIVATE hip::device)
+    target_compile_definitions(cuda_memtest PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:__HIP_PLATFORM_AMD__>")
     target_compile_definitions(cuda_memtest PRIVATE "ENABLE_NVML=0")
 endif()
 
@@ -162,7 +175,7 @@ endif()
 
 option(CUDA_MEMTEST_RELEASE "disable all runtime asserts" ON)
 if(CUDA_MEMTEST_RELEASE)
-    target_compile_definitions(cuda_memtest PRIVATE -DNDEBUG)
+    target_compile_definitions(cuda_memtest PRIVATE NDEBUG)
 endif(CUDA_MEMTEST_RELEASE)
 
 ################################################################################
