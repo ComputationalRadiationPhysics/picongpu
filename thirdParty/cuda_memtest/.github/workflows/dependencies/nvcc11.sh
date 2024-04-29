@@ -13,18 +13,16 @@ sudo apt-get install -y \
     pkg-config          \
     wget
 
-sudo wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-sudo apt-key add 7fa2af80.pub
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
-echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" \
-    | sudo tee /etc/apt/sources.list.d/cuda.list
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub
 
 sudo apt-get update
 sudo apt-get install -y          \
-    cuda-command-line-tools-11-0 \
-    cuda-compiler-11-0           \
-    cuda-cupti-dev-11-0          \
-    cuda-minimal-build-11-0      \
-    cuda-nvml-dev-11-0
+    cuda-command-line-tools-11-7 \
+    cuda-compiler-11-7           \
+    cuda-cupti-dev-11-7          \
+    cuda-minimal-build-11-7      \
+    cuda-nvml-dev-11-7
 sudo ln -s cuda-11.0 /usr/local/cuda
 
