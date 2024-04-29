@@ -9,13 +9,14 @@ jobs:
 #   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/
   build_gcc_nvcc:
     name: NVCC 11.0.2 SP [Linux]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: install dependencies
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Install dependencies
       run: |
         .github/workflows/dependencies/nvcc11.sh
-    - name: build
+    - name: Build
       run: |
         export PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
         export LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
