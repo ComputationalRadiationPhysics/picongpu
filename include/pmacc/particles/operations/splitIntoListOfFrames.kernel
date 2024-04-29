@@ -282,7 +282,6 @@ namespace pmacc
                 T_DestSpecies& destSpecies,
                 T_SrcFrame srcFrame,
                 uint32_t numParticles,
-                uint32_t const chunkSize,
                 T_Space const& cellOffsetToTotalDomain,
                 T_Identifier const domainCellIdxIdentifier,
                 T_CellDescription const& cellDesc,
@@ -297,31 +296,22 @@ namespace pmacc
                  */
                 GridBuffer<uint32_t, DIM1> counterBuffer(DataSpace<DIM1>(3));
 
-                uint32_t const iterationsForLoad
-                    = math::float2int_ru(static_cast<double>(numParticles) / static_cast<double>(chunkSize));
-                uint32_t leftOverParticles = numParticles;
+                /* only load a chunk of particles per iteration to avoid blow up of frame usage */
+                uint32_t currentChunkSize = numParticles;
 
-                for(uint32_t i = 0; i < iterationsForLoad; ++i)
-                {
-                    /* only load a chunk of particles per iteration to avoid blow up of frame usage */
-                    uint32_t currentChunkSize = std::min(leftOverParticles, chunkSize);
-                    log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%")
-                        % (i * chunkSize) % currentChunkSize % leftOverParticles;
+                constexpr uint32_t frameSize = T_SrcFrame::frameSize;
 
-                    constexpr uint32_t frameSize = T_SrcFrame::frameSize;
+                PMACC_LOCKSTEP_KERNEL(detail::KernelSplitIntoListOfFrames{})
+                    .template config<frameSize>(alpaka::core::divCeil(currentChunkSize, frameSize))(
+                        counterBuffer.getDeviceBuffer().getDataBox(),
+                        destSpecies.getDeviceParticlesBox(),
+                        srcFrame,
+                        static_cast<int>(numParticles),
+                        cellOffsetToTotalDomain,
+                        domainCellIdxIdentifier,
+                        cellDesc);
+                destSpecies.fillAllGaps();
 
-                    PMACC_LOCKSTEP_KERNEL(detail::KernelSplitIntoListOfFrames{})
-                        .template config<frameSize>(math::float2int_ru(double(currentChunkSize) / double(frameSize)))(
-                            counterBuffer.getDeviceBuffer().getDataBox(),
-                            destSpecies.getDeviceParticlesBox(),
-                            srcFrame,
-                            static_cast<int>(numParticles),
-                            cellOffsetToTotalDomain,
-                            domainCellIdxIdentifier,
-                            cellDesc);
-                    destSpecies.fillAllGaps();
-                    leftOverParticles -= currentChunkSize;
-                }
 
                 counterBuffer.deviceToHost();
                 log(logLvl, "wait for last processed chunk: %1%") % T_SrcFrame::getName();
