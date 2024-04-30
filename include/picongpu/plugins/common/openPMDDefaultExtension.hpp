@@ -84,8 +84,8 @@ namespace picongpu
                 }
                 else
                 {
-                    return "bp4"
-                };
+                    return "bp4";
+                }
 #    else
                 /*
                  * Engine available and supported in all supported versions of ADIOS2 and openPMD-api
