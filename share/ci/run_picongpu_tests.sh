@@ -54,10 +54,10 @@ fi
 if [[ "$PIC_TEST_CASE_FOLDER" =~ .*Empty.* ]] ; then
     # For the empty test case (default param files) we disable all optional dependencies to have at least one check
     # where all dependencies are disabled.
-    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF -DPIC_USE_openPMD=OFF -DPIC_USE_PNGwriter=OFF"
+    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF -DPIC_USE_openPMD=OFF -DPIC_USE_PNGwriter=OFF -DPIC_USE_FFTW3=OFF"
 else
     # enforce optional dependencies
-    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
+    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON -DPIC_USE_FFTW3=ON"
 
     # ISAAC together with the example FoilLCT is to complex therefore the CI is always running out of memory.
     if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* ]] ; then

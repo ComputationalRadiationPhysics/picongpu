@@ -25,6 +25,7 @@
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile
     - source $CI_PROJECT_DIR/share/ci/install/openPMD.sh
+    - source $CI_PROJECT_DIR/share/ci/install/fftw.sh
     - source $CI_PROJECT_DIR/share/ci/install/pypicongpu.sh
   tags:
     - cpuonly

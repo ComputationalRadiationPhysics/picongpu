@@ -17,6 +17,7 @@
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile
     - source $CI_PROJECT_DIR/share/ci/install/openPMD.sh
+    - source $CI_PROJECT_DIR/share/ci/install/fftw.sh
     - $CI_PROJECT_DIR/share/ci/run_tests.sh $PIC_TEST_CASE_FOLDER
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
