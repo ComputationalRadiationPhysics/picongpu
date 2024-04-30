@@ -41,25 +41,26 @@ namespace picongpu
              * Axis splitting is defined with min, max and n_bins. Bin size = (max-min)/n_bins.
              * Bins are closed open [) intervals [min, min + size), [min + size, min + 2*size) ,..., [max-size, max).
              * Allocates 2 extra bins, for under and overflow. These are bin index 0 and (n_bins+2)-1
+             * T_Attribute is a Numeric/Arithmetic type
              */
             template<typename T_Attribute, typename T_AttrFunctor>
             class LinearAxis
             {
             public:
                 using T = T_Attribute;
+                /**
+                 * To avoid loss of precision, the type of the scaling depends on the Attribute type
+                 * For integral types <4 bytes it is float, else it is double
+                 * For floating point types it is the identity function
+                 **/
                 using ScalingType = std::
                     conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
 
-                AxisSplitting<T_Attribute> axisSplit;
+                AxisSplitting<T> axisSplit;
                 /** Axis name, written out to OpenPMD */
                 std::string label;
                 /** Units(Dimensionality) of the axis */
-                std::array<double, 7> units;
-                /**
-                 * @TODO store edges? Copmute once at the beginning and store for later to print at every iteration,
-                 * also to be used in search based binning
-                 */
-                std::vector<double> binEdges;
+                std::array<double, numUnits> units;
                 struct LinearAxisKernel
                 {
                     /** Function to place particle on axis, returns same type as min and max */
@@ -76,21 +77,17 @@ namespace picongpu
                     /** Enable or disable allocation of extra bins for out of range particles*/
                     bool overflowEnabled;
 
-                    constexpr LinearAxisKernel(T_AttrFunctor attrFunc, bool enableOverflowBins)
+                    constexpr LinearAxisKernel(
+                        T_AttrFunctor attrFunc,
+                        AxisSplitting<T> axisSplit,
+                        std::array<double, numUnits> unitsArr)
                         : getAttributeValue{attrFunc}
-                        , overflowEnabled{enableOverflowBins}
+                        , min{toPICUnits(axisSplit.m_range.min, unitsArr)}
+                        , max{toPICUnits(axisSplit.m_range.max, unitsArr)}
+                        , nBins{axisSplit.enableOverflowBins ? axisSplit.nBins + 2 : axisSplit.nBins}
+                        , scaling{static_cast<ScalingType>(static_cast<T>(axisSplit.nBins) / (max - min))}
+                        , overflowEnabled{axisSplit.enableOverflowBins}
                     {
-                    }
-
-                    /**
-                     * @param n_bins User requested n_bins, actual nBins is n_bins + 2 for overflow and underflow bins
-                     */
-                    void initAxisSplit(T minR, T maxR, uint32_t n_bins, ScalingType scalingR)
-                    {
-                        min = minR;
-                        max = maxR;
-                        nBins = n_bins;
-                        scaling = scalingR;
                     }
 
                     template<typename T_Worker, typename T_Particle>
@@ -103,11 +100,12 @@ namespace picongpu
                         auto val = getAttributeValue(domainInfo, worker, particle);
 
                         static_assert(
-                            std::is_same<decltype(val), decltype(min)>::value,
+                            std::is_same<decltype(val), T>::value,
                             "The return type of the axisAttributeFunctor should be the same as the type of Axis "
                             "min/max ");
                         uint32_t binIdx = 0;
-                        bool enableBinning = overflowEnabled; // @todo check if disableBinning is better
+                        // @todo check if disableBinning is better
+                        bool enableBinning = overflowEnabled;
                         // @todo check for optimizations here
                         if(val >= min)
                         {
@@ -139,9 +137,6 @@ namespace picongpu
                     ScalingType scaling;
                     uint32_t nBins;
 
-                    BinWidthKernel()
-                    {
-                    }
                     BinWidthKernel(LinearAxisKernel axisKernel) : scaling{axisKernel.scaling}, nBins{axisKernel.nBins}
                     {
                     }
@@ -156,42 +151,16 @@ namespace picongpu
                 BinWidthKernel bWK;
 
                 LinearAxis(
-                    AxisSplitting<T_Attribute> axSplit,
+                    AxisSplitting<T> axSplit,
                     T_AttrFunctor attrFunctor,
                     std::string label,
-                    std::array<double, 7> units) // add type T to the default label string
+                    std::array<double, numUnits> units) // add type T to the default label string
                     : axisSplit{axSplit}
                     , label{label}
                     , units{units}
-                    , lAK{attrFunctor, axisSplit.enableOverflowBins}
+                    , lAK{attrFunctor, axSplit, units}
+                    , bWK{lAK}
                 {
-                    initLAK();
-                    bWK = BinWidthKernel(lAK);
-                }
-
-
-                /**
-                 * @todo auto min max n_bins
-                 */
-                void initLAK()
-                {
-                    // do conversion to PIC units here, if not auto
-                    // auto picRange = toPICUnits(axSplit.range, units);
-                    auto min = toPICUnits(axisSplit.m_range.min, units);
-
-                    auto max = toPICUnits(axisSplit.m_range.max, units);
-
-                    // do scaling calc here, on host and save it
-                    auto scaling = static_cast<decltype(max)>(axisSplit.nBins) / (max - min);
-
-
-                    auto nBins = axisSplit.nBins;
-                    if(axisSplit.enableOverflowBins)
-                    {
-                        nBins += 2;
-                    }
-
-                    lAK.initAxisSplit(min, max, nBins, scaling);
                 }
 
                 constexpr uint32_t getNBins() const
@@ -201,7 +170,7 @@ namespace picongpu
 
                 double getUnitConversion() const
                 {
-                    return get_conversion_factor(units);
+                    return getConversionFactor(units);
                 }
 
 
@@ -220,6 +189,12 @@ namespace picongpu
                  */
                 std::vector<double> getBinEdgesSI()
                 {
+                    /**
+                     * @TODO store edges? Compute once at the beginning and store for later to print at every
+                     * iteration, also to be used in search based binning
+                     */
+                    std::vector<double> binEdges;
+
                     auto binWidth = 1. / lAK.scaling;
                     // user_nBins+1 edges
                     for(size_t i = 0; i <= axisSplit.nBins; i++)

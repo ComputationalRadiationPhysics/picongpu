@@ -72,7 +72,7 @@ namespace picongpu
             { return particle[momentum_][1] / particle[weighting_]; };
 
             // Define units
-            std::array<double, 7> momentumDimension{};
+            std::array<double, numUnits> momentumDimension{};
             momentumDimension[SIBaseUnits::length] = 1.0;
             momentumDimension[SIBaseUnits::mass] = 1.0;
             momentumDimension[SIBaseUnits::time] = -1.0;
@@ -134,7 +134,7 @@ namespace picongpu
                     return particleChargeDensity;
                 };
 
-                std::array<double, 7> depositedUnits{}; // Tell user the 7 dimensional format
+                std::array<double, numUnits> depositedUnits{}; // Tell user the 7 dimensional format
                 depositedUnits[SIBaseUnits::length] = -3.0;
                 depositedUnits[SIBaseUnits::electricCurrent] = 1.0;
                 depositedUnits[SIBaseUnits::time] = 1.0;

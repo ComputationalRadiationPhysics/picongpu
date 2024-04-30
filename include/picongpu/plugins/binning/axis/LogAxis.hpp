@@ -40,7 +40,7 @@ namespace picongpu
             /**
              * Log axis with logarithmically sized bins.
              * Axis splitting is defined with min, max and n_bins.
-             * Beware of using a log axis with an integral range/axis splitting
+             * A bin with edges a and b is a closed-open interval [a,b)
              * If overflow bins are enabled, allocates 2 extra bins, for under and overflow. These are bin index 0 and
              * (n_bins+2)-1
              */
@@ -49,12 +49,19 @@ namespace picongpu
             {
             public:
                 using T = T_Attribute;
+                /**
+                 * To avoid loss of precision, the type of the scaling depends on the Attribute type
+                 * For integral types <4 bytes it is float, else it is double
+                 * For floating point types it is the identity function
+                 **/
+                using ScalingType = std::
+                    conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
 
-                AxisSplitting<T_Attribute> axisSplit;
+                AxisSplitting<T> axisSplit;
                 /** Axis name, written out to OpenPMD */
-                const std::string label;
+                std::string label;
                 /** Units(Dimensionality) of the axis */
-                const std::array<double, 7> units;
+                std::array<double, numUnits> units;
                 std::vector<T> binWidths;
 
                 /**
@@ -69,31 +76,36 @@ namespace picongpu
                      * logMin and logMax values in the range of the binning. Values outside this range are
                      * placed in overflow bins
                      */
-                    T logMin, logMax;
+                    ScalingType logMin, logMax;
                     /** Number of bins in range */
                     uint32_t nBins;
-                    /** Using type depending on whether T is integer or floating point type to avoid precision loss */
-                    using ScalingType = std::
-                        conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
                     ScalingType scaling;
                     /** Enable or disable allocation of extra bins for out of range particles*/
                     bool overflowEnabled;
 
-                    constexpr LogAxisKernel(T_AttrFunctor attrFunc, bool enableOverflowBins)
+                    constexpr LogAxisKernel(
+                        T_AttrFunctor attrFunc,
+                        AxisSplitting<T> axisSplit,
+                        std::array<double, numUnits> unitsArr)
                         : getAttributeValue{attrFunc}
-                        , overflowEnabled{enableOverflowBins}
+                        , overflowEnabled{axisSplit.enableOverflowBins}
                     {
-                    }
+                        // do conversion to PIC units here, if not auto
+                        // auto picRange = toPICUnits(axSplit.range, unitsArr);
+                        auto min = toPICUnits(axisSplit.m_range.min, unitsArr);
+                        // toPICUnits might cause underflow
+                        PMACC_VERIFY(0. < min);
+                        logMin = std::log2(min);
+                        logMax = std::log2(toPICUnits(axisSplit.m_range.max, unitsArr));
 
-                    /**
-                     * @param n_bins User requested n_bins
-                     */
-                    void initAxisSplit(T logMinR, T logMaxR, uint32_t n_bins, ScalingType scalingR)
-                    {
-                        logMin = logMinR;
-                        logMax = logMaxR;
-                        nBins = n_bins;
-                        scaling = scalingR;
+                        // do scaling calc here, on host and save it
+                        scaling = static_cast<ScalingType>(axisSplit.nBins) / (logMax - logMin);
+
+                        nBins = axisSplit.nBins;
+                        if(axisSplit.enableOverflowBins)
+                        {
+                            nBins += 2;
+                        }
                     }
 
 
@@ -107,12 +119,13 @@ namespace picongpu
                         auto val = getAttributeValue(domainInfo, worker, particle);
 
                         static_assert(
-                            std::is_same<decltype(val), decltype(logMin)>::value,
+                            std::is_same<decltype(val), T>::value,
                             "The return type of the axisAttributeFunctor should be the same as the type of Axis "
                             "min/max ");
 
                         uint32_t binIdx = 0;
-                        bool enableBinning = overflowEnabled; // @todo check if disableBinning is better
+                        // @todo check if disableBinning is better
+                        bool enableBinning = overflowEnabled;
 
                         if(static_cast<T>(0.) < val)
                         {
@@ -162,49 +175,34 @@ namespace picongpu
                 };
 
                 LogAxis(
-                    AxisSplitting<T_Attribute> axSplit,
+                    AxisSplitting<T> axSplit,
                     T_AttrFunctor attrFunctor,
                     std::string label,
-                    std::array<double, 7> units) // add type T to the default label string
+                    std::array<double, numUnits> unit_arr) // add type T to the default label string
                     : axisSplit{axSplit}
                     , label{label}
-                    , units{units}
-                    , lAK{attrFunctor, axisSplit.enableOverflowBins}
+                    , units{unit_arr}
+                    , lAK{attrFunctor, axisSplit, unit_arr}
                 {
-                    initLAK();
-
                     binWidths.reserve(axisSplit.nBins);
                     // Calculate the logarithmic spacing factor
-                    T factor = std::pow(2., (lAK.logMax - lAK.logMin) / axisSplit.nBins);
+                    ScalingType factor = std::pow(2., (lAK.logMax - lAK.logMin) / axisSplit.nBins);
                     // Calculate bin widths
-                    T edge = axisSplit.m_range.min;
+                    ScalingType edge = axisSplit.m_range.min;
                     for(int i = 0; i < axisSplit.nBins; ++i)
                     {
-                        T next_edge = factor * edge;
-                        binWidths.emplace_back(next_edge - edge);
+                        ScalingType next_edge = factor * edge;
+                        if constexpr(std::is_integral_v<T>)
+                        {
+                            // Ceiling because we have closed-open intervals
+                            binWidths.emplace_back(math::ceil(next_edge - edge));
+                        }
+                        else
+                        {
+                            binWidths.emplace_back(next_edge - edge);
+                        }
                         edge = next_edge;
                     }
-                }
-
-                void initLAK()
-                {
-                    // do conversion to PIC units here, if not auto
-                    // auto picRange = toPICUnits(axSplit.range, units);
-                    auto min = toPICUnits(axisSplit.m_range.min, units);
-                    PMACC_VERIFY(0. < min);
-                    auto logMin = std::log2(min);
-                    auto logMax = std::log2(toPICUnits(axisSplit.m_range.max, units));
-
-                    // do scaling calc here, on host and save it
-                    auto scaling = static_cast<decltype(logMax)>(axisSplit.nBins) / (logMax - logMin);
-
-                    auto nBins = axisSplit.nBins;
-                    if(axisSplit.enableOverflowBins)
-                    {
-                        nBins += 2;
-                    }
-
-                    lAK.initAxisSplit(logMin, logMax, nBins, scaling);
                 }
 
 
@@ -215,7 +213,7 @@ namespace picongpu
 
                 double getUnitConversion() const
                 {
-                    return get_conversion_factor(units);
+                    return getConversionFactor(units);
                 }
 
 
@@ -226,7 +224,7 @@ namespace picongpu
 
                 BinWidthKernel getBinWidthKernel()
                 {
-                    // reset whenever binWidths changez
+                    // reset whenever binWidths changes
                     static bool set = false;
                     static pmacc::HostDeviceBuffer<T, 1> binWidthBuffer{axisSplit.nBins};
                     if(!set)
@@ -249,12 +247,11 @@ namespace picongpu
                 {
                     std::vector<double> binEdges;
                     binEdges.reserve(axisSplit.nBins + 1);
-                    T factor = std::pow(2., (lAK.logMax - lAK.logMin) / axisSplit.nBins);
                     T edge = axisSplit.m_range.min;
                     for(size_t i = 0; i <= axisSplit.nBins; i++)
                     {
                         binEdges.emplace_back(toSIUnits(edge, units));
-                        edge = edge * factor;
+                        edge = edge + binWidths[i];
                     }
                     return binEdges;
                 }

@@ -122,7 +122,9 @@ namespace picongpu
             }
         };
 
-        HINLINE void dimensionSubtraction(std::array<double, 7>& outputDims, const std::array<double, 7>& axisDims)
+        HINLINE void dimensionSubtraction(
+            std::array<double, numUnits>& outputDims,
+            const std::array<double, numUnits>& axisDims)
         {
             for(size_t i = 0; i < 7; i++)
             {
@@ -172,7 +174,6 @@ namespace picongpu
             void notify(uint32_t currentStep) override
             {
                 // @todo auto range init. Init ranges and AxisKernels
-                std::apply([](auto&... tupleArgs) { ((tupleArgs.initLAK()), ...); }, binningData.axisTuple);
 
                 //  Do binning for species. Writes to histBuffer
                 std::apply(

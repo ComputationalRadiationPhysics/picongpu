@@ -59,7 +59,7 @@ namespace picongpu
                 OpenPMDWriteParams params,
                 std::unique_ptr<HostBuffer<T_Type, 1u>> hReducedBuffer,
                 T_BinningData binningData,
-                const std::array<double, 7>& outputUnits,
+                const std::array<double, numUnits>& outputUnits,
                 const uint32_t currentStep,
                 const bool isCheckpoint = false,
                 const uint32_t accumulateCounter = 0)
@@ -187,7 +187,7 @@ namespace picongpu
                     histOffset.emplace_back(static_cast<size_t>(0));
                 }
 
-                record.setUnitSI(get_conversion_factor(outputUnits));
+                record.setUnitSI(getConversionFactor(outputUnits));
 
                 record.resetDataset({::openPMD::determineDatatype<Type>(), histExtent});
                 auto base_ptr = hReducedBuffer->data();

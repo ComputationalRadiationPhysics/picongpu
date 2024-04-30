@@ -41,8 +41,11 @@ namespace picongpu
             /** String used in the OpenPMD output */
             std::string name;
             /** The dimensionality of the particle property (defaults to dimensionless) */
-            std::array<double, 7> units;
-            FunctorDescription(const FunctorType func, std::string label, const std::array<double, 7> uDimension)
+            std::array<double, numUnits> units;
+            FunctorDescription(
+                const FunctorType func,
+                std::string label,
+                const std::array<double, numUnits> uDimension)
                 : functor{func}
                 , name{label}
                 , units{uDimension}
@@ -69,7 +72,7 @@ namespace picongpu
         HINLINE auto createFunctorDescription(
             FunctorType functor,
             std::string name,
-            std::array<double, 7> units = std::array<double, 7>({0., 0., 0., 0., 0., 0., 0.}))
+            std::array<double, numUnits> units = std::array<double, numUnits>({0., 0., 0., 0., 0., 0., 0.}))
         {
             return FunctorDescription<QuantityType, FunctorType>(functor, name, units);
         }

@@ -66,7 +66,7 @@ namespace picongpu
                  * Number of overflow bis is the responsibility of the axis implementaiton
                  * Defaults to true
                  */
-                const bool enableOverflowBins;
+                bool enableOverflowBins;
                 AxisSplitting(Range<T_Data> range, uint32_t numBins, bool enableOverflow = true)
                     : m_range{range}
                     , nBins{numBins}
@@ -87,7 +87,7 @@ namespace picongpu
             {
             public:
                 std::string label;
-                std::array<double, 7> units;
+                std::array<double, numUnits> units;
                 struct GenericAxisKernel
                 {
                     uint32_t n_bins;
@@ -116,7 +116,7 @@ namespace picongpu
             {
             public:
                 std::string label;
-                std::array<double, 7> units;
+                std::array<double, numUnits> units;
                 struct BoolAxisKernel
                 {
                     uint32_t n_bins;
