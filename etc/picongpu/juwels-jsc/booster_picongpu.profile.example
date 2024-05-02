@@ -33,21 +33,20 @@ fi
 # General modules #############################################################
 #
 module purge
-module load Stages/2022
-module load GCC/11.2.0
-module load CUDA/11.5
+module load Stages/2024
+module load GCC/12.3.0
+module load CUDA/12
 module load CMake
-module load ParaStationMPI/5.5.0-1
-module load mpi-settings/CUDA
-module load Python/3.9.6
-module load libpng/.1.6.37
-
-module load HDF5/1.12.1
-module load Boost/1.78.0
+module load ParaStationMPI/5.9.2-1
+module load Python/3.11.3
+module load ADIOS2/2.9.2
+module load HDF5/1.14.2
+module load Boost/1.82.0
+module load FFTW.MPI/3.3.10
 
 # necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
-module load SciPy-bundle/2021.10
-module load h5py
+module load SciPy-bundle/2023.07
+module load h5py/3.9.0
 
 # Self-Build Software #########################################################
 #
@@ -55,22 +54,20 @@ module load h5py
 # Check the install script at
 # https://gist.github.com/steindev/5a2ab0c4957a1e57ed671ac198b491c6
 #
-export PIC_LIBS=$PROJECT/lib
-export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.1
-export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
-export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1.436
-export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.14.4
+export PIC_LIBS=$PROJECT/share/lib
+export PNG_ROOT=$PIC_LIBS/libpng
+export PNG_WRITER=$PIC_LIBS/pngwriter
+export BLOSC_ROOT=$PIC_LIBS/c-blosc
+export OPENPMD_ROOT=$PIC_LIBS/openPMD-api
 
-export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=$PNG_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PNG_WRITER:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
 
-export PATH=$ADIOS2_ROOT/bin:$PATH
 export PATH=$OPENPMD_ROOT/bin:$PATH
 
-export PYTHONPATH=$ADIOS2_ROOT/lib/python3.9/site-packages/adios2:$PYTHONPATH
-export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.9/site-packages/openpmd_api:$PYTHONPATH
+export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.11/site-packages/openpmd_api:$PYTHONPATH
 # Environment #################################################################
 #
 
