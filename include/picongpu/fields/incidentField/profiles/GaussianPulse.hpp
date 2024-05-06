@@ -225,10 +225,19 @@ namespace picongpu::fields::incidentField
                     // the front of the laser pulse.
                     constexpr auto timeshift = LongitudinalEnvelope::TIME_SHIFT;
                     time += timeshift;
-                    // calculate focus position relative to the current point in the propagation direction
-                    auto const focusRelativeToOrigin = this->focus - this->origin;
+                    /* Calculate focus position relative to the current point in the propagation direction.
+                     * Coordinate system is PIConGPUs and not the laser internal coordinate system where X is the
+                     * propagation direction.
+                     */
+                    float3_X const focusRelativeToOrigin = this->focus - this->origin;
 
-                    float_X const focusPos = math::sqrt(pmacc::math::l2norm2(focusRelativeToOrigin)) - pos[0];
+                    /* Relative focus distance from the laser origin to the focus, transformed into the laser
+                     * coordination system where X is the propagation direction. */
+                    float_X const distanceFocusRelativeToOrigin
+                        = pmacc::math::dot(focusRelativeToOrigin, this->getAxis0());
+
+                    // Distance from the current cell to the focus in laser propagation direction.
+                    float_X const focusPos = distanceFocusRelativeToOrigin - pos[0];
                     // beam waist at the generation plane so that at focus we will get W0
                     float_X const w = Unitless::W0
                         * math::sqrt(1.0_X
