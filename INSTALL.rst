@@ -179,7 +179,8 @@ libpng
   - ``curl -Lo libpng-1.6.34.tar.gz ftp://ftp-osl.osuosl.org/pub/libpng/src/libpng16/libpng-1.6.34.tar.gz``
   - ``tar -xf libpng-1.6.34.tar.gz``
   - ``cd libpng-1.6.34``
-  - ``CPPFLAGS=-I$HOME/lib/zlib/include LDFLAGS=-L$HOME/lib/zlib/lib ./configure --enable-static --enable-shared --prefix=$HOME/lib/libpng``
+  - ``CPPFLAGS=-I$HOME/lib/zlib/include LDFLAGS=-L$HOME/lib/zlib/lib`` (if needed)
+  - ``./configure --enable-static --enable-shared --prefix=$HOME/lib/libpng``
   - ``make``
   - ``make install``
 - *environment:* (assumes install from source in ``$HOME/lib/libpng``)
