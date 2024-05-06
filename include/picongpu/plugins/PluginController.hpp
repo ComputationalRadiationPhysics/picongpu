@@ -43,7 +43,7 @@
  */
 #include "picongpu/plugins/PngPlugin.hpp"
 
-#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1)
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 #    include "picongpu/plugins/shadowgraphy/Shadowgraphy.hpp"
 #endif
 
@@ -141,7 +141,7 @@ namespace picongpu
             EnergyFields,
             ChargeConservation,
             SumCurrents
-#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1)
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
             ,
             plugins::multi::Master<plugins::shadowgraphy::Shadowgraphy>
 #endif
