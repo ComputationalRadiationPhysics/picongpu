@@ -22,8 +22,6 @@
 
 #pragma once
 
-#pragma once
-
 #include "pmacc/math/functions/Common.hpp"
 
 #include <alpaka/alpaka.hpp>
