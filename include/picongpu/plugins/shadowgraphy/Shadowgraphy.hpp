@@ -121,18 +121,18 @@ namespace picongpu
 
                     void validateOptions() override
                     {
-                        for(int i = 0; i < optionStart.size(); ++i)
+                        for(uint32_t i = 0; i < optionStart.size(); ++i)
                         {
                             if(optionStart.get(i) < 0)
                                 throw std::runtime_error(
                                     name + ": plugin must start after the simulation was started");
                         }
-                        for(int i = 0; i < optionDuration.size(); ++i)
+                        for(uint32_t i = 0; i < optionDuration.size(); ++i)
                         {
                             if(optionDuration.get(i) <= 0)
                                 throw std::runtime_error(name + ": plugin duration must be larger than 0");
                         }
-                        for(int i = 0; i < optionSlicePoint.size(); ++i)
+                        for(uint32_t i = 0; i < optionSlicePoint.size(); ++i)
                         {
                             if((optionSlicePoint.get(i) < 0) || (optionSlicePoint.get(i) > 1.0))
                                 throw std::runtime_error(name + ": the plugin slice point must be between 0 and 1");
@@ -283,7 +283,7 @@ namespace picongpu
                     // Convert currentStep (simulation time-step) into localStep for time domain DFT
                     int localStep = (currentStep - startTime) / params::tRes;
 
-                    bool const dumpFinalData = localStep == (adjustedDuration / params::tRes);
+                    bool const dumpFinalData = localStep == static_cast<int>(adjustedDuration / params::tRes);
                     if(!dumpFinalData)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
@@ -357,8 +357,6 @@ namespace picongpu
                     -> std::shared_ptr<HostBuffer<float2_X, DIM2>>
                 {
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-                    auto globalDomain = subGrid.getGlobalDomain();
-                    auto globalPlaneExtent = globalDomain.size[plane];
 
                     auto localDomainOffset = subGrid.getLocalDomain().offset.shrink<DIM2>(0);
                     auto globalDomainSliceSize = subGrid.getGlobalDomain().size.shrink<DIM2>(0);

@@ -521,7 +521,7 @@ namespace picongpu
                  *
                  * @return description of return value
                  */
-                auto getFourierBuf(int index)
+                auto getFourierBuf(uint32_t index)
                 {
                     const int nOmegasHalf = numOmegas / 2;
                     auto retBufferF = std::make_shared<HostBuffer<std::complex<float_64>, DIM3>>(
@@ -530,7 +530,7 @@ namespace picongpu
 
                     // The fields are split into 2 parts in the output, because the omega-domain
                     // is not necessarily continuous due to band-pass filters
-                    vec3c* retField;
+                    vec3c* retField = nullptr;
                     if(index <= 1)
                         retField = &ExOmega;
                     else if(index <= 3)
@@ -539,6 +539,9 @@ namespace picongpu
                         retField = &BxOmega;
                     else if(index <= 7)
                         retField = &ByOmega;
+                    else
+                        throw std::runtime_error(
+                            std::string("getFourierBuf() called with unknown index '") + std::to_string(index) + "'");
 
                     for(int i = 0; i < getSizeX(); ++i)
                     {
