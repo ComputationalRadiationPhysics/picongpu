@@ -454,6 +454,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             # explictly disable laser (as required by pypicongpu)
             s.laser = None
 
+        # custom user input must always be set by the user on PyPIConGPU level
+        s.custom_user_input = None
+
         # resolve electrons
         self.__resolve_electrons()
 

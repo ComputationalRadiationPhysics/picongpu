@@ -53,6 +53,14 @@ class Simulation(RenderedObject):
     used for normalization of units
     """
 
+    # may not use util.build_typesafe_property since this attribute is usually never initialized
+    custom_user_input = util.build_typesafe_property(typing.Optional[list[RenderedObject]])
+    """
+    object that contains additional user specified input parameters to be used in custom templates
+
+    @attention custom user input is global to the simulation
+    """
+
     def __get_output_context(self) -> dict:
         """retrieve all output objects"""
         auto = output.Auto()
@@ -61,6 +69,46 @@ class Simulation(RenderedObject):
         return {
             "auto": auto.get_rendering_context(),
         }
+
+    def __checkDoesNotChangeExistingKeyValues(self, firstDict, secondDict):
+        for key in firstDict.keys():
+            if (key in secondDict) and (firstDict[key] != secondDict[key]):
+                raise ValueError("Key " + str(key) + " exist already, and specified values differ.")
+
+    def __checkTags(self, existing_tags, tags):
+        if "" in tags:
+            raise ValueError("tags must not be empty string!")
+        for tag in tags:
+            if tag in existing_tags:
+                raise ValueError("duplicate tag provided!, tags must be unique!")
+
+    def __render_custom_user_input_list(self) -> dict:
+        custom_rendering_context = {"tags": []}
+
+        for entry in self.custom_user_input:
+            add_context = entry.get_rendering_context()
+            tags = entry.get_tags()
+
+            self.__checkDoesNotChangeExistingKeyValues(custom_rendering_context, add_context)
+            self.__checkTags(custom_rendering_context["tags"], tags)
+
+            custom_rendering_context.update(add_context)
+            custom_rendering_context["tags"].extend(tags)
+
+        return custom_rendering_context
+
+    def __foundCustomInput(self, serialized: dict):
+        print("NOTE: found custom user input with tags: " + str(serialized["customuserinput"]["tags"]))
+        print(
+            "\t WARNING: custom input is not checked, it is the users responsibility to check inputs and generated input."
+        )
+        print("\t WARNING: custom templates are required if using custom user input.")
+
+    def add_custom_user_input(self, custom_input: RenderedObject):
+        if self.custom_user_input is None:
+            self.custom_user_input = [custom_input]
+        else:
+            self.custom_user_input.append(custom_input)
 
     def _get_serialized(self) -> dict:
         serialized = {
@@ -77,5 +125,11 @@ class Simulation(RenderedObject):
             serialized["laser"] = self.laser.get_rendering_context()
         else:
             serialized["laser"] = None
+
+        if self.custom_user_input is not None:
+            serialized["customuserinput"] = self.__render_custom_user_input_list()
+            self.__foundCustomInput(serialized)
+        else:
+            serialized["customuserinput"] = None
 
         return serialized

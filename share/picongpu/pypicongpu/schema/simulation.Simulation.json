@@ -53,6 +53,15 @@
                     ]
                 }
             }
+        },
+        "customuserinput":{
+            "anyOf": [
+            {
+                "type": "null"
+            },
+            {
+                "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.customrenderingcontext.CustomRenderingContext"
+            }]
         }
     },
     "required": [
@@ -61,7 +70,8 @@
         "typical_ppc",
         "solver",
         "grid",
-        "laser"
+        "laser",
+        "customuserinput"
     ],
     "unevaluatedProperties": false
 }

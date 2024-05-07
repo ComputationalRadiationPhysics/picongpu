@@ -1,0 +1,6 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.customuserinput.CustomUserInput",
+    "description": "container class for passing dictionaries from the user script to the PyPIConGPU renderer",
+    "type": "object",
+    "unevaluatedProperties": true
+}
