@@ -35,6 +35,7 @@
 #include "picongpu/particles/manipulators/unary/Drift.def"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.def"
+#include "picongpu/particles/manipulators/unary/MaxwellJuettner.def"
 #include "picongpu/particles/manipulators/unary/None.def"
 #include "picongpu/particles/manipulators/unary/RandomPosition.def"
 #include "picongpu/particles/manipulators/unary/SparserMacroParticlesPerSuperCell.def"
