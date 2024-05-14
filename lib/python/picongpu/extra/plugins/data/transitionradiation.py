@@ -65,9 +65,7 @@ class TransitionRadiationData(DataReader):
             return sim_output_dir
         else:
             data_file_path = os.path.join(
-                sim_output_dir,
-                species + self.data_file_prefix +
-                str(iteration) + self.data_file_suffix
+                sim_output_dir, species + self.data_file_prefix + str(iteration) + self.data_file_suffix
             )
             if not os.path.isfile(data_file_path):
                 raise IOError("The file {} does not exist.\nDid the simulation already run?".format(data_file_path))

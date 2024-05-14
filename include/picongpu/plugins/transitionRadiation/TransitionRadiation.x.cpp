@@ -642,6 +642,8 @@ namespace picongpu
                     meshPhi.setGridSpacing(std::vector<double>{1, 1, 1});
                     meshPhi.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
 
+                    meshPhi.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
+
                     auto phi = meshPhi[::openPMD::RecordComponent::SCALAR];
                     phi.resetDataset(datasetPhi);
 
@@ -676,6 +678,8 @@ namespace picongpu
                     meshTheta.setGridUnitSI(1);
                     meshTheta.setGridSpacing(std::vector<double>{1, 1, 1});
                     meshTheta.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    meshTheta.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
 
                     auto theta = meshTheta[::openPMD::RecordComponent::SCALAR];
                     theta.resetDataset(datasetTheta);
@@ -748,18 +752,18 @@ namespace picongpu
                     PMACC_LOCKSTEP_KERNEL(KernelTransRadParticles{})
                         .config(gridDim_rad, *particles)(
                             /*Pointer to particles memory on the device*/
-                        particles->getDeviceParticlesBox(),
+                            particles->getDeviceParticlesBox(),
 
-                        /*Pointer to memory of radiated amplitude on the device*/
-                        incTransRad->getDeviceBuffer().getDataBox(),
-                        cohTransRadPara->getDeviceBuffer().getDataBox(),
-                        cohTransRadPerp->getDeviceBuffer().getDataBox(),
-                        numParticles->getDeviceBuffer().getDataBox(),
-                        globalOffset,
-                        *m_cellDescription,
-                        freqFkt,
-                        subGrid.getGlobalDomain().size,
-                        foilPositionYSI / UNIT_LENGTH);
+                            /*Pointer to memory of radiated amplitude on the device*/
+                            incTransRad->getDeviceBuffer().getDataBox(),
+                            cohTransRadPara->getDeviceBuffer().getDataBox(),
+                            cohTransRadPerp->getDeviceBuffer().getDataBox(),
+                            numParticles->getDeviceBuffer().getDataBox(),
+                            globalOffset,
+                            *m_cellDescription,
+                            freqFkt,
+                            subGrid.getGlobalDomain().size,
+                            foilPositionYSI / UNIT_LENGTH);
                 }
             };
 
