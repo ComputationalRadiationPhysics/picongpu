@@ -48,21 +48,25 @@ namespace picongpu
             class LogAxis
             {
             public:
-                using T = T_Attribute;
+                using Type = T_Attribute;
                 /**
-                 * To avoid loss of precision, the type of the scaling depends on the Attribute type
-                 * For integral types <4 bytes it is float, else it is double
+                 * This type is used for the scaling and to hold the log of the attribute values
+                 * Scaling is the multiplication factor used to scale (val-min) to find the bin idx
+                 * The type of the scaling depends on the Attribute type and is set to provide "reasonable" precision
+                 * For integral types <= 4 bytes it is float, else it is double
                  * For floating point types it is the identity function
                  **/
-                using ScalingType = std::
-                    conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
+                using ScalingType = std::conditional_t<
+                    std::is_integral_v<T_Attribute>,
+                    std::conditional_t<sizeof(T_Attribute) <= 4, float_X, double>,
+                    T_Attribute>;
 
-                AxisSplitting<T> axisSplit;
+                AxisSplitting<T_Attribute> axisSplit;
                 /** Axis name, written out to OpenPMD */
                 std::string label;
                 /** Units(Dimensionality) of the axis */
                 std::array<double, numUnits> units;
-                std::vector<T> binWidths;
+                std::vector<T_Attribute> binWidths;
 
                 /**
                  * @TODO store edges? Copmute once at the beginning and store for later to print at every
@@ -85,7 +89,7 @@ namespace picongpu
 
                     constexpr LogAxisKernel(
                         T_AttrFunctor attrFunc,
-                        AxisSplitting<T> axisSplit,
+                        AxisSplitting<T_Attribute> axisSplit,
                         std::array<double, numUnits> unitsArr)
                         : getAttributeValue{attrFunc}
                         , overflowEnabled{axisSplit.enableOverflowBins}
@@ -119,7 +123,7 @@ namespace picongpu
                         auto val = getAttributeValue(domainInfo, worker, particle);
 
                         static_assert(
-                            std::is_same<decltype(val), T>::value,
+                            std::is_same<decltype(val), T_Attribute>::value,
                             "The return type of the axisAttributeFunctor should be the same as the type of Axis "
                             "min/max ");
 
@@ -127,7 +131,7 @@ namespace picongpu
                         // @todo check if disableBinning is better
                         bool enableBinning = overflowEnabled;
 
-                        if(static_cast<T>(0.) < val)
+                        if(static_cast<T_Attribute>(0.) < val)
                         {
                             auto logVal = math::log2(val);
 
@@ -161,28 +165,34 @@ namespace picongpu
 
                 struct BinWidthKernel
                 {
-                    typename pmacc::HostDeviceBuffer<T, 1>::DBuffer::DataBoxType widthsDeviceBox;
+                    typename pmacc::HostDeviceBuffer<T_Attribute, 1>::DBuffer::DataBoxType widthsDeviceBox;
 
-                    BinWidthKernel(pmacc::HostDeviceBuffer<T, 1>& widths)
+                    BinWidthKernel(pmacc::HostDeviceBuffer<T_Attribute, 1>& widths)
                         : widthsDeviceBox{widths.getDeviceBuffer().getDataBox()}
                     {
                     }
 
-                    ALPAKA_FN_ACC T getBinWidth(uint32_t idx) const
+                    ALPAKA_FN_ACC T_Attribute getBinWidth(uint32_t idx) const
                     {
                         return widthsDeviceBox(idx);
                     }
                 };
 
                 LogAxis(
-                    AxisSplitting<T> axSplit,
+                    AxisSplitting<T_Attribute> axSplit,
                     T_AttrFunctor attrFunctor,
                     std::string label,
-                    std::array<double, numUnits> unit_arr) // add type T to the default label string
+                    std::array<double, numUnits> unit_arr) // add type T_Attribute to the default label string
                     : axisSplit{axSplit}
                     , label{label}
                     , units{unit_arr}
                     , lAK{attrFunctor, axisSplit, unit_arr}
+                {
+                    initBinWidths();
+                }
+
+                // lAK and axisSplit must be already initialized
+                void initBinWidths()
                 {
                     binWidths.reserve(axisSplit.nBins);
                     // Calculate the logarithmic spacing factor
@@ -192,7 +202,7 @@ namespace picongpu
                     for(int i = 0; i < axisSplit.nBins; ++i)
                     {
                         ScalingType next_edge = factor * edge;
-                        if constexpr(std::is_integral_v<T>)
+                        if constexpr(std::is_integral_v<T_Attribute>)
                         {
                             // Ceiling because we have closed-open intervals
                             binWidths.emplace_back(math::ceil(next_edge - edge));
@@ -204,7 +214,6 @@ namespace picongpu
                         edge = next_edge;
                     }
                 }
-
 
                 constexpr uint32_t getNBins() const
                 {
@@ -226,7 +235,7 @@ namespace picongpu
                 {
                     // reset whenever binWidths changes
                     static bool set = false;
-                    static pmacc::HostDeviceBuffer<T, 1> binWidthBuffer{axisSplit.nBins};
+                    static pmacc::HostDeviceBuffer<T_Attribute, 1> binWidthBuffer{axisSplit.nBins};
                     if(!set)
                     {
                         auto db = binWidthBuffer.getHostBuffer().getDataBox();
@@ -247,7 +256,7 @@ namespace picongpu
                 {
                     std::vector<double> binEdges;
                     binEdges.reserve(axisSplit.nBins + 1);
-                    T edge = axisSplit.m_range.min;
+                    T_Attribute edge = axisSplit.m_range.min;
                     for(size_t i = 0; i <= axisSplit.nBins; i++)
                     {
                         binEdges.emplace_back(toSIUnits(edge, units));

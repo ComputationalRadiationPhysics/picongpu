@@ -47,16 +47,19 @@ namespace picongpu
             class LinearAxis
             {
             public:
-                using T = T_Attribute;
+                using Type = T_Attribute;
                 /**
-                 * To avoid loss of precision, the type of the scaling depends on the Attribute type
-                 * For integral types <4 bytes it is float, else it is double
+                 * Scaling is the multiplication factor used to scale (val-min) to find the bin idx
+                 * The type of the scaling depends on the Attribute type and is set to provide "reasonable" precision
+                 * For integral types <= 4 bytes it is float, else it is double
                  * For floating point types it is the identity function
                  **/
-                using ScalingType = std::
-                    conditional_t<std::is_integral_v<T>, std::conditional_t<sizeof(T) == 4, float_X, double>, T>;
+                using ScalingType = std::conditional_t<
+                    std::is_integral_v<T_Attribute>,
+                    std::conditional_t<sizeof(T_Attribute) <= 4, float_X, double>,
+                    T_Attribute>;
 
-                AxisSplitting<T> axisSplit;
+                AxisSplitting<T_Attribute> axisSplit;
                 /** Axis name, written out to OpenPMD */
                 std::string label;
                 /** Units(Dimensionality) of the axis */
@@ -69,23 +72,23 @@ namespace picongpu
                      * Min and max values in the range of the binning. Values outside this range are
                      * placed in overflow bins
                      */
-                    T min, max;
+                    T_Attribute min, max;
                     /** Number of bins in range */
                     uint32_t nBins;
-                    /** Using type depending on whether T is integer or floating point type to avoid precision loss */
+                    /** Using type depending on whether T_Attribute is integer or floating point type */
                     ScalingType scaling;
                     /** Enable or disable allocation of extra bins for out of range particles*/
                     bool overflowEnabled;
 
                     constexpr LinearAxisKernel(
                         T_AttrFunctor attrFunc,
-                        AxisSplitting<T> axisSplit,
+                        AxisSplitting<T_Attribute> axisSplit,
                         std::array<double, numUnits> unitsArr)
                         : getAttributeValue{attrFunc}
                         , min{toPICUnits(axisSplit.m_range.min, unitsArr)}
                         , max{toPICUnits(axisSplit.m_range.max, unitsArr)}
                         , nBins{axisSplit.enableOverflowBins ? axisSplit.nBins + 2 : axisSplit.nBins}
-                        , scaling{static_cast<ScalingType>(static_cast<T>(axisSplit.nBins) / (max - min))}
+                        , scaling{static_cast<ScalingType>(static_cast<T_Attribute>(axisSplit.nBins) / (max - min))}
                         , overflowEnabled{axisSplit.enableOverflowBins}
                     {
                     }
@@ -100,7 +103,7 @@ namespace picongpu
                         auto val = getAttributeValue(domainInfo, worker, particle);
 
                         static_assert(
-                            std::is_same<decltype(val), T>::value,
+                            std::is_same<decltype(val), T_Attribute>::value,
                             "The return type of the axisAttributeFunctor should be the same as the type of Axis "
                             "min/max ");
                         uint32_t binIdx = 0;
@@ -141,7 +144,7 @@ namespace picongpu
                     {
                     }
 
-                    ALPAKA_FN_ACC T getBinWidth(uint32_t idx = 0) const
+                    ALPAKA_FN_ACC T_Attribute getBinWidth(uint32_t idx = 0) const
                     {
                         PMACC_ASSERT(idx < nBins);
                         return 1 / scaling;
@@ -151,10 +154,10 @@ namespace picongpu
                 BinWidthKernel bWK;
 
                 LinearAxis(
-                    AxisSplitting<T> axSplit,
+                    AxisSplitting<T_Attribute> axSplit,
                     T_AttrFunctor attrFunctor,
                     std::string label,
-                    std::array<double, numUnits> units) // add type T to the default label string
+                    std::array<double, numUnits> units) // add type T_Attribute to the default label string
                     : axisSplit{axSplit}
                     , label{label}
                     , units{units}
