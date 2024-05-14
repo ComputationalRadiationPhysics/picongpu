@@ -363,6 +363,12 @@ As explained for Yee's method, :math:`\xi_\mathrm{max} = 0.995` is normally chos
 
 Sample values for the additional factor :math:`\left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right]` appearing in the AOFDTD stability condition compared to Yee's method, are
 
+.. warning::
+   The values below are the limit to meet the CFL condition.
+   This ensures numerical stability but does not guarantee a suitable numerical dispersion relation and thus phase and group velocity of the laser.
+   In most cases, a much smaller time step must be chosen in order to have a stable laser propagation over many iterations.
+   (See plots for low resolution details.)
+
 .. table::
     :widths: auto
     :name: AOFDTD_relation_to_Yee
