@@ -34,7 +34,7 @@ def changeParams(dt, Heff, gamma):
 yNum = 0
 while yNum < 5e6:
     gamma = [10, 50, 100, 500, 1000]  # include all gamma values you want to check
-    Heff = [1e8, 1e10, 1e12, 1e15]  # similarly with Heff
+    Heff = [1e13, 1e14, 1e15, 1e16, 1e17, 1e18]  # similarly with Heff
 
     gamma = gamma[np.random.randint(len(gamma))]
     Heff = Heff[np.random.randint(len(Heff))]

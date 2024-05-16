@@ -340,7 +340,6 @@ namespace picongpu
         /** Call Synchrotron Algorithm of an electron species
          * called from: /include/picongpu/simulation/stage/SynchrotronRadiation.hpp
          *
-         * @todo test what it tests for
          * Tests if species can radiate photons and calls the kernels to do that
          *
          * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for Synchrotron
@@ -351,11 +350,11 @@ namespace picongpu
             using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
             using FrameType = typename SpeciesType::FrameType;
 
-            // the following line only fetches the alias
+            //! the following line only fetches the alias
             using FoundSynchrotronAlias =
                 typename pmacc::traits::GetFlagType<FrameType, picongpu::synchrotron<>>::type;
 
-            // this now resolves the alias into the actual object type, a list of photons
+            //! this now resolves the alias into the actual object type, a list of photons
             using DestinationSpecies = typename pmacc::traits::Resolve<FoundSynchrotronAlias>::type;
 
             /** Functor implementation
@@ -375,9 +374,9 @@ namespace picongpu
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
 
-                // alias for pointer on source species
+                //! alias for pointer on source species
                 auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
-                // alias for pointer on destination species
+                //! alias for pointer on destination species
                 auto photonsPtr = dc.get<DestinationSpecies>(DestinationSpecies::FrameType::getName());
 
                 auto synchrotronFunctor

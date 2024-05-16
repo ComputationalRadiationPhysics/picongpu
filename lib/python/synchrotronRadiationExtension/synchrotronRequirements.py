@@ -1,4 +1,4 @@
-# /* Copyright 2014-2024 Filip Optolowicz
+# /* Copyright 2024 Filip Optolowicz
 #  *
 #  * This file is part of PIConGPU.
 #  *

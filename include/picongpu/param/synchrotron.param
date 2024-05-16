@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Filip Optolowicz
+/* Copyright 2024 Filip Optolowicz
  *
  * This file is part of PIConGPU.
  *
@@ -29,36 +29,42 @@ namespace picongpu
     {
         namespace synchrotron
         {
-            ///@todo remove
-            constexpr bool T_Debug = false;
-            // Carefull -> prints out a lot of stuff. Bigger simulations will produce massive outputs
-
-            // picongpu::particles::synchrotron::params::
             namespace params
             {
-                /// Turn off or turn on the electron recoil from electrons generated.
+                //! Turn off or turn on the electron recoil from electrons generated.
                 constexpr bool ElectronRecoil = true;
-                /// @todo bool for turning on or off the photon generation
 
-                // energy HiPass filter: accept only photons with energy higher than this value
-                // in PIC units: use HBAR, DELTA_T etc. from /picongpu/include/picongpu/unitless/*.unitless
+                //! @todo bool for turning on or off the photon generation
+
+                /** energy HiPass filter: accept only photons with energy higher than this value
+                 * in PIC units: use HBAR, DELTA_T etc. from /picongpu/include/picongpu/unitless/?.unitless
+                 */
                 constexpr float_64 minEnergy = HBAR / DELTA_T;
 
-                struct FirstSynchrotronFunctionParams // Parameters how to compute first synhrotron function
+                //! Parameters how to compute first synhrotron function
+                struct FirstSynchrotronFunctionParams
                 {
-                    static constexpr float_64 logEnd = 7; //! log2(100.0), arbitrary cutoff, for 2nd kind cyclic
-                                                          //! bessel function -> function close enough to zero
-                    static constexpr uint32_t numberSamplePoints = 8096u; // number of sample points to use in
-                                                                          // integration in firstSynchrotronFunction
-                };
+                    /** log2(100.0), arbitrary cutoff, for 2nd kind cyclic
+                     *  bessel function -> function close enough to zero
+                     */
+                    static constexpr float_64 logEnd = 7;
 
-                struct InterpolationParams // parameters of precomputation of interpolation table -> the table
-                                           // "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
+                    /** number of sample points to use in
+                     *  integration in firstSynchrotronFunction
+                     */
+                    static constexpr uint32_t numberSamplePoints = 8096u;
+                };
+                /** parameters of precomputation of interpolation table -> the table
+                 *  "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
+                 */
+                struct InterpolationParams
                 {
-                    static constexpr uint64_t numberTableEntries = 512; // number of synchrotron function values
-                                                                        // to precompute and store in table
-                    static constexpr float_64 minZqExponent = -50; // in log2 cutoff energy
-                    static constexpr float_64 maxZqExponent = 10; // in log2 don't change. or change. but don't change.
+                    //! number of synchrotron function values to precompute and store in table
+                    static constexpr uint64_t numberTableEntries = 512;
+                    //! in log2 cutoff energy
+                    static constexpr float_64 minZqExponent = -50;
+                    //! in log2 don't change. or change. but don't change.
+                    static constexpr float_64 maxZqExponent = 10;
                 };
 
                 /* supressRequirementWarning

@@ -6,7 +6,7 @@ Synchrotron Radiation Extension
 Introduction
 ------------
 
-This documentation provides an overview of the Synchrotron Radiation extension implemented in PIConGPU. Synchrotron radiation is a phenomenon where charged particles emit radiation due to acceleration by electromagnetic fields. This extension models the emission of photons from electrons under specific conditions, primarily in ultrastrong laser fields.
+This documentation provides an overview of the Synchrotron Radiation Extension implemented in PIConGPU. Synchrotron radiation is a phenomenon where charged particles emit radiation due to acceleration by electromagnetic fields. This extension models the emission of photons from electrons under specific conditions, primarily in ultrastrong laser fields.
 
 ------------------------------
 
@@ -74,7 +74,7 @@ The algorithm precomputes necessary functions namely first and second synchrotro
 
 Param: ``supressRequirementWarning``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	 
-The algorithm implements checking for requirements described in [1]_ in sec. H. "Adaptive event generator". If the requirements are not fulfilled that means that that the propability of generating a photon is high for given dt (higherthan 10%) this means that photons are generated possibly every timestep, which causes numerical artefacts, and the radiation is underestimeted. In that case the timestep should be reduced. A script is provided for calculating maximum timestep for given parameters. The script can be found in `/docs/source/usage/workflows/synchrotronRequirements.py`.
+The algorithm implements checking for requirements described in [1]_ in sec. H. "Adaptive event generator". If the requirements are not fulfilled that means that that the propability of generating a photon is high for given dt (higherthan 10%) this means that photons are generated possibly every timestep, which causes numerical artefacts, and the radiation is underestimeted. In that case the timestep should be reduced. A script is provided for calculating maximum timestep for given parameters. The script can be found in `lib/python/synchrotronRadiationExtension/synchrotronRequirements.py`.
 
 - **Type:** `bool`
 - **Default:** `false`
