@@ -37,7 +37,7 @@ function resolve_vars
 
     while read -r data_set
     do
-        unresolved_vars=`echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*"`
+        unresolved_vars=$(echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*")
         unresolved_vars_old="dummy data for the first round"
         # loop until all variables are resolved, if nothing is changing because of a cyclic dependency than stop
         while [ -n  "$unresolved_vars" ] && [ "$unresolved_vars" != "$unresolved_vars_old" ]
@@ -52,7 +52,7 @@ function resolve_vars
                 fi
             done
             unresolved_vars_old="$unresolved_vars"
-            unresolved_vars=`echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*"`
+            unresolved_vars=$(echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*")
         done
         if [ -n  "$unresolved_vars" ] && [ "$unresolved_vars" == "$unresolved_vars_old" ] ; then
             echo "Possible cyclic dependency detected or unknown variables used!" >&2
@@ -64,7 +64,7 @@ function resolve_vars
         fi
 
         export "$data_set"
-    done < <(echo "$replace_input" | grep -v tooltpl | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
+    done < <(echo "$replace_input" | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
 }
 
 #######################
@@ -76,7 +76,7 @@ function resolve_data_stream
 
     while IFS= read -r data_set
     do
-        unresolved_vars=`echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*"`
+        unresolved_vars=$(echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*")
         for i in $unresolved_vars
         do
             var_name=${i/\!}
@@ -86,7 +86,7 @@ function resolve_data_stream
                 data_set=${data_set/\!$var_name/$var_value}
             fi
         done
-        unresolved_vars=`echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*"`
+        unresolved_vars=$(echo "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*")
         if [ -n  "$unresolved_vars" ] ; then
             echo "Unknown variables used in template file!" >&2
             echo "Check the following varaibles:" >&2
@@ -117,9 +117,9 @@ function apply_extra_vars
         echo "$data_set" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*" &>/dev/null
         if [ $? -eq 0 ] ; then
             # get variable name (left side of assign)
-            var=`echo -e "$data_set" | cut -d"=" -f1`
+            var=$(echo -e "$data_set" | cut -d"=" -f1)
             # check if variable must be overwritten
-            op=`echo -e "$extra_op" | tr " " "\n" | grep "$var="`
+            op=$(echo -e "$extra_op" | tr " " "\n" | grep "$var=")
             if [ $? -eq 0 ] ; then
                 # overwrite variable assignment
                 echo "$op"
@@ -165,33 +165,32 @@ function run_cfg_and_set_solved_variables
     eval extra_op="\$$3"    #overwrite templates with extra options parameter -o
 
     # merge multi line to single line
-    cfg_script=`sed -e :a -e '/\\\\$/N; s/\\\\\n//; ta' $1 `
+    cfg_script=$(sed -e :a -e '/\\\\$/N; s/\\\\\n//; ta' $1)
 
     # overwrite variable definition if contained in $3
-    cfg_script_overwritten=`apply_extra_vars cfg_script extra_op`
+    cfg_script_overwritten=$(apply_extra_vars cfg_script extra_op)
 
     # execute the cfg script
     eval "$cfg_script_overwritten" # name and path to cfg file
 
     # collect variable definitions from the cfg file
-    cfg_script_overwritten_vars=`echo -e "$cfg_script_overwritten" | grep -o "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*" | tr -d "="`
-    cfg_script_overwritten_vars=`echo -e "$cfg_script_overwritten_vars" | sort | while read var; do [ -z "${!var}" ] || echo $var=${!var} ; done`
+    cfg_script_overwritten_vars=$(echo -e "$cfg_script_overwritten" | grep -o "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*" | tr -d "=")
+    cfg_script_overwritten_vars=$(echo -e "$cfg_script_overwritten_vars" | sort | while read var; do [ -z "${!var}" ] || echo $var=${!var} ; done)
 
     # get all variable assignments (form: `.var=value`) from the tpl file
-    tbg_vars=`echo "$file_data" | grep "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*" | \
-        sed 's/^[[:blank:]]*\.//'`
+    tbg_vars=$(echo "$file_data" | grep "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*" | sed 's/^[[:blank:]]*\.//')
 
     # overwrite all variable assignments from tpl file with overwrite variables
     tbg_vars_overwritten=`apply_extra_vars tbg_vars extra_op`
 
     set_env_vars tbg_vars_overwritten
-    all_tbg_vars=`echo -e "$tbg_vars_overwritten\n$cfg_script_overwritten_vars"`
+    all_tbg_vars=$(echo -e "$tbg_vars_overwritten\n$cfg_script_overwritten_vars")
     resolve_vars all_tbg_vars
     # evaluate all variable assignments which are contained in the tpl file
     # variables are already set in the environment and resolved
     while read -r data_set
     do
-        var_name=`echo "$data_set" | cut -d"=" -f1`
+        var_name=$(echo "$data_set" | cut -d"=" -f1)
         var_value=$(eval echo \$$var_name)
         if [ -n  "$var_value" ] ; then
             eval "$data_set"
@@ -208,15 +207,15 @@ function check_final
     final_file="$1"
     org_file="$2"
 
-    not_replaced=`grep -o "\![[:alpha:]][[:alnum:]_]*" $final_file | sort | uniq`
-    not_replaced_cnt=`echo $not_replaced | wc -w`
+    not_replaced=$(grep -o "\![[:alpha:]][[:alnum:]_]*" $final_file | sort | uniq)
+    not_replaced_cnt=$(echo $not_replaced | wc -w)
 
     if [ $not_replaced_cnt -gt 0 ] ; then
         echo "ERROR: $not_replaced_cnt variable(s) _not_ replaced from template (tpl):"
         echo $not_replaced
 
         #create an OR concated pattern
-        nrv_or=`echo $not_replaced | sed 's/[[:space:]]/|/g'`
+        nrv_or=$(echo $not_replaced | sed 's/[[:space:]]/|/g')
 
         #search in orginal file, to provide a better line number hint to the user
         n=0
@@ -293,9 +292,9 @@ projectPath="."
 
 pathToegetopt=$(which egetopt 2>/dev/null)
 if [ $? -eq 0 ] ; then
-    pathToegetopt=`dirname $pathToegetopt`
+    pathToegetopt=$(dirname $pathToegetopt)
 else
-    pathToegetopt=`dirname $0`
+    pathToegetopt=$(dirname $0)
 fi
 
 egetoptTool=$(which $pathToegetopt/egetopt 2>/dev/null)
@@ -307,7 +306,7 @@ fi
 # options may be followed by
 # - one colon to indicate they has a required argument
 # - two colons to indicate they has a optional argument
-OPTS=`$egetoptTool -o t::c::s::o:fh -l tpl::,cfg::,submit::,force,help -n tbg ++ "$@"`
+OPTS=$($egetoptTool -o t::c::s::o:fh -l tpl::,cfg::,submit::,force,help -n tbg ++ "$@")
 if [ $? != 0 ] ; then
     # something went wrong, egetopt will put out an error message for us
     exit 1
@@ -331,14 +330,14 @@ while true ; do
             shift
             ;;
        -o)
-            tooltpl_overwrite="$2"
+            overwrite_vars="$2"
             shift
             ;;
        -f|--force)
             force="true"
             ;;
        -t|--tpl)
-            tooltpl_file=${2:-$TBG_TPLFILE}
+            template_file_name=${2:-$TBG_TPLFILE}
             shift
             ;;
         -h|--help)
@@ -353,8 +352,8 @@ done
 
 # tpl file was set - does it also exist?
 #   if a tpl file was not set, try stdin later on
-if [ -n "$tooltpl_file" ] && [ ! -f "$tooltpl_file" ] ; then
-    echo "The given tpl file \"$tooltpl_file\" does not exist (-t|--tpl)." >&2
+if [ -n "$template_file_name" ] && [ ! -f "$template_file_name" ] ; then
+    echo "The given tpl file \"$template_file_name\" does not exist (-t|--tpl)." >&2
     exit 1;
 fi
 
@@ -391,22 +390,22 @@ if [ ! -f "$cfg_file" ] ; then
 fi
 
 # cfg file sanity check - space after \ at EOL ?
-cfg_err=`egrep "\\\\\[[:blank:]]+$" $cfg_file | wc -l`
+cfg_err=$(egrep '\\\\\[ \t]+$' $cfg_file | wc -l)
 if [ $cfg_err != 0 ] ; then
     echo "ERROR: file \"$cfg_file\" contains spaces after line continuation \\"
     echo "Check the following lines for end-of-line spaces:"
     echo ""
-    egrep -n "\\\[[:blank:]]+$" $cfg_file
+    egrep -n "\\\[ \t]+$" $cfg_file
     echo ""
     echo "Run the following command on the file to remove your"
     echo "end-of-line (EOL) white spaces:"
     echo ""
-    echo "sed -i 's/[[:blank:]]\+$//' $cfg_file"
+    echo "sed -i 's/[ \t]\+$//' $cfg_file"
     exit 1;
 fi
 
 # cfg file sanity check - windows EOL? (CR LF)
-cfg_err=`grep -c $'\r' $cfg_file`
+cfg_err=$(grep -c $'\r' $cfg_file)
 if [ $cfg_err != 0 ] ; then
     echo "ERROR: file \"$cfg_file\" contains" $cfg_err "non-unix new lines (\r)."
     echo ""
@@ -417,12 +416,12 @@ if [ $cfg_err != 0 ] ; then
     exit 1;
 fi
 
-projectPath=`absolute_path $projectPath`
+projectPath=$(absolute_path $projectPath)
 
-job_name=`basename "$outDir"`
+job_name=$(basename "$outDir")
 # (up to 15 characters, no blank spaces, reduce to alphanumeric characters)
-job_shortname=`echo $job_name | sed "s/[^a-zA-Z0-9]//g" | cut -c1-15`
-job_relative_dir=`dirname "$outDir"`
+job_shortname=$(echo $job_name | sed "s/[^a-zA-Z0-9]//g" | cut -c1-15)
+job_relative_dir=$(dirname "$outDir")
 
 
 
@@ -432,16 +431,16 @@ if [ $? -ne 0 ] ; then
     echo "Could not create directory in: $job_relative_dir" >&2
     exit 1
 fi
-job_outDir=`cd "$job_relative_dir"; pwd`"/$job_name"
+job_outDir="$(absolute_path $job_relative_dir)/$job_name"
 
-if [ -z "$tooltpl_file" ] ; then
-    tooltpl_file_data=`cat /dev/stdin`
+if [ -z "$template_file_name" ] ; then
+    template_file_data=$(cat /dev/stdin)
 else
-    tooltpl_file_data=`cat "$tooltpl_file"`
+    template_file_data=$(cat "$template_file_name")
 fi
 # read picongpu params
 
-start_dir=`dirname $0`
+start_dir=$(dirname $0)
 
 if [ -d "$job_outDir" ] ; then
     if [ "$force" == "true" ] ; then
@@ -457,13 +456,13 @@ fi
 export TBG_jobName="$job_name"
 export TBG_jobNameShort="$job_shortname"
 
-cfgFileName=`basename $cfg_file`
-cfgRelativPath=`dirname $cfg_file`
-export TBG_cfgPath=`absolute_path "$cfgRelativPath"`
+cfgFileName=$(basename $cfg_file)
+cfgRelativPath=$(dirname $cfg_file)
+export TBG_cfgPath=$(absolute_path "$cfgRelativPath")
 export TBG_cfgFile="$TBG_cfgPath/$cfgFileName"
 
-if [ ! -z "$tooltpl_file" ] ; then
-    tplAbsolutePath=`absolute_path $(dirname $tooltpl_file)`/`basename $tooltpl_file`
+if [ ! -z "$template_file_name" ] ; then
+    tplAbsolutePath="$(absolute_path $(dirname $template_file_name))/$(basename $template_file_name)"
 fi
 
 export TBG_projectPath="$projectPath"
@@ -478,30 +477,30 @@ mkdir -p "$job_outDir/tbg"
 cd "$job_outDir"
 
 # Add -o args to env to allow for all variables used in the *.tpl file to be set through the -o option
-for i in $tooltpl_overwrite; do
+for i in $overwrite_vars; do
     export $i
 done
 
 # get the full replaced and evaluated variable definitions
-run_cfg_and_set_solved_variables "$TBG_cfgFile" tooltpl_file_data tooltpl_overwrite
+run_cfg_and_set_solved_variables "$TBG_cfgFile" template_file_data $overwrite_vars
 
 #delete all variable assignments (form: `.var=value`) from the tpl file
-tooltpl_file_data_cleaned=`echo "$tooltpl_file_data" |  grep -v "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*"`
+template_file_data_cleaned=$(echo "$template_file_data" |  grep -v "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*")
 # create the content of the batch system file `submit.start`
-batch_file=`resolve_data_stream tooltpl_file_data_cleaned`
+batch_file=$(resolve_data_stream template_file_data_cleaned)
 
-if [ ! -z "$tooltpl_file" ] ; then
+if [ ! -z "$template_file_name" ] ; then
     # preserve file attributes/permissions
     cp -a $tplAbsolutePath tbg/submit.start
 fi
 # overwrite copied content but keep permissions (or create file if tpl comes from stdin)
 echo "$batch_file" > tbg/submit.start
 echo -e "\n#this script was created with call $initCall" >> tbg/submit.start
-echo "$tooltpl_file_data" > tbg/submit.tpl
+echo "$template_file_data" > tbg/submit.tpl
 cp -a "$TBG_cfgFile" tbg/submit.cfg
 
 #warn, if there are still unresolved !TBG_ variables left
-check_final tbg/submit.start "$tooltpl_file_data"
+check_final tbg/submit.start "$template_file_data"
 
 if [ -n "$submit_command" ] ; then
     $submit_command tbg/submit.start
