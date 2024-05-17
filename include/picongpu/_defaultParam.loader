@@ -35,7 +35,6 @@
 #include "picongpu/param/memory.param"
 #include "picongpu/param/random.param"
 #include "picongpu/param/physicalConstants.param"
-#include "picongpu/param/atomicPhysics.param"
 #include "picongpu/param/speciesConstants.param"
 #include "picongpu/param/speciesAttributes.param"
 #include "picongpu/param/grid.param"
