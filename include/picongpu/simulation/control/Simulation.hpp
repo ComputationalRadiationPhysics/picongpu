@@ -43,7 +43,6 @@
 #include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
-#include "picongpu/simulation/stage/AtomicPhysics.hpp"
 #include "picongpu/simulation/stage/Collision.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
@@ -348,9 +347,6 @@ namespace picongpu
             // initialize particle boundaries
             particleBoundaries.init();
 
-            // create atomic physics instance, stored as protected member
-            this->atomicPhysics = std::make_unique<simulation::stage::AtomicPhysics>(*cellDescription);
-
             // initialize runtime density file paths
             runtimeDensityFile.init();
 
@@ -548,7 +544,6 @@ namespace picongpu
             fieldBackground.subtract(currentStep);
             myFieldSolver->update_beforeCurrent(currentStep);
             eventSystem::setTransactionEvent(commEvent);
-            atomicPhysics->runSolver(currentStep);
             (*currentBackground)(currentStep);
             CurrentDeposition{}(currentStep);
             (*currentInterpolationAndAdditionToEMF)(currentStep, *myFieldSolver);
@@ -630,8 +625,6 @@ namespace picongpu
         // Field background stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::FieldBackground fieldBackground;
-
-        std::unique_ptr<simulation::stage::AtomicPhysics> atomicPhysics;
 
         // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
