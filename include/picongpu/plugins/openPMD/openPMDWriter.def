@@ -103,10 +103,15 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
-            DumpTimes<std::chrono::system_clock, true> m_dumpTimes{
+            static constexpr bool do_trace_times = PIC_TRACE_OPENPMD_TIMES > 0;
+            DumpTimes<std::chrono::system_clock, do_trace_times> m_dumpTimes
+            {
+#if PIC_TRACE_OPENPMD_TIMES == 0
+                "/dev/null"
+#else
                 []()
                 {
-                    constexpr unsigned MAX_LOGS = 20;
+                    constexpr unsigned MAX_LOGS = PIC_TRACE_OPENPMD_TIMES;
                     static GridController<simDim>& gc = Environment<simDim>::get().GridController();
                     auto const size = gc.getGlobalSize();
                     auto const rank = gc.getGlobalRank();
@@ -139,7 +144,9 @@ namespace picongpu
                         size_t rank_of_that_log = (proposed_log_idx * size) / MAX_LOGS;
                         return rank == rank_of_that_log ? outputFile : "/dev/null";
                     }
-                }()};
+                }()
+#endif
+            };
 
             ::openPMD::Series& openSeries(::openPMD::Access at);
 
