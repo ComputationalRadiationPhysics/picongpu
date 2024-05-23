@@ -128,7 +128,7 @@ namespace picongpu
                 const size_t elements,
                 const size_t globalElements,
                 const size_t globalOffset,
-                size_t & accumulate_writtenBytes)
+                size_t& accumulate_writtenBytes)
             {
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
