@@ -9,28 +9,26 @@
 #   pyyaml
 #
 """
-propose_changelog.py
+propose_changelog
 
 This little tool queries the Github API for merged pull requests corresponding to the given milestone and labelled by the label "changelog".
 The obtained list is categorised and printed to stdout. Suggested usage is:
 
 ```bash
 $ MILESTONE="0.8.0 / Next stable"  # or whatever version you're interested in
-$ GH_PTA="<your Github personal access token>"
-$ python propose_changelog.py "$MILESTONE" $GH_PTA > changelog.txt
+$ python propose_changelog.py "$MILESTONE" > changelog.txt
 # edit `changelog.txt` according to your needs
 ```
 
-For a typical end user running this once or twice a day, the environment variable "GH_PTA" can be empty.
 If you are running this frequently, e.g., during a debug session, you might want to
-[acquire a personal acces token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
-and store it in this environment variable. The most restricted one with public repository read access is sufficient.
+[acquire a personal acces token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
+The most restricted one with public repository read access is sufficient.
 
 For adjustments to the categorisation, you can simply change the global variable `CATEGORIES`.
 """
 
 from github import Github
-import sys
+import argparse
 import yaml
 
 
@@ -89,13 +87,13 @@ def categorise(prs, categories_or_condition):
     return {key: categorise(prs, val) for key, val in categories_or_condition.items()}
 
 
-def apply_to_leaves(func, mapping):
-    """Helper function to recursively apply to the leaves of a nested dictionary (applying to values of a list individually)."""
-    if isinstance(mapping, dict):
-        return {key: apply_to_leaves(func, val) for key, val in mapping.items()}
-    if isinstance(mapping, list):
-        return list(map(func, mapping))
-    return func(mapping)
+def apply_to_leaves(function, dictionary):
+    """Helper function to recursively apply a function to the leaves of a nested dictionary (applying to values of a list individually)."""
+    if isinstance(dictionary, dict):
+        return {key: apply_to_leaves(function, val) for key, val in dictionary.items()}
+    if isinstance(dictionary, list):
+        return list(map(function, dictionary))
+    return function(dictionary)
 
 
 def to_string(categories):
@@ -116,4 +114,16 @@ def main(version, gh_key=None):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    parser = argparse.ArgumentParser(
+        description=__doc__.split("\n\n", 1)[1],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("version", help="Verbatim name of the milestone you want to filter for.")
+    parser.add_argument(
+        "-k",
+        "--key",
+        default=None,
+        help="Github personal access token for identifying yourself.",
+    )
+    args = parser.parse_args()
+    main(args.version, args.key)
