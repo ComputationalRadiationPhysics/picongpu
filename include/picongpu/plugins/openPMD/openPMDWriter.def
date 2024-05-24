@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/openPMD/DumpTimes.hpp"
+#include "picongpu/plugins/common/DumpTimes.hpp"
 #include "picongpu/plugins/openPMD/Json.hpp"
 #include "picongpu/plugins/openPMD/Parameters.hpp"
 #include "picongpu/plugins/openPMD/toml.hpp"
@@ -103,15 +103,15 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
-            static constexpr bool do_trace_times = PIC_TRACE_OPENPMD_TIMES > 0;
+            static constexpr bool do_trace_times = PIC_IO_TIMES_NUMBER_OF_FILES > 0;
             DumpTimes<std::chrono::system_clock, do_trace_times> m_dumpTimes
             {
-#if PIC_TRACE_OPENPMD_TIMES == 0
+#if PIC_IO_TIMES_NUMBER_OF_FILES < 1
                 "/dev/null"
 #else
                 []()
                 {
-                    constexpr unsigned MAX_LOGS = PIC_TRACE_OPENPMD_TIMES;
+                    constexpr unsigned MAX_LOGS = PIC_IO_TIMES_NUMBER_OF_FILES;
                     static GridController<simDim>& gc = Environment<simDim>::get().GridController();
                     auto const size = gc.getGlobalSize();
                     auto const rank = gc.getGlobalRank();
@@ -123,10 +123,10 @@ namespace picongpu
                     else
                     {
                         /*
-                         * Only up to logs=20 logs should be written in parallel in order not to
-                         * overload the file system with measuring I/O efficiency.
+                         * Only up to MAX_LOGS logs should be written in parallel in order not to
+                         * overload the file system with measuring I/O efficiency, e.g. 20 logs.
                          * The following logic figures out if this rank should write a log and
-                         * which log index from 0 to 19 should be used.
+                         * which log index from 0 to 19 should be used locally.
                          *
                          * Log file with index i is written from `rank = bottom(i/logs * size)`
                          * This means that there exists an e < 1 s.t. `rank + e = i/logs * size`,

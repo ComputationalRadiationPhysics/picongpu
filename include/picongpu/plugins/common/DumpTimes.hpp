@@ -45,10 +45,8 @@ namespace picongpu
             using duration = typename Clock::duration;
             using Ret_T = std::pair<time_point, duration>;
 
-            constexpr static char const* ENV_VAR = "PICONGPU_TIME_TRACE_FILE";
             const std::string filename;
 
-            DumpTimes();
             DumpTimes(std::string filename);
 
             template<typename Duration>
@@ -68,16 +66,13 @@ namespace picongpu
         };
 
         template<typename Clock, bool enable>
-        DumpTimes<Clock, enable>::DumpTimes() : DumpTimes(std::string(std::getenv(ENV_VAR)))
-        {
-        }
-
-        template<typename Clock, bool enable>
         DumpTimes<Clock, enable>::DumpTimes(std::string _filename)
             : filename(std::move(_filename))
             , outStream(filename, std::ios_base::out | std::ios_base::app)
             , lastTimePoint(Clock::now())
         {
+            outStream << "timestamp\tdifftime\tdescription";
+            pendingNewline = true;
         }
 
         template<typename Clock, bool enable>
