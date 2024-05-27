@@ -125,7 +125,9 @@ namespace picongpu
                     float3_X const eFieldPlusCrossVB = eField + crossVB;
 
                     float_X HeffValue = pmacc::math::dot(eFieldPlusCrossVB, eFieldPlusCrossVB) - dotVnormE * dotVnormE;
-                    //! this check is important to avoid numerical rounding errors that result in NaN when taking a sqrt
+                    /* this check is important to avoid numerical rounding errors that result in NaN
+                     *  when taking a sqrt
+                     */
                     if(HeffValue <= 0)
                     {
                         return 0;
@@ -140,8 +142,8 @@ namespace picongpu
                     float_X const chi = HeffValue * gamma * inverse_E_Schwinger;
 
                     //! zq
-                    float_64 oneMinusDeltaOverDelta = (1. - delta) / delta;
-                    float_X zq = 2._X / (3._X * chi) / oneMinusDeltaOverDelta;
+                    const float_64 oneMinusDeltaOverDelta = (1. - delta) / delta;
+                    const float_X zq = 2._X / (3._X * chi) / oneMinusDeltaOverDelta;
 
                     //! zq convert to index and F1 and F2
                     const float_X zqExponent = math::log2(zq);
@@ -267,10 +269,9 @@ namespace picongpu
                     GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
                     GridBuffer<int32_t, 1>::DataBoxType failedRequirementQBuff)
                     : randomGen(RNGFactory::createRandom<Distribution>())
+                    , m_F1F2DeviceBuff{F1F2DeviceBuff}
+                    , m_failedRequirementQBuff{failedRequirementQBuff}
                 {
-                    m_F1F2DeviceBuff = F1F2DeviceBuff;
-                    m_failedRequirementQBuff = failedRequirementQBuff;
-
                     DataConnector& dc = Environment<>::get().DataConnector();
                     /** initialize pointers on host-side E-(B-)field and current density databoxes */
                     auto fieldE = dc.get<FieldE>(FieldE::getName());
@@ -322,7 +323,7 @@ namespace picongpu
                  */
                 template<typename T_Worker>
                 DINLINE void init(
-                    [[maybe_unused]] T_Worker const& worker,
+                    T_Worker const&,
                     const DataSpace<simDim>& localSuperCellOffset,
                     const uint32_t rngIdx)
 

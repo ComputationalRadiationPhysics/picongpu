@@ -36,7 +36,7 @@ namespace picongpu
 
                 //! @todo bool for turning on or off the photon generation
 
-                /** energy HiPass filter: accept only photons with energy higher than this value
+                /* energy HiPass filter: accept only photons with energy higher than this value
                  * in PIC units: use HBAR, DELTA_T etc. from /picongpu/include/picongpu/unitless/?.unitless
                  */
                 constexpr float_64 minEnergy = HBAR / DELTA_T;
@@ -44,26 +44,29 @@ namespace picongpu
                 //! Parameters how to compute first synhrotron function
                 struct FirstSynchrotronFunctionParams
                 {
-                    /** log2(100.0), arbitrary cutoff, for 2nd kind cyclic
-                     *  bessel function -> function close enough to zero
+                    /* log2(100.0), arbitrary cutoff, for 2nd kind cyclic
+                     * bessel function -> function close enough to zero
                      */
                     static constexpr float_64 logEnd = 7;
 
-                    /** number of sample points to use in
-                     *  integration in firstSynchrotronFunction
+                    /* number of sample points to use in
+                     * integration in firstSynchrotronFunction
                      */
                     static constexpr uint32_t numberSamplePoints = 8096u;
                 };
-                /** parameters of precomputation of interpolation table -> the table
-                 *  "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
+                /* parameters of precomputation of interpolation table -> the table
+                 * "tableValuesF1F2" is in simulation/stage/SynchrotronRadiation.hpp
                  */
                 struct InterpolationParams
                 {
                     //! number of synchrotron function values to precompute and store in table
                     static constexpr uint64_t numberTableEntries = 512;
-                    //! in log2 cutoff energy
+                    //! in log2: -50 means minimum Zq that is still not 0 is 2^-50 ~ 10^-15
                     static constexpr float_64 minZqExponent = -50;
-                    //! in log2 don't change. or change. but don't change.
+                    /* in log2: 10 means maximum Zq that is still not 0 is 2^10 ~ 10^+3.
+                     * If set to larger value than 10: that can result in runtime error in precomputing cyclic bessel
+                     * function
+                     */
                     static constexpr float_64 maxZqExponent = 10;
                 };
 

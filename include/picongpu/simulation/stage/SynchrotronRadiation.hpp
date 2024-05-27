@@ -54,7 +54,7 @@ namespace picongpu::simulation::stage
          * @param yMiddle function value at xMiddle
          */
         template<typename T_Number>
-        static T_Number integrateAsExponential(
+        T_Number integrateAsExponential(
             T_Number const xLeft,
             T_Number const xMiddle,
             T_Number const xRight,
@@ -89,12 +89,12 @@ namespace picongpu::simulation::stage
          *
          * @returns zq * (integral of 2nd kind bessel function from zq to ~infinity)
          */
-        static float_64 firstSynchrotronFunction(float_64 const zq)
+        float_64 firstSynchrotronFunction(float_64 const zq)
         {
-            //! for "FirstSynchrotronFunctionParams" struct
-            using namespace picongpu::particles::synchrotron::params;
+            //! for 'logEnd' and 'numberSamplePoints' from FirstSynchrotronFunctionParams
+            using picongpu::particles::synchrotron::params::FirstSynchrotronFunctionParams;
 
-            //! from zq to FirstSynchrotronFunctionParams::logEnd
+            //! from zq to logEnd
             float_64 const log_start = std::log2(zq);
             float_64 const log_step = (FirstSynchrotronFunctionParams::logEnd - log_start)
                 / (FirstSynchrotronFunctionParams::numberSamplePoints - 1);
@@ -122,8 +122,8 @@ namespace picongpu::simulation::stage
                 }
                 catch(std::exception& e)
                 {
-                    std::cout << "Caught exception when precomputing firstSynchrotronFunction: " << e.what()
-                              << std::endl;
+                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at " << i
+                              << ". index: " << e.what() << std::endl;
                 }
             }
             return zq * integral;
@@ -131,9 +131,38 @@ namespace picongpu::simulation::stage
 
         //! @note see paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
         //! developments" by A. Gonoskov et.Al.
-        static float_64 secondSynchrotronFunction(float_64 const x)
+        float_64 secondSynchrotronFunction(float_64 const x)
         {
             return x * std::cyl_bessel_k(2. / 3, x);
+        }
+
+        /** Set the failedRequirementQ to true or false
+         * @param value
+         */
+        void setFailedRequirementQ(bool const value)
+        {
+            failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = static_cast<int32_t>(value);
+            failedRequirementQ->hostToDevice();
+        }
+
+        /** Check if the requirements are met
+         * @returns true if the requirements are not met
+         */
+        bool checkFailedRequirementQ()
+        {
+            failedRequirementQ->deviceToHost();
+            return failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) == true;
+        }
+
+        /** set tableValuesF1F2 at index iZq and Accessor
+         * @param iZq index
+         * @param accessor Accessor
+         * @param value value to set
+         */
+        template<typename T_Accessor>
+        void setTableValuesF1F2(uint32_t const iZq, T_Accessor const accessor, float_X const value)
+        {
+            tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(accessor)}) = value;
         }
 
     public:
@@ -143,8 +172,8 @@ namespace picongpu::simulation::stage
          */
         SynchrotronRadiation(MappingDesc const cellDescription) : cellDescription(cellDescription)
         {
-            //! for "InterpolationParams" struct
-            using namespace picongpu::particles::synchrotron::params;
+            //! for "numberTableEntries", "minZqExponent" and "maxZqExponent" from InterpolationParams
+            using picongpu::particles::synchrotron::params::InterpolationParams;
             auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
             auto grid_layout = GridLayout<2>{data_space};
 
@@ -152,7 +181,7 @@ namespace picongpu::simulation::stage
             tableValuesF1F2 = std::make_shared<GridBuffer<float_X, 2>>(grid_layout);
             failedRequirementQ = std::make_shared<GridBuffer<int32_t, 1>>(DataSpace<1>{1});
             //! set the values of variables to false
-            failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = false;
+            setFailedRequirementQ(false);
             failedRequirementPrinted = false;
 
             constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
@@ -170,14 +199,11 @@ namespace picongpu::simulation::stage
                 float_64 const F1 = firstSynchrotronFunction(zq);
                 float_64 const F2 = secondSynchrotronFunction(zq);
 
-                tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f1)})
-                    = static_cast<float_X>(F1);
-                tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(Accessor::f2)})
-                    = static_cast<float_X>(F2);
+                setTableValuesF1F2(iZq, Accessor::f1, static_cast<float_X>(F1));
+                setTableValuesF1F2(iZq, Accessor::f2, static_cast<float_X>(F2));
             }
             //! move the data to the device
             tableValuesF1F2->hostToDevice();
-            failedRequirementQ->hostToDevice();
         }
 
         /** Radiation happens here
@@ -202,9 +228,7 @@ namespace picongpu::simulation::stage
             //! check if the requirements are met
             if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
             {
-                //! retrieve the failedRequirementQ from the device
-                failedRequirementQ->deviceToHost();
-                if(failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) == true)
+                if(checkFailedRequirementQ())
                 {
                     if((failedRequirementPrinted) == false)
                     {
@@ -217,8 +241,7 @@ namespace picongpu::simulation::stage
                     }
                     printf(".");
                     //! reset the requirement flag
-                    failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = static_cast<int32_t>(false);
-                    failedRequirementQ->hostToDevice();
+                    setFailedRequirementQ(false);
                 }
             }
         }
@@ -237,7 +260,7 @@ namespace picongpu::simulation::stage
             f1 = 0u,
             f2 = 1u
         };
-        static constexpr uint32_t u32(Accessor const t)
+        constexpr uint32_t u32(Accessor const t)
         {
             return static_cast<uint32_t>(t);
         }
