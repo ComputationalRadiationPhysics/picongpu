@@ -18,15 +18,8 @@
 #  */
 
 import numpy as np
-import scipy.constants as const
+from scipy.constants import elementary_charge as e, m_e, c, hbar, epsilon_0 as eps0
 
-# Constants
-e = const.elementary_charge  # Elementary charge in C
-m_e = const.m_e  # Electron mass in kg
-c = const.c  # Speed of light in m/s
-hbar = const.hbar  # Reduced Planck constant in J/s
-miu0 = const.mu_0  # Vacuum permeability in H/m
-eps0 = const.epsilon_0  # Vacuum permittivity in F/m
 Es = m_e**2 * c**3 / e / hbar  # Schwinger limit in V/m
 
 
