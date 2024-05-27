@@ -61,20 +61,20 @@ namespace picongpu
                 {
                     //! number of synchrotron function values to precompute and store in table
                     static constexpr uint64_t numberTableEntries = 512;
-                    //! in log2 cutoff energy
+                    //! in log2 min cutoff energy
                     static constexpr float_64 minZqExponent = -50;
-                    //! in log2 don't change. or change. but don't change.
+                    //! in log2 max cutoff energy (do not change)
                     static constexpr float_64 maxZqExponent = 10;
                 };
 
-                /* supressRequirementWarning
+                /** supressRequirementWarning
                  * if true, the warning for the requirement 1 and 2 is suppressed
                  * maby speeds the simulation a little bit because there is no call to global memory
                  *
                  * this warning means that the propability of generating a photon is high for given dt (higher
                  * than 10%) this means that we generate photons possibly every timestep (numerical artefacts)
                  * and the radiation is underestimeted if propability is grater than 1. The timestep should be reduced.
-                 */
+                 **/
                 constexpr bool supressRequirementWarning = false;
 
             } // namespace params

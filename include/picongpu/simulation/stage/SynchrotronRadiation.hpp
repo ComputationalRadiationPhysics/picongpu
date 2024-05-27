@@ -45,7 +45,7 @@ namespace picongpu::simulation::stage
          * 2) integrate the exponential function on log scale,
          *
          * @note overestimates function below xMiddle but underestimates function above xMiddle leading to better fit
-         * overal (for bessel function).
+         * overall (for bessel function).
          *
          * @param xLeft left point
          * @param xMiddle middle point

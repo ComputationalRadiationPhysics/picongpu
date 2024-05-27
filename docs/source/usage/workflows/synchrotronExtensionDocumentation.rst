@@ -15,12 +15,12 @@ Synchrotron radiation occurs when charged particles moving at relativistic speed
 Model Used
 ----------
 
-The model implemented in this extension is based on the assumptions and formulations described in Gonoskov et al., 2015. The implementation simulates one process as described in section B.1 "Photon emission and nonlinear Compton scattering". The specific algorithm is described in section G "Modified event generator". The key assumptions of the model include:
+The model implemented in this extension is based on the assumptions and formulations described in Gonoskov et al., 2015 [Gonoskov2015]_. The implementation simulates one process as described in section B.1 "Photon emission and nonlinear Compton scattering". The specific algorithm is described in section G "Modified event generator". The key assumptions of the model include:
 
 - **Insignificant Variation of Fields during one time step:** The electric (:math:`\vec E`) and magnetic (:math:`\vec B`) fields are assumed to vary insignificantly during one time step of the PIC simulation.
 - **Ultrarelativistic Case:** The electrons are considered to be in an ultrarelativistic state, where the Lorentz factor :math:`\gamma \gg 1`.
 - **Transverse Acceleration Dominance:**  emission of a particle is predominantly defined by the transverse acceleration (the longitudinal acceleration has :math:`\gamma^2` times less contribution to the emission intensity).
-- **Effective Magnetic Field:** The emission properties can be approximated by considering an electron rotating in a constant uniform magnetic field (:math:`H_{\text{eff}}`), which is determined by the transverse acceleration. For this condition to be met the assumption :math:`\gamma \sim a_0 \gg 100` is considered.
+- **Effective Magnetic Field:** The emission properties can be approximated by considering an electron rotating in a constant uniform magnetic field (:math:`H_{\text{eff}}`), which is determined by the transverse acceleration. For this condition to be met the assumption :math:`\gamma \sim a_0 \gg 100` is considered. (:math:`a_0` is the normalized electric field strength of the laser field).
 - **Forward Direction Emission:** The radiation emitted by the electrons is in the forward direction relative to their motion.
 
 How and When to Use Synchrotron Radiation
@@ -50,11 +50,11 @@ Param: ``minEnergy``
 - **Type:** `float_64`
 - **Unit:** PIC units 
 - **Default:** `HBAR / DELTA_T`
-- **Description:** Sets the minimum energy threshold for photons to be considered in the simulation. This parameter helps in filtering out low-energy photons that may be already accounted for by the PIC fields. The default value is an approximation for the maximum photon energy that can be resolved by the field grid. This parameter is dependent on the internal unit system used in PIConGPU(`/picongpu/include/picongpu/unitless/*.unitless`).
+- **Description:** Sets the minimum energy threshold for photons to be considered in the simulation. This parameter helps in filtering out low-energy photons that may be already accounted for by the PIC fields. The default value is an approximation for the maximum photon energy that can be resolved by the field grid. This parameter is dependent on the internal unit system used in PIConGPU (Please use variables defined in `/picongpu/include/picongpu/unitless/*.unitless`).
 
 Precomputation Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-The algorithm precomputes necessary functions namely first and second synchrotron functions described in section E. `Spectrum of emission` of [1]_.
+The algorithm precomputes necessary functions namely first and second synchrotron functions described in section E. `Spectrum of emission` of [Gonoskov2015]_.
 
 `FirstSynchrotronFunctionParams`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,7 +74,7 @@ The algorithm precomputes necessary functions namely first and second synchrotro
 
 Param: ``supressRequirementWarning``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	 
-The algorithm implements checking for requirements described in [1]_ in sec. H. "Adaptive event generator". If the requirements are not fulfilled that means that that the propability of generating a photon is high for given dt (higherthan 10%) this means that photons are generated possibly every timestep, which causes numerical artefacts, and the radiation is underestimeted. In that case the timestep should be reduced. A script is provided for calculating maximum timestep for given parameters. The script can be found in `lib/python/synchrotronRadiationExtension/synchrotronRequirements.py`.
+The algorithm implements checking for requirements described in [1]_ in sec. H. "Adaptive event generator". If the requirements are not fulfilled that means that that the propability of generating a photon is high for given `dt` (higher than 10%) this means that photons are generated possibly every timestep, which causes numerical artefacts, and the radiation is underestimeted. In that case the timestep should be reduced. A script is provided for calculating maximum timestep for given parameters. The script can be found in `lib/python/synchrotronRadiationExtension/synchrotronRequirements.py`.
 
 - **Type:** `bool`
 - **Default:** `false`
@@ -92,7 +92,8 @@ The Synchrotron Radiation extension for PIConGPU is a tool for simulating high-e
 References
 ----------
 
-.. [1]
+.. [Gonoskov2015]
         A. Gonoskov et. al. 
         *Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments*
         PHYSICAL REVIEW E (2015)
+        https://doi.org/10.1103/PhysRevE.92.023305

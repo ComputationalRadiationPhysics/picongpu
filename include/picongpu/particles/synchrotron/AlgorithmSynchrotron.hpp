@@ -107,7 +107,7 @@ namespace picongpu
                      *          if larger than 1 the radiation is in the quantum regime
                      *     delta - the ratio of the photon energy to the electron energy
                      * see Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
-                     * developments, A. Gonoskov et.Al. */
+                     * developments, A. Gonoskov et al. */
 
                     //! delta = randNr1^3 but we use randNr1^2 later so we calculate it here
                     float_X const r1r1 = randNr1 * randNr1;
@@ -119,13 +119,13 @@ namespace picongpu
 
                     float_X const Vmag = pmacc::math::l2norm(vel);
                     float3_X const crossVB = pmacc::math::cross(vel, bField);
-                    //! Velocity normalized -> not L2Norm
+                    //! Velocity normalized
                     float3_X const Vnorm = vel / Vmag;
                     float_X const dotVnormE = pmacc::math::dot(Vnorm, eField);
                     float3_X const eFieldPlusCrossVB = eField + crossVB;
 
                     float_X HeffValue = pmacc::math::dot(eFieldPlusCrossVB, eFieldPlusCrossVB) - dotVnormE * dotVnormE;
-                    //! this check is important
+                    //! this check is important to avoid numerical rounding errors that result in NaN when taking a sqrt
                     if(HeffValue <= 0)
                     {
                         return 0;
