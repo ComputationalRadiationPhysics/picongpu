@@ -28,8 +28,9 @@ namespace picongpu
 {
     namespace plugins::binning
     {
+        constexpr unsigned numUnits = 7;
         // @todo add where this 7D format is from
-        std::array<double, 7> UnitDimensions{
+        std::array<double, numUnits> UnitDimensions{
             UNIT_LENGTH, // length
             UNIT_MASS, // mass
             UNIT_TIME, // time
@@ -44,7 +45,7 @@ namespace picongpu
          * In this format the conversion factor needs to be divided(?)
          * is it faster/better to calculate the inverse and then multiply?
          */
-        HINLINE double get_conversion_factor(const std::array<double, 7>& myDimension)
+        HINLINE double getConversionFactor(const std::array<double, numUnits>& myDimension)
         {
             double conversion_factor = 1.;
             for(size_t i = 0; i < 7; i++)
@@ -55,7 +56,7 @@ namespace picongpu
         }
 
         template<typename T>
-        HINLINE T toPICUnits(T varSI, const std::array<double, 7>& myDimension)
+        HINLINE T toPICUnits(T varSI, const std::array<double, numUnits>& myDimension)
         {
             if constexpr(std::is_integral_v<T>)
             {
@@ -64,21 +65,22 @@ namespace picongpu
                     PMACC_VERIFY(dim == 0.0);
                 }
             };
-            return static_cast<T>(static_cast<double>(varSI) / get_conversion_factor(myDimension));
+            return static_cast<T>(static_cast<double>(varSI) / getConversionFactor(myDimension));
         }
 
         template<typename T>
-        HINLINE double toSIUnits(T varPIC, const std::array<double, 7>& myDimension)
+        HINLINE double toSIUnits(T varPIC, const std::array<double, numUnits>& myDimension)
         {
-            return static_cast<double>(varPIC) * get_conversion_factor(myDimension);
+            return static_cast<double>(varPIC) * getConversionFactor(myDimension);
         }
 
 
-        HINLINE std::map<::openPMD::UnitDimension, double> makeOpenPMDUnitMap(const std::array<double, 7>& myDimension)
+        HINLINE std::map<::openPMD::UnitDimension, double> makeOpenPMDUnitMap(
+            const std::array<double, numUnits>& myDimension)
         {
             using UD = ::openPMD::UnitDimension;
 
-            std::array<UD, 7> keys = {UD::L, UD::M, UD::T, UD::I, UD::theta, UD::N, UD::J};
+            std::array<UD, numUnits> keys = {UD::L, UD::M, UD::T, UD::I, UD::theta, UD::N, UD::J};
 
             std::map<UD, double> map;
 

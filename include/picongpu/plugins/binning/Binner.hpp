@@ -89,11 +89,11 @@ namespace picongpu
             }
 
             // @todo check if type stored in histBox is same as axisKernelTuple Type
-            template<typename T_Worker, typename T_DataSpace, typename T_AxisKernelTuple, typename T_DataBox>
+            template<typename T_Worker, typename T_DataSpace, typename T_BinWidthKernelTuple, typename T_DataBox>
             HDINLINE void operator()(
                 const T_Worker& worker,
                 const T_DataSpace& extentsDataspace,
-                const T_AxisKernelTuple& axisKernelTuple,
+                const T_BinWidthKernelTuple& binWidthsKernelTuple,
                 T_DataBox histBox) const
             {
                 // @todo check normDataBox shape is same as histBox
@@ -108,13 +108,13 @@ namespace picongpu
                             pmacc::DataSpace<nAxes> const nDIdx = pmacc::math::mapToND(extentsDataspace, linearTid);
                             float_X factor = 1.;
                             apply(
-                                [&](auto const&... tupleArgs)
+                                [&](auto const&... binWidthsKernel)
                                 {
                                     // uses bin width for axes without dimensions as well should those be ignored?
                                     uint32_t i = 0;
-                                    ((factor *= tupleArgs.getBinWidth(nDIdx[i++])), ...);
+                                    ((factor *= binWidthsKernel.getBinWidth(nDIdx[i++])), ...);
                                 },
-                                axisKernelTuple);
+                                binWidthsKernelTuple);
 
                             histBox(linearTid) *= 1 / factor;
                         }
@@ -122,7 +122,9 @@ namespace picongpu
             }
         };
 
-        HINLINE void dimensionSubtraction(std::array<double, 7>& outputDims, const std::array<double, 7>& axisDims)
+        HINLINE void dimensionSubtraction(
+            std::array<double, numUnits>& outputDims,
+            const std::array<double, numUnits>& axisDims)
         {
             for(size_t i = 0; i < 7; i++)
             {
@@ -172,7 +174,6 @@ namespace picongpu
             void notify(uint32_t currentStep) override
             {
                 // @todo auto range init. Init ranges and AxisKernels
-                std::apply([](auto&... tupleArgs) { ((tupleArgs.initLAK()), ...); }, binningData.axisTuple);
 
                 //  Do binning for species. Writes to histBuffer
                 std::apply(
@@ -224,13 +225,13 @@ namespace picongpu
 
                         auto normKernel = BinNormalizationKernel<blockSize, TBinningData::getNAxes()>();
 
-                        auto axisKernels
-                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
+                        auto binWidthsKernelTuple
+                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getBinWidthKernel(); });
 
                         PMACC_LOCKSTEP_KERNEL(normKernel)
                             .template config<blockSize>(gridSize)(
                                 binningData.axisExtentsND,
-                                axisKernels,
+                                binWidthsKernelTuple,
                                 this->histBuffer->getDeviceBuffer().getDataBox());
 
                         // change output dimensions

@@ -117,12 +117,12 @@ namespace picongpu
             FunctorBlock(
                 const TParticlesBox& pBox,
                 T_HistBox hBox,
-                const T_DepositionFunctor& depositFunc,
-                const T_AxisTuple& axes,
+                const T_DepositionFunctor depositFunc,
+                const T_AxisTuple axes,
                 const pmacc::DataSpace<SIMDIM> gOffset,
                 const pmacc::DataSpace<SIMDIM> lOffset,
                 const uint32_t step,
-                const DataSpace<N_Axes>& extents)
+                const DataSpace<N_Axes> extents)
                 : particlesBox{pBox}
                 , binningBox{hBox}
                 , quantityFunctor{depositFunc}

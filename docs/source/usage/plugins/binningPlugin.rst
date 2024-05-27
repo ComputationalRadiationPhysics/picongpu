@@ -73,7 +73,7 @@ If no units are given, the quantity is assumed to be dimensionless.
 
 .. code-block:: c++
 
-    std::array<double, 7> momentumDimension{};
+    std::array<double, numUnits> momentumDimension{};
     momentumDimension[SIBaseUnits::length] = 1.0;
     momentumDimension[SIBaseUnits::mass] = 1.0;
     momentumDimension[SIBaseUnits::time] = -1.0;
