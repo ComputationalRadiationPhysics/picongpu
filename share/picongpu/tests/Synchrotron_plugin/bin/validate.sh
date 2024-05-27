@@ -28,7 +28,7 @@ if [ ! -z $picongpuPrefix ]; then
     if [ -d $picongpuPrefix ]; then
         printf "Load buildsystem/CompileSuite/color.sh from PIConGPU!\n"
         . $picongpuPrefix/buildsystem/CompileSuite/color.sh
-        testSuite=`echo_b "[testSuite] "`
+        testSuite=$(echo_b "[testSuite] ")
     fi
 fi
 
@@ -46,7 +46,7 @@ help()
 
 # options may be followed by
 # - one colon to indicate they have a required argument
-OPTS=`getopt -o d:h -l data:,help -- "$@"`
+OPTS=$(getopt -o d:h -l data:,help -- "$@")
 if [ $? != 0 ] ; then
     # something went wrong, getopt will put out an error message for us
     exit 1
