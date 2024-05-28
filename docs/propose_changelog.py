@@ -108,9 +108,13 @@ def pull_requests(gh_key, version):
     )
 
 
+def remove_quotes(string):
+    return string.replace("'", "")
+
+
 def main(version, gh_key=None):
     """Main logic: Download, categorise, print."""
-    print(to_string(categorise(pull_requests(gh_key, version), CATEGORIES)))
+    print(remove_quotes(to_string(categorise(pull_requests(gh_key, version), CATEGORIES))))
 
 
 if __name__ == "__main__":
