@@ -17,6 +17,7 @@
 #  * If not, see <http://www.gnu.org/licenses/>.
 #  */
 
+import argparse
 import numpy as np
 from scipy.constants import elementary_charge as e, m_e, c, hbar, epsilon_0 as eps0
 
@@ -59,27 +60,32 @@ def calculate_dt(gamma, Heff):
 
 
 def main():
-    print("Synchrotron Radiation Requirements Checker")
-    print("----------------------------------------")
+    parser = argparse.ArgumentParser(description="Synchrotron Radiation Requirements Checker")
+    parser.add_argument("--Heff", type=float, help="Maximal Heff value (in Tesla)")
+    parser.add_argument("--B", type=float, help="Maximal B value (in Tesla)")
+    parser.add_argument("--E", type=float, help="Maximal E value (in V/m)")
+    parser.add_argument("--a0", type=float, help="Maximal a0 value")
+    parser.add_argument("--gamma", type=float, help="Maximal gamma value. Required for all options.")
+    args = parser.parse_args()
 
-    choice = input("Do you want to specify (1) Heff, (2) B and E, or (3) a0 and gamma? ")
-
-    if choice == "1":
-        Heff_estimate = float(input("Enter an estimate of the maximal Heff value (in Tesla): "))
-        gamma_estimate = float(input("Enter an estimate of the maximal gamma value: "))
-    elif choice == "2":
-        B_estimate = float(input("Enter an estimate of the maximal B value (in Tesla): "))
-        E_estimate = float(input("Enter an estimate of the maximal E value (in V/m): "))
-        gamma_estimate = float(input("Enter an estimate of the maximal gamma value: "))
+    if args.Heff is not None and args.gamma is not None:
+        Heff_estimate = args.Heff
+        gamma_estimate = args.gamma
+    elif args.B is not None and args.E is not None and args.gamma is not None:
+        B_estimate = args.B
+        E_estimate = args.E
+        gamma_estimate = args.gamma
         beta = np.sqrt(1 - 1 / gamma_estimate**2)  # Beta value for the particles
         vel = c * beta
         Heff_estimate = Heff_(np.array([0, vel, 0]), np.array([0, 0, B_estimate]), np.array([E_estimate, 0, 0]))
-    elif choice == "3":
-        a0_estimate = float(input("Enter an estimate of the maximal a0 value: "))
-        gamma_estimate = float(input("Enter an estimate of the maximal gamma value: "))
+    elif args.a0 is not None and args.gamma is not None:
+        a0_estimate = args.a0
+        gamma_estimate = args.gamma
         Heff_estimate = Heff_a0(a0_estimate, gamma_estimate)
     else:
         print("Invalid choice. Exiting.")
+        print("Please specify either Heff and gamma, B, E and gamma, or a0 and gamma.")
+        parser.print_help()
         return
 
     dt = calculate_dt(gamma_estimate, Heff_estimate)
