@@ -143,7 +143,8 @@ namespace picongpu
                     mallocMem;
                 mallocMem(buffers, mappedFrame, maxChunkSize);
 
-                uint32_t const numLoadIterations = alpaka::core::divCeil(totalNumParticles, maxChunkSize);
+                uint32_t const numLoadIterations
+                    = maxChunkSize == 0u ? 0u : alpaka::core::divCeil(totalNumParticles, maxChunkSize);
 
                 for(uint64_t loadRound = 0u; loadRound < numLoadIterations; ++loadRound)
                 {
