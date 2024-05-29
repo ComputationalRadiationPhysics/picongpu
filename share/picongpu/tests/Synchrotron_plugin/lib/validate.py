@@ -90,7 +90,7 @@ def main(dataPath):
     max_exp = np.ceil(np.log10(np.max(hist_data)))
     bins = np.logspace(min_exp, max_exp, 100)
     a, b = np.histogram(hist_data, bins=bins)
-    normaliztion_factor = iterNo * len(e_w)
+    normalization_factor = iterNo * len(e_w)
 
     delta = bins
     analytical_integrated = []
@@ -104,8 +104,8 @@ def main(dataPath):
         )
         return 1
 
-    # errorBar = np.sqrt(a[mask])/normaliztion_factor
-    a = a / normaliztion_factor
+    # errorBar = np.sqrt(a[mask])/normalization_factor
+    a = a / normalization_factor
     a = a[mask]
     b = b[1:]
     b = b[mask]
