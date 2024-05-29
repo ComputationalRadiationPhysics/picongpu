@@ -1,0 +1,2 @@
+numpy
+openpmd_viewer>=1.9.0

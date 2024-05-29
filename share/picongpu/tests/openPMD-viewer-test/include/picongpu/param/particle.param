@@ -1,0 +1,95 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Klaus Steiniger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitialization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
+#pragma once
+
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+
+#include <pmacc/math/operation.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            /** Define target number for marco-particles per cell along a direction.
+             * To be used in Quiet start position functor.
+             *
+             * Here, five macro-particles per cell along x, five macro-particle per cell along y, and
+             * one macro-particle per cell along z.
+             *
+             * Vector is automatically reduced to two dimensions for 2D (x,y) simulations.
+             */
+            struct QuietParam
+            {
+                /** Count of macro-particles per cell per direction at initial state
+                 *
+                 *  unit: none */
+                using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type;
+            };
+            /** Definition of Quiet start position functor that positions macro-particles regularly on the grid.
+             * No random number generator used.
+             */
+            using Quiet = QuietImpl<QuietParam>;
+
+        } // namespace startPosition
+
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *
+         *  unit: none */
+        constexpr float_X MIN_WEIGHTING = 10.0;
+
+        /** Approximate number of maximum macro-particles per cell.
+         *
+         * Used internally for unit normalization.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
+            = mCT::volume<startPosition::QuietParam::numParticlesPerDimension>::type::value;
+
+        namespace manipulators
+        {
+            /** Define Lorentz factor of initial particle drift along +X. */
+            struct DriftParamPositive
+            {
+                static constexpr float_64 gamma = 1.021;
+                /** Define initial particle drift direction vector.
+                 */
+                static constexpr auto driftDirection = float3_X(0.267261, 0.534522, 0.801784);
+            };
+            /** Definition of manipulator that assigns a drift in +X
+             *  using parameters from struct DriftParamPositive.
+             */
+            using AssignDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
+        } // namespace manipulators
+    } // namespace particles
+} // namespace picongpu
