@@ -52,21 +52,6 @@ namespace picongpu
              *  using parameters from struct DriftParam.
              */
             using AssignYDriftNegative = unary::Drift<DriftParamNegative, pmacc::math::operation::Assign>;
-
-            /** call simple free user defined manipulators
-             *
-             * @tparam T_Functor user defined manipulators
-             *                   **optional**: can implement **one** host side constructor
-             *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
-             *
-             * example for `particle.param`: set in cell position to zero
-             *   @code{.cpp}
-
-             *   @endcode
-             */
-            // template<typename T_Functor>
-            // struct Free;
-
         } // namespace manipulators
         /** a particle with a weighting below MIN_WEIGHTING will not
          *      be created / will be deleted
