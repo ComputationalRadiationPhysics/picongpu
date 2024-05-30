@@ -128,7 +128,7 @@ namespace picongpu
                 const size_t elements,
                 const size_t globalElements,
                 const size_t globalOffset,
-                size_t& accumulate_writtenBytes)
+                size_t& accumulateWrittenBytes)
             {
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
@@ -155,13 +155,13 @@ namespace picongpu
                 }
                 if(elements == 0)
                 {
-                    // accumulate_writtenBytes += 0;
+                    // accumulateWrittenBytes += 0;
                     return;
                 }
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
 
-                accumulate_writtenBytes += components * elements * sizeof(ComponentType);
+                accumulateWrittenBytes += components * elements * sizeof(ComponentType);
 
                 for(uint32_t d = 0; d < components; d++)
                 {

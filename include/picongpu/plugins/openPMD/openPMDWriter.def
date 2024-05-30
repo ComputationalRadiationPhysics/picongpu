@@ -103,45 +103,45 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
-            static constexpr bool do_trace_times = PIC_IO_TIMES_NUMBER_OF_FILES > 0;
-            DumpTimes<std::chrono::system_clock, do_trace_times> m_dumpTimes
+            static constexpr bool enableTimeTrace = PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES > 0;
+            DumpTimes<std::chrono::system_clock, enableTimeTrace> m_dumpTimes
             {
-#if PIC_IO_TIMES_NUMBER_OF_FILES < 1
+#if PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES < 1
                 "/dev/null"
 #else
                 []()
                 {
-                    constexpr unsigned MAX_LOGS = PIC_IO_TIMES_NUMBER_OF_FILES;
+                    constexpr unsigned maxLogFiles = PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES;
                     static GridController<simDim>& gc = Environment<simDim>::get().GridController();
                     auto const size = gc.getGlobalSize();
                     auto const rank = gc.getGlobalRank();
-                    std::string outputFile = "PIC_times_" + std::to_string(rank) + ".txt";
-                    if(size <= MAX_LOGS)
+                    std::string outputFile = "PIC_openPMD_TimeTrace_" + std::to_string(rank) + ".txt";
+                    if(size <= maxLogFiles)
                     {
                         return outputFile;
                     }
                     else
                     {
                         /*
-                         * Only up to MAX_LOGS logs should be written in parallel in order not to
+                         * Only up to maxLogFiles logs should be written in parallel in order not to
                          * overload the file system with measuring I/O efficiency, e.g. 20 logs.
                          * The following logic figures out if this rank should write a log and
                          * which log index from 0 to 19 should be used locally.
                          *
-                         * Log file with index i is written from `rank = bottom(i/logs * size)`
-                         * This means that there exists an e < 1 s.t. `rank + e = i/logs * size`,
-                         * which can be given as `i = rank*logs/size + e*logs/size`.
-                         * In this if branch, `logs/size < 1` was checked before entering,
-                         * hence also `e*logs/size < 1`.
+                         * Log file with index i is written from `rank = bottom(i/maxLogFiles * size)`
+                         * This means that there exists an e < 1 s.t. `rank + e = i/maxLogFiles * size`,
+                         * which can be given as `i = rank*maxLogFiles/size + e*maxLogFiles/size`.
+                         * In this if branch, `maxLogFiles/size < 1` was checked before entering,
+                         * hence also `e*maxLogFiles/size < 1`.
                          * This means that the log index `i` can be computed
-                         * via `i = ceil(rank*logs/size)`.
+                         * via `i = ceil(rank*maxLogFiles/size)`.
                          * In order to find out if this rank writes a log, the rank is then
-                         * computed with `rank = bottom(i/logs * size)` (see first formula above)
+                         * computed with `rank = bottom(i/maxLogFiles * size)` (see first formula above)
                          * and compared to the actual rank ID.
                          */
                         auto div_ceil = [](auto a, auto b) { return (a + b - 1) / b; };
-                        size_t proposed_log_idx = div_ceil(rank * MAX_LOGS, size);
-                        size_t rank_of_that_log = (proposed_log_idx * size) / MAX_LOGS;
+                        size_t proposed_log_idx = div_ceil(rank * maxLogFiles, size);
+                        size_t rank_of_that_log = (proposed_log_idx * size) / maxLogFiles;
                         return rank == rank_of_that_log ? outputFile : "/dev/null";
                     }
                 }()
