@@ -124,10 +124,6 @@ def main(dataPath):
 
 
 if __name__ == "__main__":
-    try:
-        arg = sys.argv[1]
-    except IndexError:
-        raise SystemExit(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
-    if len(sys.argv[1:]) > 1:
+    if len(sys.argv[1:]) != 1:
         raise SystemExit(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
     main(sys.argv[1])
