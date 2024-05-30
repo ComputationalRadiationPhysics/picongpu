@@ -104,7 +104,7 @@ namespace picongpu
 
             std::vector<double> times;
             static constexpr bool enableTimeTrace = PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES > 0;
-            DumpTimes<std::chrono::system_clock, enableTimeTrace> m_dumpTimes
+            DumpTimes<enableTimeTrace> m_dumpTimes
             {
 #if PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES < 1
                 "/dev/null"

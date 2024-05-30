@@ -33,31 +33,31 @@ namespace picongpu
                     std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch()).count());
             }
         };
-        template<typename Clock>
-        using TimeFormatter = typename TimeFormatters<Clock>::TimeFormatter;
 
         // https://en.cppreference.com/w/cpp/named_req/Clock
-        template<typename Clock = std::chrono::system_clock, bool enable = true>
+        template<bool enable = true, typename Clock = std::chrono::system_clock>
         class DumpTimes
         {
         public:
             using time_point = typename Clock::time_point;
             using duration = typename Clock::duration;
-            using Ret_T = std::pair<time_point, duration>;
+
+            using TimeFormatter = typename TimeFormatters<Clock>::TimeFormatter;
+            using Ret_t = std::pair<time_point, duration>;
 
             const std::string filename;
 
             DumpTimes(std::string filename);
 
             template<typename Duration>
-            Ret_T now(
+            auto now(
                 std::string description,
                 std::string separator = "\t",
-                TimeFormatter<Clock> = &TimeFormatters<Clock>::epochTime);
+                TimeFormatter = &TimeFormatters<Clock>::epochTime) -> Ret_t;
 
-            void append(std::string const&);
+            auto append(std::string const&) -> void;
 
-            void flush();
+            auto flush() -> void;
 
         private:
             std::fstream outStream;
@@ -65,8 +65,8 @@ namespace picongpu
             time_point lastTimePoint;
         };
 
-        template<typename Clock, bool enable>
-        DumpTimes<Clock, enable>::DumpTimes(std::string _filename)
+        template<bool enable, typename Clock>
+        DumpTimes<enable, Clock>::DumpTimes(std::string _filename)
             : filename(std::move(_filename))
             , outStream(filename, std::ios_base::out | std::ios_base::app)
             , lastTimePoint(Clock::now())
@@ -75,12 +75,12 @@ namespace picongpu
             pendingNewline = true;
         }
 
-        template<typename Clock, bool enable>
+        template<bool enable, typename Clock>
         template<typename Duration>
-        typename DumpTimes<Clock, enable>::Ret_T DumpTimes<Clock, enable>::now(
+        auto DumpTimes<enable, Clock>::now(
             std::string description,
             std::string separator,
-            TimeFormatter<Clock> timeFormatter)
+            TimeFormatter timeFormatter) -> Ret_t
         {
             auto currentTime = Clock::now();
             auto delta = currentTime - lastTimePoint;
@@ -96,14 +96,14 @@ namespace picongpu
             return std::make_pair(currentTime, delta);
         }
 
-        template<typename Clock, bool enable>
-        void DumpTimes<Clock, enable>::append(std::string const& str)
+        template<bool enable, typename Clock>
+        auto DumpTimes<enable, Clock>::append(std::string const& str) -> void
         {
             outStream << str;
         }
 
-        template<typename Clock, bool enable>
-        void DumpTimes<Clock, enable>::flush()
+        template<bool enable, typename Clock>
+        auto DumpTimes<enable, Clock>::flush() -> void
         {
             if(pendingNewline)
             {
@@ -114,10 +114,10 @@ namespace picongpu
         }
 
         template<typename Clock>
-        class DumpTimes<Clock, false>
+        class DumpTimes<false, Clock>
         {
         public:
-            using Ret_T = void;
+            using Ret_t = void;
             DumpTimes()
             {
             }
@@ -126,17 +126,17 @@ namespace picongpu
             }
 
             template<typename, typename... Args>
-            inline Ret_T now(Args&&...)
+            inline auto now(Args&&...) -> Ret_t
             {
             }
 
             template<typename... Args>
-            inline void append(Args&&...)
+            inline auto append(Args&&...) -> void
             {
             }
 
             template<typename... Args>
-            inline void flush(Args&&...)
+            inline auto flush(Args&&...) -> void
             {
             }
         };
