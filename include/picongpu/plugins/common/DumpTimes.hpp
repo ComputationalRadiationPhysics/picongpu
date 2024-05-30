@@ -48,6 +48,7 @@ namespace picongpu
             const std::string filename;
 
             DumpTimes(std::string filename);
+            ~DumpTimes();
 
             template<typename Duration>
             auto now(
@@ -60,57 +61,71 @@ namespace picongpu
             auto flush() -> void;
 
         private:
-            std::fstream outStream;
-            bool pendingNewline = false;
-            time_point lastTimePoint;
+            std::fstream m_outStream;
+            bool m_pendingInit = true;
+            time_point m_lastTimePoint;
+
+            auto outStream(std::string const& separator) -> std::fstream&;
         };
 
+        /*
+         * Don't do any IO in the constructor yet, but only upon actually calling API functions.
+         */
         template<bool enable, typename Clock>
         DumpTimes<enable, Clock>::DumpTimes(std::string _filename)
             : filename(std::move(_filename))
-            , outStream(filename, std::ios_base::out | std::ios_base::app)
-            , lastTimePoint(Clock::now())
+            , m_pendingInit(true)
         {
-            outStream << "timestamp\tdifftime\tdescription";
-            pendingNewline = true;
+        }
+
+        template<bool enable, typename Clock>
+        DumpTimes<enable, Clock>::~DumpTimes()
+        {
+            if(!m_pendingInit)
+            {
+                m_outStream << std::endl;
+            }
         }
 
         template<bool enable, typename Clock>
         template<typename Duration>
-        auto DumpTimes<enable, Clock>::now(
-            std::string description,
-            std::string separator,
-            TimeFormatter timeFormatter) -> Ret_t
+        auto DumpTimes<enable, Clock>::now(std::string description, std::string separator, TimeFormatter timeFormatter)
+            -> Ret_t
         {
+            auto& stream = outStream(separator);
             auto currentTime = Clock::now();
-            auto delta = currentTime - lastTimePoint;
-            lastTimePoint = currentTime;
+            auto delta = currentTime - m_lastTimePoint;
+            m_lastTimePoint = currentTime;
             std::string nowFormatted = timeFormatter(currentTime);
-            if(pendingNewline)
-            {
-                outStream << '\n';
-            }
-            outStream << std::move(nowFormatted) << separator << std::chrono::duration_cast<Duration>(delta).count()
-                      << separator << description;
-            pendingNewline = true;
+            stream << '\n'
+                   << std::move(nowFormatted) << separator << std::chrono::duration_cast<Duration>(delta).count()
+                   << separator << description;
             return std::make_pair(currentTime, delta);
         }
 
         template<bool enable, typename Clock>
         auto DumpTimes<enable, Clock>::append(std::string const& str) -> void
         {
-            outStream << str;
+            m_outStream << str;
         }
 
         template<bool enable, typename Clock>
         auto DumpTimes<enable, Clock>::flush() -> void
         {
-            if(pendingNewline)
+            m_outStream << std::flush;
+        }
+
+        template<bool enable, typename Clock>
+        auto DumpTimes<enable, Clock>::outStream(std::string const& separator) -> std::fstream&
+        {
+            if(m_pendingInit)
             {
-                outStream << '\n';
+                m_outStream = std::fstream(filename, std::ios_base::out | std::ios_base::app);
+                m_lastTimePoint = Clock::now();
+                m_outStream << "timestamp" << separator << "difftime" << separator << "description";
+                m_pendingInit = false;
             }
-            pendingNewline = false;
-            outStream << std::flush;
+            return m_outStream;
         }
 
         template<typename Clock>
