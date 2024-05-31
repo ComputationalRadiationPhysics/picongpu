@@ -371,14 +371,6 @@ class Chunk:
         return Chunk(offset, extent)
 
 
-class deferred_load:
-    def __init__(self, source, dynamicView, offset, extent):
-        self.source = source
-        self.dynamicView = dynamicView
-        self.offset = offset
-        self.extent = extent
-
-
 class particle_patch_load:
     """
     A deferred load/store operation for a particle patch.
@@ -450,7 +442,6 @@ class pipe:
         self.particles = particles  # particle data to write
         self.inconfig = inconfig
         self.outconfig = outconfig
-        self.loads = []
         self.verbose = verbose
 
     def run(self):
@@ -484,8 +475,7 @@ class pipe:
         current_path: string
                 path of the current layer, only for verbose printing.
         """
-        #time.sleep(1)
-        self.print("Memory used: {:.2f} GB".format(self.process.memory_info().vms / 1000 / 1000 / 1000))
+        #self.print("Memory used: {:.2f} GB".format(self.process.memory_info().vms / 1000 / 1000 / 1000))
         self.print(current_path)
         sys.stdout.flush()
 
@@ -542,15 +532,6 @@ class pipe:
                     current_path + str(in_iteration.iteration_index) + "/",
                 )
 
-                self.print("\nDeferred Load")
-                sys.stdout.flush()
-
-                for deferred in self.loads:
-                    deferred.source.load_chunk(
-                        deferred.dynamicView.current_buffer(),
-                        deferred.offset,
-                        deferred.extent,
-                    )
                 in_iteration.close()
                 for patch_load in self.__particle_patches:
                     patch_load.run()
@@ -566,7 +547,6 @@ class pipe:
 
                 out_iteration.close()
                 self.__particle_patches.clear()
-                self.loads.clear()
                 sys.stdout.flush()
 
         elif isinstance(src, io.Record_Component) and (not is_container
@@ -604,171 +584,178 @@ class pipe:
             self.print("\ncopy particles")
             self.__copy(src.particles, dest.particles, current_path + "particles/")
 
-        elif any(
-            [
-                # copies containers and other data from container_types list
-                isinstance(src, container_type)
-                for container_type in container_types
-            ]
-        ):
+        elif is_container:
             for key in src:
                 # writes given particle data instead of copying
-                if key == self.particles.speciesName:
+                if isinstance(src[key], io.ParticleSpecies) and key == self.particles.speciesName:
                     self.print("writing new particles data")
-                    temp_src = src[self.particles.speciesName]
-                    temp_dest = dest[self.particles.speciesName]
-
-                    # iterate and copy all attributes
-                    self.copy_attributes(temp_src, temp_dest, iterate=True)
-
-                    # write own particle data
-                    self.print("\twriting positions")
-                    self.write(
-                        temp_src["position"]["x"],
-                        temp_dest["position"]["x"],
-                        self.particles.position.x,
-                    )
-                    self.write(
-                        temp_src["position"]["y"],
-                        temp_dest["position"]["y"],
-                        self.particles.position.y,
-                    )
-                    self.write(
-                        temp_src["position"]["z"],
-                        temp_dest["position"]["z"],
-                        self.particles.position.z,
-                    )
-
-                    self.print("\twriting position offsets")
-                    self.write(
-                        temp_src["positionOffset"]["x"],
-                        temp_dest["positionOffset"]["x"],
-                        self.particles.positionOffset.x,
-                    )
-                    self.write(
-                        temp_src["positionOffset"]["y"],
-                        temp_dest["positionOffset"]["y"],
-                        self.particles.positionOffset.y,
-                    )
-                    self.write(
-                        temp_src["positionOffset"]["z"],
-                        temp_dest["positionOffset"]["z"],
-                        self.particles.positionOffset.z,
-                    )
-
-                    self.print("\twriting momenta")
-                    self.write(
-                        temp_src["momentum"]["x"],
-                        temp_dest["momentum"]["x"],
-                        self.particles.momentum.x,
-                    )
-                    self.write(
-                        temp_src["momentum"]["y"],
-                        temp_dest["momentum"]["y"],
-                        self.particles.momentum.y,
-                    )
-                    self.write(
-                        temp_src["momentum"]["z"],
-                        temp_dest["momentum"]["z"],
-                        self.particles.momentum.z,
-                    )
-
-                    if self.particles.has_probeE:
-                        self.print("\twriting probeE")
-                        self.write(
-                            temp_src["probeE"]["x"],
-                            temp_dest["probeE"]["x"],
-                            self.particles.probeE.x,
-                        )
-                        self.write(
-                            temp_src["probeE"]["y"],
-                            temp_dest["probeE"]["y"],
-                            self.particles.probeE.y,
-                        )
-                        self.write(
-                            temp_src["probeE"]["z"],
-                            temp_dest["probeE"]["z"],
-                            self.particles.probeE.z,
-                        )
-
-                    if self.particles.has_probeB:
-                        self.print("\twriting probeB")
-                        self.write(
-                            temp_src["probeB"]["x"],
-                            temp_dest["probeB"]["x"],
-                            self.particles.probeB.x,
-                        )
-                        self.write(
-                            temp_src["probeB"]["y"],
-                            temp_dest["probeB"]["y"],
-                            self.particles.probeB.y,
-                        )
-                        self.write(
-                            temp_src["probeB"]["z"],
-                            temp_dest["probeB"]["z"],
-                            self.particles.probeB.z,
-                        )
-
-                    self.print("\twriting weighting")
-                    self.write(
-                        temp_src["weighting"][io.Mesh_Record_Component.SCALAR],
-                        temp_dest["weighting"][io.Mesh_Record_Component.SCALAR],
-                        self.particles.weighting,
-                    )
-
-                    if self.particles.has_id:
-                        self.print("\twriting id")
-                        self.write(
-                            temp_src["id"][io.Mesh_Record_Component.SCALAR],
-                            temp_dest["id"][io.Mesh_Record_Component.SCALAR],
-                            self.particles.id,
-                        )
-
-                    # write own particle patches
-                    self.print("\twriting patches")
-                    temp_src = src[self.particles.speciesName].particle_patches["numParticles"][
-                        io.Mesh_Record_Component.SCALAR
-                    ]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["numParticles"][
-                        io.Mesh_Record_Component.SCALAR
-                    ]
-
-                    temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
-                    self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
-
-                    temp_src = src[self.particles.speciesName].particle_patches["numParticlesOffset"][
-                        io.Mesh_Record_Component.SCALAR
-                    ]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["numParticlesOffset"][
-                        io.Mesh_Record_Component.SCALAR
-                    ]
-
-                    temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
-                    self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
-
-                    # copy offset and extent from old checkpoint
-                    temp_src = src[self.particles.speciesName].particle_patches["offset"]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["offset"]
-
-                    for key in temp_src:
-                        self.__copy(temp_src[key], temp_dest[key])
-
-                    temp_src = src[self.particles.speciesName].particle_patches["extent"]
-                    temp_dest = dest[self.particles.speciesName].particle_patches["extent"]
-
-                    for key in temp_src:
-                        self.__copy(temp_src[key], temp_dest[key])
+                    self.write_particles(src[key], dest[key], current_path + key)
                     self.print("resume to copying")
                 else:
                     self.__copy(src[key], dest[key], current_path + key + "/")
 
-            # if isinstance(src, io.ParticleSpecies):
-            #     # copies particle patches of species
-            #     self.__copy(src.particle_patches, dest.particle_patches)
+            if isinstance(src, io.ParticleSpecies):
+                # copies particle patches of species
+                self.__copy(src.particle_patches, dest.particle_patches, current_path + "particlePatches/")
         else:
             raise RuntimeError("Unknown openPMD class: " + str(src))
-        src.series_flush()
-        dest.series_flush()
+
+
+    def write_particles(self, src, dest, current_path="/data/"):
+        """
+        Write own data into the particle given in dest. Particle Patches,
+        attributes and data types are copied from src.
+
+        Arguments:
+        src: openPMD layer
+                layer of a openPMD series to copy attributes, particles patches
+                and data types from
+        dest: openPMD layer
+                layer of a openPMD series to write new data to
+        current_path: string
+                path of the current layer, only for verbose printing.
+        """
+        # iterate and copy all attributes
+        self.copy_attributes(src, dest, iterate=True)
+
+        # write own particle data
+        self.print("\twriting positions")
+        self.write(
+            src["position"]["x"],
+            dest["position"]["x"],
+            self.particles.position.x,
+        )
+        self.write(
+            src["position"]["y"],
+            dest["position"]["y"],
+            self.particles.position.y,
+        )
+        self.write(
+            src["position"]["z"],
+            dest["position"]["z"],
+            self.particles.position.z,
+        )
+
+        self.print("\twriting position offsets")
+        self.write(
+            src["positionOffset"]["x"],
+            dest["positionOffset"]["x"],
+            self.particles.positionOffset.x,
+        )
+        self.write(
+            src["positionOffset"]["y"],
+            dest["positionOffset"]["y"],
+            self.particles.positionOffset.y,
+        )
+        self.write(
+            src["positionOffset"]["z"],
+            dest["positionOffset"]["z"],
+            self.particles.positionOffset.z,
+        )
+
+        self.print("\twriting momenta")
+        self.write(
+            src["momentum"]["x"],
+            dest["momentum"]["x"],
+            self.particles.momentum.x,
+        )
+        self.write(
+            src["momentum"]["y"],
+            dest["momentum"]["y"],
+            self.particles.momentum.y,
+        )
+        self.write(
+            src["momentum"]["z"],
+            dest["momentum"]["z"],
+            self.particles.momentum.z,
+        )
+
+        if self.particles.has_probeE:
+            self.print("\twriting probeE")
+            self.write(
+                src["probeE"]["x"],
+                dest["probeE"]["x"],
+                self.particles.probeE.x,
+            )
+            self.write(
+                src["probeE"]["y"],
+                dest["probeE"]["y"],
+                self.particles.probeE.y,
+            )
+            self.write(
+                src["probeE"]["z"],
+                dest["probeE"]["z"],
+                self.particles.probeE.z,
+            )
+
+        if self.particles.has_probeB:
+            self.print("\twriting probeB")
+            self.write(
+                src["probeB"]["x"],
+                dest["probeB"]["x"],
+                self.particles.probeB.x,
+            )
+            self.write(
+                src["probeB"]["y"],
+                dest["probeB"]["y"],
+                self.particles.probeB.y,
+            )
+            self.write(
+                src["probeB"]["z"],
+                dest["probeB"]["z"],
+                self.particles.probeB.z,
+            )
+
+        self.print("\twriting weighting")
+        self.write(
+            src["weighting"][io.Mesh_Record_Component.SCALAR],
+            dest["weighting"][io.Mesh_Record_Component.SCALAR],
+            self.particles.weighting,
+        )
+
+        if self.particles.has_id:
+            self.print("\twriting id")
+            self.write(
+                src["id"][io.Mesh_Record_Component.SCALAR],
+                dest["id"][io.Mesh_Record_Component.SCALAR],
+                self.particles.id,
+            )
+
+        # write own particle patches
+        self.print("\tcopying patches")
+        temp_src = src.particle_patches["numParticles"][
+            io.Mesh_Record_Component.SCALAR
+        ]
+        temp_dest = dest.particle_patches["numParticles"][
+            io.Mesh_Record_Component.SCALAR
+        ]
+
+        temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
+        self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
+
+        temp_src = src.particle_patches["numParticlesOffset"][
+            io.Mesh_Record_Component.SCALAR
+        ]
+        temp_dest = dest.particle_patches["numParticlesOffset"][
+            io.Mesh_Record_Component.SCALAR
+        ]
+
+        temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
+        self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
+
+        # copy offset and extent from old checkpoint
+        temp_src = src.particle_patches["offset"]
+        temp_dest = dest.particle_patches["offset"]
+
+        for keyP in temp_src:
+            self.__copy(temp_src[keyP], temp_dest[keyP], current_path + "/particlePatches/offset/" + keyP + "/")
+
+        temp_src = src.particle_patches["extent"]
+        temp_dest = dest.particle_patches["extent"]
+
+        for keyP in temp_src:
+            self.__copy(temp_src[keyP], temp_dest[keyP], current_path + "/particlePatches/extent/" + keyP + "/")
+
 
     def copy_attributes(self, src, dest, iterate=False):
         """
@@ -789,6 +776,8 @@ class pipe:
         ignored_attributes = {
             io.Series: ["basePath", "iterationEncoding", "iterationFormat", "openPMD"],
             io.Iteration: ["snapshot"],
+            io.Record_Component: ["value", "shape"] if isinstance(
+                src, io.Record_Component) and src.constant else []
         }
         for key in src.attributes:
             ignore_this_attribute = False
