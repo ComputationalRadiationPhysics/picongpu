@@ -127,7 +127,8 @@ namespace picongpu
                 std::string const& basepath,
                 const size_t elements,
                 const size_t globalElements,
-                const size_t globalOffset)
+                const size_t globalOffset,
+                size_t& accumulateWrittenBytes)
             {
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
@@ -154,10 +155,13 @@ namespace picongpu
                 }
                 if(elements == 0)
                 {
+                    // accumulateWrittenBytes += 0;
                     return;
                 }
 
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
+
+                accumulateWrittenBytes += components * elements * sizeof(ComponentType);
 
                 for(uint32_t d = 0; d < components; d++)
                 {

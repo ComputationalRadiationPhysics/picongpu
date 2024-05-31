@@ -254,6 +254,9 @@ set(PIC_VERBOSE "1" CACHE STRING
     "Set verbosity level for PIConGPU (default is only physics output)")
 add_definitions(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
 
+set(PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES "0" CACHE STRING "Set the maximum number of MPI ranks that create a file with trace information.")
+add_definitions(-DPIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES=${PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES})
+
 option(PIC_ADD_RPATH "Add RPATH's to binaries." ON)
 
 
