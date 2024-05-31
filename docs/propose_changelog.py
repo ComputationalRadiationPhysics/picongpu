@@ -11,7 +11,7 @@
 """
 propose_changelog
 
-This little tool queries the Github API for merged pull requests corresponding to the given milestone and labelled by the label "changelog".
+This little tool queries the Github API for merged pull requests corresponding to the given milestone and labelled by the label "changelog" or "affects latest release".
 The obtained list is categorised and printed to stdout. Suggested usage is:
 
 ```bash
@@ -104,7 +104,7 @@ def to_string(categories):
 def pull_requests(gh_key, version):
     """Query the Github API for the kind of PRs we need."""
     return Github(gh_key).search_issues(
-        f'repo:ComputationalRadiationPhysics/picongpu type:pr is:merged milestone:"{version}" label:changelog'
+        f'repo:ComputationalRadiationPhysics/picongpu type:pr is:merged milestone:"{version}" label:changelog,"affects latest release"'
     )
 
 
