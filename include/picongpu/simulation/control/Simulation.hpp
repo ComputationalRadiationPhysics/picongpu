@@ -1,7 +1,7 @@
-/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
- *                     Brian Marre
+ *                     Brian Marre, Filip Optolowicz
  *
  * This file is part of PIConGPU.
  *
@@ -56,6 +56,7 @@
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
+#include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
 
 #include <pmacc/assert.hpp>
@@ -335,6 +336,8 @@ namespace picongpu
             currentBackground = std::make_shared<simulation::stage::CurrentBackground>(*cellDescription);
             dc.share(currentBackground);
 
+            synchrotronRadiation = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
+
             initFields(dc);
 
             myFieldSolver = std::make_shared<fields::Solver>(*cellDescription);
@@ -539,6 +542,7 @@ namespace picongpu
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
             ParticleIonization{*cellDescription}(currentStep);
+            (*synchrotronRadiation)(currentStep);
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
             fieldBackground.subtract(currentStep);
@@ -617,6 +621,9 @@ namespace picongpu
         std::shared_ptr<fields::Solver> myFieldSolver;
         std::shared_ptr<simulation::stage::CurrentInterpolationAndAdditionToEMF> currentInterpolationAndAdditionToEMF;
         std::shared_ptr<simulation::stage::CurrentBackground> currentBackground;
+
+        // extension: Synchrotron Radiation
+        std::shared_ptr<simulation::stage::SynchrotronRadiation> synchrotronRadiation;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

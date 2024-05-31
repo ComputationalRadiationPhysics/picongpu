@@ -1,0 +1,76 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Definition of cell sizes and time step. Our cells are defining a regular,
+ * cartesian grid. Our explicit FDTD field solvers require an upper bound for
+ * the time step value in relation to the cell size for convergence. Make
+ * sure to resolve important wavelengths of your simulation, e.g. shortest
+ * plasma wavelength, Debye length and central laser wavelength both spatially
+ * and temporarily.
+ *
+ * **Units in reduced dimensions**
+ *
+ * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
+ * is still used for normalization of densities, etc..
+ *
+ * A 2D3V simulation in a cartesian PIC simulation such as
+ * ours only changes the degrees of freedom in motion for
+ * (macro) particles and all (field) information in z
+ * travels instantaneously, making the 2D3V simulation
+ * behave like the interaction of infinite "wire particles"
+ * in fields with perfect symmetry in Z.
+ *
+ */
+
+#pragma once
+
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Duration of one timestep
+         *  unit: seconds */
+        constexpr float_64 DELTA_T_SI = 1.35e-17;
+
+        /** equals X
+         *  unit: meter */
+        constexpr float_64 CELL_WIDTH_SI = 0.1772e-6;
+        /** equals Y - the laser & moving window propagation direction
+         *  unit: meter */
+        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
+        /** equals Z
+         *  unit: meter */
+        constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
+
+        /** Note on units in reduced dimensions
+         *
+         * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
+         * is still used for normalization of densities, etc.
+         *
+         * A 2D3V simulation in a cartesian PIC simulation such as
+         * ours only changes the degrees of freedom in motion for
+         * (macro) particles and all (field) information in z
+         * travels instantaneously, making the 2D3V simulation
+         * behave like the interaction of infinite "wire particles"
+         * in fields with perfect symmetry in Z.
+         */
+    } // namespace SI
+} // namespace picongpu
