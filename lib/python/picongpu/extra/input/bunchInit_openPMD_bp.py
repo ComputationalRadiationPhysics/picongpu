@@ -9,6 +9,9 @@ import sys
 import openpmd_api as io
 import numpy as np
 
+import time
+import psutil # debug
+
 
 class vec3D:
     """
@@ -422,7 +425,7 @@ class pipe:
         outfile,
         particles=[],
         inconfig="{}",
-        outconfig="{}",
+        outconfig="adios2.engine.parameters.BufferChunkSize = 2147381248",
         verbose=False,
     ):
         """
@@ -454,6 +457,7 @@ class pipe:
         """
         starts the copy routine.
         """
+        self.process = psutil.Process()
         print("Opening data source")
         sys.stdout.flush()
         inseries = io.Series(self.infile, io.Access.read_only, self.inconfig)
@@ -480,7 +484,11 @@ class pipe:
         current_path: string
                 path of the current layer, only for verbose printing.
         """
+        #time.sleep(1)
+        self.print("Memory used: {:.2f} GB".format(self.process.memory_info().vms / 1000 / 1000 / 1000))
         self.print(current_path)
+        sys.stdout.flush()
+
         if (
             type(src) is not type(dest)
             and not isinstance(src, io.IndexedIteration)
@@ -500,6 +508,10 @@ class pipe:
             io.Particle_Patches,
             io.Patch_Record,
         ]
+        is_container = any([
+            isinstance(src, container_type)
+            for container_type in container_types
+        ])
 
         if isinstance(src, io.Series):
             # main loop: read iterations of src, write to dest
@@ -529,6 +541,10 @@ class pipe:
                     out_iteration,
                     current_path + str(in_iteration.iteration_index) + "/",
                 )
+
+                self.print("\nDeferred Load")
+                sys.stdout.flush()
+
                 for deferred in self.loads:
                     deferred.source.load_chunk(
                         deferred.dynamicView.current_buffer(),
@@ -553,7 +569,8 @@ class pipe:
                 self.loads.clear()
                 sys.stdout.flush()
 
-        elif isinstance(src, io.Record_Component):
+        elif isinstance(src, io.Record_Component) and (not is_container
+                                                       or src.scalar):
             # copies record components
             shape = src.shape
             dtype = src.dtype
@@ -568,10 +585,14 @@ class pipe:
             else:
                 chunk = Chunk(offset, shape)
                 local_chunk = chunk.slice1D()
-                span = dest.store_chunk(local_chunk.offset, local_chunk.extent)
-                self.loads.append(deferred_load(src, span, local_chunk.offset, local_chunk.extent))
 
-        elif isinstance(src, io.Patch_Record_Component):
+                loaded_buffer = src.load_chunk(local_chunk.offset, local_chunk.extent)
+                src.series_flush()
+                dest.store_chunk(loaded_buffer, local_chunk.offset, local_chunk.extent)
+                dest.series_flush()
+
+        elif isinstance(src, io.Patch_Record_Component) and (not is_container
+                                                       or src.scalar):
             # copies patch record components
             dest.reset_dataset(io.Dataset(src.dtype, src.shape))
             self.__particle_patches.append(particle_patch_load(src.load(), dest))
@@ -741,11 +762,13 @@ class pipe:
                 else:
                     self.__copy(src[key], dest[key], current_path + key + "/")
 
-            if isinstance(src, io.ParticleSpecies):
-                # copies particle patches of species
-                self.__copy(src.particle_patches, dest.particle_patches)
+            # if isinstance(src, io.ParticleSpecies):
+            #     # copies particle patches of species
+            #     self.__copy(src.particle_patches, dest.particle_patches)
         else:
             raise RuntimeError("Unknown openPMD class: " + str(src))
+        src.series_flush()
+        dest.series_flush()
 
     def copy_attributes(self, src, dest, iterate=False):
         """
