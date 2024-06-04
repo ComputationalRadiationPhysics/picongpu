@@ -63,15 +63,18 @@ namespace picongpu::simulation::stage
         {
             if(xLeft == xMiddle)
             {
-                throw "SynchrotronRadiation.hpp: integrateAsExponential(): xLeft and xMiddle cannot be the same.";
+                throw std::runtime_error(
+                    "SynchrotronRadiation.hpp: integrateAsExponential(): xLeft and xMiddle cannot be the same.");
             }
             if(yLeft <= 0 || yMiddle <= 0)
             {
-                throw "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must be positive.";
+                throw std::runtime_error(
+                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must be > 0.");
             }
             if(yLeft == yMiddle)
             {
-                throw "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must not be equal.";
+                throw std::runtime_error(
+                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must not be equal.");
             }
 
             //! fitting function: y = a * e^(b * x)
@@ -172,6 +175,69 @@ namespace picongpu::simulation::stage
          */
         SynchrotronRadiation(MappingDesc const cellDescription) : cellDescription(cellDescription)
         {
+            using pmacc::particles::traits::FilterByFlag;
+            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
+
+            auto const numSpeciesWithSynchrotronRadiation = pmacc::mp_size<SpeciesWithSynchrotron>::value;
+            auto const enableSynchrotronRadiation = numSpeciesWithSynchrotronRadiation > 0;
+            if(enableSynchrotronRadiation)
+            {
+                init();
+            }
+        }
+
+        /** Radiation happens here
+         *
+         * @param step index of time iteration
+         */
+        void operator()(uint32_t const step)
+        {
+            using pmacc::particles::traits::FilterByFlag;
+            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
+
+            auto const numSpeciesWithSynchrotronRadiation = pmacc::mp_size<SpeciesWithSynchrotron>::value;
+            auto const enableSynchrotronRadiation = numSpeciesWithSynchrotronRadiation > 0;
+            if(enableSynchrotronRadiation)
+            {
+                //! call the synchrotron radiation for each particle species with the synchrotron attribute
+                pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
+                    synchrotronRadiation;
+
+                synchrotronRadiation(
+                    cellDescription,
+                    step,
+                    tableValuesF1F2->getDeviceBuffer().getDataBox(),
+                    failedRequirementQ);
+
+                //! check if the requirements are met
+                if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
+                {
+                    if(checkFailedRequirementQ())
+                    {
+                        if((failedRequirementPrinted) == false)
+                        {
+                            printf(
+                                "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 "
+                                "-> "
+                                "reduce the timestep. \n\tCheck the requrement by specifying the predicted maxHeff "
+                                "and "
+                                "maxGamma in"
+                                "\n\tpicongpu/lib/python/synchrotronRadiationExtension/synchrotronRequirements.py\n");
+                            printf("This warning is printed only once per simulation. Next warnings are dots.\n");
+                            failedRequirementPrinted = true;
+                        }
+                        printf(".");
+                        //! reset the requirement flag
+                        setFailedRequirementQ(false);
+                    }
+                }
+            }
+        }
+
+    private:
+        /** creates and initialize all required helper fields */
+        void init()
+        {
             //! for "numberTableEntries", "minZqExponent" and "maxZqExponent" from InterpolationParams
             using picongpu::particles::synchrotron::params::InterpolationParams;
             auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
@@ -206,47 +272,6 @@ namespace picongpu::simulation::stage
             tableValuesF1F2->hostToDevice();
         }
 
-        /** Radiation happens here
-         *
-         * @param step index of time iteration
-         */
-        void operator()(uint32_t const step)
-        {
-            using pmacc::particles::traits::FilterByFlag;
-            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
-
-            //! call the synchrotron radiation for each particle species with the synchrotron attribute
-            pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
-                synchrotronRadiation;
-
-            synchrotronRadiation(
-                cellDescription,
-                step,
-                tableValuesF1F2->getDeviceBuffer().getDataBox(),
-                failedRequirementQ);
-
-            //! check if the requirements are met
-            if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
-            {
-                if(checkFailedRequirementQ())
-                {
-                    if((failedRequirementPrinted) == false)
-                    {
-                        printf("Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 -> "
-                               "reduce the timestep. \n\tCheck the requrement by specifying the predicted maxHeff and "
-                               "maxGamma in"
-                               "\n\tpicongpu/lib/python/synchrotronRadiationExtension/synchrotronRequirements.py\n");
-                        printf("This warning is printed only once per simulation. Next warnings are dots.\n");
-                        failedRequirementPrinted = true;
-                    }
-                    printf(".");
-                    //! reset the requirement flag
-                    setFailedRequirementQ(false);
-                }
-            }
-        }
-
-    private:
         //! Mapping for kernels
         MappingDesc cellDescription;
 
