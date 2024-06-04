@@ -11,6 +11,7 @@
     #  fix apt error: libomp-10-dev : Depends: libomp5-10 (= 1:10.0.0-4ubuntu1~18.04.2) but it is not going to be installed
     - sed -i -e '1,2d' /etc/apt/sources.list.d/llvm.list
     - apt update
+    - apt upgrade -y
     - apt install -y curl libjpeg-dev
     - source $CI_PROJECT_DIR/share/ci/install/cmake.sh
     - source $CI_PROJECT_DIR/share/ci/install/clang.sh

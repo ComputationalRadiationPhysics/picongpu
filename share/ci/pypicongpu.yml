@@ -19,6 +19,7 @@
     - echo "CI_CONTAINER_NAME -> $CI_CONTAINER_NAME"
     - echo "PYTHON_VERSION -> $PYTHON_VERSION"
     - apt update
+    - apt upgrade -y
     - apt install -y curl libjpeg-dev
     - source $CI_PROJECT_DIR/share/ci/install/cmake.sh
     - source $CI_PROJECT_DIR/share/ci/install/gcc.sh

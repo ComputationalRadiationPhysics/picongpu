@@ -78,9 +78,11 @@ namespace
  */
 int main(int argc, char** argv)
 {
+    return runSimulation(argc, argv);
+
+    /*
     try
     {
-        return runSimulation(argc, argv);
     }
     // A last-ditch effort to report exceptions to a user
     catch(const std::exception& ex)
@@ -94,4 +96,5 @@ int main(int argc, char** argv)
         std::cerr << "Unhandled exception of unknown type, terminating\n";
         return EXIT_FAILURE;
     }
+    */
 }

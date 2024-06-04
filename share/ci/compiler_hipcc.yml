@@ -22,6 +22,7 @@
     # AMD container keys are outdated and must be updated
     - wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add -
     - apt -y update
+    - apt upgrade -y
     - apt install -y curl libjpeg-dev
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile
