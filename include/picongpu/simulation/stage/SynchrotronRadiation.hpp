@@ -63,18 +63,20 @@ namespace picongpu::simulation::stage
         {
             if(xLeft == xMiddle)
             {
-                throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): xLeft and xMiddle cannot be the same.");
+                return 0;
             }
-            if(yLeft <= 0 || yMiddle <= 0)
+            if(yLeft < 0 || yMiddle < 0)
             {
                 throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must be > 0.");
+                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must be >= 0.");
+            }
+            if(yLeft == 0 || yMiddle == 0)
+            {
+                return 0;
             }
             if(yLeft == yMiddle)
             {
-                throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must not be equal.");
+                return (xRight - xLeft) * yLeft;
             }
 
             //! fitting function: y = a * e^(b * x)
@@ -125,8 +127,14 @@ namespace picongpu::simulation::stage
                 }
                 catch(std::exception& e)
                 {
-                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at " << i
-                              << ". index: " << e.what() << std::endl;
+                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at index " << i
+                              << ". " << e.what() << std::endl;
+                    std::cout << "zq: " << zq << ", xLeft: " << xLeft << ", xMiddle: " << xMiddle
+                              << ", xRight: " << xRight << std::endl;
+                    float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
+                    float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
+                    std::cout << "yLeft: " << yLeft << ", yMiddle: " << yMiddle << std::endl << std::endl;
+                    
                 }
             }
             return zq * integral;

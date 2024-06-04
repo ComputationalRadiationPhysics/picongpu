@@ -32,7 +32,7 @@ namespace picongpu
             namespace params
             {
                 //! Turn off or turn on the electron recoil from electrons generated.
-                constexpr bool ElectronRecoil = true;
+                constexpr bool ElectronRecoil = false;
 
                 //! @todo bool for turning on or off the photon generation
 
