@@ -22,6 +22,11 @@
  * only PIConGPU programmers should change this file
  *
  * for examples use extensionParam.loader
+ *
+ * @attention order of includes matters here since some .param files depend on others
+ * .param files themselves usually do not include other .param files, instead relying on correct order of includes here
+ *
+ * @todo create overview of dependencies, Brian Marre, 2023
  */
 #pragma once
 
