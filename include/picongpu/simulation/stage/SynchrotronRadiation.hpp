@@ -127,14 +127,13 @@ namespace picongpu::simulation::stage
                 }
                 catch(std::exception& e)
                 {
-                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at index " << i
-                              << ". " << e.what() << std::endl;
+                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at index " << i << ". "
+                              << e.what() << std::endl;
                     std::cout << "zq: " << zq << ", xLeft: " << xLeft << ", xMiddle: " << xMiddle
                               << ", xRight: " << xRight << std::endl;
                     float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
                     float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
                     std::cout << "yLeft: " << yLeft << ", yMiddle: " << yMiddle << std::endl << std::endl;
-                    
                 }
             }
             return zq * integral;
