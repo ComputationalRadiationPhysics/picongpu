@@ -31,6 +31,60 @@ def read_setup(folderName):
 iterNo = 4000  # iteration from which we read the data must be the same as in ../bin/validate.ci
 
 
+def read_photon_data(series):
+    it = series.iterations[iterNo]
+    h = it.particles["y"]  # photons
+
+    # Reading photon weights
+    h1 = h["weighting"][io.Mesh_Record_Component.SCALAR]
+    w = h1[:]
+    w_SI = h1.unit_SI
+    series.flush()
+    w *= w_SI
+
+    # Reading photon momentum
+    h1 = h["momentum"]["y"]
+    p_y = h1[:]
+    p_y_SI = h1.unit_SI
+    series.flush()
+    p_y = np.float64(p_y)
+    p_y *= p_y_SI / w
+
+    # Calculate photon energy
+    hist_data = np.abs(p_y * const.c / const.elementary_charge)
+
+    if len(hist_data) < 5e5:
+        raise SystemExit(
+            f"Number of photons is {len(hist_data)} but expected number of photons to be at least 5e5\n Test failed"
+        )
+
+    return hist_data
+
+
+def read_electron_data(series):
+    it = series.iterations[iterNo]
+    e = it.particles["e"]  # electrons
+
+    # Reading electron weights
+    h1 = e["weighting"][io.Mesh_Record_Component.SCALAR]
+    e_w = h1[:]  # get the weighting
+    e_w_SI = h1.unit_SI  # get the weighting unit
+    series.flush()
+    e_w *= e_w_SI  # convert to SI units
+
+    # Reading electron momentum
+    h1 = e["momentum"]["y"]
+    e_p_y = h1[:]  # get the momentum
+    e_p_y_SI = h1.unit_SI  # get the momentum unit
+    series.flush()
+    e_p_y *= e_p_y_SI / e_w
+
+    # Convert momentum to energy
+    Energy_e = momentum_to_energy(e_p_y, const.m_e).max()
+
+    return e_w, Energy_e
+
+
 def main(dataPath):
     print(f"Validating data in {dataPath}")
     gamma, Heff, dt = read_setup(dataPath)
@@ -42,43 +96,16 @@ def main(dataPath):
     if abs(simulation_dt - dt) > 1e-10:  # check if the simulation dt is the same as the expected dt. 1e-10 is arbitrary
         raise SystemExit(f"Simulation dt is {simulation_dt} but expected dt is {dt}\n Test failed")
 
-    h = it.particles["y"]  # photons
-    e = it.particles["e"]  # electrons
+    # Reading and processing photon data
+    hist_data = read_photon_data(series)
 
-    # photons
-    h1 = h["weighting"][io.Mesh_Record_Component.SCALAR]
-    w = h1[:]
-    w_SI = h1.unit_SI
-    series.flush()
-    w *= w_SI
-    h1 = h["momentum"]["y"]
-    p_y = h1[:]
-    p_y_SI = h1.unit_SI
-    series.flush()
-    p_y = np.float64(p_y)
-    p_y *= p_y_SI / w
-    hist_data = np.abs(p_y)
-    if len(hist_data) < 5e5:
-        raise SystemExit(
-            f"Number of photons is {len(hist_data)} but expected number of photons to be at least 5e5\n Test failed"
-        )
-    hist_data = np.abs(p_y * const.c / const.elementary_charge)  # calculate the energy of photons
+    # Reading and processing electron data
+    e_w, Energy_e = read_electron_data(series)
 
-    # electron energy: take electron momentum and calculate energy
-    h1 = e["weighting"][io.Mesh_Record_Component.SCALAR]
-    e_w = h1[:]  # get the weighting
-    e_w_SI = h1.unit_SI  # get the weighting unit
-    series.flush()
-    e_w *= e_w_SI  # convert to SI units
-    h1 = e["momentum"]["y"]
-    e_p_y = h1[:]  # get the momentum
-    e_p_y_SI = h1.unit_SI  # get the momentum unit
-    series.flush()
-    e_p_y *= e_p_y_SI / e_w
-    Energy_e = momentum_to_energy(e_p_y, const.m_e).max()  # convert momentum to energy
+    # Go to delta space
+    hist_data /= Energy_e
 
-    hist_data /= Energy_e  # go to delta space
-
+    # Calculate the analytical integrated probability
     min_exp = np.floor(np.log10(np.min(hist_data)))
     max_exp = np.ceil(np.log10(np.max(hist_data)))
     bins = np.logspace(min_exp, max_exp, 200)
