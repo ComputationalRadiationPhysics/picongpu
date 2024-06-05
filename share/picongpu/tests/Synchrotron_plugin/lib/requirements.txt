@@ -1,5 +1,5 @@
 os
-numpy
-scipy
+numpy==1.26.4
+scipy==1.11.4
 pathlib
-openpmd_api
+openpmd_api==4.5
