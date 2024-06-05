@@ -7,15 +7,8 @@ from synchrotron_lib import analytical_Propability, momentum_to_energy, quad, co
 # Used when comparing two sets of histogram data with different binning
 # given two set of vectors x0, y0 and x1, y1 we interpolate second set to the first set and subtract them
 # interpolate y1 to x0 and subtract y0 from y1
+# returns x0 and relative error of y1 compared to y0
 def subtract_functions(x0, y0, x1, y1):
-    minX = max(np.min(x0), np.min(x1))
-    maxX = min(np.max(x0), np.max(x1))
-    #
-    x0 = [x for x in x0 if x >= minX and x <= maxX]
-    x1 = [x for x in x1 if x >= minX and x <= maxX]
-    y0 = [y for x, y in zip(x0, y0) if x >= minX and x <= maxX]
-    y1 = [y for x, y in zip(x1, y1) if x >= minX and x <= maxX]
-
     y1 = np.interp(x0, x1, y1)  # interpolate y1 to the x0 values
     return x0, np.abs(y0 - y1) / y0
 
@@ -88,7 +81,7 @@ def main(dataPath):
 
     min_exp = np.floor(np.log10(np.min(hist_data)))
     max_exp = np.ceil(np.log10(np.max(hist_data)))
-    bins = np.logspace(min_exp, max_exp, 100)
+    bins = np.logspace(min_exp, max_exp, 200)
     a, b = np.histogram(hist_data, bins=bins)
     normalization_factor = iterNo * len(e_w)
 
@@ -114,11 +107,12 @@ def main(dataPath):
     analytical_integrated = np.array(analytical_integrated)[mask]
 
     x, y = subtract_functions(delta, analytical_integrated, b, a)
-    poorness = np.sum(y) / len(y)  # average error
+    poorness = np.sum(y) / len(y)  # average relative error
     poornessBound = 0.1  # 10% error. We want poorness to be less than 10%
     print(f"Poorness: {poorness}")
 
     retValue = int(0) if poorness <= poornessBound else int(1)
+    print(f"Test {'passed' if retValue == 0 else 'failed'}")
 
     sys.exit(retValue)
 
