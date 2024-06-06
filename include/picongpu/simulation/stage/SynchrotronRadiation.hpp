@@ -67,8 +67,11 @@ namespace picongpu::simulation::stage
             }
             if(yLeft < 0 || yMiddle < 0)
             {
+                std::cerr << "Caught exception when precomputing firstSynchrotronFunction" << std::endl;
+                std::cerr << ", xLeft: " << xLeft << ", xMiddle: " << xMiddle << ", xRight: " << xRight << std::endl;
+                std::cerr << "yLeft: " << yLeft << ", yMiddle: " << yMiddle << std::endl;
                 throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must be >= 0.");
+                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must not be negative.");
             }
             if(yLeft == 0 || yMiddle == 0)
             {
@@ -115,193 +118,180 @@ namespace picongpu::simulation::stage
                 xRight = math::pow(2., log_start + log_step * (i + 1));
                 float_64 xMiddle = (xLeft + xRight) / 2.0;
 
-                //! try and catch errors in the bessel function
-                try
-                {
-                    float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
-                    float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
-                    /** computes the integral over one interval: [xLeft, xRight] using the
-                     *  exponential approximation between: [xLeft, xMiddle]
-                     */
-                    integral += integrateAsExponential(xLeft, xMiddle, xRight, yLeft, yMiddle);
-                }
-                catch(std::exception& e)
-                {
-                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at index " << i << ". "
-                              << e.what() << std::endl;
-                    std::cout << "zq: " << zq << ", xLeft: " << xLeft << ", xMiddle: " << xMiddle
-                              << ", xRight: " << xRight << std::endl;
-                    float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
-                    float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
-                    std::cout << "yLeft: " << yLeft << ", yMiddle: " << yMiddle << std::endl << std::endl;
-                }
-            }
-            return zq * integral;
-        }
-
-        //! @note see paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
-        //! developments" by A. Gonoskov et.Al.
-        float_64 secondSynchrotronFunction(float_64 const x)
-        {
-            return x * std::cyl_bessel_k(2. / 3, x);
-        }
-
-        /** Set the failedRequirementQ to true or false
-         * @param value
-         */
-        void setFailedRequirementQ(bool const value)
-        {
-            failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = static_cast<int32_t>(value);
-            failedRequirementQ->hostToDevice();
-        }
-
-        /** Check if the requirements are met
-         * @returns true if the requirements are not met
-         */
-        bool checkFailedRequirementQ()
-        {
-            failedRequirementQ->deviceToHost();
-            return failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) == true;
-        }
-
-        /** set tableValuesF1F2 at index iZq and Accessor
-         * @param iZq index
-         * @param accessor Accessor
-         * @param value value to set
-         */
-        template<typename T_Accessor>
-        void setTableValuesF1F2(uint32_t const iZq, T_Accessor const accessor, float_X const value)
-        {
-            tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(accessor)}) = value;
-        }
-
-    public:
-        /** Create a synchrotron radiation instance: precompute first and second synchrotron functions
-         *
-         * @param cellDescription mapping for kernels
-         */
-        SynchrotronRadiation(MappingDesc const cellDescription) : cellDescription(cellDescription)
-        {
-            using pmacc::particles::traits::FilterByFlag;
-            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
-
-            auto const numSpeciesWithSynchrotronRadiation = pmacc::mp_size<SpeciesWithSynchrotron>::value;
-            auto const enableSynchrotronRadiation = numSpeciesWithSynchrotronRadiation > 0;
-            if(enableSynchrotronRadiation)
-            {
-                init();
-            }
-        }
-
-        /** Radiation happens here
-         *
-         * @param step index of time iteration
-         */
-        void operator()(uint32_t const step)
-        {
-            using pmacc::particles::traits::FilterByFlag;
-            using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
-
-            auto const numSpeciesWithSynchrotronRadiation = pmacc::mp_size<SpeciesWithSynchrotron>::value;
-            auto const enableSynchrotronRadiation = numSpeciesWithSynchrotronRadiation > 0;
-            if(enableSynchrotronRadiation)
-            {
-                //! call the synchrotron radiation for each particle species with the synchrotron attribute
-                pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
-                    synchrotronRadiation;
-
-                synchrotronRadiation(
-                    cellDescription,
-                    step,
-                    tableValuesF1F2->getDeviceBuffer().getDataBox(),
-                    failedRequirementQ);
-
-                //! check if the requirements are met
-                if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
-                {
-                    if(checkFailedRequirementQ())
-                    {
-                        if((failedRequirementPrinted) == false)
-                        {
-                            printf(
-                                "Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 "
-                                "-> "
-                                "reduce the timestep. \n\tCheck the requrement by specifying the predicted maxHeff "
-                                "and "
-                                "maxGamma in"
-                                "\n\tpicongpu/lib/python/synchrotronRadiationExtension/synchrotronRequirements.py\n");
-                            printf("This warning is printed only once per simulation. Next warnings are dots.\n");
-                            failedRequirementPrinted = true;
-                        }
-                        printf(".");
-                        //! reset the requirement flag
-                        setFailedRequirementQ(false);
-                    }
-                }
-            }
-        }
-
-    private:
-        /** creates and initialize all required helper fields */
-        void init()
-        {
-            //! for "numberTableEntries", "minZqExponent" and "maxZqExponent" from InterpolationParams
-            using picongpu::particles::synchrotron::params::InterpolationParams;
-            auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
-            auto grid_layout = GridLayout<2>{data_space};
-
-            //! capture the space for table and variables
-            tableValuesF1F2 = std::make_shared<GridBuffer<float_X, 2>>(grid_layout);
-            failedRequirementQ = std::make_shared<GridBuffer<int32_t, 1>>(DataSpace<1>{1});
-            //! set the values of variables to false
-            setFailedRequirementQ(false);
-            failedRequirementPrinted = false;
-
-            constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
-            constexpr float_64 maxZqExp = InterpolationParams::maxZqExponent;
-            constexpr float_64 tableEntries = InterpolationParams::numberTableEntries;
-
-            //! precompute F1 and F2 on log scale
-            for(uint32_t iZq = 0; iZq < tableEntries; iZq++)
-            {
-                /** inverse function for index retrieval:
-                 * index = (log2(zq) - minZqExp) / (maxZqExp - minZqExp) * (tableEntries-1);
+                float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
+                float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
+                /** computes the integral over one interval: [xLeft, xRight] using the
+                 *  exponential approximation between: [xLeft, xMiddle]
                  */
-                float_64 zq = std::pow(2., minZqExp + (maxZqExp - minZqExp) * iZq / (tableEntries - 1));
-
-                float_64 const F1 = firstSynchrotronFunction(zq);
-                float_64 const F2 = secondSynchrotronFunction(zq);
-
-                setTableValuesF1F2(iZq, Accessor::f1, static_cast<float_X>(F1));
-                setTableValuesF1F2(iZq, Accessor::f2, static_cast<float_X>(F2));
+                integral += integrateAsExponential(xLeft, xMiddle, xRight, yLeft, yMiddle);
             }
-            //! move the data to the device
-            tableValuesF1F2->hostToDevice();
         }
+        return zq * integral;
+    }
 
-        //! Mapping for kernels
-        MappingDesc cellDescription;
+    //! @note see paper: "Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and
+    //! developments" by A. Gonoskov et.Al.
+    float_64
+    secondSynchrotronFunction(float_64 const x)
+    {
+        return x * std::cyl_bessel_k(2. / 3, x);
+    }
 
-        /** precomputed first and second synchrotron functions:
-         *  -> 2d grid of floats_64 -> tableValuesF1F2[zq][0/1] ; 0/1 = F1/F2
-         */
-        std::shared_ptr<GridBuffer<float_X, 2>> tableValuesF1F2;
-        //! used for table access
-        enum struct Accessor : uint32_t
+    /** Set the failedRequirementQ to true or false
+     * @param value
+     */
+    void setFailedRequirementQ(bool const value)
+    {
+        failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) = static_cast<int32_t>(value);
+        failedRequirementQ->hostToDevice();
+    }
+
+    /** Check if the requirements are met
+     * @returns true if the requirements are not met
+     */
+    bool checkFailedRequirementQ()
+    {
+        failedRequirementQ->deviceToHost();
+        return failedRequirementQ->getHostBuffer().getDataBox()(DataSpace<1>{0}) == true;
+    }
+
+    /** set tableValuesF1F2 at index iZq and Accessor
+     * @param iZq index
+     * @param accessor Accessor
+     * @param value value to set
+     */
+    template<typename T_Accessor>
+    void setTableValuesF1F2(uint32_t const iZq, T_Accessor const accessor, float_X const value)
+    {
+        tableValuesF1F2->getHostBuffer().getDataBox()(DataSpace<2>{iZq, u32(accessor)}) = value;
+    }
+
+public:
+    /** Create a synchrotron radiation instance: precompute first and second synchrotron functions
+     *
+     * @param cellDescription mapping for kernels
+     */
+    SynchrotronRadiation(MappingDesc const cellDescription) : cellDescription(cellDescription)
+    {
+        using pmacc::particles::traits::FilterByFlag;
+        using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
+
+        auto const numSpeciesWithSynchrotronRadiation = pmacc::mp_size<SpeciesWithSynchrotron>::value;
+        auto const enableSynchrotronRadiation = numSpeciesWithSynchrotronRadiation > 0;
+        if(enableSynchrotronRadiation)
         {
-            f1 = 0u,
-            f2 = 1u
-        };
-        constexpr uint32_t u32(Accessor const t)
-        {
-            return static_cast<uint32_t>(t);
+            init();
         }
+    }
 
-        /** flag to check if the requirements 1 and 2 are met
-         * We check the requirements in class SynchrotronIdea() in:
-         * picongpu/include/picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp
-         */
-        std::shared_ptr<GridBuffer<int32_t, 1>> failedRequirementQ;
-        bool failedRequirementPrinted;
+    /** Radiation happens here
+     *
+     * @param step index of time iteration
+     */
+    void operator()(uint32_t const step)
+    {
+        using pmacc::particles::traits::FilterByFlag;
+        using SpeciesWithSynchrotron = typename FilterByFlag<VectorAllSpecies, picongpu::synchrotron<>>::type;
+
+        auto const numSpeciesWithSynchrotronRadiation = pmacc::mp_size<SpeciesWithSynchrotron>::value;
+        auto const enableSynchrotronRadiation = numSpeciesWithSynchrotronRadiation > 0;
+        if(enableSynchrotronRadiation)
+        {
+            //! call the synchrotron radiation for each particle species with the synchrotron attribute
+            pmacc::meta::ForEach<SpeciesWithSynchrotron, particles::CallSynchrotron<boost::mpl::_1>>
+                synchrotronRadiation;
+
+            synchrotronRadiation(
+                cellDescription,
+                step,
+                tableValuesF1F2->getDeviceBuffer().getDataBox(),
+                failedRequirementQ);
+
+            //! check if the requirements are met
+            if constexpr(particles::synchrotron::params::supressRequirementWarning == false)
+            {
+                if(checkFailedRequirementQ())
+                {
+                    if((failedRequirementPrinted) == false)
+                    {
+                        printf("Synchrotron Extension requirement1 or requirement2 failed; should be less than 0.1 "
+                               "-> "
+                               "reduce the timestep. \n\tCheck the requrement by specifying the predicted maxHeff "
+                               "and "
+                               "maxGamma in"
+                               "\n\tpicongpu/lib/python/synchrotronRadiationExtension/synchrotronRequirements.py\n");
+                        printf("This warning is printed only once per simulation. Next warnings are dots.\n");
+                        failedRequirementPrinted = true;
+                    }
+                    printf(".");
+                    //! reset the requirement flag
+                    setFailedRequirementQ(false);
+                }
+            }
+        }
+    }
+
+private:
+    /** creates and initialize all required helper fields */
+    void init()
+    {
+        //! for "numberTableEntries", "minZqExponent" and "maxZqExponent" from InterpolationParams
+        using picongpu::particles::synchrotron::params::InterpolationParams;
+        auto data_space = DataSpace<2>{InterpolationParams::numberTableEntries, 2};
+        auto grid_layout = GridLayout<2>{data_space};
+
+        //! capture the space for table and variables
+        tableValuesF1F2 = std::make_shared<GridBuffer<float_X, 2>>(grid_layout);
+        failedRequirementQ = std::make_shared<GridBuffer<int32_t, 1>>(DataSpace<1>{1});
+        //! set the values of variables to false
+        setFailedRequirementQ(false);
+        failedRequirementPrinted = false;
+
+        constexpr float_64 minZqExp = InterpolationParams::minZqExponent;
+        constexpr float_64 maxZqExp = InterpolationParams::maxZqExponent;
+        constexpr float_64 tableEntries = InterpolationParams::numberTableEntries;
+
+        //! precompute F1 and F2 on log scale
+        for(uint32_t iZq = 0; iZq < tableEntries; iZq++)
+        {
+            /** inverse function for index retrieval:
+             * index = (log2(zq) - minZqExp) / (maxZqExp - minZqExp) * (tableEntries-1);
+             */
+            float_64 zq = std::pow(2., minZqExp + (maxZqExp - minZqExp) * iZq / (tableEntries - 1));
+
+            float_64 const F1 = firstSynchrotronFunction(zq);
+            float_64 const F2 = secondSynchrotronFunction(zq);
+
+            setTableValuesF1F2(iZq, Accessor::f1, static_cast<float_X>(F1));
+            setTableValuesF1F2(iZq, Accessor::f2, static_cast<float_X>(F2));
+        }
+        //! move the data to the device
+        tableValuesF1F2->hostToDevice();
+    }
+
+    //! Mapping for kernels
+    MappingDesc cellDescription;
+
+    /** precomputed first and second synchrotron functions:
+     *  -> 2d grid of floats_64 -> tableValuesF1F2[zq][0/1] ; 0/1 = F1/F2
+     */
+    std::shared_ptr<GridBuffer<float_X, 2>> tableValuesF1F2;
+    //! used for table access
+    enum struct Accessor : uint32_t
+    {
+        f1 = 0u,
+        f2 = 1u
     };
+    constexpr uint32_t u32(Accessor const t)
+    {
+        return static_cast<uint32_t>(t);
+    }
+
+    /** flag to check if the requirements 1 and 2 are met
+     * We check the requirements in class SynchrotronIdea() in:
+     * picongpu/include/picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp
+     */
+    std::shared_ptr<GridBuffer<int32_t, 1>> failedRequirementQ;
+    bool failedRequirementPrinted;
+};
 } // namespace picongpu::simulation::stage
