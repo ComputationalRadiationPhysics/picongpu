@@ -9,7 +9,7 @@ import sys
 import openpmd_api as io
 import numpy as np
 
-import time
+#import time
 import psutil # debug
 
 
@@ -79,7 +79,7 @@ class addParticles2Checkpoint:
         if self.verbose:
             print("\t" * self.tabs + string)
 
-    def __init__(self, filename_in, filename_out, speciesName="e", verbose=False):
+    def __init__(self, filename_in, filename_out, speciesName="e", copyRNG=True, verbose=False):
         """
         initialization of manipulation routine
 
@@ -88,16 +88,20 @@ class addParticles2Checkpoint:
 
         Arguments:
         filename_in: string
-                  path to bp file to copy from (only time step 0 accepted)
+                path to bp file to copy from (only time step 0 accepted)
         filename_out: string
-                  path to bp file to create
+                path to bp file to create
         speciesName: string
-                     short name in PIConGPU for the species to manipulate
+                short name in PIConGPU for the species to manipulate
+        copyRNG: bool
+                True: copy RNG values of the RNGProvider3XorMin field to new checkpoint, False: Do not copy RNG values
+                Can be used to reduce memory consumption during copy process at the cost of reproducibility
         verbose: bool
-                 (True: print output, False: Do not print output to screen)
+                True: print output, False: Do not print output to screen
         """
         self.verbose = verbose  # verbose level
         self.tabs = 0  # tab counter for output
+        self.copyRNG = copyRNG
 
         self.timestep = 0  # time step (fixed to 0)
         self.speciesName = speciesName
@@ -475,7 +479,7 @@ class pipe:
         current_path: string
                 path of the current layer, only for verbose printing.
         """
-        #self.print("Memory used: {:.2f} GB".format(self.process.memory_info().vms / 1000 / 1000 / 1000))
+        self.print("Memory used: {:.2f} GB".format(self.process.memory_info().vms / 1000 / 1000 / 1000))
         self.print(current_path)
         sys.stdout.flush()
 
@@ -531,8 +535,8 @@ class pipe:
                     out_iteration,
                     current_path + str(in_iteration.iteration_index) + "/",
                 )
-
                 in_iteration.close()
+
                 for patch_load in self.__particle_patches:
                     patch_load.run()
 
@@ -566,6 +570,7 @@ class pipe:
                 chunk = Chunk(offset, shape)
                 local_chunk = chunk.slice1D()
 
+                # write content of src record to dest record and flush afterwards
                 loaded_buffer = src.load_chunk(local_chunk.offset, local_chunk.extent)
                 src.series_flush()
                 dest.store_chunk(loaded_buffer, local_chunk.offset, local_chunk.extent)
@@ -591,6 +596,8 @@ class pipe:
                     self.print("writing new particles data")
                     self.write_particles(src[key], dest[key], current_path + key)
                     self.print("resume to copying")
+                elif not self.particles.copyRNG and isinstance(src[key], io.Mesh) and key == "RNGProvider3XorMin":
+                    self.print("skipped RNGProvider3XorMin")
                 else:
                     self.__copy(src[key], dest[key], current_path + key + "/")
 
