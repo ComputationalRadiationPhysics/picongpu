@@ -24,7 +24,6 @@ def change_param_file(file_name, param_name, value):
                 f.write(line)
 
 
-# change the three parameters
 def changeParams(dt, Heff, gamma):
     change_param_file("grid.param", "DELTA_T_SI", dt)
     change_param_file("fieldBackground.param", "field_Strength_SI", Heff)

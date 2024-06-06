@@ -8,8 +8,8 @@ from synchrotron_lib import analytical_Propability, momentum_to_energy, quad, co
 # given two set of vectors x0, y0 and x1, y1 we interpolate second set to the first set and subtract them
 # interpolate y1 to x0 and subtract y0 from y1
 # returns x0 and relative error of y1 compared to y0
-def subtract_functions(x0, y0, x1, y1):
-    y1 = np.interp(x0, x1, y1)  # interpolate y1 to the x0 values
+def relative_error_array(x0, y0, x1, y1):
+    y1 = np.interp(x0, x1, y1, left=0, right=0)  # interpolate y1 to the x0 values
     return x0, np.abs(y0 - y1) / y0
 
 
@@ -54,7 +54,7 @@ def read_photon_data(series):
     hist_data = np.abs(p_y * const.c / const.elementary_charge)
 
     if len(hist_data) < 5e5:
-        raise SystemExit(
+        raise ValueError(
             f"Number of photons is {len(hist_data)} but expected number of photons to be at least 5e5\n Test failed"
         )
 
@@ -94,7 +94,7 @@ def main(dataPath):
 
     simulation_dt = it.get_attribute("dt") * it.get_attribute("unit_time")
     if abs(simulation_dt - dt) > 1e-10:  # check if the simulation dt is the same as the expected dt. 1e-10 is arbitrary
-        raise SystemExit(f"Simulation dt is {simulation_dt} but expected dt is {dt}\n Test failed")
+        raise ValueError(f"Simulation dt is {simulation_dt} but expected dt is {dt}\n Test failed")
 
     # Reading and processing photon data
     hist_data = read_photon_data(series)
@@ -133,7 +133,7 @@ def main(dataPath):
     delta = delta[mask]
     analytical_integrated = np.array(analytical_integrated)[mask]
 
-    x, y = subtract_functions(delta, analytical_integrated, b, a)
+    x, y = relative_error_array(delta, analytical_integrated, b, a)
     poorness = np.sum(y) / len(y)  # average relative error
     poornessBound = 0.1  # 10% error. We want poorness to be less than 10%
     print(f"Poorness: {poorness}")
@@ -146,5 +146,5 @@ def main(dataPath):
 
 if __name__ == "__main__":
     if len(sys.argv[1:]) != 1:
-        raise SystemExit(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
+        raise ValueError(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
     main(sys.argv[1])
