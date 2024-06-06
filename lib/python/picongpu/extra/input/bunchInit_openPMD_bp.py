@@ -9,9 +9,6 @@ import sys
 import openpmd_api as io
 import numpy as np
 
-#import time
-import psutil # debug
-
 
 class vec3D:
     """
@@ -94,8 +91,10 @@ class addParticles2Checkpoint:
         speciesName: string
                 short name in PIConGPU for the species to manipulate
         copyRNG: bool
-                True: copy RNG values of the RNGProvider3XorMin field to new checkpoint, False: Do not copy RNG values
-                Can be used to reduce memory consumption during copy process at the cost of reproducibility
+                True: copy RNG values of the RNGProvider3XorMin field to
+                new checkpoint, False: Do not copy RNG values
+                Can be used to reduce memory consumption during copy process
+                at the cost of reproducibility
         verbose: bool
                 True: print output, False: Do not print output to screen
         """
@@ -452,7 +451,6 @@ class pipe:
         """
         starts the copy routine.
         """
-        self.process = psutil.Process()
         print("Opening data source")
         sys.stdout.flush()
         inseries = io.Series(self.infile, io.Access.read_only, self.inconfig)
@@ -479,7 +477,6 @@ class pipe:
         current_path: string
                 path of the current layer, only for verbose printing.
         """
-        self.print("Memory used: {:.2f} GB".format(self.process.memory_info().vms / 1000 / 1000 / 1000))
         self.print(current_path)
         sys.stdout.flush()
 
@@ -502,10 +499,7 @@ class pipe:
             io.Particle_Patches,
             io.Patch_Record,
         ]
-        is_container = any([
-            isinstance(src, container_type)
-            for container_type in container_types
-        ])
+        is_container = any([isinstance(src, container_type) for container_type in container_types])
 
         if isinstance(src, io.Series):
             # main loop: read iterations of src, write to dest
@@ -553,8 +547,7 @@ class pipe:
                 self.__particle_patches.clear()
                 sys.stdout.flush()
 
-        elif isinstance(src, io.Record_Component) and (not is_container
-                                                       or src.scalar):
+        elif isinstance(src, io.Record_Component) and (not is_container or src.scalar):
             # copies record components
             shape = src.shape
             dtype = src.dtype
@@ -570,14 +563,14 @@ class pipe:
                 chunk = Chunk(offset, shape)
                 local_chunk = chunk.slice1D()
 
-                # write content of src record to dest record and flush afterwards
+                # write content of src record to dest record and
+                # flush afterwards
                 loaded_buffer = src.load_chunk(local_chunk.offset, local_chunk.extent)
                 src.series_flush()
                 dest.store_chunk(loaded_buffer, local_chunk.offset, local_chunk.extent)
                 dest.series_flush()
 
-        elif isinstance(src, io.Patch_Record_Component) and (not is_container
-                                                       or src.scalar):
+        elif isinstance(src, io.Patch_Record_Component) and (not is_container or src.scalar):
             # copies patch record components
             dest.reset_dataset(io.Dataset(src.dtype, src.shape))
             self.__particle_patches.append(particle_patch_load(src.load(), dest))
@@ -606,7 +599,6 @@ class pipe:
                 self.__copy(src.particle_patches, dest.particle_patches, current_path + "particlePatches/")
         else:
             raise RuntimeError("Unknown openPMD class: " + str(src))
-
 
     def write_particles(self, src, dest, current_path="/data/"):
         """
@@ -730,22 +722,14 @@ class pipe:
 
         # write own particle patches
         self.print("\tcopying patches")
-        temp_src = src.particle_patches["numParticles"][
-            io.Mesh_Record_Component.SCALAR
-        ]
-        temp_dest = dest.particle_patches["numParticles"][
-            io.Mesh_Record_Component.SCALAR
-        ]
+        temp_src = src.particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
+        temp_dest = dest.particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
 
         temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
         self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
 
-        temp_src = src.particle_patches["numParticlesOffset"][
-            io.Mesh_Record_Component.SCALAR
-        ]
-        temp_dest = dest.particle_patches["numParticlesOffset"][
-            io.Mesh_Record_Component.SCALAR
-        ]
+        temp_src = src.particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
+        temp_dest = dest.particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
 
         temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
         self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
@@ -762,7 +746,6 @@ class pipe:
 
         for keyP in temp_src:
             self.__copy(temp_src[keyP], temp_dest[keyP], current_path + "/particlePatches/extent/" + keyP + "/")
-
 
     def copy_attributes(self, src, dest, iterate=False):
         """
@@ -783,8 +766,7 @@ class pipe:
         ignored_attributes = {
             io.Series: ["basePath", "iterationEncoding", "iterationFormat", "openPMD"],
             io.Iteration: ["snapshot"],
-            io.Record_Component: ["value", "shape"] if isinstance(
-                src, io.Record_Component) and src.constant else []
+            io.Record_Component: ["value", "shape"] if isinstance(src, io.Record_Component) and src.constant else [],
         }
         for key in src.attributes:
             ignore_this_attribute = False
