@@ -149,7 +149,9 @@ namespace picongpu
                          * @param totalCellIdx cell index in the total domain (including all moving window slides)
                          * @param Omega frequency for which the E-value is calculated
                          */
-                        HDINLINE float_X amp(floatD_X const& totalCellIdx, float_X const Omega) const
+                        template<uint32_t T_dim>
+                        HDINLINE float_X
+                        amp(math::Vector<float_X, T_dim> const& totalCellIdx, float_X const Omega) const
                         {
                             // transform to 3d internal coordinate system
                             float3_X pos = this->getInternalCoordinates(totalCellIdx);
@@ -215,8 +217,11 @@ namespace picongpu
                             return mag;
                         }
 
+                        template<uint32_t T_dim>
                         HDINLINE float_X
-                        phi(floatD_X const& totalCellIdx, float_X const Omega, float_X const phaseShift) const
+                        phi(math::Vector<float_X, T_dim> const& totalCellIdx,
+                            float_X const Omega,
+                            float_X const phaseShift) const
                         {
                             // transform to 3d internal coordinate system
                             float3_X pos = this->getInternalCoordinates(totalCellIdx);
@@ -276,7 +281,6 @@ namespace picongpu
                             return phase;
                         }
 
-                    private:
                         /** Get value of E field in time domain for the given position, using DFT
                          * Interpolation order of DFT given via timestep in grid.param and INIT_TIME
                          * Neglecting the constant part of DFT (k = 0) because there should be no constant field
@@ -285,7 +289,9 @@ namespace picongpu
                          * @param phaseShift additional phase shift to add on top of everything else,
                          *                   in radian
                          */
-                        HDINLINE float_X getValueE(floatD_X const& totalCellIdx, float_X const phaseShift) const
+                        template<uint32_t T_dim>
+                        HDINLINE float_X
+                        getValueE(math::Vector<float_X, T_dim> const& totalCellIdx, float_X const phaseShift) const
                         {
                             auto const time = this->getCurrentTime(totalCellIdx);
                             if(time < 0.0_X)
@@ -405,13 +411,13 @@ namespace picongpu
                                 j = 1;
                             }
 
-                            float3_X iIdxForw = float3_X(totalCellIdx[0], totalCellIdx[1], totalCellIdx[2]);
+                            float3_X iIdxForw = makeVector3(totalCellIdx);
                             iIdxForw[i] = totalCellIdx[i] + 0.5_X;
-                            float3_X iIdxBackw = float3_X(totalCellIdx[0], totalCellIdx[1], totalCellIdx[2]);
+                            float3_X iIdxBackw = makeVector3(totalCellIdx);
                             iIdxBackw[i] = totalCellIdx[i] - 0.5_X;
-                            float3_X jIdxForw = float3_X(totalCellIdx[0], totalCellIdx[1], totalCellIdx[2]);
+                            float3_X jIdxForw = makeVector3(totalCellIdx);
                             jIdxForw[j] = totalCellIdx[j] + 0.5_X;
-                            float3_X jIdxBackw = float3_X(totalCellIdx[0], totalCellIdx[1], totalCellIdx[2]);
+                            float3_X jIdxBackw = makeVector3(totalCellIdx);
                             jIdxBackw[j] = totalCellIdx[j] - 0.5_X;
 
                             if constexpr(Unitless::Polarisation == PolarisationType::Linear)
@@ -473,6 +479,22 @@ namespace picongpu
                         } // B_Omega
 
                     private:
+                        /** Transform 2 and 3 dimensional floating point vector into 3 dimensional vector
+                         *
+                         * Sets all dimensions not available in the input to zero.
+                         * @{
+                         */
+                        HDINLINE float3_X makeVector3(float2_X const& vec) const
+                        {
+                            return float3_X{vec.x(), vec.y(), 0.0_X};
+                        }
+
+                        HDINLINE float3_X makeVector3(float3_X const& vec) const
+                        {
+                            return vec;
+                        }
+                        /** @} */
+
                         /** Get value of B field in time domain for the given position, using DFT
                          * Interpolation order of DFT given via timestep in grid.param and INIT_TIME
                          *
