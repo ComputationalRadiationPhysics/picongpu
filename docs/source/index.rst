@@ -66,6 +66,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    usage/picmi/index
    usage/python_utils
    usage/examples
+   usage/tests
    usage/workflows
    usage/crosscompile
    usage/metadata
