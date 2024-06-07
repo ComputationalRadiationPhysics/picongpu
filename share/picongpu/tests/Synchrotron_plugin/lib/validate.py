@@ -134,7 +134,7 @@ def main(dataPath):
     analytical_integrated = np.array(analytical_integrated)[mask]
 
     x, y = relative_error_array(delta, analytical_integrated, b, a)
-    poorness = np.sum(y) / len(y)  # average relative error
+    poorness = np.mean(y)  # average relative error
     poornessBound = 0.1  # 10% error. We want poorness to be less than 10%
     print(f"Poorness: {poorness}")
 
@@ -146,5 +146,5 @@ def main(dataPath):
 
 if __name__ == "__main__":
     if len(sys.argv[1:]) != 1:
-        raise ValueError(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
+        raise SystemExit(f"Usage: {sys.argv[0]} <path_to_simulation_data>")
     main(sys.argv[1])
