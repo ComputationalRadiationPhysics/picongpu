@@ -420,6 +420,8 @@ class pipe:
         outfile,
         particles=[],
         inconfig="{}",
+        # can increase write performance with no known downsides, see:
+        # https://adios2.readthedocs.io/en/latest/engines/engines.html#bp5
         outconfig="adios2.engine.parameters.BufferChunkSize = 2147381248",
         verbose=False,
     ):
@@ -589,6 +591,7 @@ class pipe:
                     self.print("writing new particles data")
                     self.write_particles(src[key], dest[key], current_path + key)
                     self.print("resume to copying")
+                # skips copying of RNGProvider3XorMin field to reduce memory if needed
                 elif not self.particles.copyRNG and isinstance(src[key], io.Mesh) and key == "RNGProvider3XorMin":
                     self.print("skipped RNGProvider3XorMin")
                 else:
