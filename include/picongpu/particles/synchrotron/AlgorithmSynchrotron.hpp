@@ -437,7 +437,31 @@ namespace picongpu
                         //! conversion factor from photon energy to momentum
                         constexpr float_X convFactor = 1.0_X / SPEED_OF_LIGHT;
                         //! if this is wrong uncomment the lines below and comment this line
-                        float3_X const PhotonMomentum = particle[momentum_] * photonEnergy * convFactor;
+                        float3_X const ratioPhotonElectronEnergy = particle[momentum_] * photonEnergy * convFactor;
+
+                        //! conversion factor from photon energy to momentum
+                        constexpr float_X convFactor = 1.0_X / SPEED_OF_LIGHT;
+                        // E*r = E_y = p_y*c
+                        //
+                        // E^2 = p^2 * c^2 + m^2 * c^4
+                        // p^2 = (E^2 - m^2 * c^4) / c^2
+                        //
+                        // p_y*c = sqrt((p^2 * c^2 + m^2 * c^4)*r^2)
+                        // p_y = sqrt((p^2 + m^2 * c^2) * r^2)
+                        // p_y = sqrt((p^2 * r^2 + m^2 * c^2 * r^2)) != p*r/c
+
+                        //! if this is wrong uncomment the lines below and comment this line
+                        // float3_X const PhotonMomentum = particle[momentum_] * ratioPhotonElectronMomenta;
+
+                        float3_X const mom = particle[momentum_];
+                        float_X const mass = attribute::getMass(float_X(1), particle); // weighting 1
+
+                        float_X const gamma = Gamma<float_X>()(mom, mass);
+                        constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        float_X const electronKineticEnergy = (gamma - float_X(1.0)) * mass * c2;
+                        float_X const photonEnergy = electronKineticEnergy * ratioPhotonElectronEnergy;
+                        float3_X const PhotonMomentum = mom / pmacc::math::l2norm(mom) * photonEnergy * convFactor;
+
 
                         //! save to member variable to use in creation of new photon
                         m_PhotonMomentum = PhotonMomentum;
