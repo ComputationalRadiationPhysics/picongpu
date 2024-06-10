@@ -24,44 +24,40 @@
 #include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
 
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
+
 #include <cstdint>
 
 namespace picongpu
 {
     namespace plugins::binning
     {
-        template<typename T_HistBox, typename T_DepositionFunctor, typename T_AxisTuple, uint32_t N_Axes>
         struct FunctorParticle
         {
-            typedef void result_type;
+            using result_type = void;
 
-            /** the full histogram data box */
-            T_HistBox histBox;
-            T_DepositionFunctor quantityFunctor;
-            T_AxisTuple axisTuple;
-            DomainInfo domainInfo;
-            DataSpace<N_Axes> extentsDataspace;
+            DINLINE FunctorParticle() = default;
 
-            DINLINE FunctorParticle(
-                T_HistBox hBox,
-                const T_DepositionFunctor& depositFunc,
-                const T_AxisTuple& axes,
-                DomainInfo domInfo,
-                const DataSpace<N_Axes>& extents)
-                : histBox{hBox}
-                , quantityFunctor{depositFunc}
-                , axisTuple{axes}
-                , domainInfo{domInfo}
-                , extentsDataspace{extents}
-            {
-            }
-
-            template<typename T_Worker, typename T_Particle>
-            DINLINE void operator()(const T_Worker& worker, const T_Particle& particle)
+            template<
+                typename T_Worker,
+                typename T_HistBox,
+                typename T_DepositionFunctor,
+                typename T_AxisTuple,
+                typename T_Particle,
+                uint32_t T_nAxes>
+            DINLINE void operator()(
+                T_Worker const& worker,
+                T_HistBox histBox,
+                T_DepositionFunctor const& quantityFunctor,
+                T_AxisTuple const& axes,
+                DomainInfo const& domainInfo,
+                DataSpace<T_nAxes> const& extents,
+                const T_Particle& particle) const
             {
                 using DepositionType = typename T_HistBox::ValueType;
 
-                auto binsDataspace = DataSpace<N_Axes>{};
+                auto binsDataspace = DataSpace<T_nAxes>{};
                 bool validIdx = true;
                 apply(
                     [&](auto const&... tupleArgs)
@@ -70,93 +66,72 @@ namespace picongpu
                         // This assumes n_bins and getBinIdx exist
                         ((binsDataspace[i++] = tupleArgs.getBinIdx(domainInfo, worker, particle, validIdx)), ...);
                     },
-                    axisTuple);
+                    axes);
 
                 if(validIdx)
                 {
-                    auto const idxOneD = pmacc::math::linearize(extentsDataspace, binsDataspace);
+                    auto const idxOneD = pmacc::math::linearize(extents, binsDataspace);
                     DepositionType depositVal = quantityFunctor(worker, particle);
-                    alpaka::atomicAdd(
-                        worker.getAcc(),
-                        // &(histBox(binsDataspace)),
-                        &(histBox(DataSpace<1u>{static_cast<int>(idxOneD)})),
-                        depositVal,
-                        ::alpaka::hierarchy::Blocks{});
+                    alpaka::atomicAdd(worker.getAcc(), &(histBox[idxOneD]), depositVal, ::alpaka::hierarchy::Blocks{});
                 }
             }
         };
 
-        /**
-         * Functor to run on each block on device
-         * Allocate memory on device and start iteration over particles
+        /** Creates a histogram based on axis and quantity description
          */
-        template<
-            typename TParticlesBox,
-            typename T_HistBox,
-            typename T_DepositionFunctor,
-            typename T_AxisTuple,
-            uint32_t N_Axes>
-        struct FunctorBlock
+        struct BinningFunctor
         {
             using result_type = void;
 
-            TParticlesBox particlesBox;
-            T_HistBox binningBox;
-            T_DepositionFunctor quantityFunctor;
-            T_AxisTuple axisTuple;
-            pmacc::DataSpace<SIMDIM> globalOffset;
-            pmacc::DataSpace<SIMDIM> localOffset;
-            uint32_t currentStep;
-            DataSpace<N_Axes> extentsDataspace;
+            HINLINE BinningFunctor() = default;
 
-            /** Constructor to transfer params to device
-             *
-             * @param pb ParticleBox for a species
-             */
-            HINLINE
-            FunctorBlock(
-                const TParticlesBox& pBox,
-                T_HistBox hBox,
-                const T_DepositionFunctor depositFunc,
-                const T_AxisTuple axes,
-                const pmacc::DataSpace<SIMDIM> gOffset,
-                const pmacc::DataSpace<SIMDIM> lOffset,
-                const uint32_t step,
-                const DataSpace<N_Axes> extents)
-                : particlesBox{pBox}
-                , binningBox{hBox}
-                , quantityFunctor{depositFunc}
-                , axisTuple{axes}
-                , globalOffset{gOffset}
-                , localOffset{lOffset}
-                , currentStep{step}
-                , extentsDataspace{extents}
+            template<
+                typename T_Worker,
+                typename TParticlesBox,
+                typename T_HistBox,
+                typename T_DepositionFunctor,
+                typename T_AxisTuple,
+                typename T_Mapping,
+                uint32_t T_nAxes>
+            DINLINE void operator()(
+                T_Worker const& worker,
+                T_HistBox binningBox,
+                TParticlesBox particlesBox,
+                pmacc::DataSpace<simDim> const& localOffset,
+                pmacc::DataSpace<simDim> const& globalOffset,
+                T_AxisTuple const& axisTuple,
+                T_DepositionFunctor const& quantityFunctor,
+                DataSpace<T_nAxes> const& extents,
+                uint32_t const currentStep,
+                T_Mapping const& mapper) const
             {
-            }
-
-
-            template<typename T_Worker, typename T_Mapping>
-            DINLINE void operator()(const T_Worker& worker, T_Mapping const& mapper) const
-            {
-                const DataSpace<SIMDIM> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
+                DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
                 /**
                  * Init the Domain info, here because of the possibility of a moving window
                  */
-                auto domainInfo = DomainInfo{
+                auto const domainInfo = DomainInfo{
                     currentStep,
                     globalOffset,
                     localOffset,
                     superCellIdx - mapper.getGuardingSuperCells()};
 
-                FunctorParticle<T_HistBox, T_DepositionFunctor, T_AxisTuple, N_Axes>
-                    functorParticle(binningBox, quantityFunctor, axisTuple, domainInfo, extentsDataspace);
+                auto const functorParticle = FunctorParticle{};
 
                 auto forEachParticle
                     = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
 
-                forEachParticle([&](auto const& lockstepWorker, auto& particle)
-                                { functorParticle(lockstepWorker, particle); });
+                forEachParticle(
+                    [&](auto const& lockstepWorker, auto& particle) {
+                        functorParticle(
+                            lockstepWorker,
+                            binningBox,
+                            quantityFunctor,
+                            axisTuple,
+                            domainInfo,
+                            extents,
+                            particle);
+                    });
             }
         };
     } // namespace plugins::binning

@@ -410,28 +410,25 @@ namespace picongpu
                 auto cellDesc = *cellDescription;
                 auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
-                auto globalOffset = Environment<SIMDIM>::get().SubGrid().getGlobalDomain().offset;
-                auto localOffset = Environment<SIMDIM>::get().SubGrid().getLocalDomain().offset;
+                auto const globalOffset = Environment<simDim>::get().SubGrid().getGlobalDomain().offset;
+                auto const localOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset;
 
-                auto axisKernels = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
+                auto const axisKernels
+                    = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
 
-                using TAxisTuple = decltype(axisKernels);
-                auto functorBlock = FunctorBlock<
-                    TParticlesBox,
-                    decltype(binningBox),
-                    TDepositedQuantityFunctor,
-                    decltype(axisKernels),
-                    TBinningData::getNAxes()>(
-                    particlesBox,
-                    binningBox,
-                    binningData.depositionData.functor,
-                    axisKernels,
-                    globalOffset,
-                    localOffset,
-                    currentStep,
-                    binningData.axisExtentsND);
+                auto const functorBlock = BinningFunctor{};
 
-                PMACC_LOCKSTEP_KERNEL(functorBlock).config(mapper.getGridDim(), particlesBox)(mapper);
+                PMACC_LOCKSTEP_KERNEL(functorBlock)
+                    .config(mapper.getGridDim(), particlesBox)(
+                        binningBox,
+                        particlesBox,
+                        localOffset,
+                        globalOffset,
+                        axisKernels,
+                        binningData.depositionData.functor,
+                        binningData.axisExtentsND,
+                        currentStep,
+                        mapper);
             }
 
             void pluginLoad() override
