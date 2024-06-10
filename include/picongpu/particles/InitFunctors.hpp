@@ -222,5 +222,59 @@ namespace picongpu
             }
         };
 
+        namespace detail
+        {
+            /** Time step conditional functor execution of init functors
+             * @tparam T_timeStep Timestep to compare
+             * @tparam T_Functor Functor which is executed any time the T_Comparator::operator()(current step,
+             *                   T_timeStep) is true.
+             * @tparam T_Comparator binary comparison operator
+             * */
+            template<uint32_t T_timeStep, typename T_Functor, typename T_Comparator>
+            struct ExecuteIfTimeStep
+            {
+                HINLINE void operator()(const uint32_t currentStep)
+                {
+                    if(T_Comparator{}(currentStep, T_timeStep))
+                        T_Functor{}(currentStep);
+                }
+            };
+        } // namespace detail
+
+        /** Time step conditional functor execution
+         *
+         * @tparam T_timeStep Timestep to compare
+         * @tparam T_Functor Functor which is executed any time the condition is true.
+         *
+         * @code{.cpp}
+         *    // add this for example to the species InitPipeline if you like to add a
+         *    // temperature only in the time-step 100
+         *    ExecuteIfTimeStepEq<100,Manipulate<manipulators::AddTemperature, PIC_Electrons>>
+         * @endcode
+         *
+         * @{
+         */
+
+        // Equal
+        template<uint32_t T_timeStep, typename T_Functor>
+        using ExecuteIfTimeStepEq = detail::ExecuteIfTimeStep<T_timeStep, T_Functor, std::equal_to<uint32_t>>;
+
+        // Greater than
+        template<uint32_t T_timeStep, typename T_Functor>
+        using ExecuteIfTimeStepGt = detail::ExecuteIfTimeStep<T_timeStep, T_Functor, std::greater<uint32_t>>;
+
+        // Greater or Equal
+        template<uint32_t T_timeStep, typename T_Functor>
+        using ExecuteIfTimeStepGe = detail::ExecuteIfTimeStep<T_timeStep, T_Functor, std::greater_equal<uint32_t>>;
+
+        // Less than
+        template<uint32_t T_timeStep, typename T_Functor>
+        using ExecuteIfTimeStepLt = detail::ExecuteIfTimeStep<T_timeStep, T_Functor, std::less<uint32_t>>;
+
+        // Less or Equal
+        template<uint32_t T_timeStep, typename T_Functor>
+        using ExecuteIfTimeStepLe = detail::ExecuteIfTimeStep<T_timeStep, T_Functor, std::less_equal<uint32_t>>;
+
+        /** @} */
     } // namespace particles
 } // namespace picongpu
