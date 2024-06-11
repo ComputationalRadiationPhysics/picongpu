@@ -58,7 +58,7 @@ namespace picongpu
             auto cellPositionYDescription = createFunctorDescription<int>(getPositionY, "position_axisY");
 
             // Create Axis Splitting
-            auto domain_size = Environment<SIMDIM>::get().SubGrid().getGlobalDomain().size;
+            auto domain_size = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
             auto rangeY = axis::Range{0, domain_size[1]};
             auto cellY_splitting = axis::AxisSplitting(rangeY, domain_size[1]);
 

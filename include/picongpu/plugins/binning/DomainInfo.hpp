@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <pmacc/dimensions/DataSpace.hpp>
+
 #include <cstdint>
 
 namespace picongpu
@@ -34,20 +36,20 @@ namespace picongpu
             /** Current simulation timestep */
             uint32_t currentStep;
             /** Offset of the global domain on all GPUs */
-            pmacc::DataSpace<SIMDIM> globalOffset;
+            pmacc::DataSpace<simDim> globalOffset;
             /** Offset of the domain simulated on current GPU */
-            pmacc::DataSpace<SIMDIM> localOffset;
+            pmacc::DataSpace<simDim> localOffset;
             /** Offset of domain simulated by current block wrt the border */
-            pmacc::DataSpace<SIMDIM> blockCellOffset;
+            pmacc::DataSpace<simDim> blockCellOffset;
 
             /**
              * @param physicalSuperCellIdx supercell index relative to the border origin
              */
             DINLINE DomainInfo(
                 uint32_t simStep,
-                pmacc::DataSpace<SIMDIM> gOffset,
-                pmacc::DataSpace<SIMDIM> lOffset,
-                DataSpace<SIMDIM> physicalSuperCellIdx)
+                pmacc::DataSpace<simDim> gOffset,
+                pmacc::DataSpace<simDim> lOffset,
+                DataSpace<simDim> physicalSuperCellIdx)
                 : currentStep{simStep}
                 , globalOffset{gOffset}
                 , localOffset{lOffset}
