@@ -57,6 +57,9 @@ namespace picongpu
                         //! Base unitless parameters
                         using Base = BaseParamUnitless<T_Params>;
 
+                        // unit: none
+                        using Params::SPECTRAL_SUPPORT;
+
                         // unit: UNIT_LENGTH
                         static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
 
@@ -295,25 +298,49 @@ namespace picongpu
                             else if(time > Unitless::INIT_TIME)
                                 return 0.0_X;
 
-                            // timestep also in UNIT_TIME
-                            float_X const dt = static_cast<float_X>(picongpu::SI::DELTA_T_SI / UNIT_TIME);
                             // interpolation order
-                            float_X N_raw = Unitless::INIT_TIME / dt;
-                            int n = static_cast<int>(N_raw * 0.5_X); // -0 instead of -1 for rounding up N_raw
+                            float_X N_raw = Unitless::INIT_TIME / DELTA_T;
+                            int const n = static_cast<int>(N_raw * 0.5_X); // -0 instead of -1 for rounding up N_raw
 
-                            float_X E_t = 0.0_X; // electric field in time-domain
-                            float_X Omk = 0.0_X; // stores angular frequency for DFT-loop; Omk= 2pi*k/T
+                            // frequency step for DFT
+                            float_X const dOmk = pmacc::math::Pi<float_X>::doubleValue / Unitless::INIT_TIME;
 
-                            for(int k = 1; k < n + 1; k++)
+                            // Since the (Gaussian) spectrum has only significant values near the central frequency,
+                            // the summation over all frequencies is reduced to frequencies within an interval
+                            // around the central frequency.
+
+                            // standard deviation of the Gaussian distributed spectrum
+                            float_X const sigma_Om = 1._X / (pmacc::math::sqrt(2._X) * Unitless::PULSE_DURATION);
+
+                            // index of the mean frequency of the Gaussian distributed spectrum
+                            // unit: [dOmk]
+                            int const center_k
+                                = static_cast<int>(SPEED_OF_LIGHT * Unitless::INIT_TIME / Unitless::Base::WAVE_LENGTH);
+
+                            // index of the lowest frequency in the Gaussian distributed spectrum which is used in the
+                            // DFT 4*sigma_Om distance from central frequency
+                            int const minOm_k
+                                = center_k - static_cast<int>(Unitless::SPECTRAL_SUPPORT * sigma_Om / dOmk);
+                            int const k_min = math::max(minOm_k, 1);
+
+                            // index of the highest frequency in the Gaussian distributed spectrum which is used in the
+                            // DFT
+                            int const maxOm_k = 2 * center_k - minOm_k;
+                            int const k_max = math::min(maxOm_k, n);
+
+                            // electric field in time-domain
+                            float_X E_t = 0.0_X;
+
+                            for(int k = k_min; k <= k_max; k++)
                             {
-                                Omk = static_cast<float_X>(k) * pmacc::math::Pi<float_X>::doubleValue
-                                    / Unitless::INIT_TIME;
+                                // stores angular frequency for DFT-loop
+                                float_X const Omk = static_cast<float_X>(k) * dOmk;
                                 float_X sinPhi, cosPhi;
                                 float_X sinOmkt, cosOmkt;
                                 pmacc::math::sincos(phi(totalCellIdx, Omk, phaseShift), sinPhi, cosPhi);
                                 pmacc::math::sincos(Omk * time, sinOmkt, cosOmkt);
-                                E_t += 2.0_X * amp(totalCellIdx, Omk) * cosPhi / dt * cosOmkt
-                                    + 2.0_X * amp(totalCellIdx, Omk) * sinPhi / dt * sinOmkt;
+                                E_t += 2.0_X * amp(totalCellIdx, Omk) * (cosPhi * cosOmkt + sinPhi * sinOmkt)
+                                    / DELTA_T;
                             }
 
                             E_t /= static_cast<float_X>(2 * n + 1); // Normalization from DFT

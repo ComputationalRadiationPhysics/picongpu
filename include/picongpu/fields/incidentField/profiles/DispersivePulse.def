@@ -55,6 +55,16 @@ namespace picongpu
                          */
                         static constexpr float_64 PULSE_INIT = 20.0;
 
+                        /** Width of the spectral support for the discrete Fourier transform of the pulse's field
+                         * from frequency-space domain to time-space domain.
+                         * Defined as number of sigmas of the laser pulse spectrum.
+                         * NOTE: A too small value will artificially increase the pulse duration and
+                         * too high values will increase the the time per step during initialization of the pulse.
+                         *
+                         * unit: none
+                         */
+                        static constexpr float_X SPECTRAL_SUPPORT = 4._X;
+
                         // Dispersion Parameters
 
                         /** SD: spatial dispersion in focus
