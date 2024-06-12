@@ -123,6 +123,27 @@ namespace pmacc
 
             constexpr Vector() = default;
 
+            /** Initialize via a generator expression
+             *
+             * The generator must return the value for the corresponding index of the component which is passed to the
+             * generator.
+             */
+            template<
+                typename F,
+                std::enable_if_t<std::is_invocable_v<F, std::integral_constant<uint32_t, 0u>>, uint32_t> = 0u>
+            ALPAKA_FN_HOST_ACC constexpr explicit Vector(F&& generator)
+                : Vector(std::forward<F>(generator), std::make_integer_sequence<uint32_t, dim>{})
+            {
+            }
+
+        private:
+            template<typename F, uint32_t... Is>
+            ALPAKA_FN_HOST_ACC constexpr explicit Vector(F&& generator, std::integer_sequence<uint32_t, Is...>)
+                : Storage(Navigator{}, generator(std::integral_constant<uint32_t, Is>{})...)
+            {
+            }
+
+        public:
             /** Constructor for N-dimensional vector
              *
              * @attention This constructor allows implicit casts.
