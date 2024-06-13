@@ -77,22 +77,22 @@ get_backend_flags()
             result+=" -DCMAKE_CUDA_ARCHITECTURES=52"
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
-        result+=" -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON -DPMACC_USE_ASYNC_QUEUES=OFF"
+        result+=" -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON -DPMACC_ASYNC_QUEUES=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "serial" ] ; then
-        result+=" -Dalpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON -DPMACC_USE_ASYNC_QUEUES=OFF"
+        result+=" -Dalpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON -DPMACC_ASYNC_QUEUES=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "tbb" ] ; then
-        result+=" -Dalpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON -DPMACC_USE_ASYNC_QUEUES=OFF"
+        result+=" -Dalpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON -DPMACC_ASYNC_QUEUES=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "threads" ] ; then
-        result+=" -Dalpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON -DPMACC_USE_ASYNC_QUEUES=OFF"
+        result+=" -Dalpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON -DPMACC_ASYNC_QUEUES=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
