@@ -41,19 +41,20 @@ help()
     echo ""
     echo "usage: pic-configure [OPTIONS] <inputDirectory>"
     echo ""
-    echo "-i | --install       - path were picongpu shall be installed"
+    echo "-i | --install        - path were picongpu shall be installed"
     echo "                       (default is <inputDirectory>)"
-    echo "-b | --backend       - set compute backend and optionally the architecture"
-    echo "                       syntax: backend[:architecture]"
-    echo "                       supported backends: cuda, hip, omp2b, serial, tbb, threads"
-    echo "                       (e.g.: \"cuda:35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
-    echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
-    echo "                       note: architecture names are compiler dependent"
-    echo "-c | --cmake         - overwrite options for cmake"
-    echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
-    echo "-t <presetNumber>    - configure this preset from cmakeFlags"
-    echo "-f | --force         - clear the cmake file cache and scan for new param files"
-    echo "-h | --help          - show this help message"
+    echo "-b | --backend        - set compute backend and optionally the architecture"
+    echo "                        syntax: backend[:architecture]"
+    echo "                        supported backends: cuda, hip, omp2b, serial, tbb, threads"
+    echo "                        (e.g.: \"cuda:35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
+    echo "                        default: \"cuda\" if not set via environment variable PIC_BACKEND"
+    echo "                        note: architecture names are compiler dependent"
+    echo "-c | --cmake          - overwrite options for cmake"
+    echo "                        (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
+    echo "-t <presetNumber>     - configure this preset from cmakeFlags"
+    echo "-f | --force          - clear the cmake file cache and scan for new param files"
+    echo "-G <cmakeBuildSystem> - select the build system used by CMake, e.g. Ninja, ..."
+    echo "-h | --help           - show this help message"
 }
 
 get_backend_flags()
@@ -110,7 +111,7 @@ get_backend_flags()
 }
 
 # options may be followed by one colon to indicate they have a required argument
-OPTS=`getopt -o i:b:c:p:t:hf -l install:,backend:,cmake:,params:,help,force -- "$@"`
+OPTS=`getopt -o G:i:b:c:p:t:hf -l install:,backend:,cmake:,params:,help,force -- "$@"`
 if [ $? != 0 ] ; then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -147,12 +148,16 @@ while true ; do
             echo -e "$(help)"
             exit 0
             ;;
-       -f|--force)
+        -f|--force)
             force="true"
             ;;
         -c|--cmake)
             cmake_options="$2"
             shift
+            ;;
+        -G)
+           buildSystem="-G $2"
+           shift
             ;;
         -t)
             cmakeFlagsNr="$2"
@@ -224,10 +229,10 @@ if [ -z "$alpaka_backend" ] ; then
 fi
 
 if [ "$force" == "true" ] && [ -f "CMakeCache.txt" ] ; then
-    clean_cmd="cmake --build . --target clean"
+    clean_cmd="cmake ${buildSystem} --build . --target clean"
     echo -e "\033[32mforce clean the build directory:\033[0m $clean_cmd"
     eval $clean_cmd
 fi
-own_command="cmake $cmake_flags $install_path $cmake_extension_param $cmake_options $alpaka_backend $picongpu_prefix/include/picongpu"
+own_command="cmake ${buildSystem} $cmake_flags $install_path $cmake_extension_param $cmake_options $alpaka_backend $picongpu_prefix/include/picongpu"
 echo -e "\033[32mcmake command:\033[0m $own_command"
 eval $own_command

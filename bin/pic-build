@@ -40,11 +40,12 @@ help()
     echo ""
     echo "usage: pic-build [OPTIONS]"
     echo ""
+    echo "-j [N]                - allow N jobs at once; infinite jobs with no arg"
     # lend the rest of the options from pic-configure
     echo "$($this_dir/pic-configure --help | tail -n +12)"
 }
 
-cmd_line_args=("$@")
+cmd_line_args=()
 
 # show help
 while [[ $# -gt 0 ]] ; do
@@ -53,7 +54,14 @@ while [[ $# -gt 0 ]] ; do
             echo -e "$(help)"
             exit 0
             ;;
+        -j)
+            if echo $2 | grep -q "[0-9]\+" ; then
+              nCompileThreads=$2
+              shift
+            fi
+            ;;
         *)
+            cmd_line_args+=($1)
             # just ignore other options
             ;;
     esac
@@ -97,10 +105,10 @@ then
     exit 4
 fi
 
-# make and install
-make -j install
-if [ $? -ne 0 ]
-then
+# compile and install
+buildCommand="cmake --build . --target install --parallel ${nCompileThreads}"
+echo -e "\033[32mcall build:\033[0m ${buildCommand}"
+if ! $buildCommand; then
     echo ""
     echo "ERROR: Could not successfully run make install in build directory:" >&2
     echo "       $build_dir" >&2
