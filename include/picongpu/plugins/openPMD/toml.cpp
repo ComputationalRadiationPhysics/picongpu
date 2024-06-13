@@ -240,7 +240,7 @@ namespace
                     std::stringstream errorMsg;
                     std::chrono::seconds const asSeconds = timeout;
                     errorMsg << "openPMD: TOML file '" << path << "' was not found within the timeout of "
-                             << timeout.count() << " seconds.";
+                             << asSeconds.count() << " seconds.";
                     throw std::runtime_error(errorMsg.str());
                 }
                 std::this_thread::sleep_for(sleepInterval);
