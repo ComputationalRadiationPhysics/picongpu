@@ -185,6 +185,7 @@ class addParticles2Checkpoint:
 
         self.has_probeE = False
         self.has_probeB = False
+        self.has_momentumPrev1 = False
         self.has_id = False
 
         # extract data type for position
@@ -226,6 +227,14 @@ class addParticles2Checkpoint:
                 .dtype
             )
         self.print("contains id =  {}".format(self.has_id))
+
+        if "momentumPrev1" in self.f.iterations[self.timestep].particles[self.speciesName]:
+            self.has_momentumPrev1 = True
+            # type of momentumPrev1
+            self.dtype_momentumPrev1 = (
+                self.f.iterations[self.timestep].particles[self.speciesName]["momentumPrev1"]["x"].dtype
+            )
+        self.print("contains momentumPrev1 =  {}".format(self.has_momentumPrev1))
 
         del self.f  # close checkpoint file
 
@@ -280,6 +289,11 @@ class addParticles2Checkpoint:
         if self.has_id:
             # give every particle an ID
             self.id = np.arange(len(w), dtype=self.dtype_id)
+
+        if self.has_momentumPrev1:
+            # give momentumPrev1 for all particles
+            temp_zeros = np.zeros(len(w), dtype=self.dtype_momentumPrev1)
+            self.momentumPrev1 = vec3D(temp_zeros, temp_zeros, temp_zeros)
 
     def makePatchMask(self):
         """
@@ -721,6 +735,24 @@ class pipe:
                 src["id"][io.Mesh_Record_Component.SCALAR],
                 dest["id"][io.Mesh_Record_Component.SCALAR],
                 self.particles.id,
+            )
+
+        if self.particles.has_momentumPrev1:
+            self.print("\twriting momentumPrev1")
+            self.write(
+                src["momentumPrev1"]["x"],
+                dest["momentumPrev1"]["x"],
+                self.particles.momentumPrev1.x,
+            )
+            self.write(
+                src["momentumPrev1"]["y"],
+                dest["momentumPrev1"]["y"],
+                self.particles.momentumPrev1.y,
+            )
+            self.write(
+                src["momentumPrev1"]["z"],
+                dest["momentumPrev1"]["z"],
+                self.particles.momentumPrev1.z,
             )
 
         # write own particle patches
