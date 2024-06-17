@@ -1,0 +1,83 @@
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+
+#include <cstdint>
+
+// base density 1e25m^(-3), 10 macro particle per cell, uniform distribution
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+#ifndef PARAM_BASE_DENSITY_SI
+#    define PARAM_BASE_DENSITY_SI 1.e25
+#endif
+        constexpr float_64 BASE_DENSITY_SI = 1e28;
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        struct FreeFormulaFunctor
+        {
+            /**
+             * This formula uses SI quantities only
+             * The profile will be multiplied by BASE_DENSITY_SI.
+             *
+             * @param position_SI total offset including all slides [in meter]
+             * @param cellSize_SI cell sizes [in meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                // get cell index for each coordinate
+                const pmacc::math::UInt64<simDim> cell_id(position_SI / cellSize_SI.shrink<simDim>());
+
+                // add particle in every cell in which all coordinates are 2,4 or 6
+                // one in every supercell of size [2,2,2]
+                bool isStartCell = true;
+                for(uint64_t d = 0; d < simDim; ++d)
+                    if((cell_id[d] != 1u) && (cell_id[d] != 3u) && (cell_id[d] != 5u))
+                        isStartCell = false;
+
+                if(isStartCell)
+                    return 1.0;
+
+                return 0.0;
+            }
+        };
+
+        /* homogenous distribution */
+        using Homogenous = HomogenousImpl;
+        /* definition of free formula profile */
+        using FreeFormula = FreeFormulaImpl<FreeFormulaFunctor>;
+    } // namespace densityProfiles
+} // namespace picongpu
