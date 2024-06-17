@@ -1,0 +1,165 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software you can redistribute it and or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file energy feedback to the free electron spectrum at end of atomicPhysics sub step according to
+ *    their histogram bin deltaEnergy
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/atomicPhysics/GetPhysicalEnergy.hpp"
+
+#include <pmacc/algorithms/math/PowerFunction.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
+
+#include <cstdint>
+
+namespace picongpu::particles::atomicPhysics::kernel
+{
+    /** decelerate electron kernel
+     *
+     * @attention assumes that the histogram deltaEnergy values have been filled previously
+     *
+     * called by decelerateElectrons sub-stage, changes the momentum all macro particles
+     *  of the species T_ElectronSpecies in the given superCell to on average match the
+     *  deltaEnergy of each bin.
+     */
+    template<typename T_Electron, typename T_Histogram>
+    struct DecelerateElectronsKernel
+    {
+        /** call operator
+         *
+         * called by DecelerateElectrons atomic physics sub-stage
+         *
+         * @param worker object containing the device and block
+         *  information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param electronBox deviceDataBox giving access to the ion species particle frames
+         *   of all local superCells
+         * @param localElectronHistogramDataBox deviceDataBox giving access to the
+         *  local electron histograms of all local superCells
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_ElectronBox,
+            typename T_LocalElectronHistogramDataBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_ElectronBox electronBox,
+            T_LocalElectronHistogramDataBox localElectronHistogramDataBox) const
+        {
+            pmacc::DataSpace<simDim> const superCellIdx = areaMapping.getSuperCellIndex(worker.blockDomIdxND());
+
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = superCellIdx - areaMapping.getGuardingSuperCells();
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+
+            auto forEachLocalElectronBoxEntry
+                = pmacc::particles::algorithm::acc::makeForEach(worker, electronBox, superCellIdx);
+
+            // end kernel if superCell already finished or if contains no particles
+            if((timeRemaining <= 0._X) || (!forEachLocalElectronBoxEntry.hasParticles()))
+                return;
+
+            // get histogram for current superCell
+            T_Histogram& histogram = localElectronHistogramDataBox(superCellFieldIdx);
+
+            // decelerate electrons
+            forEachLocalElectronBoxEntry(
+                [&histogram](T_Worker const& worker, auto& electron)
+                {
+                    // energy of a single corresponding physical electron,
+                    //      no need to use float_64 since really high energy electrons are
+                    //      suppressed in atomicPhysics
+                    float_X const energyElectron = GetPhysicalEnergy::KineticEnergy(electron);
+                    // eV
+
+                    // no corresponding bin exist
+                    if(!histogram.inRange(energyElectron /*eV*/))
+                        return;
+
+                    // look up in the histogram, which bin corresponds to this energy
+                    uint32_t const binIndex = histogram.getBinIndex(energyElectron /*eV*/);
+
+                    float_X const weightBin = histogram.getBinWeight0(binIndex);
+                    float_X const deltaEnergyBin = histogram.getBinDeltaEnergy(binIndex);
+                    // eV, weighted
+
+                    // m_internal * kg/m_internal * m^2/s^2 * eV/J = kg * m^2/s^2 * eV/ J
+                    //  = Nm/J * eV = J/J * eV = eV, ~ 511e3 eV
+                    float_X const mcSquaredElectron = static_cast<float_X>(
+                        static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Electron::FrameType>())
+                        * UNIT_MASS * pmacc::math::cPow(picongpu::SI::SPEED_OF_LIGHT_SI, 2u) * UNITCONV_Joule_to_keV
+                        * 1.e3);
+                    // eV, not weighted
+
+                    // distribute energy change as mean by weight on all electrons in bin
+                    // eV + eV /(unitless * unitless) = eV
+                    float_X newEnergyElectron = energyElectron + static_cast<float_X>(deltaEnergyBin / weightBin);
+                    // (eV, not weighted) + ((eV, weighted)/weight)
+                    //  = (eV, not weighted) + (eV, not weighted) = (eV, weighted)
+                    // eV, not weighted
+
+                    // case: too much energy removed
+                    if(newEnergyElectron < 0._X)
+                        newEnergyElectron = 0._X; // extract as much as possible, rest is hopefully negligible
+
+                    constexpr float_X c_internal
+                        = static_cast<float_X>(picongpu::SI::SPEED_OF_LIGHT_SI * UNIT_TIME / UNIT_LENGTH);
+                    // usually ~1, internal units
+
+                    constexpr float_X conversionEnergy = static_cast<float_X>(UNITCONV_eV_to_Joule * 1. / UNIT_ENERGY);
+                    // J/(eV) * UNIT_ENERGY/J  = J/J * UNIT_ENERGY/(eV)
+
+                    constexpr float_X scalingFactor = 1._X / c_internal * conversionEnergy;
+
+                    // sqrt(E' * (E' + 2* m*c^2)) / c
+                    float_X const newElectronMomentum
+                        = math::sqrt(newEnergyElectron * (newEnergyElectron + 2 * mcSquaredElectron)) * scalingFactor;
+                    // AU = ATOMIC_UNIT_ENERGY
+                    // sqrt(eV * (eV + eV))/(UNIT_LENGTH/UNIT_TIME) * (UNIT_ENERGY/eV)
+                    //  = sqrt((eV)^2)/(eV) * UNIT_TIME/UNIT_LENGTH * UNIT_ENERGY
+                    //  = UNIT_MASS * UNIT_LENGTH^2/UNIT_TIME^2 * UNIT_TIME/UNIT_LENGTH
+                    //  = UNIT_MASS * UNIT_LENGTH/UNIT_TIME
+                    // internal units, not weighted
+
+                    float_X previousMomentumVectorLength = pmacc::math::l2norm(electron[momentum_]);
+                    // internal units, scaled
+
+                    // case: not moving electron, --> no need to resize vector
+                    if(previousMomentumVectorLength == 0._X)
+                        previousMomentumVectorLength = 1._X;
+
+                    // if previous momentum == 0, discards electron
+                    // UNIT_MASS * UNIT_LENGTH / UNIT_TIME, weighted
+                    electron[momentum_]
+                        *= newElectronMomentum * electron[weighting_] * 1._X / previousMomentumVectorLength;
+                });
+        }
+    };
+} // namespace picongpu::particles::atomicPhysics::kernel

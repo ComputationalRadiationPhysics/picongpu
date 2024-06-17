@@ -1,4 +1,4 @@
-/* Copyright 2023-2023 Brian Marre
+/* Copyright 2023 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -17,13 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! functor for setting the charge state of a macro particle
+//! @file implements setter for charge state
 
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/SetToAtomicGroundState.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/assert.hpp>
@@ -34,6 +33,7 @@ namespace picongpu::particles::atomicPhysics
 {
     struct SetChargeState
     {
+        //! @attention invalidates the atomicStateCollectionIndex attribute of macro ions
         template<typename T_Ion>
         DINLINE void operator()(T_Ion& ion, float_X numberBoundElectrons)
         {
@@ -44,7 +44,18 @@ namespace picongpu::particles::atomicPhysics
 
             ion[boundElectrons_] = numberBoundElectrons;
 
-            SetToAtomicGroundState{}(ion, static_cast<uint8_t>(numberBoundElectrons));
+            if constexpr(pmacc::traits::HasFlag<typename T_Ion::FrameType, isAtomicPhysicsIon<>>::type::value)
+            {
+                /* both boundElectrons and atomicStateCollectionIndex particle attribute must be consistent set,
+                 *  but we lack access to the atomicStateData to correctly update atomicStateCollectionIndex
+                 *
+                 * Instead we invalidate it by purpose and check at the start of the atomicPhysics step for consistency
+                 * and set all inconsistent macro-ions to their respective atomic ground state.
+                 */
+
+                // invalidate atomicStateCollectionIndex particle attribute for easier detection
+                ion[atomicStateCollectionIndex_] = 0u;
+            }
         }
     };
 } // namespace picongpu::particles::atomicPhysics

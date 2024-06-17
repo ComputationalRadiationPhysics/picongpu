@@ -26,7 +26,7 @@
 
 #include <cstdint>
 
-namespace picongpu::particles::atomicPhysics2
+namespace picongpu::particles::atomicPhysics
 {
     //! static cast enum instance to uint8_t
     template<typename T_Enum>
@@ -48,4 +48,4 @@ namespace picongpu::particles::atomicPhysics2
     {
         return static_cast<bool>(enumInstance);
     }
-} // namespace picongpu::particles::atomicPhysics2
+} // namespace picongpu::particles::atomicPhysics

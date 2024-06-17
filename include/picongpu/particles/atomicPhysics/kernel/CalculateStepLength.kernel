@@ -1,0 +1,128 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+//! @file implements kernel to calculate atomic physics time step length
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+// need timeStepAlpha factor from atomicPhysics.param
+// need access to DELTA_T from grid.unitless
+
+#include <pmacc/lockstep/ForEach.hpp>
+
+namespace picongpu::particles::atomicPhysics::kernel
+{
+    /** find atomicPhysics time step length kernel
+     *
+     * will find minimum time step length from the minimum stepLength of all atomic states
+     *  of all species
+     */
+    template<uint32_t T_numberAtomicStates>
+    struct CalculateStepLengthKernel
+    {
+        /** call operator
+         *
+         * called by calculateStepLength atomic physics sub-stage
+         *
+         * calculate minimum time step for species
+         *
+         * @param worker object containing the device and block
+         *  information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param localTimeStepBox deviceDataBox giving access to localTimeStep superCellField values
+         *  of all local superCells
+         * @param localTimeStepBox deviceDataBox giving access to superCell local rateCaches
+         *  of all local superCells
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalRateCache,
+            typename T_LocalTimeStepBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_LocalTimeStepBox localTimeStepBox,
+            T_LocalRateCache localRateCacheBox) const
+        {
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = areaMapping.getSuperCellIndex(worker.blockDomIdxND()) - areaMapping.getGuardingSuperCells();
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
+
+            auto& rateCache = localRateCacheBox(superCellFieldIdx);
+            // UNIT_TIME
+            float_X& timeStep = localTimeStepBox(superCellFieldIdx);
+
+            auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
+
+            forEachAtomicState(
+                [&](uint32_t const atomicStateCollectionIndex)
+                {
+                    // check if atomic state present at all
+                    if(!rateCache.present(atomicStateCollectionIndex))
+                        return;
+
+                    float_X const rateCacheLossRate = rateCache.totalLossRate(atomicStateCollectionIndex);
+
+                    // 1/UNIT_TIME
+                    float_X lossRateState = 0._X;
+                    if(rateCacheLossRate == 0._X)
+                    {
+                        // no loss state, for example completely ionized state, set to neutral element
+                        // 1/UNIT_TIME
+                        lossRateState = picongpu::atomicPhysics::timeStepAlpha / DELTA_T;
+                    }
+                    else
+                    {
+                        lossRateState = rateCacheLossRate;
+                    }
+
+                    if constexpr(picongpu::atomicPhysics::debug::kernel::calculateTimeStep::
+                                     CHECK_TOTAL_LOSS_RATE_POSITIVE)
+                        if(lossRateState < 0._X)
+                        {
+                            printf("atomicPhysics ERROR: encountered negative loss rate in "
+                                   "calculateStepLength kernel\n");
+                            // 1/UNIT_TIME
+                            lossRateState = picongpu::atomicPhysics::timeStepAlpha / DELTA_T;
+                        }
+
+                    // 1/(1/UNIT_TIME) = UNIT_TIME
+                    float_X const speciesStateLimitTimeStep = 1._X / (lossRateState);
+
+                    // UNIT_TIME
+                    alpaka::atomicMin(
+                        worker.getAcc(),
+                        &timeStep, // UNIT_TIME
+                        speciesStateLimitTimeStep * picongpu::atomicPhysics::timeStepAlpha,
+                        ::alpaka::hierarchy::Threads{});
+                });
+        }
+    };
+
+} // namespace picongpu::particles::atomicPhysics::kernel

@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Rene Widera, Felix Schmitt, Axel Huebl,
- *                     Alexander Grund, Finn-Ole Carstens
+ *                     Alexander Grund, Finn-Ole Carstens, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -592,18 +592,18 @@ namespace picongpu
             }
         };
 
-        template<typename T_Type>
-        struct Unit<atomicConfigNumber<T_Type>>
+        template<>
+        struct Unit<atomicStateCollectionIndex>
         {
-            // unitless and not scaled by a factor: by convention 1.0
             static std::vector<double> get()
             {
+                // unitless and not scaled by a factor: by convention 1.0
                 std::vector<double> unit(1, 1.0);
                 return unit;
             }
         };
-        template<typename T_Type>
-        struct UnitDimension<atomicConfigNumber<T_Type>>
+        template<>
+        struct UnitDimension<atomicStateCollectionIndex>
         {
             static std::vector<float_64> get()
             {
@@ -611,19 +611,171 @@ namespace picongpu
                 return std::vector<float_64>(NUnitDimension, 0.0);
             }
         };
-        template<typename T_Type>
-        struct MacroWeighted<atomicConfigNumber<T_Type>>
+        template<>
+        struct MacroWeighted<atomicStateCollectionIndex>
         {
-            // only maro particles have a configNumber
+            // only macro particles have an atomic state
             static bool get()
             {
                 return false;
             }
         };
-        template<typename T_Type>
-        struct WeightingPower<atomicConfigNumber<T_Type>>
+        template<>
+        struct WeightingPower<atomicStateCollectionIndex>
         {
-            // particle ids do not scale with weighting
+            // state ids do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<processClass>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<processClass>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<processClass>
+        {
+            // only macro particles have a processClass
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<processClass>
+        {
+            // process classifications do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<transitionIndex>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<transitionIndex>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<transitionIndex>
+        {
+            // only macro particles have a processClass
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<transitionIndex>
+        {
+            // transition indexes do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<binIndex>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<binIndex>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<binIndex>
+        {
+            // only macro particles have a interacting bin
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<binIndex>
+        {
+            // bin indices do not scale with weighting
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+
+        template<>
+        struct Unit<accepted>
+        {
+            static std::vector<double> get()
+            {
+                // unitless and not scaled by a factor: by convention 1.0
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<accepted>
+        {
+            static std::vector<float_64> get()
+            {
+                // unitless
+                return std::vector<float_64>(NUnitDimension, 0.0);
+            }
+        };
+        template<>
+        struct MacroWeighted<accepted>
+        {
+            // only macro particles have may accept a atomic physics transition
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<accepted>
+        {
+            // bools do not scale with weighting
             static float_64 get()
             {
                 return 0.0;
