@@ -185,8 +185,8 @@ namespace picongpu
                      *                  fieldE_internal = fieldE_SI / unitField
                      */
                     HINLINE BaseFunctorE(float_X const currentStep, float3_64 const unitField)
-                        : origin(getOrigin())
-                        , focus(getFocus())
+                        : origin(projectOrigin())
+                        , focus(projectFocus())
                         , currentTimeOrigin(currentStep * DELTA_T)
                         , phaseVelocity(getPhaseVelocity())
                     {
@@ -271,6 +271,46 @@ namespace picongpu
 
                     /** @} */
 
+                    //!@return  Focus within the internal coordinate system
+                    HDINLINE float3_X getFocus() const
+                    {
+                        return focus;
+                    }
+
+                    //!@return  Origin of the internal coordinate system
+                    HDINLINE float3_X getOrigin() const
+                    {
+                        return origin;
+                    }
+
+                    /** Get unit axis vectors of internal coordinate system
+                     *
+                     * For simplicity of use and since they are for internal use only, these are always in 3d.
+                     *
+                     * @{
+                     */
+                    HDINLINE static constexpr float3_X getAxis0()
+                    {
+                        return float3_X(Unitless::DIR_X, Unitless::DIR_Y, Unitless::DIR_Z);
+                    }
+
+                    HDINLINE static constexpr float3_X getAxis1()
+                    {
+                        return float3_X(Unitless::POL_DIR_X, Unitless::POL_DIR_Y, Unitless::POL_DIR_Z);
+                    }
+
+                    HDINLINE static constexpr float3_X getAxis2()
+                    {
+                        // cross product of getAxis0() and getAxis1()
+                        return float3_X(
+                            Unitless::DIR_Y * Unitless::POL_DIR_Z - Unitless::DIR_Z * Unitless::POL_DIR_Y,
+                            Unitless::DIR_Z * Unitless::POL_DIR_X - Unitless::DIR_X * Unitless::POL_DIR_Z,
+                            Unitless::DIR_X * Unitless::POL_DIR_Y - Unitless::DIR_Y * Unitless::POL_DIR_X
+
+                        );
+                    }
+                    /** @} */
+
                 protected:
                     /** Laser center at generation surface when projected from focus along (negative) propagation
                      * direction
@@ -296,8 +336,8 @@ namespace picongpu
                      */
                     float_X const phaseVelocity;
 
-                    //! Calculate focus position
-                    HINLINE static float3_X getFocus()
+                    //! Calculate focus position within the internal coordinate system
+                    HINLINE static float3_X projectFocus()
                     {
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
                         auto const globalDomainCells = subGrid.getGlobalDomain().size;
@@ -321,7 +361,7 @@ namespace picongpu
                     }
 
                     //! Calculate origin position
-                    HINLINE static float3_X getOrigin()
+                    HINLINE static float3_X projectOrigin()
                     {
                         /* The origin is calculated as a projection from the focus position onto the generation surface
                          * along the negative propagation direction.
@@ -336,7 +376,7 @@ namespace picongpu
                         auto const& subGrid = Environment<simDim>::get().SubGrid();
                         auto const globalDomainCells = subGrid.getGlobalDomain().size;
                         auto const direction = getDirection();
-                        auto const focus = getFocus();
+                        auto const focus = projectFocus();
                         // Value of line parameter p such that origin = line(originP)
                         auto originP = -std::numeric_limits<float_X>::infinity();
                         for(uint32_t axis = 0u; axis < simDim; ++axis)
@@ -369,34 +409,6 @@ namespace picongpu
                         }
                         return focus + originP * direction;
                     }
-
-                    /** Get unit axis vectors of internal coordinate system
-                     *
-                     * For simplicity of use and since they are for internal use only, these are always in 3d.
-                     *
-                     * @{
-                     */
-                    HDINLINE static constexpr float3_X getAxis0()
-                    {
-                        return float3_X(Unitless::DIR_X, Unitless::DIR_Y, Unitless::DIR_Z);
-                    }
-
-                    HDINLINE static constexpr float3_X getAxis1()
-                    {
-                        return float3_X(Unitless::POL_DIR_X, Unitless::POL_DIR_Y, Unitless::POL_DIR_Z);
-                    }
-
-                    HDINLINE static constexpr float3_X getAxis2()
-                    {
-                        // cross product of getAxis0() and getAxis1()
-                        return float3_X(
-                            Unitless::DIR_Y * Unitless::POL_DIR_Z - Unitless::DIR_Z * Unitless::POL_DIR_Y,
-                            Unitless::DIR_Z * Unitless::POL_DIR_X - Unitless::DIR_X * Unitless::POL_DIR_Z,
-                            Unitless::DIR_X * Unitless::POL_DIR_Y - Unitless::DIR_Y * Unitless::POL_DIR_X
-
-                        );
-                    }
-                    /** @} */
 
                     /** Get value of phase velocity
                      *

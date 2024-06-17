@@ -57,9 +57,6 @@ namespace picongpu
                         //! Base unitless parameters
                         using Base = BaseParamUnitless<T_Params>;
 
-                        // unit: none
-                        using Params::SPECTRAL_SUPPORT;
-
                         // unit: UNIT_LENGTH
                         static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
 
@@ -82,6 +79,69 @@ namespace picongpu
                         // unit: UNIT_TIME^3
                         static constexpr float_X TOD
                             = static_cast<float_X>(Params::TOD_SI / UNIT_TIME / UNIT_TIME / UNIT_TIME);
+
+                        struct LaserParams
+                        {
+                            //! cell position in the internal laser coordinate system
+                            float3_X internPos;
+                            //! Distance from the current cell to the focus in laser propagation direction.
+                            float_X cellToFocusDistance;
+                            //! Center of a frequency's spatial distribution
+                            float_X center;
+                            //! frequency for which the E-value is calculated
+                            float_X omega;
+                            //! Initial frequency dependent complex phase
+                            float_X alpha;
+
+                            /**
+                             * @tparam T_BaseFunctor laser type with base pulse knowledge
+                             * @param totalCellIdx cell index in the total domain (including all moving window slides)
+                             * @param Omega frequency for which the E-value is calculated
+                             */
+                            template<typename T_BaseFunctor>
+                            HDINLINE LaserParams(
+                                T_BaseFunctor const& baseFunctor,
+                                floatD_X const& totalCellIdx,
+                                float_X const Omega)
+                                : omega(Omega)
+                                , alpha(expandedWaveVectorX(Omega))
+                            {
+                                internPos = baseFunctor.getInternalCoordinates(totalCellIdx);
+
+                                /* Calculate focus position relative to the current point in the propagation direction.
+                                 * Coordinate system is PIConGPUs and not the laser internal coordinate system where X
+                                 * is the propagation direction.
+                                 */
+                                float3_X const focusRelativeToOrigin
+                                    = baseFunctor.getFocus() - baseFunctor.getOrigin();
+
+                                /* Relative focus distance from the laser origin to the focus, transformed into the
+                                 * laser coordination system where X is the propagation direction. */
+                                float_X const distanceFocusRelativeToOrigin
+                                    = pmacc::math::dot(focusRelativeToOrigin, baseFunctor.getAxis0());
+
+                                cellToFocusDistance = distanceFocusRelativeToOrigin - internPos[0];
+
+                                center = SD * (omega - Base::w)
+                                    + SPEED_OF_LIGHT * alpha * cellToFocusDistance / (W0 * Base::w);
+                            }
+
+                            /** Helper function to calculate the electric field in frequency domain.
+                             * Initial frequency dependent complex phase expanded up to third order in (Omega -
+                             * Omega_0). Takes only first order angular dispersion d theta / d Omega = theta^prime into
+                             * account and neglects all higher order angular dispersion terms, e.g. theta^{prime
+                             * prime}, theta^{prime prime prime}, ...
+                             *
+                             * @param Omega frequency for which the E-value is calculated
+                             */
+                            HDINLINE float_X expandedWaveVectorX(float_X const Omega) const
+                            {
+                                return W0 / SPEED_OF_LIGHT
+                                    * (Base::w * AD * (Omega - Base::w) + AD * (Omega - Base::w) * (Omega - Base::w)
+                                       - Base::w / 6.0_X * AD * AD * AD * (Omega - Base::w) * (Omega - Base::w)
+                                           * (Omega - Base::w));
+                            }
+                        };
                     };
 
                     /** DispersivePulse incident E functor
@@ -127,62 +187,24 @@ namespace picongpu
                             }
                         }
 
-                        /** Helper function to calculate the electric field in frequency domain.
-                         * Initial frequency dependent complex phase expanded up to third order in (Omega - Omega_0).
-                         * Takes only first order angular dispersion d theta / d Omega = theta^prime into account
-                         * and neglects all higher order angular dispersion terms, e.g. theta^{prime prime},
-                         * theta^{prime prime prime}, ...
-                         *
-                         * @param Omega frequency for which the E-value is calculated
-                         */
-                        HDINLINE float_X expandedWaveVectorX(float_X const Omega) const
-                        {
-                            return Unitless::W0 / SPEED_OF_LIGHT
-                                * (Unitless::w * Unitless::AD * (Omega - Unitless::w)
-                                   + Unitless::AD * (Omega - Unitless::w) * (Omega - Unitless::w)
-                                   - Unitless::w / 6.0_X * Unitless::AD * Unitless::AD * Unitless::AD
-                                       * (Omega - Unitless::w) * (Omega - Unitless::w) * (Omega - Unitless::w));
-                        }
-
+                    private:
                         /** The following two functions provide the electric field in frequency domain
                          * E(Omega) = amp * exp(-i*phi)
                          * Please ensure that E(Omega = 0) = 0 (no constant field contribution), i.e. the pulse
                          * length has to be big enough. Otherwise the implemented DFT will produce wrong results.
-                         *
-                         * @param totalCellIdx cell index in the total domain (including all moving window slides)
-                         * @param Omega frequency for which the E-value is calculated
                          */
-                        HDINLINE float_X amp(floatD_X const& totalCellIdx, float_X const Omega) const
+                        HDINLINE float_X amp(typename Unitless::LaserParams const laserParams) const
                         {
-                            // transform to 3d internal coordinate system
-                            float3_X pos = this->getInternalCoordinates(totalCellIdx);
-
-                            /* Calculate focus position relative to the current point in the propagation direction.
-                             * Coordinate system is PIConGPUs and not the laser internal coordinate system where X is
-                             * the propagation direction.
-                             */
-                            float3_X const focusRelativeToOrigin = this->focus - this->origin;
-
-                            /* Relative focus distance from the laser origin to the focus, transformed into the laser
-                             * coordination system where X is the propagation direction. */
-                            float_X const distanceFocusRelativeToOrigin
-                                = pmacc::math::dot(focusRelativeToOrigin, this->getAxis0());
-
-                            // Distance from the current cell to the focus in laser propagation direction.
-                            float_X const focusPos = distanceFocusRelativeToOrigin - pos[0];
+                            auto const focusPos = laserParams.cellToFocusDistance;
+                            auto const Omega = laserParams.omega;
+                            auto const pos = laserParams.internPos;
+                            auto const center = laserParams.center;
 
                             // beam waist at the generation plane so that at focus we will get W0
                             float_X const waist = Unitless::W0
                                 * math::sqrt(1.0_X
                                              + (focusPos / Unitless::rayleighLength)
                                                  * (focusPos / Unitless::rayleighLength));
-
-                            // Initial frequency dependent complex phase
-                            float_X alpha = expandedWaveVectorX(Omega);
-
-                            // Center of a frequency's spatial distribution
-                            float_X center = Unitless::SD * (Omega - Unitless::w)
-                                + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
 
                             // gaussian envelope in frequency domain
                             float_X mag = math::exp(
@@ -198,8 +220,8 @@ namespace picongpu
                             // distinguish between dimensions
                             if constexpr(simDim == DIM2)
                             {
-                                // pos has just two entries: pos[0] as propagation direction and pos[1] as transversal
-                                // direction
+                                // pos has just two entries: pos[0] as propagation direction and pos[1] as
+                                // transversal direction
                                 mag *= math::sqrt(Unitless::W0 / waist);
                             }
                             else if constexpr(simDim == DIM3)
@@ -219,31 +241,13 @@ namespace picongpu
                         }
 
                         HDINLINE float_X
-                        phi(floatD_X const& totalCellIdx, float_X const Omega, float_X const phaseShift) const
+                        phi(typename Unitless::LaserParams const laserParams, float_X const phaseShift) const
                         {
-                            // transform to 3d internal coordinate system
-                            float3_X pos = this->getInternalCoordinates(totalCellIdx);
-
-                            /* Calculate focus position relative to the current point in the propagation direction.
-                             * Coordinate system is PIConGPUs and not the laser internal coordinate system where X is
-                             * the propagation direction.
-                             */
-                            float3_X const focusRelativeToOrigin = this->focus - this->origin;
-
-                            /* Relative focus distance from the laser origin to the focus, transformed into the laser
-                             * coordination system where X is the propagation direction. */
-                            float_X const distanceFocusRelativeToOrigin
-                                = pmacc::math::dot(focusRelativeToOrigin, this->getAxis0());
-
-                            // Distance from the current cell to the focus in laser propagation direction.
-                            float_X const focusPos = distanceFocusRelativeToOrigin - pos[0];
-
-                            // Initial frequency dependent complex phase
-                            float_X alpha = expandedWaveVectorX(Omega);
-
-                            // Center of a frequency's spatial distribution
-                            float_X center = Unitless::SD * (Omega - Unitless::w)
-                                + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
+                            auto const focusPos = laserParams.cellToFocusDistance;
+                            auto const Omega = laserParams.omega;
+                            auto const pos = laserParams.internPos;
+                            auto const center = laserParams.center;
+                            auto const alpha = laserParams.alpha;
 
                             // inverse radius of curvature of the pulse's wavefronts
                             auto const R_inv = -focusPos
@@ -279,7 +283,6 @@ namespace picongpu
                             return phase;
                         }
 
-                    private:
                         /** Get value of E field in time domain for the given position, using DFT
                          * Interpolation order of DFT given via timestep in grid.param and INIT_TIME
                          * Neglecting the constant part of DFT (k = 0) because there should be no constant field
@@ -335,12 +338,14 @@ namespace picongpu
                             {
                                 // stores angular frequency for DFT-loop
                                 float_X const Omk = static_cast<float_X>(k) * dOmk;
+                                using LaserParams = typename Unitless::LaserParams;
+                                auto laserParams = LaserParams(static_cast<Base>(*this), totalCellIdx, Omk);
+
                                 float_X sinPhi, cosPhi;
                                 float_X sinOmkt, cosOmkt;
-                                pmacc::math::sincos(phi(totalCellIdx, Omk, phaseShift), sinPhi, cosPhi);
-                                pmacc::math::sincos(Omk * time, sinOmkt, cosOmkt);
-                                E_t += 2.0_X * amp(totalCellIdx, Omk) * (cosPhi * cosOmkt + sinPhi * sinOmkt)
-                                    / DELTA_T;
+                                pmacc::math::sincos(phi(laserParams, phaseShift), sinPhi, cosPhi);
+                                pmacc::math::sincos(laserParams.omega * time, sinOmkt, cosOmkt);
+                                E_t += 2.0_X * amp(laserParams) * (cosPhi * cosOmkt + sinPhi * sinOmkt) / DELTA_T;
                             }
 
                             E_t /= static_cast<float_X>(2 * n + 1); // Normalization from DFT
