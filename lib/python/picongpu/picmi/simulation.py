@@ -481,17 +481,23 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.__runner.build()
         self.__runner.run()
 
-    def write_input_file(self, file_name: str) -> None:
+    def write_input_file(self, file_name: str, pypicongpu_simulation: simulation.Simulation | None = None) -> None:
         """
         generate input data set for picongpu
 
         file_name must be path to a not-yet existing directory (will be filled
         by pic-create)
         :param file_name: not yet existing directory
+        :param pypicongpu_simulation: manipulated pypicongpu simulation
         """
         if self.__runner is not None:
             logging.warning("runner already initialized, overwriting")
-        self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir, setup_dir=file_name)
+
+        # if not overwritten generate from current state
+        if pypicongpu_simulation is None:
+            pypicongpu_simulation = self.get_as_pypicongpu()
+
+        self.__runner = runner.Runner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
         self.__runner.generate()
 
     def step(self, nsteps: int = 1):

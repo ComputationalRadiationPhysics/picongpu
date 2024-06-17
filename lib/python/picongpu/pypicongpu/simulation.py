@@ -15,6 +15,7 @@ from .rendering import RenderedObject
 
 import typing
 from typeguard import typechecked
+import logging
 
 
 @typechecked
@@ -98,11 +99,13 @@ class Simulation(RenderedObject):
         return custom_rendering_context
 
     def __foundCustomInput(self, serialized: dict):
-        print("NOTE: found custom user input with tags: " + str(serialized["customuserinput"]["tags"]))
-        print(
-            "\t WARNING: custom input is not checked, it is the users responsibility to check inputs and generated input."
+        logging.info(
+            "found custom user input with tags: "
+            + str(serialized["customuserinput"]["tags"])
+            + "\n"
+            + "\t WARNING: custom input is not checked, it is the users responsibility to check inputs and generated input.\n"
+            + "\t WARNING: custom templates are required if using custom user input.\n"
         )
-        print("\t WARNING: custom templates are required if using custom user input.")
 
     def add_custom_user_input(self, custom_input: RenderedObject):
         if self.custom_user_input is None:
