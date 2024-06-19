@@ -63,18 +63,23 @@ namespace picongpu::simulation::stage
         {
             if(xLeft == xMiddle)
             {
-                throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): xLeft and xMiddle cannot be the same.");
+                return 0;
             }
-            if(yLeft <= 0 || yMiddle <= 0)
+            if(yLeft < 0 || yMiddle < 0)
             {
+                std::cerr << "Caught exception when precomputing firstSynchrotronFunction" << std::endl;
+                std::cerr << ", xLeft: " << xLeft << ", xMiddle: " << xMiddle << ", xRight: " << xRight << std::endl;
+                std::cerr << "yLeft: " << yLeft << ", yMiddle: " << yMiddle << std::endl;
                 throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must be > 0.");
+                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must not be negative.");
+            }
+            if(yLeft == 0 || yMiddle == 0)
+            {
+                return 0;
             }
             if(yLeft == yMiddle)
             {
-                throw std::runtime_error(
-                    "SynchrotronRadiation.hpp: integrateAsExponential(): yLeft and yMiddle must not be equal.");
+                return (xRight - xLeft) * yLeft;
             }
 
             //! fitting function: y = a * e^(b * x)
@@ -113,21 +118,12 @@ namespace picongpu::simulation::stage
                 xRight = math::pow(2., log_start + log_step * (i + 1));
                 float_64 xMiddle = (xLeft + xRight) / 2.0;
 
-                //! try and catch errors in the bessel function
-                try
-                {
-                    float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
-                    float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
-                    /** computes the integral over one interval: [xLeft, xRight] using the
-                     *  exponential approximation between: [xLeft, xMiddle]
-                     */
-                    integral += integrateAsExponential(xLeft, xMiddle, xRight, yLeft, yMiddle);
-                }
-                catch(std::exception& e)
-                {
-                    std::cout << "Caught exception when precomputing firstSynchrotronFunction at " << i
-                              << ". index: " << e.what() << std::endl;
-                }
+                float_64 yLeft = std::cyl_bessel_k(5.0 / 3.0, xLeft);
+                float_64 yMiddle = std::cyl_bessel_k(5.0 / 3.0, xMiddle);
+                /** computes the integral over one interval: [xLeft, xRight] using the
+                 *  exponential approximation between: [xLeft, xMiddle]
+                 */
+                integral += integrateAsExponential(xLeft, xMiddle, xRight, yLeft, yMiddle);
             }
             return zq * integral;
         }

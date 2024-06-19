@@ -1,10 +1,42 @@
+"""
+Copyright 2024 Filip Optolowicz
+
+This file is part of PIConGPU.
+
+PIConGPU is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+PIConGPU is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with PIConGPU.
+If not, see <http://www.gnu.org/licenses/>.
+"""
+
+# Usage:
+# This script changes:
+#  - DELTA_T_SI         in file grid.param
+#  - field_Strength_SI  in file fieldBackground.param
+#  - gamma              in file particle.param
+# gamma and Heff are randomly chosen from the lists gamma and Heff
+# and saves the configuration in the file ./simOutput/params.txt
+
+# This script is run from the ../bin/ci.sh
+
+# This script assumes that the files:
+# grid.param, fieldBackground.param, particle.param
+# are in the directory ../include/picongpu/param
+# and that the output directory ./simOutput exists
+
+
 import numpy as np
 from synchrotron_lib import calculate_dt, predictNumPhotons
 from pathlib import Path
-# dt is in grid.param as DELTA_T_SI
-# Heff is in fieldBackground.param as field_Strength_SI
-# gamma is in particle.param as gamma
-# all are in ./include/picongpu/param
 
 paramsPath = Path(__file__).absolute().parent / "../include/picongpu/param"
 
