@@ -20,7 +20,7 @@ export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
-#export EDITOR="vim"
+#export EDITOR="nano"
 
 # Set up environment, including $SCRATCH and $PROJECT
 # Handle a case where the budgeting account is not set.
@@ -93,8 +93,8 @@ function getNode() {
     else
         numNodes=$1
     fi
-    if [ $numNodes -gt 4 ] ; then
-        echo "The maximal number of interactive nodes is 4." 1>&2
+    if [ $numNodes -gt 8 ] ; then
+        echo "The maximal number of interactive nodes is 8." 1>&2
         return 1
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
