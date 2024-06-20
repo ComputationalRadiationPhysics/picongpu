@@ -103,7 +103,7 @@ class Simulation(RenderedObject):
             "found custom user input with tags: "
             + str(serialized["customuserinput"]["tags"])
             + "\n"
-            + "\t WARNING: custom input is not checked, it is the users responsibility to check inputs and generated input.\n"
+            + "\t WARNING: custom input is not checked, it is the user's responsibility to check inputs and generated input.\n"
             + "\t WARNING: custom templates are required if using custom user input.\n"
         )
 
