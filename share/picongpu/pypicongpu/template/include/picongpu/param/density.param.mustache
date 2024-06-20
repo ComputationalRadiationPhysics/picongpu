@@ -1,5 +1,5 @@
 /* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Marco Garten, Brian Marre, Kristin Tippey
+ *                     Richard Pausch, Marco Garten, Brian Marre, Kristin Tippey, Masoud Afshari
  *
  * This file is part of PIConGPU.
  *
@@ -42,6 +42,48 @@ namespace picongpu
     namespace densityProfiles::pypicongpu
     {
         {{#species_initmanager.operations.simple_density}}
+
+          {{#profile.type.gaussian}}
+            struct init_{{{placed_species_initial.typename}}}_functorParameter
+            {
+                /** Profile Formula:
+                *   constexpr float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
+                *   constexpr float_X density = exp(gasFactor * pow(exponent, gasPower));
+                *
+                *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+                *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+                *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
+                */
+                static constexpr float_X gasFactor = {{{profile.data.gasFactor}}};
+                static constexpr float_X gasPower  = {{{profile.data.gasPower}}};
+
+                /** height of vacuum area on top border
+                *
+                *  this vacuum is important because of the laser initialization,
+                *  which is done in the first cells of the simulation and
+                *  assumes a charge-free volume
+                *  unit: cells
+                */
+                static constexpr uint32_t vacuumCellsY = {{{profile.data.vacuumCellsY}}};
+
+                /** The central position of the gas distribution
+                *  unit: meter
+                */
+                static constexpr float_64 gasCenterLeft_SI  = {{{profile.data.gasCenterLeft}}};
+                static constexpr float_64 gasCenterRight_SI = {{{profile.data.gasCenterRight}}};
+
+                /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+                *  unit: meter
+                */
+                static constexpr float_64 gasSigmaLeft_SI  = {{{profile.data.gasSigmaLeft}}};
+                static constexpr float_64 gasSigmaRight_SI = {{{profile.data.gasSigmaRight}}};
+            };
+
+
+            /* definition of density with Gaussian profile */
+            using init_{{{placed_species_initial.typename}}}_functor  = GaussianImpl<init_{{{placed_species_initial.typename}}}_functorParameter>;
+          {{/profile.type.gaussian}}
+
             /**
              * generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
              *
@@ -57,7 +99,7 @@ namespace picongpu
                     {{#profile.type.uniform}}
                         return static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
                     {{/profile.type.uniform}}
-
+                
                     {{#profile.type.foil}}
                         float_64 const y = position_SI.y(); // m
 
