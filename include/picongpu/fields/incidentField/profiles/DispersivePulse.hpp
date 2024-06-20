@@ -331,17 +331,19 @@ namespace picongpu
                             // electric field in time-domain
                             float_X E_t = 0.0_X;
 
+                            /* E_t = sum(2 * amp(k) * (cos(phi) * cos(omegaT(k)) + sin(phi) * sin(omegaT(k)))) / dt) ==
+                             * E_t = 2 * sum(amp(k) * (cos(phi) * cos(omegaT(k)) + sin(phi) * sin(omegaT(k)))) / dt ==
+                             * E_t = 2 * sum(amp(k) * (cos(phi - omegaT(k)))) / dt
+                             */
                             for(int k = k_min; k <= k_max; k++)
                             {
                                 // stores angular frequency for DFT-loop
                                 float_X const Omk = static_cast<float_X>(k) * dOmk;
-                                float_X sinPhi, cosPhi;
-                                float_X sinOmkt, cosOmkt;
-                                pmacc::math::sincos(phi(totalCellIdx, Omk, phaseShift), sinPhi, cosPhi);
-                                pmacc::math::sincos(Omk * time, sinOmkt, cosOmkt);
-                                E_t += 2.0_X * amp(totalCellIdx, Omk) * (cosPhi * cosOmkt + sinPhi * sinOmkt)
-                                    / DELTA_T;
+                                float_X const phiK = phi(totalCellIdx, Omk, phaseShift);
+                                float_X const omegaTK = Omk * time;
+                                E_t += amp(totalCellIdx, Omk) * pmacc::math::cos(phiK - omegaTK);
                             }
+                            E_t *= 2.0_X / DELTA_T;
 
                             E_t /= static_cast<float_X>(2 * n + 1); // Normalization from DFT
 
