@@ -1,4 +1,5 @@
 typeguard >= 4.2.1
+pydantic
 sympy >= 1.9
 chevron >= 0.13.1
 jsonschema == 4.17.3

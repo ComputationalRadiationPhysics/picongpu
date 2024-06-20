@@ -85,8 +85,9 @@ class DensityProfile(RenderedObject):
         # import here to avoid circular inclusion
         from .uniform import Uniform
         from .foil import Foil
+        from .gaussian import Gaussian
 
-        template_name_by_type = {Uniform: "uniform", Foil: "foil"}
+        template_name_by_type = {Uniform: "uniform", Foil: "foil", Gaussian: "gaussian"}
         if self.__class__ not in template_name_by_type:
             raise RuntimeError("unkown type: {}".format(self.__class__))
 
@@ -98,10 +99,7 @@ class DensityProfile(RenderedObject):
         type_dict[self_class_template_name] = True
 
         # final context to be returned: data + type info
-        returned_context = {
-            "type": type_dict,
-            "data": serialized_data,
-        }
+        returned_context = {"type": type_dict, "data": serialized_data}
 
         # make sure it passes schema checks
         RenderedObject.check_context_for_type(DensityProfile, returned_context)
