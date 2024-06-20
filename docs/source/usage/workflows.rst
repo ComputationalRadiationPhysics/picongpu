@@ -19,3 +19,4 @@ This section contains typical user workflows and best practices.
    workflows/tracerParticles
    workflows/particleFilters
    workflows/synchrotronExtensionDocumentation
+   workflows/ionization

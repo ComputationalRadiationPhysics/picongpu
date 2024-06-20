@@ -3,34 +3,55 @@
 Collisional Ionization
 ======================
 
-LTE Models
-----------
+.. sectionauthor:: Marco Garten, Brian Marre
+
+PIConGPU features an adaptable ionization framework for arbitrary and combinable ionization models.
+
+.. note::
+    This section describes the principal ideas and assumptions, limits and configuration options of implemented charge-state-only collisional ionization models.
+
+.. note::
+    For a guide hot to setup a PIConGPU simulation with charge-state-only ionization see :ref:`how_to_setup_ionization`.
+
+Local Thermal Equilibrium(LTE) models
+-------------------------------------
+
+Thomas-Fermi collisional Ionization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. moduleauthor:: Marco Garten
 
-Implemented LTE Model: Thomas-Fermi Ionization according to [More1985]_
-
-Get started here https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Ionization-in-PIConGPU
-
-The implementation of the Thomas-Fermi model takes the following input quantities.
+PIConGPU implements the LTE Thomas-Fermi collisional ionization model according to [More1985]_, which uses the following input quantities
 
 - ion proton number :math:`Z`
 - ion species mass density :math:`\rho`
 - electron "temperature" :math:`T`
 
-Due to the nature of our simulated setups it is also used in non-equilibrium situations.
-We therefore implemented additional conditions to mediate unphysical behavior but introduce arbitrariness.
+to calculate the local mean ionization.
+
+Limits of Thomas Fermi collisional ionization
+_____________________________________________
+
+The Thomas-Fermi ionization model is strictly valid only in equilibrium and in the semi-classical limit.
+Using it unmodified in the non-equilibirium situations typically encountered in PIC simulations may therefore lead to unphysical behaviour.
+To mitigate this partially, we have implemented several cutoffs to exclude regions where the model predictions are invalid.
+
+To demonstrate the limits of the pure Thomas-Fermi ionization model, we will consider a compound plastic target, consisting of hydrogen(in blue) and carbon(in orange).
+
+For this system we are plotting the average charge state for several electron temperatures over the ion mass density, the typical plastic density region is marked in green.
 
 .. plot:: models/collisional_ionization_thomas-fermi_cutoffs.py
 
-Here is an example of hydrogen (in blue) and carbon (in orange) that we would use in a compound plastic target, for instance.
-The typical plastic density region is marked in green.
-Two of the artifacts can be seen in this plot:
-
+Two artifacts can be seen in this plot:
     1. Carbon is predicted to have an initial charge state :math:`\langle Z \rangle > 0` even at :math:`T = 0\,\mathrm{eV}`.
     2. Carbon is predicted to have a charge state of :math:`\langle Z \rangle \approx 2` at solid plastic density and electron temperature of :math:`T = 10\,\mathrm{eV}` which increases even as the density decreases.
        The average electron kinetic energy at such a temperature is 6.67 eV which is less than the 24.4 eV of binding energy for that state.
        The increase in charge state with decreasing density would lead to very high charge states in the pre-plasmas that we model.
+
+Implemented Cutoffs
+-------------------
+
+To exclude regions of unphysical behaviour we have implemented the following cutoffs:
 
 1. Super-thermal electron cutoff
 
@@ -61,12 +82,10 @@ Two of the artifacts can be seen in this plot:
 
     - define via ``CUTOFF_LOW_TEMPERATURE_EV`` in :ref:`ionizer.param <usage-params-extensions>`
 
-NLTE Models
------------
+Non-Local Thermal-Equilibirium models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. moduleauthor:: Axel Huebl
-
-in development
+currently still in development
 
 .. [More1985]
         R. M. More.

@@ -30,6 +30,10 @@ See ``pic-edit --help`` for all available files:
 
 .. _usage-params-rationale:
 
+.. attention::
+    If you add a new custom :code:`.param` file in a PIConGPU setup which you previously compiled, you must delete the :code:`.build/` directory in your setup, before compiling again.
+    Otherwise PIConGPU will use the previously cached default :code:`.param` file instead of your custom file.
+
 Rationale
 ---------
 

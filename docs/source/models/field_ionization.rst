@@ -3,15 +3,17 @@
 Field Ionization
 ================
 
-.. sectionauthor:: Marco Garten
-.. moduleauthor:: Marco Garten
-
-Get started here https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Ionization-in-PIConGPU
+.. sectionauthor:: Marco Garten, Brian Marre
 
 PIConGPU features an adaptable ionization framework for arbitrary and combinable ionization models.
 
 .. note::
+    This section describes the principal ideas and assumptions, limits and configuration options of implemented charge-state-only field ionization models.
 
+.. note::
+    For a guide hot to setup a PIConGPU simulation with charge-state-only ionization see :ref:`how_to_setup_ionization`.
+
+.. note::
     Most of the calculations and formulae in this section of the docs are done in the **Atomic Units (AU)** system.
 
 .. math::
@@ -31,8 +33,11 @@ PIConGPU features an adaptable ionization framework for arbitrary and combinable
     electrical field  :math:`5.142 \cdot 10^{11}\,\frac{\mathrm{V}}{\mathrm{m}}`
     ================  ======================================================================
 
-Overview: Implemented Models
-----------------------------
+Overview: Implemented Field-Ionization Models
+---------------------------------------------
+
+.. moduleauthor:: Marco Garten
+
 .. table::
     :widths: auto
     :name: implemented__field_ionization_models
@@ -59,7 +64,7 @@ Overview: Implemented Models
 Ionization Current
 ------------------
 
-In order to conserve energy, PIConGPU supports an ionization current to decrease the electric field according to the amount of energy lost to field ioniztion processes.
+In order to conserve energy, PIConGPU supports an ionization current to decrease the electric field according to the amount of energy lost to field ionization processes.
 The current for a single ion is
 
 .. math::
@@ -72,12 +77,6 @@ This formula makes the assumption that the ejection energy of the electron is ze
 See [Mulser]_.
 The ionization current is accessible in :ref:`speciesDefinition.param <usage-params-core>`. To activate ionization current, set the second template of the ionization model to particles::ionization::current::EnergyConservation.
 By default the ionization current is deactivated.
-
-
-Usage
------
-
-Input for ionization models is defined in :ref:`speciesDefinition.param <usage-params-core>`, :ref:`ionizer.param and ionizationEnergies.param <usage-params-extensions>`.
 
 
 Barrier Suppression Ionization
