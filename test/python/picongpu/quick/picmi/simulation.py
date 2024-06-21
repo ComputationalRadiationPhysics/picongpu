@@ -12,7 +12,7 @@ import unittest
 import typeguard
 import typing
 
-from picongpu.pypicongpu import species
+from picongpu.pypicongpu import species, customuserinput
 from copy import deepcopy
 import logging
 import tempfile
@@ -617,6 +617,41 @@ class TestPicmiSimulation(unittest.TestCase):
         self.assertTrue(os.path.isfile(out_dir + "/include/picongpu/time_steps"))
         with open(out_dir + "/include/picongpu/time_steps") as rendered_file:
             self.assertEqual("128", rendered_file.read())
+
+        # JSON has been dumped
+        self.assertTrue(os.path.isfile(out_dir + "/pypicongpu.json"))
+
+    def test_custom_input_basic_write_input_file(self):
+        """test custom input may be rendered"""
+        # note: automatically cleaned up in teardown
+        out_dir = self.__get_tmpdir_name()
+
+        # create bare bone PICMI-simulation
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=128,
+            solver=solver,
+        )
+        # get pypicongpu simualtion
+        pypicongpu_simulation = sim.get_as_pypicongpu()
+
+        # add custom input
+        i_1 = customuserinput.CustomUserInput()
+        i_2 = customuserinput.CustomUserInput()
+
+        i_1.addToCustomInput({"test_data_1": 1}, "tag_1")
+        i_2.addToCustomInput({"test_data_2": 2}, "tag_2")
+
+        pypicongpu_simulation.add_custom_user_input(i_1)
+        pypicongpu_simulation.add_custom_user_input(i_2)
+
+        # write simulation
+        sim.write_input_file(out_dir, pypicongpu_simulation=pypicongpu_simulation)
+
+        # check for generated (rendered) dir
+        self.assertTrue(os.path.isdir(out_dir))
 
         # JSON has been dumped
         self.assertTrue(os.path.isfile(out_dir + "/pypicongpu.json"))
