@@ -149,7 +149,7 @@ CUDA
 
 ROCm/HIP
 """"""""
-- `5.2+ <https://rocm.docs.amd.com/projects/HIP/en/latest/install/install.html>`_
+- `5.4+ <https://rocm.docs.amd.com/projects/HIP/en/latest/install/install.html>`_
 - required if you want to run on AMD GPUs
 - *Debian/Ubuntu:*
   - ``export ROCM_VER=5.5.0``
