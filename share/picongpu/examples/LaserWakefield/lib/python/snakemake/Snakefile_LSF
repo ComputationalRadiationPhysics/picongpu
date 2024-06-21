@@ -8,7 +8,7 @@ configfile: "config.yaml"
 
 # define a paramspace
 # filename_params defines naming and directory structure of every instance of the parameter space
-paramspace = Paramspace(pd.read_csv(config["input_params"], sep=","), filename_params="*", param_sep="-") 
+paramspace = Paramspace(pd.read_csv(config["input_params"], sep=","), filename_params="*", param_sep="-")
 
 localrules: all, simulate, build_command
 
@@ -49,7 +49,7 @@ rule compile:
         # access one parameter set with the instance methode
         sim_params=paramspace.instance,
         # define name to use paramspace naming pattern in shell commands
-        name=f"{paramspace.wildcard_pattern}"    
+        name=f"{paramspace.wildcard_pattern}"
     shell:
         """
         source {input.pic_profile}

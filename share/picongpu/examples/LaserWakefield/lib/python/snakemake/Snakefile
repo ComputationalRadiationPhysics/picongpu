@@ -35,7 +35,7 @@ rule compile:
         pic_build_command=rules.build_command.output
     # to use the paramspace naming pattern use python f-string formatting
     output: directory(f"simulations/sim_{paramspace.wildcard_pattern}")
-    group: "compile" 
+    group: "compile"
     params:
         pic_cfg=config["pic_cfg"],
         # access one parameter set with the instance methode
@@ -50,7 +50,7 @@ rule compile:
         # append touch command to .tpl -> creates file when simulation is finished
         echo "if [[ ! -z \`grep \\\"100 % =\\\" output\` ]]; then touch {current_dir}/simulated/finished_{params.name}.txt; fi" >> $TBG_TPLFILE
         # parameter dependent compile
-        build_command=$(<{current_dir}/{input.pic_build_command}) 
+        build_command=$(<{current_dir}/{input.pic_build_command})
         pic-build -c \"-DPARAM_OVERWRITES:LIST=\'$build_command\'\"
         # create simulation directory
         tbg -t -c etc/picongpu/{params.pic_cfg} {current_dir}/{output}
@@ -69,10 +69,10 @@ rule simulate:
         if ! [ -f simulated/job_id_{params.name}.txt ]; then
             sbatch {input}/tbg/submit.start > simulated/job_id_{params.name}.txt
         fi
-        
+
         job_id=$(cut -c 21-27 simulated/job_id_{params.name}.txt)
         status=$(squeue --jobs $job_id -o "%2t" | tail -n 1 )
-        
+
         # if job isn't running, pending or configuring -> restart job
         if ! [[ "$status" == "PD" || "$status" == "R " || "$status" == "CF" ]]; then
             sbatch {input}/tbg/submit.start >  simulated/job_id_{params.name}.txt
