@@ -1,0 +1,19 @@
+config:
+  input_params: "params.csv"
+  pic_project: "path/to/project" # path to project directory with PIC project
+  pic_profile: "path/to/picongpu.profile" # path to PIConGPU profile
+  pic_cfg: "1.cfg" # name of cfg file
+executor: slurm
+jobs: 10 # declares how many rules/ jobs shall be executed in parallel
+latency-wait: 30
+group-components: "compile=2" # define number of compile jobs per slurm job
+set-resources:
+  compile: # define resources for picongpu compile
+    slurm_partition: "fwkt_v100"
+    slurm_account: "fwkt_v100"
+    runtime: 60 # [min]
+    nodes: 1
+    ntasks: 1
+    cpus_per_task: 6
+    mem_mb: 94500
+    slurm_extra: "'--gres=gpu:1'"
