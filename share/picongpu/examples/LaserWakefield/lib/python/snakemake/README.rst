@@ -105,7 +105,7 @@ Details of the individual rules:
 
 
 * rule compile:
-    * Clones the in the ``config.yaml`` defined PIConGPU project using ``pic-create``.
+    * Clones the (in the ``config.yaml`` defined) PIConGPU project using ``pic-create``.
     * Since Snakemake relies on files to check dependencies between tasks, and a simulation has no predefined unique output file, the tpl file is modified such that it creates a unique output file, called ``finished_{params.name}.txt`` when the simulation is finished.
     * Compiles for each parameter set and then creates a simulation directory.
 
