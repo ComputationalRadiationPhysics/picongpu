@@ -1,7 +1,6 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
-python
 pandas
 snakemake>=8.11.3
 snakemake-executor-plugin-slurm>=0.5.1
