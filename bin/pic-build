@@ -61,7 +61,7 @@ while [[ $# -gt 0 ]] ; do
             fi
             ;;
         *)
-            cmd_line_args+=($1)
+            cmd_line_args+=("$1")
             # just ignore other options
             ;;
     esac
