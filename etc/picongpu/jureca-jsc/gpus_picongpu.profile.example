@@ -51,8 +51,8 @@ module load h5py/3.9.0
 # Self-Build Software #########################################################
 #
 # needs to be compiled by the user
-# Check the install description at
-# https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/INSTALL.rst
+# Check the install script at
+# https://gist.github.com/ikbuibui/e27311bcc5390f2d66ce68401f2620e9
 #
 export PIC_LIBS=$PROJECT/share/lib
 export PNG_WRITER=$PIC_LIBS/pngwriter
