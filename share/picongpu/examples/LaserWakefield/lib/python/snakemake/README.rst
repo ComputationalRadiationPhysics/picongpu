@@ -115,6 +115,10 @@ Details of the individual rules:
     * The output file ("simulated/finished_{paramspace.wildcard_pattern}.txt") is created after the simulation but the shell script would be immediately done after submitting the simulation. If the task is done and the output file is not created an error occurs and the workflow fails. In order to make Snakemake wait till the simulation is finished, the status of the slurm job is checked every two minutes.
     * This control loop is set up in such a way that even if the snakemake session is aborted or fails, it will catch up with simulations already running when snakemake is restarted.
 
+  .. warning::
+
+        The simulate rule looks for ``100 % =`` in ``stdout``. If the number of time steps and the percentage of output do not match, such an output will never be created (e.g. 1024 time steps and output every 5% will not generate a ``100 % =`` output).
+
 |
 
 Using the example ``Snakefile`` and ``params.csv``, the resulting DAG looks like this.
