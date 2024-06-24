@@ -10,55 +10,65 @@ export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
-#   - project account for computing time
-export proj=$(groups | awk '{print $5}')
+#   - project and account for allocation
+#   jutil user projects will return a table of project associations.
+#   Each row contains: project,unixgroup,PI-uid,project-type,budget-accounts
+#   We need the first and last entry.
+#   Here: select the last available project.
+export proj=$( jutil user projects --noheader | awk '{print $1}' | tail -n 1 )
+export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
 # Set up environment, including $SCRATCH and $PROJECT
-jutil env activate -p $proj
+# Handle a case where the budgeting account is not set.
+if [ "$account" = "-" ]; then
+    jutil env activate --project $proj;
+else
+    jutil env activate --project $proj --budget $account
+fi
 
 # General modules #############################################################
 #
 module purge
-module load GCC/7.3.0
-module load CUDA/9.2.88
+module load Stages/2024
+module load GCC/12.3.0
+module load CUDA/12
 module load CMake
-module load MVAPICH2/2.3-GDR
-module load Python/3.6.6
+module load OpenMPI/4.1.5
+module load Python/3.11.3
+module load ADIOS2/2.9.2
+module load HDF5/1.14.2
+module load Boost/1.82.0
 
-# Other Software ##############################################################
+# necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
+module load SciPy-bundle/2023.07
+module load matplotlib/3.7.2
+module load h5py/3.9.0
+
+# Self-Build Software #########################################################
 #
-module load zlib/.1.2.11
-module load libpng/.1.6.35
-export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
+# needs to be compiled by the user
+# Check the install description at
+# https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/INSTALL.rst
+#
+export PIC_LIBS=$PROJECT/share/lib
+export PNG_WRITER=$PIC_LIBS/pngwriter
+export OPENPMD_ROOT=$PIC_LIBS/openPMD-api
 
-PARTITION_LIB=$PROJECT/lib_gpus
-BOOST_ROOT=$PARTITION_LIB/boost
-export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=$PNG_WRITER:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
 
-HDF5_ROOT=$PARTITION_LIB/hdf5
-export PATH=$HDF5_ROOT/bin:$PATH
-export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
+export PATH=$OPENPMD_ROOT/bin:$PATH
 
-PNGWRITER_ROOT=$PARTITION_LIB/pngwriter
-export CMAKE_PREFIX_PATH=$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
-
-BLOSC_ROOT=$PARTITION_LIB/c-blosc
-export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
-
+export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.11/site-packages/openpmd_api:$PYTHONPATH
 # Environment #################################################################
-#
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
 
-export PICSRC=$HOME/src/picongpu
+export PICSRC=$PROJECT/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="cuda:37" # Nvidia K80 architecture
+export PIC_BACKEND="cuda:80" # Nvidia A100 architecture
 
 # Path to the required templates of the system,
 # relative to the PIConGPU source code of the tool bin/pic-create.
@@ -88,7 +98,7 @@ function getNode() {
         return 1
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=126000 -A $proj -p develgpus bash
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=488G -A $account -p dc-gpu bash
 }
 
 # allocate an interactive shell for one hour
@@ -105,7 +115,7 @@ function getDevice() {
         fi
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:4 --mem=126000 -A $proj -p develgpus bash
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=488G -A $account -p dc-gpu --pty bash
 }
 
 # Load autocompletion for PIConGPU commands

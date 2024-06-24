@@ -27,21 +27,26 @@
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
+#SBATCH --exclusive
+#SBATCH --gres=gpu:!TBG_devicesPerNode
 #SBATCH --ntasks=!TBG_tasks
 #SBATCH --ntasks-per-node=!TBG_devicesPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --mem=!TBG_memPerNode
-#SBATCH --gres=gpu:!TBG_devicesPerNode
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 #SBATCH -o stdout
 #SBATCH -e stderr
 
+# Workaround for Infinibands' "Transport retry count exceeded"-error:
+# https://apps.fz-juelich.de/jsc/hps/jureca/faq.html#my-job-failed-with-transport-retry-count-exceeded
+export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
 ## calculations will be performed by tbg ##
-.TBG_queue="gpus"
+.TBG_queue="dc-gpu"
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
@@ -57,7 +62,7 @@
 .TBG_devicesPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi)
 
 # host memory per device
-.TBG_memPerDevice="$((126000 / $TBG_numHostedDevicesPerNode))"
+.TBG_memPerDevice="$((499712 / $TBG_numHostedDevicesPerNode))"
 # host memory per node
 .TBG_memPerNode="$((TBG_memPerDevice * TBG_devicesPerNode))"
 
@@ -66,6 +71,7 @@
 
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_devicesPerNode - 1 ) / TBG_devicesPerNode))"
+.TBG_DataTransport=ucx
 
 ## end calculations ##
 
@@ -81,6 +87,9 @@ if [ $? -ne 0 ] ; then
 fi
 unset MODULES_NO_OUTPUT
 
+# number of cores to block per GPU
+.TBG_coresPerGPU=1
+
 #set user rights to u=rwx;g=r-x;o=---
 umask 0027
 
@@ -88,15 +97,9 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 ln -s ../stdout output
 
-# test if cuda_memtest binary is available and we have the node exclusive
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_devicesPerNode ] ; then
-  # Run CUDA memtest to check GPU's health
-  srun --cpu_bind=sockets !TBG_dstPath/input/bin/cuda_memtest.sh
-else
-  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
-fi
+# cuda_memtest omitted since GPU mapping is achieved via CUDA_VISIBLE_DEVICES on the Booster
+# and cuda_memtest fails in this case.
 
-if [ $? -eq 0 ] ; then
-  # Run PIConGPU
-  srun --cpu_bind=sockets !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
-fi
+# Run PIConGPU
+# Workaround threads-per-core. See https://apps.fz-juelich.de/jsc/hps/jureca/affinity.html
+srun --threads-per-core=1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
