@@ -185,15 +185,16 @@ namespace picongpu
                                 + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
 
                             // gaussian envelope in frequency domain
-                            float_X mag = math::exp(
-                                -(Omega - Unitless::w) * (Omega - Unitless::w) * Unitless::PULSE_DURATION
-                                * Unitless::PULSE_DURATION);
+                            float_X const envFreqExp = -(Omega - Unitless::w) * (Omega - Unitless::w)
+                                * Unitless::PULSE_DURATION * Unitless::PULSE_DURATION;
 
                             // transversal envelope
-                            mag *= math::exp(
-                                -(pos[1] - center) * (pos[1] - center) / waist / waist); // envelope y - direction
-                            mag *= math::exp(
-                                -(pos[2] - center) * (pos[2] - center) / waist / waist); // envelope z - direction
+                            float_X const envYExp
+                                = -(pos[1] - center) * (pos[1] - center) / waist / waist; // envelope y - direction
+                            float_X const envZExp
+                                = -(pos[2] - center) * (pos[2] - center) / waist / waist; // envelope z - direction
+
+                            float_X mag = math::exp(envFreqExp + envYExp + envZExp);
 
                             // distinguish between dimensions
                             if constexpr(simDim == DIM2)
