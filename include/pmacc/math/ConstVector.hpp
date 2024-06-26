@@ -39,7 +39,7 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \
             /* store all values in a const C array on device*/                                                        \
-            __constant__ const Type PMACC_JOIN(Name, _data)[] = {__VA_ARGS__};                                        \
+            __device__ const Type PMACC_JOIN(Name, _data)[] = {__VA_ARGS__};                                          \
         } /*namespace pmacc_static_const_vector_device + id */
 #else
 #    define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id, Name, Type, ...)
@@ -90,7 +90,7 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \
             /* create const instance on device */                                                                     \
-            __constant__ const PMACC_JOIN(Name, _t) Name;                                                             \
+            __device__ const PMACC_JOIN(Name, _t) Name;                                                               \
         } /* namespace pmacc_static_const_vector_device + id */
 #else
 #    define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name, id)
