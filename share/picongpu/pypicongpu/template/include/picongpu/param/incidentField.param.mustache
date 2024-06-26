@@ -107,22 +107,6 @@ namespace picongpu::fields::incidentField
         static constexpr float_64 POLARISATION_DIRECTION_Z = polarisation_direction[2];
     };
 
-    namespace PyPIConGPUGaussianPulse
-    {
-                //! Use only the 0th Laguerremode for a standard Gaussian
-                static constexpr uint32_t MODENUMBER = {{{modenumber}}};
-                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES,
-                {{#laguerre_modes}}
-                {{{single_laguerre_mode}}}{{^_last}},{{/_last}}
-                {{/laguerre_modes}}
-                );
-                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES,
-                {{#laguerre_phases}}
-                {{{single_laguerre_phase}}}{{^_last}},{{/_last}}
-                {{/laguerre_phases}}
-                );
-    } // namespace PyPIConGPUGaussianPulse
-
     struct PyPIConGPUGaussianPulseParam : public PyPIConGPULaserBaseParam
     {
         /** Beam waist: distance from the axis where the pulse intensity (E^2)
@@ -145,9 +129,17 @@ namespace picongpu::fields::incidentField
          *
          * @{
          */
-        using LAGUERREMODES_t = PyPIConGPUGaussianPulse::LAGUERREMODES_t;
-        using LAGUERREPHASES_t = PyPIConGPUGaussianPulse::LAGUERREPHASES_t;
-        static constexpr uint32_t MODENUMBER = PyPIConGPUGaussianPulse::MODENUMBER;
+        static constexpr uint32_t numModes = {{{modenumber}}};
+        static constexpr auto laguerreModes = floatN_X<numModes+1>(
+            {{#laguerre_modes}}
+            {{{single_laguerre_mode}}}{{^_last}},{{/_last}}
+            {{/laguerre_modes}}
+            );
+        static constexpr auto laguerrePhases = floatN_X<numModes+1>(
+            {{#laguerre_phases}}
+            {{{single_laguerre_phase}}}{{^_last}},{{/_last}}
+            {{/laguerre_phases}}
+            );
         /** @} */
     };
 

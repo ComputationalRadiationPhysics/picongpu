@@ -144,14 +144,11 @@ namespace picongpu::fields::incidentField
                     // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not
                     // compile on laserTransversal(), which is on DEVICE.
                     auto etrans_norm = 0.0_X;
-                    PMACC_CASSERT_MSG(
-                        MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector,
-                        Unitless::MODENUMBER < Unitless::LAGUERREMODES_t::dim);
-                    for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
-                        etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
+                    for(uint32_t m = 0; m < Unitless::laguerreModes.size(); ++m)
+                        etrans_norm += Unitless::laguerreModes[m];
                     PMACC_VERIFY_MSG(
                         math::abs(etrans_norm) > std::numeric_limits<float_X>::epsilon(),
-                        "Sum of LAGUERREMODES can not be 0.");
+                        "Sum of laguerreModes can not be 0.");
                 }
 
                 /** Calculate incident field E value for the given position
@@ -159,8 +156,8 @@ namespace picongpu::fields::incidentField
                  * The transverse spatial laser modes are given as a decomposition of Gauss-Laguerre modes
                  * GLM(m,r,z) : Sum_{m=0}^{m_max} := Snorm * a_m * GLM(m,r,z)
                  * with a_m being complex-valued coefficients: a_m := |a_m| * exp(I Arg(a_m) )
-                 * |a_m| are equivalent to the LAGUERREMODES vector entries.
-                 * Arg(a_m) are equivalent to the LAGUERREPHASES vector entries.
+                 * |a_m| are equivalent to the laguerreModes vector entries.
+                 * Arg(a_m) are equivalent to the laguerrePhases vector entries.
                  * The implicit pulse properties w0, lambda0, etc... equally apply to all GLM-modes.
                  * The on-axis, in-focus field value of the mode decomposition is normalized to unity:
                  * Snorm := 1 / ( Sum_{m=0}^{m_max}GLM(m,0,0) )
@@ -273,15 +270,16 @@ namespace picongpu::fields::incidentField
                     auto etrans = 0.0_X;
                     auto const r2OverW2 = transversalDistanceSquared / w / w;
                     auto const r = 0.5_X * transversalDistanceSquared * R_inv;
-                    for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
+
+                    constexpr auto laguerreModes = Unitless::laguerreModes;
+                    constexpr auto laguerrePhases = Unitless::laguerrePhases;
+                    for(uint32_t m = 0; m < laguerreModes.size(); ++m)
                     {
-                        etrans +=
-                            typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre(m, 2.0_X * r2OverW2)
-                            * math::exp(-r2OverW2)
+                        etrans += laguerreModes[m] * simpleLaguerre(m, 2.0_X * r2OverW2) * math::exp(-r2OverW2)
                             * math::cos(
-                                pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * focusPos
-                                - pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * r
-                                + (2._X * float_X(m) + 1._X) * xi + phase + typename Unitless::LAGUERREPHASES_t{}[m]);
+                                      pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * focusPos
+                                      - pmacc::math::Pi<float_X>::doubleValue / Unitless::WAVE_LENGTH * r
+                                      + (2._X * float_X(m) + 1._X) * xi + phase + laguerrePhases[m]);
                     }
                     // time shifted by the distance (in propagation direction) to the point where the current wavefront
                     // is crossing the beam axis.
@@ -290,8 +288,8 @@ namespace picongpu::fields::incidentField
                     etrans *= LongitudinalEnvelope::getEnvelope(shiftedTime);
 
                     auto etrans_norm = 0.0_X;
-                    for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
-                        etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
+                    for(uint32_t m = 0; m < laguerreModes.size(); ++m)
+                        etrans_norm += laguerreModes[m];
                     auto envelope = Unitless::AMPLITUDE;
                     if(simDim == DIM2)
                         envelope *= math::sqrt(Unitless::W0 / w);

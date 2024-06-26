@@ -71,9 +71,8 @@ namespace picongpu
 
                     static constexpr float_64 PULSE_INIT = 16.0;
 
-                    using LAGUERREMODES_t = defaults::gaussianPulse::LAGUERREMODES_t;
-                    using LAGUERREPHASES_t = defaults::gaussianPulse::LAGUERREPHASES_t;
-                    static constexpr uint32_t MODENUMBER = defaults::gaussianPulse::MODENUMBER;
+                    static constexpr auto laguerreModes = defaults::GaussianPulseParam::laguerreModes;
+                    static constexpr auto laguerrePhases = defaults::GaussianPulseParam::laguerrePhases;
                     /** @} */
                 };
             } // namespace profiles
