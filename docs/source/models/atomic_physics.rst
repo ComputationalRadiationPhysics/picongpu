@@ -220,7 +220,7 @@ FLYonPIC step
 
 overview of the FLYonPIC step
 
-.. figure::  media/AtomicPhyiscsStep_v3.png
+.. figure::  media/AtomicPhyiscsStep_v3_1.png
    :name: model-FLYonPIC_Step
 
 .. [FlyCHK]
