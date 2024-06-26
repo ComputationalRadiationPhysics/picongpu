@@ -42,8 +42,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace electronHistogram
     {
-        /** @attention activation only useful if using serial backend and requries CPU_OUTPUT_ACTIVE = true to have an
-         * effect */
+        //! @attention activation only useful if using serial backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant, uncaught error will lead to invalid memory access
@@ -70,7 +69,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace rateCache
     {
-        //! @attention only useful if using serial backend and requires CPU_OUTPUT_ACTIVE = true to have an effect
+        //! @attention only useful if using serial backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
@@ -82,7 +81,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace rejectionProbabilityCache
     {
-        //! @attention only useful if using serial backend and requires CPU_OUTPUT_ACTIVE = true to have an effect
+        //! @attention only useful if using serial backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
@@ -92,14 +91,14 @@ namespace picongpu::atomicPhysics::debug
 
     namespace timeRemaining
     {
-        //! @attention only useful if using serial backend and requires CPU_OUTPUT_ACTIVE = true to have an effect
+        //! @attention only useful if using cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeRemaining
 
 
     namespace timeStep
     {
-        //! @attention only useful if using serial backend and requires CPU_OUTPUT_ACTIVE = true to have an effect
+        //! @attention only useful if using cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeStep
 
@@ -141,7 +140,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace kernel::rollForOverSubscription
     {
-        //! @attention only useful if using serial backend and requires CPU_OUTPUT_ACTIVE = true to have an effect
+        //! @attention only useful if using serial backend
         constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::rollForOverSubscription
 
