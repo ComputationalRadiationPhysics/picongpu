@@ -31,20 +31,26 @@ namespace picongpu
     {
         using float_X = precisionType;
         /* 32 Bit defines */
-        using float1_X = ::pmacc::math::Vector<float_X, 1u>;
-        using float2_X = ::pmacc::math::Vector<float_X, 2u>;
-        using float3_X = ::pmacc::math::Vector<float_X, 3u>;
-        using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
+        template<uint32_t T_n>
+        using floatN_X = ::pmacc::math::Vector<float_X, T_n>;
+
+        using float1_X = floatN_X<1u>;
+        using float2_X = floatN_X<2u>;
+        using float3_X = floatN_X<3u>;
+        using floatD_X = floatN_X<simDim>;
     } // namespace precision32Bit
 
     namespace precision64Bit
     {
         using float_X = precisionType;
         /* 64 Bit defines */
-        using float1_X = ::pmacc::math::Vector<float_X, 1u>;
-        using float2_X = ::pmacc::math::Vector<float_X, 2u>;
-        using float3_X = ::pmacc::math::Vector<float_X, 3u>;
-        using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
+        template<uint32_t T_n>
+        using floatN_X = ::pmacc::math::Vector<float_X, T_n>;
+
+        using float1_X = floatN_X<1u>;
+        using float2_X = floatN_X<2u>;
+        using float3_X = floatN_X<3u>;
+        using floatD_X = floatN_X<simDim>;
     } // namespace precision64Bit
 
     using float_32 = precision32Bit::float_X;
@@ -55,16 +61,23 @@ namespace picongpu
     using float2_X = ::pmacc::math::Vector<float_X, 2u>;
     using float3_X = ::pmacc::math::Vector<float_X, 3u>;
     using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
+    template<uint32_t T_n>
+    using floatN_X = ::pmacc::math::Vector<float_X, T_n>;
+
     /* 32 Bit defines */
     using float1_32 = precision32Bit::float1_X;
     using float2_32 = precision32Bit::float2_X;
     using float3_32 = precision32Bit::float3_X;
     using floatD_32 = precision32Bit::floatD_X;
+    template<uint32_t T_n>
+    using floatN_32 = precision32Bit::floatN_X<T_n>;
     /* 64 Bit defines */
     using float1_64 = precision64Bit::float1_X;
     using float2_64 = precision64Bit::float2_X;
     using float3_64 = precision64Bit::float3_X;
     using floatD_64 = precision64Bit::floatD_X;
+    template<uint32_t T_n>
+    using floatN_64 = precision64Bit::floatN_X<T_n>;
 
     // literals for short-hand notations
     constexpr float_X operator""_X(long double x)
