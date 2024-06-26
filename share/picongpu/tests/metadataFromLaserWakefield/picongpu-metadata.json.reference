@@ -11,6 +11,37 @@
     ],
     "YMin": [
       {
+        "amplitude": {
+          "unit": "V/m",
+          "value": 32107010989706.094
+        },
+        "direction": {
+          "unit": "none",
+          "value": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "focus_origin": {
+          "type": [
+            "center",
+            "zero",
+            "center"
+          ]
+        },
+        "focus_position": {
+          "unit": "m",
+          "value": [
+            0.0,
+            4.62e-05,
+            0.0
+          ]
+        },
+        "laser_phase": {
+          "unit": "rad",
+          "value": 0.0
+        },
         "polarisation": {
           "direction": [
             1.0,
@@ -18,6 +49,18 @@
             0.0
           ],
           "type": "circular"
+        },
+        "pulse_duration": {
+          "unit": "s",
+          "value": 5e-15
+        },
+        "time_delay": {
+          "unit": "s",
+          "value": 0.0
+        },
+        "wavelength": {
+          "unit": "m",
+          "value": 8e-07
         }
       }
     ],
