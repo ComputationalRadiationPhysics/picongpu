@@ -76,12 +76,20 @@ namespace picongpu::simulation::stage
          * models excited atomic state and ionization dynamics
          *
          * @note one instance of this class is initialized and it's operator() called for every time step
+         *
+         * @tparam T_AtomicPhysicsIonSpecies list of all ion species to partake in the atomicPhysics step
+         * @tparam T_OnlyIPDIonSpecies list of all ion species to be partake in the IPD calculation in addition to
+         *  the atomicPhysics ion species
+         * @tparam T_AtomicPhysicsElectronSpecies list of all electrons species to partake in the atomicPhysics step
+         * @tparam T_OnlyIPDElectronSpecies list of all electron species to partake in the IPD calculation in addition
+         *  to the atomicPhysics electron species
          */
         template<
             typename T_AtomicPhysicsIonSpecies,
             typename T_OnlyIPDIonSpecies,
             typename T_AtomicPhysicsElectronSpecies,
-            typename T_OnlyIPDElectronSpecies>
+            typename T_OnlyIPDElectronSpecies,
+            uint32_t numberAtomicPhysicsIonSpecies>
         struct AtomicPhysics
         {
         private:
@@ -490,6 +498,24 @@ namespace picongpu::simulation::stage
                 } // end atomicPhysics sub-stepping loop
             }
         };
+
+        //! dummy version for no atomic physics ion species in input
+        template<
+            typename T_AtomicPhysicsIonSpecies,
+            typename T_OnlyIPDIonSpecies,
+            typename T_AtomicPhysicsElectronSpecies,
+            typename T_OnlyIPDElectronSpecies>
+        struct AtomicPhysics<
+            T_AtomicPhysicsIonSpecies,
+            T_OnlyIPDIonSpecies,
+            T_AtomicPhysicsElectronSpecies,
+            T_OnlyIPDElectronSpecies,
+            0u>
+        {
+            void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
+            {
+            }
+        };
     } // namespace detail
 
     /** public interface of AtomicPhysics stage
@@ -570,7 +596,8 @@ namespace picongpu::simulation::stage
                     AtomicPhysicsIonSpecies,
                     OnlyIPDIonSpecies,
                     AtomicPhysicsElectronSpecies,
-                    OnlyIPDElectronSpecies>{}(mappingDesc, currentStep);
+                    OnlyIPDElectronSpecies,
+                    numberAtomicPhysicsSpecies>{}(mappingDesc, currentStep);
             }
         }
     };
