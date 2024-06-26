@@ -190,6 +190,11 @@ namespace pmacc
                 return (*this)[0];
             }
 
+            static constexpr uint32_t size()
+            {
+                return dim;
+            }
+
             /**
              * Creates a Vector where all dimensions are set to the same value
              *
