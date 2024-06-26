@@ -274,7 +274,7 @@ You can quickly load and interact with the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.data import PNGData
+   from picongpu.extra.plugins.data import PNGData
 
 
    png_data = PNGData('path/to/run_dir')
@@ -299,7 +299,7 @@ even easier since you don't have to load the data manually.
 
 .. code:: python
 
-   from picongpu.plugins.plot_mpl import PNGMPL
+   from picongpu.extra.plugins.plot_mpl import PNGMPL
    import matplotlib.pyplot as plt
 
 
@@ -350,7 +350,7 @@ After starting the notebook server write the following
    plt.ioff()
 
    from IPython.display import display
-   from picongpu.plugins.jupyter_widgets import PNGWidget
+   from picongpu.extra.plugins.jupyter_widgets import PNGWidget
 
    # provide the paths to the simulations you want to be able to choose from
    # together with labels that will be used in the plot legends so you still know

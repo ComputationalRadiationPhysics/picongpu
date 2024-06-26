@@ -489,7 +489,7 @@ This currently assumes adios output but any openPMD output, such as hdf5, will w
     import matplotlib.pyplot as plt
     from matplotlib.colors import LogNorm
 
-    from picongpu.plugins.data import RadiationData
+    from picongpu.extra.plugins.data import RadiationData
 
     # access openPMD radiation file for specific time step
     radData = RadiationData("./simOutput/radiationOpenPMD/e_radAmplitudes_%T.bp", 2820)

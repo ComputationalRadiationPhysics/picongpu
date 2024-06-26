@@ -93,7 +93,7 @@ You can quickly load and interact with the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.data import EnergyHistogramData
+   from picongpu.extra.plugins.data import EnergyHistogramData
 
    eh_data = EnergyHistogramData('path/to/run_dir') # the directory in which simOutput is located
 
@@ -120,7 +120,7 @@ You can quickly plot the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.plot_mpl import EnergyHistogramMPL
+   from picongpu.extra.plugins.plot_mpl import EnergyHistogramMPL
    import matplotlib.pyplot as plt
 
 
@@ -202,7 +202,7 @@ After starting the notebook server write the following
    plt.ioff()
 
    from IPython.display import display
-   from picongpu.plugins.jupyter_widgets import EnergyHistogramWidget
+   from picongpu.extra.plugins.jupyter_widgets import EnergyHistogramWidget
 
    # provide the paths to the simulations you want to be able to choose from
    # together with labels that will be used in the plot legends so you still know

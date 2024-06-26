@@ -211,7 +211,7 @@ The final script snippet then reads:
    plt.ioff()
 
    from IPython.display import display
-   from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+   from picongpu.extra.plugins.jupyter_widgets import PhaseSpaceWidget
 
    # provide the paths to the simulations you want to be able to choose from
    # together with labels that will be used in the plot legends so you still know
