@@ -228,7 +228,6 @@ compilers.append(hip_clang_compilers)
 backends = [
     ("hip", 5.4),
     ("hip", 5.5),
-    ("cuda", 11.0),
     ("cuda", 11.1),
     ("cuda", 11.2),
     ("cuda", 11.3),
