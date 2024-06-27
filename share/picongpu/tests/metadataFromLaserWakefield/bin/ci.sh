@@ -83,7 +83,7 @@ pic-create -f . "${TMPDIR}" &&
     cd "${TMPDIR}" &&
     pic-build
 
-EXECUTABLE="bin/picongpu"
+EXECUTABLE="mpiexec -n 1 bin/picongpu"
 ARGS="-d 1 1 1 -g 24 24 24 "
 
 # doc-include-start: cmdline
