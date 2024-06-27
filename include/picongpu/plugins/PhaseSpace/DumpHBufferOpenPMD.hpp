@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+#include "picongpu/plugins/PhaseSpace/Pair.hpp"
 
 #include <pmacc/communication/manager_common.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -60,7 +61,7 @@ namespace picongpu
         void operator()(
             HostBuffer<T_Type, T_bufDim>& hBuffer,
             const AxisDescription axis_element,
-            const std::pair<float_X, float_X> axis_p_range,
+            const phaseSpace::Pair<float_X, float_X> axis_p_range,
             const float_64 pRange_unit,
             const float_64 unit,
             const std::string strSpecies,

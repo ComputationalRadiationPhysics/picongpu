@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/algorithms/Set.hpp"
+#include "picongpu/plugins/PhaseSpace/Pair.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
 #include <pmacc/lockstep.hpp>
@@ -59,7 +60,7 @@ namespace picongpu
             T_Particle particle,
             T_SharedMemHist sharedMemHist,
             const uint32_t el_p,
-            const std::pair<float_X, float_X>& axis_p_range)
+            const phaseSpace::Pair<float_X, float_X>& axis_p_range)
         {
             using float_PS = typename T_SharedMemHist::ValueType;
             /** \todo this can become a functor to be even more flexible
@@ -118,7 +119,7 @@ namespace picongpu
         TParticlesBox particlesBox;
         pmacc::DataBox<PitchedBox<float_PS, 2>> globalHist;
         uint32_t p_element;
-        std::pair<const float_X, float_X> axis_p_range;
+        phaseSpace::Pair<float_X, float_X> axis_p_range;
         T_Filter particleFilter;
 
         /** Constructor to transfer params to device
@@ -134,7 +135,7 @@ namespace picongpu
             const TParticlesBox& pb,
             pmacc::DataBox<PitchedBox<float_PS, 2>> phaseSpaceHistogram,
             const uint32_t p_dir,
-            const std::pair<float_X, float_X>& p_range,
+            const phaseSpace::Pair<float_X, float_X>& p_range,
             const T_Filter& parFilter)
             : particlesBox(pb)
             , globalHist(phaseSpaceHistogram)

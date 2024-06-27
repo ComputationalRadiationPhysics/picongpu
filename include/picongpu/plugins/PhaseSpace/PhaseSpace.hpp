@@ -23,6 +23,7 @@
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+#include "picongpu/plugins/PhaseSpace/Pair.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpaceFunctors.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 
@@ -185,7 +186,7 @@ namespace picongpu
         /** plot to create: e.g. py, x from element_coordinate/momentum */
         AxisDescription axis_element;
         /** range [pMin : pMax] in m_e c */
-        std::pair<float_X, float_X> axis_p_range;
+        phaseSpace::Pair<float_X, float_X> axis_p_range;
         uint32_t r_bins;
 
         std::shared_ptr<Help> m_help;
@@ -226,14 +227,14 @@ namespace picongpu
             TParticlesBox particlesBox;
             pmacc::DataBox<PitchedBox<float_PS, 2>> phaseSpaceBox;
             uint32_t p_element;
-            std::pair<float_X, float_X> axis_p_range;
+            phaseSpace::Pair<float_X, float_X> axis_p_range;
             MappingDesc cellDesc;
 
             StartBlockFunctor(
                 const TParticlesBox& pb,
                 pmacc::DataBox<PitchedBox<float_PS, 2>> phaseSpaceDeviceBox,
                 const uint32_t p_dir,
-                const std::pair<float_X, float_X>& p_range,
+                const phaseSpace::Pair<float_X, float_X>& p_range,
                 MappingDesc const& cellDescription)
                 : particlesBox(pb)
                 , phaseSpaceBox(phaseSpaceDeviceBox)
