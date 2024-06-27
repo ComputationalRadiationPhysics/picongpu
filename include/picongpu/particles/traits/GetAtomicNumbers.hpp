@@ -24,6 +24,7 @@
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 namespace picongpu::traits
