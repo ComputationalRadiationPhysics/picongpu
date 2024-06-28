@@ -226,11 +226,8 @@ compilers.append(hip_clang_compilers)
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
 backends = [
-    ("hip", 5.2),
-    ("hip", 5.3),
     ("hip", 5.4),
     ("hip", 5.5),
-    ("cuda", 11.0),
     ("cuda", 11.1),
     ("cuda", 11.2),
     ("cuda", 11.3),

@@ -134,7 +134,7 @@ Optional Libraries
 
 CUDA
 """"
-- `11.0.0+ <https://developer.nvidia.com/cuda-downloads>`_
+- `11.1.0+ <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
@@ -149,7 +149,7 @@ CUDA
 
 ROCm/HIP
 """"""""
-- `5.2+ <https://rocm.docs.amd.com/projects/HIP/en/latest/install/install.html>`_
+- `5.4+ <https://rocm.docs.amd.com/projects/HIP/en/latest/install/install.html>`_
 - required if you want to run on AMD GPUs
 - *Debian/Ubuntu:*
   - ``export ROCM_VER=5.5.0``
