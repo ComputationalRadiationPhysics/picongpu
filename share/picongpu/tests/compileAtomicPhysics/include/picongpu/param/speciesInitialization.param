@@ -40,7 +40,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = boost::mp11::mp_list<
+        using InitPipeline = pmacc::mp_list<
             CreateDensity<densityProfiles::Homogenous, startPosition::Random10ppc, ArgonIons>,
             ManipulateDerive<manipulators::binary::DensityWeighting, ArgonIons, BulkElectrons>,
             // set ions to atomic ground state
