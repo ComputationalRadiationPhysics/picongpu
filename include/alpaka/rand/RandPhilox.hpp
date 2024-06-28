@@ -27,15 +27,14 @@ namespace alpaka::rand
      * Ref.: J. K. Salmon, M. A. Moraes, R. O. Dror and D. E. Shaw, "Parallel random numbers: As easy as 1, 2, 3,"
      * SC '11: Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and
      * Analysis, 2011, pp. 1-12, doi: 10.1145/2063384.2063405.
-     *
-     * @tparam TAcc Accelerator type as defined in alpaka/acc
      */
-    template<typename TAcc>
-    class Philox4x32x10 : public concepts::Implements<ConceptRand, Philox4x32x10<TAcc>>
+    class Philox4x32x10 : public concepts::Implements<ConceptRand, Philox4x32x10>
     {
     public:
-        using EngineParams = engine::PhiloxParams<4, 32, 10>; ///< Philox algorithm: 10 rounds, 4 numbers of size 32.
-        using EngineVariant = engine::PhiloxSingle<TAcc, EngineParams>; ///< Engine outputs a single number
+        /// Philox algorithm: 10 rounds, 4 numbers of size 32.
+        using EngineParams = engine::PhiloxParams<4, 32, 10>;
+        /// Engine outputs a single number
+        using EngineVariant = engine::PhiloxSingle<EngineParams>;
 
         /** Initialize a new Philox engine
          *
@@ -84,15 +83,12 @@ namespace alpaka::rand
      * Ref.: J. K. Salmon, M. A. Moraes, R. O. Dror and D. E. Shaw, "Parallel random numbers: As easy as 1, 2, 3,"
      * SC '11: Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and
      * Analysis, 2011, pp. 1-12, doi: 10.1145/2063384.2063405.
-     *
-     * @tparam TAcc Accelerator type as defined in alpaka/acc
      */
-    template<typename TAcc>
-    class Philox4x32x10Vector : public concepts::Implements<ConceptRand, Philox4x32x10Vector<TAcc>>
+    class Philox4x32x10Vector : public concepts::Implements<ConceptRand, Philox4x32x10Vector>
     {
     public:
         using EngineParams = engine::PhiloxParams<4, 32, 10>;
-        using EngineVariant = engine::PhiloxVector<TAcc, EngineParams>;
+        using EngineVariant = engine::PhiloxVector<EngineParams>;
 
         /** Initialize a new Philox engine
          *
@@ -178,7 +174,7 @@ namespace alpaka::rand
             if constexpr(meta::IsArrayOrVector<TResult>::value)
             {
                 auto result = engine();
-                T scale = static_cast<T>(1) / engine.max() * _range;
+                T scale = static_cast<T>(1) / static_cast<T>(engine.max()) * _range;
                 TResult ret{
                     static_cast<T>(result[0]) * scale + _min,
                     static_cast<T>(result[1]) * scale + _min,
@@ -189,15 +185,17 @@ namespace alpaka::rand
             else
             {
                 // Since it's possible to get a host-only engine here, the call has to go through proxy
-                return static_cast<T>(EngineCallHostAccProxy<TEngine>{}(engine)) / engine.max() * _range + _min;
+                return static_cast<T>(EngineCallHostAccProxy<TEngine>{}(engine)) / static_cast<T>(engine.max())
+                           * _range
+                       + _min;
             }
 
             ALPAKA_UNREACHABLE(TResult{});
         }
 
     private:
-        const T _min;
-        const T _max;
-        const T _range;
+        T const _min;
+        T const _max;
+        T const _range;
     };
 } // namespace alpaka::rand

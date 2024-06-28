@@ -14,7 +14,6 @@ namespace alpaka::rand::engine
      *
      * Relies on `PhiloxStateless` to provide the PRNG and adds state to handling the counting.
      *
-     * @tparam TBackend device-dependent backend, specifies the array types
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
      * @tparam TImpl engine type implementation (CRTP)
      *
@@ -24,14 +23,16 @@ namespace alpaka::rand::engine
      * OpenMP <= 4.5 standard. In OpenMP >= 5.0 types with any kind of static
      * data member are mappable.
      */
-    template<typename TBackend, typename TParams, typename TImpl>
-    class PhiloxBaseCommon
-        : public TBackend
-        , public PhiloxStateless<TBackend, TParams>
+    template<typename TParams, typename TImpl>
+    class PhiloxBaseCommon : public PhiloxStateless<TParams>
     {
     public:
-        using Counter = typename PhiloxStateless<TBackend, TParams>::Counter;
-        using Key = typename PhiloxStateless<TBackend, TParams>::Key;
+        using Counter = typename PhiloxStateless<TParams>::Counter;
+        using Key = typename PhiloxStateless<TParams>::Key;
+
+        /// Distribution container type
+        template<typename TDistributionResultScalar>
+        using ResultContainer = typename alpaka::Vec<alpaka::DimInt<TParams::counterSize>, TDistributionResultScalar>;
 
     protected:
         /** Advance the \a counter to the next state

@@ -1,5 +1,5 @@
 /* Copyright 2023 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber,
- *                Andrea Bocci, Aurora Perego
+ *                Andrea Bocci, Aurora Perego, Mehmet Yusufoglu
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,6 +12,7 @@
 #include "alpaka/core/OmpSchedule.hpp"
 #include "alpaka/dim/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/KernelFunctionAttributes.hpp"
 #include "alpaka/queue/Traits.hpp"
 #include "alpaka/vec/Vec.hpp"
 #include "alpaka/workdiv/Traits.hpp"
@@ -66,6 +67,27 @@ namespace alpaka
                 [[maybe_unused]] TArgs const&... args) -> std::size_t
             {
                 return 0u;
+            }
+        };
+
+        //! \brief The structure template to access to the functions attributes of a kernel function object.
+        //! \tparam TAcc The accelerator type
+        //! \tparam TKernelBundle The kernel object type, which includes the kernel function object and it's invocation
+        //! arguments.
+        template<typename TAcc, typename TDev, typename TKernelBundle>
+        struct FunctionAttributes
+        {
+            //! \param kernelBundle The kernel object instance, which includes the kernel function object and it's
+            //! invocation arguments.
+            //! \return KernelFunctionAttributes data structure instance. The default version always returns the
+            //! instance with fields which are set to zero.
+            ALPAKA_FN_HOST static auto getFunctionAttributes(
+                TDev const&,
+                [[maybe_unused]] TKernelBundle const& kernelBundle) -> alpaka::KernelFunctionAttributes
+            {
+                std::string const str
+                    = std::string(__func__) + " function is not specialised for the given arguments.\n";
+                throw std::invalid_argument{str};
             }
         };
 
@@ -165,6 +187,24 @@ namespace alpaka
             blockThreadExtent,
             threadElemExtent,
             args...);
+    }
+
+    //! \tparam TAcc The accelerator type.
+    //! \tparam TDev The device type.
+    //! \tparam TKernelBundle The kernel object type, which includes the kernel function object and it's invocation
+    //! arguments.
+    //! \param dev The device instance
+    //! \param kernelBundle The kernel object, which includes the kernel function object and it's invocation
+    //! arguments.
+    //! \return KernelFunctionAttributes instance. Instance is filled with values returned by the accelerator API
+    //! depending on the specific kernel. The default version always returns the instance with fields which are set to
+    //! zero.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TAcc, typename TDev, typename TKernelBundle>
+    ALPAKA_FN_HOST auto getFunctionAttributes(TDev const& dev, TKernelBundle const& kernelBundle)
+        -> alpaka::KernelFunctionAttributes
+    {
+        return trait::FunctionAttributes<TAcc, TDev, TKernelBundle>::getFunctionAttributes(dev, kernelBundle);
     }
 
 #if BOOST_COMP_CLANG

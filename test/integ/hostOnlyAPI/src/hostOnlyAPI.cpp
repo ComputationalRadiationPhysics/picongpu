@@ -49,14 +49,14 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     // host buffer
     auto h_buffer1 = alpaka::allocMappedBufIfSupported<int, Idx>(host, platformAcc, Vec1D{Idx{42}});
     INFO(
-        "host buffer allocated at " << alpaka::getPtrNative(h_buffer1) << " with "
-                                    << alpaka::getExtentProduct(h_buffer1) << " element(s)");
+        "host buffer allocated at " << std::data(h_buffer1) << " with " << alpaka::getExtentProduct(h_buffer1)
+                                    << " element(s)");
 
     // async host buffer
     auto h_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(hostQueue, Vec1D{Idx{42}});
     INFO(
-        "second host buffer allocated at " << alpaka::getPtrNative(h_buffer2) << " with "
-                                           << alpaka::getExtentProduct(h_buffer2) << " element(s)");
+        "second host buffer allocated at " << std::data(h_buffer2) << " with " << alpaka::getExtentProduct(h_buffer2)
+                                           << " element(s)");
 
     // host-side memset
     int const value1 = 42;
@@ -64,7 +64,7 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     INFO("host-side memset");
     alpaka::memset(hostQueue, h_buffer1, value1);
     alpaka::wait(hostQueue);
-    CHECK(expected1 == *alpaka::getPtrNative(h_buffer1));
+    CHECK(expected1 == *std::data(h_buffer1));
 
     // host-side async memset
     int const value2 = 99;
@@ -72,16 +72,16 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     INFO("host-side async memset");
     alpaka::memset(hostQueue, h_buffer2, value2);
     alpaka::wait(hostQueue);
-    CHECK(expected2 == *alpaka::getPtrNative(h_buffer2));
+    CHECK(expected2 == *std::data(h_buffer2));
 
     // host-host copies
     INFO("buffer host-host copies");
     alpaka::memcpy(hostQueue, h_buffer2, h_buffer1);
     alpaka::wait(hostQueue);
-    CHECK(expected1 == *alpaka::getPtrNative(h_buffer2));
+    CHECK(expected1 == *std::data(h_buffer2));
     alpaka::memcpy(hostQueue, h_buffer1, h_buffer2);
     alpaka::wait(hostQueue);
-    CHECK(expected1 == *alpaka::getPtrNative(h_buffer1));
+    CHECK(expected1 == *std::data(h_buffer1));
 
     // GPU device
     auto const device = alpaka::getDevByIdx(platformAcc, 0);
@@ -91,14 +91,14 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     // device buffer
     auto d_buffer1 = alpaka::allocBuf<int, Idx>(device, Vec1D{Idx{42}});
     INFO(
-        "device buffer allocated at " << alpaka::getPtrNative(d_buffer1) << " with "
-                                      << alpaka::getExtentProduct(d_buffer1) << " element(s)");
+        "device buffer allocated at " << std::data(d_buffer1) << " with " << alpaka::getExtentProduct(d_buffer1)
+                                      << " element(s)");
 
     // async or second sync device buffer
     auto d_buffer2 = alpaka::allocAsyncBufIfSupported<int, Idx>(deviceQueue, Vec1D{Idx{42}});
     INFO(
-        "second device buffer allocated at " << alpaka::getPtrNative(d_buffer2) << " with "
-                                             << alpaka::getExtentProduct(d_buffer2) << " element(s)");
+        "second device buffer allocated at " << std::data(d_buffer2) << " with " << alpaka::getExtentProduct(d_buffer2)
+                                             << " element(s)");
 
     // host-device copies
     INFO("host-device copies");
@@ -121,6 +121,6 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     alpaka::memcpy(deviceQueue, h_buffer2, d_buffer2);
 
     alpaka::wait(deviceQueue);
-    CHECK(expected1 == *alpaka::getPtrNative(h_buffer1));
-    CHECK(expected2 == *alpaka::getPtrNative(h_buffer2));
+    CHECK(expected1 == *std::data(h_buffer1));
+    CHECK(expected2 == *std::data(h_buffer2));
 }

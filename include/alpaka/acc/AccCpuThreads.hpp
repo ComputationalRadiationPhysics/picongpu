@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2024 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -124,6 +124,18 @@ namespace alpaka
             using type = AccCpuThreads<TDim, TIdx>;
         };
 
+        //! The CPU threads single thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsSingleThreadAcc<AccCpuThreads<TDim, TIdx>> : std::false_type
+        {
+        };
+
+        //! The CPU threads multi thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsMultiThreadAcc<AccCpuThreads<TDim, TIdx>> : std::true_type
+        {
+        };
+
         //! The CPU threads accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuThreads<TDim, TIdx>>
@@ -131,7 +143,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
 #    ifdef ALPAKA_CI
-                auto const blockThreadCountMax(static_cast<TIdx>(8));
+                auto const blockThreadCountMax = static_cast<TIdx>(8);
 #    else
                 // \TODO: Magic number. What is the maximum? Just set a reasonable value? There is a implementation
                 // defined maximum where the creation of a new thread crashes. std::thread::hardware_concurrency can
@@ -140,6 +152,7 @@ namespace alpaka
                     static_cast<TIdx>(1),
                     alpaka::core::clipCast<TIdx>(std::thread::hardware_concurrency() * 8));
 #    endif
+                auto const memBytes = getMemBytes(dev);
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(1),
                         // m_gridBlockExtentMax
@@ -155,7 +168,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        getMemBytes(dev)};
+                        memBytes,
+                        // m_globalMemSizeBytes
+                        memBytes};
             }
         };
 

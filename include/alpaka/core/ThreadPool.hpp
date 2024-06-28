@@ -55,7 +55,18 @@ namespace alpaka::core::detail
         template<typename TFnObj, typename... TArgs>
         auto enqueueTask(TFnObj&& task, TArgs&&... args) -> std::future<void>
         {
-            auto ptask = Task{[=, t = std::forward<TFnObj>(task)]() noexcept(noexcept(task(args...))) { t(args...); }};
+#if BOOST_COMP_MSVC
+// MSVC 14.39.33519 is throwing an error because the noexcept type deduction is not defined in original C++17
+// error C2065: 'task': undeclared identifier
+// see: https://stackoverflow.com/a/72467726
+#    define ALPAKA_NOEXCEPT(...)
+#else
+#    define ALPAKA_NOEXCEPT(...) noexcept(__VA_ARGS__)
+#endif
+            auto ptask
+                = Task{[=, t = std::forward<TFnObj>(task)]() ALPAKA_NOEXCEPT(noexcept(task(args...))) { t(args...); }};
+#undef ALPAKA_NOEXCEPT
+
             auto future = ptask.get_future();
             {
                 std::lock_guard<std::mutex> lock{m_mutex};

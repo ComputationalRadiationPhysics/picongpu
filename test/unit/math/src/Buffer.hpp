@@ -58,8 +58,8 @@ namespace mathtest
             : devHost{alpaka::getDevByIdx(platformHost, 0)}
             , hostBuffer{alpaka::allocMappedBufIfSupported<TData, Idx>(devHost, platformAcc, Tcapacity)}
             , devBuffer{alpaka::allocBuf<TData, Idx>(devAcc, Tcapacity)}
-            , pHostBuffer{alpaka::getPtrNative(hostBuffer)}
-            , pDevBuffer{alpaka::getPtrNative(devBuffer)}
+            , pHostBuffer{std::data(hostBuffer)}
+            , pDevBuffer{std::data(devBuffer)}
         {
         }
 

@@ -236,7 +236,7 @@ auto writeTgaColorImage(std::string const& fileName, TBuf const& bufRgba) -> voi
     ofs.put(0x20); // Image Descriptor Byte.
 
     // Write the data.
-    char const* pData(reinterpret_cast<char const*>(alpaka::getPtrNative(bufRgba)));
+    char const* pData(reinterpret_cast<char const*>(std::data(bufRgba)));
     // If there is no padding, we can directly write the whole buffer data ...
     if(bufRowPitchBytes == bufWidthBytes)
     {
@@ -323,7 +323,7 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
-        alpaka::getPtrNative(bufColorAcc),
+        std::data(bufColorAcc),
         numRows,
         numCols,
         rowPitch,

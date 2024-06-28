@@ -111,9 +111,9 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     auto memBufHostX = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
     auto memBufHostOrigY = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
     auto memBufHostY = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
-    Val* const pBufHostX = alpaka::getPtrNative(memBufHostX);
-    Val* const pBufHostOrigY = alpaka::getPtrNative(memBufHostOrigY);
-    Val* const pBufHostY = alpaka::getPtrNative(memBufHostY);
+    Val* const pBufHostX = std::data(memBufHostX);
+    Val* const pBufHostOrigY = std::data(memBufHostOrigY);
+    Val* const pBufHostY = std::data(memBufHostY);
 
     // random generator for uniformly distributed numbers in [0,1)
     // keep in mind, this can generate different values on different platforms
@@ -165,8 +165,8 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
         kernel,
         numElements,
         alpha,
-        alpaka::getPtrNative(memBufAccX),
-        alpaka::getPtrNative(memBufAccY));
+        std::data(memBufAccX),
+        std::data(memBufAccY));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

@@ -1,4 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2024 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -107,11 +108,23 @@ namespace alpaka
             using type = AccCpuTbbBlocks<TDim, TIdx>;
         };
 
+        //! The CPU TBB block single thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsSingleThreadAcc<AccCpuTbbBlocks<TDim, TIdx>> : std::true_type
+        {
+        };
+
+        //! The CPU TBB block multi thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsMultiThreadAcc<AccCpuTbbBlocks<TDim, TIdx>> : std::false_type
+        {
+        };
+
         //! The CPU TBB block accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuTbbBlocks<TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& /* dev */) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(1),
@@ -128,7 +141,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes())};
+                        static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes()),
+                        // m_globalMemSizeBytes
+                        getMemBytes(dev)};
             }
         };
 

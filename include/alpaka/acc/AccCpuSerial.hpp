@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2024 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -110,11 +110,23 @@ namespace alpaka
             using type = AccCpuSerial<TDim, TIdx>;
         };
 
+        //! The CPU serial single thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsSingleThreadAcc<AccCpuSerial<TDim, TIdx>> : std::true_type
+        {
+        };
+
+        //! The CPU serial multi thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsMultiThreadAcc<AccCpuSerial<TDim, TIdx>> : std::false_type
+        {
+        };
+
         //! The CPU serial accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuSerial<TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& /* dev */) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(1),
@@ -131,7 +143,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        static_cast<size_t>(AccCpuSerial<TDim, TIdx>::staticAllocBytes())};
+                        static_cast<size_t>(AccCpuSerial<TDim, TIdx>::staticAllocBytes()),
+                        // m_globalMemSizeBytes
+                        getMemBytes(dev)};
             }
         };
 

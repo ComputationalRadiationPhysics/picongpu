@@ -3,7 +3,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <alpaka/example/ExecuteForEachAccTag.hpp>
 
 #include <functional>
 
@@ -39,7 +39,12 @@ void ALPAKA_FN_ACC hiWorldFunction(TAcc const& acc, size_t const nExclamationMar
     printf("\n");
 }
 
-auto main() -> int
+// In standard projects, you typically do not execute the code with any available accelerator.
+// Instead, a single accelerator is selected once from the active accelerators and the kernels are executed with the
+// selected accelerator only. If you use the example as the starting point for your project, you can rename the
+// example() function to main() and move the accelerator tag to the function body.
+template<typename TAccTag>
+auto example(TAccTag const&) -> int
 {
 // It requires support for extended lambdas when using nvcc as CUDA compiler.
 // Requires sequential backend if CI is used
@@ -51,17 +56,7 @@ auto main() -> int
     using Idx = std::size_t;
 
     // Define the accelerator
-    //
-    // It is possible to choose from a set of accelerators:
-    // - AccGpuCudaRt
-    // - AccGpuHipRt
-    // - AccCpuThreads
-    // - AccCpuOmp2Threads
-    // - AccCpuOmp2Blocks
-    // - AccCpuTbbBlocks
-    // - AccCpuSerial
-    // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
-    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
@@ -137,4 +132,20 @@ auto main() -> int
 #else
     return EXIT_SUCCESS;
 #endif
+}
+
+auto main() -> int
+{
+    // Execute the example once for each enabled accelerator.
+    // If you would like to execute it for a single accelerator only you can use the following code.
+    //  \code{.cpp}
+    //  auto tag = TagCpuSerial;
+    //  return example(tag);
+    //  \endcode
+    //
+    // valid tags:
+    //   TagCpuSerial, TagGpuHipRt, TagGpuCudaRt, TagCpuOmp2Blocks, TagCpuTbbBlocks,
+    //   TagCpuOmp2Threads, TagCpuSycl, TagCpuTbbBlocks, TagCpuThreads,
+    //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
+    return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }

@@ -3,7 +3,7 @@
 Writing a unit test
 ===================
 
-After implementing a new functionality in Alpaka, it is recommended to test it. Indeed, having no compile time errors
+After implementing a new functionality in alpaka, it is recommended to test it. Indeed, having no compile time errors
 when building alpaka with any backend doesn't mean that such functionality is well implemented and behaves as expected.
 
 Unit tests are written and integrated with `Catch2 <https://github.com/catchorg/Catch2>`_ and they are standalone executables located in the ``test/unit`` and
@@ -46,7 +46,7 @@ Test cases using an alpaka accelerator are then typically introduced with the ``
 It takes three arguments:
 * a free form test name (must be unique)
 * a tag
-* the accelerator(s) that must run the test case(s) (i.e. ``alpaka::test::TestAccs`` targets all the accelereators selected
+* the accelerator(s) that must run the test case(s) (i.e. ``alpaka::test::TestAccs`` targets all the accelerators selected
 by the ``TestAccs`` header).
 
 Some aliases might be useful:

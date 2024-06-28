@@ -79,7 +79,7 @@ namespace alpaka::rand
             ALPAKA_FN_HOST_ACC auto operator()(TEngine& engine) -> T
             {
                 constexpr BitsT limit = static_cast<BitsT>(1) << std::numeric_limits<T>::digits;
-                const BitsT b = UniformUint<BitsT>()(engine);
+                BitsT const b = UniformUint<BitsT>()(engine);
                 auto const ret = static_cast<T>(b & (limit - 1)) / limit;
                 return ret;
             }
@@ -147,7 +147,7 @@ namespace alpaka::rand
                     } while(u1 <= std::numeric_limits<T>::epsilon());
 
                     // compute z0 and z1
-                    const T mag = sigma * math::sqrt(*m_acc, static_cast<T>(-2.) * math::log(*m_acc, u1));
+                    T const mag = sigma * math::sqrt(*m_acc, static_cast<T>(-2.) * math::log(*m_acc, u1));
                     constexpr T twoPi = static_cast<T>(2. * math::constants::pi);
                     // getting two normal number out of this, store one for later
                     m_cache = mag * static_cast<T>(math::cos(*m_acc, twoPi * u2)) + mu;
@@ -155,7 +155,7 @@ namespace alpaka::rand
                     return mag * static_cast<T>(math::sin(*m_acc, twoPi * u2)) + mu;
                 }
 
-                const T ret = m_cache;
+                T const ret = m_cache;
                 m_cache = std::numeric_limits<T>::quiet_NaN();
                 return ret;
             }
@@ -207,7 +207,7 @@ namespace alpaka::rand
                 TAcc const& /* acc */,
                 std::uint32_t const& seed,
                 std::uint32_t const& subsequence,
-                std::uint32_t const& offset) -> Philox4x32x10<TAcc>
+                std::uint32_t const& offset) -> Philox4x32x10
             {
                 return {seed, subsequence, offset};
             }

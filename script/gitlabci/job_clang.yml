@@ -18,7 +18,7 @@ linux_clang-14_debug:
     CMAKE_BUILD_TYPE: Debug
     ALPAKA_BOOST_VERSION: 1.80.0
     ALPAKA_CI_CMAKE_VER: 3.23.5
- 
+
 linux_clang-16_relwithdebinfo_asan_c++20:
   extends: .base_clang
   variables:

@@ -141,7 +141,7 @@ else
     then
         export alpaka_USE_MDSPAN=FETCH
     else
-	    export alpaka_USE_MDSPAN=OFF
+        export alpaka_USE_MDSPAN=OFF
     fi
 fi
 

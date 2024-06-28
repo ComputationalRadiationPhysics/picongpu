@@ -9,6 +9,11 @@ source ./script/set.sh
 
 ./script/print_env.sh
 source ./script/before_install.sh
+if [ -n "$GITHUB_ACTIONS" ] && [ "$ALPAKA_CI_OS_NAME" = "Linux" ]; then
+  # Workaround for the error: ThreadSanitizer: unexpected memory mapping
+  # change the configuration of the address space layout randomization
+  sudo sysctl vm.mmap_rnd_bits=28
+fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then

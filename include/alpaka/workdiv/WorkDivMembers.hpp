@@ -21,6 +21,7 @@ namespace alpaka
     public:
         ALPAKA_FN_HOST_ACC WorkDivMembers() = delete;
 
+        //! Accepts different alpaka vector types and takes the last TDim number of items.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TGridBlockExtent, typename TBlockThreadExtent, typename TThreadElemExtent>
         ALPAKA_FN_HOST_ACC explicit WorkDivMembers(
@@ -30,6 +31,18 @@ namespace alpaka
             : m_gridBlockExtent(getExtentVecEnd<TDim>(gridBlockExtent))
             , m_blockThreadExtent(getExtentVecEnd<TDim>(blockThreadExtent))
             , m_threadElemExtent(getExtentVecEnd<TDim>(threadElemExtent))
+        {
+        }
+
+        //! \brief Accepts single specific type and is called without explicit template parameters.
+        ALPAKA_NO_HOST_ACC_WARNING
+        ALPAKA_FN_HOST_ACC WorkDivMembers(
+            alpaka::Vec<TDim, TIdx> const& gridBlockExtent,
+            alpaka::Vec<TDim, TIdx> const& blockThreadExtent,
+            alpaka::Vec<TDim, TIdx> const& elemExtent)
+            : m_gridBlockExtent(gridBlockExtent)
+            , m_blockThreadExtent(blockThreadExtent)
+            , m_threadElemExtent(elemExtent)
         {
         }
 
@@ -82,6 +95,14 @@ namespace alpaka
         Vec<TDim, TIdx> m_blockThreadExtent;
         Vec<TDim, TIdx> m_threadElemExtent;
     };
+
+    //! Deduction guide for the constructor which can be called without explicit template type parameters
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TDim, typename TIdx>
+    ALPAKA_FN_HOST_ACC WorkDivMembers(
+        alpaka::Vec<TDim, TIdx> const& gridBlockExtent,
+        alpaka::Vec<TDim, TIdx> const& blockThreadExtent,
+        alpaka::Vec<TDim, TIdx> const& elemExtent) -> WorkDivMembers<TDim, TIdx>;
 
     namespace trait
     {

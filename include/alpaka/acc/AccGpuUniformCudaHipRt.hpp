@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, René Widera, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato
+/* Copyright 2024 Benjamin Worpitz, René Widera, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -94,6 +94,18 @@ namespace alpaka
             using type = AccGpuUniformCudaHipRt<TApi, TDim, TIdx>;
         };
 
+        //! The GPU CUDA single thread accelerator type trait specialization.
+        template<typename TApi, typename TDim, typename TIdx>
+        struct IsSingleThreadAcc<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>> : std::false_type
+        {
+        };
+
+        //! The GPU CUDA multi thread accelerator type trait specialization.
+        template<typename TApi, typename TDim, typename TIdx>
+        struct IsMultiThreadAcc<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>> : std::true_type
+        {
+        };
+
         //! The GPU CUDA accelerator device properties get trait specialization.
         template<typename TApi, typename TDim, typename TIdx>
         struct GetAccDevProps<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>>
@@ -170,7 +182,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        static_cast<size_t>(sharedMemSizeBytes)};
+                        static_cast<size_t>(sharedMemSizeBytes),
+                        // m_globalMemSizeBytes
+                        getMemBytes(dev)};
 
 #    else
                 typename TApi::DeviceProp_t properties;
@@ -197,7 +211,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        static_cast<size_t>(properties.sharedMemPerBlock)};
+                        static_cast<size_t>(properties.sharedMemPerBlock),
+                        // m_globalMemSizeBytes
+                        getMemBytes(dev)};
 #    endif
             }
         };

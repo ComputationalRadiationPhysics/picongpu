@@ -175,10 +175,11 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getPreferredWarpSize(DevUniformCudaHipRt<TApi> const& dev) -> std::size_t
             {
-                typename TApi::DeviceProp_t devProp;
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::getDeviceProperties(&devProp, dev.getNativeHandle()));
+                int warpSize = 0;
 
-                return static_cast<std::size_t>(devProp.warpSize);
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                    TApi::deviceGetAttribute(&warpSize, TApi::deviceAttributeWarpSize, dev.getNativeHandle()));
+                return static_cast<std::size_t>(warpSize);
             }
         };
 

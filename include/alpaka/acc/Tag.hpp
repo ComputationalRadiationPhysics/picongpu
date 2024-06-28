@@ -41,18 +41,32 @@ namespace alpaka
         struct TagToAcc;
     } // namespace trait
 
-    /// @brief maps an acc type to a tag type
-    /// @tparam TAcc alpaka acc type
+    //! \brief maps an acc type to a tag type
+    //! \tparam TAcc alpaka acc type
     template<typename TAcc>
     using AccToTag = typename trait::AccToTag<TAcc>::type;
 
-    /// @brief maps a tag type to an acc type
-    /// @tparam TTag alpaka tag type
-    /// @tparam TDim dimension of the mapped acc type
-    /// @tparam TIdx index type of the mapped acc type
+    //! \brief maps a tag type to an acc type
+    //! \tparam TTag alpaka tag type
+    //! \tparam TDim dimension of the mapped acc type
+    //! \tparam TIdx index type of the mapped acc type
     template<typename TTag, typename TDim, typename TIdx>
     using TagToAcc = typename trait::TagToAcc<TTag, TDim, TIdx>::type;
 
     template<typename TAcc, typename... TTag>
     inline constexpr bool accMatchesTags = (std::is_same_v<alpaka::AccToTag<TAcc>, TTag> || ...);
+
+    //! list of all available tags
+    using AccTags = std::tuple<
+        alpaka::TagCpuSerial,
+        alpaka::TagCpuThreads,
+        alpaka::TagCpuTbbBlocks,
+        alpaka::TagCpuOmp2Blocks,
+        alpaka::TagCpuOmp2Threads,
+        alpaka::TagGpuCudaRt,
+        alpaka::TagGpuHipRt,
+        alpaka::TagCpuSycl,
+        alpaka::TagFpgaSyclIntel,
+        alpaka::TagGpuSyclIntel>;
+
 } // namespace alpaka

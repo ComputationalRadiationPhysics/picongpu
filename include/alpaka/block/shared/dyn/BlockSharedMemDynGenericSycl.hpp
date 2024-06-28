@@ -35,7 +35,7 @@ namespace alpaka::trait
     {
         static auto getMem(BlockSharedMemDynGenericSycl const& shared) -> T*
         {
-            return reinterpret_cast<T*>(shared.m_accessor.get_pointer().get());
+            return reinterpret_cast<T*>(shared.m_accessor.get_multi_ptr<sycl::access::decorated::no>().get());
         }
     };
 } // namespace alpaka::trait

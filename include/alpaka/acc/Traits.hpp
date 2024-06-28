@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
+/* Copyright 2024 Benjamin Worpitz, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -36,6 +36,26 @@ namespace alpaka
         template<typename T, typename TSfinae = void>
         struct AccType;
 
+        //! The single thread accelerator trait.
+        //!
+        //! If TAcc is an accelerator that supports only a single thread per block, inherit from std::true_type.
+        //! If TAcc is not an accelerator, or an accelerator that supports multiple threads per block, inherit from
+        //! std::false_type.
+        template<typename TAcc, typename TSfinae = void>
+        struct IsSingleThreadAcc : std::false_type
+        {
+        };
+
+        //! The multi thread accelerator trait.
+        //!
+        //! If TAcc is an accelerator that supports multiple threads per block, inherit from std::true_type.
+        //! If TAcc is not an accelerator, or an accelerator that supports only a single thread per block, inherit from
+        //! std::false_type.
+        template<typename TAcc, typename TSfinae = void>
+        struct IsMultiThreadAcc : std::false_type
+        {
+        };
+
         //! The device properties get trait.
         template<typename TAcc, typename TSfinae = void>
         struct GetAccDevProps;
@@ -56,6 +76,14 @@ namespace alpaka
     //! The accelerator type trait alias template to remove the ::type.
     template<typename T>
     using Acc = typename trait::AccType<T>::type;
+
+    //! True if TAcc is an accelerator that supports only a single thread per block, false otherwise.
+    template<typename TAcc>
+    inline constexpr bool isSingleThreadAcc = trait::IsSingleThreadAcc<TAcc>::value;
+
+    //! True if TAcc is an accelerator that supports multiple threads per block, false otherwise.
+    template<typename TAcc>
+    inline constexpr bool isMultiThreadAcc = trait::IsMultiThreadAcc<TAcc>::value;
 
     //! \return The acceleration properties on the given device.
     template<typename TAcc, typename TDev>
@@ -81,5 +109,7 @@ namespace alpaka
         {
             using type = typename QueueType<typename alpaka::trait::PlatformType<TAcc>::type, TProperty>::type;
         };
+
     } // namespace trait
+
 } // namespace alpaka

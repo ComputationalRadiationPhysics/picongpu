@@ -116,8 +116,10 @@ Create a CPU device for memory allocation on the host side
 Allocate a buffer in host memory
   .. code-block:: c++
 
-     Vec<Dim, Idx> extent = value;
-     using BufHost = Buf<DevHost, DataType, Dim, Idx>;
+     // Use alpaka vector as a static array for the extents
+     alpaka::Vec<Dim, Idx> extent = value;
+     // Allocate memory for the alpaka buffer, which is a dynamic array
+     using BufHost = alpaka::Buf<DevHost, DataType, Dim, Idx>;
      BufHost bufHost = allocBuf<DataType, Idx>(devHost, extent);
 
 (Optional, affects CPU – GPU memory copies) Prepare it for asynchronous memory copies
@@ -129,7 +131,8 @@ Create a view to host memory represented by a pointer
   .. code-block:: c++
 
      using Dim = alpaka::DimInt<1u>;
-     Vec<Dim, Idx> extent = size;
+     // Create an alpaka vector which is a static array
+     alpaka::Vec<Dim, Idx> extent = size;
      DataType* ptr = ...;
      auto hostView = createView(devHost, ptr, extent);
 
@@ -159,6 +162,7 @@ Allocate a buffer in device memory
 Enqueue a memory copy from host to device
   .. code-block:: c++
 
+     // arguments can be also alpaka::View instances instead of alpaka::Buf
      memcpy(queue, bufDevice, bufHost, extent);
 
 Enqueue a memory copy from device to host
@@ -231,7 +235,7 @@ Access multi-dimensional indices and extents of blocks, threads, and elements
      // Origin: Grid, Block, Thread
      // Unit: Blocks, Threads, Elems
 
-Access components of and destructuremulti-dimensional indices and extents
+Access components of and destructure multi-dimensional indices and extents
   .. code-block:: c++
 
      auto idxX = idx[0];
