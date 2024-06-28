@@ -211,17 +211,14 @@ namespace picongpu::simulation::stage
 
                 pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
 
-                // TimeRemainingSuperCellField
                 auto& localTimeRemainingField = *dc.get<S_TimeRemainingField>("LocalTimeRemainingField");
                 DataSpace<picongpu::simDim> const fieldGridLayoutTimeRemaining
                     = localTimeRemainingField.getGridLayout().sizeWithoutGuardND();
 
-                // FoundUnboundIonSuperCellField
                 auto& localFoundUnboundIonField = *dc.get<S_FoundUnboundField>("LocalFoundUnboundIonField");
                 DataSpace<picongpu::simDim> const fieldGridLayoutFoundUnbound
                     = localFoundUnboundIonField.getGridLayout().sizeWithoutGuardND();
 
-                // ElectronHistogramOverSubscribedSuperCellField
                 auto& localElectronHistogramOverSubscribedField
                     = *dc.get<S_OverSubscribedField>("LocalElectronHistogramOverSubscribedField");
                 DataSpace<picongpu::simDim> const fieldGridLayoutOverSubscription
@@ -241,8 +238,7 @@ namespace picongpu::simulation::stage
                 // atomicPhysics sub-stepping loop, ends when timeRemaining<=0._X
                 while(true)
                 {
-                    // debug only
-                    std::cout << "atomicPhysics Sub-Step: " << counterSubStep << std::endl;
+                    std::cout << "atomicPhysics subStep: " << counterSubStep << std::endl;
 
                     // particle[accepted_] = false, in each macro ion
                     using ForEachIonSpeciesResetAcceptedStatus = pmacc::meta::ForEach<
