@@ -4,7 +4,9 @@ SPDX-License-Identifier: MPL-2.0
 Generate GitLab-CI test jobs yaml for the vikunja CI."""
 
 import argparse
-import sys, os, random
+import sys
+import os
+import random
 from typing import List, Dict, Tuple
 from collections import OrderedDict
 
@@ -26,7 +28,6 @@ from generate_job_yaml import (
     write_job_yaml,
     distribute_to_waves,
     JOB_COMPILE_ONLY,
-    JOB_RUNTIME,
     JOB_UNKNOWN,
     WAVE_GROUP_NAMES,
 )
@@ -41,21 +42,15 @@ def get_args() -> argparse.Namespace:
     Returns:
         argparse.Namespace: The commandline arguments.
     """
-    parser = argparse.ArgumentParser(
-        description="Calculate job matrix and create GitLab CI .yml."
-    )
+    parser = argparse.ArgumentParser(description="Calculate job matrix and create GitLab CI .yml.")
 
-    parser.add_argument(
-        "version", type=float, help="Version number of the used CI container."
-    )
+    parser.add_argument("version", type=float, help="Version number of the used CI container.")
     parser.add_argument(
         "--print-combinations",
         action="store_true",
         help="Display combination matrix.",
     )
-    parser.add_argument(
-        "--verify", action="store_true", help="Verify generated combination matrix"
-    )
+    parser.add_argument("--verify", action="store_true", help="Verify generated combination matrix")
     parser.add_argument(
         "-a",
         "--all",
@@ -174,9 +169,7 @@ if __name__ == "__main__":
             if striped_line.strip().startswith(COMMIT_MESSAGE_FILTER_PREFIX):
                 filter_regix = striped_line[len(COMMIT_MESSAGE_FILTER_PREFIX) :].strip()
             if striped_line.startswith(COMMIT_MESSAGE_REORDER_PREFIX):
-                reorder_regix = striped_line[
-                    len(COMMIT_MESSAGE_REORDER_PREFIX) :
-                ].strip()
+                reorder_regix = striped_line[len(COMMIT_MESSAGE_REORDER_PREFIX) :].strip()
 
     if filter_regix:
         job_matrix_yaml = filter_job_list(job_matrix_yaml, filter_regix)
@@ -197,7 +190,7 @@ if __name__ == "__main__":
         filter_wave_name = args.wave
         wave_job_matrix = {filter_wave_name: wave_job_matrix[filter_wave_name]}
         for wave_name in WAVE_GROUP_NAMES:
-            if not wave_name in wave_job_matrix:
+            if wave_name not in wave_job_matrix:
                 wave_job_matrix[wave_name] = []
 
     write_job_yaml(

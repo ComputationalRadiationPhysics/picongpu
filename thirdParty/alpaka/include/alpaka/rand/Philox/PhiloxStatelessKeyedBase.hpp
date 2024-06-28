@@ -10,20 +10,19 @@ namespace alpaka::rand::engine
 {
     /** Common class for Philox family engines
      *
-     * Checks the validity of passed-in parameters and calls the \a TBackend methods to perform N rounds of the
+     * Checks the validity of passed-in parameters and calls the backend methods to perform N rounds of the
      * Philox shuffle.
      *
-     * @tparam TBackend device-dependent backend, specifies the array types
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
      */
-    template<typename TBackend, typename TParams>
-    struct PhiloxStatelessKeyedBase : public PhiloxStateless<TBackend, TParams>
+    template<typename TParams>
+    struct PhiloxStatelessKeyedBase : public PhiloxStateless<TParams>
     {
     public:
-        using Counter = typename PhiloxStateless<TBackend, TParams>::Counter;
-        using Key = typename PhiloxStateless<TBackend, TParams>::Key;
+        using Counter = typename PhiloxStateless<TParams>::Counter;
+        using Key = typename PhiloxStateless<TParams>::Key;
 
-        const Key m_key;
+        Key const m_key;
 
         PhiloxStatelessKeyedBase(Key&& key) : m_key(std::move(key))
         {

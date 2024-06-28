@@ -155,7 +155,7 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     alpaka::memcpy(queue, blockRetValsAcc, blockRetVals, resultElemCount);
 
     // Create the kernel execution task.
-    auto const taskKernel = alpaka::createTaskKernel<Acc>(workDiv, kernel, alpaka::getPtrNative(blockRetValsAcc));
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(workDiv, kernel, std::data(blockRetValsAcc));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

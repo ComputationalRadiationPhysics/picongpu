@@ -263,12 +263,12 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
         n,
         k,
         static_cast<Val>(1),
-        alpaka::getPtrNative(bufAAcc),
+        std::data(bufAAcc),
         lda,
-        alpaka::getPtrNative(bufBAcc),
+        std::data(bufBAcc),
         ldb,
         static_cast<Val>(1),
-        alpaka::getPtrNative(bufCAcc),
+        std::data(bufCAcc),
         ldc);
 
     // Profile the kernel execution.
@@ -290,7 +290,7 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     auto const correctResult = static_cast<Val>(k);
 
     bool resultCorrect = true;
-    auto const pHostData = alpaka::getPtrNative(bufCHost);
+    auto const pHostData = std::data(bufCHost);
     for(Idx i(0u); i < m * n; ++i)
     {
         auto const& val(pHostData[i]);

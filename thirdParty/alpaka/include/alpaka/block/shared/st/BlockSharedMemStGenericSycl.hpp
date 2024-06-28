@@ -24,7 +24,7 @@ namespace alpaka
     public:
         BlockSharedMemStGenericSycl(sycl::local_accessor<std::byte> accessor)
             : BlockSharedMemStMemberImpl(
-                reinterpret_cast<std::uint8_t*>(accessor.get_pointer().get()),
+                reinterpret_cast<std::uint8_t*>(accessor.get_multi_ptr<sycl::access::decorated::no>().get()),
                 accessor.size())
             , m_accessor{accessor}
         {

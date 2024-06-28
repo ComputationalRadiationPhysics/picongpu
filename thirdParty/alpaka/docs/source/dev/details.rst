@@ -180,7 +180,7 @@ A type can model the queue concept completely by defining specializations for ``
 This functionality can be accessed by the corresponding ``alpaka::enqueue`` and ``alpaka::empty`` template functions.
 
 Currently there is no native language support for describing and checking concepts in C++ at compile time.
-A study group (SG8) is working on the ISO `specification for conecpts <http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4377.pdf>`_ and compiler forks implementing them do exist.
+A study group (SG8) is working on the ISO `specification for concepts <http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4377.pdf>`_ and compiler forks implementing them do exist.
 For usage in current C++ there are libraries like `Boost.ConceptCheck <https://www.boost.org/doc/libs/1_58_0/libs/concept_check/concept_check.htm>`_ which try to emulate requirement checking of concept types.
 Those libraries often exploit the preprocessor and require non-trivial changes to the function declaration syntax.
 Therefore the *alpaka* library does not currently make use of *Boost.ConceptCheck*.
@@ -239,7 +239,7 @@ However, due to SFINAE, this would not result in a compiler error but rather onl
 The ``std::enable_if`` template results in a valid expression, if the condition it contains evaluates to true, and an invalid expression if it is false.
 Therefore it can be used to disable specializations depending on arbitrary boolean conditions.
 It is utilized in the case where the ``TaskId`` member is unequal one or the ``TQueue`` does not inherit from ``UserQueue``.
-In this cirumstances, the condition itself results in valid code but because it evaluates to false, the ``std::enable_if`` specialization results in invalid code and the whole ``Enqueue`` template specialization gets omitted.
+In this circumstances, the condition itself results in valid code but because it evaluates to false, the ``std::enable_if`` specialization results in invalid code and the whole ``Enqueue`` template specialization gets omitted.
 
 Argument dependent lookup for math functions
 --------------------------------------------

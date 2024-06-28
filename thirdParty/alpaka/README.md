@@ -65,7 +65,7 @@ Supported Compilers
 
 This library uses C++17 (or newer when available).
 
-| Accelerator Back-end                                                           | gcc 9.5 <br/> (Linux)                           | gcc 10.4 / 11.1 <br/> (Linux)                   | gcc 12.3 <br/> (Linux)                      | gcc 13.1 <br/> (Linux) | clang 9 <br/> (Linux)                                      | clang 10 / 11<br/> (Linux)                            | clang 12 <br/> (Linux)                          | clang 13 <br/> (Linux)                      | clang 14 <br/> (Linux)                            | clang 15 <br/> (Linux)                    | clang 16 <br/> (Linux)                    | clang 17 <br/> (Linux)                    | icpx 2023.1.0 / 2023.2.0 (Linux) | Xcode 13.2.1 / 14.2 / 14.3.1 <br /> (macOS)           | Visual Studio 2022 <br/> (Windows)   |
+| Accelerator Back-end                                                           | gcc 9.5 <br/> (Linux)                           | gcc 10.4 / 11.1 <br/> (Linux)                   | gcc 12.3 <br/> (Linux)                      | gcc 13.1 <br/> (Linux) | clang 9 <br/> (Linux)                                      | clang 10 / 11<br/> (Linux)                            | clang 12 <br/> (Linux)                          | clang 13 <br/> (Linux)                      | clang 14 <br/> (Linux)                            | clang 15 <br/> (Linux)                    | clang 16 <br/> (Linux)                    | clang 17 <br/> (Linux)                    | icpx 2024.0 (Linux) | Xcode 13.2.1 / 14.2 / 14.3.1 <br /> (macOS)           | Visual Studio 2022 <br/> (Windows)   |
 |--------------------------------------------------------------------------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------|------------------------|------------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------|---------------------------------------------|---------------------------------------------------|-------------------------------------------|-------------------------------------------|-------------------------------------------|----------------------------------|-------------------------------------------------------|--------------------------------------|
 | Serial                                                                         | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:               | :white_check_mark:                                    | :white_check_mark:                   |
 | OpenMP 2.0+ blocks                                                             | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:[^3]           | :white_check_mark:                                    | :white_check_mark:                   |
@@ -214,47 +214,7 @@ consider citing us accordingly in your derived work and publications:
 Contributing
 ------------
 
-Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
+Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
+Any pull request will be reviewed by a [maintainer](https://github.com/orgs/alpaka-group/teams/alpaka-maintainers).
 
-Authors
--------
-
-### Maintainers* and Core Developers
-
-- Benjamin Worpitz* (original author)
-- Dr. Sergei Bastrakov*
-- Kseniia Bastrakova
-- Dr. Andrea Bocci*
-- Dr. Antonio Di Pilato
-- Simeon Ehrig
-- Luca Ferragina
-- Bernhard Manfred Gruber*
-- Christian Kaever
-- Dr. Jeffrey Kelling
-- Dr. Stewart Martin-Haugh
-- Aurora Perego
-- Jan Stephan*
-- René Widera*
-- Dr. Jeffrey Young
-
-### Former Members, Contributions and Thanks
-
-- Dr. Michael Bussmann
-- Mat Colgrove
-- Valentin Gehrke
-- Dr. Axel Hübl
-- Maximilian Knespel
-- Jakob Krude
-- Alexander Matthes
-- Hauke Mewes
-- Phil Nash
-- Dr. Felice Pantaleo
-- Dr. David M. Rogers
-- Mutsuo Saito
-- Jonas Schenke
-- Daniel Vollmer
-- Dr. Jiří Vyskočil
-- Matthias Werner
-- Bert Wesarg
-- Malte Zacharias
-- Erik Zenker
+Thanks to all [active and former contributors](.zenodo.json).

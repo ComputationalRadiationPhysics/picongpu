@@ -11,4 +11,3 @@ linux_clang-14_debug_analysis:
     ALPAKA_CI_ANALYSIS: "ON"
     alpaka_DEBUG: 2
     alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: "OFF"
-

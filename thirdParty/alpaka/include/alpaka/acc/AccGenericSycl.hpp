@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Antonio Di Pilato, Andrea Bocci, Luca Ferragina, Aurora Perego
+/* Copyright 2024 Jan Stephan, Antonio Di Pilato, Andrea Bocci, Luca Ferragina, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -102,6 +102,22 @@ namespace alpaka::trait
         using type = TAcc<TDim, TIdx>;
     };
 
+    //! The SYCL single thread accelerator type trait specialization.
+    template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
+    struct IsSingleThreadAcc<
+        TAcc<TDim, TIdx>,
+        std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>> : std::false_type
+    {
+    };
+
+    //! The SYCL multi thread accelerator type trait specialization.
+    template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
+    struct IsMultiThreadAcc<
+        TAcc<TDim, TIdx>,
+        std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>> : std::true_type
+    {
+    };
+
     //! The SYCL accelerator device properties get trait specialization.
     template<template<typename, typename> typename TAcc, typename TDim, typename TIdx>
     struct GetAccDevProps<
@@ -135,7 +151,9 @@ namespace alpaka::trait
                     // m_threadElemCountMax
                     std::numeric_limits<TIdx>::max(),
                     // m_sharedMemSizeBytes
-                    device.template get_info<sycl::info::device::local_mem_size>()};
+                    device.template get_info<sycl::info::device::local_mem_size>(),
+                    // m_globalMemSizeBytes
+                    getMemBytes(dev)};
         }
     };
 

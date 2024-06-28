@@ -2,6 +2,10 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+// Undefine ALPAKA_CI for this test, because the variable set the value of some acc types, like
+// AccCpuThreadsIfAvailableElseInt to int independent of the cmake configuration. This avoids long running test cases
+// but is problematic for this test.
+#undef ALPAKA_CI
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
@@ -247,4 +251,27 @@ TEMPLATE_LIST_TEST_CASE("kernel specialization with tags", "[acc][tag]", TestAcc
 #endif
 
     REQUIRE(alpaka::getPtrNative(memHost)[0] == expected_result);
+}
+
+TEMPLATE_LIST_TEST_CASE("test AccIsEnabled", "[acc][tag]", AccToTagMap)
+{
+    using TestAcc = std::tuple_element_t<0, TestType>;
+    using TestTag = std::tuple_element_t<1, TestType>;
+
+
+    // if the Acc is not enabled, the type is int
+    if constexpr(!std::is_same_v<TestAcc, int>)
+    {
+        STATIC_REQUIRE(alpaka::AccIsEnabled<TestTag>::value);
+    }
+    else
+    {
+        STATIC_REQUIRE_FALSE(alpaka::AccIsEnabled<TestTag>::value);
+    }
+}
+
+TEST_CASE("test EnabledAccTags", "[acc][tag]")
+{
+    using AllAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1>, int>;
+    STATIC_REQUIRE(std::tuple_size<AllAccs>::value == std::tuple_size<alpaka::EnabledAccTags>::value);
 }
