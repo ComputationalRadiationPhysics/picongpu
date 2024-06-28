@@ -30,21 +30,6 @@ namespace picongpu::fields::incidentField::profiles
 {
     namespace defaults
     {
-        namespace gaussianPulse
-        {
-            //! Use only the 0th Laguerremode for a standard Gaussian
-            static constexpr uint32_t MODENUMBER = 0;
-            PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
-            PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES, 0.0);
-            // This is just an example for a more complicated set of Laguerre modes
-            // constexpr uint32_t MODENUMBER = 12;
-            // PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461,
-            // -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038,
-            // -0.00896321, -0.0160788); PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES,
-            // 0.0, 1.0344594, -0.9384701, -2.7384883, 0.0016872, 2.4563653, -0.312892, -1.7298303,
-            // -0.8039839, 3.0055385, -0.1503778, -9.6980362, -2.8122287);
-        } // namespace gaussianPulse
-
         struct GaussianPulseParam : public BaseParam
         {
             /** Beam waist: distance from the axis where the pulse intensity (E^2)
@@ -65,13 +50,25 @@ namespace picongpu::fields::incidentField::profiles
             static constexpr float_64 PULSE_INIT = 20.0;
 
 
-            /** Laguerre mode parameters
+            /** Use only the 0th Laguerremode for a standard Gaussian
              *
              * @{
              */
-            using LAGUERREMODES_t = gaussianPulse::LAGUERREMODES_t;
-            using LAGUERREPHASES_t = gaussianPulse::LAGUERREPHASES_t;
-            static constexpr uint32_t MODENUMBER = gaussianPulse::MODENUMBER;
+            static constexpr uint32_t numModes = 0;
+            static constexpr auto laguerreModes = floatN_X<numModes + 1>(1.0);
+            static constexpr auto laguerrePhases = floatN_X<numModes + 1>(0.0);
+            /** This is just an example for a more complicated set of Laguerre modes
+             *
+             * @code{.cpp}
+             * static constexpr uint32_t numModes = 12;
+             * static constexpr auto laguerreModes = floatN_X<numModes+1>( -1.0, 0.0300519, 0.319461,
+             * -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038,
+             * -0.00896321, -0.0160788);
+             * static constexpr auto laguerrePhases = floatN_X<numModes+1>(
+             * 0.0, 1.0344594, -0.9384701, -2.7384883, 0.0016872, 2.4563653, -0.312892, -1.7298303,
+             * -0.8039839, 3.0055385, -0.1503778, -9.6980362, -2.8122287);
+             * @endcode
+             */
             /** @} */
 
             template<typename My = GaussianPulseParam>

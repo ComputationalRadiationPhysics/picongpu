@@ -219,14 +219,6 @@ namespace picongpu
                 };
             };
 
-            namespace lwfaGaussianPulse
-            {
-                //! Use only the 0th Laguerremode for a standard Gaussian
-                static constexpr uint32_t MODENUMBER = 0;
-                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
-                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREPHASES, 0.0);
-            } // namespace lwfaGaussianPulse
-
             /** Special structure for parameters of Gaussian laser pulses.
              *
              * Inherits from LwfaGaussianPulseBaseParams in order to combine all Gaussian pulse parameters.
@@ -253,9 +245,10 @@ namespace picongpu
                  *
                  * @{
                  */
-                using LAGUERREMODES_t = lwfaGaussianPulse::LAGUERREMODES_t;
-                using LAGUERREPHASES_t = lwfaGaussianPulse::LAGUERREPHASES_t;
-                static constexpr uint32_t MODENUMBER = lwfaGaussianPulse::MODENUMBER;
+                //! Use only the 0th Laguerremode for a standard Gaussian
+                static constexpr uint32_t numModes = 0;
+                static constexpr auto laguerreModes = floatN_X<numModes + 1>(1.0);
+                static constexpr auto laguerrePhases = floatN_X<numModes + 1>(0.0);
                 /** @} */
             };
 
