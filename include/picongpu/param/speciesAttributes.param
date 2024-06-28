@@ -157,9 +157,7 @@ namespace picongpu
      *
      * file gives parameter of atomic physics charge states for ion species
      * - must follow PIConGPU specific formatting
-     *      @todo write specification, Brian Marre, 2023
      * - files are not shipped with PIConGPU, see documentation for creation and sources
-     *      @todo create documentation, Brian Marre, 2022
      * - all paths are either relative to the simOutput folder, or absolute
      */
     alias(chargeStatesFileName);
@@ -168,9 +166,7 @@ namespace picongpu
      *
      * file gives parameter of atomic physics atomic states for ion species
      * - must follow PIConGPU specific formatting
-     *      @todo write specification, Brian Marre, 2023
      * - files are not shipped with PIConGPU, see documentation for creation and sources
-     *      @todo create documentation, Brian Marre, 2022
      * - all paths are either relative to the simOutput folder, or absolute
      * - the number of atomic states must be equal to the value of the numberAtomicStates flag
      */
@@ -196,10 +192,8 @@ namespace picongpu
      * - setting an atomic states the pressure ionization state equal to the state disables pressure ionization
      *      for this states
      * - file must follow PIConGPU specific formatting
-     *      @todo write specification, Brian Marre, 2023
      * - pressure ionization state must be specified in the same order as in the atomic state input file
      * - files are not shipped with PIConGPU, see documentation for creation and sources
-     *      @todo create documentation, Brian Marre, 2022
      * - all paths are either relative to the simOutput folder, or absolute
      */
     alias(pressureIonizationStatesFileName);
@@ -216,7 +210,6 @@ namespace picongpu
      * file gives parameter of modelled atomic physics transition for ion species
      * - must follow PIConGPU specific formatting
      * - files are not shipped with PIConGPU, see documentation for creation and sources
-     *      @todo create documentation, Brian Marre, 2022
      * - all paths are either relative to the simOutput folder, or absolute
      */
     alias(boundBoundTransitionsFileName);
@@ -226,7 +219,6 @@ namespace picongpu
      * file gives parameter of modelled atomic physics transition for ion species
      * - must follow PIConGPU specific formatting
      * - files are not shipped with PIConGPU, see documentation for creation and sources
-     *      @todo create documentation, Brian Marre, 2022
      * - all paths are either relative to the simOutput folder, or absolute
      */
     alias(boundFreeTransitionsFileName);
@@ -236,7 +228,6 @@ namespace picongpu
      * file gives parameter of modelled atomic physics transition for ion species
      * - must follow PIConGPU specific formatting
      * - files are not shipped with PIConGPU, see documentation for creation and sources
-     *      @todo create documentation, Brian Marre, 2022
      * - all paths are either relative to the simOutput folder, or absolute
      */
     alias(autonomousTransitionsFileName);
