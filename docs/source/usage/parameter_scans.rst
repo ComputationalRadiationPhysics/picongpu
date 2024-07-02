@@ -1,6 +1,6 @@
-.. _LaserWakefield-lib-python-snakemake:
+.. _usage-parameter_scans:
 
-Example usage of snakemake to execute PIConGPU parameter scan
+Automated Parameter Scans using Snakemake
 --------------------------------------------------------------
 
 `Snakemake <https://snakemake.readthedocs.io/en/stable/index.html>`_ is a python based workflow engine that can be used to automate compiling, running and post-processing of PIConGPU simulations, or any other workflow that can be represented as a directed acyclic graph (DAG). 
@@ -12,13 +12,24 @@ Each workflow consists of a ``Snakefile`` in which the workflow is defined using
 How to use
 """"""""""
 
-The example presented here performs several simulations with given input parameters.
+In ``picongpu/share/picongpu/examples/LaserWakefield/lib/python/snakemake/`` in the PIConGPU source code you can find:
 
-#. Make shure you have ``snakemake`` and the ``snakemake-executor-plugin-slurm`` installed and activated.
+    * ``Snakefile``
+    * ``config.yaml``
+    * ``requirements.txt``
+    * ``params.csv``
+With these files a parameter scan with the LaserWakefield example of PIConGPU on hemera can be performed. To do so:
+
+#. Copy the ``Snakefile`` and ``config.yaml``.
+
+#. Set up an envoirement using the ``requirements.txt``. Make sure you have ``snakemake`` and the ``snakemake-executor-plugin-slurm`` installed and activated.
 
 #. Adjust the profile ``config.yaml``:
-    * Define your input parameters in a csv file.
 
+    * Define your input parameters in a csv file. This can look like this, for the LaserWakefield example
+    
+    .. literalinclude:: ../../../share/picongpu/examples/LaserWakefield/lib/python/snakemake/params.csv
+        
     .. warning::
         
         Snakemake will automatically perform a parameter dependend compile using CMAKE flags **if and only if** the parameter names in the header of the csv file match those in the ``.param`` file of the PIConGPU project.
@@ -73,7 +84,7 @@ Resulting file structure
 
 The output produced by the workflow is stored in three directories next to the ``Snakefile``.
 
-* "simualtions"
+* "simulations"
     * Contains simulation directories.
     * The name of the simulation directory is ``sim_{paramspace.wildcard_pattern}``, where ``paramspace.wildcard_pattern`` becomes, for example, ``LASERA0-4.0_PULSEDURATION-1.5e-14``.
 
@@ -94,7 +105,6 @@ The workflow takes input parameters, performs a parameter dependent compile and 
 
 Details of the individual rules:
 
-|
 
 * rule all:
     * Is the so-called target rule. By default, Snakemake will only execute the very first rule specified in the ``Snakefile``. Therefore this pseudo-rule should contain all the anticipated output as its input. Snakemake will then try to generate this input.
@@ -123,7 +133,7 @@ Details of the individual rules:
 
 Using the example ``Snakefile`` and ``params.csv``, the resulting DAG looks like this.
 
-.. image:: dag.png
+.. image:: ../../../share/picongpu/examples/LaserWakefield/lib/python/snakemake/dag.png
 
 """"""""""""""""""""""
 Python post-processing
