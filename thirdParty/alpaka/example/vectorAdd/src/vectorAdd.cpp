@@ -4,7 +4,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <alpaka/example/ExecuteForEachAccTag.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -54,29 +54,20 @@ public:
     }
 };
 
-auto main() -> int
+// In standard projects, you typically do not execute the code with any available accelerator.
+// Instead, a single accelerator is selected once from the active accelerators and the kernels are executed with the
+// selected accelerator only. If you use the example as the starting point for your project, you can rename the
+// example() function to main() and move the accelerator tag to the function body.
+template<typename TAccTag>
+auto example(TAccTag const&) -> int
 {
-// Fallback for the CI with disabled sequential backend
-#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-    return EXIT_SUCCESS;
-#else
-
     // Define the index domain
+    // Set the number of dimensions as an integral constant. Set to 1 for 1D.
     using Dim = alpaka::DimInt<1u>;
     using Idx = std::size_t;
 
     // Define the accelerator
-    //
-    // It is possible to choose from a set of accelerators:
-    // - AccGpuCudaRt
-    // - AccGpuHipRt
-    // - AccCpuThreads
-    // - AccCpuOmp2Threads
-    // - AccCpuOmp2Blocks
-    // - AccCpuTbbBlocks
-    // - AccCpuSerial
-    // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
-    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     using DevAcc = alpaka::Dev<Acc>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
@@ -120,11 +111,6 @@ auto main() -> int
     BufHost bufHostB(alpaka::allocBuf<Data, Idx>(devHost, extent));
     BufHost bufHostC(alpaka::allocBuf<Data, Idx>(devHost, extent));
 
-    // Initialize the host input vectors A and B
-    Data* const pBufHostA(alpaka::getPtrNative(bufHostA));
-    Data* const pBufHostB(alpaka::getPtrNative(bufHostB));
-    Data* const pBufHostC(alpaka::getPtrNative(bufHostC));
-
     // C++14 random generator for uniformly distributed numbers in {1,..,42}
     std::random_device rd{};
     std::default_random_engine eng{rd()};
@@ -132,9 +118,9 @@ auto main() -> int
 
     for(Idx i(0); i < numElements; ++i)
     {
-        pBufHostA[i] = dist(eng);
-        pBufHostB[i] = dist(eng);
-        pBufHostC[i] = 0;
+        bufHostA[i] = dist(eng);
+        bufHostB[i] = dist(eng);
+        bufHostC[i] = 0;
     }
 
     // Allocate 3 buffers on the accelerator
@@ -155,9 +141,9 @@ auto main() -> int
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
-        alpaka::getPtrNative(bufAccA),
-        alpaka::getPtrNative(bufAccB),
-        alpaka::getPtrNative(bufAccC),
+        std::data(bufAccA),
+        std::data(bufAccB),
+        std::data(bufAccC),
         numElements);
 
     // Enqueue the kernel execution task
@@ -184,8 +170,8 @@ auto main() -> int
     static constexpr int MAX_PRINT_FALSE_RESULTS = 20;
     for(Idx i(0u); i < numElements; ++i)
     {
-        Data const& val(pBufHostC[i]);
-        Data const correctResult(pBufHostA[i] + pBufHostB[i]);
+        Data const& val(bufHostC[i]);
+        Data const correctResult(bufHostA[i] + bufHostB[i]);
         if(val != correctResult)
         {
             if(falseResults < MAX_PRINT_FALSE_RESULTS)
@@ -206,5 +192,20 @@ auto main() -> int
                   << "Execution results incorrect!" << std::endl;
         return EXIT_FAILURE;
     }
-#endif
+}
+
+auto main() -> int
+{
+    // Execute the example once for each enabled accelerator.
+    // If you would like to execute it for a single accelerator only you can use the following code.
+    //  \code{.cpp}
+    //  auto tag = TagCpuSerial;
+    //  return example(tag);
+    //  \endcode
+    //
+    // valid tags:
+    //   TagCpuSerial, TagGpuHipRt, TagGpuCudaRt, TagCpuOmp2Blocks, TagCpuTbbBlocks,
+    //   TagCpuOmp2Threads, TagCpuSycl, TagCpuTbbBlocks, TagCpuThreads,
+    //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
+    return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }

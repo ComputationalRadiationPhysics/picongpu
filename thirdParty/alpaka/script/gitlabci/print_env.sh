@@ -14,17 +14,17 @@ if [ "${CMAKE_CXX_COMPILER}" == "nvc++" ] || [ "${alpaka_ACC_GPU_CUDA_ENABLE}" =
 then
     if [ "${ALPAKA_CI_RUN_TESTS}" == "ON" ];
     then
-	    echo "${first_step_prefix} docker run --gpus=all -it ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run --gpus=all -it ${CI_JOB_IMAGE} bash"
     else
-	    echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
     fi
 elif [ "${alpaka_ACC_GPU_HIP_ENABLE}" == "ON" ];
 then
     if [ "${ALPAKA_CI_RUN_TESTS}" == "ON" ];
     then
-	    echo "${first_step_prefix} docker run -it --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run -it --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video ${CI_JOB_IMAGE} bash"
     else
-	    echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
     fi
 else
     echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"

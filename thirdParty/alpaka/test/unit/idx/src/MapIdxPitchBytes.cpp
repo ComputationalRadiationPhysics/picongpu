@@ -3,7 +3,6 @@
  */
 
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
 #include <alpaka/idx/Accessors.hpp>
 #include <alpaka/idx/MapIdx.hpp>
 #include <alpaka/mem/view/ViewPlainPtr.hpp>
@@ -14,15 +13,16 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-TEMPLATE_LIST_TEST_CASE("mapIdxPitchBytes", "[idx]", alpaka::test::NonZeroTestDims)
+template<typename TDim, typename TAccTag>
+auto mapIdxPitchBytes(TAccTag const&)
 {
-    using Dim = TestType;
+    using Dim = TDim;
     using Idx = std::size_t;
     using Vec = alpaka::Vec<Dim, Idx>;
 
     auto const extentNd = alpaka::test::extentBuf<Dim, Idx>;
 
-    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     using Elem = std::uint8_t;
     auto const platformAcc = alpaka::Platform<Acc>{};
     auto const devAcc = alpaka::getDevByIdx(platformAcc, 0);
@@ -44,4 +44,10 @@ TEMPLATE_LIST_TEST_CASE("mapIdxPitchBytes", "[idx]", alpaka::test::NonZeroTestDi
     REQUIRE(idx1d == idx1dDelta);
     // roundtrip
     REQUIRE(idxNd == idxNdResult);
+}
+
+TEMPLATE_LIST_TEST_CASE("mapIdxPitchBytes", "[idx]", alpaka::test::NonZeroTestDims)
+{
+    // execute the example once for each enabled accelerator
+    std::apply([](auto const&... tags) { (mapIdxPitchBytes<TestType>(tags), ...); }, alpaka::EnabledAccTags{});
 }

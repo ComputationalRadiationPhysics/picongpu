@@ -177,12 +177,12 @@ if(MSVC)
 else()
     # For std::future we need to pass the correct pthread flag for the compiler and the linker:
     # https://github.com/alpaka-group/cupla/pull/128#issuecomment-545078917
-    
+
     # Allow users to override the "-pthread" preference.
     if(NOT THREADS_PREFER_PTHREAD_FLAG)
         set(THREADS_PREFER_PTHREAD_FLAG TRUE)
     endif()
-    
+
     find_package(Threads REQUIRED)
     target_link_libraries(alpaka INTERFACE Threads::Threads)
 
@@ -194,13 +194,20 @@ else()
         endif()
     endif()
 
+    # C++17 relaxed template template argument matching is disabled by default until Clang 19
+    # https://github.com/llvm/llvm-project/commit/b86e0992bfa6
+    # https://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#150
+    # for example, is required to create alpaka::EnabledAccTags
+    # the feature is implemented since Clang 4
+    alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<AND:$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-frelaxed-template-template-args>")
+
     # Add debug optimization levels. CMake doesn't do this by default.
     # Note that -Og is the recommended gcc optimization level for debug mode but is equivalent to -O1 for clang (and its derivates).
     alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:SHELL:-Og>"
                                                           "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-Xcompiler -Og>"
                                                           "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>"
                                                           "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:SHELL:/Od>")
-    
+
     target_link_options(alpaka INTERFACE "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:SHELL:-Og>"
                                          "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>")
 endif()
@@ -358,7 +365,7 @@ endif()
 if(alpaka_ACC_GPU_CUDA_ENABLE)
     # Save the user-defined host compiler (if any)
     set(_alpaka_CUDA_HOST_COMPILER ${CMAKE_CUDA_HOST_COMPILER})
-    
+
     check_language(CUDA)
 
     if(CMAKE_CUDA_COMPILER)
@@ -373,7 +380,44 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             endif()
         endif()
 
+        # the CMake compiler detection of clang 17 and 18 as CUDA compiler is broken
+        # the detection try to compile an empty file with the default C++ standard of clang, which is -std=gnu++17
+        # but CUDA does not support the 128 bit float extension, therefore the test failes
+        # more details: https://gitlab.kitware.com/cmake/cmake/-/issues/25861
+        # this workaround disable the gnu extensions for the compiler detection
+        # the bug is fixed in clang 19: https://github.com/llvm/llvm-project/issues/88695
+        if("${CMAKE_CUDA_COMPILER}" MATCHES "clang*")
+            # get compiler version without enable_language()
+            execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -dumpversion
+                   OUTPUT_VARIABLE _CLANG_CUDA_VERSION
+                   RESULT_VARIABLE _CLANG_CUDA_VERSION_ERROR_CODE)
+
+            if(NOT "${_CLANG_CUDA_VERSION_ERROR_CODE}" STREQUAL "0")
+                message(FATAL_ERROR "running '${CMAKE_CUDA_COMPILER} -dumpversion' failed: ${_CLANG_CUDA_VERSION_ERROR_CODE}")
+            endif()
+
+            string(STRIP ${_CLANG_CUDA_VERSION} _CLANG_CUDA_VERSION)
+            message(DEBUG "Workaround: manual checked Clang-CUDA version: ${_CLANG_CUDA_VERSION}")
+
+            if(${_CLANG_CUDA_VERSION} VERSION_GREATER_EQUAL 17 AND ${_CLANG_CUDA_VERSION} VERSION_LESS 19)
+                message(DEBUG "Workaround: apply -std=c++98 for clang as cuda compiler")
+                set(_CMAKE_CUDA_FLAGS_BEFORE ${CMAKE_CUDA_FLAGS})
+                # we need to use C++ 98 for the detection test, because from new, disabling the extension is ignored for C++ 98
+                set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++98")
+            endif()
+        endif()
+
         enable_language(CUDA)
+
+        if(DEFINED _CLANG_CUDA_VERSION)
+            message(DEBUG "Workaround: reset variables for clang as cuda compiler -std=c++98 fix")
+            # remove the flag compiler -std=c++98
+            set(CMAKE_CUDA_FLAGS ${_CMAKE_CUDA_FLAGS_BEFORE})
+            unset(_CMAKE_CUDA_FLAGS_BEFORE)
+            unset(_CLANG_CUDA_VERSION)
+            unset(_CLANG_CUDA_VERSION_ERROR_CODE)
+        endif()
+
         find_package(CUDAToolkit REQUIRED)
 
         target_compile_features(alpaka INTERFACE cuda_std_${alpaka_CXX_STANDARD})
@@ -533,6 +577,13 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
             alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_HCC__>")
         endif()
 
+        # C++17 relaxed template template argument matching is disabled by default until Clang 19
+        # https://github.com/llvm/llvm-project/commit/b86e0992bfa6
+        # https://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#150
+        # for example, is required to create alpaka::EnabledAccTags
+        # TODO(SimeonEhrig): restict HIP version, if first HIP version is release using Clang 19
+        alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-frelaxed-template-template-args>")
+
         alpaka_compiler_option(HIP_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps 'CMakeFiles/<targetname>.dir'" OFF)
         if(alpaka_HIP_KEEP_FILES)
             alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-save-temps>")
@@ -566,7 +617,7 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         endif()
 
         if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
-            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL-fgpu-rdc>")
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-fgpu-rdc>")
             target_link_options(alpaka INTERFACE "$<$<LINK_LANGUAGE:HIP>:SHELL:-fgpu-rdc --hip-link>")
         elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
             alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-fno-gpu-rdc>")
@@ -593,6 +644,7 @@ if(alpaka_ACC_SYCL_ENABLE)
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl")
         target_link_options(alpaka INTERFACE "-fsycl")
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "-sycl-std=2020")
+        alpaka_set_compiler_options(HOST_DEVICE target alpaka "-frelaxed-template-template-args")
 
         #-----------------------------------------------------------------------------------------------------------------
         # Determine SYCL targets
@@ -619,9 +671,9 @@ if(alpaka_ACC_SYCL_ENABLE)
         list(JOIN alpaka_SYCL_TARGETS "," alpaka_SYCL_TARGETS_CONCAT)
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
         target_link_options(alpaka INTERFACE "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
-        
+
         #-----------------------------------------------------------------------------------------------------------------
-        # Determine actual hardware to compile for 
+        # Determine actual hardware to compile for
         if(alpaka_SYCL_ONEAPI_CPU)
             set(alpaka_SYCL_ONEAPI_CPU_ISA "avx2" CACHE STRING "Intel ISA to compile for")
             set_property(CACHE alpaka_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse4.2;avx;avx2;avx512")
@@ -663,7 +715,7 @@ if(alpaka_ACC_SYCL_ENABLE)
                         PROPERTY STRINGS "intel_gpu_pvc;intel_gpu_acm_g12;intel_gpu_acm_g11;intel_gpu_acm_g10;intel_gpu_dg1;intel_gpu_adl_n;intel_gpu_adl_p;intel_gpu_rpl_s;intel_gpu_adl_s;intel_gpu_rkl;intel_gpu_tgllp;intel_gpu_icllp;intel_gpu_cml;intel_gpu_aml;intel_gpu_whl;intel_gpu_glk;intel_gpu_apl;intel_gpu_cfl;intel_gpu_kbl;intel_gpu_skl;intel_gpu_bdw")
             # If the user has given us a list turn all ';' into ',' to pacify the Intel OpenCL compiler.
             string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
-            
+
             target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
         endif()
 

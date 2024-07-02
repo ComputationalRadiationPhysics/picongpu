@@ -468,3 +468,28 @@ TEST_CASE("accessByNameConstexpr", "[vec]")
     STATIC_REQUIRE(v4.z() == 3);
     STATIC_REQUIRE(v4.w() == 4);
 }
+
+TEMPLATE_TEST_CASE("Vec generator constructor", "[vec]", std::size_t, int, unsigned, float, double)
+{
+    // Define a generator function
+    auto generator = [](auto index) { return static_cast<TestType>(index.value + 1); };
+
+    // Create a Vec object using the generator function
+    alpaka::Vec<alpaka::DimInt<5>, TestType> vec(generator);
+
+    // Check that the values in the Vec object are as expected
+    for(std::size_t i = 0; i < 5; ++i)
+    {
+        // Floating point types require a precision check instead of an exact == match
+        if constexpr(std::is_floating_point<TestType>::value)
+        {
+            // Arbitrary precision requirement
+            auto const precision = std::numeric_limits<TestType>::epsilon() * 5;
+            CHECK(std::abs(vec[i] - static_cast<TestType>(i + 1)) < precision);
+        }
+        else
+        {
+            CHECK(vec[i] == static_cast<TestType>(i + 1));
+        }
+    }
+}

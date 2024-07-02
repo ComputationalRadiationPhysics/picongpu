@@ -1,5 +1,5 @@
 /* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Jan Stephan, Andrea Bocci, Bernhard
- * Manfred Gruber, Antonio Di Pilato
+ * Manfred Gruber, Antonio Di Pilato, Mehmet Yusufoglu
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -17,6 +17,8 @@
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/dim/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/KernelBundle.hpp"
+#include "alpaka/kernel/KernelFunctionAttributes.hpp"
 #include "alpaka/kernel/Traits.hpp"
 #include "alpaka/platform/Traits.hpp"
 #include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
@@ -64,11 +66,7 @@ namespace alpaka
             TKernelFnObj const kernelFnObj,
             TArgs... args)
         {
-#        if BOOST_ARCH_PTX && (BOOST_ARCH_PTX < BOOST_VERSION_NUMBER(2, 0, 0))
-#            error "Device capability >= 2.0 is required!"
-#        endif
-
-            const TAcc acc(threadElemExtent);
+            TAcc const acc(threadElemExtent);
 
 // with clang it is not possible to query std::result_of for a pure device lambda created on the host side
 #        if !(BOOST_COMP_CLANG_CUDA && BOOST_COMP_CLANG)
@@ -388,6 +386,75 @@ namespace alpaka
                         = std::string{"'execution of kernel: '" + core::demangled<TKernelFnObj> + "' failed with"};
                     ::alpaka::uniform_cuda_hip::detail::rtCheckLastError<TApi, true>(msg.c_str(), __FILE__, __LINE__);
                 }
+            }
+        };
+
+        //! \brief Specialisation of the class template FunctionAttributes
+        //! \tparam TApi The type the API of the GPU accelerator backend. Currently Cuda or Hip.
+        //! \tparam TDim The dimensionality of the accelerator device properties.
+        //! \tparam TIdx The idx type of the accelerator device properties.
+        //! \tparam TKernelFn Kernel function object type.
+        //! \tparam TArgs Kernel function object argument types as a parameter pack.
+        template<typename TApi, typename TDev, typename TDim, typename TIdx, typename TKernelFn, typename... TArgs>
+        struct FunctionAttributes<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>, TDev, KernelBundle<TKernelFn, TArgs...>>
+        {
+            //! \param kernelBundle Kernel bundeled with it's arguments. The function attributes of this kernel will be
+            //! determined. Max threads per block is one of the attributes.
+            //! \return KernelFunctionAttributes instance. For GPU backend, all values are set by calling the
+            //! corresponding API functions. The default version always returns an instance with zero fields. For CPU,
+            //! the field of max threads allowed by kernel function for the block is 1.
+            ALPAKA_FN_HOST static auto getFunctionAttributes(
+                TDev const&,
+                [[maybe_unused]] KernelBundle<TKernelFn, TArgs...> const& kernelBundle)
+                -> alpaka::KernelFunctionAttributes
+            {
+                auto kernelName = alpaka::detail::gpuKernel<
+                    TKernelFn,
+                    TApi,
+                    AccGpuUniformCudaHipRt<TApi, TDim, TIdx>,
+                    TDim,
+                    TIdx,
+                    remove_restrict_t<std::decay_t<TArgs>>...>;
+
+                typename TApi::FuncAttributes_t funcAttrs;
+#        if BOOST_COMP_GNUC
+                // Disable and enable compile warnings for gcc
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconditionally-supported"
+#        endif
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                    TApi::funcGetAttributes(&funcAttrs, reinterpret_cast<void const*>(kernelName)));
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
+
+                alpaka::KernelFunctionAttributes kernelFunctionAttributes;
+                kernelFunctionAttributes.constSizeBytes = funcAttrs.constSizeBytes;
+                kernelFunctionAttributes.localSizeBytes = funcAttrs.localSizeBytes;
+                kernelFunctionAttributes.sharedSizeBytes = funcAttrs.sharedSizeBytes;
+                kernelFunctionAttributes.maxDynamicSharedSizeBytes = funcAttrs.maxDynamicSharedSizeBytes;
+                kernelFunctionAttributes.numRegs = funcAttrs.numRegs;
+                kernelFunctionAttributes.asmVersion = funcAttrs.ptxVersion;
+                kernelFunctionAttributes.maxThreadsPerBlock = static_cast<int>(funcAttrs.maxThreadsPerBlock);
+
+#        if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                printf("Kernel Function Attributes: \n");
+                printf("binaryVersion: %d \n", funcAttrs.binaryVersion);
+                printf(
+                    "constSizeBytes: %lu \n localSizeBytes: %lu, sharedSizeBytes %lu  maxDynamicSharedSizeBytes: %d "
+                    "\n",
+                    funcAttrs.constSizeBytes,
+                    funcAttrs.localSizeBytes,
+                    funcAttrs.sharedSizeBytes,
+                    funcAttrs.maxDynamicSharedSizeBytes);
+
+                printf(
+                    "numRegs: %d, ptxVersion: %d \n maxThreadsPerBlock: %d .\n ",
+                    funcAttrs.numRegs,
+                    funcAttrs.ptxVersion,
+                    funcAttrs.maxThreadsPerBlock);
+#        endif
+                return kernelFunctionAttributes;
             }
         };
     } // namespace trait

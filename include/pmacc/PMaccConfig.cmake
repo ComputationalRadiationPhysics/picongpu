@@ -91,8 +91,8 @@ endif()
 ################################################################################
 
 # the min and max. supported alpaka version
-set(_PMACC_MIN_ALPAKA_VERSION 1.1.0)
-set(_PMACC_MAX_ALPAKA_VERSION 1.1.0)
+set(_PMACC_MIN_ALPAKA_VERSION 1.2.0)
+set(_PMACC_MAX_ALPAKA_VERSION 1.2.0)
 
 # do not search for alpaka if it already exists
 # for example, a project that includes alpaka via add_subdirectory before including pmacc via add_subdirectory

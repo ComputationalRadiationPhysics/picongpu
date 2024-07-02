@@ -86,7 +86,7 @@ then
 fi
 
 # Don't install TBB for oneAPI runners - it will be installed as part of oneAPI
-if [ "${ALPAKA_CI_INSTALL_TBB}" = "ON" ] && [ "${CXX}" != "icpx" ]  
+if [ "${ALPAKA_CI_INSTALL_TBB}" = "ON" ] && [ "${CXX}" != "icpx" ]
 then
     source ./script/install_tbb.sh
 fi
@@ -103,4 +103,3 @@ then
 fi
 
 source ./script/install_boost.sh
-

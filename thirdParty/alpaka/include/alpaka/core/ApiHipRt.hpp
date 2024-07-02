@@ -78,6 +78,7 @@ namespace alpaka
             = ::hipDeviceAttributeMaxSharedMemoryPerBlock;
         static constexpr DeviceAttr_t deviceAttributeMaxThreadsPerBlock = ::hipDeviceAttributeMaxThreadsPerBlock;
         static constexpr DeviceAttr_t deviceAttributeMultiprocessorCount = ::hipDeviceAttributeMultiprocessorCount;
+        static constexpr DeviceAttr_t deviceAttributeWarpSize = ::hipDeviceAttributeWarpSize;
 
 #    if HIP_VERSION >= 40'500'000
         static constexpr Limit_t limitPrintfFifoSize = ::hipLimitPrintfFifoSize;

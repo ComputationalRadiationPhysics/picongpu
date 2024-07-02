@@ -3,7 +3,6 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
 
 #include <cstdint>
 #include <iostream>

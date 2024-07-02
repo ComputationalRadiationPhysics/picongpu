@@ -1,4 +1,4 @@
-/* Copyright 2023 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2024 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -34,18 +34,35 @@ namespace alpaka::test
         using Queue = test::DefaultQueue<Device>;
         using WorkDiv = WorkDivMembers<Dim, Idx>;
 
-        KernelExecutionFixture(WorkDiv workDiv) : m_workDiv{std::move(workDiv)}
+        KernelExecutionFixture(WorkDiv workDiv) : m_queue{m_device}, m_workDiv{std::move(workDiv)}
         {
         }
 
         template<typename TExtent>
         KernelExecutionFixture(TExtent const& extent)
-            : m_workDiv{getValidWorkDiv<Acc>(
-                m_device,
-                extent,
-                Vec<Dim, Idx>::ones(),
-                false,
-                GridBlockExtentSubDivRestrictions::Unrestricted)}
+            : m_queue{m_device}
+            , m_workDiv{getValidWorkDiv<Acc>(
+                  m_device,
+                  extent,
+                  Vec<Dim, Idx>::ones(),
+                  false,
+                  GridBlockExtentSubDivRestrictions::Unrestricted)}
+        {
+        }
+
+        KernelExecutionFixture(Queue queue, WorkDiv workDiv) : m_queue{std::move(queue)}, m_workDiv{std::move(workDiv)}
+        {
+        }
+
+        template<typename TExtent>
+        KernelExecutionFixture(Queue queue, TExtent const& extent)
+            : m_queue{std::move(queue)}
+            , m_workDiv{getValidWorkDiv<Acc>(
+                  m_device,
+                  extent,
+                  Vec<Dim, Idx>::ones(),
+                  false,
+                  GridBlockExtentSubDivRestrictions::Unrestricted)}
         {
         }
 
@@ -73,7 +90,8 @@ namespace alpaka::test
         DevCpu m_devHost{getDevByIdx(m_platformHost, 0)};
         Platform m_platform{};
         Device m_device{getDevByIdx(m_platform, 0)};
-        Queue m_queue{m_device};
+        Queue m_queue;
         WorkDiv m_workDiv;
     };
+
 } // namespace alpaka::test

@@ -1,4 +1,5 @@
-/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2024 Axel Hübl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber,
+ *                Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -117,10 +118,6 @@ namespace alpaka
         //! Copies memory from one view into another view possibly on a different device.
         template<typename TDim, typename TDevDst, typename TDevSrc, typename TSfinae = void>
         struct CreateTaskMemcpy;
-
-        //! The static device memory view creation trait.
-        template<typename TDev, typename TSfinae = void>
-        struct CreateStaticDevMemView;
 
         //! The device memory view creation trait.
         template<typename TDev, typename TSfinae = void>
@@ -423,13 +420,6 @@ namespace alpaka
     ALPAKA_FN_HOST auto getPitchBytesVecEnd(TView const& view = TView()) -> Vec<TDim, Idx<TView>>
     {
         return subVecEnd<TDim>(getPitchesInBytes(view));
-    }
-
-    //! \return A view to static device memory.
-    template<typename TElem, typename TDev, typename TExtent>
-    auto createStaticDevMemView(TElem* pMem, TDev const& dev, TExtent const& extent)
-    {
-        return trait::CreateStaticDevMemView<TDev>::createStaticDevMemView(pMem, dev, extent);
     }
 
     //! Creates a view to a device pointer

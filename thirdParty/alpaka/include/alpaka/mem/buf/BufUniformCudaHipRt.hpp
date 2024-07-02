@@ -78,7 +78,7 @@ namespace alpaka
                 "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to be "
                 "identical!");
             static_assert(
-                std::is_same_v<TIdx, Idx<TExtent>>,
+                std::is_same_v<TIdx, alpaka::Idx<TExtent>>,
                 "The idx type of TExtent and the TIdx template parameter have to be identical!");
         }
 
