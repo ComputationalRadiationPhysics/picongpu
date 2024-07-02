@@ -42,50 +42,50 @@ namespace picongpu
     namespace densityProfiles::pypicongpu
     {
         {{#species_initmanager.operations.simple_density}}
+        // a species has always only exactly one profile, so only one of the following blocks below will be present
 
           {{#profile.type.gaussian}}
-            struct init_{{{placed_species_initial.typename}}}_functorParameter
+            struct init_{{{placed_species_initial.typename}}}_GaussianParam
             {
                 /** Profile Formula:
-                *   constexpr float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
-                *   constexpr float_X density = exp(gasFactor * pow(exponent, gasPower));
-                *
-                *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-                *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-                *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
-                */
+                 *           { exp(gasFactor * (abs((y - gasCenterFront) / gasSigmaFront)^gasPower)) ;y < gasCenterFront
+                 * density = { 1                                                   ;gasCenterFront <= y <= gasCenterRear
+                 *           { exp(gasFactor * (abs((y - gasCenterFront) / gasSigmaFront)^gasPower)) ;y > gasCenterRear
+                 *
+                 *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+                 *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+                 *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
+                 */
                 static constexpr float_X gasFactor = {{{profile.data.gasFactor}}};
                 static constexpr float_X gasPower  = {{{profile.data.gasPower}}};
 
                 /** height of vacuum area on top border
-                *
-                *  this vacuum is important because of the laser initialization,
-                *  which is done in the first cells of the simulation and
-                *  assumes a charge-free volume
-                *  unit: cells
-                */
-                static constexpr uint32_t vacuumCellsY = {{{profile.data.vacuumCellsY}}};
+                 *
+                 *  this vacuum is important because of the laser initialization,
+                 *  which is done in the first cells of the simulation and
+                 *  assumes a charge-free volume
+                 *  unit: cells
+                 */
+                static constexpr uint32_t vacuumCellsY = {{{profile.data.vacuumCellsFront}}};
 
                 /** The central position of the gas distribution
-                *  unit: meter
-                */
-                static constexpr float_64 gasCenterLeft_SI  = {{{profile.data.gasCenterLeft}}};
-                static constexpr float_64 gasCenterRight_SI = {{{profile.data.gasCenterRight}}};
+                 *  unit: meter
+                 */
+                static constexpr float_64 gasCenterLeft_SI  = {{{profile.data.gasCenterFront}}};
+                static constexpr float_64 gasCenterRight_SI = {{{profile.data.gasCenterRear}}};
 
                 /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
-                *  unit: meter
-                */
-                static constexpr float_64 gasSigmaLeft_SI  = {{{profile.data.gasSigmaLeft}}};
-                static constexpr float_64 gasSigmaRight_SI = {{{profile.data.gasSigmaRight}}};
+                 *  unit: meter
+                 */
+                static constexpr float_64 gasSigmaLeft_SI  = {{{profile.data.gasSigmaFront}}};
+                static constexpr float_64 gasSigmaRight_SI = {{{profile.data.gasSigmaRear}}};
             };
 
-
-            /* definition of density with Gaussian profile */
-            using init_{{{placed_species_initial.typename}}}_functor  = GaussianImpl<init_{{{placed_species_initial.typename}}}_functorParameter>;
+            using init_{{{placed_species_initial.typename}}} = GaussianImpl<init_{{{placed_species_initial.typename}}}_GaussianParam>;
           {{/profile.type.gaussian}}
 
-            /**
-             * generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
+          {{#profile.type.uniform}}
+            /** generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
              *
              * (Note: This profile assumes ratio to be 1. The correct ratio is applied in the initpipeline by CreateDensity.)
              */
@@ -94,63 +94,72 @@ namespace picongpu
                 HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
                 {
                     //! @todo respect bounding box, Brian Marre, 2023
-
-                    // a species has always only exactly one profile, so only one of the following blocks below will be present
-                    {{#profile.type.uniform}}
                         return static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
-                    {{/profile.type.uniform}}
-
-                    {{#profile.type.foil}}
-                        float_64 const y = position_SI.y(); // m
-
-                        // begin & end plateau of foil
-                        constexpr float_64 y0 = {{{profile.data.y_value_front_foil_si}}}:
-                        constexpr float_64 y1 = y0 + {{{profile.data.thickness_foil_si}}};
-
-                        // prePlasma ramp
-                        {{#profile.data.pre_foil_plasmaRamp.type.exponential}}
-                            // exponential pre-expanded density ramp before plateau of foil
-                            constexpr float_64 prePlasmaLength = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaLength}}};
-                            constexpr float_64 prePlasmaCutoff = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaCutoff}}};
-
-                            // prefoil upramp
-                            if((y < y0) &&  y > y0 - prePlasmaCutoff)
-                                dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
-                                    * math::exp((y - y0) / prePlasmaLength);
-                        {{/profile.data.pre_foil_plasmaRamp.type.exponential}}
-
-                        {{#profile.data.pre_foil_plasmaRamp.type.none}}
-                            // no prePlasma ramp
-                        {{/profile.data.pre_foil_plasmaRamp.type.none}}
-
-                        // postPlasma ramp
-                        {{#profile.data.post_foil_plasmaRamp.type.exponential}}
-                            // exponential pre-expanded density ramp after plateau of foil
-                            constexpr float_64 postPlasmaLength = {{{profile.data.post_foil_plasmaRamp.data.PlasmaLength}}};
-                            constexpr float_64 postPlasmaCutoff = {{{profile.data.post_foil_plasmaRamp.data.PlasmaCutoff}}};
-
-                        // postfoil downramp
-                            if(y > y1 && y < y1 + postPlasmaCutoff)
-                                dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
-                                    * math::exp((y1 - y) / postPlasmaLength);
-                        {{/profile.data.post_foil_plasmaRamp.type.exponential}}
-
-                        {{#profile.data.post_foil_plasmaRamp.type.none}}
-                            // no postPlasma ramp
-                        {{/profile.data.post_foil_plasmaRamp.type.none}}
-
-                        // foil plateau
-                        if(y >= y0 && y <= y1)
-                            dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
-
-                        // safety check: all parts of the function MUST be > 0
-                        dens *= float_64(dens >= 0.0);
-                        return dens;
-                    {{/profile.type.foil}}
                 }
             };
-
             using init_{{{placed_species_initial.typename}}} = FreeFormulaImpl<init_{{{placed_species_initial.typename}}}_functor>;
+          {{/profile.type.uniform}}
+
+          {{#profile.type.foil}}
+            /** generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
+             *
+             * (Note: This profile assumes ratio to be 1. The correct ratio is applied in the initpipeline by CreateDensity.)
+             */
+            struct init_{{{placed_species_initial.typename}}}_functor
+            {
+                HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+                {
+                    //! @todo respect bounding box, Brian Marre, 2023
+                    float_64 const y = position_SI.y(); // m
+
+                    // begin & end plateau of foil
+                    constexpr float_64 y0 = {{{profile.data.y_value_front_foil_si}}}:
+                    constexpr float_64 y1 = y0 + {{{profile.data.thickness_foil_si}}};
+
+                    // prePlasma ramp
+                    {{#profile.data.pre_foil_plasmaRamp.type.exponential}}
+                        // exponential pre-expanded density ramp before plateau of foil
+                        constexpr float_64 prePlasmaLength = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaLength}}};
+                        constexpr float_64 prePlasmaCutoff = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaCutoff}}};
+
+                        // prefoil upramp
+                        if((y < y0) &&  y > y0 - prePlasmaCutoff)
+                            dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
+                                * math::exp((y - y0) / prePlasmaLength);
+                    {{/profile.data.pre_foil_plasmaRamp.type.exponential}}
+
+                    {{#profile.data.pre_foil_plasmaRamp.type.none}}
+                        // no prePlasma ramp
+                    {{/profile.data.pre_foil_plasmaRamp.type.none}}
+
+                    // postPlasma ramp
+                    {{#profile.data.post_foil_plasmaRamp.type.exponential}}
+                        // exponential pre-expanded density ramp after plateau of foil
+                        constexpr float_64 postPlasmaLength = {{{profile.data.post_foil_plasmaRamp.data.PlasmaLength}}};
+                        constexpr float_64 postPlasmaCutoff = {{{profile.data.post_foil_plasmaRamp.data.PlasmaCutoff}}};
+
+                    // postfoil downramp
+                        if(y > y1 && y < y1 + postPlasmaCutoff)
+                            dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
+                                * math::exp((y1 - y) / postPlasmaLength);
+                    {{/profile.data.post_foil_plasmaRamp.type.exponential}}
+
+                    {{#profile.data.post_foil_plasmaRamp.type.none}}
+                        // no postPlasma ramp
+                    {{/profile.data.post_foil_plasmaRamp.type.none}}
+
+                    // foil plateau
+                    if(y >= y0 && y <= y1)
+                        dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
+
+                    // safety check: all parts of the function MUST be > 0
+                    dens *= float_64(dens >= 0.0);
+                    return dens;
+                }
+            };
+            using init_{{{placed_species_initial.typename}}} = FreeFormulaImpl<init_{{{placed_species_initial.typename}}}_functor>;
+          {{/profile.type.foil}}
+
         {{/species_initmanager.operations.simple_density}}
     } // namespace densityProfiles::pypicongpu
 } // namespace picongpu
