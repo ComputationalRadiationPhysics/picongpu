@@ -36,10 +36,15 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          *
          * @tparam T_IPDIonSpeciesList list of all species partaking as ions in IPD input
          * @tparam T_IPDElectronSpeciesList list of all species partaking as electrons in IPD input
+         * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+         *  atomicPhysics kernels if no atomic physics species is present.
          *
          * @attention collective over all IPD species
          */
-        template<typename T_IPDIonSpeciesList, typename T_IPDElectronSpeciesList>
+        template<
+            uint32_t T_numberAtomicPhysicsIonSpecies,
+            typename T_IPDIonSpeciesList,
+            typename T_IPDElectronSpeciesList>
         HINLINE static void calculateIPDInput(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep);
 
         /** check for and apply single step of pressure ionization cascade

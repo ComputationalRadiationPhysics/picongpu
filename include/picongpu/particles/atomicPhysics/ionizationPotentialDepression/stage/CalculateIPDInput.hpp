@@ -38,7 +38,12 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
     //! short hand for IPD namespace
     namespace s_IPD = picongpu::particles::atomicPhysics::ionizationPotentialDepression;
 
-    //! IPD sub-stage for calculating IPD input from sumFields, required for calculating IPD
+    /** IPD sub-stage for calculating IPD input from sumFields, required for calculating IPD
+     *
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
+     */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct CalculateIPDInput
     {
         //! call of kernel for every superCell
@@ -79,7 +84,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
                     "LocalDebyeLengthField");
 
             // macro for kernel call
-            PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::CalculateIPDInputKernel())
+            PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::CalculateIPDInputKernel<T_numberAtomicPhysicsIonSpecies>())
                 .template config<1u>(mapper.getGridDim())(
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),
@@ -91,6 +96,15 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
                     localTemperatureEnergyField.getDeviceDataBox(),
                     localZStarField.getDeviceDataBox(),
                     localDebyeLengthField.getDeviceDataBox());
+        }
+    };
+
+    template<>
+    struct CalculateIPDInput<0u>
+    {
+        //! call of kernel for every superCell
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
+        {
         }
     };
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::stage

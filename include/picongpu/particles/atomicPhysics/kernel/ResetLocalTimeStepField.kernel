@@ -25,7 +25,12 @@
 
 namespace picongpu::particles::atomicPhysics::kernel
 {
-    //! reset local time step length to local time remaining
+    /** reset local time step length to local time remaining
+     *
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
+     */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct ResetLocalTimeStepFieldKernel
     {
         /** call operator
@@ -65,6 +70,23 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto onlyMaster = lockstep::makeMaster(worker);
 
             onlyMaster([&timeStep, &timeRemaining]() { timeStep = timeRemaining; });
+        }
+    };
+
+    template<>
+    struct ResetLocalTimeStepFieldKernel<0u>
+    {
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalTimeStepBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_LocalTimeStepBox localTimeStepBox) const
+        {
         }
     };
 } // namespace picongpu::particles::atomicPhysics::kernel

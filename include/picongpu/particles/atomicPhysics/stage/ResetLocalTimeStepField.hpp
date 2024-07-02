@@ -31,7 +31,10 @@ namespace picongpu::particles::atomicPhysics::stage
 {
     /** @class atomic physics sub-stage for resetting local atomicPhysics time step to
      *      current time remaining
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
      */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct ResetLocalTimeStepField
     {
         //! call of kernel for every superCell
@@ -52,11 +55,20 @@ namespace picongpu::particles::atomicPhysics::stage
                 "LocalTimeStepField");
 
             // macro for call of kernel
-            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics::kernel::ResetLocalTimeStepFieldKernel())
+            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics::kernel::ResetLocalTimeStepFieldKernel<
+                                      T_numberAtomicPhysicsIonSpecies>())
                 .template config<1u>(mapper.getGridDim())(
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),
                     localTimeStepField.getDeviceDataBox());
+        }
+    };
+
+    template<>
+    struct ResetLocalTimeStepField<0u>
+    {
+        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
+        {
         }
     };
 } // namespace picongpu::particles::atomicPhysics::stage

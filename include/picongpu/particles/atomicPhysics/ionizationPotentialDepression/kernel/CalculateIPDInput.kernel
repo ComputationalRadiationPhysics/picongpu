@@ -28,6 +28,8 @@
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
+#include <cstdint>
+
 namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::kernel
 {
     /** calculate IPD input kernel for the Stewart-Pyatt IPD model
@@ -35,7 +37,11 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
      * @attention assumes that the sumFields have been reset previously
      *
      * called by IPD calculation stage, calculates local superCell temperature, debye length and
+     *
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
      */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct CalculateIPDInputKernel
     {
         /** call operator
@@ -164,6 +170,37 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                         constFactorDebyeLength * localTemperatureTimesk_Boltzman
                         / (localSumChargeNumberSquared + localSumWeightElectron));
                 });
+        }
+    };
+
+    template<>
+    struct CalculateIPDInputKernel<0u>
+    {
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingDataBox,
+            typename T_SumWeightAllFieldDataBox,
+            typename T_SumTemperatureFunctionalFieldDataBox,
+            typename T_SumWeightElectronFieldBox,
+            typename T_SumChargeNumberIonsFieldDataBox,
+            typename T_SumChargeNumberSquaredIonsFieldDataBox,
+            typename T_LocalTemperatureFieldDataBox,
+            typename T_LocalZStarFieldDataBox,
+            typename T_LocaDebyeLengthFieldDataBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingDataBox const localTimeRemainingBox,
+            T_SumWeightAllFieldDataBox const localSumWeightAllBox,
+            T_SumTemperatureFunctionalFieldDataBox const localSumTemperatureFunctionalBox,
+            T_SumWeightElectronFieldBox const localSumWeightElectronBox,
+            T_SumChargeNumberIonsFieldDataBox const localSumChargeNumberBox,
+            T_SumChargeNumberSquaredIonsFieldDataBox const localSumChargeNumberSquaredBox,
+            T_LocalTemperatureFieldDataBox localTemperatureEnergyBox,
+            T_LocalZStarFieldDataBox localZStarBox,
+            T_LocaDebyeLengthFieldDataBox localDebyeLengthBox) const
+        {
         }
     };
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::kernel

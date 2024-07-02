@@ -34,6 +34,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
         {
         }
 
+        template<uint32_t T_numberAtomicPhysicsIonSpecies>
         HINLINE static void calculateIPDInput(picongpu::MappingDesc const mappingDesc)
         {
         }

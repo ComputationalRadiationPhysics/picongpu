@@ -49,7 +49,14 @@
 
 namespace picongpu::particles::atomicPhysics::stage
 {
-    //! @tparam T_IonSpecies ion species type
+    /** Fixes mismatches between atomic state and boundElectrons charge state
+     *
+     * If the charge state of the atomicStateCollectionIndex particle attribute is inconsistent with the charge state
+     * indicated by the boundElectrons particle attributes, sets the atomic state to ground state of charge state
+     * specified by boundElectrons particle attribute.
+     *
+     * @tparam T_IonSpecies ion species type
+     */
     template<typename T_IonSpecies>
     struct FixAtomicState
     {

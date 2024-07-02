@@ -39,7 +39,11 @@ namespace picongpu::particles::atomicPhysics::stage
     /** ResetDeltaWeightElectronHistogram atomic physics sub-stage
      *
      * reset deltaWeight entry for each electron histogram bin to 0
+     *
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
      */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct ResetDeltaWeightElectronHistogram
     {
         //! call of kernel for every superCell
@@ -60,7 +64,8 @@ namespace picongpu::particles::atomicPhysics::stage
 
             // macro for call of kernel for every superCell
             PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics::kernel::ResetDeltaWeightElectronHistogramKernel<
-                                      picongpu::atomicPhysics::ElectronHistogram>())
+                                      picongpu::atomicPhysics::ElectronHistogram,
+                                      T_numberAtomicPhysicsIonSpecies>())
                 .template config<picongpu::atomicPhysics::ElectronHistogram::numberBins>(mapper.getGridDim())(
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),

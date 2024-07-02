@@ -31,7 +31,11 @@ namespace picongpu::particles::atomicPhysics::stage
 {
     /** atomic physics sub-stage for reducing the local time remaining by the local
      *  atomicPhysics time step
+     *
+     * @tparam T_numberAtomicPhysicsIonSpecies only used to prevent compilation of atomicPhysics kernels if no atomic
+     *  physics ion specie present
      */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct UpdateTimeRemaining
     {
         //! call of kernel for every superCell

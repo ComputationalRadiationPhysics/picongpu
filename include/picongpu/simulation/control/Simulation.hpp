@@ -506,13 +506,7 @@ namespace picongpu
                     particles::RemoveOuterParticlesAllSpecies removeOuterParticlesAllSpecies;
                     removeOuterParticlesAllSpecies(step);
 
-                    // fix mismatches between boundElectrons and atomicStateCollectionIndex attributes
-                    using SpeciesRepresentingAtomicPhysicsIons =
-                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type;
-                    using ForEachIonSpeciesFixAtomicState = pmacc::meta::ForEach<
-                        SpeciesRepresentingAtomicPhysicsIons,
-                        particles::atomicPhysics::stage::FixAtomicState<boost::mpl::_1>>;
-                    ForEachIonSpeciesFixAtomicState{}(*cellDescription);
+                    (*atomicPhysics).fixAtomicStateInit(*cellDescription);
 
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);

@@ -142,7 +142,10 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          *
          * @attention collective over all IPD species
          */
-        template<typename T_IPDIonSpeciesList, typename T_IPDElectronSpeciesList>
+        template<
+            uint32_t T_numberAtomicPhysicsIonSpecies,
+            typename T_IPDIonSpeciesList,
+            typename T_IPDElectronSpeciesList>
         HINLINE static void calculateIPDInput(picongpu::MappingDesc const mappingDesc, uint32_t const)
         {
             using ForEachElectronSpeciesFillSumFields = pmacc::meta::ForEach<
@@ -157,7 +160,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             ForEachElectronSpeciesFillSumFields{}(mappingDesc);
             ForEachIonSpeciesFillSumFields{}(mappingDesc);
 
-            s_IPD::stage::CalculateIPDInput()(mappingDesc);
+            s_IPD::stage::CalculateIPDInput<T_numberAtomicPhysicsIonSpecies>()(mappingDesc);
         }
 
         /** check for and apply single step of pressure ionization cascade

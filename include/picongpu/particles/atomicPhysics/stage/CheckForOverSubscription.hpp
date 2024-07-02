@@ -43,7 +43,10 @@ namespace picongpu::particles::atomicPhysics::stage
      *
      * check each histogram bin for deltaWeight > weight0, if yes mark bin as over subscribed
      *
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
      */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
     struct CheckForOverSubscription
     {
         //! call of kernel for every superCell
@@ -73,7 +76,8 @@ namespace picongpu::particles::atomicPhysics::stage
 
             // macro for call of kernel for every superCell, see pull request #4321
             PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics::kernel::CheckForOverSubscriptionKernel<
-                                      picongpu::atomicPhysics::ElectronHistogram>())
+                                      picongpu::atomicPhysics::ElectronHistogram,
+                                      T_numberAtomicPhysicsIonSpecies>())
                 .template config<picongpu::atomicPhysics::ElectronHistogram::numberBins>(mapper.getGridDim())(
                     mapper,
                     localTimeRemainingField.getDeviceDataBox(),

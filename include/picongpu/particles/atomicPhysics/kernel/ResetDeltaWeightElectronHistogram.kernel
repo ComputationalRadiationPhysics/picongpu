@@ -30,8 +30,10 @@ namespace picongpu::particles::atomicPhysics::kernel
     /** reset deltaWeight entry of all electron histogram bins to 0
      *
      * @tparam T_Histogram histogram type
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
      */
-    template<typename T_Histogram>
+    template<typename T_Histogram, uint32_t T_numberAtomicPhysicsIonSpecies>
     struct ResetDeltaWeightElectronHistogramKernel
     {
         /** call operator

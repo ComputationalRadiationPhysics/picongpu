@@ -83,13 +83,15 @@ namespace picongpu::simulation::stage
          * @tparam T_AtomicPhysicsElectronSpecies list of all electrons species to partake in the atomicPhysics step
          * @tparam T_OnlyIPDElectronSpecies list of all electron species to partake in the IPD calculation in addition
          *  to the atomicPhysics electron species
+         * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+         *  atomicPhysics kernels if no atomic physics species is present.
          */
         template<
             typename T_AtomicPhysicsIonSpecies,
             typename T_OnlyIPDIonSpecies,
             typename T_AtomicPhysicsElectronSpecies,
             typename T_OnlyIPDElectronSpecies,
-            uint32_t numberAtomicPhysicsIonSpecies>
+            uint32_t T_numberAtomicPhysicsIonSpecies>
         struct AtomicPhysics
         {
         private:
@@ -260,9 +262,10 @@ namespace picongpu::simulation::stage
                     ForEachElectronSpeciesBinElectrons{}(mappingDesc);
 
                     // calculate ionization potential depression parameters for every superCell
-                    picongpu::atomicPhysics::IPDModel::template calculateIPDInput<IPDIonSpecies, IPDElectronSpecies>(
-                        mappingDesc,
-                        currentStep);
+                    picongpu::atomicPhysics::IPDModel::
+                        template calculateIPDInput<T_numberAtomicPhysicsIonSpecies, IPDIonSpecies, IPDElectronSpecies>(
+                            mappingDesc,
+                            currentStep);
 
                     if constexpr(picongpu::atomicPhysics::debug::electronHistogram::PRINT_TO_CONSOLE)
                     {
@@ -270,7 +273,8 @@ namespace picongpu::simulation::stage
                     }
 
                     // timeStep = localTimeRemaining
-                    picongpu::particles::atomicPhysics::stage::ResetLocalTimeStepField()(mappingDesc);
+                    picongpu::particles::atomicPhysics::stage::ResetLocalTimeStepField<
+                        T_numberAtomicPhysicsIonSpecies>()(mappingDesc);
 
                     using ForEachIonSpeciesResetLocalRateCache = pmacc::meta::ForEach<
                         AtomicPhysicsIonSpecies,
@@ -312,7 +316,8 @@ namespace picongpu::simulation::stage
                             particles::atomicPhysics::stage::ChooseTransition<boost::mpl::_1>>;
                         ForEachIonSpeciesChooseTransition{}(mappingDesc, currentStep);
 
-                        picongpu::particles::atomicPhysics::stage::ResetDeltaWeightElectronHistogram{}(mappingDesc);
+                        picongpu::particles::atomicPhysics::stage::ResetDeltaWeightElectronHistogram<
+                            T_numberAtomicPhysicsIonSpecies>{}(mappingDesc);
 
                         // record all shared resources usage by accepted transitions
                         using ForEachIonSpeciesRecordSuggestedChanges = pmacc::meta::ForEach<
@@ -321,7 +326,8 @@ namespace picongpu::simulation::stage
                         ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
 
                         // check bins for over subscription --> localElectronHistogramOverSubscribedField
-                        picongpu::particles::atomicPhysics::stage::CheckForOverSubscription{}(mappingDesc);
+                        picongpu::particles::atomicPhysics::stage::CheckForOverSubscription<
+                            T_numberAtomicPhysicsIonSpecies>{}(mappingDesc);
 
                         auto linearizedOverSubscribedBox = S_LinearizedBox<S_OverSubscribedField>(
                             localElectronHistogramOverSubscribedField.getDeviceDataBox(),
@@ -376,14 +382,15 @@ namespace picongpu::simulation::stage
                                 particles::atomicPhysics::stage::RollForOverSubscription<boost::mpl::_1>>;
                             ForEachIonSpeciesRollForOverSubscription{}(mappingDesc, currentStep);
 
-                            picongpu::particles::atomicPhysics::stage::ResetDeltaWeightElectronHistogram{}(
-                                mappingDesc);
+                            picongpu::particles::atomicPhysics::stage::ResetDeltaWeightElectronHistogram<
+                                T_numberAtomicPhysicsIonSpecies>{}(mappingDesc);
 
                             // record all shared resources usage by accepted transitions
                             ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
 
                             // check bins for over subscription --> localElectronHistogramOverSubscribedField
-                            picongpu::particles::atomicPhysics::stage::CheckForOverSubscription()(mappingDesc);
+                            picongpu::particles::atomicPhysics::stage::CheckForOverSubscription<
+                                T_numberAtomicPhysicsIonSpecies>()(mappingDesc);
 
                             auto linearizedOverSubscribedBox = S_LinearizedBox<S_OverSubscribedField>(
                                 localElectronHistogramOverSubscribedField.getDeviceDataBox(),
@@ -431,8 +438,10 @@ namespace picongpu::simulation::stage
                     while(true)
                     {
                         resetFoundUnboundIon();
-                        picongpu::atomicPhysics::IPDModel::
-                            template calculateIPDInput<IPDIonSpecies, IPDElectronSpecies>(mappingDesc, currentStep);
+                        picongpu::atomicPhysics::IPDModel::template calculateIPDInput<
+                            T_numberAtomicPhysicsIonSpecies,
+                            IPDIonSpecies,
+                            IPDElectronSpecies>(mappingDesc, currentStep);
                         picongpu::atomicPhysics::IPDModel::template applyPressureIonization<AtomicPhysicsIonSpecies>(
                             mappingDesc,
                             currentStep);
@@ -452,7 +461,8 @@ namespace picongpu::simulation::stage
                     }
 
                     // timeRemaining -= timeStep
-                    picongpu::particles::atomicPhysics::stage::UpdateTimeRemaining()(mappingDesc);
+                    picongpu::particles::atomicPhysics::stage::UpdateTimeRemaining<T_numberAtomicPhysicsIonSpecies>()(
+                        mappingDesc);
 
                     auto linearizedTimeRemainingBox = S_LinearizedBox<S_TimeRemainingField>(
                         localTimeRemainingField.getDeviceDataBox(),
@@ -496,6 +506,8 @@ namespace picongpu::simulation::stage
      */
     struct AtomicPhysics
     {
+        using SpeciesRepresentingAtomicPhysicsIons =
+            typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type;
         auto static constexpr numberAtomicPhysicsSpecies = pmacc::mp_size<
             pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type>::value;
         static bool constexpr atomicPhysicsActive = (numberAtomicPhysicsSpecies >= 1);
@@ -540,6 +552,14 @@ namespace picongpu::simulation::stage
                 std::cout << "TestRateCalculation:" << std::endl;
                 test.testAll();
             }
+        }
+
+        void fixAtomicStateInit(picongpu::MappingDesc const mappingDesc)
+        {
+            using ForEachIonSpeciesFixAtomicState = pmacc::meta::ForEach<
+                SpeciesRepresentingAtomicPhysicsIons,
+                particles::atomicPhysics::stage::FixAtomicState<boost::mpl::_1>>;
+            ForEachIonSpeciesFixAtomicState{}(mappingDesc);
         }
 
         void operator()(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep) const
