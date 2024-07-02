@@ -11,6 +11,22 @@ Example
 
 Creates a directory ``generated_input``, where you can run ``pic-build`` and subsequently ``tbg``.
 
+.. note::
+
+   Note that in order to run the python script, you need to set up a Python environment that
+   includes all the dependencies listed in  ``$PICSRC/lib/python/picongpu/picmi/requirements.txt``.
+   This can be done by e.g. ``pip install -r $PICSRC/lib/python/picongpu/picmi/requirements.txt``.
+   You will also need to set your ``$PYTHONPATH`` to include PIConGPU's Python libraries.
+   This can be done by ``export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH``.
+   (Updating the ``PYTHONPATH`` is automatically done when you source your PIConGPU environment, see below.)
+   For ``pic-build`` and ``tbg`` you need to setup a working PIConGPU environment.
+   This is documented in :ref:`the Setup part of PIConGPU in 5 Minutes on Hemera <hemeraIn5min>`.
+
+   Above, we used:
+
+   -  ``$PICSRC`` as shell variable providing the path to picongpu's source code directory.
+
+
 Generation Results
 ------------------
 

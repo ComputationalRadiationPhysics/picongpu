@@ -1,8 +1,2 @@
-typeguard >= 4.2.1
-sympy >= 1.9
-chevron >= 0.13.1
-jsonschema == 4.17.3
-scipy >= 1.7.1
-picmistandard >= 0.27.0
-
+-r picmi/requirements.txt
 -r extra/requirements.txt

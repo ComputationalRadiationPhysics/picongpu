@@ -40,7 +40,7 @@ conda create -n pypicongpu python=${PYTHON_VERSION}
 conda activate pypicongpu
 python3 --version
 MODIFIED_REQUIREMENT_TXT=$CI_PROJECT_DIR/lib/python/picongpu/modified_requirements.txt
-python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/requirements.txt $MODIFIED_REQUIREMENT_TXT
+python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $MODIFIED_REQUIREMENT_TXT
 
 echo "modified_requirements.txt: "
 cat $MODIFIED_REQUIREMENT_TXT
