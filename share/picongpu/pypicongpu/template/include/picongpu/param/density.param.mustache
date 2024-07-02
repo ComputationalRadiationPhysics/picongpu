@@ -99,7 +99,7 @@ namespace picongpu
                     {{#profile.type.uniform}}
                         return static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI);
                     {{/profile.type.uniform}}
-                
+
                     {{#profile.type.foil}}
                         float_64 const y = position_SI.y(); // m
 

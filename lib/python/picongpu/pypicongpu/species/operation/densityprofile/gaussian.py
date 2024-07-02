@@ -48,6 +48,6 @@ class Gaussian(DensityProfile):
             "gasSigmaLeft": self.gasSigmaLeft,
             "gasSigmaRight": self.gasSigmaRight,
             "gasFactor": self.gasFactor,
-            "gasPower" : self.gasPower,
-            "vacuumCellsY" : self.vacuumCellsY
+            "gasPower": self.gasPower,
+            "vacuumCellsY": self.vacuumCellsY,
         }
