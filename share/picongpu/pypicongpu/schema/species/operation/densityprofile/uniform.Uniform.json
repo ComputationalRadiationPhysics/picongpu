@@ -9,7 +9,7 @@
     "properties": {
         "density_si": {
             "type": "number",
-            "description": "density in kg * m^-3",
+            "description": "particle number density in m^-3",
             "exclusiveMinimum": 0
         }
     }
