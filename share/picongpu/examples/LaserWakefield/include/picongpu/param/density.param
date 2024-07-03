@@ -75,6 +75,9 @@ namespace picongpu
              */
             static constexpr float_64 gasSigmaLeft_SI = 8.0e-5;
             static constexpr float_64 gasSigmaRight_SI = 8.0e-5;
+
+            //! factor to multiply BASE_DENSITY_SI by to get density
+            static constexpr float_X densityFactor = 1._X;
         };
 
         /* definition of density with Gaussian profile */
