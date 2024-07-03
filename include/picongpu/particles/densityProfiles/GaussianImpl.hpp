@@ -57,10 +57,11 @@ namespace picongpu
                     return 0._X;
                 }
 
-                constexpr float_X gasCenterLeft = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
-                constexpr float_X gasCenterRight = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
-                constexpr float_X gasSigmaLeft = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
-                constexpr float_X gasSigmaRight = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
+                constexpr float_X gasCenterLeft = static_cast<float_X>(ParamClass::gasCenterLeft_SI / UNIT_LENGTH);
+                constexpr float_X gasCenterRight = static_cast<float_X>(ParamClass::gasCenterRight_SI / UNIT_LENGTH);
+                constexpr float_X gasSigmaLeft = static_cast<float_X>(ParamClass::gasSigmaLeft_SI / UNIT_LENGTH);
+                constexpr float_X gasSigmaRight = static_cast<float_X>(ParamClass::gasSigmaRight_SI / UNIT_LENGTH);
+
                 auto exponent = 0._X;
                 if(globalCellPos.y() < gasCenterLeft)
                 {
@@ -73,7 +74,9 @@ namespace picongpu
 
                 constexpr float_X gasPower = ParamClass::gasPower;
                 constexpr float_X gasFactor = ParamClass::gasFactor;
-                float_X const density = math::exp(gasFactor * math::pow(exponent, gasPower));
+                constexpr float_X densityFunctor = ParamClass::densityFactor;
+
+                float_X const density = densityFunctor * math::exp(gasFactor * math::pow(exponent, gasPower));
                 return density;
             }
         };
