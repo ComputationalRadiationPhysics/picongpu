@@ -69,12 +69,17 @@ namespace picongpu
     namespace densityProfiles
     {
         /** Profile Formula:
-         *   `const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);`
-         *   `const float_X density = exp(gasFactor * pow(exponent, gasPower));`
          *
-         *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-         *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-         *   and `exponent = 0.0 for gasCenterLeft_SI < y < gasCenterRight_SI`
+         * for `y < gasCenterLeft_SI`:
+         * `density = densityFactor * exp(gasFactor * pow(abs((y - gasCenterLeft_SI) / gasSigmaLeft_SI), gasPower))
+         *            * BASE_DENSITY_SI;`
+         *
+         * for `gasCenterLeft_SI <= y <= gasCenterRight_SI`:
+         *  `density = densityFactor * BASE_DENSITY_SI;`
+         *
+         * for `y > gasCenterRight_SI`:
+         *  `density = densityFactor * exp(gasFactor * pow(abs((y - gasCenterRight_SI) / gasSigmaRight_SI), gasPower))
+         *             * BASE_DENSITY_SI;`
          */
         struct GaussianParam
         {
@@ -101,6 +106,9 @@ namespace picongpu
              */
             static constexpr float_64 gasSigmaLeft_SI = 4.62e-5;
             static constexpr float_64 gasSigmaRight_SI = 4.62e-5;
+
+            //! factor to multiply BASE_DENSITY_SI by to get density
+            static constexpr float_X densityFactor = 1._X;
         };
 
         /* definition of density profile with gaussian profile */
