@@ -22,28 +22,28 @@ class Gaussian(DensityProfile):
         density_si * exp(gasFactor * (abs( (y - gasCenterRear) / gasSigmaRear))^gasPower)
     """
 
-    gasCenterFront = util.build_typesafe_property(float)
+    gas_center_front = util.build_typesafe_property(float)
     """position of the front edge of the constant of middle the density profile in meter"""
 
-    gasCenterRear = util.build_typesafe_property(float)
+    gas_center_rear = util.build_typesafe_property(float)
     """position of the rear edge of the constant of middle the density profile in meter"""
 
-    gasSigmaFront = util.build_typesafe_property(float)
+    gas_sigma_front = util.build_typesafe_property(float)
     """distance in away from gasCenterFront until the gas density decreases to its 1/e-th part in meter"""
 
-    gasSigmaRear = util.build_typesafe_property(float)
+    gas_sigma_rear = util.build_typesafe_property(float)
     """The distance from gasCenterRear until the gas density decreases to its 1/e-th part in meter"""
 
-    gasFactor = util.build_typesafe_property(float)
+    gas_factor = util.build_typesafe_property(float)
     """exponential scaling factor, see formula above"""
 
-    gasPower = util.build_typesafe_property(float)
+    gas_power = util.build_typesafe_property(float)
     """power-exponent in exponent of density function"""
 
-    vacuumCellsFront = util.build_typesafe_property(int)
+    vacuum_cells_front = util.build_typesafe_property(int)
     """number of vacuum cells in front of foil for laser init"""
 
-    density_si = util.build_typesafe_property(float)
+    density = util.build_typesafe_property(float)
     """particle number density in m^-3"""
 
     def __init__(self):
@@ -53,33 +53,31 @@ class Gaussian(DensityProfile):
     def check(self) -> None:
         if self.density_si <= 0:
             raise ValueError("density must be > 0")
-        if self.gasCenterFront < 0:
+        if self.gas_center_front < 0:
             raise ValueError("gasCenterFront must be >= 0")
-        if self.gasCenterRear < 0:
+        if self.gas_center_rear < 0:
             raise ValueError("gasCenterFront must be >= 0")
-        if self.gasCenterRear < self.gasCenterFront:
+        if self.gas_center_rear < self.gasCenterFront:
             raise ValueError("gasCenterRear must be >= gasCenterFront")
-        if self.gasCenterRear < self.gasCenterFront:
-            raise ValueError("gasCenterRear must be >= gasCenterFront")
-        if self.gasFactor <= 0:
+        if self.gas_factor <= 0:
             raise ValueError("gasFactor must be > 0")
-        if self.gasPower <= 0:
+        if self.gas_power <= 0:
             raise ValueError("gasPower must be > 0")
-        if self.vacuumCellsFront < 0:
+        if self.vacuum_cells_front < 0:
             raise ValueError("vacuumCellsFront must be > 0")
-        if self.density_si <= 0:
+        if self.density <= 0:
             raise ValueError("density_si must be > 0")
 
     def _get_serialized(self) -> dict:
         self.check()
 
         return {
-            "gasCenterFront": self.gasCenterFront,
-            "gasCenterRear": self.gasCenterRear,
-            "gasSigmaFront": self.gasSigmaFront,
-            "gasSigmaRear": self.gasSigmaRear,
-            "gasFactor": self.gasFactor,
-            "gasPower": self.gasPower,
-            "vacuumCellsFront": self.vacuumCellsFront,
-            "density_si": self.density_si,
+            "gas_center_front": self.gasCenterFront,
+            "gas_center_rear": self.gasCenterRear,
+            "gas_sigma_front": self.gasSigmaFront,
+            "gas_sigma_rear": self.gasSigmaRear,
+            "gas_factor": self.gasFactor,
+            "gas_power": self.gasPower,
+            "vacuum_cells_front": self.vacuumCellsFront,
+            "density": self.density_si,
         }

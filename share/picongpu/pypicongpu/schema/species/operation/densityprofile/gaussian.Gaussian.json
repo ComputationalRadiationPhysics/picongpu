@@ -4,52 +4,52 @@
     "description": "Describes  a Gaussian density profile, meaning density_si * exp(gasFactor * pow(abs((y - gasCenter_SI) / gasSigma_SI), gasPower)) for front and rear of the profile and constant in between",
     "unevaluatedProperties": false,
     "required": [
-        "gasCenterFront",
-        "gasCenterRear",
-        "gasSigmaFront",
-        "gasSigmaRear",
-        "gasFactor",
-        "gasPower",
-        "vacuumCellsFront",
-        "density_si"
+        "gas_center_front",
+        "gas_center_rear",
+        "gas_sigma_front",
+        "gas_sigma_rear",
+        "gas_factor",
+        "gas_power",
+        "vacuum_cells_front",
+        "density"
     ],
     "properties": {
-        "gasCenterFront": {
+        "gas_center_front": {
             "description": "The central position of the left part of the gas distribution in meters",
             "type": "number",
             "minimum": 0
         },
-        "gasCenterRear": {
+        "gas_center_rear": {
             "description": "The central position of the right part of the gas distribution in meters",
             "type": "number",
             "minimum": 0
         },
-        "gasSigmaFront": {
+        "gas_sigma_front": {
             "description": "The distance from gasCenterFront until the gas density decreases to its 1/e-th part in meters",
             "type": "number",
             "minimum" : 0
         },
-        "gasSigmaRear": {
+        "gas_sigma_rear": {
             "description": "The distance from gasCenterRear until the gas density decreases to its 1/e-th part in meters",
             "type": "number",
             "minimum" : 0
         },
-        "gasFactor": {
+        "gas_factor": {
             "description": "Factor for the Gaussian exponent",
             "type": "number",
             "exclusiveMaximum" : 0
         },
-        "gasPower": {
+        "gas_power": {
             "description": "Power for the Gaussian exponent",
             "type": "number",
             "exclusiveMinimum" : 0
         },
-        "vacuumCellsFront": {
+        "vacuum_cells_front": {
             "description": "Because of the laser initialization which is done in the first cells of the simulation and assumes a charge-free volume",
             "type": "number",
             "minimum" : 0
         },
-        "density_si": {
+        "density": {
             "description": "particle number density in m^-3",
             "type": "number",
             "exclusiveMinimum" : 0

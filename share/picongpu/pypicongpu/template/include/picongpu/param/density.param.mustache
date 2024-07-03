@@ -45,19 +45,17 @@ namespace picongpu
         // a species has always only exactly one profile, so only one of the following blocks below will be present
 
           {{#profile.type.gaussian}}
-            struct init_{{{placed_species_initial.typename}}}_GaussianParam
+            struct init_{{{placed_species_initial.typename}}}_GaussianParamdensity =
             {
                 /** Profile Formula:
-                 *           { exp(gasFactor * (abs((y - gasCenterFront) / gasSigmaFront)^gasPower)) ;y < gasCenterFront
-                 * density = { 1                                                   ;gasCenterFront <= y <= gasCenterRear
-                 *           { exp(gasFactor * (abs((y - gasCenterFront) / gasSigmaFront)^gasPower)) ;y > gasCenterRear
                  *
-                 *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-                 *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-                 *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
+                 * density =
+                 * {exp(gasFactor * (abs((y - gasCenterLeft_SI) / gasSigmaLeft_SI)^gasPower)) ;y < gasCenterLeft_SI
+                 * {1                                                   ;gasCenterLeft_SI <= y <= gasCenterRight_SI
+                 * {exp(gasFactor * (abs((y - gasCenterFront_SI) / gasSigmaRight_SI)^gasPower)) ;y > gasCenterRight_SI
                  */
-                static constexpr float_X gasFactor = {{{profile.data.gasFactor}}};
-                static constexpr float_X gasPower  = {{{profile.data.gasPower}}};
+                static constexpr float_X gasFactor = {{{profile.data.gas_factor}}};
+                static constexpr float_X gasPower  = {{{profile.data.gas_power}}};
 
                 /** height of vacuum area on top border
                  *
@@ -66,19 +64,19 @@ namespace picongpu
                  *  assumes a charge-free volume
                  *  unit: cells
                  */
-                static constexpr uint32_t vacuumCellsY = {{{profile.data.vacuumCellsFront}}};
+                static constexpr uint32_t vacuumCellsY = {{{profile.data.vacuum_cells_front}}};
 
                 /** The central position of the gas distribution
                  *  unit: meter
                  */
-                static constexpr float_64 gasCenterLeft_SI  = {{{profile.data.gasCenterFront}}};
-                static constexpr float_64 gasCenterRight_SI = {{{profile.data.gasCenterRear}}};
+                static constexpr float_64 gasCenterLeft_SI  = {{{profile.data.gas_center_front}}};
+                static constexpr float_64 gasCenterRight_SI = {{{profile.data.gas_center_rear}}};
 
                 /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
                  *  unit: meter
                  */
-                static constexpr float_64 gasSigmaLeft_SI  = {{{profile.data.gasSigmaFront}}};
-                static constexpr float_64 gasSigmaRight_SI = {{{profile.data.gasSigmaRear}}};
+                static constexpr float_64 gasSigmaLeft_SI  = {{{profile.data.gas_sigma_front}}};
+                static constexpr float_64 gasSigmaRight_SI = {{{profile.data.gas_sigma_rear}}};
             };
 
             using init_{{{placed_species_initial.typename}}} = GaussianImpl<init_{{{placed_species_initial.typename}}}_GaussianParam>;
