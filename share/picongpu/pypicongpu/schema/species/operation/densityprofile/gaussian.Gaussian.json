@@ -36,12 +36,11 @@
         },
         "gas_factor": {
             "description": "Factor for the Gaussian exponent",
-            "type": "number",
+            "type": "number"
         },
         "gas_power": {
             "description": "Power for the Gaussian exponent",
-            "type": "number",
-            "exclusiveMinimum" : 0
+            "type": "number"
         },
         "vacuum_cells_front": {
             "description": "Because of the laser initialization which is done in the first cells of the simulation and assumes a charge-free volume",

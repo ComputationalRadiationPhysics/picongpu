@@ -51,33 +51,39 @@ class Gaussian(DensityProfile):
         pass
 
     def check(self) -> None:
-        if self.density_si <= 0:
-            raise ValueError("density must be > 0")
-        if self.gas_center_front < 0:
-            raise ValueError("gasCenterFront must be >= 0")
-        if self.gas_center_rear < 0:
-            raise ValueError("gasCenterFront must be >= 0")
-        if self.gas_center_rear < self.gasCenterFront:
-            raise ValueError("gasCenterRear must be >= gasCenterFront")
-        if self.gas_factor <= 0:
-            raise ValueError("gasFactor must be > 0")
-        if self.gas_power <= 0:
-            raise ValueError("gasPower must be > 0")
-        if self.vacuum_cells_front < 0:
-            raise ValueError("vacuumCellsFront must be > 0")
         if self.density <= 0:
-            raise ValueError("density_si must be > 0")
+            raise ValueError("density must be > 0")
+
+        if self.gas_center_front < 0:
+            raise ValueError("gas_center_front must be >= 0")
+        if self.gas_center_rear < 0:
+            raise ValueError("gas_center_rear must be >= 0")
+        if self.gas_center_rear < self.gas_center_front:
+            raise ValueError("gas_center_rear must be >= gas_center_front")
+
+        if self.gas_sigma_front == 0:
+            raise ValueError("gas_sigma_front must be != 0")
+        if self.gas_sigma_rear == 0:
+            raise ValueError("gas_sigma_rear must be != 0")
+
+        if self.gas_factor == 0:
+            raise ValueError("gas_factor must be != 0")
+        if self.gas_power == 0:
+            raise ValueError("gas_power must be != 0")
+
+        if self.vacuum_cells_front < 0:
+            raise ValueError("vacuum_cells_front must be >= 0")
 
     def _get_serialized(self) -> dict:
         self.check()
 
         return {
-            "gas_center_front": self.gasCenterFront,
-            "gas_center_rear": self.gasCenterRear,
-            "gas_sigma_front": self.gasSigmaFront,
-            "gas_sigma_rear": self.gasSigmaRear,
-            "gas_factor": self.gasFactor,
-            "gas_power": self.gasPower,
-            "vacuum_cells_front": self.vacuumCellsFront,
-            "density": self.density_si,
+            "gas_center_front": self.gas_center_front,
+            "gas_center_rear": self.gas_center_rear,
+            "gas_sigma_front": self.gas_sigma_front,
+            "gas_sigma_rear": self.gas_sigma_rear,
+            "gas_factor": self.gas_factor,
+            "gas_power": self.gas_power,
+            "vacuum_cells_front": self.vacuum_cells_front,
+            "density": self.density,
         }
