@@ -234,12 +234,9 @@ namespace picongpu::simulation::stage
                     ForEach<AtomicPhysicsIonSpecies, particles::atomicPhysics::stage::FixAtomicState<boost::mpl::_1>>;
                 ForEachIonSpeciesFixAtomicState{}(mappingDesc);
 
-                uint16_t counterSubStep = 0u;
                 // atomicPhysics sub-stepping loop, ends when timeRemaining<=0._X
                 while(true)
                 {
-                    std::cout << "atomicPhysics subStep: " << counterSubStep << std::endl;
-
                     // particle[accepted_] = false, in each macro ion
                     using ForEachIonSpeciesResetAcceptedStatus = pmacc::meta::ForEach<
                         AtomicPhysicsIonSpecies,
@@ -300,9 +297,6 @@ namespace picongpu::simulation::stage
                         AtomicPhysicsIonSpecies,
                         particles::atomicPhysics::stage::CalculateStepLength<boost::mpl::_1>>;
                     ForEachIonSpeciesCalculateStepLength{}(mappingDesc);
-
-                    // debug only
-                    uint32_t counterOverSubscription = 0u;
 
                     // reject overSubscription loop, ends when no histogram bin oversubscribed
                     while(true)
@@ -369,24 +363,14 @@ namespace picongpu::simulation::stage
                             if constexpr(picongpu::atomicPhysics::debug::kernel::rollForOverSubscription::
                                              PRINT_DEBUG_TO_CONSOLE)
                             {
+                                printOverSubscriptionFieldToConsole(mappingDesc);
+                                printHistogramToConsole</*print only oversubscribed*/ true>(mappingDesc);
+
                                 if constexpr(picongpu::atomicPhysics::debug::rejectionProbabilityCache::
                                                  PRINT_TO_CONSOLE)
-                                {
-                                    std::cout << "\t\t [" << counterOverSubscription
-                                              << "] a histogram oversubscribed?: "
-                                              << ((static_cast<bool>(deviceLocalReduce(
-                                                      pmacc::math::operation::Or(),
-                                                      linearizedOverSubscribedBox,
-                                                      fieldGridLayoutOverSubscription.productOfComponents())))
-                                                      ? "true"
-                                                      : "false")
-                                              << std::endl;
-
-                                    printOverSubscriptionFieldToConsole(mappingDesc);
                                     printRejectionProbabilityCacheToConsole(mappingDesc);
-                                    printHistogramToConsole</*print only oversubscribed*/ true>(mappingDesc);
-                                }
                             }
+
                             using ForEachIonSpeciesRollForOverSubscription = pmacc::meta::ForEach<
                                 AtomicPhysicsIonSpecies,
                                 particles::atomicPhysics::stage::RollForOverSubscription<boost::mpl::_1>>;
@@ -415,12 +399,7 @@ namespace picongpu::simulation::stage
                                 break;
                             }
                         } // end remove overSubscription loop
-                        // debug only
-                        ++counterOverSubscription;
                     } // end reject overSubscription loop
-
-                    // debug only
-                    std::cout << "\t counterOverSubscription: " << counterOverSubscription << std::endl;
 
                     if constexpr(picongpu::atomicPhysics::debug::timeRemaining::PRINT_TO_CONSOLE)
                         printTimeRemaingToConsole(mappingDesc);
@@ -488,9 +467,6 @@ namespace picongpu::simulation::stage
                     {
                         break;
                     }
-
-                    // debug only
-                    counterSubStep++;
                 } // end atomicPhysics sub-stepping loop
             }
         };
