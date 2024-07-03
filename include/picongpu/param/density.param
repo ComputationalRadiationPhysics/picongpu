@@ -69,8 +69,17 @@ namespace picongpu
     namespace densityProfiles
     {
         /** Profile Formula:
-         *   `density = densityFactor * exp(gasFactor * pow(abs((y - gasCenterLeft_SI) / gasSigmaRight_SI), gasPower))
-         * * BASE_DENSITY_SI;`
+         *
+         * for `y < gasCenterLeft_SI`:
+         * `density = densityFactor * exp(gasFactor * pow(abs((y - gasCenterLeft_SI) / gasSigmaLeft_SI), gasPower))
+         *            * BASE_DENSITY_SI;`
+         *
+         * for `gasCenterLeft_SI <= y <= gasCenterRight_SI`:
+         *  `density = densityFactor * BASE_DENSITY_SI;`
+         *
+         * for `y > gasCenterRight_SI`:
+         *  `density = densityFactor * exp(gasFactor * pow(abs((y - gasCenterRight_SI) / gasSigmaRight_SI), gasPower))
+         *             * BASE_DENSITY_SI;`
          */
         struct GaussianParam
         {
