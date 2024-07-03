@@ -1,0 +1,24 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodels.IonizationModels",
+    "description": "Collection of Ionization Modules for a species.",
+    "type": "object",
+    "required": [
+        "BSI",
+        "BSIEffectiveZ",
+        "BSIStarkShifted",
+        "ADKCircPol",
+        "ADKLinPol",
+        "Keldysh",
+        "ThomasFermi"
+        ],
+    "unevaluatedProperties": false,
+    "properties": {
+        "BSI": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.BSI"},
+        "BSIEffectiveZ": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.BSIEffectiveZ"},
+        "BSIStarkShifted": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.BSIStarkShifted"},
+        "ADKCircPol": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.ADKCircPol"},
+        "ADKLinPol": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.ADKLinPol"},
+        "Keldysh": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.Keldysh"},
+        "ThomasFermi": {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModels.ThomasFermi"}
+    }
+}
