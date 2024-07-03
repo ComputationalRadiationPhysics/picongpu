@@ -45,30 +45,20 @@ namespace picongpu
         // a species has always only exactly one profile, so only one of the following blocks below will be present
 
           {{#profile.type.gaussian}}
-            struct init_{{{placed_species_initial.typename}}}_GaussianParamdensity =
+            /** generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
+             *
+             * @note the density may be further modified from this profile by the densityRatio of the species, set in
+             *  the init-pipeline
+             */
+            struct init_{{{placed_species_initial.typename}}}_GaussianParam
             {
-                /** Profile Formula:
-                 *
-                 * density =
-                 * {exp(gasFactor * (abs((y - gasCenterLeft_SI) / gasSigmaLeft_SI)^gasPower)) ;y < gasCenterLeft_SI
-                 * {1                                                   ;gasCenterLeft_SI <= y <= gasCenterRight_SI
-                 * {exp(gasFactor * (abs((y - gasCenterFront_SI) / gasSigmaRight_SI)^gasPower)) ;y > gasCenterRight_SI
-                 */
                 static constexpr float_X gasFactor = {{{profile.data.gas_factor}}};
                 static constexpr float_X gasPower  = {{{profile.data.gas_power}}};
 
-                /** height of vacuum area on top border
-                 *
-                 *  this vacuum is important because of the laser initialization,
-                 *  which is done in the first cells of the simulation and
-                 *  assumes a charge-free volume
-                 *  unit: cells
-                 */
+                //! height of vacuum area on top border, unit: cells
                 static constexpr uint32_t vacuumCellsY = {{{profile.data.vacuum_cells_front}}};
 
-                /** The central position of the gas distribution
-                 *  unit: meter
-                 */
+                //! The edges of the constant center of the profile, unit: meter
                 static constexpr float_64 gasCenterLeft_SI  = {{{profile.data.gas_center_front}}};
                 static constexpr float_64 gasCenterRight_SI = {{{profile.data.gas_center_rear}}};
 
@@ -77,6 +67,10 @@ namespace picongpu
                  */
                 static constexpr float_64 gasSigmaLeft_SI  = {{{profile.data.gas_sigma_front}}};
                 static constexpr float_64 gasSigmaRight_SI = {{{profile.data.gas_sigma_rear}}};
+
+                //! factor to multiply BASE_DENSITY_SI by to get density
+                static constexpr float_X densityRatio
+                    = static_cast<float_X>({{{profile.data.density}}} / SI::BASE_DENSITY_SI);
             };
 
             using init_{{{placed_species_initial.typename}}} = GaussianImpl<init_{{{placed_species_initial.typename}}}_GaussianParam>;

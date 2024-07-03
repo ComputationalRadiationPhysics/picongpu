@@ -15,19 +15,22 @@ namespace picongpu
          */
         {{! note: this serves to enter the context -- it is NOT a loop }}
         {{#species_initmanager}}
-        using InitPipeline = boost::mp11::mp_list<
-            // note to the editor of this file:
-            // For PIConGPU it is not always applicable to split the initialization into these two phases "creation" and "manipulation", because some init pipeline operations mix the two phases.
-            // However, in this particular case those phases are clearly separated due to the PyPIConGPU code generation.
-            // Hence, consider removing these explicit "phase 1/2" comments when editing the init pipeline by hand.
-
+        using InitPipeline = pmacc::mp_list<
+            /* note to the editors of this file:
+             *
+             * Sometimes it is not possible to split the initialization separate "creation" and "manipulation" phases,
+             * because some init pipeline operations mix the two phases.
+             *
+             * Hence, consider removing these explicit "phase 1/2" comments when editing the init pipeline by hand.
+             */
 
             /**********************************/
             /* phase 1: create macroparticles */
             /**********************************/
 
             {{#operations.simple_density}}
-                // note: This functor assumes the ratio to be 1. The correct density ratio of the species is applied here (automatically by CreateDensity).
+                /// @details This functor assumes the ratio to be 1. The correct density ratio of the species is applied
+                /// here (automatically by CreateDensity).
 
                 CreateDensity<
                     densityProfiles::pypicongpu::init_{{{placed_species_initial.typename}}},
