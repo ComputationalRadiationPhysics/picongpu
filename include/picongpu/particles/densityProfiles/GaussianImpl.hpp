@@ -49,19 +49,18 @@ namespace picongpu
              */
             HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
             {
-                const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-                const float_X gasCenterLeft = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
-                const float_X gasCenterRight = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
-                const float_X gasSigmaLeft = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
-                const float_X gasSigmaRight = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
+                floatD_X const globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
 
-                const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
-
+                float_X const vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
                 if(globalCellPos.y() * cellSize.y() < vacuum_y)
                 {
                     return 0._X;
                 }
 
+                constexpr float_X gasCenterLeft = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
+                constexpr float_X gasCenterRight = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
+                constexpr float_X gasSigmaLeft = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
+                constexpr float_X gasSigmaRight = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
                 auto exponent = 0._X;
                 if(globalCellPos.y() < gasCenterLeft)
                 {
@@ -72,9 +71,9 @@ namespace picongpu
                     exponent = math::abs((globalCellPos.y() - gasCenterRight) / gasSigmaRight);
                 }
 
-                const float_X gasPower = ParamClass::gasPower;
-                const float_X gasFactor = ParamClass::gasFactor;
-                const float_X density = math::exp(gasFactor * math::pow(exponent, gasPower));
+                constexpr float_X gasPower = ParamClass::gasPower;
+                constexpr float_X gasFactor = ParamClass::gasFactor;
+                float_X const density = math::exp(gasFactor * math::pow(exponent, gasPower));
                 return density;
             }
         };
