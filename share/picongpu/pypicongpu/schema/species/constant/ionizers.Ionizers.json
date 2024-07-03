@@ -1,13 +1,44 @@
 {
     "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizers.Ionizers",
-    "description": "used ionization methods and electron species",
+    "description": "Ionization electron species schema. Consists of (1) the type of ionization model used and (2) the actual data for that model.",
     "type": "object",
+    "required": ["type", "data"],
     "unevaluatedProperties": false,
-    "required": ["electron_species"],
     "properties": {
-        "electron_species": {
-            "description": "electrons used for ionization",
-            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
+        "type": {
+            "description": "Enum-equivalent of selected type. Note that only one entry should be marked as true, and all others as false, but that is not enforced by the schema.",
+            "type": "object",
+            "required": [
+                "BSIEffectiveZ",
+                "ADKCircPol",
+                "ADKLinPol",
+                "BSI",
+                "BSIStarkShifted",
+                "Keldysh",
+                "ThomasFermi"
+            ],
+            "unevaluatedProperties": false,
+            "properties": {
+                "BSIEffectiveZ": {"type": "boolean"},
+                "ADKCircPol": {"type": "boolean"},
+                "ADKLinPol": {"type": "boolean"},
+                "BSI": {"type": "boolean"},
+                "BSIStarkShifted": {"type": "boolean"},
+                "Keldysh": {"type": "boolean"},
+                "ThomasFermi": {"type": "boolean"}
+            }
+        },
+        "data": {
+            "description": "Data as provided by any ionization model schema",
+            "anyOf": [
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.BSIEffectiveZ"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.ADKCircPol"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.ADKLinPol"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.BSI"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.BSIStarkShifted"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.Keldysh"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationModel.ThomasFermi"}
+            ]
         }
     }
 }
