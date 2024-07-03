@@ -50,30 +50,31 @@ namespace picongpu
             HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
             {
                 const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-                const float_X gas_center_left = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
-                const float_X gas_center_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
-                const float_X gas_sigma_left = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
-                const float_X gas_sigma_right = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
+                const float_X gasCenterLeft = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
+                const float_X gasCenterRight = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
+                const float_X gasSigmaLeft = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
+                const float_X gasSigmaRight = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
 
                 const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
 
                 if(globalCellPos.y() * cellSize.y() < vacuum_y)
                 {
-                    return float_X(0.0);
+                    return 0._X;
                 }
 
-                auto exponent = float_X(0.0);
-                if(globalCellPos.y() < gas_center_left)
+                auto exponent = 0._X;
+                if(globalCellPos.y() < gasCenterLeft)
                 {
-                    exponent = math::abs((globalCellPos.y() - gas_center_left) / gas_sigma_left);
+                    exponent = math::abs((globalCellPos.y() - gasCenterLeft) / gasSigmaLeft);
                 }
-                else if(globalCellPos.y() >= gas_center_right)
+                else if(globalCellPos.y() >= gasCenterRight)
                 {
-                    exponent = math::abs((globalCellPos.y() - gas_center_right) / gas_sigma_right);
+                    exponent = math::abs((globalCellPos.y() - gasCenterRight) / gasSigmaRight);
                 }
 
-                const float_X gas_power = ParamClass::gasPower;
-                const float_X density = math::exp(float_X(ParamClass::gasFactor) * math::pow(exponent, gas_power));
+                const float_X gasPower = ParamClass::gasPower;
+                const float_X gasFactor = ParamClass::gasFactor;
+                const float_X density = math::exp(gasFactor * math::pow(exponent, gasPower));
                 return density;
             }
         };
