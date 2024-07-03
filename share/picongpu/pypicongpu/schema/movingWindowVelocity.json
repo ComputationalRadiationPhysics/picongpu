@@ -1,0 +1,21 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.movingWindowVelocity",
+    "type": "object",
+    "description": "Describes the velocity of the moving window in the simulation.",
+    "unevaluatedProperties": false,
+    "required": ["x", "y", "z"],
+    "properties": {
+        "x": {
+            "type": "number",
+            "exclusiveMinimum" : 0
+        },
+        "y": {
+            "type": "number",
+            "exclusiveMinimum" : 0
+        },
+        "z": {
+            "type": "number",
+            "exclusiveMinimum" : 0
+        }
+    }
+}
