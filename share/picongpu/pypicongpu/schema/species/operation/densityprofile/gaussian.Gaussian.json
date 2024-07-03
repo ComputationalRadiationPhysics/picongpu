@@ -37,7 +37,6 @@
         "gas_factor": {
             "description": "Factor for the Gaussian exponent",
             "type": "number",
-            "exclusiveMaximum" : 0
         },
         "gas_power": {
             "description": "Power for the Gaussian exponent",
