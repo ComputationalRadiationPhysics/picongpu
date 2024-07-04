@@ -46,6 +46,44 @@ class TestDistribution(unittest.TestCase):
         uniform_dist = picmi.UniformDistribution(density=8e24)
         self._compile_distribution(uniform_dist)
 
+    def test_foil_pre_and_post(self):
+        foil_dist = picmi.FoilDistribution(
+            density=8.0e24,
+            front=2.0e-5,
+            thickness=1.0e-5,
+            exponential_pre_plasma_length=1.0e-6,
+            exponential_pre_plasma_cutoff=1.0e-5,
+            exponential_post_plasma_length=1.0e-6,
+            exponential_post_plasma_cutoff=1.0e-5,
+        )
+        self._compile_distribution(foil_dist)
+
+    def test_foil_pre(self):
+        foil_dist = picmi.FoilDistribution(
+            density=8.0e24,
+            front=2.0e-5,
+            thickness=1.0e-5,
+            exponential_pre_plasma_length=1.0e-6,
+            exponential_pre_plasma_cutoff=1.0e-5,
+        )
+        self._compile_distribution(foil_dist)
+
+    def test_foil_post(self):
+        # with post-plasma only
+        foil_dist = picmi.FoilDistribution(
+            density=8.0e24,
+            front=2.0e-5,
+            thickness=1.0e-5,
+            exponential_post_plasma_length=1.0e-6,
+            exponential_post_plasma_cutoff=1.0e-5,
+        )
+        self._compile_distribution(foil_dist)
+
+    def test_foil_nothing(self):
+        # with no pre- or post-plasma
+        foil_dist = picmi.FoilDistribution(density=8.0e24, front=2.0e-5, thickness=1.0e-5)
+        self._compile_distribution(foil_dist)
+
     # tests for analytic distribution and gaussian-bunch distribution have been
     #   removed for now, see issue #4367 for the test cases
 

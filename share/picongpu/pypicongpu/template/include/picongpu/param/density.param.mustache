@@ -61,9 +61,10 @@ namespace picongpu
 
                     {{#profile.type.foil}}
                         float_64 const y = position_SI.y(); // m
+                        float_X dens = 0._X; // in units of BASE_DENSITY_SI
 
                         // begin & end plateau of foil
-                        constexpr float_64 y0 = {{{profile.data.y_value_front_foil_si}}}:
+                        constexpr float_64 y0 = {{{profile.data.y_value_front_foil_si}}};
                         constexpr float_64 y1 = y0 + {{{profile.data.thickness_foil_si}}};
 
                         // prePlasma ramp

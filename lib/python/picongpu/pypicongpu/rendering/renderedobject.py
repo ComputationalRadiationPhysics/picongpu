@@ -161,14 +161,14 @@ class RenderedObject:
 
         return schema
 
-    def _get_serialized(self) -> dict:
+    def _get_serialized(self) -> dict | None:
         """
         return all required content for rendering as a dict
         :return: content as dictionary
         """
         raise NotImplementedError("called parent _get_serialized of parent RenderedObject")
 
-    def get_rendering_context(self) -> dict:
+    def get_rendering_context(self) -> dict | None:
         """
         get rendering context representation of this object
 
@@ -185,7 +185,7 @@ class RenderedObject:
         return serialized
 
     @staticmethod
-    def check_context_for_type(type_to_check: type, context: dict) -> None:
+    def check_context_for_type(type_to_check: type, context: dict | None) -> None:
         """
         check if the given context is valid for the given type
 
@@ -194,6 +194,7 @@ class RenderedObject:
         :raise ValidationError: on schema violiation
         :raise RuntimeError: on schema not found
         """
+
         schema = RenderedObject._get_schema_from_class(type_to_check)
 
         fqn = RenderedObject._get_fully_qualified_class_name(type_to_check)

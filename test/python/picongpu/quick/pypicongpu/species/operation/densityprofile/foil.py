@@ -134,7 +134,7 @@ class TestFoil(unittest.TestCase):
         f.y_value_front_foil_si = 0
         f.thickness_foil_si = 1.0e-5
 
-        expectedContextNoRamp = {"type": {"exponential": False, "none": True}, "data": {}}
+        expectedContextNoRamp = {"type": {"exponential": False, "none": True}, "data": None}
 
         context = f.get_rendering_context()
         self.assertAlmostEqual(f.density_si, context["density_si"])
