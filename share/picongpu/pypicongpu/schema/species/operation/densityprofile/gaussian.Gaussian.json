@@ -26,11 +26,11 @@
         },
         "gas_sigma_front": {
             "description": "The distance from gasCenterFront until the gas density decreases to its 1/e-th part in meters",
-            "type": "number",
+            "type": "number"
         },
         "gas_sigma_rear": {
             "description": "The distance from gasCenterRear until the gas density decreases to its 1/e-th part in meters",
-            "type": "number",
+            "type": "number"
         },
         "gas_factor": {
             "description": "Factor for the Gaussian exponent",

@@ -5,8 +5,7 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ..pypicongpu import species
-
+from ...pypicongpu import species
 
 import typing
 import pydantic

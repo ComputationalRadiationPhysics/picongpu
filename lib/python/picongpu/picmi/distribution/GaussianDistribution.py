@@ -5,8 +5,8 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ..pypicongpu import species
-from ..pypicongpu import util
+from ...pypicongpu import species
+from ...pypicongpu import util
 
 from .Distribution import Distribution
 
