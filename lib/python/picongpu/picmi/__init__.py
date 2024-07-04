@@ -12,6 +12,7 @@ from . import constants
 
 from .distribution import FoilDistribution
 from .distribution import UniformDistribution
+from .distribution import GaussianDistribution
 
 import picmistandard
 
@@ -28,6 +29,7 @@ __all__ = [
     "PseudoRandomLayout",
     "FoilDistribution",
     "UniformDistribution",
+    "GaussianDistribution",
     "constants",
 ]
 

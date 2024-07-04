@@ -46,6 +46,19 @@ class TestDistribution(unittest.TestCase):
         uniform_dist = picmi.UniformDistribution(density=8e24)
         self._compile_distribution(uniform_dist)
 
+    def test_gaussian(self):
+        gaussian_dist = picmi.GaussianDistribution(
+            center_front=2.0e-5,
+            center_rear=3.0e-5,
+            sigma_front=5.0e-6,
+            sigma_rear=5.0e-6,
+            power=4.0,
+            factor=-1.0,
+            vacuum_cells_front=50,
+            density=8e24,
+        )
+        self._compile_distribution(gaussian_dist)
+
     # tests for analytic distribution and gaussian-bunch distribution have been
     #   removed for now, see issue #4367 for the test cases
 
