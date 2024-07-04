@@ -27,20 +27,20 @@
         "gas_sigma_front": {
             "description": "The distance from gasCenterFront until the gas density decreases to its 1/e-th part in meters",
             "type": "number",
-            "minimum" : 0
         },
         "gas_sigma_rear": {
             "description": "The distance from gasCenterRear until the gas density decreases to its 1/e-th part in meters",
             "type": "number",
-            "minimum" : 0
         },
         "gas_factor": {
             "description": "Factor for the Gaussian exponent",
-            "type": "number"
+            "type": "number",
+            "exclusiveMaximum": 0
         },
         "gas_power": {
             "description": "Power for the Gaussian exponent",
-            "type": "number"
+            "type": "number",
+            "exclusiveMinimum": 0
         },
         "vacuum_cells_front": {
             "description": "Because of the laser initialization which is done in the first cells of the simulation and assumes a charge-free volume",

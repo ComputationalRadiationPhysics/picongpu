@@ -66,8 +66,8 @@ class Gaussian(DensityProfile):
         if self.gas_sigma_rear == 0:
             raise ValueError("gas_sigma_rear must be != 0")
 
-        if self.gas_factor == 0:
-            raise ValueError("gas_factor must be != 0")
+        if self.gas_factor < 0:
+            raise ValueError("gas_factor must be < 0")
         if self.gas_power == 0:
             raise ValueError("gas_power must be != 0")
 

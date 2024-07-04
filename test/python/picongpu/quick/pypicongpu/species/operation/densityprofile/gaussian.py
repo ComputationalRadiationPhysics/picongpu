@@ -25,7 +25,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 1.0
-        g.gas_factor = 4.0
+        g.gas_factor = -1.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -41,7 +41,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -50,9 +50,9 @@ class TestGaussian(unittest.TestCase):
         self.assertAlmostEqual(3.0, g.gas_sigma_front)
         self.assertAlmostEqual(4.0, g.gas_sigma_rear)
         self.assertAlmostEqual(5.0, g.gas_power)
-        self.assertAlmostEqual(6.0, g.gas_factor)
+        self.assertAlmostEqual(-6.0, g.gas_factor)
         self.assertEqual(50, g.vacuum_cells_front)
-        self.assertAlmostEqual(6.0, g.density)
+        self.assertAlmostEqual(1.0e25, g.density)
 
     def test_typesafety(self):
         """typesafety is ensured"""
@@ -107,7 +107,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
 
         # invalid density
@@ -125,7 +125,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.density = 1.0e25
 
         # invalid vacuum_cells_front
@@ -147,10 +147,10 @@ class TestGaussian(unittest.TestCase):
         g.density = 1.0e25
 
         # invalid gas_factor
-        for invalid in [0.0]:
+        for invalid in [0.0, 1.0]:
             # assignment passes, but check catches the error
             g.gas_factor = invalid
-            with self.assertRaisesRegex(ValueError, ".*gas_factor.* != 0.*"):
+            with self.assertRaisesRegex(ValueError, ".*gas_factor.* < 0.*"):
                 g.check()
 
     def test_check_gas_power(self):
@@ -168,7 +168,7 @@ class TestGaussian(unittest.TestCase):
         for invalid in [0.0]:
             # assignment passes, but check catches the error
             g.gas_power = invalid
-            with self.assertRaisesRegex(ValueError, ".*gas_power.* != 0.*"):
+            with self.assertRaisesRegex(ValueError, ".*gas_power.* > 0.*"):
                 g.check()
 
     def test_check_gas_sigma_rear(self):
