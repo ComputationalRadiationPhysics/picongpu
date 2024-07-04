@@ -473,7 +473,7 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
         self.assertTrue(isinstance(pypic, species.operation.densityprofile.Gaussian))
 
         self.assertEqual(42.42, pypic.density)
-        self.assertEqual(1.0, pypic._gasycenter_front)
+        self.assertEqual(1.0, pypic.gas_center_front)
         self.assertEqual(2.0, pypic.gas_center_rear)
         self.assertEqual(3.0, pypic.gas_sigma_front)
         self.assertEqual(4.0, pypic.gas_sigma_rear)
@@ -493,8 +493,8 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
     def test_front_rear_swapped(self):
         """front and rear swapped is not accepted"""
         gaussian = self._get_distribution()
-        gaussian.center_front = 2.0
-        gaussian.center_rear = 3.0
+        gaussian.center_front = 3.0
+        gaussian.center_rear = 2.0
         with self.assertRaisesRegex(ValueError, ".*center_front must be <= center_rear.*"):
             gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
 

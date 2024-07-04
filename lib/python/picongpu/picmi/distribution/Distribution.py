@@ -33,10 +33,10 @@ this method returns None.
 
 
 class Distribution(pydantic.BaseModel):
-    rms_velocity: typing.Tuple[float, float, float]
+    rms_velocity: typing.Tuple[float, float, float] | typing.Tuple[None, None, None] = (None, None, None)
     """thermal velocity spread [m/s]"""
 
-    directed_velocity: typing.Tuple[float, float, float]
+    directed_velocity: typing.Tuple[float, float, float] | typing.Tuple[None, None, None] = (None, None, None)
     """Directed, average, proper velocity [m/s]"""
 
     fill_in: bool = True

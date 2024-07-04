@@ -88,6 +88,11 @@ class GaussianDistribution(Distribution):
 
         gaussian_profile = species.operation.densityprofile.Gaussian()
 
+        if self.center_rear < self.center_front:
+            raise ValueError("center_front must be <= center_rear")
+        if self.density <= 0.0:
+            raise ValueError("density must be > 0")
+
         # @todo change to constructor call once we switched PyPIConGPU to use pydantic, Brian Marre, 2024
         gaussian_profile.gas_center_front = self.center_front
         gaussian_profile.gas_center_rear = self.center_rear

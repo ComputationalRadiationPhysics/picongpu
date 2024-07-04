@@ -160,7 +160,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_center_rear = 2.0
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -168,7 +168,7 @@ class TestGaussian(unittest.TestCase):
         for invalid in [0.0]:
             # assignment passes, but check catches the error
             g.gas_power = invalid
-            with self.assertRaisesRegex(ValueError, ".*gas_power.* > 0.*"):
+            with self.assertRaisesRegex(ValueError, ".*gas_power.* != 0.*"):
                 g.check()
 
     def test_check_gas_sigma_rear(self):
@@ -178,7 +178,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_center_rear = 2.0
         g.gas_sigma_front = 3.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -196,7 +196,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_center_rear = 2.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -214,7 +214,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -238,7 +238,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
@@ -263,7 +263,7 @@ class TestGaussian(unittest.TestCase):
         g.gas_sigma_front = 3.0
         g.gas_sigma_rear = 4.0
         g.gas_power = 5.0
-        g.gas_factor = 6.0
+        g.gas_factor = -6.0
         g.vacuum_cells_front = 50
         g.density = 1.0e25
 
