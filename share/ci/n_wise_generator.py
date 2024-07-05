@@ -167,6 +167,9 @@ def is_valid_combination(row):
                         return False
                     else:
                         return True
+                # nvcc 11.4/11.5 does not work with gcc 11.4 (11.3 is working)
+                if 11.4 <= v_cuda <= 11.5 and v_compiler == 11:
+                    return False
                 if 11.4 <= v_cuda <= 11.8 and v_compiler <= 11:
                     return True
                 if 12.0 <= v_cuda <= 12.2 and v_compiler <= 12:
