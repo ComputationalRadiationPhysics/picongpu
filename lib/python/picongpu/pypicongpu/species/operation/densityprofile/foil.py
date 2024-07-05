@@ -20,7 +20,7 @@ class Foil(DensityProfile):
     """
 
     density_si = util.build_typesafe_property(float)
-    """density at every point in space (kg * m^-3)"""
+    """particle number density at at the foil plateau (m^-3)"""
 
     y_value_front_foil_si = util.build_typesafe_property(float)
     """position of the front of the foil plateau (m)"""
@@ -30,6 +30,7 @@ class Foil(DensityProfile):
 
     pre_foil_plasmaRamp = util.build_typesafe_property(PlasmaRamp)
     """pre(lower y) foil-plateau ramp of density"""
+
     post_foil_plasmaRamp = util.build_typesafe_property(PlasmaRamp)
     """post(higher y) foil-plateau ramp of density"""
 
@@ -41,7 +42,7 @@ class Foil(DensityProfile):
         if self.density_si <= 0:
             raise ValueError("density must be > 0")
         if self.y_value_front_foil_si < 0:
-            raise ValueError("y-value_front must be >= 0")
+            raise ValueError("y_value_front must be >= 0")
         if self.thickness_foil_si < 0:
             raise ValueError("thickness must be >= 0")
         self.pre_foil_plasmaRamp.check()
