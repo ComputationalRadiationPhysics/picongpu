@@ -22,7 +22,7 @@
             "description": "data as provided by plasma ramp (schema)",
             "anyOf": [
                 {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.exponential.Exponential"},
-                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.none.None"}
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.plasmaramp.none.None_"}
             ]
         }
     }
