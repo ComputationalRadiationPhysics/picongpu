@@ -33,13 +33,13 @@
                 }
             ]
         },
-        "moving_window_velocity": {
+        "moving_window": {
             "anyOf": [
                 {
                     "type": "null"
                 },
                 {
-                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.movingWindowVelocity"
+                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.movingwindow.MovingWindow"
                 }
             ]
         },
@@ -81,7 +81,7 @@
         "solver",
         "grid",
         "laser",
-        "moving_window_velocity",
+        "moving_window",
         "customuserinput"
     ],
     "unevaluatedProperties": false

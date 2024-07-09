@@ -342,6 +342,24 @@ class TestPicmiSimulation(unittest.TestCase):
         )
         self.assertAlmostEqual(1.491037242289643, mom_op.drift.gamma)
 
+    def test_moving_window(self):
+        """test that the user may set moving window"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            lower_bound=[0, 0, 0],
+            upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
+            lower_boundary_conditions=["open", "open", "periodic"],
+            upper_boundary_conditions=["open", "open", "periodic"],
+        )
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=1.39e-16, max_steps=int(2048), solver=solver, picongpu_moving_window_move_point=0.9
+        )
+        pypic = sim.get_as_pypicongpu()
+
+        self.assertAlmostEqual(pypic.moving_window.move_point, 0.9)
+        self.assertEqual(pypic.moving_window.stop_iteration, None)
+
     def test_ionization_electron_explicit(self):
         """electrons for ionization can be specified explicitly"""
         # note: the difficulty here is preserving the PICMI- -> PICMI-object

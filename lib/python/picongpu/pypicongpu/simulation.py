@@ -7,6 +7,7 @@ License: GPLv3+
 
 from .grid import Grid3D
 from .laser import GaussianLaser
+from .movingwindow import MovingWindow
 from .solver import Solver
 from . import species
 from . import util
@@ -61,6 +62,9 @@ class Simulation(RenderedObject):
 
     @attention custom user input is global to the simulation
     """
+
+    moving_window = util.build_typesafe_property(typing.Optional[MovingWindow])
+    """used moving Window, set to None to disable"""
 
     def __get_output_context(self) -> dict:
         """retrieve all output objects"""
@@ -128,6 +132,11 @@ class Simulation(RenderedObject):
             serialized["laser"] = self.laser.get_rendering_context()
         else:
             serialized["laser"] = None
+
+        if self.moving_window is not None:
+            serialized["moving_window"] = self.moving_window.get_rendering_context()
+        else:
+            serialized["moving_window"] = None
 
         if self.custom_user_input is not None:
             serialized["customuserinput"] = self.__render_custom_user_input_list()
