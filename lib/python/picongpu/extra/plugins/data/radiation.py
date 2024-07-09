@@ -123,3 +123,7 @@ class RadiationData:
         n_vec[:, 1] = n_y * n_y_unitSI
         n_vec[:, 2] = n_z * n_z_unit_SI
         return n_vec
+
+    def get_timestep(self):
+        """return PIC iteration (timestep) at which the data was produced (unit: PIC-cycles)"""
+        return self.iteration
