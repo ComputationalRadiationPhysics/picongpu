@@ -39,15 +39,19 @@ cd $CI_PROJECT_DIR
 conda create -n pypicongpu python=${PYTHON_VERSION}
 conda activate pypicongpu
 python3 --version
-MODIFIED_REQUIREMENT_TXT=$CI_PROJECT_DIR/lib/python/picongpu/modified_requirements.txt
-python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $MODIFIED_REQUIREMENT_TXT
+MODIFIED_REQUIREMENT_TXT_PICMI=$CI_PROJECT_DIR/lib/python/picongpu/picmi/modified_requirements.txt
+MODIFIED_REQUIREMENT_TXT_PYPICONGPU=$CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/modified_requirements.txt
+python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $MODIFIED_REQUIREMENT_TXT_PICMI
+python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/requirements.txt $MODIFIED_REQUIREMENT_TXT_PYPICONGPU
 
 echo "modified_requirements.txt: "
-cat $MODIFIED_REQUIREMENT_TXT
+cat $MODIFIED_REQUIREMENT_TXT_PICMI
+cat $MODIFIED_REQUIREMENT_TXT_PYPICONGPU
 echo ""
 
 # run quick tests
-pip3 install -r $MODIFIED_REQUIREMENT_TXT
+pip3 install -r $MODIFIED_REQUIREMENT_TXT_PICMI
+pip3 install -r $MODIFIED_REQUIREMENT_TXT_PYPICONGPU
 cd $CI_PROJECT_DIR/test/python/picongpu
 python3 -m quick
 
