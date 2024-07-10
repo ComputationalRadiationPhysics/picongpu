@@ -346,8 +346,15 @@ if(PIC_SEARCH_openPMD)
                     # explicitly.
                     EXCLUDE_FROM_ALL)
             else()
-                find_package(toml11 3.7.0 CONFIG REQUIRED)
-                message(STATUS "toml11: Found version '${toml11_VERSION}'")
+                find_package(toml11 CONFIG REQUIRED)
+                # Need to check the version manually. toml11 4.0 was a breaking change, so
+                # find_package(toml11 3.7.1) would not accept versions 4.0+.
+                # We support both 3.* and 4.*.
+                if(${toml11_VERSION} VERSION_LESS 3.7.1)
+                    message(FATAL_ERROR "toml11: Found version '${toml11_VERSION}', but requires version '3.7.1' at least.")
+                else()
+                    message(STATUS "toml11: Found version '${toml11_VERSION}'")
+                endif()
             endif()
             list(PREPEND HOST_LIBS openPMD::openPMD)
         else()
