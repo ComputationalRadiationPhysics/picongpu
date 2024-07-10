@@ -21,7 +21,6 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/plugins/common/DumpTimes.hpp"
-#include "picongpu/plugins/openPMD/Json.hpp"
 #include "picongpu/plugins/openPMD/Parameters.hpp"
 #include "picongpu/plugins/openPMD/toml.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
@@ -49,7 +48,6 @@ namespace picongpu
     namespace openPMD
     {
         using namespace pmacc;
-        using AbstractJsonMatcher = json::AbstractJsonMatcher;
 
 
         namespace po = boost::program_options;
@@ -86,7 +84,7 @@ namespace picongpu
 
             MPI_Comm communicator; /* MPI communicator for openPMD API */
 
-            std::unique_ptr<AbstractJsonMatcher> jsonMatcher;
+            std::optional<std::string> jsonConfig;
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
@@ -186,8 +184,7 @@ namespace picongpu
             ::openPMD::RecordComponent& initDataset(
                 ::openPMD::RecordComponent& recordComponent,
                 ::openPMD::Datatype datatype,
-                pmacc::math::UInt64<DIM> const& globalDimensions,
-                std::string const& datasetName);
+                pmacc::math::UInt64<DIM> const& globalDimensions);
 
             ::openPMD::Series& openSeries(::openPMD::Access at);
 #endif

@@ -119,12 +119,10 @@ namespace picongpu
         ::openPMD::RecordComponent& ThreadParams::initDataset(
             ::openPMD::RecordComponent& recordComponent,
             ::openPMD::Datatype datatype,
-            pmacc::math::UInt64<DIM> const& globalDimensions,
-            std::string const& datasetName)
+            pmacc::math::UInt64<DIM> const& globalDimensions)
         {
             std::vector<uint64_t> v = asStandardVector(globalDimensions);
             ::openPMD::Dataset dataset{datatype, std::move(v)};
-            dataset.options = jsonMatcher->get(datasetName);
             recordComponent.resetDataset(std::move(dataset));
             return recordComponent;
         }
@@ -161,7 +159,7 @@ namespace picongpu
                      * backend_config. The reading routines (for restarting from a checkpoint) are configured via
                      * --checkpoint.openPMD.jsonRestart.
                      */
-                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonMatcher->getDefault());
+                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonConfig.value());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -653,14 +651,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 throw std::runtime_error("Command line option openPMD.json was renamed as openPMD.backendConfig.");
             }
-            if(!jsonMatcher)
+            if(!jsonConfig.has_value())
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                jsonMatcher = AbstractJsonMatcher::construct(backendConfigString, communicator);
+                jsonConfig.emplace(resolveJsonConfig(backendConfigString, communicator));
             }
 
-            log<picLog::INPUT_OUTPUT>("openPMD: global JSON output config: %1%") % jsonMatcher->getDefault();
+            log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % *jsonConfig;
             if(!help.backendConfigRestartForbidden.empty())
             {
                 throw std::runtime_error(
@@ -1011,8 +1009,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 auto const timeOffset = 0.0_X;
                 writeFieldAttributes(params, currentStep, unitDimension, timeOffset, mesh);
 
-                std::string datasetName = params->openPMDSeries->meshesPath() + name;
-
                 auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
                 numRNGsPerSuperCell.x() = numFrameSlots;
                 // rng states are always of the domain size therefore query sizes from domain information
@@ -1038,8 +1034,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 params->initDataset<simDim>(
                     mesh,
                     ::openPMD::determineDatatype<ReinterpretedType>(),
-                    recordGlobalSizeDims,
-                    datasetName);
+                    recordGlobalSizeDims);
 
                 // define record component level attributes
                 auto const inCellPosition = std::vector<float_X>(simDim, 0.0_X);
@@ -1801,11 +1796,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             return mesh;
                         }
                     }();
-                    std::string datasetName
-                        = nComponents > 1 ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
-                                          : params->openPMDSeries->meshesPath() + name;
 
-                    params->initDataset<simDim>(mrc, openPMDType, recordGlobalSizeDims, datasetName);
+                    params->initDataset<simDim>(mrc, openPMDType, recordGlobalSizeDims);
 
                     // define record component level attributes
                     mrc.setPosition(inCellPosition.at(d));

@@ -54,7 +54,6 @@ namespace picongpu
             HINLINE void operator()(
                 ThreadParams* params,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
-                std::string const& basepath,
                 size_t const globalElements)
             {
                 using Identifier = T_Identifier;
@@ -64,7 +63,6 @@ namespace picongpu
 
                 picongpu::traits::OpenPMDName<T_Identifier> openPMDName;
                 ::openPMD::Record record = particleSpecies[openPMDName()];
-                std::string baseName = basepath + "/" + openPMDName();
                 ::openPMD::Datatype openPMDType = ::openPMD::determineDatatype<ComponentType>();
 
                 // get the SI scaling, dimensionality and weighting of the attribute
@@ -98,8 +96,7 @@ namespace picongpu
                     ::openPMD::RecordComponent recordComponent
                         = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
 
-                    std::string datasetName = components > 1 ? baseName + "/" + name_lookup[d] : baseName;
-                    params->initDataset<DIM1>(recordComponent, openPMDType, {globalElements}, datasetName);
+                    params->initDataset<DIM1>(recordComponent, openPMDType, {globalElements});
 
                     if(unit.size() >= (d + 1))
                     {
@@ -126,10 +123,9 @@ namespace picongpu
                 ThreadParams* params,
                 FrameType& frame,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
-                std::string const& basepath,
-                size_t const elements,
-                size_t const globalElements,
-                size_t const globalOffset,
+                const size_t elements,
+                const size_t globalElements,
+                const size_t globalOffset,
                 size_t& accumulateWrittenBytes)
             {
                 using Identifier = T_Identifier;
