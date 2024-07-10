@@ -1,6 +1,6 @@
 """
 This file is part of the PIConGPU.
-Copyright 2021-2023 PIConGPU contributors
+Copyright 2021-2024 PIConGPU contributors
 Authors: Brian Edward Marre
 License: GPLv3+
 """
@@ -12,47 +12,53 @@ import typeguard
 
 
 class TestGaussian(unittest.TestCase):
+    values = {
+        "gas_center_front": 1.0,
+        "gas_center_rear": 2.0,
+        "gas_sigma_front": 3.0,
+        "gas_sigma_rear": 4.0,
+        "gas_power": 5.0,
+        "gas_factor": -6.0,
+        "vacuum_cells_front": 50,
+        "density": 1.0e25,
+    }
+
+    def _getGaussian(self):
+        g = Gaussian()
+
+        g.gas_center_front = self.values["gas_center_front"]
+        g.gas_center_rear = self.values["gas_center_rear"]
+        g.gas_sigma_front = self.values["gas_sigma_front"]
+        g.gas_sigma_rear = self.values["gas_sigma_rear"]
+        g.gas_power = self.values["gas_power"]
+        g.gas_factor = self.values["gas_factor"]
+        g.vacuum_cells_front = self.values["vacuum_cells_front"]
+        g.density = self.values["density"]
+        return g
+
     def test_inheritance(self):
-        """foil is a density profile"""
+        """gaussian is a density profile"""
         self.assertTrue(isinstance(Gaussian(), DensityProfile))
 
     def test_basic(self):
-        """simple scenario works, other plasma ramps are tested separately"""
-        g = Gaussian()
-
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 1.0
-        g.gas_factor = -1.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        """simple scenario works"""
+        g = self._getGaussian()
 
         # passes
         g.check()
 
     def test_value_pass_through(self):
         """values are passed through"""
-        g = Gaussian()
+        g = self._getGaussian()
 
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
-
-        self.assertAlmostEqual(1.0, g.gas_center_front)
-        self.assertAlmostEqual(2.0, g.gas_center_rear)
-        self.assertAlmostEqual(3.0, g.gas_sigma_front)
-        self.assertAlmostEqual(4.0, g.gas_sigma_rear)
-        self.assertAlmostEqual(5.0, g.gas_power)
-        self.assertAlmostEqual(-6.0, g.gas_factor)
-        self.assertEqual(50, g.vacuum_cells_front)
-        self.assertAlmostEqual(1.0e25, g.density)
+        self.assertAlmostEqual(self.values["gas_center_front"], g.gas_center_front)
+        self.assertAlmostEqual(self.values["gas_center_rear"], g.gas_center_rear)
+        self.assertAlmostEqual(self.values["gas_sigma_front"], g.gas_sigma_front)
+        self.assertAlmostEqual(self.values["gas_sigma_rear"], g.gas_sigma_rear)
+        self.assertAlmostEqual(self.values["gas_power"], g.gas_power)
+        self.assertAlmostEqual(self.values["gas_factor"], g.gas_factor)
+        self.assertEqual(self.values["vacuum_cells_front"], g.vacuum_cells_front)
+        self.assertAlmostEqual(self.values["density"], g.density)
 
     def test_typesafety(self):
         """typesafety is ensured"""
@@ -101,14 +107,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_density(self):
         """validity check on self for invalid density"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
+        g = self._getGaussian()
 
         # invalid density
         for invalid in [-1, 0, -0.00000003]:
@@ -119,14 +118,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_vacuum_cells_front(self):
         """validity check on self for invalid vacuum_cells_front"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid vacuum_cells_front
         for invalid in [-1, -15]:
@@ -137,14 +129,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_gas_factor(self):
         """validity check on self for invalid gas_factor"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.vacuum_cell_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid gas_factor
         for invalid in [0.0, 1.0]:
@@ -155,14 +140,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_gas_power(self):
         """validity check on self for invalid gas_power"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid gas_power
         for invalid in [0.0]:
@@ -173,14 +151,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_gas_sigma_rear(self):
         """validity check on self for invalid gas_sigma_rear"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid gas_sigma_rear
         for invalid in [0.0]:
@@ -191,14 +162,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_gas_sigma_front(self):
         """validity check on self for invalid gas_sigma_front"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid gas_sigma_front
         for invalid in [0.0]:
@@ -209,14 +173,7 @@ class TestGaussian(unittest.TestCase):
 
     def test_check_gas_center_rear(self):
         """validity check on self for invalid gas_center_rear"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid gas_center_rear
         for invalid in [-1.0]:
@@ -227,20 +184,13 @@ class TestGaussian(unittest.TestCase):
 
         # rear < front
         # assignment passes, but check catches the error
-        g.gas_center_rear = 0.5
+        g.gas_center_rear = 0.9 * self.values["gas_center_front"]
         with self.assertRaisesRegex(ValueError, ".*gas_center_rear.* >= gas_center_front.*"):
             g.check()
 
     def test_check_gas_center_front(self):
         """validity check on self for invalid gas_center_front"""
-        g = Gaussian()
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         # invalid gas_center_front
         for invalid in [-1.0]:
@@ -251,21 +201,13 @@ class TestGaussian(unittest.TestCase):
 
         # front > rear
         # assignment passes, but check catches the error
-        g.gas_center_front = 3.0
+        g.gas_center_front = 1.1 * self.values["gas_center_rear"]
         with self.assertRaisesRegex(ValueError, ".*gas_center_rear.* >= gas_center_front.*"):
             g.check()
 
     def test_rendering(self):
         """value passed through from rendering"""
-        g = Gaussian()
-        g.gas_center_front = 1.0
-        g.gas_center_rear = 2.0
-        g.gas_sigma_front = 3.0
-        g.gas_sigma_rear = 4.0
-        g.gas_power = 5.0
-        g.gas_factor = -6.0
-        g.vacuum_cells_front = 50
-        g.density = 1.0e25
+        g = self._getGaussian()
 
         context = g.get_rendering_context()
         self.assertAlmostEqual(g.gas_center_front, context["gas_center_front"])

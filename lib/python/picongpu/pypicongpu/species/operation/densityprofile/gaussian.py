@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 Copyright 2024 PIConGPU contributors
-Authors: Brian Edward Marre, Afshari Masoud
+Authors: Brian Edward Marre, Masoud Afshari
 License: GPLv3+
 """
 
@@ -15,24 +15,23 @@ class Gaussian(DensityProfile):
     """
     gaussian density profile
 
-    density( y < gasCenterFront )                   =
-        density_si * exp(gasFactor * (abs( (y - gasCenterFront) / gasSigmaFront))^gasPower)
-    density( gasCenterFront >= y >= gasCenterRear ) = density_si
-    density( gasCenterRear < y )                    =
-        density_si * exp(gasFactor * (abs( (y - gasCenterRear) / gasSigmaRear))^gasPower)
+    density=
+    - for y < gasCenterFront;   density * exp(gasFactor * (abs( (y - gasCenterFront) / gasSigmaFront))^gasPower)
+    - for gasCenterFront >= y >= gasCenterRear; density
+    - for gasCenterRear < y;    density * exp(gasFactor * (abs( (y - gasCenterRear) / gasSigmaRear))^gasPower)
     """
 
     gas_center_front = util.build_typesafe_property(float)
-    """position of the front edge of the constant of middle the density profile in meter"""
+    """position of the front edge of the constant middle of the density profile, [m]"""
 
     gas_center_rear = util.build_typesafe_property(float)
-    """position of the rear edge of the constant of middle the density profile in meter"""
+    """position of the rear edge of the constant middle of the density profile, [m]"""
 
     gas_sigma_front = util.build_typesafe_property(float)
-    """distance in away from gasCenterFront until the gas density decreases to its 1/e-th part in meter"""
+    """distance from gasCenterFront until the gas density decreases to its 1/e-th part, [m]"""
 
     gas_sigma_rear = util.build_typesafe_property(float)
-    """The distance from gasCenterRear until the gas density decreases to its 1/e-th part in meter"""
+    """distance from gasCenterRear until the gas density decreases to its 1/e-th part, [m]"""
 
     gas_factor = util.build_typesafe_property(float)
     """exponential scaling factor, see formula above"""

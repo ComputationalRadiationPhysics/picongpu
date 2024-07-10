@@ -451,16 +451,27 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
 
 
 class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
+    values = {
+        "density": 42.42,
+        "center_front": 1.0,
+        "center_rear": 2.0,
+        "sigma_front": 3.0,
+        "sigma_rear": 4.0,
+        "power": 5.0,
+        "factor": -6.0,
+        "vacuum_cells_front": 50,
+    }
+
     def _get_distribution(self, lower_bound=[None, None, None], upper_bound=[None, None, None]):
         return picmi.GaussianDistribution(
-            density=42.42,
-            center_front=1.0,
-            center_rear=2.0,
-            sigma_front=3.0,
-            sigma_rear=4.0,
-            power=5.0,
-            factor=-6.0,
-            vacuum_cells_front=50,
+            density=self.values["density"],
+            center_front=self.values["center_front"],
+            center_rear=self.values["center_rear"],
+            sigma_front=self.values["sigma_front"],
+            sigma_rear=self.values["sigma_rear"],
+            power=self.values["power"],
+            factor=self.values["factor"],
+            vacuum_cells_front=self.values["vacuum_cells_front"],
             lower_bound=lower_bound,
             upper_bound=upper_bound,
         )
@@ -472,14 +483,14 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
         pypic = gaussian.get_as_pypicongpu()
         self.assertTrue(isinstance(pypic, species.operation.densityprofile.Gaussian))
 
-        self.assertEqual(42.42, pypic.density)
-        self.assertEqual(1.0, pypic.gas_center_front)
-        self.assertEqual(2.0, pypic.gas_center_rear)
-        self.assertEqual(3.0, pypic.gas_sigma_front)
-        self.assertEqual(4.0, pypic.gas_sigma_rear)
-        self.assertEqual(5.0, pypic.gas_power)
-        self.assertEqual(-6.0, pypic.gas_factor)
-        self.assertEqual(50, pypic.vacuum_cells_front)
+        self.assertEqual(self.values["density"], pypic.density)
+        self.assertEqual(self.values["center_front"], pypic.gas_center_front)
+        self.assertEqual(self.values["center_rear"], pypic.gas_center_rear)
+        self.assertEqual(self.values["sigma_front"], pypic.gas_sigma_front)
+        self.assertEqual(self.values["sigma_rear"], pypic.gas_sigma_rear)
+        self.assertEqual(self.values["power"], pypic.gas_power)
+        self.assertEqual(self.values["factor"], pypic.gas_factor)
+        self.assertEqual(self.values["vacuum_cells_front"], pypic.vacuum_cells_front)
 
         # @todo repect bounding boxes, Brian Marre, 2024
 
@@ -493,8 +504,8 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
     def test_front_rear_swapped(self):
         """front and rear swapped is not accepted"""
         gaussian = self._get_distribution()
-        gaussian.center_front = 3.0
-        gaussian.center_rear = 2.0
+        gaussian.center_front = self.values["center_rear"]
+        gaussian.center_rear = self.values["center_front"]
         with self.assertRaisesRegex(ValueError, ".*center_front must be <= center_rear.*"):
             gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
 

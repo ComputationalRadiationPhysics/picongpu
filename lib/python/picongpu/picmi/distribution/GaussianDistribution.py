@@ -29,17 +29,17 @@ class GaussianDistribution(Distribution):
     """
 
     density: float
-    """density particle number density, [m^-3]"""
+    """particle number density, [m^-3]"""
 
     center_front: float
-    """center_front center of gaussian ramp at the front, [m]"""
+    """center of gaussian ramp at the front, [m]"""
     center_rear: float
-    """center_rear center of the gaussian ramp at the rear, [m]"""
+    """center of the gaussian ramp at the rear, [m]"""
 
     sigma_front: float
     """sigma of the gaussian ramp at the front, [m]"""
     sigma_rear: float
-    """sigma of the gaussian ramp at the front, [m]"""
+    """sigma of the gaussian ramp at the rear, [m]"""
 
     power: float
     """power used in exponential function, 2 will yield a gaussian, 4+ a super-gaussian, unitless"""

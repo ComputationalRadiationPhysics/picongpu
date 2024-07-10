@@ -40,7 +40,7 @@ class Distribution(pydantic.BaseModel):
     """Directed, average, proper velocity [m/s]"""
 
     fill_in: bool = True
-    """Flags whether to fill in the empty spaced opened up when the grid moves"""
+    """whether to fill in the empty space opened up when the simulation window moves"""
 
     def __hash__(self):
         """custom hash function for indexing in dicts"""
