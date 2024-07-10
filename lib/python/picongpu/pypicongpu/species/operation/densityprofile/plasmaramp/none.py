@@ -21,5 +21,5 @@ class None_(PlasmaRamp):
     def check(self) -> None:
         return
 
-    def _get_serialized(self) -> dict:
-        return {}
+    def _get_serialized(self) -> dict | None:
+        return None
