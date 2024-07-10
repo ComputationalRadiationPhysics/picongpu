@@ -62,49 +62,18 @@ namespace picongpu
                     densityRatio<DensityRatio_{{{typename}}}>,
                 {{/density_ratio}}
 
-                {{#ionizers}}
+                {{#ground_state_ionization}}
                     ionizers<MakeSeq_t<
-                            {{#type.BSIEffectiveZ}}
-                                particles::ionization::BSIEffectiveZ<{{{ionizers.data.ionization_electron_species.typename}}}, particles::ionization::current::None>
-                                {{{^ionizers.data.last}}}
-                                ,
-                                {{{/ionizers.data.last}}}
-                            {{/type.BSIEffectiveZ}}
-                            {{#type.ADKCircPol}}
-                                particles::ionization::ADKCircPol<{{{ionizers.data.ionization_electron_species.typename}}}, particles::ionization::current::None>,
-                                {{{^ionizers.data.last}}}
-                                ,
-                                {{{/ionizers.data.last}}}
-                            {{/type.ADKCircPol}}
-                            {{#type.ADKLinPol}}
-                                particles::ionization::ADKLinPol<{{{ionizers.data.ionization_electron_species.typename}}}, particles::ionization::current::None>,
-                                {{{^ionizers.data.last}}}
-                                ,
-                                {{{/ionizers.data.last}}}
-                            {{/type.ADKLinPol}}
-                            {{#type.BSI}}
-                                particles::ionization::BSI<{{{ionizers.data.ionization_electron_species.typename}}}, particles::ionization::current::None>,
-                                {{{^ionizers.data.last}}}
-                                ,
-                                {{{/ionizers.data.last}}}
-                            {{/type.BSI}}
-                            {{#type.BSIStarkShifted}}
-                                particles::ionization::BSIStarkShifted<{{{ionizers.data.ionization_electron_species.typename}}}, particles::ionization::current::None>,
-                                {{{^ionizers.data.last}}}
-                                ,
-                                {{{/ionizers.data.last}}}
-                            {{/type.BSIStarkShifted}}
-                            {{#type.Keldysh}}
-                                particles::ionization::Keldysh<{{{ionizers.data.ionization_electron_species.typename}}}, particles::ionization::current::None>,
-                                {{{^ionizers.data.last}}}
-                                ,
-                                {{{/ionizers.data.last}}}
-                            {{/type.Keldysh}}
-                            {{#type.ThomasFermi}}
-                                particles::ionization::ThomasFermi<{{{ionizers.data.ionization_electron_species.typename}}}>,
-                            {{/type.ThomasFermi}}
-                        >>,
-                {{/ionizers}}
+                      {{#ionization_model_list}}
+                        particles::ionization::{{{ionizer_picongpu_name}}}<
+                            {{{ionization_electron_species.type_name}}}
+                          {{#ionization_current}}
+                            , particles::ionization::current::{{{picongpu_name}}}
+                          {{/ionization_current}}
+                        >{{^_last}},{{/_last}}
+                      {{/ionization_model_list}}
+                    >>,
+                {{/ground_state_ionization}}
 
                 {{#element_properties}}
                     atomicNumbers<ionization::atomicNumbers::{{{element.picongpu_name}}}_t>,

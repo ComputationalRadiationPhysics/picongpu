@@ -1,0 +1,15 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.schema.constant.ionizationcurrent.IonizationCurrent",
+    "type": "object",
+    "description": "ionization current configuration",
+    "required": ["picongpu_name"],
+    "unevaluatedProperties": false,
+    "properties": {
+        "picongpu_name": {
+            "type": "string",
+            "description": "c++ code name of ionization current corresponding to ionization current model",
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        }
+    }
+}

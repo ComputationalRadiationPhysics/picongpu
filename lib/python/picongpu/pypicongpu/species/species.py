@@ -7,13 +7,12 @@ License: GPLv3+
 
 from ..rendering import RenderedObject
 from .attribute import Attribute, Position, Momentum
-from .constant import Constant, Charge, Mass, DensityRatio, Ionizers, ElementProperties
+from .constant import Constant, Charge, Mass, DensityRatio, IonizationModels, ElementProperties
 from .. import util
 
 import typeguard
 import typing
 import re
-
 
 @typeguard.typechecked
 class Species(RenderedObject):
@@ -148,7 +147,7 @@ class Species(RenderedObject):
         # a typo in the variable name in prints a warning (still continues
         # though -- to be compliant to the rendering standard).
         #
-        # To accomodate this behavior, we always define all keys for constant,
+        # To accommodate this behavior, we always define all keys for constant,
         # but maybe set them to null. For this below there is a list of *all
         # known constants*. When adding a constant do not forget to add it in
         # the JSON schema too.
@@ -160,7 +159,7 @@ class Species(RenderedObject):
             "mass": Mass,
             "charge": Charge,
             "density_ratio": DensityRatio,
-            "ionizers": Ionizers,
+            "ionization_models": IonizationModels,
             "element_properties": ElementProperties,
         }
 

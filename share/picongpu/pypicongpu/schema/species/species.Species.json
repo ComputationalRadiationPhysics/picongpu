@@ -24,7 +24,7 @@
         },
         "attributes": {
             "type": "array",
-            "description": "names of attributes of each macroparticle",
+            "description": "names of attributes of each macro particle of this species",
             "items": {
                 "type": "object",
                 "unevaluatedProperties": false,
@@ -33,7 +33,8 @@
                     "picongpu_name": {
                         "type": "string",
                         "description": "c++ code to define this property",
-                        "minLength": 1
+                        "minLength": 1,
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
                     }
                 }
             }
@@ -45,7 +46,8 @@
             "required": [
                 "mass",
                 "charge",
-                "density_ratio"
+                "density_ratio",
+                "ionization_models"
             ],
             "properties": {
                 "mass": {
@@ -66,10 +68,18 @@
                         {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.densityratio.DensityRatio"}
                     ]
                 },
-                "ionizers": {
-                    "anyOf": [
+                "ground_state_ionization": {
+                    "anyOf":  [
                         {"type": "null"},
-                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizers.Ionizers"}
+                        {
+                            "ionization_model_list": {
+                                "type": "array",
+                                "description": "list of ionization models for species",
+                                "items": {
+                                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodel.IonizationModels"
+                                }
+                            }
+                        }
                     ]
                 },
                 "element_properties": {

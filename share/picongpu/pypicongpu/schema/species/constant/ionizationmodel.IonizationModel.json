@@ -1,0 +1,28 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.schema.constant.ionizationmodel.IonizationModel",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [
+        "ionizer_picongpu_name",
+        "ionization_electron_species",
+        "ionization_current"
+        ],
+    "properties": {
+        "ionizer_picongpu_name": {
+            "type": "string",
+            "description": "c++ code name of ionizer corresponding to ionization model",
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+        "ionization_electron_species": {
+            "description": "Electron species spawned by ionization.",
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
+            },
+        "ionization_current": {
+            "anyOf": [
+                {"type": "null"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.schema.constant.ionizationcurrent.IonizationCurrent"}
+            ]
+        }
+    }
+}

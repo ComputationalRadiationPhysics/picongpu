@@ -16,10 +16,7 @@ import typing
 @typeguard.typechecked
 class Ionizers(Constant):
     """
-    ionizers describing the ionization methods
-
-    Currently the selected ionizers are fixed by the code generation.
-    When they are selectable by the user, they can be added here.
+    configuration for ground state only ionization models
     """
 
     # note: no typecheck here -- which would require circular imports
@@ -38,7 +35,7 @@ class Ionizers(Constant):
             raise TypeError("electron_species must be of type pypicongpu Species")
 
         # electron species must not be ionizable
-        if self.electron_species.has_constant_of_type(Ionizers):
+        if self.electron_species.has_constant_of_type(IonizationModels):
             raise ValueError("used electron species {} must not be ionizable itself".format(self.electron_species.name))
 
         # note: do **NOT** check() electron species here
