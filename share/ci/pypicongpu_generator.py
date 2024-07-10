@@ -345,6 +345,7 @@ PACKAGES_TO_TEST: Dict[str, Callable] = {
     "jsonschema": get_all_major_pypi_versions,
     "picmistandard": get_all_pypi_versions,
     "pydantic": get_all_major_pypi_versions,
+    "referencing": get_all_major_pypi_versions,
 }
 
 if __name__ == "__main__":
