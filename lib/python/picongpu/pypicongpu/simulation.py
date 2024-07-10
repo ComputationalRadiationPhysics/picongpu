@@ -14,11 +14,11 @@ from . import output
 from .rendering import RenderedObject
 
 import typing
-from typeguard import typechecked
+import typeguard
 import logging
 
 
-@typechecked
+@typeguard.typechecked
 class Simulation(RenderedObject):
     """
     Represents all parameters required to build & run a PIConGPU simulation.

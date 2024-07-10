@@ -10,10 +10,11 @@ from ..species import Species
 from ..attribute import BoundElectrons
 from ..constant import Ionizers
 from ... import util
-from typeguard import typechecked
+
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class SetBoundElectrons(Operation):
     """
     assigns and set the boundElectrons attribute

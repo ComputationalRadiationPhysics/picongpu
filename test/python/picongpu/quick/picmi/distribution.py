@@ -11,10 +11,10 @@ import unittest
 
 from picongpu.pypicongpu import species
 import math
-from typeguard import typechecked
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class HelperTestPicmiBoundaries:
     """
     provides test functions to check proper handling of boundaries
@@ -115,7 +115,7 @@ class TestPicmiUniformDistribution(unittest.TestCase, HelperTestPicmiBoundaries)
 
 
 @unittest.skip("not implemented")
-@typechecked
+@typeguard.typechecked
 class TestPicmiAnalyticDistriution(unittest.TestCase, HelperTestPicmiBoundaries):
     def _get_distribution(self, lower_bound, upper_bound):
         return picmi.AnalyticDistribution(density_expression="x+y+z", lower_bound=lower_bound, upper_bound=upper_bound)
@@ -197,7 +197,7 @@ class TestPicmiAnalyticDistriution(unittest.TestCase, HelperTestPicmiBoundaries)
 
 
 @unittest.skip("not implemented")
-@typechecked
+@typeguard.typechecked
 class TestPicmiGaussianBunchDistribution(unittest.TestCase):
     def test_full(self):
         """check for all possible params"""

@@ -8,11 +8,10 @@ License: GPLv3+
 from ..pypicongpu import util, solver
 
 import picmistandard
+import typeguard
 
-from typeguard import typechecked
 
-
-@typechecked
+@typeguard.typechecked
 class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
     """
     PICMI Electromagnic Solver

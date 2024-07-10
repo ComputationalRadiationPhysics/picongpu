@@ -7,10 +7,11 @@ License: GPLv3+
 
 from .densityprofile import DensityProfile
 from .... import util
-from typeguard import typechecked
+
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class Uniform(DensityProfile):
     """
     globally constant density

@@ -6,16 +6,17 @@ License: GPLv3+
 """
 
 from .densityoperation import DensityOperation
-from typeguard import typechecked
-from ... import util
-from ..species import Species
 from .densityprofile import DensityProfile
-import typing
+from ..species import Species
 from ..attribute import Position, Weighting
 from ..constant import DensityRatio
+from ... import util
+
+import typeguard
+import typing
 
 
-@typechecked
+@typeguard.typechecked
 class SimpleDensity(DensityOperation):
     """
     Place a set of species together, using the same density profile

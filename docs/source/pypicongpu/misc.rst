@@ -28,7 +28,7 @@ Note that these type annotations are **not checked by python** on their own.
 
 Typechecks are enabled through
 `typeguard <https://typeguard.readthedocs.io/>`__, mostly using the
-annotation ``@typechecked`` for classes.
+annotation ``@typeguard.typechecked`` for classes.
 
 **This does not check attribute type annotations, see next section.**
 
@@ -63,13 +63,13 @@ Internally the declaration above is expanded to the equivalent of:
 
 .. code:: python
 
-   @typechecked
+   @typeguard.typechecked
    def getter(self) -> int:
        if not hasattr(self, "actual_name_for_var__attr"):
            raise AttributeError("variable is not initialized")
        return getattr(self, "actual_name_for_var__attr")
        
-   @typechecked
+   @typeguard.typechecked
    def setter(self, value: int) -> None:
        setattr(self, "actual_name_for_var__attr", value)
 

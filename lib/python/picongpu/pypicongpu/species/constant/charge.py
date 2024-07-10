@@ -7,11 +7,11 @@ License: GPLv3+
 
 from .constant import Constant
 from ... import util
-from typeguard import typechecked
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class Charge(Constant):
     """
     charge of a physical particle

@@ -6,13 +6,13 @@ License: GPLv3+
 """
 
 from .densityprofile import DensityProfile
-from .... import util
-from typeguard import typechecked
-
 from .plasmaramp import PlasmaRamp
+from .... import util
+
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class Foil(DensityProfile):
     """
     Directional density profile with thickness and pre- and

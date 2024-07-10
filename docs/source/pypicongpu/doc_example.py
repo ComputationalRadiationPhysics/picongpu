@@ -1,8 +1,8 @@
-from typeguard import typechecked
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 def my_func(a_char: str, num: int) -> typing.List[str]:
     """
     build list with "triangle" of chars

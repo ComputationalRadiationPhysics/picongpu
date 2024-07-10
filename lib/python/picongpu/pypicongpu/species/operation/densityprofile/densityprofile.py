@@ -5,12 +5,12 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from typeguard import typechecked
-
 from ....rendering import RenderedObject
 
+import typeguard
 
-@typechecked
+
+@typeguard.typechecked
 class DensityProfile(RenderedObject):
     """
     (abstract) parent class of all density profiles

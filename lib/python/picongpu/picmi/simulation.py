@@ -12,14 +12,14 @@ from .species import Species as PicongpuPicmiSpecies
 
 import picmistandard
 
-from math import sqrt, isclose
-from typeguard import typechecked
+import math
+import typeguard
 import pathlib
 import logging
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class Simulation(picmistandard.PICMI_Simulation):
     """
     Simulation as defined by PICMI
@@ -70,7 +70,9 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         if self.time_step_size is not None and self.solver.cfl is not None:
             # both cfl & delta_t given -> check their compatibility
-            delta_t_from_cfl = self.solver.cfl / (constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2))
+            delta_t_from_cfl = self.solver.cfl / (
+                constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+            )
 
             if delta_t_from_cfl != self.time_step_size:
                 raise ValueError(
@@ -82,12 +84,12 @@ class Simulation(picmistandard.PICMI_Simulation):
             if self.time_step_size is not None:
                 # calculate cfl
                 self.solver.cfl = self.time_step_size * (
-                    constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+                    constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
                 )
             elif self.solver.cfl is not None:
                 # calculate delta_t
                 self.time_step_size = self.solver.cfl / (
-                    constants.c * sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+                    constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
                 )
 
             # if neither delta_t nor cfl are given simply silently pass
@@ -353,9 +355,9 @@ class Simulation(picmistandard.PICMI_Simulation):
                 all_electrons.append(picmi_species)
             elif (
                 picmi_species.mass is not None
-                and isclose(picmi_species.mass, constants.m_e)
+                and math.isclose(picmi_species.mass, constants.m_e)
                 and picmi_species.charge is not None
-                and isclose(picmi_species.charge, -constants.q_e)
+                and math.isclose(picmi_species.charge, -constants.q_e)
             ):
                 all_electrons.append(picmi_species)
 

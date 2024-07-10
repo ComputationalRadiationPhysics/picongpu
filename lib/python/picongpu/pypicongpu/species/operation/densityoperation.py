@@ -6,10 +6,11 @@ License: GPLv3+
 """
 
 from .operation import Operation
-from typeguard import typechecked
+
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class DensityOperation(Operation):
     """
     common interface for all operations that create density

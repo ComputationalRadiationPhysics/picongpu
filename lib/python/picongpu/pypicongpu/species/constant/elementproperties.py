@@ -8,11 +8,12 @@ License: GPLv3+
 from .constant import Constant
 from ... import util
 from ..util import Element
-from typeguard import typechecked
+
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class ElementProperties(Constant):
     """
     represents constants associated to a chemical element

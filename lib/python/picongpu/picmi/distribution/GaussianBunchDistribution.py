@@ -9,7 +9,7 @@ from ...pypicongpu import species
 
 import picmistandard
 
-from typeguard import typechecked
+import typeguard
 import typing
 import math
 
@@ -35,7 +35,7 @@ this method returns None.
 """
 
 
-@typechecked
+@typeguard.typechecked
 class GaussianBunchDistribution(picmistandard.PICMI_GaussianBunchDistribution):
     def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)

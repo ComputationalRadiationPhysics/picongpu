@@ -10,8 +10,9 @@ from . import util
 from .rendering import Renderer
 
 from os import path, environ, chdir
-import typeguard
 from functools import reduce
+
+import typeguard
 import tempfile
 import subprocess
 import logging
