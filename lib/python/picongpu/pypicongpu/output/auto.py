@@ -7,10 +7,11 @@ License: GPLv3+
 
 from .. import util
 from ..rendering import RenderedObject
-from typeguard import typechecked
+
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class Auto(RenderedObject):
     """
     Class to provide output **without further configuration**.

@@ -7,9 +7,6 @@ License: GPLv3+
 
 from picongpu.pypicongpu.species import Species
 
-import unittest
-import typeguard
-
 from picongpu.pypicongpu.species.attribute import Position, Weighting, Momentum
 from picongpu.pypicongpu.species.constant import (
     Mass,
@@ -24,6 +21,8 @@ from .attribute import DummyAttribute
 from .constant import DummyConstant
 
 import itertools
+import unittest
+import typeguard
 
 
 class TestSpecies(unittest.TestCase):

@@ -170,7 +170,7 @@ structures to hold data. E.g. the 3D grid is defined as follows
 
 .. code:: python
 
-   @typechecked
+   @typeguard.typechecked
    class Grid3D(RenderedObject):
        cell_size_x_si = util.build_typesafe_property(float)
        cell_size_y_si = util.build_typesafe_property(float)
@@ -186,7 +186,7 @@ structures to hold data. E.g. the 3D grid is defined as follows
 
 In particular, please note:
 
--  The annotation ``@typechecked``: This is a decorator introduced by
+-  The annotation ``@typeguard.typechecked``: This is a decorator introduced by
    ``typeguard`` and it ensures that the type annotations of methods are
    respected. However, it does not perform typechecking for attributes,
    which is why the attributes are delegated to:

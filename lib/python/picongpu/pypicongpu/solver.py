@@ -5,11 +5,12 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from typeguard import typechecked
 from .rendering import RenderedObject
 
+import typeguard
 
-@typechecked
+
+@typeguard.typechecked
 class Solver:
     """
     represents a field solver
@@ -20,7 +21,7 @@ class Solver:
     pass
 
 
-@typechecked
+@typeguard.typechecked
 class YeeSolver(Solver, RenderedObject):
     """
     Yee solver as defined by PIConGPU

@@ -10,11 +10,12 @@ from .momentum import Temperature, Drift
 from ..species import Species
 from ..attribute import Momentum
 from ... import util
-from typeguard import typechecked
+
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class SimpleMomentum(Operation):
     """
     provides momentum to a species

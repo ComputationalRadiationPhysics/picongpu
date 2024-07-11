@@ -11,11 +11,11 @@ from . import constants
 import picmistandard
 import math
 
-from typeguard import typechecked
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class GaussianLaser(picmistandard.PICMI_GaussianLaser):
     """PICMI object for Gaussian Laser"""
 

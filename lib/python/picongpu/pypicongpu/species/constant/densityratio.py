@@ -7,11 +7,12 @@ License: GPLv3+
 
 from .constant import Constant
 from ... import util
-from typeguard import typechecked
+
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class DensityRatio(Constant):
     """
     factor for weighting when using profiles/deriving

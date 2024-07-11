@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from typeguard import typechecked
+import typeguard
 from .... import util
 from ....rendering import RenderedObject
 
@@ -16,7 +16,7 @@ from ....rendering import RenderedObject
 # supported, so such a structure would be overkill.)
 
 
-@typechecked
+@typeguard.typechecked
 class Temperature(RenderedObject):
     """
     Initialize momentum from temperature

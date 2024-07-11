@@ -9,10 +9,11 @@ from .densityoperation import DensityOperation
 from ..species import Species
 from ..attribute import Position, Weighting
 from ... import util
-from typeguard import typechecked
+
+import typeguard
 
 
-@typechecked
+@typeguard.typechecked
 class NotPlaced(DensityOperation):
     """
     assigns a position attribute, but does not place a species

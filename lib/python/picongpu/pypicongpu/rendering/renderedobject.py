@@ -6,7 +6,8 @@ License: GPLv3+
 """
 
 from .. import util
-from typeguard import typechecked
+
+import typeguard
 import typing
 import jsonschema
 import logging
@@ -15,7 +16,7 @@ import re
 import json
 
 
-@typechecked
+@typeguard.typechecked
 class RenderedObject:
     """
     Class to be inherited from for rendering context generation

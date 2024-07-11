@@ -8,11 +8,12 @@ License: GPLv3+
 from .constant import Constant
 from ..attribute import BoundElectrons
 from .elementproperties import ElementProperties
-from typeguard import typechecked
+
+import typeguard
 import typing
 
 
-@typechecked
+@typeguard.typechecked
 class Ionizers(Constant):
     """
     ionizers describing the ionization methods

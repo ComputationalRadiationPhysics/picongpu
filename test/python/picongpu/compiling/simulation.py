@@ -7,7 +7,7 @@ License: GPLv3+
 
 from picongpu import pypicongpu, picmi
 
-from typeguard import typechecked
+import typeguard
 
 import unittest
 import tempfile
@@ -15,7 +15,7 @@ import os
 import logging
 
 
-@typechecked
+@typeguard.typechecked
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     # sets delta_[x,y,z] implicitly by providing bounding box+cell count
     return picmi.Cartesian3DGrid(

@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 import typing
-from typeguard import typechecked
+import typeguard
 import math
 import datetime
 import sympy
@@ -17,7 +17,7 @@ import pathlib
 import functools
 
 
-@typechecked
+@typeguard.typechecked
 class Renderer:
     """
     helper class to render Mustache templates

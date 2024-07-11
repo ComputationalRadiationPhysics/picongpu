@@ -6,12 +6,13 @@ License: GPLv3+
 """
 
 from ...rendering import RenderedObject
+
+import typeguard
 import enum
 import scipy
-from typeguard import typechecked
 
 
-@typechecked
+@typeguard.typechecked
 class Element(RenderedObject, enum.Enum):
     """
     Denotes an element from the periodic table of elements
