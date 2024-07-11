@@ -448,3 +448,95 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
         self.assertAlmostEqual(drift.direction_normalized[0], 0.9370354841199405)
         self.assertAlmostEqual(drift.direction_normalized[1], 0.34920746753855203)
         self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
+
+
+class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
+    values = {
+        "density": 42.42,
+        "center_front": 1.0,
+        "center_rear": 2.0,
+        "sigma_front": 3.0,
+        "sigma_rear": 4.0,
+        "power": 5.0,
+        "factor": -6.0,
+        "vacuum_cells_front": 50,
+    }
+
+    def _get_distribution(self, lower_bound=[None, None, None], upper_bound=[None, None, None]):
+        return picmi.GaussianDistribution(
+            density=self.values["density"],
+            center_front=self.values["center_front"],
+            center_rear=self.values["center_rear"],
+            sigma_front=self.values["sigma_front"],
+            sigma_rear=self.values["sigma_rear"],
+            power=self.values["power"],
+            factor=self.values["factor"],
+            vacuum_cells_front=self.values["vacuum_cells_front"],
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+        )
+
+    def test_full(self):
+        """full paramset"""
+        gaussian = self._get_distribution()
+
+        pypic = gaussian.get_as_pypicongpu()
+        self.assertTrue(isinstance(pypic, species.operation.densityprofile.Gaussian))
+
+        self.assertEqual(self.values["density"], pypic.density)
+        self.assertEqual(self.values["center_front"], pypic.gas_center_front)
+        self.assertEqual(self.values["center_rear"], pypic.gas_center_rear)
+        self.assertEqual(self.values["sigma_front"], pypic.gas_sigma_front)
+        self.assertEqual(self.values["sigma_rear"], pypic.gas_sigma_rear)
+        self.assertEqual(self.values["power"], pypic.gas_power)
+        self.assertEqual(self.values["factor"], pypic.gas_factor)
+        self.assertEqual(self.values["vacuum_cells_front"], pypic.vacuum_cells_front)
+
+        # @todo repect bounding boxes, Brian Marre, 2024
+
+    def test_density_zero(self):
+        """density set to zero is not accepted"""
+        gaussian = self._get_distribution()
+        gaussian.density = 0.0
+        with self.assertRaisesRegex(ValueError, ".*density must be > 0.*"):
+            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+
+    def test_front_rear_swapped(self):
+        """front and rear swapped is not accepted"""
+        gaussian = self._get_distribution()
+        gaussian.center_front = self.values["center_rear"]
+        gaussian.center_rear = self.values["center_front"]
+        with self.assertRaisesRegex(ValueError, ".*center_front must be <= center_rear.*"):
+            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+
+    def test_sigma_zero(self):
+        """sigma == 0 is not accepted"""
+        gaussian = self._get_distribution()
+        gaussian.sigma_front = 0.0
+        with self.assertRaisesRegex(ValueError, ".*sigma_front must be != 0.*"):
+            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+
+        gaussian = self._get_distribution()
+        gaussian.sigma_rear = 0.0
+        with self.assertRaisesRegex(ValueError, ".*sigma_rear must be != 0.*"):
+            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+
+    def test_drift(self):
+        """drift is correctly translated"""
+        # no drift
+        gaussian = self._get_distribution()
+        gaussian.directed_velocity = [0, 0, 0]
+        drift = gaussian.get_picongpu_drift()
+        self.assertEqual(None, drift)
+
+        # some drift
+        # uses velocity
+        gaussian = self._get_distribution()
+        gaussian.directed_velocity = [278487224.0, 103784563.0, 1283345.0]
+
+        drift = gaussian.get_picongpu_drift()
+        self.assertNotEqual(None, drift)
+        self.assertAlmostEqual(drift.gamma, 7.6208808298928865)
+        self.assertAlmostEqual(drift.direction_normalized[0], 0.9370354841199405)
+        self.assertAlmostEqual(drift.direction_normalized[1], 0.34920746753855203)
+        self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)

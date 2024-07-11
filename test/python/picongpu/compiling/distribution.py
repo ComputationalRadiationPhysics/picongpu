@@ -84,6 +84,19 @@ class TestDistribution(unittest.TestCase):
         foil_dist = picmi.FoilDistribution(density=8.0e24, front=2.0e-5, thickness=1.0e-5)
         self._compile_distribution(foil_dist)
 
+    def test_gaussian(self):
+        gaussian_dist = picmi.GaussianDistribution(
+            center_front=2.0e-5,
+            center_rear=3.0e-5,
+            sigma_front=5.0e-6,
+            sigma_rear=5.0e-6,
+            power=4.0,
+            factor=-1.0,
+            vacuum_cells_front=50,
+            density=8e24,
+        )
+        self._compile_distribution(gaussian_dist)
+
     # tests for analytic distribution and gaussian-bunch distribution have been
     #   removed for now, see issue #4367 for the test cases
 

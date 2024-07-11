@@ -10,19 +10,22 @@
             "type": "object",
             "required": [
                 "uniform",
-                "foil"
+                "foil",
+                "gaussian"
             ],
             "unevaluatedProperties": false,
             "properties": {
                 "uniform": {"type": "boolean"},
-                "foil": {"type": "boolean"}
+                "foil": {"type": "boolean"},
+                "gaussian": {"type": "boolean"}
             }
         },
         "data": {
             "description": "data as provided by any density profile (schema)",
             "anyOf": [
                 {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.uniform.Uniform"},
-                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.foil.Foil"}
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.foil.Foil"},
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.gaussian.Gaussian"}
             ]
         }
     }
