@@ -346,7 +346,12 @@ if(PIC_SEARCH_openPMD)
                     # explicitly.
                     EXCLUDE_FROM_ALL)
             else()
-                find_package(toml11 3.7.0 CONFIG REQUIRED)
+                # Since toml11 4.0 was a breaking change,
+                # it needs separate find_package() calls
+                find_package(toml11 3.7.0 CONFIG QUIET)
+                if(NOT toml11_FOUND)
+                    find_package(toml11 4.0 CONFIG REQUIRED)
+                endif()
                 message(STATUS "toml11: Found version '${toml11_VERSION}'")
             endif()
             list(PREPEND HOST_LIBS openPMD::openPMD)

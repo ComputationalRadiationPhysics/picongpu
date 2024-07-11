@@ -88,30 +88,36 @@ namespace
                 // 1. option: dataSources is an array:
                 for(auto& value : *dataSourcesInToml.as_ok())
                 {
-                    auto dataSource
-                        = toml::expect<std::string>(value)
-                              .or_else(
-                                  [](auto const&) -> toml::success<std::string>
-                                  {
-                                      throw std::runtime_error("[openPMD plugin] Data sources in TOML "
-                                                               "file must be a string or a vector of strings.");
-                                  })
-                              .value;
+                    auto dataSource = [&]()
+                    {
+                        try
+                        {
+                            return toml::get<std::string>(value);
+                        }
+                        catch(toml::type_error const&)
+                        {
+                            throw std::runtime_error("[openPMD plugin] Data sources in TOML "
+                                                     "file must be a string or a vector of strings.");
+                        }
+                    }();
                     dataSources.push_back(std::move(dataSource));
                 }
             }
             else
             {
                 // 2. option: dataSources is no array, check if it is a simple string
-                auto dataSource
-                    = toml::expect<std::string>(pair.second)
-                          .or_else(
-                              [](auto const&) -> toml::success<std::string>
-                              {
-                                  throw std::runtime_error("[openPMD plugin] Data sources in TOML "
-                                                           "file must be a string or a vector of strings.");
-                              })
-                          .value;
+                auto dataSource = [&]()
+                {
+                    try
+                    {
+                        return toml::get<std::string>(pair.second);
+                    }
+                    catch(toml::type_error const&)
+                    {
+                        throw std::runtime_error("[openPMD plugin] Data sources in TOML "
+                                                 "file must be a string or a vector of strings.");
+                    }
+                }();
                 dataSources.push_back(std::move(dataSource));
             }
 
