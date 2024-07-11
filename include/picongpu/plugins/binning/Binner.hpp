@@ -375,7 +375,7 @@ namespace picongpu
                     ::openPMD::Extent extent = dataset.getExtent();
                     ::openPMD::Offset offset(extent.size(), 0);
                     dataset.loadChunk(
-                        std::shared_ptr<float_X>{histBuffer->getHostBuffer().data(), [](auto const*) {}},
+                        std::shared_ptr<TDepositedQuantity>{histBuffer->getHostBuffer().data(), [](auto const*) {}},
                         offset,
                         extent);
                     openPMDdataFile.flush();
