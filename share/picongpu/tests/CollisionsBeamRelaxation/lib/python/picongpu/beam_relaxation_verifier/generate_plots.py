@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2022-2023 PIConGPU contributors
 Authors: Pawel Ordyna
