@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 """
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 
 Copyright 2017-2023 PIConGPU contributors
 Authors: Axel Huebl

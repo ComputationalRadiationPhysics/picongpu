@@ -1,6 +1,6 @@
 """Ionization prediction module and example.
 
-This file is part of the PIConGPU.
+This file is part of PIConGPU.
 Copyright 2019-2023 PIConGPU contributors
 Authors: Marco Garten
 License: GPLv3+
