@@ -33,8 +33,7 @@
                     "picongpu_name": {
                         "type": "string",
                         "description": "c++ code to define this property",
-                        "minLength": 1,
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                        "minLength": 1
                     }
                 }
             }
@@ -47,7 +46,7 @@
                 "mass",
                 "charge",
                 "density_ratio",
-                "ionization_models"
+                "ground_state_ionization"
             ],
             "properties": {
                 "mass": {
@@ -76,7 +75,7 @@
                                 "type": "array",
                                 "description": "list of ionization models for species",
                                 "items": {
-                                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodel.IonizationModels"
+                                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodel.IonizationModel"
                                 }
                             }
                         }

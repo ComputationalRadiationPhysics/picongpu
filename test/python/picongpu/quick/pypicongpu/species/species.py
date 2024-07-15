@@ -12,7 +12,6 @@ from picongpu.pypicongpu.species.constant import (
     Mass,
     Charge,
     DensityRatio,
-    Ionizers,
     ElementProperties,
 )
 from picongpu.pypicongpu.species.util import Element
@@ -46,7 +45,7 @@ class TestSpecies(unittest.TestCase):
         self.const_mass.mass_si = 2
         self.const_density_ratio = DensityRatio()
         self.const_density_ratio.ratio = 4.2
-        self.const_ionizers = Ionizers()
+        self.const_ionizers = None
         self.const_ionizers.electron_species = self.electron
 
         self.const_element_properties = ElementProperties()

@@ -11,7 +11,7 @@ import unittest
 import typeguard
 
 from picongpu.pypicongpu.species import Species
-from picongpu.pypicongpu.species.constant import Ionizers
+from picongpu.pypicongpu.species.constant import GroundStateIonization
 from picongpu.pypicongpu.species.attribute import BoundElectrons, Position, Momentum
 
 
@@ -19,7 +19,7 @@ class TestSetBoundElectrons(unittest.TestCase):
     def setUp(self):
         self.species1 = Species()
         self.species1.name = "ion"
-        self.species1.constants = [Ionizers()]
+        self.species1.constants = [GroundStateIonization()]
 
     def test_basic(self):
         """basic operation"""
@@ -87,7 +87,7 @@ class TestSetBoundElectrons(unittest.TestCase):
         sbe.bound_electrons = 1
 
         # passes:
-        self.assertTrue(sbe.species.has_constant_of_type(Ionizers))
+        self.assertTrue(sbe.species.has_constant_of_type(GroundStateIonization))
         sbe.check_preconditions()
 
         # without constants does not pass:
@@ -125,7 +125,7 @@ class TestSetBoundElectrons(unittest.TestCase):
 
         ion = Species()
         ion.name = "ion"
-        ionizers_const = Ionizers()
+        ionizers_const = GroundStateIonization()
         ionizers_const.electron_species = electron
         ion.constants = [ionizers_const]
         ion.attributes = [Position(), Momentum(), BoundElectrons()]

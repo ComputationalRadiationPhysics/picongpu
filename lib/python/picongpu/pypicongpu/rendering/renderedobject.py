@@ -53,6 +53,14 @@ class RenderedObject:
     which is used for identification purposes.
     """
 
+    def __hash__(self):
+        """custom hash function for indexing in dicts @todo move to rendered_object, Brian Marre, 2024"""
+        hash_value = hash(type(self))
+        for value in self.__dict__.values():
+            if value is not None:
+                hash_value += hash(value)
+        return hash_value
+
     @staticmethod
     def _maybe_fill_schema_store() -> None:
         """

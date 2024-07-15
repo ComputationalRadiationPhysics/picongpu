@@ -235,6 +235,8 @@ class InitManager(RenderedObject):
                 closure_size_after = len(dependency_closure)
                 is_closure_final = closure_size_after == closure_size_before
 
+            print(dependency_closure)
+
             # check: self in dependency closure?
             if species in dependency_closure:
                 raise RecursionError(

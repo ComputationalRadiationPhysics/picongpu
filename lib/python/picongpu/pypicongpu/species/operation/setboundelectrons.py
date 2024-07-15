@@ -8,7 +8,7 @@ License: GPLv3+
 from .operation import Operation
 from ..species import Species
 from ..attribute import BoundElectrons
-from ..constant import Ionizers
+from ..constant import GroundStateIonization
 from ... import util
 
 import typeguard
@@ -32,7 +32,7 @@ class SetBoundElectrons(Operation):
         pass
 
     def check_preconditions(self) -> None:
-        assert self.species.has_constant_of_type(Ionizers), "BoundElectrons requires Ionizers"
+        assert self.species.has_constant_of_type(GroundStateIonization), "BoundElectrons requires GroundStateIonization"
 
         if self.bound_electrons < 0:
             raise ValueError("bound electrons must be >0")

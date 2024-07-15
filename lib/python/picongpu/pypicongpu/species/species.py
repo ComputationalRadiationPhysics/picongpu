@@ -7,12 +7,13 @@ License: GPLv3+
 
 from ..rendering import RenderedObject
 from .attribute import Attribute, Position, Momentum
-from .constant import Constant, Charge, Mass, DensityRatio, IonizationModels, ElementProperties
+from .constant import Constant, Charge, Mass, DensityRatio, GroundStateIonization, ElementProperties
 from .. import util
 
 import typeguard
 import typing
 import re
+
 
 @typeguard.typechecked
 class Species(RenderedObject):
@@ -24,7 +25,7 @@ class Species(RenderedObject):
     - A set of species constants (mass, charge, etc.),
     - a set of species attributes (position, number of bound electrons), and
     - a set of operations which collectively initialize these attributes,
-      where one attribute is initializated by exactly one operation.
+      where one attribute is initialized by exactly one operation.
     - (and a name)
 
     Note that some of the species attributes or constants are considered
@@ -74,7 +75,7 @@ class Species(RenderedObject):
         # position
         if Position not in [type(a) for a in self.attributes]:
             raise ValueError("Each species must have the position attribute!")
-        # momentum
+        # momentum, @todo really necessary?, Brian Marre, 2024
         if Momentum not in [type(a) for a in self.attributes]:
             raise ValueError("Each species must have the momentum attribute!")
 
@@ -159,8 +160,8 @@ class Species(RenderedObject):
             "mass": Mass,
             "charge": Charge,
             "density_ratio": DensityRatio,
-            "ionization_models": IonizationModels,
             "element_properties": ElementProperties,
+            "ground_state_ionization": GroundStateIonization,
         }
 
         constants_context = {}

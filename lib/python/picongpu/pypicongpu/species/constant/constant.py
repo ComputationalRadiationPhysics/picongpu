@@ -45,8 +45,9 @@ class Constant(RenderedObject):
           constant)
     """
 
-    def __init__(self):
-        raise NotImplementedError()
+    def __init__(self, **kw):
+        if type(self) == Constant:
+            raise NotImplementedError()
 
     def check(self) -> None:
         """

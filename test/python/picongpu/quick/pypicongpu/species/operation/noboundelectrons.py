@@ -11,7 +11,7 @@ import unittest
 import typeguard
 
 from picongpu.pypicongpu.species import Species
-from picongpu.pypicongpu.species.constant import Ionizers
+from picongpu.pypicongpu.species.constant import GroundStateIonization
 from picongpu.pypicongpu.species.attribute import BoundElectrons
 
 
@@ -19,7 +19,7 @@ class TestNoBoundElectrons(unittest.TestCase):
     def setUp(self):
         self.species1 = Species()
         self.species1.name = "ion"
-        self.species1.constants = [Ionizers()]
+        self.species1.constants = [GroundStateIonization()]
 
     def test_no_rendering_context(self):
         """results in no rendered code, hence no rendering context available"""
@@ -46,7 +46,7 @@ class TestNoBoundElectrons(unittest.TestCase):
         nbe = NoBoundElectrons()
         nbe.species = self.species1
 
-        self.assertTrue(self.species1.has_constant_of_type(Ionizers))
+        self.assertTrue(self.species1.has_constant_of_type(GroundStateIonization))
 
         # passes
         nbe.check_preconditions()
@@ -55,7 +55,7 @@ class TestNoBoundElectrons(unittest.TestCase):
         self.species1.constants = []
 
         # now raises b/c ionizers constant is missing
-        with self.assertRaisesRegex(AssertionError, ".*[Ii]onizers.*"):
+        with self.assertRaisesRegex(AssertionError, ".*[Gg]roundStateIonization.*"):
             nbe.check_preconditions()
 
     def test_empty(self):
