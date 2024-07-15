@@ -70,15 +70,7 @@
                 "ground_state_ionization": {
                     "anyOf":  [
                         {"type": "null"},
-                        {
-                            "ionization_model_list": {
-                                "type": "array",
-                                "description": "list of ionization models for species",
-                                "items": {
-                                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodel.IonizationModel"
-                                }
-                            }
-                        }
+                        {"$ref":"https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.groundstateionization.GroundStateIonization"}
                     ]
                 },
                 "element_properties": {

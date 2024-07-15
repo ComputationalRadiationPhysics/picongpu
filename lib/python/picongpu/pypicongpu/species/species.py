@@ -50,6 +50,10 @@ class Species(RenderedObject):
 
         return "species_" + self.name
 
+    def __hash__(self):
+        # species must be uniquely defined by name
+        return hash(self.name)
+
     def check(self) -> None:
         """
         sanity-check self, if ok pass silently

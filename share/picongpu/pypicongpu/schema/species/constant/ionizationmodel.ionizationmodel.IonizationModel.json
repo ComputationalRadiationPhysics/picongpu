@@ -1,5 +1,5 @@
 {
-    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.schema.constant.ionizationmodel.IonizationModel",
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodel.ionizationmodel.IonizationModel",
     "type": "object",
     "unevaluatedProperties": false,
     "required": [
@@ -21,7 +21,7 @@
         "ionization_current": {
             "anyOf": [
                 {"type": "null"},
-                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.schema.constant.ionizationcurrent.IonizationCurrent"}
+                {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationcurrent.IonizationCurrent"}
             ]
         }
     }

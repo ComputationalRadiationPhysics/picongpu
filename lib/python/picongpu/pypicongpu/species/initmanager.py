@@ -68,6 +68,10 @@ class InitManager(RenderedObject):
         self.all_operations = []
         self.__baked = False
 
+    def __hash__(self) -> int:
+        # every simulation may only ever have one InitManager
+        return hash(type(self))
+
     def __get_all_attributes(self):
         """
         accumulate *all* attributes currently assigned to any species
@@ -234,8 +238,6 @@ class InitManager(RenderedObject):
                         dependency_closure = dependency_closure.union(constant.get_species_dependencies())
                 closure_size_after = len(dependency_closure)
                 is_closure_final = closure_size_after == closure_size_before
-
-            print(dependency_closure)
 
             # check: self in dependency closure?
             if species in dependency_closure:

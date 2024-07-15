@@ -70,6 +70,13 @@ class IonizationModel(pydantic.BaseModel, Constant):
             "ionization_current": self.ionization_current,
         }
 
+    def get_generic_rendering_context(self) -> dict[str, typing.Any]:
+        return IonizationModel(
+            PICONGPU_NAME=self.PICONGPU_NAME,
+            ionization_electron_species=self.ionization_electron_species,
+            ionization_current=self.ionization_current,
+        ).get_rendering_context()
+
     def get_species_dependencies(self) -> list[type]:
         self.check()
         return [self.ionization_electron_species]

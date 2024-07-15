@@ -16,6 +16,15 @@ class GroundStateIonization(Constant, pydantic.BaseModel):
     ionization_model_list: list[IonizationModel]
     """list of ground state only ionization models to apply for the species"""
 
+    def get(self):
+        return self.ionization_model_list
+
+    def __hash__(self) -> int:
+        return_hash_value = hash(type(self))
+        for model in self.ionization_model_list:
+            return_hash_value += hash(model)
+        return return_hash_value
+
     def check(self) -> None:
         # check that no ionization model class is doubled up?
         groups = IonizationModelGroups().get_by_group().keys()
@@ -77,6 +86,6 @@ class GroundStateIonization(Constant, pydantic.BaseModel):
 
         list_serialized = []
         for ionization_model in self.ionization_model_list:
-            list_serialized.append(ionization_model.get_rendering_context())
+            list_serialized.append(ionization_model.get_generic_rendering_context())
 
         return {"ionization_model_list": list_serialized}

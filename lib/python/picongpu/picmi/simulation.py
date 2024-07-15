@@ -272,7 +272,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         for picmi_species, pypic_species in pypicongpu_by_picmi_species.items():
             # only fill ionization electrons if required (by ionizers)
-            if not pypic_species.has_constant_of_type(species.constant.Ionizers):
+            if not pypic_species.has_constant_of_type(species.constant.GroundStateIonization):
                 continue
 
             assert picmi_species.picongpu_ionization_electrons in pypicongpu_by_picmi_species, (
@@ -283,9 +283,12 @@ class Simulation(picmistandard.PICMI_Simulation):
                 )
             )
 
-            ionizers = pypic_species.get_constant_by_type(species.constant.Ionizers)
+            ionizer_model_list = pypic_species.get_constant_by_type(species.constant.GroundStateIonization)
             # is pointer -> sets correct species for actual pypicongpu species
-            ionizers.electron_species = pypicongpu_by_picmi_species[picmi_species.picongpu_ionization_electrons]
+            for model in ionizer_model_list:
+                model.ionization_electron_species = pypicongpu_by_picmi_species[
+                    picmi_species.picongpu_ionization_electrons
+                ]
 
     def __get_init_manager(self) -> species.InitManager:
         """

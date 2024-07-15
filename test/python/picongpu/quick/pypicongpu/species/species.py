@@ -8,16 +8,10 @@ License: GPLv3+
 from picongpu.pypicongpu.species import Species
 
 from picongpu.pypicongpu.species.attribute import Position, Weighting, Momentum
-from picongpu.pypicongpu.species.constant import (
-    Mass,
-    Charge,
-    DensityRatio,
-    ElementProperties,
-)
+from picongpu.pypicongpu.species.constant import Mass, Charge, DensityRatio, ElementProperties, Constant
 from picongpu.pypicongpu.species.util import Element
 
 from .attribute import DummyAttribute
-from .constant import DummyConstant
 
 import itertools
 import unittest
@@ -38,7 +32,7 @@ class TestSpecies(unittest.TestCase):
         self.electron.attributes = [Position(), Momentum()]
         self.electron.constants = []
 
-        self.const = DummyConstant()
+        self.const = Constant()
         self.const_charge = Charge()
         self.const_charge.charge_si = 1
         self.const_mass = Mass()
@@ -78,12 +72,12 @@ class TestSpecies(unittest.TestCase):
             with self.assertRaises(typeguard.TypeCheckError):
                 species.name = invalid_name
 
-        invalid_attr_lists = [None, {}, set(), [DummyConstant()], DummyAttribute()]
+        invalid_attr_lists = [None, {}, set(), [Constant()], DummyAttribute()]
         for invalid_attr_list in invalid_attr_lists:
             with self.assertRaises(typeguard.TypeCheckError):
                 species.attributes = invalid_attr_list
 
-        invalid_const_lists = [None, {}, set(), [DummyAttribute()], DummyConstant()]
+        invalid_const_lists = [None, {}, set(), [DummyAttribute()], Constant()]
         for invalid_const_list in invalid_const_lists:
             with self.assertRaises(typeguard.TypeCheckError):
                 species.constants = invalid_const_list
@@ -134,7 +128,7 @@ class TestSpecies(unittest.TestCase):
         const1.charge_si = 17
         const2 = Charge()
         const2.charge_si = 18
-        other_const = DummyConstant()
+        other_const = Constant()
 
         species.constants = [const1, const2, other_const]
 
@@ -150,7 +144,7 @@ class TestSpecies(unittest.TestCase):
     def test_check_constant_passthhru(self):
         """species check also calls constants check"""
 
-        class ConstantFail(DummyConstant):
+        class ConstantFail(Constant):
             ERROR_STR: str = "IDSTRING_XKCD_927_BEST"
 
             def check(self):
@@ -204,7 +198,7 @@ class TestSpecies(unittest.TestCase):
 
         species.constants = [self.const, self.const_mass, self.const_charge]
         # note: check for *identity* with is (instead of pure equality)
-        self.assertTrue(self.const is species.get_constant_by_type(DummyConstant))
+        self.assertTrue(self.const is species.get_constant_by_type(Constant))
         self.assertTrue(self.const_charge is species.get_constant_by_type(Charge))
         self.assertTrue(self.const_mass is species.get_constant_by_type(Mass))
 

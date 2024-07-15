@@ -9,4 +9,4 @@ from .ionizationcurrent import IonizationCurrent
 
 
 class None_(IonizationCurrent):
-    picongpu_name: str = "None"
+    PICONGPU_NAME: str = "None"

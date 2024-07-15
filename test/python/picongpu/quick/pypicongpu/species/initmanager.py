@@ -83,6 +83,9 @@ class TestInitManager(unittest.TestCase):
             self.species_list = species_list
             self.unique_id = unique_id
 
+        def __hash__(self) -> int:
+            return hash(self.unique_id)
+
         def get_attr_name(self):
             return "tracer_attr_" + self.unique_id
 
@@ -103,6 +106,12 @@ class TestInitManager(unittest.TestCase):
     class OperationAddMandatoryAttributes(species.operation.Operation):
         def __init__(self, species_list=[]):
             self.species_list = species_list
+
+        def __hash__(self):
+            return_hash_value = hash(type(hash))
+            for species_ in self.species_list:
+                return_hash_value += hash(species_)
+            return return_hash_value
 
         def check_preconditions(self):
             pass
@@ -865,8 +874,10 @@ class TestInitManager(unittest.TestCase):
 
         ion = species.Species()
         ion.name = "ion"
-        ionizers_const = species.constant.Ionizers()
-        ionizers_const.electron_species = electron
+        ionizers_const = species.constant.GroundStateIonization(
+            ionization_model_list=[species.constant.ionizationmodel.ThomasFermi()]
+        )
+        ionizers_const.ionization_model_list[0].ionization_electron_species = electron
         element_const = species.constant.ElementProperties()
         element_const.element = species.util.Element.N
         ion.constants = [ionizers_const, element_const]

@@ -26,5 +26,5 @@ class ThomasFermi(IonizationModel):
     This is extenden to arbitrary temperatures and atoms through fitting parameters and temperature cutoffs.
     """
 
-    PICONGPU_NAME: str = "BSI"
+    PICONGPU_NAME: str = "ThomasFermi"
     """C++ Code type name of ionizer"""

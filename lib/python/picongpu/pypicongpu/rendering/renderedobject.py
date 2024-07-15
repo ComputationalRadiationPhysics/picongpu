@@ -54,11 +54,17 @@ class RenderedObject:
     """
 
     def __hash__(self):
-        """custom hash function for indexing in dicts @todo move to rendered_object, Brian Marre, 2024"""
+        """custom hash function for indexing in dicts"""
         hash_value = hash(type(self))
+
         for value in self.__dict__.values():
-            if value is not None:
-                hash_value += hash(value)
+            try:
+                if value is not None:
+                    hash_value += hash(value)
+            except TypeError:
+                print(self)
+                print(type(self))
+                raise TypeError
         return hash_value
 
     @staticmethod
