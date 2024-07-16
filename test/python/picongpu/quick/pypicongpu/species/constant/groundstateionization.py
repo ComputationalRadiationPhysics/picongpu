@@ -9,7 +9,7 @@ License: GPLv3+
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Momentum, BoundElectrons
 from picongpu.pypicongpu.species.constant import Mass, Charge, GroundStateIonization, ElementProperties
-from picongpu.pypicongpu.species.constant.ionizationmodel import BSI, BSIStarkShifted
+from picongpu.pypicongpu.species.constant.ionizationmodel import BSI, BSIStarkShifted, ThomasFermi
 from picongpu.pypicongpu.species.constant.ionizationcurrent import None_
 from picongpu.picmi import constants
 
@@ -36,7 +36,8 @@ class TestGroundStateIonization(unittest.TestCase):
         self.electron = electron
 
         self.BSI_instance = BSI(ionization_electron_species=self.electron, ionization_current=None_())
-        self.BSIStark_instance = BSIStarkShifted(ionization_electron_species=self.electron, ionization_current=None_())
+        self.BSIstark_instance = BSIStarkShifted(ionization_electron_species=self.electron, ionization_current=None_())
+        self.thomas_fermi_instance = ThomasFermi(ionization_electron_species=self.electron)
 
     def test_basic(self):
         """we may create basic Instance"""
@@ -66,7 +67,9 @@ class TestGroundStateIonization(unittest.TestCase):
         """may not assign more than one ionization model from the same group"""
 
         # assignment is possible
-        instance = GroundStateIonization(ionization_model_list=[self.BSI_instance, self.BSIStark_instance])
+        instance = GroundStateIonization(
+            ionization_model_list=[self.BSI_instance, self.BSIstark_instance, self.thomas_fermi_instance]
+        )
 
         with self.assertRaisesRegex(ValueError, ".*ionization model group already represented: BSI.*"):
             # but check throws

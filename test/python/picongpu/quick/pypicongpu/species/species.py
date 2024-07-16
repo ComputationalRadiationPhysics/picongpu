@@ -1,4 +1,4 @@
-"""
+"""sshfs fwk394:/home/marre55 ~/mnt/fwk394
 This file is part of PIConGPU.
 Copyright 2021-2023 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre
@@ -8,7 +8,16 @@ License: GPLv3+
 from picongpu.pypicongpu.species import Species
 
 from picongpu.pypicongpu.species.attribute import Position, Weighting, Momentum
-from picongpu.pypicongpu.species.constant import Mass, Charge, DensityRatio, ElementProperties, Constant
+from picongpu.pypicongpu.species.constant import (
+    Mass,
+    Charge,
+    DensityRatio,
+    ElementProperties,
+    Constant,
+    GroundStateIonization,
+)
+from picongpu.pypicongpu.species.constant.ionizationcurrent import None_
+from picongpu.pypicongpu.species.constant.ionizationmodel import BSI
 from picongpu.pypicongpu.species.util import Element
 
 from .attribute import DummyAttribute
@@ -39,8 +48,9 @@ class TestSpecies(unittest.TestCase):
         self.const_mass.mass_si = 2
         self.const_density_ratio = DensityRatio()
         self.const_density_ratio.ratio = 4.2
-        self.const_ionizers = None
-        self.const_ionizers.electron_species = self.electron
+        self.const_ground_state_ionization = GroundStateIonization(
+            ionization_model_list=[BSI(ionization_electron_species=self.electron, ionization_current=None_())]
+        )
 
         self.const_element_properties = ElementProperties()
         self.const_element_properties.element = Element.H
@@ -128,7 +138,8 @@ class TestSpecies(unittest.TestCase):
         const1.charge_si = 17
         const2 = Charge()
         const2.charge_si = 18
-        other_const = Constant()
+        other_const = Mass()
+        other_const.mass_si = 19
 
         species.constants = [const1, const2, other_const]
 
@@ -268,7 +279,7 @@ class TestSpecies(unittest.TestCase):
             "density_ratio": self.const_density_ratio,
             "charge": self.const_charge,
             "mass": self.const_mass,
-            "ionizers": self.const_ionizers,
+            "ground_state_ionization": self.const_ground_state_ionization,
             "element_properties": self.const_element_properties,
         }
 
