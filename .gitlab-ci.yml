@@ -152,9 +152,9 @@ pypicongpu-generate-full-matrix:
   script:
     - apt update
     - apt install -y python3 python3-pip
-    - pip3 install pyyaml requests
+    - pip3 install pyyaml requests typeguard
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
-    - python3 $CI_PROJECT_DIR/share/ci/pypicongpu_generator.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt > compile.yml
+    - python3 $CI_PROJECT_DIR/share/ci/pypicongpu_generator.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/requirements.txt > compile.yml
     - cat compile.yml
   artifacts:
     paths:

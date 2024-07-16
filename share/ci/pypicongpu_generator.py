@@ -4,6 +4,8 @@ import yaml
 import re
 from typing import List, Dict, Callable
 import pkg_resources
+import copy
+import typeguard
 
 """
 This file is part of PIConGPU.
@@ -18,19 +20,21 @@ License: GPLv3+
 Prints yaml code for a GitLab CI child pipeline to stdout. The test parameters
 are split in two kinds of inputs. The Python versions to test are defined in
 the script, also the names of dependencies to test and it's test strategy. The
-version range of the dependencies to test are defined in a requirements.txt.
-The path of the requirements.txt is set via first application argument.
+version range of the dependencies to test are defined in the passed
+requirements.txt files. The paths of the requirements.txt are set via the
+application arguments.
 
-First, the script reads the requirements.txt. If a dependency is marked to test
-in the script, it calculates the test versions. Therefore it downloads all
-available versions from pypi.org for each package. Afterwards it filters the
-versions via a filter strategy. For example, take all release versions or take
-each latest major version. Than the script removes all versions, which are not
-supported, defined in the requirements.txt. The result a complete list of all
-Python and dependencies versions to test.
+First, the script reads the requirements.txt files. If a dependency is marked
+as to be tested in the script, it calculates the test versions.
+For this it downloads all available versions from pypi.org for each package.
+Afterwards it filters the versions via a filter strategy. For example, take
+all release versions or take each latest major version. Than the script
+removes all versions, which are not supported, as defined in the combined
+requirements.txt.
+The result a complete list of all Python- and dependency- versions to test.
 
 In the second part, the script creates the full combination matrix for all test
-versions and creates a CI job for each combination. Each job is printed on
+versions and creates a CI job for each combination. Each job is printed to
 stdout.
 
 The number of combinations depends on:
@@ -127,6 +131,59 @@ def get_all_major_pypi_versions(package_name):
     return [str(v) for v in version_map.values()]
 
 
+@typeguard.typechecked
+def combine_requirements(one: pkg_resources.Requirement, two: pkg_resources.Requirement) -> pkg_resources.Requirement:
+    """combine two requirements for one dependency"""
+    if one.project_name != two.project_name:
+        print(f"requirements for {one.project_name} and {two.project_name} are incomparable!")
+        exit(1)
+
+    # accumulate all specs
+    specs: list = copy.deepcopy(one.specs)
+    specs.extend(two.specs)
+
+    if len(specs) != 0:
+        last_tuple = specs.pop()
+        #                                             operator        version
+        # example:           typeguard                ">="            "4.2.11"
+        requirement_string = one.project_name + " " + last_tuple[0] + last_tuple[1]
+        for entry in specs:
+            # further version restrictions, e.g. ", <=" + "4.3.0"
+            requirement_string += "," + entry[0] + entry[1]
+    else:
+        requirement_string = one.project_name
+
+    return pkg_resources.Requirement(requirement_string)
+
+
+@typeguard.typechecked
+def read_in_requirement_files(requirement_file_names: list[str]) -> dict[str, pkg_resources.Requirement]:
+    """read in requirements from list of requirement files"""
+    total_requirements = {}
+    for requirement_file_name in requirement_file_names:
+        with open(requirement_file_name, "r", encoding="utf-8") as requirement_file:
+            try:
+                # read in file
+                parsed_requirements = pkg_resources.parse_requirements(requirement_file)
+
+                # accumulate
+                for requirement in parsed_requirements:
+                    if requirement.project_name not in total_requirements:
+                        # does not exist yet
+                        total_requirements[requirement.project_name] = requirement
+                    else:
+                        # already exists
+                        total_requirements[requirement.project_name] = combine_requirements(
+                            requirement, total_requirements[requirement.project_name]
+                        )
+
+            except Exception:
+                # ignore all lines, which cannot be parsed
+                # e.g. `-r extra/requirements.txt`
+                pass
+    return total_requirements
+
+
 def get_supported_versions(package_name: str, versions: List[str]) -> List[str]:
     """Take a list of package versions all removes all version, which are not
     supported by the requirements.txt.
@@ -144,19 +201,13 @@ def get_supported_versions(package_name: str, versions: List[str]) -> List[str]:
     global req_versions
     filtered_versions = []
 
+    requirement_file_names = sys.argv[1:]
+
     if not req_versions:
-        with open(sys.argv[1], "r", encoding="utf-8") as req_file:
-            parsed_req = pkg_resources.parse_requirements(req_file)
-            # ignore all lines, which cannot be parsed
-            # e.g. `-r extra/requirements.txt`
-            try:
-                for req in parsed_req:
-                    req_versions[req.project_name] = req
-            except Exception:
-                pass
+        req_versions = read_in_requirement_files(requirement_file_names)
 
     if package_name not in req_versions:
-        print(cs(f"ERROR: {package_name} is not defined in {sys.argv[1]}", "Red"))
+        print(cs(f"ERROR: {package_name} is not defined in {sys.argv[1:]}", "Red"))
         exit(1)
 
     for v in versions:
@@ -283,7 +334,7 @@ def print_job_yaml(test_pkg_versions: Dict[str, List[str]]):
 
 
 # Python versions to test
-PYTHON_VERSIONS: List[str] = ["3.10", "3.11"]
+PYTHON_VERSIONS: List[str] = ["3.10", "3.11", "3.12"]
 # Define, which dependencies should be explicit tests.
 # The key is the name of the package, and function returns the versions to
 # test.
@@ -291,13 +342,15 @@ PYTHON_VERSIONS: List[str] = ["3.10", "3.11"]
 # pip decides which version is used.
 PACKAGES_TO_TEST: Dict[str, Callable] = {
     "typeguard": get_all_major_pypi_versions,
-    "jsonschema": get_all_pypi_versions,  # @todo change back, Brian Marre, 2023
+    "jsonschema": get_all_major_pypi_versions,
     "picmistandard": get_all_pypi_versions,
+    "pydantic": get_all_major_pypi_versions,
 }
 
 if __name__ == "__main__":
+    # note, script name is sys.argv[0] rest are bash inputs
     if len(sys.argv) < 2:
-        print(cs("ERROR: Set path to requirements.txt as first argument.", "Red"))
+        print(cs("ERROR: pass path(s) to one or more requirements.txt as arguments", "Red"))
         exit(1)
 
     test_pkg_versions: Dict[str, List[str]] = {}

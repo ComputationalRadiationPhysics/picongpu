@@ -1,2 +1,3 @@
--r picmi/requirements.txt
 -r extra/requirements.txt
+-r pypicongpu/requirements.txt
+-r picmi/requirements.txt
