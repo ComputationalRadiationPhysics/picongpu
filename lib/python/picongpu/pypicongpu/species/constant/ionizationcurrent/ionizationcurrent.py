@@ -26,6 +26,9 @@ class IonizationCurrent(Constant, pydantic.BaseModel):
         self.check()
         return {"picongpu_name": self.PICONGPU_NAME}
 
+    def get_generic_rendering_context(self) -> dict:
+        return IonizationCurrent(PICONGPU_NAME=self.PICONGPU_NAME).get_rendering_context()
+
     def get_species_dependencies(self):
         return []
 

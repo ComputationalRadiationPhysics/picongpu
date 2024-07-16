@@ -194,7 +194,7 @@ class RenderedObject:
 
         delegates work to _get_serialized and invokes checks performed by
         check_context_for_type().
-        :raise ValidationError: on schema violiation
+        :raise ValidationError: on schema violation
         :raise RuntimeError: on schema not found
         :return: self as rendering context
         """

@@ -64,10 +64,19 @@ class IonizationModel(pydantic.BaseModel, Constant):
         # do not remove!, always do a check call
         self.check()
 
+        if self.ionization_current is None:
+            # case no ionization_current configurable
+            return {
+                "ionizer_picongpu_name": self.PICONGPU_NAME,
+                "ionization_electron_species": self.ionization_electron_species.get_rendering_context(),
+                "ionization_current": None,
+            }
+
+        # default case
         return {
             "ionizer_picongpu_name": self.PICONGPU_NAME,
             "ionization_electron_species": self.ionization_electron_species.get_rendering_context(),
-            "ionization_current": self.ionization_current,
+            "ionization_current": self.ionization_current.get_generic_rendering_context(),
         }
 
     def get_generic_rendering_context(self) -> dict[str, typing.Any]:

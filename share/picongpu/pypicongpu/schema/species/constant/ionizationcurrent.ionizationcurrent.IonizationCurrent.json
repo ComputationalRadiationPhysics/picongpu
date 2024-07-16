@@ -1,5 +1,5 @@
 {
-    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.schema.constant.ionizationcurrent.IonizationCurrent",
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationcurrent.ionizationcurrent.IonizationCurrent",
     "type": "object",
     "description": "ionization current configuration",
     "required": ["picongpu_name"],
