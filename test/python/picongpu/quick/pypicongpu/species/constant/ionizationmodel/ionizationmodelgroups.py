@@ -26,7 +26,7 @@ class Test_IonizationModelGroups(unittest.TestCase):
             "BSI_like": [BSI, BSIEffectiveZ, BSIStarkShifted],
             "ADK_like": [ADKLinearPolarization, ADKCircularPolarization],
             "Keldysh_like": [Keldysh],
-            "electronic_collisional": [ThomasFermi],
+            "electronic_collisional_equilibrium": [ThomasFermi],
         }
 
         self.expected_by_model_custom = {

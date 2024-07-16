@@ -5,10 +5,15 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from ..pypicongpu import simulation, runner, util, species, movingwindow, customuserinput
+# make pypicongpu classes accessible for conversion to pypicongpu
+from .. import pypicongpu
+
+from ..pypicongpu import util
+
 from . import constants
 from .grid import Cartesian3DGrid
 from .species import Species as PicongpuPicmiSpecies
+from .interaction import Interaction
 
 import picmistandard
 
@@ -19,6 +24,7 @@ import logging
 import typing
 
 
+# no inheritance from pydantic.BaseModel since PICMI does not declare attributes
 @typeguard.typechecked
 class Simulation(picmistandard.PICMI_Simulation):
     """
@@ -28,10 +34,84 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
-    __picongpu_custom_input = util.build_typesafe_property(
-        typing.Optional[list[customuserinput.InterfaceCustomUserInput]]
+    picongpu_custom_user_input = util.build_typesafe_property(
+        typing.Optional[list[pypicongpu.customuserinput.InterfaceCustomUserInput]]
     )
     """list of custom user input objects"""
+
+    picongpu_interaction = util.build_typesafe_property(typing.Optional[Interaction])
+    """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
+
+    picongpu_typical_ppc = util.build_typesafe_property(typing.Optional[int])
+    """
+    typical number of particle in a cell in the simulation
+
+    used for normalization of code units
+
+    optional, if set to None, will be set to median ppc of all species ppcs
+    """
+
+    picongpu_template_dir = util.build_typesafe_property(str)
+    """directory containing templates to use for generating picongpu setups"""
+
+    picongpu_moving_window_move_point = util.build_typesafe_property(typing.Optional[float])
+    """
+    point a light ray reaches in y from the left border until we begin sliding the simulation window with the speed of
+    light
+
+    in multiples of the simulation window size
+
+    @attention if moving window is active, one gpu in y direction is reserved for initializing new spaces,
+        thereby reducing the simulation window size accordingrelative spot at which to start moving the simulation window
+    """
+
+    picongpu_moving_window_stop_iteration = util.build_typesafe_property(typing.Optional[int])
+    """iteration, at which to stop moving the simulation window"""
+
+    __runner = util.build_typesafe_property(typing.Optional[pypicongpu.runner.Runner])
+    __electron_species = util.build_typesafe_property(typing.Optional[pypicongpu.species.Species])
+
+    # @todo remove boiler plate constructor once we switch to pydantic on the PICMI side, Brian Marre, 2024
+    def __init__(
+        self,
+        picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
+        picongpu_typical_ppc: typing.Optional[int] = None,
+        picongpu_moving_window_move_point: typing.Optional[float] = None,
+        picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
+        **kw,
+    ):
+        # pass everything not picongpu sepcific to the PICMI interface
+        super().__init__(**kw)
+
+        # additional checks on inputs, @todo move to picmistandard, Brian Marre, 2024
+        ## throw if both cfl & delta_t are set
+        if self.solver is not None and "Yee" == self.solver.method and isinstance(self.solver.grid, Cartesian3DGrid):
+            self.__yee_compute_cfl_or_delta_t()
+
+        # checks on picongpu specific stuff
+        ## template_path is valid
+        if picongpu_template_dir == "":
+            raise ValueError("picongpu_template_dir MUST NOT be empty string")
+        template_path = pathlib.Path(picongpu_template_dir)
+        if template_path.is_dir():
+            raise ValueError("picongpu_template_dir must be existing directory")
+
+        # store picongpu specific stuff
+        # @todo switch to pydantic for automatic instrumentation of init method, Brian Marre 2024
+        self.picongpu_typical_ppc = picongpu_typical_ppc
+        self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
+        self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
+
+        if picongpu_template_dir is not None:
+            self.picongpu_template_dir = picongpu_template_dir
+        else:
+            self.picongpu_template_dir = None
+
+        # internal stuff for PICMI interface only
+        # initialized with None, updated by picongpu_add_custom_user_input() calls
+        self.picongpu_custom_user_input = None
+        self.__runner = None
+        self.__electron_species = None
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """
@@ -100,56 +180,10 @@ class Simulation(picmistandard.PICMI_Simulation):
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    def __init__(
-        self,
-        picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
-        picongpu_typical_ppc: typing.Optional[int] = None,
-        picongpu_moving_window_move_point: typing.Optional[float] = None,
-        picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
-        **kw,
-    ):
-        # delegate additional work to parent
-        super().__init__(**kw)
-
-        # additional checks on inputs, @todo move to picmistandard, Brian Marre, 2024
-
-        ## throw if both cfl & delta_t are set
-        if self.solver is not None and "Yee" == self.solver.method and isinstance(self.solver.grid, Cartesian3DGrid):
-            self.__yee_compute_cfl_or_delta_t()
-
-        # store picongpu specific stuff
-        # @todo switch to pydantic for automatic instrumentation of init method, Brian Marre 2024
-        self.picongpu_typical_ppc = picongpu_typical_ppc
-
-        # internal stuff for PICMI interface only
-        self.__runner = None
-        self.__electron_species = None
-        self.__picongpu_custom_input = None
-
-        # set PyPIConGPU template directory
-        if picongpu_template_dir is None:
-            self.picongpu_template_dir = None
-        else:
-            assert "" != picongpu_template_dir, "picongpu_template_dir MUST NOT be empty"
-            # note: pathlib.Path(pathlib.Path(...)) is valid
-            template_path = pathlib.Path(picongpu_template_dir)
-            assert template_path.is_dir(), "picongpu_template_dir must be existing dir"
-            self.picongpu_template_dir = str(template_path)
-
-        self.moving_window_move_point = picongpu_moving_window_move_point
-        self.moving_window_stop_iteration = picongpu_moving_window_stop_iteration
-
-        self.picongpu_typical_ppc = picongpu_typical_ppc
-
-        # store runner state
-        self.__runner = None
-
-        self.__electron_species = None
-
     def __get_operations_simple_density(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
-    ) -> typing.List[species.operation.SimpleDensity]:
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+    ) -> typing.List[pypicongpu.species.operation.SimpleDensity]:
         """
         retrieve operations for simple density placements
 
@@ -186,7 +220,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             for profile, picmi_species_list in picmi_species_by_profile.items():
                 assert isinstance(layout, picmistandard.PICMI_PseudoRandomLayout)
 
-                op = species.operation.SimpleDensity()
+                op = pypicongpu.species.operation.SimpleDensity()
                 op.ppc = layout.n_macroparticles_per_cell
                 op.profile = profile.get_as_pypicongpu()
 
@@ -203,8 +237,8 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def __get_operations_not_placed(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
-    ) -> typing.List[species.operation.NotPlaced]:
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+    ) -> typing.List[pypicongpu.species.operation.NotPlaced]:
         """
         retrieve operations for not placed species
 
@@ -225,7 +259,7 @@ class Simulation(picmistandard.PICMI_Simulation):
                 continue
 
             # is not placed -> add op
-            not_placed = species.operation.NotPlaced()
+            not_placed = pypicongpu.species.operation.NotPlaced()
             not_placed.species = pypicongpu_by_picmi_species[picmi_species]
             all_operations.append(not_placed)
 
@@ -233,8 +267,8 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def __get_operations_from_individual_species(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
-    ) -> typing.List[species.operation.Operation]:
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+    ) -> typing.List[pypicongpu.species.operation.Operation]:
         """
         call get_independent_operations() of all species
 
@@ -251,7 +285,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def __fill_ionization_electrons(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
+        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
     ) -> None:
         """
         copy used-electron-relationship from PICMI to PIConGPU species
@@ -272,7 +306,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         for picmi_species, pypic_species in pypicongpu_by_picmi_species.items():
             # only fill ionization electrons if required (by ionizers)
-            if not pypic_species.has_constant_of_type(species.constant.GroundStateIonization):
+            if not pypic_species.has_constant_of_type(pypicongpu.species.constant.GroundStateIonization):
                 continue
 
             assert picmi_species.picongpu_ionization_electrons in pypicongpu_by_picmi_species, (
@@ -283,14 +317,14 @@ class Simulation(picmistandard.PICMI_Simulation):
                 )
             )
 
-            ionizer_model_list = pypic_species.get_constant_by_type(species.constant.GroundStateIonization)
+            ionizer_model_list = pypic_species.get_constant_by_type(pypicongpu.species.constant.GroundStateIonization)
             # is pointer -> sets correct species for actual pypicongpu species
             for model in ionizer_model_list:
                 model.ionization_electron_species = pypicongpu_by_picmi_species[
                     picmi_species.picongpu_ionization_electrons
                 ]
 
-    def __get_init_manager(self) -> species.InitManager:
+    def __get_init_manager(self) -> pypicongpu.species.InitManager:
         """
         create & fill an initmanager
 
@@ -302,7 +336,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         3. generate operations which have inter-species dependencies
         4. generate operations without inter-species dependencies
         """
-        initmgr = species.InitManager()
+        initmgr = pypicongpu.species.InitManager()
 
         # check preconditions
         assert len(self.species) == len(self.layouts)
@@ -443,7 +477,9 @@ class Simulation(picmistandard.PICMI_Simulation):
 
             picmi_species.picongpu_ionization_electrons = self.__get_electron_species()
 
-    def write_input_file(self, file_name: str, pypicongpu_simulation: simulation.Simulation | None = None) -> None:
+    def write_input_file(
+        self, file_name: str, pypicongpu_simulation: typing.Optional[pypicongpu.simulation.Simulation] = None
+    ) -> None:
         """
         generate input data set for picongpu
 
@@ -459,8 +495,19 @@ class Simulation(picmistandard.PICMI_Simulation):
         if pypicongpu_simulation is None:
             pypicongpu_simulation = self.get_as_pypicongpu()
 
-        self.__runner = runner.Runner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
+        self.__runner = pypicongpu.runnerRunner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
         self.__runner.generate()
+
+    def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.InterfaceCustomUserInput):
+        if self.picongpu_custom_user_input is None:
+            self.picongpu_custom_user_input = [custom_user_input]
+        else:
+            self.picongpu_custom_user_input.append(custom_user_input)
+
+    def add_interaction(self, interaction) -> None:
+        util.unsupported(
+            "PICMI standard interactions are not supported by PIConGPU, assign an Interaction object to the picongpu_interaction attribute of the simulation instead."
+        )
 
     def step(self, nsteps: int = 1):
         if nsteps != self.max_steps:
@@ -469,15 +516,15 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         self.picongpu_run()
 
-    def get_as_pypicongpu(self) -> simulation.Simulation:
+    def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
-        s = simulation.Simulation()
+        s = pypicongpu.simulation.Simulation()
 
         s.delta_t_si = self.time_step_size
         s.solver = self.solver.get_as_pypicongpu()
 
         # already in pypicongpu objects
-        s.custom_user_input = self.__picongpu_custom_input
+        s.custom_user_input = self.picongpu_custom_user_input
 
         # calculate time step
         if self.max_steps is not None:
@@ -526,30 +573,25 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError("typical_ppc must be >= 1")
 
         # disable moving Window if explicitly activated by the user
-        if self.moving_window_move_point is None:
+        if self.picongpu_moving_window_move_point is None:
             s.moving_window = None
         else:
-            s.moving_window = movingwindow.MovingWindow(
-                move_point=self.moving_window_move_point, stop_iteration=self.moving_window_stop_iteration
+            s.moving_window = pypicongpu.movingwindow.MovingWindow(
+                move_point=self.picongpu_moving_window_move_point,
+                stop_iteration=self.picongpu_moving_window_stop_iteration,
             )
 
         return s
 
-    def picongpu_add_custom_user_input(self, custom_user_input: customuserinput.InterfaceCustomUserInput):
-        if self.__picongpu_custom_input is None:
-            self.__picongpu_custom_input = [custom_user_input]
-        else:
-            self.__picongpu_custom_input.append(custom_user_input)
-
     def picongpu_run(self) -> None:
         """build and run PIConGPU simulation"""
         if self.__runner is None:
-            self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
+            self.__runner = pypicongpu.runnerRunner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         self.__runner.generate()
         self.__runner.build()
         self.__runner.run()
 
-    def picongpu_get_runner(self) -> runner.Runner:
+    def picongpu_get_runner(self) -> pypicongpu.runnerRunner:
         if self.__runner is None:
-            self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
+            self.__runner = pypicongpu.runnerRunner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         return self.__runner
