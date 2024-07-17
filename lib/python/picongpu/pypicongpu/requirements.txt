@@ -1,3 +1,4 @@
 chevron >= 0.13.1
 jsonschema >= 4.23.0
 typeguard >= 4.2.1
+referencing >=0.35.1

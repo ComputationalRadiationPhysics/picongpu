@@ -417,7 +417,7 @@ class TestRunner(unittest.TestCase):
             testfile_template = template_path / "etc" / "picongpu" / "date.mustache"
             with open(testfile_template, "w") as tpl_file:
                 tpl_file.write("{{{_date}}}")
-            # workaround (TODO rm): add location for pypicongpu.param
+            # workaround (@todo rm): add location for pypicongpu.param
             os.makedirs(template_path / "include" / "picongpu" / "param")
 
             # create ruunner with previous tempalte dir, rest of directories

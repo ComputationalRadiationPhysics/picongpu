@@ -11,7 +11,8 @@ import unittest
 
 from picongpu.pypicongpu.species.operation.densityprofile import Uniform
 from picongpu.pypicongpu.rendering import RenderedObject
-import jsonschema
+
+import referencing
 
 
 class TestDensityProfile(unittest.TestCase):
@@ -50,7 +51,7 @@ class TestDensityProfile(unittest.TestCase):
 
         # schemas must be loaded by context request
         RenderedObject._schemas_loaded = False
-        RenderedObject._schema_by_uri = {}
+        RenderedObject._registry = referencing.Registry()
 
         context = uniform.get_generic_profile_rendering_context()
 
@@ -63,11 +64,8 @@ class TestDensityProfile(unittest.TestCase):
         self.assertEqual(context["type"], {"uniform": True, "foil": False, "gaussian": False})
 
         # is actually validated against "DensityProfile" schema
-        # (note: accessing internal methods only for testing, don't do this)
-        density_profile_fqn = RenderedObject._get_fully_qualified_class_name(DensityProfile)
-        density_profile_uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(density_profile_fqn)
-
-        schema = RenderedObject._schema_by_uri[density_profile_uri]
+        RenderedObject._schemas_loaded = False
+        schema = RenderedObject._get_schema_from_class(DensityProfile)
 
         # check 1: schema actually enforce existance of all keys
         self.assertTrue("uniform" in schema["properties"]["type"]["required"])
@@ -81,8 +79,8 @@ class TestDensityProfile(unittest.TestCase):
         )
 
         # check 2: break the schema, schema rejects everything now
-        RenderedObject._schema_by_uri[density_profile_uri] = False
-        with self.assertRaises(jsonschema.exceptions.ValidationError):
+        RenderedObject._registry = referencing.Registry()
+        with self.assertRaises(referencing.exceptions.NoSuchResource):
             # schema now rejects everything
             # -> must also reject previously correct context
             uniform.get_generic_profile_rendering_context()

@@ -7,25 +7,45 @@ License: GPLv3+
 
 from picongpu.pypicongpu.rendering import RenderedObject
 
-import unittest
-import typeguard
 from picongpu.pypicongpu.solver import YeeSolver
 from picongpu.pypicongpu import Simulation
+
+import unittest
+import typing
+import typeguard
 import jsonschema
+import referencing
 
 
 class TestRenderedObject(unittest.TestCase):
-    def schema_store_init(self):
+    def schema_store_init(self) -> None:
         RenderedObject._schemas_loaded = False
         RenderedObject._maybe_fill_schema_store()
 
-    def schema_store_reset(self):
-        RenderedObject._schemas_loaded = False
-        RenderedObject._schema_by_uri = {}
+    def add_schema_to_schema_store(self, uri, schema) -> None:
+        # for testing direct access of internal only methods
+        RenderedObject._registry = referencing.Registry().with_resource(
+            uri, referencing.Resource(schema, referencing.jsonschema.DRAFT202012)
+        )
+        RenderedObject._registry = RenderedObject._registry.crawl()
 
-    def setUp(self):
+    def get_uri(self, type_: typing.Type) -> str:
+        # for testing direct access of internal only methods
+        fqn = RenderedObject._get_fully_qualified_class_name(type_)
+        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
+        return uri
+
+    def schema_store_reset(self) -> None:
+        # for testing direct access of internal only methods
+        RenderedObject._schemas_loaded = False
+        RenderedObject._registry = referencing.Registry()
+
+    def setUp(self) -> None:
         self.schema_store_reset()
         # if required test case can additionally init the schema store
+
+    def tearDown(self):
+        self.schema_store_reset()
 
     def test_basic(self):
         """simple example using real-world example"""
@@ -36,9 +56,18 @@ class TestRenderedObject(unittest.TestCase):
         self.assertEqual(yee.get_rendering_context(), yee._get_serialized())
 
         # manually check that schema has been loaded
-        fqn = RenderedObject._get_fully_qualified_class_name(type(yee))
-        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
-        self.assertTrue(uri in RenderedObject._schema_by_uri)
+        uri = self.get_uri(type(yee))
+
+        self.assertEqual(
+            RenderedObject._registry.contents(uri),
+            {
+                "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.solver.YeeSolver",
+                "type": "object",
+                "properties": {"name": {"type": "string"}},
+                "required": ["name"],
+                "unevaluatedProperties": False,
+            },
+        )
 
     def test_not_implemented(self):
         """raises if _get_serialized() is not implemented"""
@@ -57,7 +86,7 @@ class TestRenderedObject(unittest.TestCase):
             def _get_serialized(self):
                 return {"any": "thing"}
 
-        with self.assertRaisesRegex(RuntimeError, ".*[Ss]chema.*"):
+        with self.assertRaises(referencing.exceptions.NoSuchResource):
             h = HasNoSchema()
             h.get_rendering_context()
 
@@ -73,9 +102,8 @@ class TestRenderedObject(unittest.TestCase):
                     return {"my_string": "ja", "num": 17}
                 return {"my_string": ""}
 
-        fqn = RenderedObject._get_fully_qualified_class_name(MaybeValid)
-        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
-        RenderedObject._schema_by_uri[uri] = {
+        uri = self.get_uri(MaybeValid)
+        schema = {
             "properties": {
                 "my_string": {"type": "string"},
                 "num": {"type": "number"},
@@ -83,6 +111,7 @@ class TestRenderedObject(unittest.TestCase):
             "required": ["my_string", "num"],
             "unevaluatedProperties": False,
         }
+        self.add_schema_to_schema_store(uri, schema)
 
         # all okay
         maybe_valid = MaybeValid()
@@ -101,12 +130,11 @@ class TestRenderedObject(unittest.TestCase):
             def _get_serialized(self):
                 return {"any": "thing"}
 
-        fqn = RenderedObject._get_fully_qualified_class_name(HasInvalidSchema)
-        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
-        # note: this is very evil injection, do not *ever* do this
-        RenderedObject._schema_by_uri[uri] = {
+        uri = self.get_uri(HasInvalidSchema)
+        schema = {
             "type": "invalid_type_HJJE$L!BGCDHS",
         }
+        self.add_schema_to_schema_store(uri, schema)
 
         h = HasInvalidSchema()
         with self.assertRaisesRegex(Exception, ".*[Ss]chema.*"):
@@ -120,11 +148,10 @@ class TestRenderedObject(unittest.TestCase):
             def _get_serialized(self):
                 return {"any": "thing"}
 
-        fqn = RenderedObject._get_fully_qualified_class_name(HasPermissiveSchema)
-        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
+        uri = self.get_uri(HasPermissiveSchema)
 
         # schema "{}" is considered too permissive
-        RenderedObject._schema_by_uri[uri] = {}
+        self.add_schema_to_schema_store(uri, {})
 
         permissive = HasPermissiveSchema()
         with self.assertLogs(level="WARNING") as caught_logs:
@@ -176,9 +203,8 @@ class TestRenderedObject(unittest.TestCase):
             def _get_serialized(self):
                 return {"value": self.toreturn}
 
-        fqn = RenderedObject._get_fully_qualified_class_name(MayReturnNone)
-        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
-        RenderedObject._schema_by_uri[uri] = {
+        uri = self.get_uri(MayReturnNone)
+        schema = {
             "type": "object",
             "properties": {
                 "value": {
@@ -203,6 +229,7 @@ class TestRenderedObject(unittest.TestCase):
             "required": ["value"],
             "unevaluatedProperties": False,
         }
+        self.add_schema_to_schema_store(uri, schema)
 
         # ok:
         mrn = MayReturnNone()
@@ -256,7 +283,7 @@ class TestRenderedObject(unittest.TestCase):
             # note: does not have to inherit from RenderedObject
             pass
 
-        with self.assertRaisesRegex(RuntimeError, ".*[Ss]chema.*"):
+        with self.assertRaisesRegex(referencing.exceptions.NoSuchResource, ".*[Ss]chema.*"):
             RenderedObject.check_context_for_type(HasNoValidation, {})
 
     def test_irregular_schema(self):
@@ -267,10 +294,9 @@ class TestRenderedObject(unittest.TestCase):
             def _get_serialized(self):
                 return {}
 
-        fqn = RenderedObject._get_fully_qualified_class_name(SimpleObject)
-        uri = RenderedObject._get_schema_uri_by_fully_qualified_class_name(fqn)
+        uri = self.get_uri(SimpleObject)
         # the schema "false" is a valid schema; it rejects all inputs
-        RenderedObject._schema_by_uri[uri] = False
+        self.add_schema_to_schema_store(uri, False)
 
         # there must be an error during validation & a warning issued
         with self.assertLogs(level="WARNING") as caught_logs_rejected:
@@ -279,7 +305,10 @@ class TestRenderedObject(unittest.TestCase):
             self.assertEqual(1, len(caught_logs_rejected.output))
 
         # reverse: now must be accepted -- but warning still issued!
-        RenderedObject._schema_by_uri[uri] = True
+        self.schema_store_reset()
+        self.schema_store_init()
+        self.add_schema_to_schema_store(uri, True)
+
         with self.assertLogs(level="WARNING") as caught_logs_accepted:
             SimpleObject().get_rendering_context()
         self.assertEqual(1, len(caught_logs_accepted.output))
