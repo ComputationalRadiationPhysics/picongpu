@@ -41,7 +41,8 @@ namespace picongpu
                  * @param unaryFunctor any unary functor
                  */
                 template<typename T_Kernel, typename... T_Args>
-                void operator()(std::string filterName, uint32_t const currentStep, T_Kernel const unaryFunctor) const
+                void operator()(std::string const& filterName, uint32_t const currentStep, T_Kernel const unaryFunctor)
+                    const
                 {
                     if(filterName == T_Filter::getName())
                         unaryFunctor(particles::filter::IUnary<T_Filter>{currentStep});
