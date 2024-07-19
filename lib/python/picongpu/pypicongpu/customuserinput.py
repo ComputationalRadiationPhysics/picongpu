@@ -11,7 +11,7 @@ import typing
 import pydantic
 
 
-class InterfaceCustomUserInput(RenderedObject, pydantic):
+class InterfaceCustomUserInput(RenderedObject, pydantic.BaseModel):
     """interface required from all custom input implementations"""
 
     def check_does_not_change_existing_key_values(self, firstDict: dict, secondDict: dict):
@@ -87,7 +87,7 @@ class CustomUserInput(InterfaceCustomUserInput):
             self.tags = [tag]
             self.rendering_context = custom_input
         else:
-            CustomUserInput.check_does_not_change_existing_key_values(self.rendering_context, custom_input)
+            self.check_does_not_change_existing_key_values(self.rendering_context, custom_input)
 
             if tag in self.tags:
                 raise ValueError("duplicate tag!")

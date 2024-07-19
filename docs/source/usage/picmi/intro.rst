@@ -16,11 +16,6 @@ standardised building blocks.
 
 From this simulation object a user may then generate input files for all PIC-simulation codes supporting PICMI, but some features may be code specific or not supported by all codes.
 
-.. warning::
-
-   It is highly discouraged to edit generated PIConGPU input files **after** generation.
-
-  It is very easy to make mistakes this way, use the process outlined in :ref:`<picmi-custom-generation>` for customizing the generation of PIConGPU setups with PICMI.
 
 Usage Quick-start
 -----------------
@@ -121,9 +116,6 @@ Parameters/Methods prefixed with ``picongpu_`` are PIConGPU-exclusive.
   - ``__init__(..., picongpu_template_dir)``:
     Specify the template dir to use for code generation,
     please refer to :ref:`the documentation on the matter for details <picmi-custom-generation>`
-  - ``__init__(...,  picongpu_custom_user_input)``:
-    pass custom user input to the code generation. this may be used in conjunction with custom templates to change the code generation.
-    See :ref:`PICMI custom code generation<picmi-custom-generation>` for the documentation on using custom input.
   - ``__init__(...,  picongpu_typical_ppc)`` typical ppc to be used for normalization in PIConGPU
   - ``write_input_file(..., pypicongpu_simulation)``:
     use a :ref:`PyPIConGPU simulation<PyPIConGPU_Intro>` object instead of an PICMI- simulation object to generate a PIConGPU input.
@@ -132,9 +124,11 @@ Parameters/Methods prefixed with ``picongpu_`` are PIConGPU-exclusive.
   - ``picongpu_get_runner()``:
     Retrieve a :ref:`PyPIConGPU Runner <pypicongpu-running>` for running a PIConGPU simulation from Python, **not recommended**
   - ``picongpu_add_custom_user_input()``:
-    add custom user input to the simulation
+    pass custom user input to the code generation.
+    This may be used in conjunction with custom templates to change the code generation.
+    See :ref:`PICMI custom code generation<picmi-custom-generation>` for the documentation on using custom input.
 
- - **Grid**
+- **Grid**
 
   - ``picongpu_n_gpus``:
     list of a 1 or 3 integers, greater than zero, describing GPU distribution in space
@@ -146,9 +140,12 @@ Parameters/Methods prefixed with ``picongpu_`` are PIConGPU-exclusive.
 
   - Laguerre Modes (``picongpu_laguerre_modes`` and ``picongpu_laguerre_phases``):
     Two lists of float, passed to PIConGPU laser definition to use laguerre modes for laser description
-  - ``picongpu_polarization_type`` configuration of polarization of the laser, either linear or circular, default is linear.
-  - ``picongpu_phase`` phase offset of the laser
-  - ``picongpu_huygens_surface_positions`` configuration of the position of the hygens surface used by PIConGPU for laser feed in
+  - ``picongpu_polarization_type``:
+    configuration of polarization of the laser, either linear or circular, default is linear.
+  - ``picongpu_phase``:
+    phase offset of the laser, default is 0
+  - ``picongpu_huygens_surface_positions``
+    configuration of the position of the huygens surfaces used by PIConGPU for laser feed in, in cells
 
 
 - **Species**
@@ -207,14 +204,12 @@ This is the native Python interface of PIConGPU to which PICMI inputs are conver
 
 This interface offers additional configuration options above and beyond the PICMI interface and may be used instead of PICMI to configure a PIConGPU simulation.
 
-.. note::
+To generate a PIConGPU setup from a PyPIConGPU simulation object use the following.
 
-  To generate a PIConGPU setup from a PyPIConGPU simulation object use the following
+.. code:: python
+  import picongpu
 
-  .. code:: python
-    import picongpu
-
-    picongpu.picmi.Simulation().write_input_file(<path of setup to generate>, pypicongpu_simulation)
+  picongpu.picmi.Simulation().write_input_file(<path of setup to generate>, pypicongpu_simulation)
 
 .. note::
 

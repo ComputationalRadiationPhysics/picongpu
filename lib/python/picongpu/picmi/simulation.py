@@ -5,11 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-<<<<<<< HEAD
-from ..pypicongpu import simulation, runner, util, species, movingwindow
-=======
-from ..pypicongpu import simulation, runner, util, species, customuserinput, rendering
->>>>>>> 6b78a20ae (refactor custom user input interface)
+from ..pypicongpu import simulation, runner, util, species, movingwindow, customuserinput
 from . import constants
 from .grid import Cartesian3DGrid
 from .species import Species as PicongpuPicmiSpecies
@@ -108,12 +104,8 @@ class Simulation(picmistandard.PICMI_Simulation):
         self,
         picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
         picongpu_typical_ppc: typing.Optional[int] = None,
-<<<<<<< HEAD
         picongpu_moving_window_move_point: typing.Optional[float] = None,
         picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
-=======
-        picongpu_custom_user_input: typing.Optional[customuserinput.CustomUserInput | rendering.RenderedObject] = None,
->>>>>>> 6b78a20ae (refactor custom user input interface)
         **kw,
     ):
         # delegate additional work to parent
@@ -128,7 +120,6 @@ class Simulation(picmistandard.PICMI_Simulation):
         # store picongpu specific stuff
         # @todo switch to pydantic for automatic instrumentation of init method, Brian Marre 2024
         self.picongpu_typical_ppc = picongpu_typical_ppc
-        self.picongpu_custom_user_input = picongpu_custom_user_input
 
         # internal stuff for PICMI interface only
         self.__runner = None
@@ -145,7 +136,6 @@ class Simulation(picmistandard.PICMI_Simulation):
             assert template_path.is_dir(), "picongpu_template_dir must be existing dir"
             self.picongpu_template_dir = str(template_path)
 
-<<<<<<< HEAD
         self.moving_window_move_point = picongpu_moving_window_move_point
         self.moving_window_stop_iteration = picongpu_moving_window_stop_iteration
 
@@ -156,8 +146,6 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         self.__electron_species = None
 
-=======
->>>>>>> 6b78a20ae (refactor custom user input interface)
     def __get_operations_simple_density(
         self,
         pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, species.Species],
@@ -452,76 +440,6 @@ class Simulation(picmistandard.PICMI_Simulation):
 
             picmi_species.picongpu_ionization_electrons = self.__get_electron_species()
 
-    def get_as_pypicongpu(self) -> simulation.Simulation:
-        """translate to PyPIConGPU object"""
-        s = simulation.Simulation()
-
-        s.delta_t_si = self.time_step_size
-        s.solver = self.solver.get_as_pypicongpu()
-
-        if self.max_steps is not None:
-            s.time_steps = self.max_steps
-        elif self.max_time is not None:
-            s.time_steps = self.max_time / self.time_step_size
-        else:
-            raise ValueError("runtime not specified (neither as step count nor max time)")
-
-        util.unsupported("verbose", self.verbose)
-        util.unsupported("particle shape", self.particle_shape, "linear")
-        util.unsupported("gamma boost", self.gamma_boost)
-
-        # todo: check grid compatibility
-        s.grid = self.solver.grid.get_as_pypicongpu()
-
-        if self.moving_window_move_point is None:
-            s.moving_window = None
-        else:
-            s.moving_window = movingwindow.MovingWindow(
-                move_point=self.moving_window_move_point, stop_iteration=self.moving_window_stop_iteration
-            )
-
-        # any injection method != None is not supported
-        if len(self.laser_injection_methods) != self.laser_injection_methods.count(None):
-            util.unsupported("laser injection method", self.laser_injection_methods, [])
-
-        if len(self.lasers) > 1:
-            util.unsupported("more than one laser")
-
-        if len(self.lasers) == 1:
-            # check requires grid, so grid is translated (and thereby also
-            # checked) above
-            s.laser = self.lasers[0].get_as_pypicongpu()
-        else:
-            # explictly disable laser (as required by pypicongpu)
-            s.laser = None
-
-        # custom user input must always be set by the user on PyPIConGPU level
-        s.custom_user_input = None
-
-        # resolve electrons
-        self.__resolve_electrons()
-
-        s.init_manager = self.__get_init_manager()
-
-        # set typical ppc if not overwritten by user
-        if self.picongpu_typical_ppc is None:
-            s.typical_ppc = (s.init_manager).get_typical_particle_per_cell()
-        else:
-            s.typical_ppc = self.picongpu_typical_ppc
-
-        if s.typical_ppc < 1:
-            raise ValueError("typical_ppc must be >= 1")
-
-        return s
-
-    def picongpu_run(self) -> None:
-        """build and run PIConGPU simulation"""
-        if self.__runner is None:
-            self.__runner = runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
-        self.__runner.generate()
-        self.__runner.build()
-        self.__runner.run()
-
     def write_input_file(self, file_name: str, pypicongpu_simulation: simulation.Simulation | None = None) -> None:
         """
         generate input data set for picongpu
@@ -556,7 +474,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         s.solver = self.solver.get_as_pypicongpu()
 
         # already in pypicongpu objects
-        s.custom_user_input = self.picongpu_custom_user_input
+        s.custom_user_input = self.__picongpu_custom_input
 
         # calculate time step
         if self.max_steps is not None:
@@ -604,11 +522,21 @@ class Simulation(picmistandard.PICMI_Simulation):
         if s.typical_ppc < 1:
             raise ValueError("typical_ppc must be >= 1")
 
+        # disable moving Window if explicitly activated by the user
+        if self.moving_window_move_point is None:
+            s.moving_window = None
+        else:
+            s.moving_window = movingwindow.MovingWindow(
+                move_point=self.moving_window_move_point, stop_iteration=self.moving_window_stop_iteration
+            )
+
         return s
 
     def picongpu_add_custom_user_input(self, custom_user_input: customuserinput.InterfaceCustomUserInput):
         if self.__picongpu_custom_input is None:
             self.__picongpu_custom_input = [custom_user_input]
+        else:
+            self.__picongpu_custom_input.append(custom_user_input)
 
     def picongpu_run(self) -> None:
         """build and run PIConGPU simulation"""

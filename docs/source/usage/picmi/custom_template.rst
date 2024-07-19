@@ -19,10 +19,44 @@ Fundamentally there are three different approaches to custom template, differing
 - variable custom templates
 - variable custom templates utilising custom user input
 
-To get started take a look at the examples below, have a look at :ref:`step-by-step guide <step_by_step>`, or have at the detailed :ref:`rendering example <pypicongpu-translation-example-boundingbox>` in the developer documentation.
+To get started take a look at the examples below, have a look at :ref:`step-by-step guide <step_by_step>`, or at the detailed :ref:`rendering example <pypicongpu-translation-example-boundingbox>` in the developer documentation.
 
+Step-by-Step Guide
+------------------
+.. _step_by_step:
+
+1. Create a copy of the template: ``cp -r $PICSRC/share/picongpu/pypicongpu/template my_template_dir``
+2. Change whatever you need in the template: see :ref:`creating custom templates <creating_custom_templates>` for a detailed discussion
+
+3. supply your template dir in your PICMI script:
+
+   .. code:: python
+
+      # other setup...
+      sim = picmi.Simulation(
+          time_step_size=9.65531e-14,
+          max_steps=1024,
+          solver=solver,
+          # sets custom template dir
+          picongpu_template_dir="my_template_dir")
+
+      sim.write_input_file("generated_input")
+
+4. run PICMI script
+5. inspect generated files
+
+   e.g. ``less generated_input/etc/picongpu/N.cfg`` now contains the output added above
+
+.. warning::
+
+   It is highly discouraged to incorporate editing generated PIConGPU input files **after** generation since it is very easy to make mistakes this way.
+   Try to use the process outlined here instead.
+
+Creating Custom Templates
+-------------------------
+.. _creating_custom_templates:
 Hard Coded Custom templates
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A Hard coded custom template differs from the default template only by the addition/change of template parts that do not depend on the *context*.
 This is usually the easiest type of custom templates, since only an understanding of standard picongpu templates is required.
@@ -101,8 +135,7 @@ And if we add fourth species we have to remember to add them by hand.
 
 
 Variable Custom Templates
--------------------------
-
+^^^^^^^^^^^^^^^^^^^^^^^^^
 Instead of hard coding the output we might want to automatically generate one instance of the ``macroParticlesCount`` plugin for every species in our simulation for this we modify the above example to the following.
 
 .. code:: bash
@@ -137,7 +170,7 @@ And for a deeper understanding of the *context* structure take a look at the upo
 For further information about schema see `the translation process section on schemas <https://picongpu.readthedocs.io/en/latest/pypicongpu/translation.html#schema-check>`_ and the tutorial on `how to write a schema <https://picongpu.readthedocs.io/en/latest/pypicongpu/howto/schema.html>`_.
 
 Variable Templates with Custom User Input
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While powerful variable templates are still limited by the predefined context available for rendering them, a template may not reference a quantity which is not contained in the *context*.
 
@@ -203,9 +236,9 @@ A user may:
 - add more than one custom user input to the same simulation
 - may add more than one dictionary to the same custom user input in separate ``addToCustomInput()``
 
-so long as the do not conflict, i.e. assign differing values to the same key.
+so long as they do not conflict, i.e. assign differing values to the same key.
 
-All will be serialized as expected preserving sub sub-structure within a custom input but not between custom inputs as exemplified below,
+All will be serialized as expected, preserving sub sub-structure within a custom input but not between custom inputs as exemplified below,
 
 .. code:: python
 
@@ -240,48 +273,4 @@ Defining a new Custom User Input Class
 
 A user may define a new Implementation of ``picongpu.pypicongpu.customuserinput.InterfaceCustomUserInput`` to sidestep the need to serialize his custom input by hand before passing it to the Simulation and check the serialization with a custom schema.
 
-See `here <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/lib/python/picongpu/pypicongpu/customuserinput.py>`_ for the interface definition and implementation details requirements.
-
-Step-by-Step Guide
-------------------
-.. _step_by_step:
-
-1. Create a copy of the template: ``cp -r $PICSRC/share/picongpu/pypicongpu/template my_template_dir``
-2. Change whatever you need in the template
-
-   e.g. ``vim my_template_dir/etc/picongpu/N.cfg.mustache``
-
-   find ``pypicongpu_output_with_newlines`` and insert:
-
-   .. code::
-
-      --openPMD.period 10
-      --openPMD.file simData
-      --openPMD.ext bp
-      --checkpoint.backend openPMD
-      --checkpoint.period 100
-      --checkpoint.restart.backend openPMD
-
-3. supply your template dir in your PICMI script:
-
-   .. code:: python
-
-      # other setup...
-      sim = picmi.Simulation(
-          time_step_size=9.65531e-14,
-          max_steps=1024,
-          solver=solver,
-          # sets custom template dir
-          picongpu_template_dir="my_template_dir")
-
-      sim.write_input_file("generated_input")
-
-4. run PICMI script
-5. inspect generated files
-
-   e.g. ``less generated_input/etc/picongpu/N.cfg`` now contains the output added above
-
-.. warning::
-
-   It is highly discouraged to incorporate editing generated PIConGPU input files **after** generation -- just because it is very easy to make mistakes this way.
-   Try to use the process outlined here.
+See `here <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/lib/python/picongpu/pypicongpu/customuserinput.py>`_ for the interface definition and implementation details.
