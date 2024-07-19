@@ -160,7 +160,7 @@ namespace picongpu
                  */
                 this->histBuffer = std::make_unique<HostDeviceBuffer<TDepositedQuantity, 1>>(
                     binningData.axisExtentsND.productOfComponents());
-                isMain = reduce.hasResult();
+                isMain = reduce.hasResult(mpi::reduceMethods::Reduce());
             }
 
             ~Binner() override
