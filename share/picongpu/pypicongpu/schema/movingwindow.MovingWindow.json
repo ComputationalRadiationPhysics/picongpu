@@ -1,0 +1,24 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.movingwindow.MovingWindow",
+    "type": "object",
+    "description": "moving window setting of picongpu",
+    "unevaluatedProperties": false,
+    "required": ["move_point", "stop_iteration"],
+    "properties": {
+        "move_point": {
+            "type": "number",
+            "minimum" : 0
+        },
+        "stop_iteration": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "integer",
+                    "exclusiveMinimum" : 0
+                }
+            ]
+        }
+    }
+}

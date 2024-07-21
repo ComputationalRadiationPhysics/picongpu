@@ -33,6 +33,16 @@
                 }
             ]
         },
+        "moving_window": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.movingwindow.MovingWindow"
+                }
+            ]
+        },
         "species_initmanager": {
             "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.initmanager.InitManager"
         },
@@ -71,6 +81,7 @@
         "solver",
         "grid",
         "laser",
+        "moving_window",
         "customuserinput"
     ],
     "unevaluatedProperties": false

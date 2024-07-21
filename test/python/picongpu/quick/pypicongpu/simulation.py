@@ -45,6 +45,7 @@ class TestSimulation(unittest.TestCase):
         self.s.solver = solver.YeeSolver()
         self.s.laser = None
         self.s.custom_user_input = None
+        self.s.moving_window = None
         self.s.init_manager = species.InitManager()
 
         self.laser = GaussianLaser()

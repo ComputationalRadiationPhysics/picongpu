@@ -8,7 +8,6 @@ License: GPLv3+
 from picongpu import pypicongpu, picmi
 
 import typeguard
-
 import unittest
 import tempfile
 import os
@@ -29,11 +28,21 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
 
 
 class TestSimulation(unittest.TestCase):
-    def test_minimal(self):
-        """smallest possible example"""
+    def _set_up_sim(self, **kw):
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            lower_bound=[0, 0, 0],
+            upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
+            lower_boundary_conditions=["open", "open", "periodic"],
+            upper_boundary_conditions=["open", "open", "periodic"],
+        )
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        return picmi.Simulation(time_step_size=1.39e-16, max_steps=int(2048), solver=solver, **kw)
+
+    def _set_up_minimal_sim(self, steps=1):
         sim = pypicongpu.Simulation()
         sim.delta_t_si = 1.39e-16
-        sim.time_steps = 1
+        sim.time_steps = steps
         sim.typical_ppc = 1
         sim.grid = pypicongpu.grid.Grid3D()
         sim.grid.cell_size_x_si = 1.776e-07
@@ -48,13 +57,25 @@ class TestSimulation(unittest.TestCase):
         sim.grid.boundary_condition_z = pypicongpu.grid.BoundaryCondition.PERIODIC
         sim.laser = None
         sim.custom_user_input = None
+        sim.moving_window = None
         sim.solver = pypicongpu.solver.YeeSolver()
         sim.init_manager = pypicongpu.species.InitManager()
+        return sim
+
+    def test_minimal(self):
+        """smallest possible example"""
+        sim = self._set_up_minimal_sim()
 
         runner = pypicongpu.Runner(sim)
         runner.generate(printDirToConsole=True)
         runner.build()
         runner.run()
+
+    def test_moving_window_build(self):
+        picmi_sim = self._set_up_sim(picongpu_moving_window_move_point=0.9, picongpu_moving_window_stop_iteration=1)
+        runner = pypicongpu.Runner(picmi_sim)
+        runner.generate(printDirToConsole=True)
+        runner.build()
 
     def test_custom_template_dir(self):
         """may pass custom template dir"""

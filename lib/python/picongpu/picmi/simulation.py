@@ -1,11 +1,11 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2023 PIConGPU contributors
+Copyright 2021-2024 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from ..pypicongpu import simulation, runner, util, species
+from ..pypicongpu import simulation, runner, util, species, movingwindow
 from . import constants
 from .grid import Cartesian3DGrid
 from .species import Species as PicongpuPicmiSpecies
@@ -99,6 +99,8 @@ class Simulation(picmistandard.PICMI_Simulation):
         self,
         picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
         picongpu_typical_ppc: typing.Optional[int] = None,
+        picongpu_moving_window_move_point: typing.Optional[float] = None,
+        picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
         **kw,
     ):
         # delegate actual work to parent
@@ -118,6 +120,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             template_path = pathlib.Path(picongpu_template_dir)
             assert template_path.is_dir(), "picongpu_template_dir must be existing dir"
             self.picongpu_template_dir = str(template_path)
+
+        self.moving_window_move_point = picongpu_moving_window_move_point
+        self.moving_window_stop_iteration = picongpu_moving_window_stop_iteration
 
         self.picongpu_typical_ppc = picongpu_typical_ppc
 
@@ -440,6 +445,13 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         # todo: check grid compatibility
         s.grid = self.solver.grid.get_as_pypicongpu()
+
+        if self.moving_window_move_point is None:
+            s.moving_window = None
+        else:
+            s.moving_window = movingwindow.MovingWindow(
+                move_point=self.moving_window_move_point, stop_iteration=self.moving_window_stop_iteration
+            )
 
         # any injection method != None is not supported
         if len(self.laser_injection_methods) != self.laser_injection_methods.count(None):

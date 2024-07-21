@@ -1,4 +1,5 @@
-# Copyright 2013-2023 Axel Huebl, Rene Widera, Felix Schmitt, Franz Poeschel
+# Copyright 2013-2023 Axel Huebl, Rene Widera, Felix Schmitt, Franz Poeschel,
+#                     Hannes Tropegen, Brian Marre
 #
 # This file is part of PIConGPU.
 #
@@ -60,15 +61,13 @@ TBG_wallTime="1:00:00"
 
 TBG_steps="{{{time_steps}}}"
 
-{{#grid.boundary_condition}}
-  TBG_periodic="--periodic {{{x}}} {{{y}}} {{{z}}}"
-{{/grid.boundary_condition}}
-
-
 #################################
 ## Section: Optional Variables ##
 #################################
 
+{{#grid.boundary_condition}}
+  TBG_periodic="--periodic {{{x}}} {{{y}}} {{{z}}}"
+{{/grid.boundary_condition}}
 
 {{#output.auto}}
 # only use charge conservation if solver is yee AND using cuda backend
@@ -79,6 +78,14 @@ else
     USED_CHARGE_CONSERVATION_FLAGS=""
 fi
 {{/output.auto}}
+
+{{#moving_window}}
+  TBG_movingWindow="-m"
+  TBG_windowMovePoint="--windowMovePoint {{{move_point}}}"
+  {{#stop_iteration}}
+    TBG_stopWindow="--stopWindow {{{stop_iteration}}}"
+  {{/stop_iteration}}
+{{/moving_window}}
 
 pypicongpu_output_with_newlines="
     {{#output.auto}}
@@ -114,17 +121,26 @@ TBG_pypicongpu_output=$(sed -z 's/\n/ /g' <<< "$pypicongpu_output_with_newlines"
 
 TBG_plugins="!TBG_pypicongpu_output"
 
+
+
 #################################
 ## Section: Program Parameters ##
 #################################
 
 TBG_deviceDist="!TBG_devices_x !TBG_devices_y !TBG_devices_z"
 
-TBG_programParams="-d !TBG_deviceDist \
-                   -g !TBG_gridSize   \
-                   -s !TBG_steps      \
-                   !TBG_periodic     \
-                   !TBG_plugins      \
+TBG_programParams="-d !TBG_deviceDist   \
+                   -g !TBG_gridSize     \
+                   -s !TBG_steps        \
+                   !TBG_periodic        \
+                   !TBG_plugins         \
+                {{#moving_window}}
+                   !TBG_movingWindow    \
+                   !TBG_windowMovePoint \
+                  {{#stop_iteration}}
+                   !TBG_stopWindow      \
+                  {{/stop_iteration}}
+                {{/moving_window}}
                    --versionOnce"
 
 # TOTAL number of devices
