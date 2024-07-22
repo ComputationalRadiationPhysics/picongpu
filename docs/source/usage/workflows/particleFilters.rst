@@ -56,6 +56,10 @@ Let us select particles with momentum vector within a cone with an opening angle
           FunctorParticlesForwardPinhole
        >;
 
+.. note::
+
+    User defined filter functors must be wrapped to fit the general filter interface. This can be done using wrappers like ``generic::Free<T_UserFunctor>`` and ``generic::FreeTotalCellOffset<T_UserFunctor>``
+
 and add ``ParticlesForwardPinhole`` to the ``AllParticleFilters`` list:
 
 .. code:: cpp
