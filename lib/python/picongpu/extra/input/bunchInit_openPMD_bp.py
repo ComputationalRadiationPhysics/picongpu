@@ -1,7 +1,7 @@
 """
 This file is a modified version of the pipe script from the openPMD-api.
 
-Authors: Richard Pausch, Franz Poeschel, Nico Wrobel
+Authors: Richard Pausch, Franz Poeschel, Nico Wrobel, Finn-Ole Carstens
 License: LGPLv3+
 """
 import sys
@@ -116,8 +116,9 @@ class addParticles2Checkpoint:
         tmp_handle = self.f.iterations[self.timestep].meshes["E"]
 
         # get cell size per dimension
+        # the flip reverses the order of the x,y,z
         # the * unpacks the arguments for x,y,z
-        self.cellSize = vec3D(*(tmp_handle.grid_unit_SI * np.array(tmp_handle.grid_spacing)))
+        self.cellSize = vec3D(*(np.flip(tmp_handle.grid_unit_SI * np.array(tmp_handle.grid_spacing))))
 
         # extract number of cells in each dimension
         tmp_mesh = self.f.iterations[self.timestep].meshes["E"]["x"]
@@ -151,8 +152,9 @@ class addParticles2Checkpoint:
         # flush all loads before calculations
         self.f.flush()
 
+        # extract number of cells in each dimension according to data order from checkpoint
         tmp = np.shape(tmp_mesh)
-        self.N_cells = vec3D(tmp[0], tmp[1], tmp[2])  # cells in each dimension
+        self.N_cells = vec3D(tmp[2], tmp[1], tmp[0])  # cells in each dimension
 
         # extract number of GPUs used in each dimension
         # use np.unique() to reduce patches offset and len() to get number
