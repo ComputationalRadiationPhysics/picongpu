@@ -6,53 +6,46 @@ License: GPLv3+
 """
 
 from ...rendering import RenderedObject
+from ... import util
 
-import typeguard
-import enum
 import scipy
+import periodictable
 
 
-@typeguard.typechecked
-class Element(RenderedObject, enum.Enum):
+class Element(RenderedObject):
     """
     Denotes an element from the periodic table of elements
 
     Used to provide fundamental constants for elements, and to map them in a
     type-safe way to PIConGPU.
 
-    The number associated is the number of protons.
-    Note: Spelling follows periodic table, e.g. "Na", "C", "He"
+    The number associated is just an id.
+    Note: Spelling follows periodic table, e.g. "Na", "C", "He" + typical nuclear variations
 
     Note that these denote Elements, but when initialized in a species *only*
-    represent the core, i.e. there are no electrons. To make an atom also
-    initialize an appropriate ionization.
+    describe the core, i.e. without electrons.
+    To describe atoms/ions you also need to initialize the charge_state of the species.
     """
 
-    H = 1
-    """hydrogen"""
-    He = 2
-    """helium"""
-    N = 7
-    """nitrogen"""
+    store = util.build_typesafe_propety(periodictable.Element)
 
-    @staticmethod
-    def get_by_openpmd_name(openpmd_name: str) -> "Element":
+    def __init__(self, openpmd_name: str) -> None:
         """
         get the correct substance implementation from a openPMD type name
 
-        Names are (case-sensitive) element symbols (e.g. "H", "He", "N").
+        @param openpmd_name (case-sensitive) chemical/nuclear element symbols (e.g. "H", "D", "He", "N").
 
-        :param openpmd_name: single species following openPMD species extension
         :return: object representing the given species
         """
-        element_by_openpmd_name = {
-            "H": Element.H,
-            "He": Element.He,
-            "N": Element.N,
-        }
-        if openpmd_name not in element_by_openpmd_name:
-            raise NameError("unkown element: {}".format(openpmd_name))
-        return element_by_openpmd_name[openpmd_name]
+
+        # search for name in periodic table
+        for element in periodictable.elements:
+            if openpmd_name == element.symbol:
+                self.store = element
+                return
+
+        # not found
+        raise NameError("unkown element: {}".format(openpmd_name))
 
     def get_picongpu_name(self) -> str:
         """
@@ -60,12 +53,7 @@ class Element(RenderedObject, enum.Enum):
 
         Used for type name lookups
         """
-        picongpu_name_by_element = {
-            Element.H: "Hydrogen",
-            Element.He: "Helium",
-            Element.N: "Nitrogen",
-        }
-        return picongpu_name_by_element[self]
+        return self.store.name
 
     def get_mass_si(self) -> float:
         """
@@ -76,12 +64,7 @@ class Element(RenderedObject, enum.Enum):
 
         :return: mass in kg
         """
-        mass_by_particle = {
-            Element.H: 1.008 * scipy.constants.atomic_mass,
-            Element.He: 4.0026 * scipy.constants.atomic_mass,
-            Element.N: 14.007 * scipy.constants.atomic_mass,
-        }
-        return mass_by_particle[self]
+        return self.store.mass * scipy.constants.atomic_mass
 
     def get_charge_si(self) -> float:
         """
@@ -91,10 +74,14 @@ class Element(RenderedObject, enum.Enum):
 
         :return: charge in C
         """
-        return self.value * scipy.constants.elementary_charge
+        return self.ions[-1] * scipy.constants.elementary_charge
+
+    def get_symbol(self) -> str:
+        """get symbol"""
+        return self.store.symbol
 
     def _get_serialized(self) -> dict:
         return {
-            "symbol": self.name,
+            "symbol": self.get_symbol(),
             "picongpu_name": self.get_picongpu_name(),
         }
