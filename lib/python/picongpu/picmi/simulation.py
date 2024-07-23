@@ -18,15 +18,13 @@ from .interaction import Interaction
 import picmistandard
 
 import math
-import typeguard
+import pydantic
 import pathlib
 import logging
 import typing
 
 
-# no inheritance from pydantic.BaseModel since PICMI does not declare attributes
-@typeguard.typechecked
-class Simulation(picmistandard.PICMI_Simulation):
+class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
     """
     Simulation as defined by PICMI
 
@@ -34,15 +32,26 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
-    picongpu_custom_user_input = util.build_typesafe_property(
-        typing.Optional[list[pypicongpu.customuserinput.InterfaceCustomUserInput]]
-    )
-    """list of custom user input objects"""
+    model_config = pydantic.ConfigDict(extra="allow")
+    """
+    set to allow and store additional attributes outside pydantic model validation.
 
-    picongpu_interaction = util.build_typesafe_property(typing.Optional[Interaction])
+    This ensure that the PICMI defined attributes are also stored in the pydantic instances.
+
+    @attention needs to be the first entry, other wise ignored for some reason
+    """
+
+    picongpu_custom_user_input: typing.Optional[list[pypicongpu.customuserinput.InterfaceCustomUserInput]] = None
+    """
+    list of custom user input objects
+
+    update using picongpu_add_custom_user_input() or by direct setting
+    """
+
+    picongpu_interaction: typing.Optional[Interaction]
     """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
 
-    picongpu_typical_ppc = util.build_typesafe_property(typing.Optional[int])
+    picongpu_typical_ppc: typing.Optional[int]
     """
     typical number of particle in a cell in the simulation
 
@@ -51,10 +60,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir = util.build_typesafe_property(str)
+    picongpu_template_dir: str
     """directory containing templates to use for generating picongpu setups"""
 
-    picongpu_moving_window_move_point = util.build_typesafe_property(typing.Optional[float])
+    picongpu_moving_window_move_point: typing.Optional[float]
     """
     point a light ray reaches in y from the left border until we begin sliding the simulation window with the speed of
     light
@@ -65,25 +74,41 @@ class Simulation(picmistandard.PICMI_Simulation):
         thereby reducing the simulation window size accordingrelative spot at which to start moving the simulation window
     """
 
-    picongpu_moving_window_stop_iteration = util.build_typesafe_property(typing.Optional[int])
+    picongpu_moving_window_stop_iteration: typing.Optional[int]
     """iteration, at which to stop moving the simulation window"""
 
-    __runner = util.build_typesafe_property(typing.Optional[pypicongpu.runner.Runner])
-    __electron_species = util.build_typesafe_property(typing.Optional[pypicongpu.species.Species])
+    __runner: typing.Optional[pypicongpu.runner.Runner] = None
+    __electron_species: typing.Optional[pypicongpu.species.Species] = None
 
-    # @todo remove boiler plate constructor once we switch to pydantic on the PICMI side, Brian Marre, 2024
+    # @todo remove boiler plate constructor argument list once PICMI switches to pydantic, Brian Marre, 2024
     def __init__(
         self,
         picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
         picongpu_typical_ppc: typing.Optional[int] = None,
         picongpu_moving_window_move_point: typing.Optional[float] = None,
         picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
-        **kw,
+        picongpu_interaction: typing.Optional[Interaction] = None,
+        **keyword_arguments,
     ):
-        # pass everything not picongpu sepcific to the PICMI interface
-        super().__init__(**kw)
+        # call pydantic.BaseModel constructor first,
+        #   pydantic class instance must have been initialized before we may call the PICMI super class constructor to
+        #   get a properly initialized pydantic model
 
-        # additional checks on inputs, @todo move to picmistandard, Brian Marre, 2024
+        # pass pydantic data
+        picongpu_data = {}
+        picongpu_data["picongpu_template_dir"] = picongpu_template_dir
+        picongpu_data["picongpu_typical_ppc"] = picongpu_typical_ppc
+        picongpu_data["picongpu_moving_window_move_point"] = picongpu_moving_window_move_point
+        picongpu_data["picongpu_moving_window_stop_iteration"] = picongpu_moving_window_stop_iteration
+        picongpu_data["picongpu_interaction"] = picongpu_interaction
+
+        ### pydantic.BaseModel init call
+        pydantic.BaseModel.__init__(self, **picongpu_data)
+
+        # second call PICMI __init__ to do PICMI initialization and setting class attribute values outside of pydantic model
+        picmistandard.PICMI_Simulation.__init__(self, **keyword_arguments)
+
+        # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
         ## throw if both cfl & delta_t are set
         if self.solver is not None and "Yee" == self.solver.method and isinstance(self.solver.grid, Cartesian3DGrid):
             self.__yee_compute_cfl_or_delta_t()
@@ -95,23 +120,6 @@ class Simulation(picmistandard.PICMI_Simulation):
         template_path = pathlib.Path(picongpu_template_dir)
         if template_path.is_dir():
             raise ValueError("picongpu_template_dir must be existing directory")
-
-        # store picongpu specific stuff
-        # @todo switch to pydantic for automatic instrumentation of init method, Brian Marre 2024
-        self.picongpu_typical_ppc = picongpu_typical_ppc
-        self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
-        self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
-
-        if picongpu_template_dir is not None:
-            self.picongpu_template_dir = picongpu_template_dir
-        else:
-            self.picongpu_template_dir = None
-
-        # internal stuff for PICMI interface only
-        # initialized with None, updated by picongpu_add_custom_user_input() calls
-        self.picongpu_custom_user_input = None
-        self.__runner = None
-        self.__electron_species = None
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """
