@@ -879,7 +879,7 @@ class TestInitManager(unittest.TestCase):
         )
         ionizers_const.ionization_model_list[0].ionization_electron_species = electron
         element_const = species.constant.ElementProperties()
-        element_const.element = species.util.Element.N
+        element_const.element = species.util.Element("N")
         ion.constants = [ionizers_const, element_const]
 
         ion_op = species.operation.SetBoundElectrons()

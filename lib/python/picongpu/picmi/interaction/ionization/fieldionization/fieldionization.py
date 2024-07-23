@@ -5,16 +5,14 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from .ionizationmodel import IonizationModel
+from ..groundstateionizationmodel import GroundStateIonizationModel
 from .ionizationcurrent import IonizationCurrent
 
 import typing
 
 
-class FieldIonization(IonizationModel):
+class FieldIonization(GroundStateIonizationModel):
     """common interface of all field ionization models"""
 
     ionization_current: typing.Optional[IonizationCurrent]
     """ionization current for energy conservation of field ionization"""
-
-    # + all IonizationModel interface requirements

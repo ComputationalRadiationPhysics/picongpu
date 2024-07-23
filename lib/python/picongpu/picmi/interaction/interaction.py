@@ -5,11 +5,16 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-import pydantic
-from .ionization import IonizationModel
+from ... import pypicongpu
+
+from .ionization.groundstateionizationmodel import GroundStateIonizationModel
+from .interactioninterface import InteractionInterface
+from ..species import Species
+
+import picmistandard
 
 
-class Interaction(pydantic.BaseModel):
+class Interaction(InteractionInterface):
     """
     Common interface of Particle-In-Cell particle interaction extensions
 
@@ -19,7 +24,7 @@ class Interaction(pydantic.BaseModel):
     It does not specify interface requirements for sub classes, since they differ too much.
     """
 
-    Ionization: list[IonizationModel]
+    ground_state_ionization_model_list: list[GroundStateIonizationModel]
     """
     list of all interaction models that change the charge state of ions
 
@@ -28,3 +33,108 @@ class Interaction(pydantic.BaseModel):
     """
 
     # @todo add Collisions as elastic interaction model, Brian Marre, 2024
+
+    @staticmethod
+    def update_constant_list(
+        existing_list: list[pypicongpu.species.constant.Constant],
+        new_list: dict[str, pypicongpu.species.constant.Constant],
+    ) -> None:
+        """check if dicts may be merged without overwriting previously set values"""
+
+        new_constant_list = []
+
+        for constant_new in new_list:
+            exists_already = False
+            for constant in existing_list:
+                if type(constant) == type(constant_new):
+                    # constant_new already exists in existing constants list
+                    exists_already = True
+
+                    if constant != constant_new:
+                        # same type of constant but conflicting values
+                        raise ValueError(f"Constants {constant} and {constant_new} conflict with each other")
+
+            if not exists_already:
+                new_constant_list.append(constant_new)
+            # ignore already existing constants
+
+        # update constant_list
+        existing_list.extend(new_constant_list)
+
+    def get_interaction_constants(
+        self, species: picmistandard.PICMI_Species
+    ) -> list[pypicongpu.species.constant.Constant]:
+        """get list of all constants required by interactions for the given species"""
+
+        constant_list = []
+        ground_state_model_conversion = {}
+        for model in self.ground_state_ionization_model_list:
+            if model.ion_species == Species:
+                model_constants = model.get_constants()
+                Interaction.update_constant_list(constant_list, model_constants)
+
+                ground_state_model_conversion[model] = model.get_as_pypicongpu()
+
+        # add GroundStateIonization constant for entire species
+        constant_list.append(
+            pypicongpu.species.constant.GroundStateIonization(
+                ground_state_ionization_model_list=ground_state_model_conversion.values()
+            )
+        )
+
+        # add additional interaction sub groups needing constants here
+        return constant_list, {"ground_state_ionization": ground_state_model_conversion}
+
+    def fill_in_ionization_electron_species(
+        self,
+        pypicongpu_by_picmi_species: dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+        ionization_model_conversion_by_species: dict[
+            str,
+            dict[
+                picmistandard.PICMI_Species,
+                dict[GroundStateIonizationModel, pypicongpu.species.constant.ionizationmodel.IonizationModel],
+            ],
+        ],
+    ) -> None:
+        """
+        add ionization models to pypicongpu species
+
+        in PICMI ioniaztion is defined as a list ionization models owned by the simulation, with each ionization model
+        storing its PICMI ion and PICMI ionization electron species.
+
+        In contrast in PyPIConGPU each ion PyPIConGPU species owns a list of ionization models, each storing its
+        PyPIConGPU ionization electron species.
+
+        This creates the problem that upon translation of the PICMI species to an PyPIConGPU species the PyPIConGPU
+        ionization electron species might not exist yet.
+
+        Therefore we leave the ionization electron unspecified upon species creation and fill it in from the PICMI
+        simulation ionization model list later.
+
+        (An because python uses pointers, this will be applied to the existing species objects passed in
+            pypicongpu_by_picmi_species)
+        """
+
+        # groundstate ionization model
+        for species, ionization_model_conversion in ionization_model_conversion_by_species[
+            "ground_state_ionization"
+        ].items():
+            for picmi_ionization_model, pypicongpu_ionization_model in ionization_model_conversion.items():
+                pypicongpu_ionization_electron_species = pypicongpu_by_picmi_species[
+                    picmi_ionization_model.ionization_electron_species
+                ]
+                pypicongpu_ionization_model.ionization_electron_species = pypicongpu_ionization_electron_species
+
+    def has_ground_state_ionization(self, species: Species) -> bool:
+        """does at least one ground state ionization model list species as ion species?"""
+        for ionization_model in self.ground_state_ionization_model_list:
+            if species == ionization_model.ion_species:
+                return True
+        return False
+
+    def has_ionization(self, species: Species) -> bool:
+        """does at least one ionization model list species as ion species?"""
+
+        # add additional groups of ionization models here
+        ionization_configured = self.has_ground_state_ionization(species)
+        return ionization_configured

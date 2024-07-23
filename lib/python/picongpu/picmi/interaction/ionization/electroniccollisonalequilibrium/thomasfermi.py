@@ -5,10 +5,14 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ..ionizationmodel import IonizationModel
+from ..groundstateionizationmodel import GroundStateIonizationModel
+from ..... import pypicongpu
 
 
-class ThomasFermi(IonizationModel):
+class ThomasFermi(GroundStateIonizationModel):
     """thomas fermi ionization model"""
 
     MODEL_NAME: str = "ThomasFermi"
+
+    def get_as_pypicongpu(self) -> pypicongpu.species.constant.ionizationmodel.IonizationModel:
+        return pypicongpu.species.constant.ionizationmodel.ThomasFermi()

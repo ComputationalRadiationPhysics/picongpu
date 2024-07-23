@@ -8,23 +8,22 @@ License: GPLv3+
 # make pypicongpu classes accessible for conversion to pypicongpu
 from .. import pypicongpu
 
-from ..pypicongpu import util
-
 from . import constants
 from .grid import Cartesian3DGrid
-from .species import Species as PicongpuPicmiSpecies
 from .interaction import Interaction
 
 import picmistandard
 
 import math
-import pydantic
+import typeguard
 import pathlib
 import logging
 import typing
 
 
-class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
+# may not use pydantic since inherits from _DocumentedMetaClass
+@typeguard.typechecked
+class Simulation(picmistandard.PICMI_Simulation):
     """
     Simulation as defined by PICMI
 
@@ -32,26 +31,19 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
-    model_config = pydantic.ConfigDict(extra="allow")
-    """
-    set to allow and store additional attributes outside pydantic model validation.
-
-    This ensure that the PICMI defined attributes are also stored in the pydantic instances.
-
-    @attention needs to be the first entry, other wise ignored for some reason
-    """
-
-    picongpu_custom_user_input: typing.Optional[list[pypicongpu.customuserinput.InterfaceCustomUserInput]] = None
+    picongpu_custom_user_input = pypicongpu.util.build_typesafe_property(
+        typing.Optional[list[pypicongpu.customuserinput.InterfaceCustomUserInput]]
+    )
     """
     list of custom user input objects
 
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    picongpu_interaction: typing.Optional[Interaction]
+    picongpu_interaction = pypicongpu.util.build_typesafe_property(typing.Optional[Interaction])
     """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
 
-    picongpu_typical_ppc: typing.Optional[int]
+    picongpu_typical_ppc = pypicongpu.util.build_typesafe_property(typing.Optional[int])
     """
     typical number of particle in a cell in the simulation
 
@@ -60,10 +52,10 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir: str
+    picongpu_template_dir = pypicongpu.util.build_typesafe_property(typing.Optional[str])
     """directory containing templates to use for generating picongpu setups"""
 
-    picongpu_moving_window_move_point: typing.Optional[float]
+    picongpu_moving_window_move_point = pypicongpu.util.build_typesafe_property(typing.Optional[float])
     """
     point a light ray reaches in y from the left border until we begin sliding the simulation window with the speed of
     light
@@ -74,13 +66,13 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         thereby reducing the simulation window size accordingrelative spot at which to start moving the simulation window
     """
 
-    picongpu_moving_window_stop_iteration: typing.Optional[int]
+    picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(typing.Optional[int])
     """iteration, at which to stop moving the simulation window"""
 
-    __runner: typing.Optional[pypicongpu.runner.Runner] = None
-    __electron_species: typing.Optional[pypicongpu.species.Species] = None
+    __runner = pypicongpu.util.build_typesafe_property(typing.Optional[pypicongpu.runner.Runner])
 
-    # @todo remove boiler plate constructor argument list once PICMI switches to pydantic, Brian Marre, 2024
+    # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
+    #   pydantic, Brian Marre, 2024
     def __init__(
         self,
         picongpu_template_dir: typing.Optional[typing.Union[str, pathlib.Path]] = None,
@@ -90,20 +82,17 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         picongpu_interaction: typing.Optional[Interaction] = None,
         **keyword_arguments,
     ):
-        # call pydantic.BaseModel constructor first,
+        # need to call pydantic.BaseModel constructor first,
         #   pydantic class instance must have been initialized before we may call the PICMI super class constructor to
         #   get a properly initialized pydantic model
 
-        # pass pydantic data
-        picongpu_data = {}
-        picongpu_data["picongpu_template_dir"] = picongpu_template_dir
-        picongpu_data["picongpu_typical_ppc"] = picongpu_typical_ppc
-        picongpu_data["picongpu_moving_window_move_point"] = picongpu_moving_window_move_point
-        picongpu_data["picongpu_moving_window_stop_iteration"] = picongpu_moving_window_stop_iteration
-        picongpu_data["picongpu_interaction"] = picongpu_interaction
-
-        ### pydantic.BaseModel init call
-        pydantic.BaseModel.__init__(self, **picongpu_data)
+        self.picongpu_template_dir = picongpu_template_dir
+        self.picongpu_typical_ppc = picongpu_typical_ppc
+        self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
+        self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
+        self.picongpu_interaction = picongpu_interaction
+        self.picongpu_custom_user_input = None
+        self.__runner = None
 
         # second call PICMI __init__ to do PICMI initialization and setting class attribute values outside of pydantic model
         picmistandard.PICMI_Simulation.__init__(self, **keyword_arguments)
@@ -117,9 +106,10 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         ## template_path is valid
         if picongpu_template_dir == "":
             raise ValueError("picongpu_template_dir MUST NOT be empty string")
-        template_path = pathlib.Path(picongpu_template_dir)
-        if template_path.is_dir():
-            raise ValueError("picongpu_template_dir must be existing directory")
+        if picongpu_template_dir is not None:
+            template_path = pathlib.Path(picongpu_template_dir)
+            if template_path.is_dir():
+                raise ValueError("picongpu_template_dir must be existing directory")
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """
@@ -287,50 +277,9 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         all_operations = []
 
         for picmi_species, pypicongpu_species in pypicongpu_by_picmi_species.items():
-            all_operations += picmi_species.get_independent_operations(pypicongpu_species)
+            all_operations += picmi_species.get_independent_operations(pypicongpu_species, self.picongpu_interaction)
 
         return all_operations
-
-    def __fill_ionization_electrons(
-        self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
-    ) -> None:
-        """
-        copy used-electron-relationship from PICMI to PIConGPU species
-
-        Translating a PICMI species to a PyPIConGPU species creates a ionizers
-        constant, but the reference to the used species is missing at this
-        point (b/c the translated species doesn't know the corresponding
-        PyPIConGPU species to be associated to.)
-
-        This method fills the pypicongpu ionizers electron_species from the
-        PICMI picongpu_ionization_electrons attribute.
-        Note that for this the picongpu_ionization_electrons attribute must be
-        already set, probably from __resolve_electrons()
-
-        (An b/c python uses pointers, this will be applied to the existing
-        species objects passed in pypicongpu_by_picmi_species)
-        """
-
-        for picmi_species, pypic_species in pypicongpu_by_picmi_species.items():
-            # only fill ionization electrons if required (by ionizers)
-            if not pypic_species.has_constant_of_type(pypicongpu.species.constant.GroundStateIonization):
-                continue
-
-            assert picmi_species.picongpu_ionization_electrons in pypicongpu_by_picmi_species, (
-                "species {} (set as electrons "
-                "for species {} via picongpu_ionization_species) must be "
-                "explicitly added with add_species()".format(
-                    picmi_species.picongpu_ionization_electrons.name, pypic_species.name
-                )
-            )
-
-            ionizer_model_list = pypic_species.get_constant_by_type(pypicongpu.species.constant.GroundStateIonization)
-            # is pointer -> sets correct species for actual pypicongpu species
-            for model in ionizer_model_list:
-                model.ionization_electron_species = pypicongpu_by_picmi_species[
-                    picmi_species.picongpu_ionization_electrons
-                ]
 
     def __get_init_manager(self) -> pypicongpu.species.InitManager:
         """
@@ -346,11 +295,10 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         """
         initmgr = pypicongpu.species.InitManager()
 
-        # check preconditions
+        # check preconditions, @todo move to picmistandard, Brian Marre 2024
         assert len(self.species) == len(self.layouts)
 
-        # either no layout AND no profile, or both
-        # (also: no ratio without layout and profile)
+        # check either no layout AND no profile, or both and ratio only set if leyout and profile also set
         for layout, picmi_species in zip(self.layouts, self.species):
             profile = picmi_species.initial_distribution
             ratio = picmi_species.density_scale
@@ -360,28 +308,31 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
                 None
             ), "species need BOTH layout AND initial distribution set (or neither)"
 
-            # ratio only set if
+            # ratio only set if, layout and profile are also set
             if ratio is not None:
                 assert (
                     layout is not None and profile is not None
                 ), "layout and initial distribution must be set to use density scale"
 
         # get species list
-        ##
 
-        # note: cache to reuse *exactly the same* object in operations
+        ## @details cache to reuse *exactly the same* object in operations
         pypicongpu_by_picmi_species = {}
+        ionization_model_conversion_by_picmi_species = {}
         for picmi_species in self.species:
-            pypicongpu_species = picmi_species.get_as_pypicongpu()
+            pypicongpu_species, ionization_model_conversion = picmi_species.get_as_pypicongpu()
             pypicongpu_by_picmi_species[picmi_species] = pypicongpu_species
+            ionization_model_conversion_by_picmi_species[picmi_species] = ionization_model_conversion
             initmgr.all_species.append(pypicongpu_species)
 
         # fill inter-species dependencies
-        ##
 
-        # ionization (PICMI species don't know which PyPIConGPU species they
-        # use as electrons)
-        self.__fill_ionization_electrons(pypicongpu_by_picmi_species)
+        # ionization electron species need to be set after species translation is complete since the PyPIConGPU electron
+        #   species is not known by the PICMI ion species
+        if self.picongpu_interaction is not None:
+            self.picongpu_interaction.fill_in_ionization_electrons(
+                pypicongpu_by_picmi_species, ionization_model_conversion_by_picmi_species
+            )
 
         # operations with inter-species dependencies
         ##
@@ -393,97 +344,6 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         initmgr.all_operations += self.__get_operations_from_individual_species(pypicongpu_by_picmi_species)
 
         return initmgr
-
-    def __get_electron_species(self) -> PicongpuPicmiSpecies:
-        """
-        get electron species from existing species or generate new
-
-        PIConGPU requires an explicit electron species, which PICMI assumes to
-        implicitly already exist.
-        This method retrieves an electron species by either reusing an existing
-        one or generating one if missing.
-
-        Approach:
-        - 0 electron species: add one (print INFO log)
-        - 1 electron species: use it
-        - >1 electron species: raise, b/c is ambiguous
-
-        electrons are identified by either mass & charge, or by particle_type.
-        """
-        # use caching, this is method is expensive
-        if self.__electron_species is not None:
-            return self.__electron_species
-
-        all_electrons = []
-        for picmi_species in self.species:
-            if "electron" == picmi_species.particle_type:
-                all_electrons.append(picmi_species)
-            elif (
-                picmi_species.mass is not None
-                and math.isclose(picmi_species.mass, constants.m_e)
-                and picmi_species.charge is not None
-                and math.isclose(picmi_species.charge, -constants.q_e)
-            ):
-                all_electrons.append(picmi_species)
-
-        # exactly one electron species: use it
-        if 1 == len(all_electrons):
-            self.__electron_species = all_electrons[0]
-            return self.__electron_species
-
-        # no electron species: add one
-        if 0 == len(all_electrons):
-            # compute unambiguous name
-            all_species_names = list(map(lambda picmi_species: picmi_species.name, self.species))
-            electrons_name = "e"
-            while electrons_name in all_species_names:
-                electrons_name += "_"
-
-            logging.info(
-                "no electron species for ionization available, creating electrons with name: {}".format(electrons_name)
-            )
-            electrons = PicongpuPicmiSpecies(name=electrons_name, particle_type="electron")
-            self.add_species(electrons, None)
-
-            self.__electron_species = electrons
-            return self.__electron_species
-
-        # ambiguous choice -> raise
-        raise ValueError(
-            "choice of electron species for ionization is ambiguous, please "
-            "set picongpu_ionization_electrons explicitly for ionizable "
-            "species; found electron species: {}".format(
-                ", ".join(map(lambda picmi_species: picmi_species.name, all_electrons))
-            )
-        )
-
-    def __resolve_electrons(self) -> None:
-        """
-        fill missing picongpu_ionization_electrons for ionized species
-
-        PIConGPU needs every electron species set explicitly.
-        For this, PIConGPU PICMI species have a property
-        picongpu_ionization_electrons, which points to another PICMI species
-        to be used for ionization.
-        To be compatible to the native PICMI, this property is not required
-        from the **user**, but it is stillrequired for **translation**.
-
-        This method guesses the value of picongpu_ionization_electrons if they
-        are not set.
-
-        The actual electron selection is implemented in
-        __get_electron_species()
-        """
-        for picmi_species in self.species:
-            # only handle ionized species anyways
-            if not picmi_species.has_ionizers():
-                continue
-
-            # skip if ionization electrons already set (nothing to guess)
-            if picmi_species.picongpu_ionization_electrons is not None:
-                continue
-
-            picmi_species.picongpu_ionization_electrons = self.__get_electron_species()
 
     def write_input_file(
         self, file_name: str, pypicongpu_simulation: typing.Optional[pypicongpu.simulation.Simulation] = None
@@ -507,16 +367,18 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         self.__runner.generate()
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.InterfaceCustomUserInput):
+        """add custom user input to previously stored input"""
         if self.picongpu_custom_user_input is None:
             self.picongpu_custom_user_input = [custom_user_input]
         else:
             self.picongpu_custom_user_input.append(custom_user_input)
 
     def add_interaction(self, interaction) -> None:
-        util.unsupported(
-            "PICMI standard interactions are not supported by PIConGPU, assign an Interaction object to the picongpu_interaction attribute of the simulation instead."
+        pypicongpu.util.unsupported(
+            "PICMI standard interactions are not supported by PIConGPU, use the picongpu specific Interaction object instead"
         )
 
+    # @todo add refactor once restarts are supported by the Runner, Brian Marre, 2024
     def step(self, nsteps: int = 1):
         if nsteps != self.max_steps:
             raise ValueError(
@@ -531,7 +393,7 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         s.delta_t_si = self.time_step_size
         s.solver = self.solver.get_as_pypicongpu()
 
-        # already in pypicongpu objects
+        # already pypicongpu objects, therefore directly passing on
         s.custom_user_input = self.picongpu_custom_user_input
 
         # calculate time step
@@ -542,22 +404,22 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         else:
             raise ValueError("runtime not specified (neither as step count nor max time)")
 
-        util.unsupported("verbose", self.verbose)
-        util.unsupported("particle shape", self.particle_shape, "linear")
-        util.unsupported("gamma boost, use picongpu_moving_window_move_point instead", self.gamma_boost)
+        pypicongpu.util.unsupported("verbose", self.verbose)
+        pypicongpu.util.unsupported("particle shape", self.particle_shape, "linear")
+        pypicongpu.util.unsupported("gamma boost, use picongpu_moving_window_move_point instead", self.gamma_boost)
 
         try:
             s.grid = self.solver.grid.get_as_pypicongpu()
         except AttributeError:
-            util.unsupported(f"grid type: {type(self.solver.grid)}")
+            pypicongpu.util.unsupported(f"grid type: {type(self.solver.grid)}")
 
         # any injection method != None is not supported
         if len(self.laser_injection_methods) != self.laser_injection_methods.count(None):
-            util.unsupported("laser injection method", self.laser_injection_methods, [])
+            pypicongpu.util.unsupported("laser injection method", self.laser_injection_methods, [])
 
         # pypicongpu interface currently only supports one laser, @todo change Brian Marre, 2024
         if len(self.lasers) > 1:
-            util.unsupported("more than one laser")
+            pypicongpu.util.unsupported("more than one laser")
 
         if len(self.lasers) == 1:
             # check requires grid, so grid is translated (and thereby also checked) above
@@ -566,12 +428,9 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
             # explictly disable laser (as required by pypicongpu)
             s.laser = None
 
-        # resolve electrons
-        self.__resolve_electrons()
-
         s.init_manager = self.__get_init_manager()
 
-        # set typical ppc if not overwritten by user
+        # set typical ppc if not set explicitly by user
         if self.picongpu_typical_ppc is None:
             s.typical_ppc = (s.init_manager).get_typical_particle_per_cell()
         else:
@@ -599,7 +458,7 @@ class Simulation(picmistandard.PICMI_Simulation, pydantic.BaseModel):
         self.__runner.build()
         self.__runner.run()
 
-    def picongpu_get_runner(self) -> pypicongpu.runnerRunner:
+    def picongpu_get_runner(self) -> pypicongpu.runner.Runner:
         if self.__runner is None:
             self.__runner = pypicongpu.runnerRunner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         return self.__runner

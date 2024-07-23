@@ -6,13 +6,15 @@ License: GPLv3+
 """
 
 from ...rendering import RenderedObject
-from ... import util
 
+import pydantic
+import typing
 import scipy
 import periodictable
+import re
 
 
-class Element(RenderedObject):
+class Element(RenderedObject, pydantic.BaseModel):
     """
     Denotes an element from the periodic table of elements
 
@@ -27,7 +29,33 @@ class Element(RenderedObject):
     To describe atoms/ions you also need to initialize the charge_state of the species.
     """
 
-    store = util.build_typesafe_propety(periodictable.Element)
+    _store: typing.Optional[periodictable.core.Element] = None
+
+    @staticmethod
+    def parse_openpmd_isotopes(openpmd_name: str) -> tuple[int, str]:
+        if openpmd_name[0] != "#" and re.match(r"[A-Z][a-z]?$|n$", openpmd_name):
+            return None, openpmd_name
+
+        m = re.match(r"#([1-9][0-9]*)([A-Z][a-z]?)$", openpmd_name)
+
+        if m is None:
+            raise ValueError(f"{openpmd_name} is not a valid openPMD isotope descriptor")
+
+        mass_number = int(m.group(1))
+        symbol = m.group(2)
+
+        return mass_number, symbol
+
+    @staticmethod
+    def is_element(openpmd_name: str) -> bool:
+        """does openpmd_name describe an element?"""
+        mass_number, symbol = Element.parse_openpmd_isotopes(openpmd_name)
+
+        for element in periodictable.elements:
+            if symbol == element.symbol:
+                if openpmd_name not in ["n"]:
+                    return True
+        return False
 
     def __init__(self, openpmd_name: str) -> None:
         """
@@ -37,15 +65,21 @@ class Element(RenderedObject):
 
         :return: object representing the given species
         """
+        pydantic.BaseModel.__init__(self)
+
+        mass_number, openpmd_name = Element.parse_openpmd_isotopes(openpmd_name)
 
         # search for name in periodic table
         for element in periodictable.elements:
             if openpmd_name == element.symbol:
-                self.store = element
+                if mass_number is None:
+                    self._store = element
+                else:
+                    self._store = element[mass_number]
                 return
 
         # not found
-        raise NameError("unkown element: {}".format(openpmd_name))
+        raise NameError(f"unknown element: {openpmd_name}")
 
     def get_picongpu_name(self) -> str:
         """
@@ -53,7 +87,9 @@ class Element(RenderedObject):
 
         Used for type name lookups
         """
-        return self.store.name
+        name = self._store.name
+        # element names are capitalized in piconpgu
+        return name[0].upper() + name[1:]
 
     def get_mass_si(self) -> float:
         """
@@ -64,7 +100,7 @@ class Element(RenderedObject):
 
         :return: mass in kg
         """
-        return self.store.mass * scipy.constants.atomic_mass
+        return self._store.mass * scipy.constants.atomic_mass
 
     def get_charge_si(self) -> float:
         """
@@ -74,11 +110,14 @@ class Element(RenderedObject):
 
         :return: charge in C
         """
-        return self.ions[-1] * scipy.constants.elementary_charge
+        return self._store.ions[-1] * scipy.constants.elementary_charge
+
+    def get_atomic_number(self) -> int:
+        return self._store.number
 
     def get_symbol(self) -> str:
         """get symbol"""
-        return self.store.symbol
+        return self._store.symbol
 
     def _get_serialized(self) -> dict:
         return {

@@ -129,7 +129,7 @@ class Species(RenderedObject):
         """
         lookup if constant of given type is present
 
-        Searches through constants of this species and returns true iff a
+        Searches through constants of this species and returns true if a
         constant of the given type is present.
 
         :param needle_type: constant type to look for

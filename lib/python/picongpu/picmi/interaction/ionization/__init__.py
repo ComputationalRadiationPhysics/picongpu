@@ -1,6 +1,10 @@
 from .ionizationmodel import IonizationModel
-from . import ionizationcurrent
+from .groundstateionizationmodel import GroundStateIonizationModel
 from . import fieldionization
-from . import electroniccollisionalequilibrium
 
-__all__ = ["IonizationModel", "ionizationcurrent", "fieldionization", "electroniccollisionalequilibrium"]
+__all__ = [
+    "IonizationModel",
+    "GroundStateIonizationModel",
+    "fieldionization",
+    "electroniccollisionalequilibrium",
+]

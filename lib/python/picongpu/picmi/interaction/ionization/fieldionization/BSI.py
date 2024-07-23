@@ -7,6 +7,11 @@ License: GPLv3+
 
 from .fieldionization import FieldIonization
 
+from .....pypicongpu.species.constant.ionizationcurrent import None_
+from .....pypicongpu.species.constant import ionizationmodel
+
+from ..... import pypicongpu
+
 import enum
 
 
@@ -22,5 +27,19 @@ class BSI(FieldIonization):
 
     MODEL_NAME: str = "BSI"
 
-    BIS_extensions: list[BSIExtension]
+    BSI_extensions: list[BSIExtension]
     """extension to the BSI model"""
+
+    def get_as_pypicongpu(self) -> pypicongpu.species.constant.ionizationmodel.IonizationModel:
+        if self.BSI_extensions == []:
+            return ionizationmodel.BSI(ionization_current=None_)
+
+        if self.BSI_extensions == [BSIExtension.StarkShift]:
+            return ionizationmodel.BSIStarkShifted(ionization_current=None_)
+        if self.BSI_extensions == [BSIExtension.EffectiveZ]:
+            return ionizationmodel.BSIEffectiveZ(ionization_current=None_)
+
+        if len(self.BSI_extensions) > 1:
+            pypicongpu.util.unsupported("more than one BSI_extension")
+        else:
+            pypicongpu.util.unsupported(f"unknown BSI_extension {self.BSI_extensions[0]}")

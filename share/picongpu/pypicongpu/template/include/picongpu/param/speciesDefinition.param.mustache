@@ -78,6 +78,7 @@ namespace picongpu
                 {{#element_properties}}
                     atomicNumbers<ionization::atomicNumbers::{{{element.picongpu_name}}}_t>,
                     ionizationEnergies<ionization::energies::AU::{{{element.picongpu_name}}}_t>,
+                    effectiveNuclearCharge<ionization::effectiveNuclearCharge::{{{element.picongpu_name}}}_t>,
                 {{/element_properties}}
             {{/constants}}
 

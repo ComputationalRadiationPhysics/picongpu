@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 from ...species import Species
+from .... import pypicongpu
 
 import pydantic
 
@@ -21,7 +22,13 @@ class IonizationModel(pydantic.BaseModel):
     """ionization model"""
 
     ion_species: Species
-    """ion species to apply ionization model for"""
+    """PICMI ion species to apply ionization model for"""
 
     ionization_electron_species: Species
-    """electron species of which to create macro particle upon ionization"""
+    """PICMI electron species of which to create macro particle upon ionization"""
+
+    def get_constants(self) -> list[pypicongpu.species.constant.Constant]:
+        raise NotImplementedError("abstract base class only!")
+
+    def get_as_pypicongpu(self) -> pypicongpu.species.constant.ionizationmodel.IonizationModel:
+        raise NotImplementedError("abstract base class only!")

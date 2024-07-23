@@ -45,6 +45,18 @@ class Constant(RenderedObject):
           constant)
     """
 
+    def __eq__(self, other) -> bool:
+        """two constants are equal if the have the same attributes values"""
+        for key in self.__dict__.keys():
+            if key not in other.__dict__:
+                return False
+
+        for key, value in self.__dict__:
+            if self.value != other.__dict__[key]:
+                return False
+
+        return True
+
     def check(self) -> None:
         """
         ensure validity of self
