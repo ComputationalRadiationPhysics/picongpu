@@ -214,7 +214,7 @@ class TestSimulation(unittest.TestCase):
         i.addToCustomInput(self.customData_1[0], self.customData_1[1])
         i.addToCustomInput(self.customData_2[0], self.customData_2[1])
 
-        self.s.add_custom_user_input(i)
+        self.s.custom_user_input = [i]
 
         renderingContextGoodResult = {"test_data_1": 1, "test_data_2": 2, "tags": ["tag_1", "tag_2"]}
         self.assertEqual(renderingContextGoodResult, self.s.get_rendering_context()["customuserinput"])
@@ -226,8 +226,7 @@ class TestSimulation(unittest.TestCase):
         i_1.addToCustomInput(self.customData_1[0], self.customData_1[1])
         i_2.addToCustomInput(self.customData_2[0], self.customData_2[1])
 
-        self.s.add_custom_user_input(i_1)
-        self.s.add_custom_user_input(i_2)
+        self.s.custom_user_input = [i_1, i_2]
 
         renderingContextGoodResult = {"test_data_1": 1, "test_data_2": 2, "tags": ["tag_1", "tag_2"]}
         self.assertEqual(renderingContextGoodResult, self.s.get_rendering_context()["customuserinput"])
@@ -239,8 +238,7 @@ class TestSimulation(unittest.TestCase):
         i_1.addToCustomInput(self.customData_1[0], self.customData_1[1])
         i_2.addToCustomInput(self.customData_2[0], self.customData_1[1])
 
-        self.s.add_custom_user_input(i_1)
-        self.s.add_custom_user_input(i_2)
+        self.s.custom_user_input = [i_1, i_2]
 
         with self.assertRaisesRegex(ValueError, "duplicate tag provided!, tags must be unique!"):
             self.s.get_rendering_context()
@@ -257,10 +255,12 @@ class TestSimulation(unittest.TestCase):
         i_sameValue.addToCustomInput(duplicateKeyData_sameValue, "tag_2")
         i_differentValue.addToCustomInput(duplicateKeyData_differentValue, "tag_3")
 
-        self.s.add_custom_user_input(i)
+        self.s.custom_user_input = [i]
 
         # should work
-        self.s.add_custom_user_input(i_sameValue)
+        self.s.custom_user_input.append(i_sameValue)
+        self.s.get_rendering_context()
+
         with self.assertRaisesRegex(ValueError, "Key test_data_1 exist already, and specified values differ."):
-            self.s.add_custom_user_input(i_differentValue)
+            self.s.custom_user_input.append(i_differentValue)
             self.s.get_rendering_context()

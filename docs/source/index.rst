@@ -122,6 +122,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    dev/py_postprocessing
    dev/debugging
    dev/doxyindex
+   dev/PlantUML
 
 .. toctree::
    :caption: PROGRAMMING PATTERNS

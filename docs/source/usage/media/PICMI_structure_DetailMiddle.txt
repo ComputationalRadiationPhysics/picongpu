@@ -1,0 +1,87 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype polylin
+
+class Simulation{
+    timeStep
+    numberSteps
+    add_species(:Species, :Layout)
+}
+
+package particles{
+    class Species{
+        particle_type
+        charge / initial_charge_state
+        pusher
+        particle_shape
+        species_name
+    }
+
+    class Layout{
+        grid
+        particles_per_cell
+        }
+
+    class random{
+        RNG-seed
+    }
+
+    Simulation "1" o-d-"*" Species : species
+    Species "*" o-- "1" Distribution : initial_distribution
+    Distribution <|-- gaussian_bunch
+    Distribution <|-- uniform
+    Distribution <|-- analytic
+    Distribution <|-- foil
+
+    Species "1" -- "1" Layout : associated layout
+    note on link : add_species(:Species, :Layout)
+
+    Simulation "1" o-- "*" Layout : layouts
+    Layout <|-- gridded
+    Layout <|-- random
+}
+
+package "electro-magnetic field solver" {
+    Simulation o-l- Solver : solver
+    Solver <|-u- Yee
+    Solver <|-u- ArbitraryOrder_FDTD
+    Solver <|-u- Lehe
+}
+
+package grid/geometry{
+    class Grid{
+    fieldBoundaryConditions
+    particleBoundaryConsitions
+    simulation extend
+    numberCells
+    }
+
+    Solver o-- Grid : grid
+    Grid <|-- CartesianGrid
+    Grid <|-- CylindricalGrid
+}
+
+package laser{
+Simulation o-l- Laser : laser
+    Laser <|-u- GaussianLaser
+    Laser <|-u- AnalyticalLaser
+}
+
+package "PIC loop Extensions"{
+    Simulation o-- Interaction : interactions
+    Interaction <|-- FieldIonization
+
+    class FieldIonization{
+        model
+        species1
+        species2
+    }
+}
+
+package output{
+    Simulation o-u- Diagnostic : diagnostics
+    Diagnostic <|-u- FieldDiagnostic
+    Diagnostic <|-u- ParticleDiagnostic
+}
+
+@enduml
