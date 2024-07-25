@@ -320,7 +320,7 @@ class Runner:
     def __build(self):
         """launch build of PIConGPU"""
         chdir(self.setup_dir)
-        runArgs("pic-build", ["pic-build"])
+        runArgs("pic-build", ["pic-build", "-j", "4"])
 
     def __run(self):
         """
