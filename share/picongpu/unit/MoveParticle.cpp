@@ -64,22 +64,22 @@ struct ParticleStub
     int localCellIdxValue = 0;
     int multiMaskValue = 1;
 
-    int& operator[](localCellIdx const)
+    HDINLINE int& operator[](localCellIdx const)
     {
         return localCellIdxValue;
     }
 
-    floatD_X& operator[](position const)
+    HDINLINE floatD_X& operator[](position const)
     {
         return pos;
     }
 
-    int& operator[](multiMask const)
+    HDINLINE int& operator[](multiMask const)
     {
         return multiMaskValue;
     }
 
-    bool operator==(ParticleStub const& other) const
+    HDINLINE bool operator==(ParticleStub const& other) const
     {
         return isApproxEqual(pos, other.pos) && localCellIdxValue == other.localCellIdxValue
             && multiMaskValue == other.multiMaskValue;
