@@ -82,11 +82,11 @@ class Simulation(picmistandard.PICMI_Simulation):
         picongpu_interaction: typing.Optional[Interaction] = None,
         **keyword_arguments,
     ):
-        # need to call pydantic.BaseModel constructor first,
-        #   pydantic class instance must have been initialized before we may call the PICMI super class constructor to
-        #   get a properly initialized pydantic model
+        if picongpu_template_dir is not None:
+            self.picongpu_template_dir = str(picongpu_template_dir)
+        else:
+            self.picongpu_template_dir = picongpu_template_dir
 
-        self.picongpu_template_dir = picongpu_template_dir
         self.picongpu_typical_ppc = picongpu_typical_ppc
         self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
         self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
@@ -108,7 +108,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError("picongpu_template_dir MUST NOT be empty string")
         if picongpu_template_dir is not None:
             template_path = pathlib.Path(picongpu_template_dir)
-            if template_path.is_dir():
+            if not template_path.is_dir():
                 raise ValueError("picongpu_template_dir must be existing directory")
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
@@ -318,11 +318,11 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         ## @details cache to reuse *exactly the same* object in operations
         pypicongpu_by_picmi_species = {}
-        ionization_model_conversion_by_picmi_species = {}
+        ionization_model_conversion_by_species = {}
         for picmi_species in self.species:
-            pypicongpu_species, ionization_model_conversion = picmi_species.get_as_pypicongpu()
+            pypicongpu_species, ionization_model_conversion = picmi_species.get_as_pypicongpu(self.picongpu_interaction)
             pypicongpu_by_picmi_species[picmi_species] = pypicongpu_species
-            ionization_model_conversion_by_picmi_species[picmi_species] = ionization_model_conversion
+            ionization_model_conversion_by_species[picmi_species] = ionization_model_conversion
             initmgr.all_species.append(pypicongpu_species)
 
         # fill inter-species dependencies
@@ -330,8 +330,8 @@ class Simulation(picmistandard.PICMI_Simulation):
         # ionization electron species need to be set after species translation is complete since the PyPIConGPU electron
         #   species is not known by the PICMI ion species
         if self.picongpu_interaction is not None:
-            self.picongpu_interaction.fill_in_ionization_electrons(
-                pypicongpu_by_picmi_species, ionization_model_conversion_by_picmi_species
+            self.picongpu_interaction.fill_in_ionization_electron_species(
+                pypicongpu_by_picmi_species, ionization_model_conversion_by_species
             )
 
         # operations with inter-species dependencies
@@ -363,7 +363,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         if pypicongpu_simulation is None:
             pypicongpu_simulation = self.get_as_pypicongpu()
 
-        self.__runner = pypicongpu.runnerRunner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
+        self.__runner = pypicongpu.runner.Runner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
         self.__runner.generate()
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.InterfaceCustomUserInput):
@@ -453,12 +453,12 @@ class Simulation(picmistandard.PICMI_Simulation):
     def picongpu_run(self) -> None:
         """build and run PIConGPU simulation"""
         if self.__runner is None:
-            self.__runner = pypicongpu.runnerRunner(self.get_as_pypicongpu(), self.picongpu_template_dir)
+            self.__runner = pypicongpu.runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         self.__runner.generate()
         self.__runner.build()
         self.__runner.run()
 
     def picongpu_get_runner(self) -> pypicongpu.runner.Runner:
         if self.__runner is None:
-            self.__runner = pypicongpu.runnerRunner(self.get_as_pypicongpu(), self.picongpu_template_dir)
+            self.__runner = pypicongpu.runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
         return self.__runner

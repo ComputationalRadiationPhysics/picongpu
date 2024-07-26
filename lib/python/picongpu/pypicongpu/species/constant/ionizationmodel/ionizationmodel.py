@@ -12,8 +12,10 @@ from ..elementproperties import ElementProperties
 
 import pydantic
 import typing
+import typeguard
 
 
+@typeguard.typechecked
 class IonizationModel(pydantic.BaseModel, Constant):
     """
     base class for an ground state only ionization models of an ion species
@@ -86,7 +88,7 @@ class IonizationModel(pydantic.BaseModel, Constant):
             ionization_current=self.ionization_current,
         ).get_rendering_context()
 
-    def get_species_dependencies(self) -> list[type]:
+    def get_species_dependencies(self) -> list[typing.Any]:
         self.check()
         return [self.ionization_electron_species]
 

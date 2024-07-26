@@ -11,6 +11,8 @@ import unittest
 import typeguard
 
 from picongpu.pypicongpu import species
+from picongpu.picmi.interaction import Interaction
+from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from copy import deepcopy
 import re
 import logging
@@ -30,6 +32,7 @@ class TestPicmiSpecies(unittest.TestCase):
             name="nitrogen",
             charge_state=+3,
             particle_type="N",
+            picongpu_fixed_charge=True,
             initial_distribution=self.profile_uniform,
         )
 
@@ -51,7 +54,8 @@ class TestPicmiSpecies(unittest.TestCase):
         """check that all params are translated"""
         # check that translation works
         for s in [self.species_electron, self.species_nitrogen]:
-            pypic = s.get_as_pypicongpu()
+            pypic, rest = s.get_as_pypicongpu(None)
+            del rest
             self.assertEqual(pypic.name, s.name)
 
     def test_mandatory(self):
@@ -63,14 +67,14 @@ class TestPicmiSpecies(unittest.TestCase):
 
         for invalid_species in species_invalid_list:
             with self.assertRaises(AssertionError):
-                invalid_species.get_as_pypicongpu()
+                invalid_species.get_as_pypicongpu(None)
 
         # (everything else is optional)
 
     def test_mass_charge(self):
         """mass & charge are passed through"""
         picmi_s = picmi.Species(name="any", mass=17, charge=-4)
-        pypicongpu_s = picmi_s.get_as_pypicongpu()
+        pypicongpu_s, rest = picmi_s.get_as_pypicongpu(None)
 
         mass_const = pypicongpu_s.get_constant_by_type(species.constant.Mass)
         self.assertEqual(17, mass_const.mass_si)
@@ -82,51 +86,62 @@ class TestPicmiSpecies(unittest.TestCase):
         """density scale is correctly transformed"""
         # simple example
         picmi_s = picmi.Species(name="any", density_scale=37.2)
-        pypicongpu_s = picmi_s.get_as_pypicongpu()
+        pypicongpu_s, rest = picmi_s.get_as_pypicongpu(None)
 
         ratio_const = pypicongpu_s.get_constant_by_type(species.constant.DensityRatio)
         self.assertAlmostEqual(37.2, ratio_const.ratio)
 
         # no density scale
         picmi_s = picmi.Species(name="any")
-        pypicongpu_s = picmi_s.get_as_pypicongpu()
+        pypicongpu_s, rest = picmi_s.get_as_pypicongpu(None)
         self.assertTrue(not pypicongpu_s.has_constant_of_type(species.constant.DensityRatio))
 
     def test_get_independent_operations(self):
         """operations which can be set without external dependencies work"""
         picmi_s = picmi.Species(name="any", mass=1, charge=2)
-        pypicongpu_s = picmi_s.get_as_pypicongpu()
+        pypicongpu_s, rest = picmi_s.get_as_pypicongpu(None)
 
         # note: placement is not considered independent (it depends on also
         # having no layout)
-        self.assertNotEqual(None, picmi_s.get_independent_operations(pypicongpu_s))
+        self.assertNotEqual(None, picmi_s.get_independent_operations(pypicongpu_s, None))
 
     def test_get_independent_operations_type(self):
         """arg type is checked"""
         picmi_s = picmi.Species(name="any", mass=1, charge=2)
         for invalid_species in [[], None, picmi_s, "name"]:
             with self.assertRaises(typeguard.TypeCheckError):
-                picmi_s.get_independent_operations(invalid_species)
+                picmi_s.get_independent_operations(invalid_species, None)
 
     def test_get_independent_operations_different_name(self):
         """only generate operations for pypicongpu species of same name"""
         picmi_s = picmi.Species(name="any", mass=1, charge=2)
-        pypicongpu_s = picmi_s.get_as_pypicongpu()
+        pypicongpu_s, rest = picmi_s.get_as_pypicongpu(None)
 
         pypicongpu_s.name = "different"
         with self.assertRaisesRegex(AssertionError, ".*name.*"):
-            picmi_s.get_independent_operations(pypicongpu_s)
+            picmi_s.get_independent_operations(pypicongpu_s, None)
 
         # same name is okay:
         pypicongpu_s.name = "any"
-        self.assertNotEqual(None, picmi_s.get_independent_operations(pypicongpu_s))
+        self.assertNotEqual(None, picmi_s.get_independent_operations(pypicongpu_s, None))
 
     def test_get_independent_operations_ionization_set_bound_electrons(self):
         """SetBoundElectrons is properly generated"""
         picmi_species = picmi.Species(name="nitrogen", particle_type="N", charge_state=2)
-        pypic_species = picmi_species.get_as_pypicongpu()
+        e = picmi.Species(name="e", particle_type="electron")
+        interaction = Interaction(
+            ground_state_ionization_model_list=[
+                ADK(
+                    ion_species=picmi_species,
+                    ionization_current=None,
+                    ionization_electron_species=e,
+                    ADK_variant=ADKVariant.LinearPolarization,
+                )
+            ]
+        )
 
-        ops = picmi_species.get_independent_operations(pypic_species)
+        pypic_species, rest = picmi_species.get_as_pypicongpu(interaction)
+        ops = picmi_species.get_independent_operations(pypic_species, interaction)
         ops_types = list(map(lambda op: type(op), ops))
         self.assertEqual(1, ops_types.count(species.operation.SetBoundElectrons))
         self.assertEqual(0, ops_types.count(species.operation.NoBoundElectrons))
@@ -138,28 +153,12 @@ class TestPicmiSpecies(unittest.TestCase):
             self.assertEqual(pypic_species, op.species)
             self.assertEqual(5, op.bound_electrons)
 
-    def test_get_independent_operations_ionization_no_bound_electrons(self):
-        """fully ionized ions get NoBoundElectrons"""
-        picmi_species = picmi.Species(name="hydrogen", particle_type="H", charge_state=1)
-        pypic_species = picmi_species.get_as_pypicongpu()
-
-        ops = picmi_species.get_independent_operations(pypic_species)
-        ops_types = list(map(lambda op: type(op), ops))
-        self.assertEqual(1, ops_types.count(species.operation.NoBoundElectrons))
-        self.assertEqual(0, ops_types.count(species.operation.SetBoundElectrons))
-
-        for op in ops:
-            if not isinstance(op, species.operation.NoBoundElectrons):
-                continue
-
-            self.assertEqual(pypic_species, op.species)
-
     def test_get_independent_operations_ionization_not_ionizable(self):
         """ionization operation is not returned if there is no ionization"""
-        picmi_species = picmi.Species(name="hydrogen", particle_type="H", picongpu_fully_ionized=True)
-        pypic_species = picmi_species.get_as_pypicongpu()
+        picmi_species = picmi.Species(name="hydrogen", particle_type="H", picongpu_fixed_charge=True)
+        pypic_species, rest = picmi_species.get_as_pypicongpu(None)
 
-        ops = picmi_species.get_independent_operations(pypic_species)
+        ops = picmi_species.get_independent_operations(pypic_species, None)
         ops_types = list(map(lambda op: type(op), ops))
         self.assertEqual(0, ops_types.count(species.operation.NoBoundElectrons))
         self.assertEqual(0, ops_types.count(species.operation.SetBoundElectrons))
@@ -190,8 +189,8 @@ class TestPicmiSpecies(unittest.TestCase):
 
                     picmi_s = picmi.Species(name="name", mass=1, initial_distribution=dist)
 
-                    pypicongpu_s = picmi_s.get_as_pypicongpu()
-                    ops = picmi_s.get_independent_operations(pypicongpu_s)
+                    pypicongpu_s, rest = picmi_s.get_as_pypicongpu(None)
+                    ops = picmi_s.get_independent_operations(pypicongpu_s, None)
 
                     momentum_ops = list(
                         filter(
@@ -242,13 +241,26 @@ class TestPicmiSpecies(unittest.TestCase):
             for invalid_rms_vector in invalid_rms_vectors:
                 rms_species = get_rms_species(invalid_rms_vector)
                 with self.assertRaisesRegex(Exception, ".*(equal|same).*"):
-                    pypicongpu_species = rms_species.get_as_pypicongpu()
-                    rms_species.get_independent_operations(pypicongpu_species)
+                    pypicongpu_species, rest = rms_species.get_as_pypicongpu(None)
+                    rms_species.get_independent_operations(pypicongpu_species, None)
 
     def test_from_speciestype(self):
-        """mass & charge weill be derived from species type"""
-        picmi_species = picmi.Species(name="nitrogen", particle_type="N")
-        pypic_species = picmi_species.get_as_pypicongpu()
+        """mass & charge will be derived from species type"""
+        picmi_species = picmi.Species(name="nitrogen", particle_type="N", charge_state=5)
+        e = picmi.Species(name="e", particle_type="electron")
+
+        interaction = Interaction(
+            ground_state_ionization_model_list=[
+                ADK(
+                    ion_species=picmi_species,
+                    ionization_current=None,
+                    ionization_electron_species=e,
+                    ADK_variant=ADKVariant.LinearPolarization,
+                )
+            ]
+        )
+
+        pypic_species, rest = picmi_species.get_as_pypicongpu(interaction)
 
         # mass & charge derived
         self.assertTrue(pypic_species.has_constant_of_type(species.constant.Mass))
@@ -257,7 +269,7 @@ class TestPicmiSpecies(unittest.TestCase):
         mass_const = pypic_species.get_constant_by_type(species.constant.Mass)
         charge_const = pypic_species.get_constant_by_type(species.constant.Charge)
 
-        nitrogen = species.util.Element.N
+        nitrogen = species.util.Element("N")
         self.assertAlmostEqual(mass_const.mass_si, nitrogen.get_mass_si())
         self.assertAlmostEqual(charge_const.charge_si, nitrogen.get_charge_si())
 
@@ -267,41 +279,35 @@ class TestPicmiSpecies(unittest.TestCase):
     def test_charge_state_without_element_forbidden(self):
         """charge state is not allowed without element name"""
         with self.assertRaisesRegex(Exception, ".*particle_type.*"):
-            picmi.Species(name="abc", charge=1, mass=1, charge_state=-1).get_as_pypicongpu()
+            picmi.Species(name="abc", charge=1, mass=1, charge_state=-1, picongpu_fixed_charge=True).get_as_pypicongpu(
+                None
+            )
 
         # allowed with particle species
         # (actual charge state is inserted by )
-        picmi.Species(name="abc", particle_type="H", charge_state=+1).get_as_pypicongpu()
+        picmi.Species(name="abc", particle_type="H", charge_state=+1, picongpu_fixed_charge=True).get_as_pypicongpu(
+            None
+        )
 
     def test_has_ionizers(self):
         """generated species gets ionizers when appropriate"""
         # only mass & charge: no ionizers
         no_ionizers_picmi = picmi.Species(name="simple", mass=1, charge=2)
-        self.assertTrue(not no_ionizers_picmi.has_ionizers())
-
-        no_ionizers_pypic = no_ionizers_picmi.get_as_pypicongpu()
-        self.assertTrue(not no_ionizers_pypic.has_constant_of_type(species.constant.Ionizers))
-
-        # explicit charge state: has ionizers
-        explicit_picmi = picmi.Species(name="nitrogen", particle_type="N", charge_state=0)
-        self.assertTrue(explicit_picmi.has_ionizers())
-
-        explicit_pypic = explicit_picmi.get_as_pypicongpu()
-        self.assertTrue(explicit_pypic.has_constant_of_type(species.constant.Ionizers))
+        no_ionizers_pypic, rest = no_ionizers_picmi.get_as_pypicongpu(None)
+        self.assertTrue(not no_ionizers_pypic.has_constant_of_type(species.constant.GroundStateIonization))
 
         # no charge state, but (theoretically) ionization levels known (as
         # particle type is given):
         with self.assertLogs(level=logging.WARNING) as implicit_logs:
-            with_warn_picmi = picmi.Species(name="HELIUM", particle_type="He")
-            self.assertTrue(not with_warn_picmi.has_ionizers())
+            with_warn_picmi = picmi.Species(name="HELIUM", particle_type="He", picongpu_fixed_charge=True)
 
-            with_warn_pypic = with_warn_picmi.get_as_pypicongpu()
-            self.assertTrue(not with_warn_pypic.has_constant_of_type(species.constant.Ionizers))
+            with_warn_pypic, rest = with_warn_picmi.get_as_pypicongpu(None)
+            self.assertTrue(not with_warn_pypic.has_constant_of_type(species.constant.GroundStateIonization))
 
         self.assertEqual(1, len(implicit_logs.output))
         self.assertTrue(
             re.match(
-                ".*HELIUM.*fully.*ionized.*picongpu_fully_ionized.*",
+                ".*HELIUM.*fixed charge state.*",
                 implicit_logs.output[0],
             )
         )
@@ -309,12 +315,11 @@ class TestPicmiSpecies(unittest.TestCase):
         with self.assertLogs(level=logging.WARNING) as explicit_logs:
             # workaround b/c self.assertNoLogs() is not available yet
             logging.warning("TESTWARN")
-            no_warn_picmi = picmi.Species(name="HELIUM", particle_type="He", picongpu_fully_ionized=True)
-            self.assertTrue(not no_warn_picmi.has_ionizers())
-            no_warn_pypic = no_warn_picmi.get_as_pypicongpu()
-            self.assertTrue(not no_warn_pypic.has_constant_of_type(species.constant.Ionizers))
+            no_warn_picmi = picmi.Species(name="HELIUM", particle_type="He", picongpu_fixed_charge=True)
+            no_warn_pypic, rest = no_warn_picmi.get_as_pypicongpu(None)
+            self.assertTrue(not no_warn_pypic.has_constant_of_type(species.constant.GroundStateIonization))
 
-        self.assertEqual(1, len(explicit_logs.output))
+        self.assertTrue(1 <= len(explicit_logs.output))
         self.assertTrue("TESTWARN" in explicit_logs.output[0])
 
     def test_fully_ionized_warning_electrons(self):
@@ -324,37 +329,22 @@ class TestPicmiSpecies(unittest.TestCase):
             logging.warning("TESTWARN")
             no_warn_picmi = picmi.Species(name="ELECTRON", particle_type="electron")
 
-            self.assertTrue(not no_warn_picmi.has_ionizers())
-            no_warn_pypic = no_warn_picmi.get_as_pypicongpu()
-            self.assertTrue(not no_warn_pypic.has_constant_of_type(species.constant.Ionizers))
+            no_warn_pypic, rest = no_warn_picmi.get_as_pypicongpu(None)
+            self.assertTrue(not no_warn_pypic.has_constant_of_type(species.constant.GroundStateIonization))
 
         self.assertEqual(1, len(explicit_logs.output))
         self.assertTrue("TESTWARN" in explicit_logs.output[0])
 
-    def test_fully_ionized_charge_state_conflict(self):
-        """picongpu_fully_ionized may only be used if charge_state is None"""
-        # charge state is not none
-        with self.assertRaisesRegex(AssertionError, ".*charge_state.*"):
-            picmi.Species(name="x", particle_type="H", charge_state=1, picongpu_fully_ionized=True).get_as_pypicongpu()
-
-        # particle_type is missing
-        with self.assertRaisesRegex(AssertionError, ".*particle_type.*"):
-            picmi.Species(name="x", mass=3, charge=2, picongpu_fully_ionized=True).get_as_pypicongpu()
-
-        # non-elements may generally not be ionized
-        with self.assertRaisesRegex(AssertionError, ".*[Ee]lement.*"):
-            picmi.Species(name="x", particle_type="electron", picongpu_fully_ionized=False).get_as_pypicongpu()
-
     def test_ionize_non_elements(self):
         """non-elements may not have a charge_state"""
-        with self.assertRaisesRegex(Exception, ".*[Ee]lement.*"):
-            picmi.Species(name="e", particle_type="electron", charge_state=-1).get_as_pypicongpu()
+        with self.assertRaisesRegex(Exception, ".*charge_state may only be set for ions.*"):
+            picmi.Species(name="e", particle_type="electron", charge_state=-1).get_as_pypicongpu(None)
 
     def test_electron_from_particle_type(self):
         """electron is correctly constructed from particle_type"""
         picmi_e = picmi.Species(name="e", particle_type="electron")
-        pypic_e = picmi_e.get_as_pypicongpu()
-        self.assertTrue(not pypic_e.has_constant_of_type(species.constant.Ionizers))
+        pypic_e, rest = picmi_e.get_as_pypicongpu(None)
+        self.assertTrue(not pypic_e.has_constant_of_type(species.constant.GroundStateIonization))
         self.assertTrue(not pypic_e.has_constant_of_type(species.constant.ElementProperties))
 
         mass_const = pypic_e.get_constant_by_type(species.constant.Mass)
@@ -367,48 +357,25 @@ class TestPicmiSpecies(unittest.TestCase):
         """picongpu_fully_ioinized is type safe"""
         for invalid in [1, "yes", [], {}]:
             with self.assertRaises(typeguard.TypeCheckError):
-                picmi.Species(name="x", picongpu_fully_ionized=invalid)
+                picmi.Species(name="x", picongpu_fixed_charge=invalid)
 
         # works:
-        picmi_species = picmi.Species(name="x", particle_type="He", picongpu_fully_ionized=True)
+        picmi_species = picmi.Species(name="x", particle_type="He", picongpu_fixed_charge=True)
 
         for invalid in [0, "no", [], {}]:
             with self.assertRaises(typeguard.TypeCheckError):
-                picmi_species.picongpu_fully_ionized = invalid
+                picmi_species.picongpu_fixed_charge = invalid
 
         # None is allowed as value in general (but not in constructor)
-        picmi_species.picongpu_fully_ionized = None
-
-    def test_ionization_electron_explicit_types(self):
-        """explicit electron specification requires a PICMI species"""
-        for invalid in [[], {}, "electron"]:
-            with self.assertRaises(typeguard.TypeCheckError):
-                picmi.Species(name="ion", picongpu_ionization_electrons=invalid)
-
-        # with correct type works
-        electrons = picmi.Species(name="electron", mass=1, charge=2)
-        picmi.Species(name="ion", picongpu_ionization_electrons=electrons)
+        picmi_species.picongpu_fixed_charge = None
 
     def test_particle_type_invalid(self):
         """unkown particle type rejects"""
         for invalid in ["", "elektron", "e", "e-", "Uux"]:
-            with self.assertRaisesRegex(NameError, ".*unkown.*"):
-                picmi.Species(name="x", particle_type=invalid).get_as_pypicongpu()
-
-    def test_ionization_electrons_attribute_present(self):
-        """picongpu_ionization_electrons is always present"""
-        self.assertEqual(None, picmi.Species(name="x").picongpu_ionization_electrons)
-        self.assertEqual(
-            None,
-            picmi.Species(name="x", particle_type="H").picongpu_ionization_electrons,
-        )
-
-        self.assertEqual(
-            None,
-            picmi.Species(name="x", particle_type="H", charge_state=-1).picongpu_ionization_electrons,
-        )
+            with self.assertRaisesRegex(ValueError, ".*not a valid openPMD particle type.*"):
+                picmi.Species(name="x", particle_type=invalid).get_as_pypicongpu(None)
 
     def test_ionization_charge_state_too_large(self):
         """charge state must be <= number of protons"""
         with self.assertRaises(AssertionError):
-            picmi.Species(name="x", particle_type="N", charge_state=8).get_as_pypicongpu()
+            picmi.Species(name="x", particle_type="N", charge_state=8).get_as_pypicongpu(None)

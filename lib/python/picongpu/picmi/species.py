@@ -8,161 +8,25 @@ License: GPLv3+
 from .. import pypicongpu
 from ..pypicongpu.species.util.element import Element
 from .interaction import InteractionInterface
+from .predefinedparticletypeproperties import non_element_particle_type_properties, _PropertyTuple
 
 import picmistandard
 
 import typing
+import typeguard
 import pydantic
 import pydantic_core
-import collections
 import logging
 import re
 
 from scipy import constants as consts
-import pdg
 
 
+@typeguard.typechecked
 class Species(picmistandard.PICMI_Species):
     """PICMI object for a (single) particle species"""
 
-    _PropertyTuple: collections.namedtuple = collections.namedtuple("_PropertyTuple", ["mass", "charge"])
-
-    # based on 2024 Particle data Group values
-    _quarks = {
-        "up": _PropertyTuple(
-            mass=2.16e6 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=2.0 / 3.0 * consts.elementary_charge,
-        ),
-        "charm": _PropertyTuple(
-            mass=1.2730e9 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=2.0 / 3.0 * consts.elementary_charge,
-        ),
-        "top": _PropertyTuple(
-            mass=172.57e9 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=2.0 / 3.0 * consts.elementary_charge,
-        ),
-        "down": _PropertyTuple(
-            mass=4.70e6 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=-1.0 / 3.0 * consts.elementary_charge,
-        ),
-        "strange": _PropertyTuple(
-            mass=93.5 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=-1.0 / 3.0 * consts.elementary_charge,
-        ),
-        "bottom": _PropertyTuple(
-            mass=4.138 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=-1.0 / 3.0 * consts.elementary_charge,
-        ),
-        "anti-up": _PropertyTuple(
-            mass=2.16e6 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=-2.0 / 3.0 * consts.elementary_charge,
-        ),
-        "anti-charm": _PropertyTuple(
-            mass=1.2730e9 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=-2.0 / 3.0 * consts.elementary_charge,
-        ),
-        "anti-top": _PropertyTuple(
-            mass=172.57e9 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=-2.0 / 3.0 * consts.elementary_charge,
-        ),
-        "anti-down": _PropertyTuple(
-            mass=4.70e6 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=1.0 / 3.0 * consts.elementary_charge,
-        ),
-        "anti-strange": _PropertyTuple(
-            mass=93.5 * consts.elementary_charge / consts.speed_of_light**2, charge=1.0 / 3.0 * consts.elementary_charge
-        ),
-        "anti-bottom": _PropertyTuple(
-            mass=4.138 * consts.elementary_charge / consts.speed_of_light**2,
-            charge=1.0 / 3.0 * consts.elementary_charge,
-        ),
-    }
-
-    _leptons = {
-        "electron": _PropertyTuple(mass=consts.electron_mass, charge=-consts.elementary_charge),
-        "muon": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("mu-").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("mu-").charge * consts.elementary_charge,
-        ),
-        "tau": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("tau-").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("tau-").charge * consts.elementary_charge,
-        ),
-        "positron": _PropertyTuple(mass=consts.electron_mass, charge=consts.elementary_charge),
-        "anti-muon": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("mu+").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("mu+").charge * consts.elementary_charge,
-        ),
-        "anti-tau": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("tau+").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("tau+").charge * consts.elementary_charge,
-        ),
-    }
-
-    _nucleons = {
-        "proton": _PropertyTuple(mass=consts.proton_mass, charge=consts.elementary_charge),
-        "anti-proton": _PropertyTuple(mass=consts.proton_mass, charge=-consts.elementary_charge),
-        "neutron": _PropertyTuple(mass=consts.neutron_mass, charge=None),
-        "anti-neutron": _PropertyTuple(mass=consts.neutron_mass, charge=None),
-    }
-
-    _neutrinos = {
-        "electron-neutrino": _PropertyTuple(mass=0.0, charge=0.0),
-        "muon-neutrino": _PropertyTuple(mass=0.0, charge=0.0),
-        "tau-neutrino": _PropertyTuple(mass=0.0, charge=0.0),
-        "anti-electron-neutrino": _PropertyTuple(mass=0.0, charge=0.0),
-        "anti-muon-neutrino": _PropertyTuple(mass=0.0, charge=0.0),
-        "anti-tau-neutrino": _PropertyTuple(mass=0.0, charge=0.0),
-    }
-
-    _gauge_bosons = {
-        "photon": _PropertyTuple(mass=0.0, charge=0.0),
-        "gluon": _PropertyTuple(mass=0.0, charge=0.0),
-        "w-plus-boson": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("W+").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("W+").charge * consts.elementary_charge,
-        ),
-        "w-minus-boson": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("W-").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("W-").charge * consts.elementary_charge,
-        ),
-        "z-boson": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("Z").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("Z").charge * consts.elementary_charge,
-        ),
-        "higgs": _PropertyTuple(
-            mass=pdg.connect().get_particle_by_name("H").mass
-            * 1e9
-            * consts.elementary_charge
-            / consts.speed_of_light**2,
-            charge=pdg.connect().get_particle_by_name("H").charge * consts.elementary_charge,
-        ),
-    }
-
-    __non_element_particle_type_properties = (
-        ({}).update(_quarks).update(_leptons).update(_nucleons).update(_neutrinos).update(_gauge_bosons)
-    )
+    __non_element_particle_type_properties = non_element_particle_type_properties
     """
     mass/charge to use when passed a non-element particle_type
 
@@ -177,10 +41,11 @@ class Species(picmistandard.PICMI_Species):
 
     picongpu_fixed_charge = pypicongpu.util.build_typesafe_property(typing.Optional[bool])
 
-    interactions = pypicongpu.util.build_typesafe_property(type(None))
+    interactions = pypicongpu.util.build_typesafe_property(typing.Optional[list[None]])
     """overwrite base class interactions to disallow setting them"""
 
     __warned_already: bool = False
+    __previous_check: bool = False
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -228,7 +93,7 @@ class Species(picmistandard.PICMI_Species):
         self.picongpu_element = None
 
         # let PICMI class handle remaining init
-        picmistandard.PICMI_Species.__init__(**keyword_arguments)
+        picmistandard.PICMI_Species.__init__(self, **keyword_arguments)
 
     @staticmethod
     def __get_temperature_kev_by_rms_velocity(
@@ -297,12 +162,15 @@ class Species(picmistandard.PICMI_Species):
                 # unknown particle type
                 raise ValueError(f"Species {self.name} has unknown particle type {self.particle_type}")
 
-    def has_ionization(self, interaction: InteractionInterface) -> bool:
+    def has_ionization(self, interaction: InteractionInterface | None) -> bool:
         """does species have ionization configured?"""
         if interaction is None:
             return False
         if interaction.has_ionization(self):
             return True
+
+        # to get typecheck to shut up
+        return False
 
     def is_ion(self) -> bool:
         """
@@ -315,7 +183,7 @@ class Species(picmistandard.PICMI_Species):
             return False
         return True
 
-    def __check_ionization_configuration(self, interaction: InteractionInterface) -> None:
+    def __check_ionization_configuration(self, interaction: InteractionInterface | None) -> None:
         """
         check species ioniaztion- and species- configuration are compatible
 
@@ -346,6 +214,13 @@ class Species(picmistandard.PICMI_Species):
                 ), f"Species {self.name} configured with fixed charge state but particle_type indicates non ion"
             elif Element.is_element(self.particle_type):
                 # ion
+
+                # check for unphysical charge state
+                if self.charge_state is not None:
+                    assert (
+                        Element(self.particle_type).get_atomic_number() >= self.charge_state
+                    ), f"Species {self.name} intial charge state is unphysical"
+
                 if self.has_ionization(interaction):
                     assert not self.picongpu_fixed_charge, (
                         f"Species {self.name} configured both as fixed charge ion and ion with ionization, may be "
@@ -369,33 +244,39 @@ class Species(picmistandard.PICMI_Species):
                         )
                         self.__warned_already = True
 
-                    # charge_state may be set or None indicating some fixed number of bound electrons or fully ion
+                    # charge_state may be set or None indicating some fixed number of bound electrons or fully ionized
+                    #   ion
             else:
                 # unknown particle type
                 raise ValueError(f"unknown particle type {self.particle_type} in species {self.name}")
 
-    def __check_interaction_configuration(self, interaction: InteractionInterface) -> None:
+    def __check_interaction_configuration(self, interaction: InteractionInterface | None) -> None:
         """check all interactions sub groups for compatibility with this species configuration"""
         self.__check_ionization_configuration(interaction)
 
-    def check(self, interaction: InteractionInterface) -> None:
+    def check(self, interaction: InteractionInterface | None) -> None:
         assert self.name is not None, "picongpu requires each species to have a name set."
 
         # check charge and mass explicitly set/not set depending on particle_type
         if (self.particle_type is None) or re.match(r"other:.*", self.particle_type):
+            # custom species may not have mass or charge
+            pass
+        elif not self.__previous_check:
             assert (
-                self.charge is not None
-            ), "charge must be set explicitly if no particle type or custom particle type is specified"
+                self.charge is None
+            ), f"Species' {self.name}, charge is specified implicitly via particle type, do NOT set charge explictly"
             assert (
-                self.mass is not None
-            ), "mass must be set explicitly if no particle type or custom particle type is specified"
-        else:
-            assert self.charge is None, "charge is specify implicitly via particle type, do NOT set charge explictly"
-            assert self.mass is None, "mass is specify implicitly via particle type, do NOT set mass explictly"
+                self.mass is None
+            ), f"Species' {self.name}, mass is specified implicitly via particle type, do NOT set mass explictly"
 
         self.__check_interaction_configuration(interaction)
+        self.__previous_check = True
 
-    def get_as_pypicongpu(self, interaction: InteractionInterface) -> pypicongpu.species.Species:
+    def get_as_pypicongpu(
+        self, interaction: InteractionInterface | None
+    ) -> tuple[
+        pypicongpu.species.Species, None | dict[typing.Any, pypicongpu.species.constant.ionizationmodel.IonizationModel]
+    ]:
         """
         translate PICMI species object to equivalent PyPIConGPU species object
 
@@ -447,11 +328,13 @@ class Species(picmistandard.PICMI_Species):
         if interaction is not None:
             interaction_constants, pypicongpu_model_by_picmi_model = interaction.get_interaction_constants(self)
             s.constants.extend(interaction_constants)
+        else:
+            pypicongpu_model_by_picmi_model = None
 
         return s, pypicongpu_model_by_picmi_model
 
     def get_independent_operations(
-        self, pypicongpu_species: pypicongpu.species.Species, interaction: InteractionInterface
+        self, pypicongpu_species: pypicongpu.species.Species, interaction: InteractionInterface | None
     ) -> list[pypicongpu.species.operation.Operation]:
         # assure consistent state of species
         self.check(interaction)

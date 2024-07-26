@@ -104,7 +104,7 @@ class TestSetBoundElectrons(unittest.TestCase):
 
         # without constants does not pass:
         sbe.species.constants = []
-        with self.assertRaisesRegex(AssertionError, ".*[Ii]onizers.*"):
+        with self.assertRaisesRegex(AssertionError, ".*BoundElectrons requires GroundStateIonization.*"):
             sbe.check_preconditions()
 
     def test_values(self):
@@ -137,9 +137,11 @@ class TestSetBoundElectrons(unittest.TestCase):
 
         ion = Species()
         ion.name = "ion"
-        ionizers_const = GroundStateIonization()
-        ionizers_const.electron_species = electron
-        ion.constants = [ionizers_const]
+        ion.constants = [
+            GroundStateIonization(
+                ionization_model_list=[BSI(ionization_electron_species=electron, ionization_current=None_())]
+            ),
+        ]
         ion.attributes = [Position(), Momentum(), BoundElectrons()]
 
         # can be rendered

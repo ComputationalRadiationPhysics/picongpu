@@ -333,7 +333,7 @@ class Runner:
         chdir(self.setup_dir)
         runArgs(
             "PIConGPU",
-            "tbg -s bash -c etc/picongpu/N.cfg -t " "etc/picongpu/bash/mpiexec.tpl".split(" ") + [self.run_dir],
+            r"tbg -s bash -c etc/picongpu/N.cfg -t $PIC_SYSTEM_TEMPLATE_PATH/mpiexec.tpl".split(" ") + [self.run_dir],
         )
 
     def generate(self, printDirToConsole=False):

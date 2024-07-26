@@ -7,13 +7,15 @@ License: GPLv3+
 
 from ... import pypicongpu
 
-from .ionization.groundstateionizationmodel import GroundStateIonizationModel
+from .ionization.groundstateionizationmodel import GroundStateIonizationModel, IonizationModel
 from .interactioninterface import InteractionInterface
 from ..species import Species
 
 import picmistandard
+import typeguard
 
 
+@typeguard.typechecked
 class Interaction(InteractionInterface):
     """
     Common interface of Particle-In-Cell particle interaction extensions
@@ -37,7 +39,7 @@ class Interaction(InteractionInterface):
     @staticmethod
     def update_constant_list(
         existing_list: list[pypicongpu.species.constant.Constant],
-        new_list: dict[str, pypicongpu.species.constant.Constant],
+        new_list: list[pypicongpu.species.constant.Constant],
     ) -> None:
         """check if dicts may be merged without overwriting previously set values"""
 
@@ -62,38 +64,37 @@ class Interaction(InteractionInterface):
         existing_list.extend(new_constant_list)
 
     def get_interaction_constants(
-        self, species: picmistandard.PICMI_Species
-    ) -> list[pypicongpu.species.constant.Constant]:
+        self, picmi_species: picmistandard.PICMI_Species
+    ) -> tuple[
+        list[pypicongpu.species.constant.Constant],
+        dict[IonizationModel, pypicongpu.species.constant.ionizationmodel.IonizationModel],
+    ]:
         """get list of all constants required by interactions for the given species"""
 
         constant_list = []
-        ground_state_model_conversion = {}
+        ionization_model_conversion = {}
         for model in self.ground_state_ionization_model_list:
-            if model.ion_species == Species:
+            if model.ion_species == picmi_species:
                 model_constants = model.get_constants()
                 Interaction.update_constant_list(constant_list, model_constants)
-
-                ground_state_model_conversion[model] = model.get_as_pypicongpu()
+                ionization_model_conversion[model] = model.get_as_pypicongpu()
 
         # add GroundStateIonization constant for entire species
         constant_list.append(
             pypicongpu.species.constant.GroundStateIonization(
-                ground_state_ionization_model_list=ground_state_model_conversion.values()
+                ionization_model_list=ionization_model_conversion.values()
             )
         )
 
         # add additional interaction sub groups needing constants here
-        return constant_list, {"ground_state_ionization": ground_state_model_conversion}
+        return constant_list, ionization_model_conversion
 
     def fill_in_ionization_electron_species(
         self,
         pypicongpu_by_picmi_species: dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
-        ionization_model_conversion_by_species: dict[
-            str,
-            dict[
-                picmistandard.PICMI_Species,
-                dict[GroundStateIonizationModel, pypicongpu.species.constant.ionizationmodel.IonizationModel],
-            ],
+        ionization_model_conversion_by_type_and_species: dict[
+            picmistandard.PICMI_Species,
+            None | dict[IonizationModel, pypicongpu.species.constant.ionizationmodel.IonizationModel],
         ],
     ) -> None:
         """
@@ -115,15 +116,14 @@ class Interaction(InteractionInterface):
             pypicongpu_by_picmi_species)
         """
 
-        # groundstate ionization model
-        for species, ionization_model_conversion in ionization_model_conversion_by_species[
-            "ground_state_ionization"
-        ].items():
-            for picmi_ionization_model, pypicongpu_ionization_model in ionization_model_conversion.items():
-                pypicongpu_ionization_electron_species = pypicongpu_by_picmi_species[
-                    picmi_ionization_model.ionization_electron_species
-                ]
-                pypicongpu_ionization_model.ionization_electron_species = pypicongpu_ionization_electron_species
+        # ground state ionization model
+        for species, ionization_model_conversion in ionization_model_conversion_by_type_and_species.items():
+            if ionization_model_conversion is not None:
+                for picmi_ionization_model, pypicongpu_ionization_model in ionization_model_conversion.items():
+                    pypicongpu_ionization_electron_species = pypicongpu_by_picmi_species[
+                        picmi_ionization_model.ionization_electron_species
+                    ]
+                    pypicongpu_ionization_model.ionization_electron_species = pypicongpu_ionization_electron_species
 
     def has_ground_state_ionization(self, species: Species) -> bool:
         """does at least one ground state ionization model list species as ion species?"""

@@ -9,8 +9,10 @@ from ..groundstateionizationmodel import GroundStateIonizationModel
 from .ionizationcurrent import IonizationCurrent
 
 import typing
+import typeguard
 
 
+@typeguard.typechecked
 class FieldIonization(GroundStateIonizationModel):
     """common interface of all field ionization models"""
 

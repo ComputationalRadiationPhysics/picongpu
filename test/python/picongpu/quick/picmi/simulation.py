@@ -6,19 +6,18 @@ License: GPLv3+
 """
 
 from picongpu import picmi
+from picongpu.pypicongpu import species, customuserinput
+from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
+from picongpu.picmi.interaction import Interaction
 
 import unittest
-
-import typeguard
-import typing
-
-from picongpu.pypicongpu import species, customuserinput
-from copy import deepcopy
-import logging
 import tempfile
 import shutil
 import os
 import pathlib
+import typeguard
+import typing
+import copy
 
 
 @typeguard.typechecked
@@ -164,9 +163,11 @@ class TestPicmiSimulation(unittest.TestCase):
         layout4 = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
 
         # placed with entire placement and 3ppc
-        sim.add_species(picmi.Species(name="dummy2", mass=3, density_scale=4, initial_distribution=profile), layout3)
+        sim.add_species(
+            picmi.Species(name="dummy2", mass=3, charge=4, density_scale=4, initial_distribution=profile), layout3
+        )
         # placed with default ratio of 1 and 4ppc
-        sim.add_species(picmi.Species(name="dummy3", mass=3, initial_distribution=profile), layout4)
+        sim.add_species(picmi.Species(name="dummy3", mass=3, charge=4, initial_distribution=profile), layout4)
 
         picongpu = sim.get_as_pypicongpu()
         self.assertEqual(2, len(picongpu.init_manager.all_species))
@@ -200,18 +201,18 @@ class TestPicmiSimulation(unittest.TestCase):
         # both profile and layout must be given
         with self.assertRaisesRegex(Exception, ".*initial.*distribution.*"):
             # no profile
-            sim = deepcopy(self.sim)
+            sim = copy.deepcopy(self.sim)
             sim.add_species(picmi.Species(name="dummy3"), layout)
             sim.get_as_pypicongpu()
         with self.assertRaisesRegex(Exception, ".*layout.*"):
             # no layout
-            sim = deepcopy(self.sim)
+            sim = copy.deepcopy(self.sim)
             sim.add_species(picmi.Species(name="dummy3", initial_distribution=profile), None)
             sim.get_as_pypicongpu()
 
         with self.assertRaisesRegex(Exception, ".*initial.*distribution.*"):
             # neither profile nor layout, but ratio
-            sim = deepcopy(self.sim)
+            sim = copy.deepcopy(self.sim)
             sim.add_species(picmi.Species(name="dummy3", density_scale=7), None)
             sim.get_as_pypicongpu()
 
@@ -291,7 +292,7 @@ class TestPicmiSimulation(unittest.TestCase):
 
     def test_operation_not_placed_translated(self):
         """non-placed species are correctly translated"""
-        self.sim.add_species(picmi.Species(name="notplaced", initial_distribution=None), None)
+        self.sim.add_species(picmi.Species(name="notplaced", mass=1, initial_distribution=None), None)
 
         pypicongpu = self.sim.get_as_pypicongpu()
 
@@ -363,242 +364,45 @@ class TestPicmiSimulation(unittest.TestCase):
         self.assertAlmostEqual(pypic.moving_window.move_point, 0.9)
         self.assertEqual(pypic.moving_window.stop_iteration, None)
 
-    def test_ionization_electron_explicit(self):
-        """electrons for ionization can be specified explicitly"""
-        # note: the difficulty here is preserving the PICMI- -> PICMI-object
-        # relationship and translating it into a PyPIConGPU- -> PyPIConGPU
-        # relationship
-
-        electrons1 = picmi.Species(name="e1", mass=picmi.constants.m_e, charge=-picmi.constants.q_e)
-        electrons2 = picmi.Species(name="e2", charge=2, mass=3)
-        ion = picmi.Species(
-            name="ion",
-            particle_type="N",
-            charge_state=0,
-            picongpu_ionization_electrons=electrons2,
-        )
-
-        sim = self.sim
-        sim.add_species(ion, None)
-        sim.add_species(electrons1, None)
-        sim.add_species(electrons2, None)
-
-        with self.assertLogs(level=logging.INFO) as caught_logs:
-            # required b/c self.assertNoLogs is not yet available
-            logging.info("TESTINFO")
-            pypic_sim = sim.get_as_pypicongpu()
-        # no logs on electrons at all
-        electron_logs = list(filter(lambda line: "electron" in line, caught_logs.output))
-        self.assertEqual([], electron_logs)
-
-        # ensure species actually exists
-        pypic_species_by_name = dict(
-            map(
-                lambda species: (species.name, species),
-                pypic_sim.init_manager.all_species,
-            )
-        )
-        self.assertEqual({"e1", "e2", "ion"}, set(pypic_species_by_name.keys()))
-
-        pypic_ion = pypic_species_by_name["ion"]
-        self.assertTrue(pypic_ion.has_constant_of_type(species.constant.Ionizers))
-
-        ionizers = pypic_ion.get_constant_by_type(species.constant.Ionizers)
-
-        # relationship preserved:
-        self.assertTrue(ionizers.electron_species is pypic_species_by_name["e2"])
-
-    def test_ionization_electron_resolution_added(self):
-        """add electron species if one is required but missing"""
-        # if electrons to use for ionization are not given explicitly they are
-        # guessed
-
-        profile = picmi.UniformDistribution(3)
-
-        # no electrons exist -> create one species
-        ##
-        hydrogen = picmi.Species(
-            name="hydrogen",
-            particle_type="H",
-            charge_state=+1,
-            initial_distribution=profile,
-        )
-        sim = self.__get_sim()
-        sim.add_species(hydrogen, self.layout)
-
-        with self.assertLogs(level=logging.INFO) as caught_logs:
-            pypic_sim = sim.get_as_pypicongpu()
-
-        # electron species has been added to **PICMI** object
-        self.assertNotEqual(None, hydrogen.picongpu_ionization_electrons)
-
-        # info that electron species has been added
-        self.assertNotEqual([], caught_logs.output)
-        electron_logs = list(filter(lambda line: "electron" in line, caught_logs.output))
-        self.assertEqual(1, len(electron_logs))
-
-        # extra species exists
-        self.assertEqual(2, len(pypic_sim.init_manager.all_species))
-
-        # pypic_sim works
-        pypic_sim.init_manager.bake()
-        self.assertNotEqual({}, pypic_sim.get_rendering_context())
-
-    def test_ionization_electron_resolution_guessed(self):
-        """electron species for ionization is guessed if one exists"""
-        # two methods for electrons: create electron by setting mass & charge
-        # like electrons, or by setting the particle type explicitly
-        for electron_explicit in [True, False]:
-            profile = picmi.UniformDistribution(2)
-            hydrogen = picmi.Species(
-                name="hydrogen",
-                particle_type="H",
-                charge_state=+1,
-                initial_distribution=profile,
-            )
-
-            if electron_explicit:
-                # case A: electrons identified by particle_type
-                electron = picmi.Species(name="my_e", particle_type="electron")
-            else:
-                # case B: electrons identified by mass & charge
-                electron = picmi.Species(name="my_e", mass=picmi.constants.m_e, charge=-picmi.constants.q_e)
-
-            # note:
-            # guessing only works if there is **exactly one** electron species
-            picmi_sim = self.__get_sim()
-            picmi_sim.add_species(hydrogen, self.layout)
-            picmi_sim.add_species(electron, None)
-
-            pypic_sim = picmi_sim.get_as_pypicongpu()
-
-            # association happened inside PICMI
-            self.assertEqual(electron, hydrogen.picongpu_ionization_electrons)
-
-            # only 2 species total
-            self.assertEqual(2, len(pypic_sim.init_manager.all_species))
-
-            # association correct inside of pypicongpu
-            for pypic_species in pypic_sim.init_manager.all_species:
-                if "my_e" == pypic_species.name:
-                    continue
-                self.assertEqual("hydrogen", pypic_species.name)
-
-                ionizers_const = pypic_species.get_constant_by_type(species.constant.Ionizers)
-                self.assertEqual("my_e", ionizers_const.electron_species.name)
-
-            # pypic_sim works
-            pypic_sim.init_manager.bake()
-            self.assertNotEqual({}, pypic_sim.get_rendering_context())
-
-    def test_ionization_electron_resolution_guess_ambiguous(self):
-        """electron species for ionization is not guessed if multiple exist"""
-        e1 = picmi.Species(name="the_first_electrons", particle_type="electron")
-        e2 = picmi.Species(
-            name="the_other_electrons",
-            mass=picmi.constants.m_e,
-            charge=-picmi.constants.q_e,
-        )
-        profile = picmi.UniformDistribution(7)
-        helium = picmi.Species(
-            name="helium",
-            particle_type="He",
-            charge_state=+1,
-            initial_distribution=profile,
-        )
-
-        sim = self.sim
-        sim.add_species(e1, None)
-        sim.add_species(e2, None)
-        sim.add_species(helium, self.layout)
-
-        # two electron species exist, therefore can't guess which one to use
-        # for ionization -> raise
-        with self.assertRaisesRegex(Exception, ".*ambiguous.*"):
-            sim.get_as_pypicongpu()
-
-    def test_ionization_electron_not_added(self):
-        """electrons must be used, even if not added via add_species()"""
-        e1 = picmi.Species(name="my_e", particle_type="electron")
-        ion = picmi.Species(
-            name="helium",
-            particle_type="He",
-            charge_state=+2,
-            picongpu_ionization_electrons=e1,
-        )
-        sim = self.sim
-
-        # **ONLY** ion is added to sim
-        sim.add_species(ion, None)
-
-        with self.assertRaisesRegex(AssertionError, ".*my_e.*helium.*picongpu_ionization_species.*"):
-            sim.get_as_pypicongpu()
-
-    def test_ionization_added_electron_namecollision(self):
-        """automatically added electron species avoids name collisions"""
-        existing_electron_names = ["electron", "e", "e_", "E", "e__"]
-
-        for name in existing_electron_names:
-            self.sim.add_species(picmi.Species(name=name, mass=1, charge=1), None)
-
-        # add ion species so electrons are actually guessed
-        self.sim.add_species(picmi.Species(name="ion", particle_type="He", charge_state=2), None)
-
-        # catch logs so they don't show up
-        with self.assertLogs(level="INFO"):
-            pypic_sim = self.sim.get_as_pypicongpu()
-
-        # one extra species: the electrons generated
-        self.assertEqual(
-            1 + len(existing_electron_names + ["ion"]),
-            len(pypic_sim.init_manager.all_species),
-        )
-
-        # still works, i.e. there are no name conflicts
-        pypic_sim.init_manager.bake()
-        self.assertNotEqual({}, pypic_sim.get_rendering_context())
-
-    def test_ionization_electrons_guess_not_invoked(self):
-        """ionization electron guessing is only invoked if required"""
-        # produce ambiguous guess, but do not add species that would require
-        # guessing -> must work
-
-        e1 = picmi.Species(name="e1", particle_type="electron")
-        e2 = picmi.Species(name="e2", particle_type="electron")
-
-        sim = self.sim
-        sim.add_species(e1, None)
-        sim.add_species(e2, None)
-
-        # just works:
-        pypic_sim = sim.get_as_pypicongpu()
-        self.assertEqual(2, len(pypic_sim.init_manager.all_species))
-        self.assertNotEqual({}, pypic_sim.get_rendering_context())
-
-    def test_ionization_methods_added(self):
-        """ionization methods are added as applicable"""
+    def test_add_ionization_model(self):
+        """ionization model is added correctly"""
         e = picmi.Species(name="e", particle_type="electron")
         ion1 = picmi.Species(name="hydrogen", particle_type="H", charge_state=+1)
         ion2 = picmi.Species(name="nitrogen", particle_type="N", charge_state=+2)
+
+        ionization_model_1 = ADK(
+            ADK_variant=ADKVariant.LinearPolarization,
+            ionization_current=None,
+            ion_species=ion1,
+            ionization_electron_species=e,
+        )
+        ionization_model_2 = ADK(
+            ADK_variant=ADKVariant.LinearPolarization,
+            ionization_current=None,
+            ion_species=ion2,
+            ionization_electron_species=e,
+        )
+        interaction = Interaction(ground_state_ionization_model_list=[ionization_model_1, ionization_model_2])
 
         sim = self.sim
         sim.add_species(e, None)
         sim.add_species(ion1, None)
         sim.add_species(ion2, None)
 
+        # in use should be set via simulation constructor
+        sim.picongpu_interaction = interaction
+
         pypic_sim = sim.get_as_pypicongpu()
         initmgr = pypic_sim.init_manager
 
         operation_types = list(map(lambda op: type(op), initmgr.all_operations))
-        self.assertEqual(1, operation_types.count(species.operation.NoBoundElectrons))
-        self.assertEqual(1, operation_types.count(species.operation.SetBoundElectrons))
+        self.assertEqual(2, operation_types.count(species.operation.SetBoundElectrons))
 
         for op in initmgr.all_operations:
-            if isinstance(op, species.operation.NoBoundElectrons):
-                self.assertEqual("hydrogen", op.species.name)
-            elif isinstance(op, species.operation.SetBoundElectrons):
-                self.assertEqual("nitrogen", op.species.name)
+            if isinstance(op, species.operation.SetBoundElectrons) and op.species.name == "Nitrogen":
                 self.assertEqual(5, op.bound_electrons)
+            if isinstance(op, species.operation.SetBoundElectrons) and op.species.name == "Hydrogen":
+                self.assertEqual(0, op.bound_electrons)
             # other ops (position...): ignore
 
     def test_write_input_file(self):

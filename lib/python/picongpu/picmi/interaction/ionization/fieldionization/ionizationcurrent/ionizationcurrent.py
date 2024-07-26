@@ -6,8 +6,10 @@ License: GPLv3+
 """
 
 import pydantic
+import typeguard
 
 
+@typeguard.typechecked
 class IonizationCurrent(pydantic.BaseModel):
     """common interface of all ionization current models"""
 

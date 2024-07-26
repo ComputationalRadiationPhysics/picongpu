@@ -68,4 +68,4 @@ class Test_IonizationModelImplementations(unittest.TestCase):
                 Implementation(ionization_electron_species=self.electron, ionization_current=None_()).PICONGPU_NAME,
             )
         for Implementation, name in self.implementations_withoutIonizationCurrent.items():
-            self.assertEqual(name, Implementation(ionization_electron_species=self.electron))
+            self.assertEqual(name, Implementation(ionization_electron_species=self.electron).PICONGPU_NAME)

@@ -47,7 +47,7 @@ class TestElement(unittest.TestCase):
 
         invalid_test_strings = ["#Htest", "#He3", "#Cu-56", "H3", "Fe-56"]
         for i, string in enumerate(invalid_test_strings):
-            with self.assertRaisesRegex(ValueError, string + " is not a valid openPMD isotope descriptor"):
+            with self.assertRaisesRegex(ValueError, string + " is not a valid openPMD particle type"):
                 name, massNumber = Element.parse_openpmd_isotopes(string)
 
     def test_basic_use(self):

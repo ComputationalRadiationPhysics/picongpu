@@ -9,8 +9,10 @@ from ...species import Species
 from .... import pypicongpu
 
 import pydantic
+import typeguard
 
 
+@typeguard.typechecked
 class IonizationModel(pydantic.BaseModel):
     """
     common interface for all ionization models
@@ -26,6 +28,20 @@ class IonizationModel(pydantic.BaseModel):
 
     ionization_electron_species: Species
     """PICMI electron species of which to create macro particle upon ionization"""
+
+    def __hash__(self):
+        """custom hash function for indexing in dicts"""
+        hash_value = hash(type(self))
+
+        for value in self.__dict__.values():
+            try:
+                if value is not None:
+                    hash_value += hash(value)
+            except TypeError:
+                print(self)
+                print(type(self))
+                raise TypeError
+        return hash_value
 
     def get_constants(self) -> list[pypicongpu.species.constant.Constant]:
         raise NotImplementedError("abstract base class only!")

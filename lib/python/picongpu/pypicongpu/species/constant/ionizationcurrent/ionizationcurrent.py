@@ -10,7 +10,10 @@ from ..constant import Constant
 import pydantic
 import typing
 
+import typeguard
 
+
+@typeguard.typechecked
 class IonizationCurrent(Constant, pydantic.BaseModel):
     """base class for all ionization currents models"""
 

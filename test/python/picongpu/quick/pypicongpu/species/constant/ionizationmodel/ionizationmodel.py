@@ -12,6 +12,8 @@ from picongpu.pypicongpu.species.constant import Mass, Charge, ElementProperties
 from picongpu.pypicongpu.species.attribute import Position, Momentum, BoundElectrons
 from picongpu.picmi import constants
 
+import pydantic_core
+
 import unittest
 
 
@@ -81,13 +83,11 @@ class Test_IonizationModel(unittest.TestCase):
                 instance.check()
 
         for invalid in ["ionization_current", {}, [], 0]:
-            with self.assertRaises(TypeError):
+            with self.assertRaises(pydantic_core._pydantic_core.ValidationError):
                 # note: circular imports would be required to use the
                 # pypicongpu-standard build_typesafe_property, hence the type
                 # is checked by check() instead of on assignment (as usual)
-                instance.ionization_electron_species = self.electron
-                instance.ionization_current = invalid
-                instance.check()
+                Implementation(ionization_electron_species=self.electron, ionization_current=invalid)
 
     def test_circular_ionization(self):
         """electron species must not be ionizable itself"""

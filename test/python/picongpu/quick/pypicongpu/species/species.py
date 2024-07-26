@@ -53,7 +53,7 @@ class TestSpecies(unittest.TestCase):
         )
 
         self.const_element_properties = ElementProperties()
-        self.const_element_properties.element = Element.H
+        self.const_element_properties.element = Element("H")
 
     def test_basic(self):
         """setup provides working species"""

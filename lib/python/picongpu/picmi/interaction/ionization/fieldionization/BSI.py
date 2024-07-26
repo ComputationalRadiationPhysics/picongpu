@@ -13,8 +13,10 @@ from .....pypicongpu.species.constant import ionizationmodel
 from ..... import pypicongpu
 
 import enum
+import typeguard
 
 
+@typeguard.typechecked
 class BSIExtension(enum.Enum):
     StarkShift = 0
     EffectiveZ = 1
@@ -22,6 +24,7 @@ class BSIExtension(enum.Enum):
     # add additional features here
 
 
+@typeguard.typechecked
 class BSI(FieldIonization):
     """Barrier Suppression Ioniztion model"""
 
@@ -32,12 +35,12 @@ class BSI(FieldIonization):
 
     def get_as_pypicongpu(self) -> pypicongpu.species.constant.ionizationmodel.IonizationModel:
         if self.BSI_extensions == []:
-            return ionizationmodel.BSI(ionization_current=None_)
+            return ionizationmodel.BSI(ionization_current=None_())
 
         if self.BSI_extensions == [BSIExtension.StarkShift]:
-            return ionizationmodel.BSIStarkShifted(ionization_current=None_)
+            return ionizationmodel.BSIStarkShifted(ionization_current=None_())
         if self.BSI_extensions == [BSIExtension.EffectiveZ]:
-            return ionizationmodel.BSIEffectiveZ(ionization_current=None_)
+            return ionizationmodel.BSIEffectiveZ(ionization_current=None_())
 
         if len(self.BSI_extensions) > 1:
             pypicongpu.util.unsupported("more than one BSI_extension")

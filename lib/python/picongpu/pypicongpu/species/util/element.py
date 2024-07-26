@@ -8,12 +8,14 @@ License: GPLv3+
 from ...rendering import RenderedObject
 
 import pydantic
+import typeguard
 import typing
 import scipy
 import periodictable
 import re
 
 
+@typeguard.typechecked
 class Element(RenderedObject, pydantic.BaseModel):
     """
     Denotes an element from the periodic table of elements
@@ -32,14 +34,16 @@ class Element(RenderedObject, pydantic.BaseModel):
     _store: typing.Optional[periodictable.core.Element] = None
 
     @staticmethod
-    def parse_openpmd_isotopes(openpmd_name: str) -> tuple[int, str]:
+    def parse_openpmd_isotopes(openpmd_name: str) -> tuple[int | None, str]:
+        if openpmd_name == "":
+            raise ValueError(f"{openpmd_name} is not a valid openPMD particle type")
         if openpmd_name[0] != "#" and re.match(r"[A-Z][a-z]?$|n$", openpmd_name):
             return None, openpmd_name
 
         m = re.match(r"#([1-9][0-9]*)([A-Z][a-z]?)$", openpmd_name)
 
         if m is None:
-            raise ValueError(f"{openpmd_name} is not a valid openPMD isotope descriptor")
+            raise ValueError(f"{openpmd_name} is not a valid openPMD particle type")
 
         mass_number = int(m.group(1))
         symbol = m.group(2)
@@ -69,6 +73,7 @@ class Element(RenderedObject, pydantic.BaseModel):
 
         mass_number, openpmd_name = Element.parse_openpmd_isotopes(openpmd_name)
 
+        found = False
         # search for name in periodic table
         for element in periodictable.elements:
             if openpmd_name == element.symbol:
@@ -76,10 +81,10 @@ class Element(RenderedObject, pydantic.BaseModel):
                     self._store = element
                 else:
                     self._store = element[mass_number]
-                return
+                found = True
 
-        # not found
-        raise NameError(f"unknown element: {openpmd_name}")
+        if not found:
+            raise NameError(f"unknown element: {openpmd_name}")
 
     def get_picongpu_name(self) -> str:
         """

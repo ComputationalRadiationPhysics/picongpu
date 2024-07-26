@@ -7,8 +7,10 @@ License: GPLv3+
 
 from ..groundstateionizationmodel import GroundStateIonizationModel
 from ..... import pypicongpu
+import typeguard
 
 
+@typeguard.typechecked
 class ThomasFermi(GroundStateIonizationModel):
     """thomas fermi ionization model"""
 

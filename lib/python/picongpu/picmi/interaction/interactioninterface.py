@@ -9,8 +9,10 @@ from ... import pypicongpu
 
 import picmistandard
 import pydantic
+import typeguard
 
 
+@typeguard.typechecked
 class InteractionInterface(pydantic.BaseModel):
     """
     interface for forward declaration

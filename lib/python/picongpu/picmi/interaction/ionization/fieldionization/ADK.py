@@ -8,18 +8,25 @@ License: GPLv3+
 from .fieldionization import FieldIonization
 
 from .....pypicongpu.species.constant.ionizationcurrent import None_
-from .....pypicongpu.species.constant.ionizationmodel import ADKLinearPolarization, ADKCircularPolarization
+from .....pypicongpu.species.constant.ionizationmodel import (
+    ADKLinearPolarization,
+    ADKCircularPolarization,
+    IonizationModel,
+)
 
 from ..... import pypicongpu
 
 import enum
+import typeguard
 
 
+@typeguard.typechecked
 class ADKVariant(enum.Enum):
     LinearPolarization = 0
     CircularPolarization = 1
 
 
+@typeguard.typechecked
 class ADK(FieldIonization):
     """Barrier Suppression Ioniztion model"""
 
@@ -28,11 +35,11 @@ class ADK(FieldIonization):
     ADK_variant: ADKVariant
     """extension to the BSI model"""
 
-    def get_as_pypicongpu(self) -> pypicongpu.species.constant.ionizationmodel.IonizationModel:
+    def get_as_pypicongpu(self) -> IonizationModel:
         if self.ADK_variant is ADKVariant.LinearPolarization:
-            return ADKLinearPolarization(ionization_current=None_)
+            return ADKLinearPolarization(ionization_current=None_())
         if self.ADK_variant is ADKVariant.CircularPolarization:
-            return ADKCircularPolarization(ionization_current=None_)
+            return ADKCircularPolarization(ionization_current=None_())
 
         # unknown/unsupported ADK variant
         pypicongpu.util.unsupported(f"ADKVariant {self.ADK_variant}")
