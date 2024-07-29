@@ -46,7 +46,7 @@ namespace picongpu
      *
      * This function runs over the CT list `MetadataRegisteredAtCT` and adds all of them to the MetadataAggregator.
      */
-    void addMetadataRegisteredAtCT()
+    inline void addMetadataRegisteredAtCT()
     {
         pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<boost::mpl::_1>>{}();
     }

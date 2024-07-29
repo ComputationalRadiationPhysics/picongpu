@@ -28,9 +28,11 @@
 #include "picongpu/particles/Particles.kernel"
 #include "picongpu/particles/ParticlesInit.kernel"
 #include "picongpu/particles/boundary/Apply.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/pusher/Traits.hpp"
 #include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
+#include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>

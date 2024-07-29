@@ -35,16 +35,8 @@
 #include "picongpu/unitless/particle.unitless"
 #include "picongpu/unitless/fieldAbsorber.unitless"
 #include "picongpu/unitless/pusher.unitless"
-#include "picongpu/unitless/ionizer.unitless"
 #include "picongpu/unitless/speciesAttributes.unitless"
 #include "picongpu/unitless/speciesDefinition.unitless"
-#include "picongpu/unitless/speciesInitialization.unitless"
 #include "picongpu/unitless/fieldBackground.unitless"
-#include "picongpu/unitless/collision.unitless"
-#include "picongpu/unitless/fileOutput.unitless"
-#include "picongpu/unitless/checkpoints.unitless"
-#include "picongpu/unitless/png.unitless"
-#include "picongpu/unitless/radiation.unitless"
-#include "picongpu/unitless/transitionRadiation.unitless"
 
 // clang-format on

@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/unitless/collision.unitless"
+
 #include <pmacc/random/distributions/Uniform.hpp>
 
 #include <cmath>

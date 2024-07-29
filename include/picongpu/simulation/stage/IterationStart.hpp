@@ -21,8 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/functor/Call.hpp>
-
 #include <cstdint>
 
 
@@ -42,11 +40,7 @@ namespace picongpu
                  *
                  * @param step index of time iteration
                  */
-                void operator()(uint32_t const step) const
-                {
-                    meta::ForEach<IterationStartPipeline, pmacc::functor::Call<boost::mpl::_1>> callFunctors;
-                    callFunctors(step);
-                }
+                void operator()(uint32_t const step) const;
             };
 
         } // namespace stage

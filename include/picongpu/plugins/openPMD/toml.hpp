@@ -19,8 +19,13 @@
 
 #pragma once
 
+#include "picongpu/debug/PIConGPUVerbose.hpp"
 #include "picongpu/plugins/openPMD/Parameters.hpp"
 
+#include <pmacc/pluginSystem/Slice.hpp>
+#include <pmacc/pluginSystem/toSlice.hpp>
+
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <map>
@@ -91,9 +96,28 @@ namespace picongpu
             std::string periods() const;
         };
 
-        // Definitions of these need to go in NVCC-compiled files
-        // (openPMDWriter.hpp) due to include structure of PIConGPU
-        void writeLog(char const* message, size_t argsn = 0, char const* const* argsv = nullptr);
-        std::vector<TimeSlice> parseTimeSlice(std::string const&);
+        inline void writeLog(char const* message, size_t argsc = 0u, char const* const* argsv = nullptr)
+        {
+            auto logg = pmacc::log<PIConGPUVerbose::INPUT_OUTPUT>(message);
+            for(size_t i = 0; i < argsc; ++i)
+            {
+                logg = logg % argsv[i];
+            }
+        }
+
+        inline std::vector<TimeSlice> parseTimeSlice(std::string const& asString)
+        {
+            std::vector<TimeSlice> res;
+            auto parsed = pmacc::pluginSystem::toTimeSlice(asString);
+            res.reserve(parsed.size());
+            std::transform(
+                parsed.begin(),
+                parsed.end(),
+                std::back_inserter(res),
+                [](pmacc::pluginSystem::Slice timeSlice) -> TimeSlice {
+                    return {timeSlice.values[0], timeSlice.values[1], timeSlice.values[2]};
+                });
+            return res;
+        }
     } // namespace toml
 } // namespace picongpu

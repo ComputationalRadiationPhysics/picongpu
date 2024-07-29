@@ -21,6 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+// clang-format off
+#include "picongpu/param/pngColorScales.param"
+#include "picongpu/param/png.param"
+#include "picongpu/unitless/png.unitless"
+// clang-format on
+
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 

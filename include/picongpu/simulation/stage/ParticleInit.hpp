@@ -1,5 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Anton Helm,
- *                     Rene Widera, Richard Pausch
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,24 +17,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- *
- * Select a user-defined simulation class here, e.g. with strongly modified
- * initialization and/or PIC loop beyond the parametrization given in other
- * .param files.
- */
-
 #pragma once
+
+#include <cstdint>
 
 
 namespace picongpu
 {
-    /** @namespace simulation_starter
-     *
-     * Simulation Starter Selection:
-     * This value does usually not need to be changed. Change only if you want to
-     * implement your own `SimulationHelper` (e.g. `Simulation`) class.
-     *  - defaultPIConGPU         : default PIConGPU configuration
-     */
-    namespace simulation_starter = defaultPIConGPU;
+    namespace simulation
+    {
+        namespace stage
+        {
+            //! Initialize particles
+            struct ParticleInit
+            {
+                /** Initialize particles dependent of the given step
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const;
+            };
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

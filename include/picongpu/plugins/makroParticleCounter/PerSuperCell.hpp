@@ -30,6 +30,8 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <fstream>

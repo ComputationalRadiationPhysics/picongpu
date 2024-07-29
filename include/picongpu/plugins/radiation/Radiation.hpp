@@ -26,6 +26,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/param/radiation.param"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
@@ -33,6 +34,7 @@
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/radiation/Radiation.kernel"
 #include "picongpu/plugins/radiation/executeParticleFilter.hpp"
+#include "picongpu/unitless/radiation.unitless"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/filesystem.hpp>

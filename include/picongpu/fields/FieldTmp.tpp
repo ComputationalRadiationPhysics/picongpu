@@ -24,6 +24,7 @@
 
 #include "picongpu/fields/FieldTmp.kernel"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/param/fileOutput.param"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 

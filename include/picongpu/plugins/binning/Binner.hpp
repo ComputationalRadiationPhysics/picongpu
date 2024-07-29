@@ -24,6 +24,7 @@
 #include "picongpu/plugins/binning/utility.hpp"
 
 #include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
 #include <cstdint>
 #include <memory>

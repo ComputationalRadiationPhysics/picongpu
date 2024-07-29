@@ -21,7 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/boundary/Utility.hpp"
+#include "picongpu/particles/functor/misc/Parametrized.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 
 #include <cstdint>

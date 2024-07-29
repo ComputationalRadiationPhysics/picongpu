@@ -84,7 +84,7 @@ namespace picongpu
                      *
                      * @param idx index less than 6
                      */
-                    float_X& operator[](uint32_t const idx);
+                    HINLINE float_X& operator[](uint32_t const idx);
 
                     /** Const element access for compatibility with pmacc vectors
                      *
@@ -95,7 +95,7 @@ namespace picongpu
                      *
                      * @param idx index less than 6
                      */
-                    float_X const& operator[](uint32_t const idx) const;
+                    HINLINE float_X const& operator[](uint32_t const idx) const;
                 };
 
                 /** Data box type used for PML fields in kernels

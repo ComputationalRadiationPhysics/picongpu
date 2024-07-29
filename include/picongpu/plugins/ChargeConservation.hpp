@@ -25,6 +25,8 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include <pmacc/algorithms/GlobalReduce.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
@@ -97,5 +99,3 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
-
-#include "ChargeConservation.tpp"

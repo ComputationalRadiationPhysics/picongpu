@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/param/shadowgraphy.param"
 #include "picongpu/simulation/control/Window.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>

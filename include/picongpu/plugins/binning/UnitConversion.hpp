@@ -30,7 +30,7 @@ namespace picongpu
     {
         constexpr unsigned numUnits = 7;
         // @todo add where this 7D format is from
-        std::array<double, numUnits> UnitDimensions{
+        constexpr std::array<double, numUnits> UnitDimensions{
             UNIT_LENGTH, // length
             UNIT_MASS, // mass
             UNIT_TIME, // time

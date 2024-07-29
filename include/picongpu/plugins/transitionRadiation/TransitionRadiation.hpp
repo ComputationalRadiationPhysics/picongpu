@@ -24,6 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"

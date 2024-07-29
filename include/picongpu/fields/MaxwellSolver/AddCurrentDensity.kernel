@@ -22,6 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/Fields.hpp"
+
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>

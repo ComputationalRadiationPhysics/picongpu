@@ -24,6 +24,7 @@
 #include "picongpu/algorithms/Velocity.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Momentum.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/WeightedVelocity.def"
 
 #include <type_traits>
 

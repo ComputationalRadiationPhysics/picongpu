@@ -20,6 +20,12 @@
 
 #pragma once
 
+
+// clang-format off
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/param/isaac.param"
+// clang-format on
+
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 

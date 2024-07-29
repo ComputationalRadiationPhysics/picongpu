@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Franz Poeschel
+/* Copyright 2022-2023 Franz Poeschel, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,6 +18,11 @@
  */
 
 #if(ENABLE_OPENPMD == 1)
+
+#    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
+
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/multi/multi.hpp"
 
 #    include <algorithm>
 #    include <iterator>
@@ -52,5 +57,8 @@ namespace picongpu::openPMD
         }
     }
 } // namespace picongpu::openPMD
+
+
+PIC_REGISTER_PLUGIN(picongpu::plugins::multi::Master<picongpu::openPMD::openPMDWriter>);
 
 #endif

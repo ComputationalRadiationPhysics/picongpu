@@ -24,6 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/param/particleFilters.param"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/txtFileHandling.hpp"
@@ -41,6 +42,7 @@
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>

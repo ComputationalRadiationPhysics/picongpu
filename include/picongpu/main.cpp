@@ -23,6 +23,10 @@
 #include <picongpu/simulation_defines.hpp>
 
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/initialization/InitialiserController.hpp"
+#include "picongpu/plugins/PluginController.hpp"
+#include "picongpu/simulation/control/Simulation.hpp"
+#include "picongpu/simulation/control/SimulationStarter.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
@@ -44,7 +48,10 @@ namespace
     {
         using namespace picongpu;
 
-        simulation_starter::SimStarter sim;
+        auto sim = SimulationStarter<
+            ::picongpu::InitialiserController,
+            ::picongpu::PluginController,
+            ::picongpu::Simulation>{};
         auto const parserStatus = sim.parseConfigs(argc, argv);
         int errorCode = EXIT_FAILURE;
 

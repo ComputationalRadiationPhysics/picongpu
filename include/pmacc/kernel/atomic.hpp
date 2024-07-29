@@ -44,7 +44,7 @@ namespace pmacc
                 template<typename T_Acc, typename T_Hierarchy>
                 HDINLINE T_Type operator()(const T_Acc& acc, T_Type* ptr, const T_Hierarchy& hierarchy)
                 {
-                    return ::alpaka::atomicOp<::alpaka::AtomicAdd>(acc, ptr, T_Type(1), hierarchy);
+                    return ::alpaka::atomicAdd(acc, ptr, T_Type{1}, hierarchy);
                 }
             };
 

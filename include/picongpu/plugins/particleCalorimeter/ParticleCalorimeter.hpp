@@ -22,7 +22,9 @@
 
 #include "ParticleCalorimeter.kernel"
 #include "ParticleCalorimeterFunctors.hpp"
+#include "picongpu/param/particleFilters.param"
 #include "picongpu/particles/boundary/Utility.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/openPMDAttributes.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"

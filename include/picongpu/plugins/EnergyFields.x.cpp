@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Marco Garten
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "picongpu/plugins/EnergyFields.hpp"
 
-#include "picongpu/particles/ionization/byCollision/collisionalIonizationCalc.hpp"
-#include "picongpu/particles/ionization/byField/fieldIonizationCalc.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
+
+
+PIC_REGISTER_PLUGIN(picongpu::EnergyFields);

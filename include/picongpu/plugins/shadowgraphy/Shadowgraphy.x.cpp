@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -9,7 +9,7 @@
  *
  * PIConGPU is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -18,6 +18,13 @@
  */
 
 
-#pragma once
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 
-#include "picongpu/particles/manipulators/manipulators.hpp"
+#    include "picongpu/plugins/shadowgraphy/Shadowgraphy.hpp"
+
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/multi/multi.hpp"
+
+
+PIC_REGISTER_PLUGIN(picongpu::plugins::multi::Master<picongpu::plugins::shadowgraphy::Shadowgraphy>);
+#endif

@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/param/collision.param"
+
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/verify.hpp>
 

@@ -21,6 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+// clang-format off
+#include "picongpu/param/pngColorScales.param"
+#include "picongpu/param/png.param"
+#include "picongpu/unitless/png.unitless"
+// clang-format on
+
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"

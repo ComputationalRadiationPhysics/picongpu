@@ -27,9 +27,12 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/param/particleFilters.param"
 #include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/particleToGrid/CombinedDerive.def"
+#include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 #include "picongpu/plugins/common/openPMDDefinitions.def"
@@ -52,6 +55,8 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 #include "picongpu/traits/IsFieldOutputOptional.hpp"
+#include "picongpu/unitless/checkpoints.unitless"
+#include "picongpu/unitless/fileOutput.unitless"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
@@ -134,7 +139,7 @@ namespace picongpu
             return res;
         }
 
-        ::openPMD::Series& ThreadParams::openSeries(::openPMD::Access at)
+        inline ::openPMD::Series& ThreadParams::openSeries(::openPMD::Access at)
         {
             if(!openPMDSeries)
             {
@@ -178,7 +183,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
         }
 
-        void ThreadParams::closeSeries()
+        inline void ThreadParams::closeSeries()
         {
             if(openPMDSeries)
             {
@@ -582,7 +587,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
         };
 
-        void ThreadParams::initFromConfig(
+        inline void ThreadParams::initFromConfig(
             Help& help,
             size_t id,
             uint32_t const currentStep,
@@ -1904,7 +1909,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             DataSpace<simDim> mpi_size;
         };
 
-        std::shared_ptr<plugins::multi::IInstance> Help::create(
+        inline std::shared_ptr<plugins::multi::IInstance> Help::create(
             std::shared_ptr<plugins::multi::IHelp>& help,
             size_t const id,
             MappingDesc* cellDescription)
@@ -1913,37 +1918,4 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         }
 
     } // namespace openPMD
-
-    /*
-     * Logically, these functions should be defined inside toml.cpp.
-     * However, their implementation relies on includes that PIConGPU's
-     * structure currently prevents from being included into hostonly files.
-     * So, let's NVCC compile their definitions.
-     */
-    namespace toml
-    {
-        void writeLog(char const* message, size_t argsc, char const* const* argsv)
-        {
-            auto logg = log<picLog::INPUT_OUTPUT>(message);
-            for(size_t i = 0; i < argsc; ++i)
-            {
-                logg = logg % argsv[i];
-            }
-        }
-
-        std::vector<TimeSlice> parseTimeSlice(std::string const& asString)
-        {
-            std::vector<TimeSlice> res;
-            auto parsed = pmacc::pluginSystem::toTimeSlice(asString);
-            res.reserve(parsed.size());
-            std::transform(
-                parsed.begin(),
-                parsed.end(),
-                std::back_inserter(res),
-                [](pmacc::pluginSystem::Slice timeSlice) -> TimeSlice {
-                    return {timeSlice.values[0], timeSlice.values[1], timeSlice.values[2]};
-                });
-            return res;
-        }
-    } // namespace toml
 } // namespace picongpu

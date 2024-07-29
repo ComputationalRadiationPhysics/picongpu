@@ -17,19 +17,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#if(ENABLE_OPENPMD == 1)
 
-#include "DumpHBufferOpenPMD.hpp"
-#include "PhaseSpace.hpp"
+#    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/math/vector/Int.hpp>
-#include <pmacc/math/vector/Size_t.hpp>
+#    include "DumpHBufferOpenPMD.hpp"
+#    include "picongpu/particles/shapes/Counter.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
 
-#include <algorithm>
-#include <vector>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/mappings/simulation/GridController.hpp>
+#    include <pmacc/mappings/simulation/SubGrid.hpp>
+#    include <pmacc/math/vector/Int.hpp>
+#    include <pmacc/math/vector/Size_t.hpp>
+
+#    include <algorithm>
+#    include <vector>
 
 
 namespace picongpu
@@ -203,10 +206,10 @@ namespace picongpu
             calcPhaseSpace<AxisDescription::x>(currentStep);
         else if(this->axis_element.space == AxisDescription::y)
             calcPhaseSpace<AxisDescription::y>(currentStep);
-#if(SIMDIM == DIM3)
+#    if(SIMDIM == DIM3)
         else
             calcPhaseSpace<AxisDescription::z>(currentStep);
-#endif
+#    endif
 
         /* transfer to host */
         this->dBuffer->deviceToHost();
@@ -264,3 +267,9 @@ namespace picongpu
     }
 
 } /* namespace picongpu */
+
+PIC_REGISTER_SPECIES_PLUGIN(
+    picongpu::plugins::multi::Master<
+        picongpu::PhaseSpace<picongpu::particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>);
+
+#endif

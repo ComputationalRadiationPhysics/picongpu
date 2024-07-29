@@ -20,6 +20,9 @@
 #pragma once
 
 
+#include "picongpu/param/radiation.param"
+#include "picongpu/param/radiationObserver.param"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/utilities.hpp"
 
 #include <cstdint>

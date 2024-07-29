@@ -39,7 +39,7 @@ namespace picongpu
     {
         namespace absorber
         {
-            Absorber::Absorber(Kind const kind) : kind(kind)
+            inline Absorber::Absorber(Kind const kind) : kind(kind)
             {
                 switch(kind)
                 {
@@ -61,7 +61,7 @@ namespace picongpu
                         numCells[axis][direction] = NUM_CELLS[axis][direction];
             }
 
-            Absorber& Absorber::get()
+            inline Absorber& Absorber::get()
             {
                 // Delay initialization till the first call since the factory has its parameters set during runtime
                 static std::unique_ptr<Absorber> pInstance = nullptr;
@@ -73,12 +73,12 @@ namespace picongpu
                 return *pInstance;
             }
 
-            Absorber::Kind Absorber::getKind() const
+            inline Absorber::Kind Absorber::getKind() const
             {
                 return kind;
             }
 
-            Thickness Absorber::getGlobalThickness() const
+            inline Thickness Absorber::getGlobalThickness() const
             {
                 Thickness thickness;
                 for(uint32_t axis = 0u; axis < 3u; axis++)
@@ -95,7 +95,7 @@ namespace picongpu
                 return thickness;
             }
 
-            Thickness Absorber::getLocalThickness() const
+            inline Thickness Absorber::getLocalThickness() const
             {
                 Thickness thickness = getGlobalThickness();
                 auto const numExchanges = NumberOfExchanges<simDim>::value;
@@ -126,7 +126,7 @@ namespace picongpu
                 return thickness;
             }
 
-            pmacc::traits::StringProperty Absorber::getStringProperties()
+            inline pmacc::traits::StringProperty Absorber::getStringProperties()
             {
                 auto& absorber = get();
                 auto const thickness = absorber.getGlobalThickness();
@@ -176,13 +176,13 @@ namespace picongpu
                 return propList;
             }
 
-            AbsorberImpl::AbsorberImpl(Kind const kind, MappingDesc const cellDescription)
+            inline AbsorberImpl::AbsorberImpl(Kind const kind, MappingDesc const cellDescription)
                 : Absorber(kind)
                 , cellDescription(cellDescription)
             {
             }
 
-            AbsorberImpl& AbsorberImpl::getImpl(MappingDesc const cellDescription)
+            inline AbsorberImpl& AbsorberImpl::getImpl(MappingDesc const cellDescription)
             {
                 // Delay initialization till the first call since the factory has its parameters set during runtime
                 static std::unique_ptr<AbsorberImpl> pInstance = nullptr;
@@ -196,7 +196,7 @@ namespace picongpu
                 return *pInstance;
             }
 
-            exponential::ExponentialImpl& AbsorberImpl::asExponentialImpl()
+            inline exponential::ExponentialImpl& AbsorberImpl::asExponentialImpl()
             {
                 auto* result = dynamic_cast<exponential::ExponentialImpl*>(this);
                 if(!result)
@@ -204,7 +204,7 @@ namespace picongpu
                 return *result;
             }
 
-            pml::PmlImpl& AbsorberImpl::asPmlImpl()
+            inline pml::PmlImpl& AbsorberImpl::asPmlImpl()
             {
                 auto* result = dynamic_cast<pml::PmlImpl*>(this);
                 if(!result)
@@ -212,7 +212,7 @@ namespace picongpu
                 return *result;
             }
 
-            std::unique_ptr<Absorber> AbsorberFactory::make() const
+            inline std::unique_ptr<Absorber> AbsorberFactory::make() const
             {
                 if(!isInitialized)
                     throw std::runtime_error("Absorber factory used before being initialized");
@@ -221,7 +221,7 @@ namespace picongpu
             }
 
             // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
-            std::unique_ptr<AbsorberImpl> AbsorberFactory::makeImpl(MappingDesc const cellDescription) const
+            inline std::unique_ptr<AbsorberImpl> AbsorberFactory::makeImpl(MappingDesc const cellDescription) const
             {
                 if(!isInitialized)
                     throw std::runtime_error("Absorber factory used before being initialized");

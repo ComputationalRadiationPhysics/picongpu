@@ -204,39 +204,11 @@ namespace picongpu
              * @param pushEvent[out] grouped event that marks the end of the species push
              * @param commEvent[out] grouped event that marks the end of the species communication
              */
-            HINLINE void operator()(
+            void operator()(
                 const uint32_t currentStep,
                 const EventTask& eventInt,
                 EventTask& pushEvent,
-                EventTask& commEvent) const
-            {
-                using EventList = std::list<EventTask>;
-                EventList updateEventList;
-                EventList commEventList;
-
-                /* push all species */
-                using VectorSpeciesWithPusher =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<boost::mpl::_1>> pushSpecies;
-                pushSpecies(currentStep, eventInt, updateEventList);
-
-                /* join all push events */
-                for(auto iter = updateEventList.begin(); iter != updateEventList.end(); ++iter)
-                {
-                    pushEvent += *iter;
-                }
-
-                /* call communication for all species */
-                meta::ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<boost::mpl::_1>>
-                    communicateSpecies;
-                communicateSpecies(updateEventList, commEventList);
-
-                /* join all communication events */
-                for(auto iter = commEventList.begin(); iter != commEventList.end(); ++iter)
-                {
-                    commEvent += *iter;
-                }
-            }
+                EventTask& commEvent) const;
         };
 
         //! Remove all particles of all species with pusher flag that are outside the respective boundaries
@@ -246,13 +218,7 @@ namespace picongpu
              *
              * @param currentStep current simulation step
              */
-            HINLINE void operator()(const uint32_t currentStep) const
-            {
-                using VectorSpeciesWithPusher =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<boost::mpl::_1>> removeOuterParticles;
-                removeOuterParticles(currentStep);
-            }
+            void operator()(const uint32_t currentStep) const;
         };
 
         /** Call an ionization method upon an ion species
