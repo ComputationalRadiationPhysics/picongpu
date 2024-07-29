@@ -113,20 +113,48 @@ Parameters/Methods prefixed with ``picongpu_`` are PIConGPU-exclusive.
 
 - **Simulation**
 
-  - ``__init__(..., picongpu_template_dir)``:
-    Specify the template dir to use for code generation,
+  not supported methods:
+
+  - ``add_interaction(self, interaction)``:
+    The PIConGPU PICMI interface does not support the PICMI interaction specification, due to PICMI standard ambiguities.
+    Instead you must use the PIConGPU specific ``Interaction`` interface described below.
+
+  additional constructor/configuration options:
+
+  - ``picongpu_template_dir``:
+    Specify the template directory to use for code generation,
     please refer to :ref:`the documentation on the matter for details <picmi-custom-generation>`
-  - ``__init__(...,  picongpu_typical_ppc)`` typical ppc to be used for normalization in PIConGPU
+  - ``picongpu_typical_ppc``:
+    typical particle per cell(ppc) to be used for normalization in PIConGPU, if not set explicitly, PIConGPU will use the median ppc of all defined species
+  - ``picongpu_moving_window_move_point``:
+    portion of the simulation window a light ray reaches from the time of the start of the simulation until the simulation window begins to move.
+
+    .. warning::
+
+      If the moving window is active, one gpu row in y direction is reserved for initializing new spaces, thereby reducing the simulation window size accordingly
+
+  - ``picongpu_moving_window_stop_iteration``:
+    iteration at which to stop moving the simulation window
+  - ``picongpu_interaction``:
+    ``Interaction`` object specifying all interactions of the simulation, i.e. all ionization models and their configurations and so on.
+    This replaces the PICMI ``add_interaction`` method.
+
+  additional method arguments:
+
   - ``write_input_file(..., pypicongpu_simulation)``:
     use a :ref:`PyPIConGPU simulation<PyPIConGPU_Intro>` object instead of an PICMI- simulation object to generate a PIConGPU input.
+
+  additional methods:
+
   - ``get_as_pypicongpu()``:
     convert the PICMI simulation object to an equivalent :ref:`PyPIConGPU <PyPIConGPU_Intro>` simulation object.
   - ``picongpu_get_runner()``:
-    Retrieve a :ref:`PyPIConGPU Runner <pypicongpu-running>` for running a PIConGPU simulation from Python, **not recommended**
+    Retrieve a :ref:`PyPIConGPU Runner <pypicongpu-running>` for running a PIConGPU simulation from Python, **not recommended, see :ref:`PICMI setup generation <generating_setups_with_PICMI>`**.
   - ``picongpu_add_custom_user_input()``:
     pass custom user input to the code generation.
     This may be used in conjunction with custom templates to change the code generation.
     See :ref:`PICMI custom code generation<picmi-custom-generation>` for the documentation on using custom input.
+
 
 - **Grid**
 
@@ -150,16 +178,34 @@ Parameters/Methods prefixed with ``picongpu_`` are PIConGPU-exclusive.
 
 - **Species**
 
-  - ``picongpu_ionization_electrons``:
-    Electron species to use for ionization.
-    Optional, will be guessed if possible.
-  - ``picongpu_fully_ionized``:
-    When defining an element (using ``particle_type``) it may or may not be ionizable
+  - ``picongpu_fixed_charge``:
+    When defining an ion species using ``particle_type`` it may or may not be ionizable
 
-    - to **enable** ionization simulation set ``charge_state`` to an integer
-    - to **disable** ionization (ions are only core without electrons) set ``picongpu_fully_ionized=True``
+    - to **enable** ionization add an ionization model to the Interaction object of the simulation and set the initial charge state using ``charge_state``.
+    - to **disable** ionization set ``picongpu_fixed_charge=True``, this will fix the charge of particles of this species for entire simulation.
+
+    ``picongpu_fixed_charge`` maybe combined with ``charge_state`` to control which charge state is to used for the ion species
 
     If neither is set a warning is printed prompting for either of the options above.
+
+- **Interaction**
+  Configuration of the PIC-algorithm extensions, example of use as follows:
+
+  .. code:: python
+
+    from picongpu import picmi
+    from picongpu.interaction.ionization.fieldionization import ADK, ADKVariant
+    from picongpu.interaction import Interaction
+
+    e = picmi.Species(name="e", particle_type="electron")
+    nitrogen = picmi.Species(name="nitrogen", particle_type="N", charge_state=2)
+
+    ADK_ionization = ADK(ADK_variant = ADKVariant.LinearPolarization, ion_species = nitrogen, ionization_electron_species=e)
+    interaction = Interaction(ground_state_ionizaion_model_list=[ADK_Ionization])
+
+    sim = picmi.simulation(picongpu_interaction=interaction)
+    sim.add_species(e, ...)
+    sim.add_species(nitrogen, ...)
 
 Output
 ^^^^^^

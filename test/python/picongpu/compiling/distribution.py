@@ -36,6 +36,7 @@ class TestDistribution(unittest.TestCase):
             particle_type="H",
             charge_state=0,
             initial_distribution=distribution,
+            picongpu_fixed_charge=True,
         )
         self.sim.add_species(species_hydrogen, random_layout)
         runner = Runner(self.sim)

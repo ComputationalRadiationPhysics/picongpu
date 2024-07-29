@@ -52,6 +52,7 @@ class TestSpecies(unittest.TestCase):
             charge_state=0,
             initial_distribution=uniform_dist,
             density_scale=3,
+            picongpu_fixed_charge=True,
         )
         random_layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=2)
 
