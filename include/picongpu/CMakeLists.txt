@@ -513,7 +513,7 @@ endif()
 ################################################################################
 
 find_path(PIC_EXTENSION_PATH
-    NAMES include/picongpu/param/components.param
+    NAMES include/picongpu/param/unit.param
     PATHS "${PIConGPUapp_SOURCE_DIR}"
     DOC "search PATH to extension folder"
     NO_DEFAULT_PATH
@@ -538,11 +538,16 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 list(APPEND ACCSRCFILES
     "${PIConGPUapp_SOURCE_DIR}/main.cpp"
     "${PIConGPUapp_SOURCE_DIR}/versionFormat.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/plugins/openPMD/toml.cpp"
 )
+
+# compile all *.x.cpp files with the device compiler
+file(GLOB_RECURSE ADDITIONAL_ACCFILES "*.x.cpp")
 
 # host-only sources
 file(GLOB_RECURSE SRCFILES "*.cpp")
 list(REMOVE_ITEM SRCFILES ${ACCSRCFILES})
+list(REMOVE_ITEM SRCFILES ${ADDITIONAL_ACCFILES})
 
 add_library(picongpu-hostonly
     STATIC
@@ -554,7 +559,7 @@ target_link_libraries(picongpu-hostonly PUBLIC ${HOST_LIBS})
 target_link_libraries(picongpu-hostonly PRIVATE pmacc::filesystem)
 
 alpaka_add_executable(picongpu
-     ${ACCSRCFILES}
+     ${ACCSRCFILES} ${ADDITIONAL_ACCFILES}
 )
 
 target_link_libraries(picongpu PUBLIC ${LIBS} ${HOST_LIBS} picongpu-hostonly)
@@ -586,7 +591,7 @@ if(PIC_HAVE_openPMD)
         picongpu-hostonly
         SYSTEM PRIVATE
         $<TARGET_PROPERTY:toml11::toml11,INTERFACE_INCLUDE_DIRECTORIES>)
-    target_link_libraries(picongpu-hostonly PRIVATE toml11::toml11)
+    target_link_libraries(picongpu-hostonly PUBLIC toml11::toml11)
 
     # This is a workaround for a missing API call in the openPMD-api,
     # which currently does not re-export backend version information.
