@@ -52,10 +52,16 @@
         name, using type = in_type; HDINLINE static type getValue()                                                   \
         { return in_default; } static std::string getName() { return std::string(#name); })
 
+/** getValue is only on device callable */
+#define value_identifier_device(in_type, name, in_default)                                                            \
+    identifier(                                                                                                       \
+        name, using type = in_type; DINLINE static type getValue()                                                    \
+        { return in_default; } static std::string getName() { return std::string(#name); })
+
 /** getValue() is defined constexpr
  * @}
  */
 #define value_identifier_constexpr(in_type, name, in_default)                                                         \
     identifier(                                                                                                       \
-        name, using type = in_type; HDINLINE static constexpr type getValue()                                         \
+        name, using type = in_type; static constexpr type getValue()                                                  \
         { return in_default; } static std::string getName() { return std::string(#name); })

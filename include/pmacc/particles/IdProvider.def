@@ -61,7 +61,7 @@ namespace pmacc
          *  Modifies the state of the IdProvider */
         struct GetNewId
         {
-            HDINLINE uint64_t operator()() const
+            DINLINE uint64_t operator()() const
             {
                 return getNewId();
             }
@@ -69,7 +69,7 @@ namespace pmacc
 
         /** Function that returns a new id each time it is called
          *  Modifies the state of the IdProvider  */
-        HDINLINE static uint64_t getNewId();
+        DINLINE static uint64_t getNewId();
 
         /**
          * Return true, if an overflow of the counter is detected and hence there might be duplicate ids
