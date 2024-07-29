@@ -39,6 +39,22 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${PMacc_DIR}/../../thirdParty/cmake-modules/)
 
+###############################################################################
+# PMacc link time optimizations
+###############################################################################
+
+macro(PMACC_TRY_ENABLE_IOP_FOR_LANGUAGE language)
+    check_ipo_supported(RESULT result OUTPUT output LANGUAGES ${language})
+    if(result)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        message(STATUS "Interprocedural Optimization is ON for ${language}")
+    else()
+        message(WARNING "Interprocedural Optimization is not supported: ${output}")
+    endif()
+endmacro()
+
+include(CheckIPOSupported)
+
 ################################################################################
 # alpaka path
 ################################################################################
@@ -104,10 +120,18 @@ if(NOT TARGET alpaka::alpaka)
     set(PMACC_ALPAKA_PROVIDER "internal" CACHE STRING "Select which alpaka is used")
     set_property(CACHE PMACC_ALPAKA_PROVIDER PROPERTY STRINGS "internal;external")
     mark_as_advanced(PMACC_ALPAKA_PROVIDER)
+    set(alpaka_RELOCATABLE_DEVICE_CODE ON)
 
     if(${PMACC_ALPAKA_PROVIDER} STREQUAL "internal")
         set(alpaka_BUILD_EXAMPLES OFF)
         set(BUILD_TESTING OFF)
+
+        # enable IOP for CXX if supported
+        if(alpaka_ACC_GPU_HIP_ENABLE)
+            PMACC_TRY_ENABLE_IOP_FOR_LANGUAGE(HIP)
+        elseif (alpaka_ACC_GPU_CUDA_ENABLE)
+            PMACC_TRY_ENABLE_IOP_FOR_LANGUAGE(CUDA)
+        endif()
         add_subdirectory(${PMacc_DIR}/../../thirdParty/alpaka ${CMAKE_BINARY_DIR}/alpaka)
     else()
         find_package(alpaka ${_PMACC_MAX_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
