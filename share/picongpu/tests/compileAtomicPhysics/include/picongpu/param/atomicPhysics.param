@@ -50,7 +50,7 @@ namespace picongpu::atomicPhysics
     struct RateSolverParam
     {
         // atomicPhysics timeStepLength sub-stepping of numerical limit
-        constexpr float_X timeStepAlpha = 0.3_X;
+        static constexpr float_X timeStepAlpha = 0.3_X;
 
         // which probability approximation to use for the acceptance step
         using ProbabilityApproximationFunctor

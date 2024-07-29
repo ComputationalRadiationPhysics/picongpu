@@ -236,8 +236,9 @@ namespace picongpu::simulation::stage
                     ForEach<AtomicPhysicsIonSpecies, particles::atomicPhysics::stage::FixAtomicState<boost::mpl::_1>>;
                 ForEachIonSpeciesFixAtomicState{}(mappingDesc);
 
-                // atomicPhysics sub-stepping loop, ends when timeRemaining<=0._X
-                while(true)
+                // atomicPhysics sub-stepping loop
+                bool timeRemainingLessThanZero = false;
+                do
                 {
                     // particle[accepted_] = false, in each macro ion
                     using ForEachIonSpeciesResetAcceptedStatus = pmacc::meta::ForEach<
@@ -302,8 +303,9 @@ namespace picongpu::simulation::stage
                         particles::atomicPhysics::stage::CalculateStepLength<boost::mpl::_1>>;
                     ForEachIonSpeciesCalculateStepLength{}(mappingDesc);
 
-                    // reject overSubscription loop, ends when no histogram bin oversubscribed
-                    while(true)
+                    // choose transition loop
+                    bool histogramOverSubscribed = true;
+                    while(histogramOverSubscribed)
                     {
                         // randomly roll transition for each not yet accepted macro ion
                         using ForEachIonSpeciesChooseTransitionType = pmacc::meta::ForEach<
@@ -350,63 +352,61 @@ namespace picongpu::simulation::stage
                             printHistogramToConsole</*print only oversubscribed*/ true>(mappingDesc);
                         }
 
+                        // check whether a least one histogram is oversubscribed
                         if(!static_cast<bool>(deviceLocalReduce(
                                pmacc::math::operation::Or(),
                                linearizedOverSubscribedBox,
                                fieldGridLayoutOverSubscription.productOfComponents())))
                         {
-                            /* no superCell electron histogram marked as over subscribed in
-                             *  localElectronHistogramOverSubscribedField */
-                            break;
+                            histogramOverSubscribed = false;
                         }
                         // at least one superCell electron histogram over subscribed
 
-                        // remove overSubscription loop, ends when overSubscription ended by rejecting enough
-                        // transitions
-                        while(true)
+                        if(histogramOverSubscribed)
                         {
-                            // debug only
-                            if constexpr(picongpu::atomicPhysics::debug::kernel::rollForOverSubscription::
-                                             PRINT_DEBUG_TO_CONSOLE)
+                            // remove overSubscription
+                            bool noHistogramOverSubscribed = false;
+                            do
                             {
-                                printOverSubscriptionFieldToConsole(mappingDesc);
-                                printHistogramToConsole</*print only oversubscribed*/ true>(mappingDesc);
+                                // debug only
+                                if constexpr(picongpu::atomicPhysics::debug::kernel::rollForOverSubscription::
+                                                 PRINT_DEBUG_TO_CONSOLE)
+                                {
+                                    printOverSubscriptionFieldToConsole(mappingDesc);
+                                    printHistogramToConsole</*print only oversubscribed*/ true>(mappingDesc);
 
-                                if constexpr(picongpu::atomicPhysics::debug::rejectionProbabilityCache::
-                                                 PRINT_TO_CONSOLE)
-                                    printRejectionProbabilityCacheToConsole(mappingDesc);
-                            }
+                                    if constexpr(picongpu::atomicPhysics::debug::rejectionProbabilityCache::
+                                                     PRINT_TO_CONSOLE)
+                                        printRejectionProbabilityCacheToConsole(mappingDesc);
+                                }
 
-                            using ForEachIonSpeciesRollForOverSubscription = pmacc::meta::ForEach<
-                                AtomicPhysicsIonSpecies,
-                                particles::atomicPhysics::stage::RollForOverSubscription<boost::mpl::_1>>;
-                            ForEachIonSpeciesRollForOverSubscription{}(mappingDesc, currentStep);
+                                using ForEachIonSpeciesRollForOverSubscription = pmacc::meta::ForEach<
+                                    AtomicPhysicsIonSpecies,
+                                    particles::atomicPhysics::stage::RollForOverSubscription<boost::mpl::_1>>;
+                                ForEachIonSpeciesRollForOverSubscription{}(mappingDesc, currentStep);
 
-                            picongpu::particles::atomicPhysics::stage::ResetDeltaWeightElectronHistogram<
-                                T_numberAtomicPhysicsIonSpecies>{}(mappingDesc);
+                                picongpu::particles::atomicPhysics::stage::ResetDeltaWeightElectronHistogram<
+                                    T_numberAtomicPhysicsIonSpecies>{}(mappingDesc);
 
-                            // record all shared resources usage by accepted transitions
-                            ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
+                                // record all shared resources usage by accepted transitions
+                                ForEachIonSpeciesRecordSuggestedChanges{}(mappingDesc);
 
-                            // check bins for over subscription --> localElectronHistogramOverSubscribedField
-                            picongpu::particles::atomicPhysics::stage::CheckForOverSubscription<
-                                T_numberAtomicPhysicsIonSpecies>()(mappingDesc);
+                                // check bins for over subscription --> localElectronHistogramOverSubscribedField
+                                picongpu::particles::atomicPhysics::stage::CheckForOverSubscription<
+                                    T_numberAtomicPhysicsIonSpecies>()(mappingDesc);
 
-                            auto linearizedOverSubscribedBox = S_LinearizedBox<S_OverSubscribedField>(
-                                localElectronHistogramOverSubscribedField.getDeviceDataBox(),
-                                fieldGridLayoutOverSubscription);
+                                auto linearizedOverSubscribedBox = S_LinearizedBox<S_OverSubscribedField>(
+                                    localElectronHistogramOverSubscribedField.getDeviceDataBox(),
+                                    fieldGridLayoutOverSubscription);
 
-                            if(!static_cast<bool>(deviceLocalReduce(
-                                   pmacc::math::operation::Or(),
-                                   linearizedOverSubscribedBox,
-                                   fieldGridLayoutOverSubscription.productOfComponents())))
-                            {
-                                /* no superCell electron histogram marked as over subscribed in
-                                 *  localElectronHistogramOverSubscribedField */
-                                break;
-                            }
-                        } // end remove overSubscription loop
-                    } // end reject overSubscription loop
+                                noHistogramOverSubscribed = !static_cast<bool>(deviceLocalReduce(
+                                    pmacc::math::operation::Or(),
+                                    linearizedOverSubscribedBox,
+                                    fieldGridLayoutOverSubscription.productOfComponents()));
+                            } // end remove over subscription loop
+                            while(noHistogramOverSubscribed);
+                        }
+                    } // end choose transition loop
 
                     if constexpr(picongpu::atomicPhysics::debug::timeRemaining::PRINT_TO_CONSOLE)
                         printTimeRemaingToConsole(mappingDesc);
@@ -435,7 +435,8 @@ namespace picongpu::simulation::stage
                     ForEachIonSpeciesSpawnIonizationElectrons{}(mappingDesc, currentStep);
 
                     // pressure ionization loop, ends when no ion in unbound state anymore
-                    while(true)
+                    bool foundUnbound = true;
+                    do
                     {
                         resetFoundUnboundIon();
                         picongpu::atomicPhysics::IPDModel::template calculateIPDInput<
@@ -450,15 +451,12 @@ namespace picongpu::simulation::stage
                             localFoundUnboundIonField.getDeviceDataBox(),
                             fieldGridLayoutFoundUnbound);
 
-                        if(!static_cast<bool>(deviceLocalReduce(
-                               pmacc::math::operation::Or(),
-                               linearizedFoundUnboundIonBox,
-                               fieldGridLayoutFoundUnbound.productOfComponents())))
-                        {
-                            // no ion found in unbound state
-                            break;
-                        }
-                    }
+                        foundUnbound = static_cast<bool>(deviceLocalReduce(
+                            pmacc::math::operation::Or(),
+                            linearizedFoundUnboundIonBox,
+                            fieldGridLayoutFoundUnbound.productOfComponents()));
+                    } // end pressure ionization loop
+                    while(foundUnbound);
 
                     // timeRemaining -= timeStep
                     picongpu::particles::atomicPhysics::stage::UpdateTimeRemaining<T_numberAtomicPhysicsIonSpecies>()(
@@ -468,16 +466,13 @@ namespace picongpu::simulation::stage
                         localTimeRemainingField.getDeviceDataBox(),
                         fieldGridLayoutTimeRemaining);
 
-                    // timeRemaining <= 0? in all local superCells?
-                    if(deviceLocalReduce(
-                           pmacc::math::operation::Max(),
-                           linearizedTimeRemainingBox,
-                           fieldGridLayoutTimeRemaining.productOfComponents())
-                       <= 0._X)
-                    {
-                        break;
-                    }
+                    timeRemainingLessThanZero = deviceLocalReduce(
+                                                    pmacc::math::operation::Max(),
+                                                    linearizedTimeRemainingBox,
+                                                    fieldGridLayoutTimeRemaining.productOfComponents())
+                        <= 0._X;
                 } // end atomicPhysics sub-stepping loop
+                while(!timeRemainingLessThanZero);
             }
         };
 
