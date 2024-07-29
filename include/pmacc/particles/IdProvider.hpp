@@ -33,14 +33,16 @@ namespace pmacc
 {
     namespace idDetail
     {
-        DEVICEONLY uint64_cu nextId;
+        ALPAKA_FN_ACC ALPAKA_FN_EXTERN uint64_t fetchAddId();
+
+        ALPAKA_FN_ACC ALPAKA_FN_EXTERN uint64_t& getIdRef();
 
         struct KernelSetNextId
         {
             template<typename T_Acc>
             DINLINE void operator()(const T_Acc&, uint64_cu id) const
             {
-                nextId = id;
+                getIdRef() = id;
             }
         };
 
@@ -49,7 +51,7 @@ namespace pmacc
             template<class T_Box, typename T_Acc>
             DINLINE void operator()(const T_Acc&, T_Box boxOut) const
             {
-                boxOut(0) = nextId;
+                boxOut(0) = getIdRef();
             }
         };
 
@@ -111,9 +113,9 @@ namespace pmacc
     }
 
     template<unsigned T_dim>
-    HDINLINE uint64_t IdProvider<T_dim>::getNewId()
+    DINLINE uint64_t IdProvider<T_dim>::getNewId()
     {
-        return static_cast<uint64_t>(kernel::atomicAllInc(&idDetail::nextId));
+        return idDetail::fetchAddId();
     }
 
     template<unsigned T_dim>

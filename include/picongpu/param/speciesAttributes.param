@@ -55,8 +55,8 @@ namespace picongpu
      */
     alias(position);
 
-    //! unique identifier for a particle
-    value_identifier(uint64_t, particleId, IdProvider<simDim>::getNewId());
+    //! unique identifier for a particle, the attribute can only be initialized on the compute device
+    value_identifier_device(uint64_t, particleId, IdProvider<simDim>::getNewId());
 
     //! specialization for the relative in-cell position
     value_identifier(floatD_X, position_pic, floatD_X::create(0.));
