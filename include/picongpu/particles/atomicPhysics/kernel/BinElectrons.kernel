@@ -50,7 +50,7 @@ namespace picongpu::particles::atomicPhysics::kernel
          *
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call
-         * @param areMapping mapping of blockIndex to block superCell index
+         * @param areaMapping mapping of blockIndex to block superCell index
          * @param localTimeRemainingBox deviceDataBox giving access to the atomic Physics step time remaining of all
          *  local superCells
          * @param electronBox deviceDataBox giving access to the electron specie's particle frames

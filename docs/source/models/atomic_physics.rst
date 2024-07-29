@@ -20,7 +20,7 @@ FLYonPIC is based on averaged states and models the evolution of the atomic stat
 
 This allows a more accurate prediction of ionization dynamics and the prediction of the atomic state distributions in non-thermal, transient plasmas, for example high-intensity short-pulse laser plasma interactions.
 
-FLYonPIC is base on the [FlyCHK]_ atomic model and currently implements the following processes:
+FLYonPIC is based on the [FlyCHK]_ atomic model and currently implements the following processes:
 
 - electronic collisional de-/excitation
 - spontaneous deexcitation
@@ -43,9 +43,7 @@ Model Overview
 FLYonPIC is based on tracking the atomic state of ions as a particle attribute of ion macro particles, with each "macro-ion" representing a phase space sample of exactly one atomic state.
 
 .. note::
-   FLYonPIC tracks only FlyCHK super configurations.
-
-   i.e. FLYonPIC distinguishes only between states differing in the number of electron contained in atomic shells
+   FLYonPIC tracks only FlyCHK super configurations, i.e., FLYonPIC distinguishes only between states differing in the number of electron contained in atomic shells.
 
    Example: (1s^2)(2s^1 2p^2) and (1s^2)(2p^3) would be considered the same state (2,3,0, ...) by FLYonPIC.
 
@@ -53,7 +51,7 @@ The atomic state dynamics are modelled as some average rate of change to another
 
 Over the set of all transitions, atomic state dynamics may be represented as a matrix of rates describing the change of the entire atomic state population with time.
 
-This rate equation is solved in FLYonPIC by a monte-carlo solver for every macro-ion individually and time dependent.
+This rate equation is solved in FLYonPIC by a Monte Carlo solver for every macro-ion individually and time dependent.
 
 For this FLYonPIC,
 

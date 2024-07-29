@@ -95,7 +95,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     {
                         // no loss state, for example completely ionized state, set to neutral element
                         // 1/UNIT_TIME
-                        lossRateState = picongpu::atomicPhysics::timeStepAlpha / DELTA_T;
+                        lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / DELTA_T;
                     }
                     else
                     {
@@ -109,7 +109,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             printf("atomicPhysics ERROR: encountered negative loss rate in "
                                    "calculateStepLength kernel\n");
                             // 1/UNIT_TIME
-                            lossRateState = picongpu::atomicPhysics::timeStepAlpha / DELTA_T;
+                            lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / DELTA_T;
                         }
 
                     // 1/(1/UNIT_TIME) = UNIT_TIME
@@ -119,7 +119,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     alpaka::atomicMin(
                         worker.getAcc(),
                         &timeStep, // UNIT_TIME
-                        speciesStateLimitTimeStep * picongpu::atomicPhysics::timeStepAlpha,
+                        speciesStateLimitTimeStep * picongpu::atomicPhysics::RateSolverParam::timeStepAlpha,
                         ::alpaka::hierarchy::Threads{});
                 });
         }

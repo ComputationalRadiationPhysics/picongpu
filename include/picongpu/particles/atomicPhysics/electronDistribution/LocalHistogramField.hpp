@@ -109,7 +109,6 @@ namespace picongpu::particles::atomicPhysics::electronDistribution
         using Histogram = T_Histogram;
 
     private:
-        /// @todo should these be private?
         //! type of physical particle represented in histogram, usually "Electron" or "Photon"
         std::string histogramType;
 

@@ -45,14 +45,16 @@ namespace picongpu::atomicPhysics
         MaxEnergyParam>;
     //}
 
-    // atomicPhysics rate solver settings
-    //{
-    //      atomicPhysics timeStepLength sub-stepping of numerical limit
-    constexpr float_X timeStepAlpha = 0.3_X;
+    //! atomicPhysics rate solver settings
+    struct RateSolverParam
+    {
+        // atomicPhysics timeStepLength sub-stepping of numerical limit
+        static constexpr float_X timeStepAlpha = 0.3_X;
 
-    //      which probability approximation to use for the acceptance step
-    using ProbabilityApproximationFunctor = picongpu::particles::atomicPhysics::ExponentialApproximationProbability;
-    //}
+        // which probability approximation to use for the acceptance step
+        using ProbabilityApproximationFunctor
+            = picongpu::particles::atomicPhysics::ExponentialApproximationProbability;
+    };
 
     /** atomicConfigNumber definition for argon ions
      *
