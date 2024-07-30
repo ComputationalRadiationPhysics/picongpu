@@ -23,6 +23,7 @@
 #include "picongpu/fields/incidentField/profiles/ExpRampWithPrepulse.hpp"
 #include "picongpu/fields/incidentField/profiles/Free.hpp"
 #include "picongpu/fields/incidentField/profiles/GaussianPulse.hpp"
+#include "picongpu/fields/incidentField/profiles/InsightPulse.hpp"
 #include "picongpu/fields/incidentField/profiles/None.hpp"
 #include "picongpu/fields/incidentField/profiles/PlaneWave.hpp"
 #include "picongpu/fields/incidentField/profiles/Polynom.hpp"
