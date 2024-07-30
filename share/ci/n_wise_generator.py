@@ -157,9 +157,10 @@ def is_valid_combination(row):
         # nvcc compatibility
         if is_cuda and is_nvcc:
             if is_gnu:
-                # for C++17 support CUDA >= 11 is required
-                if v_cuda == 11.0 and v_compiler <= 9:
-                    return True
+                # official g++ 9 and CUDA is supported but due to many
+                # compile issue we do not support this combination anymore
+                if v_compiler <= 9:
+                    return False
                 if 11.1 <= v_cuda <= 11.3 and v_compiler <= 10:
                     if v_compiler == 10:
                         # nvcc + gcc 10.3 bug see:
