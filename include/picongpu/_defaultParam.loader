@@ -54,6 +54,5 @@
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/fieldSolver.param"
-#include "picongpu/param/fieldBackground.param"
 #include "picongpu/param/particleCalorimeter.param"
 // clang-format on

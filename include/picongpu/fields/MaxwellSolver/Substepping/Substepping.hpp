@@ -28,6 +28,7 @@
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
+#include "picongpu/param/fieldBackground.param"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>

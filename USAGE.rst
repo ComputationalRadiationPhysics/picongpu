@@ -81,6 +81,11 @@ Time for a coffee or a `sword fight <https://xkcd.com/303/>`_!
 
 We explain in the :ref:`details section <usage-basics-build>` below how to set further options, e.g. CPU targets or tuning for newer GPU architectures.
 
+.. note::
+
+   ``pic-build`` used many threads during the compile, this can increase the main memory usage to over 60 GiB.
+   To limit the number of parallel builds you can use `-j N`, where N is the number of parallel builds, to reduce the required memory.
+
 3. Run Simulation
 """""""""""""""""
 
