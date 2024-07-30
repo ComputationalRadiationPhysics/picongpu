@@ -47,7 +47,8 @@ function resolve_vars
                 var_name=${i/\!}
                 # check if variable is defined in the environment
                 if declare -p "$var_name" &>/dev/null ; then
-                    var_value=$(eval echo \$$var_name)
+                    # do not evaluate the variable here because we can still have unresolved tbg variables
+                    var_value=$(printf '%s\n' "${!var_name}")
                     data_set=${data_set/\!$var_name/$var_value}
                 fi
             done
@@ -63,7 +64,11 @@ function resolve_vars
             done
         fi
 
-        export "$data_set"
+        var=$(echo -e "$data_set" | cut -d"=" -f1)
+        var_value=$(echo -e "$data_set" | cut -d"=" -f2-)
+        # the right hand side is fully resolved so we can evaluate the right hand side
+        var_value=$(eval echo "$var_value")
+        export "$var=$var_value"
     done < <(echo "$replace_input" | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
 }
 
@@ -186,16 +191,17 @@ function run_cfg_and_set_solved_variables
     set_env_vars tbg_vars_overwritten
     all_tbg_vars=$(echo -e "$tbg_vars_overwritten\n$cfg_script_overwritten_vars")
     resolve_vars all_tbg_vars
+
     # evaluate all variable assignments which are contained in the tpl file
     # variables are already set in the environment and resolved
     while read -r data_set
     do
-        var_name=$(echo "$data_set" | cut -d"=" -f1)
+        var_name=$(echo -e "$data_set" | cut -d"=" -f1)
         var_value=$(eval echo \$$var_name)
         if [ -n  "$var_value" ] ; then
-            eval "$data_set"
+            export "$var_name=$var_value"
         fi
-    done < <(echo "$tbg_vars_overwritten" |  grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
+    done < <(echo "$all_tbg_vars" |  grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
 }
 
 #######################
