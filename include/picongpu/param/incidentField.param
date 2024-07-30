@@ -29,6 +29,7 @@
  *  - profiles::FromOpenPMDPulse<>    : reads an experimental pulse chunk defined in space-time domain into the
  * simulation; requires openPMD API dependency and a 3D simulation
  *  - profiles::GaussianPulse<>       : Pulse with Gaussian profile in all three dimensions with given parameters
+ *  - profiles::InsightPulse<>        : experimental pulse measured with Insight and transformed into time domain
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
  *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given

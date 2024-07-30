@@ -1,0 +1,121 @@
+/* Copyright 2024 Fabia Dietrich
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            namespace profiles
+            {
+                namespace defaults
+                {
+                    struct InsightPulseParam
+                    {
+                        /** Path to the openPMD input file
+                         *
+                         * It is recommended to use a full path to make it independent of how PIConGPU is launched.
+                         * Relative paths require consistency to the current directory when PIConGPU is started
+                         * with tbg and the standard .tpl files, relative to the resulting simOutput directory.
+                         */
+                        static constexpr char const* filename = "/path/to/file%T.h5";
+
+                        //! Iteration inside the file (only file, not related to the current simulation time iteration)
+                        static constexpr uint32_t iteration = 0;
+
+                        /** Name of the E field dataset inside the input file
+                         *
+                         * Note that only C dataOrder is supported.
+                         *
+                         * @warning it is only the dataset itself, a simple text name and not something like
+                         * "/[directories]/[iteration]/meshes/E".
+                         */
+                        static constexpr char const* datasetEName = "E";
+
+                        /** Datatype of the field record
+                         *
+                         * OpenPMD needs this information at compile time.
+                         */
+                        using dataType = float_64;
+
+                        //! Defining the propagation ( = time) and polarisation axes of the input data
+                        static constexpr char const* polarisationAxisOpenPMD = "x";
+                        static constexpr char const* propagationAxisOpenPMD  = "z";
+
+                        /** Unit propagation direction vector in PIConGPU
+                         *
+                         * Must be either X or Y or Z, but can be different from propagationAxisOpenPMD.
+                         *
+                         * Norm of this vector must be 1.0.
+                         * (Normalization is required on a user side as internally it is awkward to do with the
+                         * static-constexpr style of using parameters.)
+                         *
+                         * unit: none
+                         */
+                        static constexpr float_64 DIRECTION_X = 0.0;
+                        static constexpr float_64 DIRECTION_Y = 1.0;
+                        static constexpr float_64 DIRECTION_Z = 0.0;
+
+                        /** Unit E polarization direction in PIConGPU
+                        *
+                        * Must be orthogonal to the propagation direction.
+                        * Must be either X or Y or Z, but can be different from polarisationAxisOpenPMD.
+                        *
+                        * Norm of this vector must be 1.0.
+                        * (Normalization is required on a user side as internally it is awkward to do with the
+                        * static-constexpr style of using parameters.)
+                        *
+                        * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                        *
+                        * unit: none
+                        */
+                        static constexpr float_64 POLARISATION_DIRECTION_X = 1.0;
+                        static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
+                        static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
+
+                        /** Time delay, after which the laser initialisation will be started.
+                        * The delay must be positive.
+                        *
+                        * @warning: not optional!
+                        *
+                        * unit: time
+                        */
+
+                        static constexpr float_64 TIME_DELAY_SI = 0.0;
+
+
+                    };
+                } // namespace defaults
+
+                /** Experimental laser profile measured with Insight
+                 *
+                 * @tparam T_Params class parameter to configure the Insight laser profile,
+                 *                  see members of defaults::InsightPulseParam
+                 *                  for required members
+                 */
+                template<typename T_Params = defaults::InsightPulseParam>
+                struct InsightPulse;
+            } // namespace profiles
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu
