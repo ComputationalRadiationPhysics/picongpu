@@ -16,6 +16,8 @@ import typeguard
 class GroundStateIonizationModel(IonizationModel):
     def get_constants(self) -> list[pypicongpu.species.constant.Constant]:
         """get all PyPIConGPU constants required by a ground state ionization model in PIConGPU"""
+        self.check()
+
         Z = self.ion_species.picongpu_element.get_atomic_number()
         assert self.ion_species.charge_state <= Z, f"charge_state must be <= atomic number ({Z})"
 

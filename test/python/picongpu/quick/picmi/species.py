@@ -125,7 +125,7 @@ class TestPicmiSpecies(unittest.TestCase):
         pypicongpu_s.name = "any"
         self.assertNotEqual(None, picmi_s.get_independent_operations(pypicongpu_s, None))
 
-    def test_get_independent_operations_ionization_set_bound_electrons(self):
+    def test_get_independent_operations_ionization_set_charge_state(self):
         """SetBoundElectrons is properly generated"""
         picmi_species = picmi.Species(name="nitrogen", particle_type="N", charge_state=2)
         e = picmi.Species(name="e", particle_type="electron")
@@ -143,15 +143,15 @@ class TestPicmiSpecies(unittest.TestCase):
         pypic_species, rest = picmi_species.get_as_pypicongpu(interaction)
         ops = picmi_species.get_independent_operations(pypic_species, interaction)
         ops_types = list(map(lambda op: type(op), ops))
-        self.assertEqual(1, ops_types.count(species.operation.SetBoundElectrons))
+        self.assertEqual(1, ops_types.count(species.operation.SetChargeState))
         self.assertEqual(0, ops_types.count(species.operation.NoBoundElectrons))
 
         for op in ops:
-            if not isinstance(op, species.operation.SetBoundElectrons):
+            if not isinstance(op, species.operation.SetChargeState):
                 continue
 
             self.assertEqual(pypic_species, op.species)
-            self.assertEqual(5, op.bound_electrons)
+            self.assertEqual(2, op.charge_state)
 
     def test_get_independent_operations_ionization_not_ionizable(self):
         """ionization operation is not returned if there is no ionization"""
@@ -161,7 +161,7 @@ class TestPicmiSpecies(unittest.TestCase):
         ops = picmi_species.get_independent_operations(pypic_species, None)
         ops_types = list(map(lambda op: type(op), ops))
         self.assertEqual(0, ops_types.count(species.operation.NoBoundElectrons))
-        self.assertEqual(0, ops_types.count(species.operation.SetBoundElectrons))
+        self.assertEqual(0, ops_types.count(species.operation.SetChargeState))
 
     def test_get_independent_operations_momentum(self):
         """momentum is correctly translated"""
@@ -353,8 +353,8 @@ class TestPicmiSpecies(unittest.TestCase):
         self.assertAlmostEqual(mass_const.mass_si, picmi.constants.m_e)
         self.assertAlmostEqual(charge_const.charge_si, -picmi.constants.q_e)
 
-    def test_fully_ionized_typesafety(self):
-        """picongpu_fully_ioinized is type safe"""
+    def test_fixed_charge_typesafety(self):
+        """picongpu_fixed_charge is type safe"""
         for invalid in [1, "yes", [], {}]:
             with self.assertRaises(typeguard.TypeCheckError):
                 picmi.Species(name="x", picongpu_fixed_charge=invalid)
@@ -366,8 +366,8 @@ class TestPicmiSpecies(unittest.TestCase):
             with self.assertRaises(typeguard.TypeCheckError):
                 picmi_species.picongpu_fixed_charge = invalid
 
-        # None is allowed as value in general (but not in constructor)
-        picmi_species.picongpu_fixed_charge = None
+        # False is allowed
+        picmi_species.picongpu_fixed_charge = False
 
     def test_particle_type_invalid(self):
         """unkown particle type rejects"""

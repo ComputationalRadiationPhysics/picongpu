@@ -104,10 +104,10 @@ namespace picongpu
                     {{/temperature}}
                 {{/species_initmanager.operations.simple_momentum}}
 
-                {{#species_initmanager.operations.set_bound_electrons}}
+                {{#species_initmanager.operations.set_charge_state}}
                     //! definition of PreIonized manipulator
-                    using PreIonize_{{{species.typename}}} = unary::ChargeState<{{{bound_electrons}}}u>;;
-                {{/species_initmanager.operations.set_bound_electrons}}
+                    using PreIonize_{{{species.typename}}} = unary::ChargeState<{{{charge_state}}}u>;;
+                {{/species_initmanager.operations.set_charge_state}}
             } // namespace pypicongpu
         } // namespace manipulators
     } // namespace particles

@@ -66,7 +66,7 @@ namespace picongpu
                     ionizers<MakeSeq_t<
                       {{#ionization_model_list}}
                         particles::ionization::{{{ionizer_picongpu_name}}}<
-                            {{{ionization_electron_species.type_name}}}
+                            {{{ionization_electron_species.typename}}}
                           {{#ionization_current}}
                             , particles::ionization::current::{{{picongpu_name}}}
                           {{/ionization_current}}

@@ -396,12 +396,12 @@ class TestPicmiSimulation(unittest.TestCase):
         initmgr = pypic_sim.init_manager
 
         operation_types = list(map(lambda op: type(op), initmgr.all_operations))
-        self.assertEqual(2, operation_types.count(species.operation.SetBoundElectrons))
+        self.assertEqual(2, operation_types.count(species.operation.SetChargeState))
 
         for op in initmgr.all_operations:
-            if isinstance(op, species.operation.SetBoundElectrons) and op.species.name == "Nitrogen":
+            if isinstance(op, species.operation.SetChargeState) and op.species.name == "Nitrogen":
                 self.assertEqual(5, op.bound_electrons)
-            if isinstance(op, species.operation.SetBoundElectrons) and op.species.name == "Hydrogen":
+            if isinstance(op, species.operation.SetChargeState) and op.species.name == "Hydrogen":
                 self.assertEqual(0, op.bound_electrons)
             # other ops (position...): ignore
 

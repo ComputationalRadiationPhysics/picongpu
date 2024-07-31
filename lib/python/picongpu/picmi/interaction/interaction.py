@@ -8,15 +8,15 @@ License: GPLv3+
 from ... import pypicongpu
 
 from .ionization.groundstateionizationmodel import GroundStateIonizationModel, IonizationModel
-from .interactioninterface import InteractionInterface
-from ..species import Species
 
 import picmistandard
+
 import typeguard
+import pydantic
 
 
 @typeguard.typechecked
-class Interaction(InteractionInterface):
+class Interaction(pydantic.BaseModel):
     """
     Common interface of Particle-In-Cell particle interaction extensions
 
@@ -71,20 +71,23 @@ class Interaction(InteractionInterface):
     ]:
         """get list of all constants required by interactions for the given species"""
 
+        has_ionization = False
         constant_list = []
         ionization_model_conversion = {}
         for model in self.ground_state_ionization_model_list:
             if model.ion_species == picmi_species:
+                has_ionization = True
                 model_constants = model.get_constants()
                 Interaction.update_constant_list(constant_list, model_constants)
                 ionization_model_conversion[model] = model.get_as_pypicongpu()
 
-        # add GroundStateIonization constant for entire species
-        constant_list.append(
-            pypicongpu.species.constant.GroundStateIonization(
-                ionization_model_list=ionization_model_conversion.values()
+        if has_ionization:
+            # add GroundStateIonization constant for entire species
+            constant_list.append(
+                pypicongpu.species.constant.GroundStateIonization(
+                    ionization_model_list=ionization_model_conversion.values()
+                )
             )
-        )
 
         # add additional interaction sub groups needing constants here
         return constant_list, ionization_model_conversion
@@ -125,16 +128,20 @@ class Interaction(InteractionInterface):
                     ]
                     pypicongpu_ionization_model.ionization_electron_species = pypicongpu_ionization_electron_species
 
-    def has_ground_state_ionization(self, species: Species) -> bool:
+    def __has_ground_state_ionization(self, species) -> bool:
         """does at least one ground state ionization model list species as ion species?"""
+
         for ionization_model in self.ground_state_ionization_model_list:
             if species == ionization_model.ion_species:
                 return True
         return False
 
-    def has_ionization(self, species: Species) -> bool:
+    def has_ionization(self, species) -> bool:
         """does at least one ionization model list species as ion species?"""
+        from ..species import Species
+
+        assert isinstance(species, Species)
 
         # add additional groups of ionization models here
-        ionization_configured = self.has_ground_state_ionization(species)
+        ionization_configured = self.__has_ground_state_ionization(species)
         return ionization_configured

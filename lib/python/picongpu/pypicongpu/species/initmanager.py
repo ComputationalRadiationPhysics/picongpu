@@ -14,7 +14,7 @@ from .operation import (
     DensityOperation,
     SimpleDensity,
     SimpleMomentum,
-    SetBoundElectrons,
+    SetChargeState,
 )
 from .attribute import Attribute
 from .constant import Constant
@@ -500,7 +500,7 @@ class InitManager(RenderedObject):
         operation_types_by_name = {
             "simple_density": SimpleDensity,
             "simple_momentum": SimpleMomentum,
-            "set_bound_electrons": SetBoundElectrons,
+            "set_charge_state": SetChargeState,
             # note: NotPlaced is not rendered (as it provides no data & does
             # nothing anyways) -> it is not in this list
             # same as NoBoundElectrons

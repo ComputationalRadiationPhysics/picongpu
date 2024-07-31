@@ -41,6 +41,22 @@ class Species(RenderedObject):
     name = util.build_typesafe_property(str)
     """name of the species"""
 
+    def __str__(self) -> str:
+        try:
+            return (
+                self.name
+                + " : \n\t constants: "
+                + str(self.constants)
+                + "\n\t attributes: "
+                + str(self.attributes)
+                + "\n"
+            )
+        except Exception:
+            try:
+                return self.name + " : \n\t constants: " + str(self.constants) + "\n"
+            except Exception:
+                return self.name
+
     def get_cxx_typename(self) -> str:
         """
         get (standalone) C++ name for this species

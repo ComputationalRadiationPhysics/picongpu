@@ -5,17 +5,16 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
+from .predefinedparticletypeproperties import non_element_particle_type_properties
+from .interaction import Interaction
+
 from .. import pypicongpu
 from ..pypicongpu.species.util.element import Element
-from .interaction import InteractionInterface
-from .predefinedparticletypeproperties import non_element_particle_type_properties
 
 import picmistandard
 
 import typing
 import typeguard
-import pydantic
-import pydantic_core
 import logging
 import re
 
@@ -33,13 +32,13 @@ class Species(picmistandard.PICMI_Species):
     @attention ONLY set non-element particles here, all other are handled by element
     """
 
-    __non_element_particle_types: list[str] = __non_element_particle_type_properties.keys()
-    """list of particle types"""
-
     picongpu_element = pypicongpu.util.build_typesafe_property(typing.Optional[Element])
     """element information of object"""
 
-    picongpu_fixed_charge = pypicongpu.util.build_typesafe_property(typing.Optional[bool])
+    __non_element_particle_types: list[str] = __non_element_particle_type_properties.keys()
+    """list of particle types"""
+
+    picongpu_fixed_charge = pypicongpu.util.build_typesafe_property(bool)
 
     interactions = pypicongpu.util.build_typesafe_property(typing.Optional[list[None]])
     """overwrite base class interactions to disallow setting them"""
@@ -47,48 +46,7 @@ class Species(picmistandard.PICMI_Species):
     __warned_already: bool = False
     __previous_check: bool = False
 
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: typing.Type[typing.Any], handler: pydantic.GetCoreSchemaHandler
-    ) -> pydantic_core.core_schema.CoreSchema:
-        """return schema for species instances for pydantic validation"""
-
-        element_schema = handler.generate_schema(typing.Optional[Element])
-
-        def val_element(v: Species, handler: pydantic.ValidatorFunctionWrapHandler) -> Species:
-            v.picongpu_element = handler(v.picongpu_element)
-            return v
-
-        python_schema = pydantic_core.core_schema.chain_schema(
-            # `chain_schema` means do the following steps in order:
-            [
-                # Ensure the value is an instance of Owner
-                pydantic_core.core_schema.is_instance_schema(cls),
-                # Use the element_schema to validate `picongpu_element`
-                pydantic_core.core_schema.no_info_wrap_validator_function(val_element, element_schema),
-            ]
-        )
-
-        return pydantic_core.core_schema.json_or_python_schema(
-            # for JSON accept an object with name and item keys
-            json_schema=pydantic_core.core_schema.chain_schema(
-                [
-                    pydantic_core.core_schema.typed_dict_schema(
-                        {
-                            "picongpu_element": pydantic_core.core_schema.typed_dict_field(element_schema),
-                        }
-                    ),
-                    # after validating the json data convert it to python
-                    pydantic_core.core_schema.no_info_before_validator_function(
-                        lambda data: Species(picongpu_element=None, keyword_arguments=data),
-                        python_schema,
-                    ),
-                ]
-            ),
-            python_schema=python_schema,
-        )
-
-    def __init__(self, picongpu_fixed_charge=None, **keyword_arguments):
+    def __init__(self, picongpu_fixed_charge: bool = False, **keyword_arguments):
         self.picongpu_fixed_charge = picongpu_fixed_charge
         self.picongpu_element = None
 
@@ -162,7 +120,7 @@ class Species(picmistandard.PICMI_Species):
                 # unknown particle type
                 raise ValueError(f"Species {self.name} has unknown particle type {self.particle_type}")
 
-    def has_ionization(self, interaction: InteractionInterface | None) -> bool:
+    def has_ionization(self, interaction: Interaction | None) -> bool:
         """does species have ionization configured?"""
         if interaction is None:
             return False
@@ -183,7 +141,7 @@ class Species(picmistandard.PICMI_Species):
             return False
         return True
 
-    def __check_ionization_configuration(self, interaction: InteractionInterface | None) -> None:
+    def __check_ionization_configuration(self, interaction: Interaction | None) -> None:
         """
         check species ioniaztion- and species- configuration are compatible
 
@@ -199,7 +157,7 @@ class Species(picmistandard.PICMI_Species):
                 "type, must either set particle_type explicitly or only use charge instead"
             )
             assert (
-                self.picongpu_fixed_charge is None
+                self.picongpu_fixed_charge is False
             ), f"Species {self.name} specified fixed charge without also specifying particle_type"
         else:
             # particle type is
@@ -210,7 +168,7 @@ class Species(picmistandard.PICMI_Species):
                     interaction
                 ), f"Species {self.name} configured with active ionization but particle type indicates non ion."
                 assert (
-                    self.picongpu_fixed_charge is None
+                    self.picongpu_fixed_charge is False
                 ), f"Species {self.name} configured with fixed charge state but particle_type indicates non ion"
             elif Element.is_element(self.particle_type):
                 # ion
@@ -222,7 +180,7 @@ class Species(picmistandard.PICMI_Species):
                     ), f"Species {self.name} intial charge state is unphysical"
 
                 if self.has_ionization(interaction):
-                    assert not self.picongpu_fixed_charge, (
+                    assert self.picongpu_fixed_charge is False, (
                         f"Species {self.name} configured both as fixed charge ion and ion with ionization, may be "
                         " either or but not both."
                     )
@@ -232,7 +190,7 @@ class Species(picmistandard.PICMI_Species):
                     )
                 else:
                     # ion with fixed charge
-                    if not self.picongpu_fixed_charge:
+                    if self.picongpu_fixed_charge is False:
                         raise ValueError(
                             f"Species {self.name} configured with fixed charge state without explicitly setting picongpu_fixed_charge=True"
                         )
@@ -250,11 +208,11 @@ class Species(picmistandard.PICMI_Species):
                 # unknown particle type
                 raise ValueError(f"unknown particle type {self.particle_type} in species {self.name}")
 
-    def __check_interaction_configuration(self, interaction: InteractionInterface | None) -> None:
+    def __check_interaction_configuration(self, interaction: Interaction | None) -> None:
         """check all interactions sub groups for compatibility with this species configuration"""
         self.__check_ionization_configuration(interaction)
 
-    def check(self, interaction: InteractionInterface | None) -> None:
+    def check(self, interaction: Interaction | None) -> None:
         assert self.name is not None, "picongpu requires each species to have a name set."
 
         # check charge and mass explicitly set/not set depending on particle_type
@@ -273,7 +231,7 @@ class Species(picmistandard.PICMI_Species):
         self.__previous_check = True
 
     def get_as_pypicongpu(
-        self, interaction: InteractionInterface | None
+        self, interaction: Interaction | None
     ) -> tuple[
         pypicongpu.species.Species, None | dict[typing.Any, pypicongpu.species.constant.ionizationmodel.IonizationModel]
     ]:
@@ -334,8 +292,10 @@ class Species(picmistandard.PICMI_Species):
         return s, pypicongpu_model_by_picmi_model
 
     def get_independent_operations(
-        self, pypicongpu_species: pypicongpu.species.Species, interaction: InteractionInterface | None
+        self, pypicongpu_species: pypicongpu.species.Species, interaction: Interaction | None
     ) -> list[pypicongpu.species.operation.Operation]:
+        """get a list of all operations only initializing attributes of this species"""
+
         # assure consistent state of species
         self.check(interaction)
         self.__maybe_apply_particle_type()
@@ -368,11 +328,11 @@ class Species(picmistandard.PICMI_Species):
 
         all_operations.append(momentum_op)
 
-        # assign bound electrons
+        # assign boundElectrons attribute
         if self.is_ion() and self.has_ionization(interaction):
-            bound_electrons_op = pypicongpu.species.operation.SetBoundElectrons()
+            bound_electrons_op = pypicongpu.species.operation.SetChargeState()
             bound_electrons_op.species = pypicongpu_species
-            bound_electrons_op.bound_electrons = self.picongpu_element.get_atomic_number() - self.charge_state
+            bound_electrons_op.charge_state = self.charge_state
             all_operations.append(bound_electrons_op)
         else:
             # fixed charge state -> therefore no bound electron attribute necessary

@@ -1,7 +1,7 @@
 {
     "$id":"https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.groundstateionization.GroundStateIonization",
     "required":["ionization_model_list"],
-    "unevaluated":false,
+    "unevaluatedProperties":false,
     "properties": {
         "ionization_model_list": {
             "type": "array",

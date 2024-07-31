@@ -865,7 +865,7 @@ class TestInitManager(unittest.TestCase):
             with self.assertRaises(typeguard.TypeCheckError):
                 initmgr.bake()
 
-    def test_set_bound_electrons_passthrough(self):
+    def test_set_charge_state_passthrough(self):
         """bound electrons operation is included in rendering context"""
         # create full electron species
         electron = species.Species()
@@ -882,9 +882,9 @@ class TestInitManager(unittest.TestCase):
         element_const.element = species.util.Element("N")
         ion.constants = [ionizers_const, element_const]
 
-        ion_op = species.operation.SetBoundElectrons()
+        ion_op = species.operation.SetChargeState()
         ion_op.species = ion
-        ion_op.bound_electrons = 2
+        ion_op.charge_state = 2
 
         initmgr = InitManager()
         initmgr.all_species = [electron, ion]
@@ -897,5 +897,5 @@ class TestInitManager(unittest.TestCase):
 
         self.assertEqual(
             [ion_op.get_rendering_context()],
-            context["operations"]["set_bound_electrons"],
+            context["operations"]["set_charge_state"],
         )

@@ -15,17 +15,17 @@ import typeguard
 
 
 @typeguard.typechecked
-class SetBoundElectrons(Operation):
+class SetChargeState(Operation):
     """
-    assigns and set the boundElectrons attribute
+    assigns boundElectrons attribute and sets it to the initial charge state
 
-    Standard attribute for pre-ionization.
+    used for ionization of ions
     """
 
     species = util.build_typesafe_property(Species)
     """species which will have boundElectrons set"""
 
-    bound_electrons = util.build_typesafe_property(int)
+    charge_state = util.build_typesafe_property(int)
     """number of bound electrons to set"""
 
     def __init__(self):
@@ -34,11 +34,10 @@ class SetBoundElectrons(Operation):
     def check_preconditions(self) -> None:
         assert self.species.has_constant_of_type(GroundStateIonization), "BoundElectrons requires GroundStateIonization"
 
-        if self.bound_electrons < 0:
-            raise ValueError("bound electrons must be >0")
+        if self.charge_state < 0:
+            raise ValueError("charge state must be > 0")
 
-        if 0 == self.bound_electrons:
-            raise ValueError("bound electrons must be >0, use NoBoundElectrons to assign " "0 bound electrons")
+        # may not check for charge_state > Z since Z not known in this context
 
     def prebook_species_attributes(self) -> None:
         self.attributes_by_species = {
@@ -48,5 +47,5 @@ class SetBoundElectrons(Operation):
     def _get_serialized(self) -> dict:
         return {
             "species": self.species.get_rendering_context(),
-            "bound_electrons": self.bound_electrons,
+            "charge_state": self.charge_state,
         }

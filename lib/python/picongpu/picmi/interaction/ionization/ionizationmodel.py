@@ -5,11 +5,11 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ...species import Species
 from .... import pypicongpu
 
 import pydantic
 import typeguard
+import typing
 
 
 @typeguard.typechecked
@@ -23,10 +23,10 @@ class IonizationModel(pydantic.BaseModel):
     MODEL_NAME: str
     """ionization model"""
 
-    ion_species: Species
+    ion_species: typing.Any
     """PICMI ion species to apply ionization model for"""
 
-    ionization_electron_species: Species
+    ionization_electron_species: typing.Any
     """PICMI electron species of which to create macro particle upon ionization"""
 
     def __hash__(self):
@@ -42,6 +42,15 @@ class IonizationModel(pydantic.BaseModel):
                 print(type(self))
                 raise TypeError
         return hash_value
+
+    def check(self):
+        # import here to avoid circular import
+        from ... import Species
+
+        assert isinstance(self.ion_species, Species), "ion_species must be an instance of the species object"
+        assert isinstance(
+            self.ionization_electron_species, Species
+        ), "ionization_electron_species must be an instance of species object"
 
     def get_constants(self) -> list[pypicongpu.species.constant.Constant]:
         raise NotImplementedError("abstract base class only!")

@@ -51,8 +51,8 @@ class Constant(RenderedObject):
             if key not in other.__dict__:
                 return False
 
-        for key, value in self.__dict__:
-            if self.value != other.__dict__[key]:
+        for key, value in self.__dict__.items():
+            if value != other.__dict__[key]:
                 return False
 
         return True

@@ -42,8 +42,8 @@ class FoilDistribution(picmistandard.PICMI_FoilDistribution):
 
     def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
         util.unsupported("fill in", self.fill_in)
-        util.unsupported("lower bound", self.lower_bound, [None, None, None])
-        util.unsupported("upper bound", self.upper_bound, [None, None, None])
+        util.unsupported("lower bound", self.lower_bound, (None, None, None))
+        util.unsupported("upper bound", self.upper_bound, (None, None, None))
 
         foilProfile = species.operation.densityprofile.Foil()
         foilProfile.density_si = self.density

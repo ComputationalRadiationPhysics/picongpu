@@ -36,6 +36,8 @@ class ADK(FieldIonization):
     """extension to the BSI model"""
 
     def get_as_pypicongpu(self) -> IonizationModel:
+        self.check()
+
         if self.ADK_variant is ADKVariant.LinearPolarization:
             return ADKLinearPolarization(ionization_current=None_())
         if self.ADK_variant is ADKVariant.CircularPolarization:

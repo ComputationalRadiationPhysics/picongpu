@@ -7,6 +7,8 @@ License: GPLv3+
 
 # make pypicongpu classes accessible for conversion to pypicongpu
 from .. import pypicongpu
+from .species import Species
+from .interaction.ionization import IonizationModel
 
 from . import constants
 from .grid import Cartesian3DGrid
@@ -94,7 +96,6 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_custom_user_input = None
         self.__runner = None
 
-        # second call PICMI __init__ to do PICMI initialization and setting class attribute values outside of pydantic model
         picmistandard.PICMI_Simulation.__init__(self, **keyword_arguments)
 
         # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
@@ -180,7 +181,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def __get_operations_simple_density(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+        pypicongpu_by_picmi_species: typing.Dict[Species, pypicongpu.species.Species],
     ) -> typing.List[pypicongpu.species.operation.SimpleDensity]:
         """
         retrieve operations for simple density placements
@@ -235,7 +236,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def __get_operations_not_placed(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+        pypicongpu_by_picmi_species: typing.Dict[Species, pypicongpu.species.Species],
     ) -> typing.List[pypicongpu.species.operation.NotPlaced]:
         """
         retrieve operations for not placed species
@@ -265,7 +266,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def __get_operations_from_individual_species(
         self,
-        pypicongpu_by_picmi_species: typing.Dict[picmistandard.PICMI_Species, pypicongpu.species.Species],
+        pypicongpu_by_picmi_species: typing.Dict[Species, pypicongpu.species.Species],
     ) -> typing.List[pypicongpu.species.operation.Operation]:
         """
         call get_independent_operations() of all species
@@ -281,65 +282,94 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         return all_operations
 
-    def __get_init_manager(self) -> pypicongpu.species.InitManager:
-        """
-        create & fill an initmanager
-
-        performs the following steps:
-        1. check preconditions
-        2. translate species to pypicongpu representation
-           Note: Cache translations to avoid creating new translations by
-           continuosly translating again and again
-        3. generate operations which have inter-species dependencies
-        4. generate operations without inter-species dependencies
-        """
-        initmgr = pypicongpu.species.InitManager()
-
-        # check preconditions, @todo move to picmistandard, Brian Marre 2024
+    def __check_preconditions_init_manager(self) -> None:
+        """check preconditions, @todo move to picmistandard, Brian Marre 2024"""
         assert len(self.species) == len(self.layouts)
 
-        # check either no layout AND no profile, or both and ratio only set if leyout and profile also set
         for layout, picmi_species in zip(self.layouts, self.species):
             profile = picmi_species.initial_distribution
             ratio = picmi_species.density_scale
 
-            # either both None or both not None:
             assert 1 != [layout, profile].count(
                 None
             ), "species need BOTH layout AND initial distribution set (or neither)"
 
-            # ratio only set if, layout and profile are also set
             if ratio is not None:
                 assert (
                     layout is not None and profile is not None
                 ), "layout and initial distribution must be set to use density scale"
 
-        # get species list
+    def __get_translated_species_and_ionization_models(
+        self,
+    ) -> tuple[
+        dict[Species, pypicongpu.species.Species],
+        dict[Species, None | dict[IonizationModel, pypicongpu.species.constant.ionizationmodel.IonizationModel]],
+    ]:
+        """
+        get mappping of PICMI species to PyPIConGPU species and mapping of of simulation
 
-        ## @details cache to reuse *exactly the same* object in operations
+        @details cache to reuse *exactly the same* object in operations
+        """
+
         pypicongpu_by_picmi_species = {}
         ionization_model_conversion_by_species = {}
         for picmi_species in self.species:
+            # @todo split into two different fucntion calls?, Brian Marre, 2024
             pypicongpu_species, ionization_model_conversion = picmi_species.get_as_pypicongpu(self.picongpu_interaction)
+
             pypicongpu_by_picmi_species[picmi_species] = pypicongpu_species
             ionization_model_conversion_by_species[picmi_species] = ionization_model_conversion
-            initmgr.all_species.append(pypicongpu_species)
 
-        # fill inter-species dependencies
+        return pypicongpu_by_picmi_species, ionization_model_conversion_by_species
 
-        # ionization electron species need to be set after species translation is complete since the PyPIConGPU electron
-        #   species is not known by the PICMI ion species
+    def __fill_in_ionization_electrons(
+        self,
+        pypicongpu_by_picmi_species: dict[Species, pypicongpu.species.Species],
+        ionization_model_conversion_by_species: dict[
+            Species, None | dict[IonizationModel, pypicongpu.species.constant.ionizationmodel.IonizationModel]
+        ],
+    ) -> None:
+        """
+        set the ionization electron species for each ionization model
+
+        Ionization electron species need to be set after species translation is complete since the PyPIConGPU electron
+        species is not at the time of translation by the PICMI ion species.
+        """
         if self.picongpu_interaction is not None:
             self.picongpu_interaction.fill_in_ionization_electron_species(
                 pypicongpu_by_picmi_species, ionization_model_conversion_by_species
             )
 
-        # operations with inter-species dependencies
-        ##
+    def __get_init_manager(self) -> pypicongpu.species.InitManager:
+        """
+        create & fill an Initmanager
+
+        performs the following steps:
+        1. check preconditions
+        2. translate species and ionization models to PyPIConGPU representations
+           Note: Cache translations to avoid creating new translations by continuously translating again and again
+        3. generate operations which have inter-species dependencies
+        4. generate operations without inter-species dependencies
+        """
+        self.__check_preconditions_init_manager()
+        (
+            pypicongpu_by_picmi_species,
+            ionization_model_conversion_by_species,
+        ) = self.__get_translated_species_and_ionization_models()
+
+        # fill inter-species dependencies
+        self.__fill_in_ionization_electrons(pypicongpu_by_picmi_species, ionization_model_conversion_by_species)
+
+        # init PyPIConGPU init manager
+        initmgr = pypicongpu.species.InitManager()
+
+        for pypicongpu_species in pypicongpu_by_picmi_species.values():
+            initmgr.all_species.append(pypicongpu_species)
+
+        # operations on multiple species
         initmgr.all_operations += self.__get_operations_simple_density(pypicongpu_by_picmi_species)
 
-        # operations without inter-species dependencies
-        ##
+        # operations on single species
         initmgr.all_operations += self.__get_operations_not_placed(pypicongpu_by_picmi_species)
         initmgr.all_operations += self.__get_operations_from_individual_species(pypicongpu_by_picmi_species)
 
@@ -368,7 +398,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.InterfaceCustomUserInput):
         """add custom user input to previously stored input"""
-        self.picongpu_custom_user_input = (self.picongpu_custom_user_input + []) + [custom_user_input]
+        self.picongpu_custom_user_input = (self.picongpu_custom_user_input or []) + [custom_user_input]
 
     def add_interaction(self, interaction) -> None:
         pypicongpu.util.unsupported(

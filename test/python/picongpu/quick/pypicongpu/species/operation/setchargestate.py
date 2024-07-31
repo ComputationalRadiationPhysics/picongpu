@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.species.operation import SetBoundElectrons
+from picongpu.pypicongpu.species.operation import SetChargeState
 
 import unittest
 import typeguard
@@ -17,7 +17,7 @@ from picongpu.pypicongpu.species.constant.ionizationcurrent import None_
 from picongpu.pypicongpu.species.attribute import BoundElectrons, Position, Momentum
 
 
-class TestSetBoundElectrons(unittest.TestCase):
+class TestSetChargeState(unittest.TestCase):
     def setUp(self):
         electron = Species()
         electron.name = "e"
@@ -35,94 +35,90 @@ class TestSetBoundElectrons(unittest.TestCase):
 
     def test_basic(self):
         """basic operation"""
-        sbe = SetBoundElectrons()
-        sbe.species = self.species1
-        sbe.bound_electrons = 2
+        scs = SetChargeState()
+        scs.species = self.species1
+        scs.charge_state = 2
 
         # checks pass
-        sbe.check_preconditions()
+        scs.check_preconditions()
 
     def test_typesafety(self):
         """typesafety is ensured"""
-        sbe = SetBoundElectrons()
+        scs = SetChargeState()
         for invalid_species in [None, 1, "a", []]:
             with self.assertRaises(typeguard.TypeCheckError):
-                sbe.species = invalid_species
+                scs.species = invalid_species
 
         for invalid_number in [None, "a", [], self.species1, 2.3]:
             with self.assertRaises(typeguard.TypeCheckError):
-                sbe.bound_electrons = invalid_number
+                scs.charge_state = invalid_number
 
         # works:
-        sbe.species = self.species1
-        sbe.bound_electrons = 1
+        scs.species = self.species1
+        scs.charge_state = 1
 
     def test_empty(self):
         """all parameters are mandatory"""
         for set_species in [True, False]:
-            for set_bound_electrons in [True, False]:
-                sbe = SetBoundElectrons()
+            for set_charge_state in [True, False]:
+                scs = SetChargeState()
 
                 if set_species:
-                    sbe.species = self.species1
-                if set_bound_electrons:
-                    sbe.bound_electrons = 1
+                    scs.species = self.species1
+                if set_charge_state:
+                    scs.charge_state = 1
 
-                if set_species and set_bound_electrons:
+                if set_species and set_charge_state:
                     # must pass
-                    sbe.check_preconditions()
+                    scs.check_preconditions()
                 else:
                     # mandatory missing -> must raise
                     with self.assertRaises(Exception):
-                        sbe.check_preconditions()
+                        scs.check_preconditions()
 
     def test_attribute_generated(self):
         """creates bound electrons attribute"""
-        sbe = SetBoundElectrons()
-        sbe.species = self.species1
-        sbe.bound_electrons = 1
+        scs = SetChargeState()
+        scs.species = self.species1
+        scs.charge_state = 1
 
         # emulate initmanager
-        sbe.check_preconditions()
+        scs.check_preconditions()
         self.species1.attributes = []
-        sbe.prebook_species_attributes()
+        scs.prebook_species_attributes()
 
-        self.assertEqual(1, len(sbe.attributes_by_species))
-        self.assertTrue(self.species1 in sbe.attributes_by_species)
-        self.assertEqual(1, len(sbe.attributes_by_species[self.species1]))
-        self.assertTrue(isinstance(sbe.attributes_by_species[self.species1][0], BoundElectrons))
+        self.assertEqual(1, len(scs.attributes_by_species))
+        self.assertTrue(self.species1 in scs.attributes_by_species)
+        self.assertEqual(1, len(scs.attributes_by_species[self.species1]))
+        self.assertTrue(isinstance(scs.attributes_by_species[self.species1][0], BoundElectrons))
 
     def test_ionizers_required(self):
         """ionizers constant must be present"""
-        sbe = SetBoundElectrons()
-        sbe.species = self.species1
-        sbe.bound_electrons = 1
+        scs = SetChargeState()
+        scs.species = self.species1
+        scs.charge_state = 1
 
         # passes:
-        self.assertTrue(sbe.species.has_constant_of_type(GroundStateIonization))
-        sbe.check_preconditions()
+        self.assertTrue(scs.species.has_constant_of_type(GroundStateIonization))
+        scs.check_preconditions()
 
         # without constants does not pass:
-        sbe.species.constants = []
+        scs.species.constants = []
         with self.assertRaisesRegex(AssertionError, ".*BoundElectrons requires GroundStateIonization.*"):
-            sbe.check_preconditions()
+            scs.check_preconditions()
 
     def test_values(self):
         """bound electrons must be >0"""
-        sbe = SetBoundElectrons()
-        sbe.species = self.species1
+        scs = SetChargeState()
+        scs.species = self.species1
 
-        with self.assertRaisesRegex(ValueError, ".*>0.*"):
-            sbe.bound_electrons = -1
-            sbe.check_preconditions()
-
-        with self.assertRaisesRegex(ValueError, ".*NoBoundElectrons.*"):
-            sbe.bound_electrons = 0
-            sbe.check_preconditions()
+        with self.assertRaisesRegex(ValueError, ".*> 0.*"):
+            scs.charge_state = -1
+            scs.check_preconditions()
 
         # silently passes
-        sbe.bound_electrons = 1
-        sbe.check_preconditions()
+        scs.charge_state = 1
+        scs.check_preconditions()
 
     def test_rendering(self):
         """rendering works"""
@@ -147,10 +143,10 @@ class TestSetBoundElectrons(unittest.TestCase):
         # can be rendered
         self.assertNotEqual({}, ion.get_rendering_context())
 
-        sbe = SetBoundElectrons()
-        sbe.species = ion
-        sbe.bound_electrons = 1
+        scs = SetChargeState()
+        scs.species = ion
+        scs.charge_state = 1
 
-        context = sbe.get_rendering_context()
-        self.assertEqual(1, context["bound_electrons"])
+        context = scs.get_rendering_context()
+        self.assertEqual(1, context["charge_state"])
         self.assertEqual(ion.get_rendering_context(), context["species"])
