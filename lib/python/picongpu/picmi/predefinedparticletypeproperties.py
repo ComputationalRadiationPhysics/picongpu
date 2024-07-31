@@ -119,8 +119,4 @@ _gauge_bosons = {
 }
 
 non_element_particle_type_properties = {}
-non_element_particle_type_properties.update(_quarks)
-non_element_particle_type_properties.update(_leptons)
-non_element_particle_type_properties.update(_neutrinos)
-non_element_particle_type_properties.update(_nucleons)
-non_element_particle_type_properties.update(_gauge_bosons)
+non_element_particle_type_properties.update(**_quarks, **_leptons, **_neutrinos, **_nucleons, **_gauge_bosons)

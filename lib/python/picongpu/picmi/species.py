@@ -8,7 +8,7 @@ License: GPLv3+
 from .. import pypicongpu
 from ..pypicongpu.species.util.element import Element
 from .interaction import InteractionInterface
-from .predefinedparticletypeproperties import non_element_particle_type_properties, _PropertyTuple
+from .predefinedparticletypeproperties import non_element_particle_type_properties
 
 import picmistandard
 
@@ -33,7 +33,7 @@ class Species(picmistandard.PICMI_Species):
     @attention ONLY set non-element particles here, all other are handled by element
     """
 
-    __non_element_particle_types: dict[str, _PropertyTuple] = __non_element_particle_type_properties.keys()
+    __non_element_particle_types: list[str] = __non_element_particle_type_properties.keys()
     """list of particle types"""
 
     picongpu_element = pypicongpu.util.build_typesafe_property(typing.Optional[Element])

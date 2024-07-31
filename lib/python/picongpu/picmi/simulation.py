@@ -368,10 +368,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.InterfaceCustomUserInput):
         """add custom user input to previously stored input"""
-        if self.picongpu_custom_user_input is None:
-            self.picongpu_custom_user_input = [custom_user_input]
-        else:
-            self.picongpu_custom_user_input.append(custom_user_input)
+        self.picongpu_custom_user_input = (self.picongpu_custom_user_input + []) + [custom_user_input]
 
     def add_interaction(self, interaction) -> None:
         pypicongpu.util.unsupported(
