@@ -60,7 +60,7 @@ namespace picongpu
 
                         //! Defining the propagation ( = time) and polarisation axes of the input data
                         static constexpr char const* polarisationAxisOpenPMD = "x";
-                        static constexpr char const* propagationAxisOpenPMD  = "z";
+                        static constexpr char const* propagationAxisOpenPMD = "z";
 
                         /** Unit propagation direction vector in PIConGPU
                          *
@@ -77,33 +77,31 @@ namespace picongpu
                         static constexpr float_64 DIRECTION_Z = 0.0;
 
                         /** Unit E polarization direction in PIConGPU
-                        *
-                        * Must be orthogonal to the propagation direction.
-                        * Must be either X or Y or Z, but can be different from polarisationAxisOpenPMD.
-                        *
-                        * Norm of this vector must be 1.0.
-                        * (Normalization is required on a user side as internally it is awkward to do with the
-                        * static-constexpr style of using parameters.)
-                        *
-                        * Note: we use spelling 'Polarisation' for consistency with other lasers.
-                        *
-                        * unit: none
-                        */
+                         *
+                         * Must be orthogonal to the propagation direction.
+                         * Must be either X or Y or Z, but can be different from polarisationAxisOpenPMD.
+                         *
+                         * Norm of this vector must be 1.0.
+                         * (Normalization is required on a user side as internally it is awkward to do with the
+                         * static-constexpr style of using parameters.)
+                         *
+                         * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                         *
+                         * unit: none
+                         */
                         static constexpr float_64 POLARISATION_DIRECTION_X = 1.0;
                         static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                         static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
 
                         /** Time delay, after which the laser initialisation will be started.
-                        * The delay must be positive.
-                        *
-                        * @warning: not optional!
-                        *
-                        * unit: time
-                        */
+                         * The delay must be positive.
+                         *
+                         * @warning: not optional!
+                         *
+                         * unit: time
+                         */
 
                         static constexpr float_64 TIME_DELAY_SI = 0.0;
-
-
                     };
                 } // namespace defaults
 

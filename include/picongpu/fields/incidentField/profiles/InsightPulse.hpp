@@ -65,9 +65,7 @@ namespace picongpu
                         using Params = T_Params;
 
                         //! Check that simulation dimension = 3, since the recorded data is 3D aswell
-                        PMACC_CASSERT_MSG(
-                                _error_simDim_has_to_be_3,
-                                simDim == 3u);
+                        PMACC_CASSERT_MSG(_error_simDim_has_to_be_3, simDim == 3u);
 
                         //! Unit propagation direction vector in 3d
                         static constexpr float_X DIR_X = static_cast<float_X>(Params::DIRECTION_X);
@@ -83,9 +81,9 @@ namespace picongpu
                         // Check that just one axis is used as propagation direction
                         PMACC_CASSERT_MSG(
                             _error_laser_direction_vector_must_be_limited_to_one_axis____check_your_incidentField_param_file,
-                            (DIR_X * DIR_X > 0.9999) and (DIR_X * DIR_X < 1.0001) or
-                            (DIR_Y * DIR_Y > 0.9999) and (DIR_Y * DIR_Y < 1.0001) or
-                            (DIR_Z * DIR_Z > 0.9999) and (DIR_Z * DIR_Z < 1.0001));
+                            (DIR_X * DIR_X > 0.9999) and (DIR_X * DIR_X < 1.0001)
+                                or (DIR_Y * DIR_Y > 0.9999) and (DIR_Y * DIR_Y < 1.0001)
+                                or (DIR_Z * DIR_Z > 0.9999) and (DIR_Z * DIR_Z < 1.0001));
 
                         //! Unit polarization direction vector
                         static constexpr float_X POL_DIR_X = static_cast<float_X>(Params::POLARISATION_DIRECTION_X);
@@ -102,9 +100,9 @@ namespace picongpu
                         // Check that just one axis is used as polarisation direction
                         PMACC_CASSERT_MSG(
                             _error_laser_direction_vector_must_be_limited_to_one_axis____check_your_incidentField_param_file,
-                            (POL_DIR_X * POL_DIR_X > 0.9999) and (POL_DIR_X * POL_DIR_X < 1.0001) or
-                            (POL_DIR_Y * POL_DIR_Y > 0.9999) and (POL_DIR_Y * POL_DIR_Y < 1.0001) or
-                            (POL_DIR_Z * POL_DIR_Z > 0.9999) and (POL_DIR_Z * POL_DIR_Z < 1.0001));
+                            (POL_DIR_X * POL_DIR_X > 0.9999) and (POL_DIR_X * POL_DIR_X < 1.0001)
+                                or (POL_DIR_Y * POL_DIR_Y > 0.9999) and (POL_DIR_Y * POL_DIR_Y < 1.0001)
+                                or (POL_DIR_Z * POL_DIR_Z > 0.9999) and (POL_DIR_Z * POL_DIR_Z < 1.0001));
 
                         // Check that polarization direction is orthogonal to propagation direction
                         static constexpr float_X dotPropagationPolarization
@@ -119,8 +117,7 @@ namespace picongpu
                          *
                          * unit: UNIT_TIME
                          */
-                        static constexpr float_X TIME_DELAY
-                            = static_cast<float_X>(Params::TIME_DELAY_SI / UNIT_TIME);
+                        static constexpr float_X TIME_DELAY = static_cast<float_X>(Params::TIME_DELAY_SI / UNIT_TIME);
                         PMACC_CASSERT_MSG(
                             _error_laser_time_delay_must_be_positive____check_your_incidentField_param_file,
                             (TIME_DELAY >= 0.0));
@@ -128,20 +125,18 @@ namespace picongpu
                         // check OpenPMD propagation direction
                         PMACC_CASSERT_MSG(
                             _error_propagationAxisOpenPMD_is_not_valid____check_your_parameters,
-                            (Params::propagationAxisOpenPMD == "x" or
-                             Params::propagationAxisOpenPMD == "y" or
-                             Params::propagationAxisOpenPMD == "z"));
+                            (Params::propagationAxisOpenPMD == "x" or Params::propagationAxisOpenPMD == "y"
+                             or Params::propagationAxisOpenPMD == "z"));
 
                         // check OpenPMD polarisation direction
                         PMACC_CASSERT_MSG(
-                             _error_polarisationAxisOpenPMD_is_not_valid____check_your_parameters,
-                             (Params::polarisationAxisOpenPMD == "x" or
-                              Params::polarisationAxisOpenPMD == "y" or
-                              Params::polarisationAxisOpenPMD == "z"));
+                            _error_polarisationAxisOpenPMD_is_not_valid____check_your_parameters,
+                            (Params::polarisationAxisOpenPMD == "x" or Params::polarisationAxisOpenPMD == "y"
+                             or Params::polarisationAxisOpenPMD == "z"));
 
                         PMACC_CASSERT_MSG(
-                             _error_propagationAxisOpenPMD_and_polarisationAxisOpenPMD_have_to_be_different_____check_your_parameters,
-                             (Params::polarisationAxisOpenPMD != Params::propagationAxisOpenPMD));
+                            _error_propagationAxisOpenPMD_and_polarisationAxisOpenPMD_have_to_be_different_____check_your_parameters,
+                            (Params::polarisationAxisOpenPMD != Params::propagationAxisOpenPMD));
                     };
 
                     template<typename T_Params>
@@ -162,10 +157,9 @@ namespace picongpu
                      * @tparam T_Params user parameters, providing filename etc.
                      */
                     template<typename T_Params>
-                    struct OpenPMDdata
-                       : public InsightPulseUnitless<T_Params>
+                    struct OpenPMDdata : public InsightPulseUnitless<T_Params>
                     {
-                         //! Unitless parameters type
+                        //! Unitless parameters type
                         using Params = InsightPulseUnitless<T_Params>;
                         using dataType = typename Params::dataType;
 
@@ -186,6 +180,7 @@ namespace picongpu
                             static OpenPMDdata dataBuffers{};
                             return dataBuffers;
                         }
+
                     private:
                         OpenPMDdata()
                         {
@@ -194,8 +189,10 @@ namespace picongpu
                              */
                             auto& gc = Environment<simDim>::get().GridController();
 
-                            auto series
-                                = ::openPMD::Series{Params::filename, ::openPMD::Access::READ_ONLY, gc.getCommunicator().getMPIComm()};
+                            auto series = ::openPMD::Series{
+                                Params::filename,
+                                ::openPMD::Access::READ_ONLY,
+                                gc.getCommunicator().getMPIComm()};
                             ::openPMD::Mesh mesh = series.iterations[Params::iteration].meshes[Params::datasetEName];
                             // check data order
                             if(mesh.dataOrder() != ::openPMD::Mesh::DataOrder::C)
@@ -204,30 +201,40 @@ namespace picongpu
                             // get axis labels
                             auto const axisLabels = std::vector<std::string>{mesh.axisLabels()};
 
-                            // aligning recorded field data according to user input propagation / polarization direction
+                            // aligning recorded field data according to user input propagation / polarization
+                            // direction
                             float3_X const xyzAxisIndex{0.0_X, 1.0_X, 2.0_X};
 
-                            // starting with aligning the second transversal direction, perp. to polarisation and propagation
-                            DataSpace<simDim> aligningAxisIndex = DataSpace<simDim>::create(static_cast<int>(pmacc::math::abs(pmacc::math::dot(xyzAxisIndex,
-                                        pmacc::math::cross(Functor::getDirection(), Functor::getPolarisationVector())))));
+                            // starting with aligning the second transversal direction, perp. to polarisation and
+                            // propagation
+                            DataSpace<simDim> aligningAxisIndex
+                                = DataSpace<simDim>::create(static_cast<int>(pmacc::math::abs(pmacc::math::dot(
+                                    xyzAxisIndex,
+                                    pmacc::math::cross(Functor::getDirection(), Functor::getPolarisationVector())))));
 
                             // aligning propagation direction
-                            int const propAxisIdx = static_cast<int>(pmacc::math::abs(pmacc::math::dot(xyzAxisIndex, Functor::getDirection())));
-                            auto it_prop = std::find(axisLabels.begin(), axisLabels.end(), Params::propagationAxisOpenPMD);
+                            int const propAxisIdx = static_cast<int>(
+                                pmacc::math::abs(pmacc::math::dot(xyzAxisIndex, Functor::getDirection())));
+                            auto it_prop
+                                = std::find(axisLabels.begin(), axisLabels.end(), Params::propagationAxisOpenPMD);
                             if(it_prop != std::end(axisLabels))
                                 aligningAxisIndex[std::distance(begin(axisLabels), it_prop)] = propAxisIdx;
                             else
                                 throw std::runtime_error(
-                                    "Error: could not find propagation axis " +  std::string(Params::propagationAxisOpenPMD) + " in OpenPMD dataset");
+                                    "Error: could not find propagation axis "
+                                    + std::string(Params::propagationAxisOpenPMD) + " in OpenPMD dataset");
 
                             // aligning polarisation direction
-                            auto it_pola = std::find(axisLabels.begin(), axisLabels.end(), Params::polarisationAxisOpenPMD);
+                            auto it_pola
+                                = std::find(axisLabels.begin(), axisLabels.end(), Params::polarisationAxisOpenPMD);
                             if(it_pola != std::end(axisLabels))
                                 aligningAxisIndex[std::distance(begin(axisLabels), it_pola)]
-                                    = static_cast<int>(pmacc::math::abs(pmacc::math::dot(xyzAxisIndex, Functor::getPolarisationVector())));
+                                    = static_cast<int>(pmacc::math::abs(
+                                        pmacc::math::dot(xyzAxisIndex, Functor::getPolarisationVector())));
                             else
                                 throw std::runtime_error(
-                                    "Could not find polarisation axis " + std::string(Params::polarisationAxisOpenPMD) + " in OpenPMD dataset");
+                                    "Could not find polarisation axis " + std::string(Params::polarisationAxisOpenPMD)
+                                    + " in OpenPMD dataset");
 
                             ::openPMD::MeshRecordComponent meshRecord = mesh[Params::polarisationAxisOpenPMD];
 
@@ -253,10 +260,13 @@ namespace picongpu
                                 // axis alignment and type conversion
                                 extentOpenPMD[aligningAxisIndex[d]] = static_cast<int>(extentRaw[d]);
                                 dataBoxExtent(aligningAxisIndex[d]) = static_cast<float_X>(extentRaw[d]);
-                                dataBoxCellSize(aligningAxisIndex[d]) = static_cast<float_X>(cellSizeRaw[d] * mesh.gridUnitSI()) / UNIT_LENGTH;
+                                dataBoxCellSize(aligningAxisIndex[d])
+                                    = static_cast<float_X>(cellSizeRaw[d] * mesh.gridUnitSI()) / UNIT_LENGTH;
                                 dataBoxOffset(aligningAxisIndex[d]) = 0.5_X
-                                                * (static_cast<float_X>(extentPIC[aligningAxisIndex[d]] - 1) * cellSize[aligningAxisIndex[d]]
-                                                - (dataBoxExtent(aligningAxisIndex[d]) - 1.0_X) * dataBoxCellSize(aligningAxisIndex[d]));
+                                    * (static_cast<float_X>(extentPIC[aligningAxisIndex[d]] - 1)
+                                           * cellSize[aligningAxisIndex[d]]
+                                       - (dataBoxExtent(aligningAxisIndex[d]) - 1.0_X)
+                                           * dataBoxCellSize(aligningAxisIndex[d]));
                             }
 
                             // push attribute data to device
@@ -266,7 +276,8 @@ namespace picongpu
                             eventSystem::getTransactionEvent().waitForFinished();
 
                             // field data
-                            bufferFieldData = std::make_shared<pmacc::HostDeviceBuffer<float_X, simDim>>(extentOpenPMD);
+                            bufferFieldData
+                                = std::make_shared<pmacc::HostDeviceBuffer<float_X, simDim>>(extentOpenPMD);
                             auto fieldData = std::shared_ptr<dataType>{nullptr};
                             fieldData = meshRecord.loadChunk<dataType>();
 
@@ -274,10 +285,10 @@ namespace picongpu
                             series.flush();
 
                             auto const numElements = std::accumulate(
-                            std::begin(extentRaw),
-                            std::end(extentRaw),
-                            1u,
-                            std::multiplies<uint32_t>());
+                                std::begin(extentRaw),
+                                std::end(extentRaw),
+                                1u,
+                                std::multiplies<uint32_t>());
 
                             auto hostFieldDataBox = bufferFieldData->getHostBuffer().getDataBox();
 
@@ -291,12 +302,15 @@ namespace picongpu
                                     openPMDIdx[aligningAxisIndex[d]] = tmpIndex % extentRaw[d];
                                     tmpIndex /= extentRaw[d];
                                 }
-                                hostFieldDataBox(openPMDIdx) = static_cast<float_X>(fieldData.get()[linearIdx] * meshRecord.unitSI()) / UNIT_EFIELD;
+                                hostFieldDataBox(openPMDIdx)
+                                    = static_cast<float_X>(fieldData.get()[linearIdx] * meshRecord.unitSI())
+                                    / UNIT_EFIELD;
                             }
 
-                            /* If the transversal simulation window is smaller than the transversal DataBox extent, data at the chunk borders
-                             * will be discarded. The maximum discarded value (relative to the maximum amplitude) will be logged.
-                             * A possible improvement of this code could include storing just the necessary parts of the recorded field data.
+                            /* If the transversal simulation window is smaller than the transversal DataBox extent,
+                             * data at the chunk borders will be discarded. The maximum discarded value (relative to
+                             * the maximum amplitude) will be logged. A possible improvement of this code could include
+                             * storing just the necessary parts of the recorded field data.
                              */
                             dataType maxE(0.0);
                             dataType maxEDiscarded(0.0);
@@ -315,53 +329,70 @@ namespace picongpu
                                                 // look for maximum amplitude value
                                                 if(discard == false) // do this just the first time entering the loop
                                                 {
-                                                    valE = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(i, j, k)));
+                                                    valE = pmacc::math::abs(
+                                                        hostFieldDataBox(DataSpace<simDim>(i, j, k)));
                                                     if(valE > maxE)
                                                         maxE = valE;
                                                 }
                                                 // look for maximum discarded amplitude value
-                                                if(d == 0 and i <= static_cast<int>(pmacc::math::abs(dataBoxOffset(d)) / dataBoxCellSize(d)))
+                                                if(d == 0
+                                                   and i <= static_cast<int>(
+                                                           pmacc::math::abs(dataBoxOffset(d)) / dataBoxCellSize(d)))
                                                 {
-                                                    valLeft = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(i, j, k)));
+                                                    valLeft = pmacc::math::abs(
+                                                        hostFieldDataBox(DataSpace<simDim>(i, j, k)));
                                                     if(valLeft > maxEDiscarded) // left discarded area
                                                         maxEDiscarded = valLeft;
-                                                    valRight = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(extentOpenPMD[d] - 1 - i, j, k)));
-                                                    if(valRight > maxEDiscarded)  // right discarded area
+                                                    valRight = pmacc::math::abs(hostFieldDataBox(
+                                                        DataSpace<simDim>(extentOpenPMD[d] - 1 - i, j, k)));
+                                                    if(valRight > maxEDiscarded) // right discarded area
                                                         maxEDiscarded = valRight;
                                                 }
-                                                if(d == 1 and j <= static_cast<int>(pmacc::math::abs(dataBoxOffset(d)) / dataBoxCellSize(d)))
+                                                if(d == 1
+                                                   and j <= static_cast<int>(
+                                                           pmacc::math::abs(dataBoxOffset(d)) / dataBoxCellSize(d)))
                                                 {
-                                                    valLeft = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(i, j, k)));
+                                                    valLeft = pmacc::math::abs(
+                                                        hostFieldDataBox(DataSpace<simDim>(i, j, k)));
                                                     if(valLeft > maxEDiscarded) // left discarded area
                                                         maxEDiscarded = valLeft;
-                                                    valRight = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(i, extentOpenPMD[d] - 1 - j, k)));
-                                                    if(valRight > maxEDiscarded)  // right discarded area
+                                                    valRight = pmacc::math::abs(hostFieldDataBox(
+                                                        DataSpace<simDim>(i, extentOpenPMD[d] - 1 - j, k)));
+                                                    if(valRight > maxEDiscarded) // right discarded area
                                                         maxEDiscarded = valRight;
                                                 }
-                                                if(d == 2 and k <= static_cast<int>(pmacc::math::abs(dataBoxOffset(d)) / dataBoxCellSize(d)))
+                                                if(d == 2
+                                                   and k <= static_cast<int>(
+                                                           pmacc::math::abs(dataBoxOffset(d)) / dataBoxCellSize(d)))
                                                 {
-                                                    valLeft = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(i, j, k)));
+                                                    valLeft = pmacc::math::abs(
+                                                        hostFieldDataBox(DataSpace<simDim>(i, j, k)));
                                                     if(valLeft > maxEDiscarded) // left discarded area
                                                         maxEDiscarded = valLeft;
-                                                    valRight = pmacc::math::abs(hostFieldDataBox(DataSpace<simDim>(i, j, extentOpenPMD[d] - 1 - k)));
-                                                    if(valRight > maxEDiscarded)  // right discarded area
+                                                    valRight = pmacc::math::abs(hostFieldDataBox(
+                                                        DataSpace<simDim>(i, j, extentOpenPMD[d] - 1 - k)));
+                                                    if(valRight > maxEDiscarded) // right discarded area
                                                         maxEDiscarded = valRight;
                                                 }
-                                            }  // k
-                                        }  // j
-                                    }  // i
+                                            } // k
+                                        } // j
+                                    } // i
                                     discard = true;
                                 }
-                            }  // d
+                            } // d
 
-                            // This message is shown for every used device, but 1x would be sufficient (aswell as the loop before)
+                            // This message is shown for every used device, but 1x would be sufficient (aswell as the
+                            // loop before)
                             if(discard == true)
-                                log<picLog::PHYSICS>("Warning: Transversal simulation window extent is smaller than measured data, discarding data at the border.\nMax. discarded amplitude relative to max. measured amplitude: %1% ")
+                                log<picLog::PHYSICS>("Warning: Transversal simulation window extent is smaller than "
+                                                     "measured data, discarding data at the border.\nMax. discarded "
+                                                     "amplitude relative to max. measured amplitude: %1% ")
                                     % (maxEDiscarded / maxE);
 
                             /* Push field data to device
-                             * Every used device will now store the whole field data chunk. Since this consumes a lot of memory, a possible improvement
-                             * of this code could be to push only those two time slices to the device, which are necessary for the current time step.
+                             * Every used device will now store the whole field data chunk. Since this consumes a lot
+                             * of memory, a possible improvement of this code could be to push only those two time
+                             * slices to the device, which are necessary for the current time step.
                              */
                             bufferFieldData->hostToDevice();
                             eventSystem::getTransactionEvent().waitForFinished();
@@ -373,8 +404,7 @@ namespace picongpu
                      * @tparam T_Params parameters
                      */
                     template<typename T_Params>
-                    struct InsightPulseFunctorIncidentE
-                        : public InsightPulseUnitless<T_Params>
+                    struct InsightPulseFunctorIncidentE : public InsightPulseUnitless<T_Params>
                     {
                         //! Unitless parameters type
                         using Unitless = InsightPulseUnitless<T_Params>;
@@ -424,65 +454,79 @@ namespace picongpu
 
                     private:
                         /** Get value of E field for the given position
-                         * Linear interpolation of measured field data, which is aligned centered at the chosen incident field plane.
-                         * If the simulation window extent is greater than the field data chunk, zero will be returned.
-                         * In the other case, the field data chunk will be (transversally) cropped.
+                         * Linear interpolation of measured field data, which is aligned centered at the chosen
+                         * incident field plane. If the simulation window extent is greater than the field data chunk,
+                         * zero will be returned. In the other case, the field data chunk will be (transversally)
+                         * cropped.
                          *
                          * @param totalCellIdx cell index in the total domain (including all moving window slides)
                          */
                         HDINLINE float_X getValueE(floatD_X const& totalCellIdx) const
                         {
-                            auto const posPIC = totalCellIdx * cellSize;   // position in simulation volume
+                            auto const posPIC = totalCellIdx * cellSize; // position in simulation volume
 
                             // find the axis indices
-                            float3_X const xyzAxisIdxPlusOne(1.0_X, 2.0_X, 3.0_X);  // axis indices + 1 (needed for the sign)
-                            int const propAxisIdx = static_cast<int>(pmacc::math::abs(pmacc::math::dot(xyzAxisIdxPlusOne, getDirection()))) - 1;
-                            int const polAxisIdxPlusOne = static_cast<int>(pmacc::math::dot(xyzAxisIdxPlusOne, getPolarisationVector()));
-                            int const transvAxisIdxPlusOne = static_cast<int>(pmacc::math::dot(xyzAxisIdxPlusOne,
-                                                                 pmacc::math::cross(getDirection(), getPolarisationVector())));
+                            float3_X const xyzAxisIdxPlusOne(
+                                1.0_X,
+                                2.0_X,
+                                3.0_X); // axis indices + 1 (needed for the sign)
+                            int const propAxisIdx = static_cast<int>(pmacc::math::abs(
+                                                        pmacc::math::dot(xyzAxisIdxPlusOne, getDirection())))
+                                - 1;
+                            int const polAxisIdxPlusOne
+                                = static_cast<int>(pmacc::math::dot(xyzAxisIdxPlusOne, getPolarisationVector()));
+                            int const transvAxisIdxPlusOne = static_cast<int>(pmacc::math::dot(
+                                xyzAxisIdxPlusOne,
+                                pmacc::math::cross(getDirection(), getPolarisationVector())));
 
                             // check whether the system is right handed, i.e. direction x polarisation > 0
-                            bool rh = true;  // > 0
-                            if( Unitless::propagationAxisOpenPMD == "x" and Unitless::polarisationAxisOpenPMD == "z" or
-                                Unitless::propagationAxisOpenPMD == "y" and Unitless::polarisationAxisOpenPMD == "x" or
-                                Unitless::propagationAxisOpenPMD == "z" and Unitless::polarisationAxisOpenPMD == "y")
-                                rh = false;  // < 0
+                            bool rh = true; // > 0
+                            if(Unitless::propagationAxisOpenPMD == "x" and Unitless::polarisationAxisOpenPMD == "z"
+                               or Unitless::propagationAxisOpenPMD == "y" and Unitless::polarisationAxisOpenPMD == "x"
+                               or Unitless::propagationAxisOpenPMD == "z" and Unitless::polarisationAxisOpenPMD == "y")
+                                rh = false; // < 0
 
                             // find the index in field data which is closest to totalCellIdx and timeOriginPIC
-                            float3_X idxClosestRaw;  // raw = not yet rounded to integers
+                            float3_X idxClosestRaw; // raw = not yet rounded to integers
 
                             for(uint32_t d = 0u; d < simDim; d++)
                             {
-                                // return zero if transversal simulation window or simulation timestep exceeds chunk extent
-                                if( d != propAxisIdx and (posPIC[d] < offsetOpenPMDdataBox(d)
-                                        or posPIC[d] > offsetOpenPMDdataBox(d) + (extentOpenPMDdataBox(d)-1.0_X) * cellSizeOpenPMDdataBox(d))
-                                    or (timeOriginPIC - Unitless::TIME_DELAY) < 0.0_X
-                                    or (timeOriginPIC - Unitless::TIME_DELAY) > (extentOpenPMDdataBox(d)-1.0_X) * cellSizeOpenPMDdataBox(d) / SPEED_OF_LIGHT)
+                                // return zero if transversal simulation window or simulation timestep exceeds chunk
+                                // extent
+                                if(d != propAxisIdx
+                                       and (posPIC[d] < offsetOpenPMDdataBox(d) or posPIC[d] > offsetOpenPMDdataBox(d) + (extentOpenPMDdataBox(d) - 1.0_X) * cellSizeOpenPMDdataBox(d))
+                                   or (timeOriginPIC - Unitless::TIME_DELAY) < 0.0_X
+                                   or (timeOriginPIC - Unitless::TIME_DELAY) > (extentOpenPMDdataBox(d) - 1.0_X)
+                                           * cellSizeOpenPMDdataBox(d) / SPEED_OF_LIGHT)
                                     return 0.0_X;
                                 else
                                 {
-                                    if(d == pmacc::math::abs(polAxisIdxPlusOne) - 1 and polAxisIdxPlusOne < 0 or
-                                       d == pmacc::math::abs(transvAxisIdxPlusOne) - 1 and
-                                            (transvAxisIdxPlusOne < 0 and rh == true or transvAxisIdxPlusOne > 0 and rh == false))
+                                    if(d == pmacc::math::abs(polAxisIdxPlusOne) - 1 and polAxisIdxPlusOne < 0
+                                       or d == pmacc::math::abs(transvAxisIdxPlusOne) - 1
+                                           and (transvAxisIdxPlusOne < 0 and rh == true or transvAxisIdxPlusOne > 0 and rh == false))
                                         // invert direction
-                                        idxClosestRaw[d] = extentOpenPMDdataBox(d)-1.0_X - (posPIC[d] - offsetOpenPMDdataBox(d)) / cellSizeOpenPMDdataBox(d);
-                                    else  // keep original direction
-                                        idxClosestRaw[d] = (posPIC[d] - offsetOpenPMDdataBox(d)) / cellSizeOpenPMDdataBox(d);
+                                        idxClosestRaw[d] = extentOpenPMDdataBox(d) - 1.0_X
+                                            - (posPIC[d] - offsetOpenPMDdataBox(d)) / cellSizeOpenPMDdataBox(d);
+                                    else // keep original direction
+                                        idxClosestRaw[d]
+                                            = (posPIC[d] - offsetOpenPMDdataBox(d)) / cellSizeOpenPMDdataBox(d);
                                 }
                             }
 
                             // correct longitudinal index
-                            idxClosestRaw[propAxisIdx] = extentOpenPMDdataBox(propAxisIdx)-1.0_X
-                                        - (timeOriginPIC - Unitless::TIME_DELAY) / cellSizeOpenPMDdataBox(propAxisIdx) * SPEED_OF_LIGHT;
+                            idxClosestRaw[propAxisIdx] = extentOpenPMDdataBox(propAxisIdx) - 1.0_X
+                                - (timeOriginPIC - Unitless::TIME_DELAY) / cellSizeOpenPMDdataBox(propAxisIdx)
+                                    * SPEED_OF_LIGHT;
 
-                            DataSpace<simDim> const idxClosest = static_cast<pmacc::math::Vector<int, simDim>>(idxClosestRaw + floatD_X::create(0.5_X));
+                            DataSpace<simDim> const idxClosest = static_cast<pmacc::math::Vector<int, simDim>>(
+                                idxClosestRaw + floatD_X::create(0.5_X));
                             // the other 7 nearest neighbour indices still have to be found
-                            DataSpace<simDim> idxShift;  // shift to the other nearest neighbour indices
-                            DataSpace<simDim> idxNext;   // nearest neighbour index
+                            DataSpace<simDim> idxShift; // shift to the other nearest neighbour indices
+                            DataSpace<simDim> idxNext; // nearest neighbour index
                             floatD_X weight;
                             for(uint32_t d = 0u; d < simDim; d++)
                             {
-                                if(idxClosest[d] == 0)  // to avoid border problems
+                                if(idxClosest[d] == 0) // to avoid border problems
                                     idxShift[d] = 1;
                                 else if(idxClosestRaw[d] - static_cast<float_X>(idxClosest[d]) <= 0.0_X)
                                     idxShift[d] = -1;
@@ -495,7 +539,8 @@ namespace picongpu
                             // linear interpolation routine
                             float_X interpE = 0.0_X;
 
-                            interpE += fieldDataBox(idxClosest) * (floatD_X::create(1.0_X) - weight).productOfComponents();
+                            interpE
+                                += fieldDataBox(idxClosest) * (floatD_X::create(1.0_X) - weight).productOfComponents();
                             for(uint32_t d = 0u; d < simDim; d++)
                             {
                                 idxNext = idxClosest;
@@ -510,8 +555,8 @@ namespace picongpu
                                 }
                                 else
                                 {
-                                    idxNext[d+1] = idxClosest[d+1] + idxShift[d+1];
-                                    ones[d+1] = 0.0_X;
+                                    idxNext[d + 1] = idxClosest[d + 1] + idxShift[d + 1];
+                                    ones[d + 1] = 0.0_X;
                                 }
                                 interpE += fieldDataBox(idxNext) * (ones - weight).productOfComponents();
                             }
@@ -521,8 +566,7 @@ namespace picongpu
                         } // getValueE
 
                     protected:
-
-                        float_X const timeOriginPIC;  // current time at incident plane
+                        float_X const timeOriginPIC; // current time at incident plane
                         PMACC_ALIGN(fieldDataBox, typename pmacc::Buffer<float_X, simDim>::DataBoxType);
                         typename pmacc::Buffer<float_X, 1>::DataBoxType extentOpenPMDdataBox;
                         typename pmacc::Buffer<float_X, 1>::DataBoxType cellSizeOpenPMDdataBox;
