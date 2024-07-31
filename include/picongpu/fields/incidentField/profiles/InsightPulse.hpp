@@ -24,7 +24,8 @@
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/InsightPulse.def"
-#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 
 #include <algorithm>
 #include <array>
