@@ -135,6 +135,7 @@ namespace picongpu
                     }
                 };
 
+#if(ENABLE_OPENPMD == 1)
                 //! InsightPulse profile has an unknown phase velocity, use c as a default value
                 template<typename T_Params>
                 struct GetPhaseVelocity<profiles::InsightPulse<T_Params>>
@@ -144,6 +145,7 @@ namespace picongpu
                         return SPEED_OF_LIGHT;
                     }
                 };
+#endif
 
                 /** @} */
 
@@ -181,6 +183,7 @@ namespace picongpu
                 static constexpr float_X value = 0.0_X;
             };
 
+#if(ENABLE_OPENPMD == 1)
             //! Specialization for InsightPulse profile which has unknown amplitude
             // kann man die Templates so leer lassen und es fkt trd?
             template<typename T_Params>
@@ -188,6 +191,7 @@ namespace picongpu
             {
                 static constexpr float_X value = 0.0_X;
             };
+#endif
 
             /** @} */
 

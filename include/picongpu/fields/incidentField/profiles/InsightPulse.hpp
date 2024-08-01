@@ -17,27 +17,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#if(ENABLE_OPENPMD == 1)
 
-#include "picongpu/simulation_defines.hpp"
+#    pragma once
 
-#include "picongpu/fields/incidentField/Functors.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
-#include "picongpu/fields/incidentField/profiles/InsightPulse.def"
+#    include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
+#    include "picongpu/fields/incidentField/Functors.hpp"
+#    include "picongpu/fields/incidentField/Traits.hpp"
+#    include "picongpu/fields/incidentField/profiles/InsightPulse.def"
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <limits>
-#include <memory>
-#include <string>
-#include <type_traits>
-#include <vector>
+#    include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 
-#include <openPMD/openPMD.hpp>
+#    include <algorithm>
+#    include <array>
+#    include <cmath>
+#    include <cstdint>
+#    include <limits>
+#    include <memory>
+#    include <string>
+#    include <type_traits>
+#    include <vector>
+
+#    include <openPMD/openPMD.hpp>
 
 
 namespace picongpu
@@ -64,10 +66,6 @@ namespace picongpu
                     {
                         //! User SI parameters
                         using Params = T_Params;
-
-                        //! Check that simulation dimension = 3, since the recorded data is 3D aswell
-                        // PMACC_CASSERT_MSG(_error_simDim_has_to_be_3, simDim == 3u);
-                        // Some tests fail with this assertion
 
                         //! Unit propagation direction vector in 3d
                         static constexpr float_X DIR_X = static_cast<float_X>(Params::DIRECTION_X);
@@ -401,6 +399,8 @@ namespace picongpu
 
                     /** InsightPulse incident E functor
                      *
+                     * @warning produces proper results just in 3D!
+                     *
                      * @tparam T_Params parameters
                      */
                     template<typename T_Params>
@@ -463,7 +463,19 @@ namespace picongpu
                          */
                         HDINLINE float_X getValueE(floatD_X const& totalCellIdx) const
                         {
-                            auto const posPIC = totalCellIdx * floatD_X(cellSize); // position in simulation volume
+                            //! correct 2D Version
+                            // seems useless, but needed for the automated tests
+                            float3_X totalCellIdx3D;
+                            if(simDim == 3u)
+                                totalCellIdx3D = totalCellIdx;
+                            else
+                            {
+                                totalCellIdx3D[0] = totalCellIdx[0];
+                                totalCellIdx3D[1] = totalCellIdx[1];
+                                totalCellIdx3D[2] = 0.0_X;
+                            }
+                            auto const posPIC = totalCellIdx3D * cellSize; // position in simulation volume
+
 
                             // find the axis indices
                             float3_X const xyzAxisIdxPlusOne(
@@ -523,7 +535,7 @@ namespace picongpu
                             // the other 7 nearest neighbour indices still have to be found
                             DataSpace<3u> idxShift; // shift to the other nearest neighbour indices
                             DataSpace<3u> idxNext; // nearest neighbour index
-                            floatD_X weight;
+                            float3_X weight;
                             for(uint32_t d = 0u; d < 3u; d++)
                             {
                                 if(idxClosest[d] == 0) // to avoid border problems
@@ -544,7 +556,7 @@ namespace picongpu
                             for(uint32_t d = 0u; d < 3u; d++)
                             {
                                 idxNext = idxClosest;
-                                floatD_X ones = float3_X::create(1.0_X);
+                                float3_X ones = float3_X::create(1.0_X);
                                 idxNext[d] = idxClosest[d] + idxShift[d];
                                 ones[d] = 0.0_X;
                                 interpE -= fieldDataBox(idxNext) * (ones - weight).productOfComponents();
@@ -579,7 +591,7 @@ namespace picongpu
                 struct InsightPulse
                 {
                     //! Get text name of the incident field profile
-                    static HINLINE std::string getName()
+                    HINLINE static std::string getName()
                     {
                         return "InsightPulse";
                     }
@@ -613,3 +625,5 @@ namespace picongpu
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
+
+#endif

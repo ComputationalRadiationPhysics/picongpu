@@ -17,7 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#if(ENABLE_OPENPMD == 1)
+
+#    pragma once
 
 
 namespace picongpu
@@ -32,6 +34,8 @@ namespace picongpu
                 {
                     struct InsightPulseParam
                     {
+                        //! @warning this profile just produces proper results in 3D simulations!
+
                         /** Path to the openPMD input file
                          *
                          * It is recommended to use a full path to make it independent of how PIConGPU is launched.
@@ -100,7 +104,6 @@ namespace picongpu
                          *
                          * unit: time
                          */
-
                         static constexpr float_64 TIME_DELAY_SI = 0.0;
                     };
                 } // namespace defaults
@@ -117,3 +120,5 @@ namespace picongpu
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
+
+#endif
