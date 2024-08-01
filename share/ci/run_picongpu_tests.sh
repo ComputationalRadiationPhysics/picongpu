@@ -51,9 +51,10 @@ if [ -n "$CI_CLANG_AS_CUDA_COMPILER" ] ; then
   CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CUDA_COMPILER=${CXX_VERSION}"
 fi
 
-if [[ "$PIC_TEST_CASE_FOLDER" =~ .*Empty.* ]] ; then
+if [[ "$PIC_TEST_CASE_FOLDER" =~ .*Empty.* && "$PIC_TEST_CASE_FOLDER" =~ .*CollisionsBeamRelaxation.* ]] ; then
     # For the empty test case (default param files) we disable all optional dependencies to have at least one check
     # where all dependencies are disabled.
+    # CollisionsBeamRelaxation is running into the time limit, therefore disable optional dependencies too.
     CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF -DPIC_USE_openPMD=OFF -DPIC_USE_PNGwriter=OFF -DPIC_USE_FFTW3=OFF"
 else
     # enforce optional dependencies
@@ -68,11 +69,6 @@ else
     #elif [ -z "$DISABLE_ISAAC" ] ; then
     #    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
     fi
-fi
-
-# Test is running out of memory, therefore we do not run in parallel.
-if [[ "$PIC_TEST_CASE_FOLDER" =~ .*CollisionsBeamRelaxation.* ]] ; then
-  export CI_CPUS=1
 fi
 
 # workaround for clang cuda
