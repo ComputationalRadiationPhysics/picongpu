@@ -66,9 +66,15 @@ function resolve_vars
 
         var=$(echo -e "$data_set" | cut -d"=" -f1)
         var_value=$(echo -e "$data_set" | cut -d"=" -f2-)
-        # the right hand side is fully resolved so we can evaluate the right hand side
+
         var_value=$(eval echo "$var_value")
-        export "$var=$var_value"
+        if echo "$data_set" | grep -q -e '^.*$(' -e  '^.*${' ; then
+          # the right hand side contains expressions in form of $( or ${ therefore we evaluate it explicitly
+          export "$var=$var_value"
+        else
+          # the right hand side is fully resolved so we can evaluate the right hand side
+          export "$data_set"
+        fi
     done < <(echo "$replace_input" | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
 }
 
