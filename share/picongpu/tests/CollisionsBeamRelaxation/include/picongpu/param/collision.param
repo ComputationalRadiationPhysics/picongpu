@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "picongpu/param/particleFilters.param"
 #include "picongpu/particles/collision/collision.def"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
