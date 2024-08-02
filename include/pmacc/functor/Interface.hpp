@@ -122,7 +122,9 @@ namespace pmacc
             template<typename DeferFunctor = UserFunctor>
             HINLINE Interface(
                 uint32_t const currentStep,
-                std::enable_if_t<std::is_constructible_v<DeferFunctor, uint32_t>>* = nullptr)
+                std::enable_if_t<
+                    !std::is_default_constructible_v<
+                        DeferFunctor> && std::is_constructible_v<DeferFunctor, uint32_t>>* = nullptr)
                 : UserFunctor(currentStep)
             {
             }
@@ -139,7 +141,7 @@ namespace pmacc
             template<typename DeferFunctor = UserFunctor>
             HINLINE Interface(
                 uint32_t const currentStep,
-                std::enable_if_t<std::is_constructible_v<DeferFunctor>>* = nullptr)
+                std::enable_if_t<std::is_default_constructible_v<DeferFunctor>>* = nullptr)
                 : UserFunctor()
             {
                 boost::ignore_unused(currentStep);
