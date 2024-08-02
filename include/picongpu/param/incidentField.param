@@ -28,7 +28,7 @@
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
  *  - profiles::GaussianPulse<>       : Pulse with Gaussian profile in all three dimensions with given parameters
  *  - profiles::InsightPulse<>        : experimental pulse measured with Insight and transformed into time domain,
- * requires openPMD API dependency
+ * requires openPMD API dependency and a 3D simulation
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
  *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given

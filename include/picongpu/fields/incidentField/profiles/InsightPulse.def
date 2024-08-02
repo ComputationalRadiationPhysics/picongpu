@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if(ENABLE_OPENPMD == 1)
+#if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
 
 #    pragma once
 
@@ -34,8 +34,6 @@ namespace picongpu
                 {
                     struct InsightPulseParam
                     {
-                        //! @warning this profile just produces proper results in 3D simulations!
-
                         /** Path to the openPMD input file
                          *
                          * It is recommended to use a full path to make it independent of how PIConGPU is launched.

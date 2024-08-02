@@ -23,7 +23,7 @@
 #include "picongpu/fields/incidentField/profiles/ExpRampWithPrepulse.def"
 #include "picongpu/fields/incidentField/profiles/Free.def"
 #include "picongpu/fields/incidentField/profiles/GaussianPulse.def"
-#if(ENABLE_OPENPMD == 1)
+#if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
 #    include "picongpu/fields/incidentField/profiles/InsightPulse.def"
 #endif
 #include "picongpu/fields/incidentField/profiles/None.def"

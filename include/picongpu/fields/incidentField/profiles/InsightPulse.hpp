@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if(ENABLE_OPENPMD == 1)
+#if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
 
 #    pragma once
 
@@ -463,18 +463,7 @@ namespace picongpu
                          */
                         HDINLINE float_X getValueE(floatD_X const& totalCellIdx) const
                         {
-                            //! correct 2D Version
-                            // seems useless, but needed for the automated tests
-                            float3_X totalCellIdx3D;
-                            if(simDim == 3u)
-                                totalCellIdx3D = totalCellIdx;
-                            else
-                            {
-                                totalCellIdx3D[0] = totalCellIdx[0];
-                                totalCellIdx3D[1] = totalCellIdx[1];
-                                totalCellIdx3D[2] = 0.0_X;
-                            }
-                            auto const posPIC = totalCellIdx3D * cellSize; // position in simulation volume
+                            auto const posPIC = totalCellIdx * cellSize; // position in simulation volume
 
 
                             // find the axis indices
