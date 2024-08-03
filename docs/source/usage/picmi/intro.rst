@@ -48,16 +48,25 @@ After you have installed the dependencies you must include the PIConGPU PICMI im
 .. note::
    Above, we used ``$PICSRC`` as a short hand for the path to picongpu's source code directory, provided from your shell environment if a pre-configured profile is used.
 
-After you have installed all PICMI dependencies, simply create a user script, see :ref:`here <example_PICMI_setup>`, and generate a picongpu setup, see :ref:`generating a PIConGPU setup with PICMI <generating_setups_with_PICMI>`.
+After you have installed all PICMI dependencies, simply create a user script, see the :ref:`warm plasma <example_PICMI_setup_warm_plasma>` and :ref:`laser wakefield <example_PICMI_setup_lwfa>` examples, and generate a picongpu setup, see :ref:`generating a PIConGPU setup with PICMI <generating_setups_with_PICMI>`.
 
 Example User Script for a warm plasma setup:
 --------------------------------------
-.. _example_PICMI_setup:
+.. _example_PICMI_setup_warm_plasma:
 
 .. literalinclude:: ../../../../share/picongpu/pypicongpu/examples/warm_plasma/main.py
    :language: python
 
-Creates a directory ``generated_input``, where you can run ``pic-build`` and subsequently ``tbg``.
+Creates a directory ``warm_plasma``, where you can run ``pic-build`` and subsequently ``tbg``.
+
+Example User Script for a laser wakefield setup:
+--------------------------------------
+.. _example_PICMI_setup_lwfa:
+
+.. literalinclude:: ../../../../share/picongpu/pypicongpu/examples/laser_wakefield/main.py
+   :language: python
+
+Creates a directory ``LWFA``, where you can run ``pic-build`` and subsequently ``tbg``.
 
 Generation of PIConGPU setups with PICMI
 ----------------------------------------
@@ -188,24 +197,17 @@ Parameters/Methods prefixed with ``picongpu_`` are PIConGPU-exclusive.
 
     If neither is set a warning is printed prompting for either of the options above.
 
+Ionization:
+^^^^^^^^^^^
+The PIConGPU PICMI interface currently supports the configuration of ionization only through a picongpu specific PICMI extension, not the in the PICMI standard defined interface, due to the lack of standardization of ionization algorithm names in the PICMI standard.
+
+Use the **Interaction** interface
+
+
 - **Interaction**
-  Configuration of the PIC-algorithm extensions, example of use as follows:
+  picongpu specific configuration of PIC-algorithm extensions.
 
-  .. code:: python
-
-    from picongpu import picmi
-    from picongpu.interaction.ionization.fieldionization import ADK, ADKVariant
-    from picongpu.interaction import Interaction
-
-    e = picmi.Species(name="e", particle_type="electron")
-    nitrogen = picmi.Species(name="nitrogen", particle_type="N", charge_state=2)
-
-    ADK_ionization = ADK(ADK_variant = ADKVariant.LinearPolarization, ion_species = nitrogen, ionization_electron_species=e)
-    interaction = Interaction(ground_state_ionizaion_model_list=[ADK_Ionization])
-
-    sim = picmi.simulation(picongpu_interaction=interaction)
-    sim.add_species(e, ...)
-    sim.add_species(nitrogen, ...)
+    - ``__init__(ground_state_ionizaion_model_list= <list of ionization models>)``
 
 Output
 ^^^^^^
