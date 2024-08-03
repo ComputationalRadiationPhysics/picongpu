@@ -80,8 +80,8 @@ namespace picongpu
                 // Constants for pulse generation
                 static constexpr float_64 TIME_PERIOD_SI = 0.0211e-9; // 0.0211 ns
                 static constexpr float_64 WAVE_LENGTH_SI = TIME_PERIOD_SI * SI::SPEED_OF_LIGHT_SI;
-                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -1.0 / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                    * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
                 static constexpr float_64 A0 = 8.0;
                 static constexpr float_64 AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI;
                 static constexpr float_64 DURATION_SI = 0.026e-9; // 0.026 ns
