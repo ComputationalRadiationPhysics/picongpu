@@ -45,4 +45,5 @@ sim = picmi.Simulation(
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=25)
 sim.add_species(electron, layout)
 
-sim.write_input_file(OUTPUT_DIRECTORY_PATH)
+if __name__ == "__main__":
+    sim.write_input_file(OUTPUT_DIRECTORY_PATH)

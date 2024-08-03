@@ -22,6 +22,7 @@ ENABLE_IONIZATION = True
 ADD_CUSTOM_INPUT = True
 OUTPUT_DIRECTORY_PATH = "LWFA"
 
+
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter)
 
@@ -199,4 +200,5 @@ if ADD_CUSTOM_INPUT:
     )
     sim.picongpu_add_custom_user_input(output_configuration)
 
-sim.write_input_file(OUTPUT_DIRECTORY_PATH)
+if __name__ == "__main__":
+    sim.write_input_file(OUTPUT_DIRECTORY_PATH)
