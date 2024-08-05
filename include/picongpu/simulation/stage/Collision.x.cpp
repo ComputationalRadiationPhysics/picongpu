@@ -26,6 +26,7 @@
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/particles/particleToGrid/FoldDeriveFields.hpp"
 #include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"
+#include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.hpp"
 #include "picongpu/simulation/stage/Collision.hpp"
 
 #include <pmacc/Environment.hpp>

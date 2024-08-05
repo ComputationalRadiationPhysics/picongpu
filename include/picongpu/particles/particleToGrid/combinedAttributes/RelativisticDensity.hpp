@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/particleToGrid/combinedAttributes/AverageAttribute.def"
+#include "picongpu/particles/particleToGrid/combinedAttributes/RelativisticDensity.def"
 
 #include <limits>
 #include <string>
