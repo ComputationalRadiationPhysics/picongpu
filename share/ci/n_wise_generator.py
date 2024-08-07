@@ -144,10 +144,6 @@ def is_valid_combination(row):
                 return False
             if 11.0 <= v_cuda < 11.6 and v_compiler == 14:
                 return True
-            if 11.0 <= v_cuda < 11.6 and v_compiler == 15:
-                return True
-            if 11.0 <= v_cuda < 11.9 and v_compiler == 16:
-                return True
             # currently not supported due to an error
             # __clang_cuda_texture_intrinsics.h:696:13:
             # error: no template named 'texture'
