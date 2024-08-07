@@ -251,12 +251,12 @@ namespace mallocMC
         // CPU only implementation
         static void device()
         {
-            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);
+            std::atomic_thread_fence(std::memory_order_seq_cst);
         }
 
         static void block()
         {
-            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);
+            std::atomic_thread_fence(std::memory_order_seq_cst);
         }
     };
 
