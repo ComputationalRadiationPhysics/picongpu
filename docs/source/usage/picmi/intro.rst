@@ -58,6 +58,7 @@ Example User Script for a warm plasma setup:
    :language: python
 
 Creates a directory ``warm_plasma``, where you can run ``pic-build`` and subsequently ``tbg``.
+You can find this and more elaborate examples in `share/picongpu/pypicongpu/examples`.
 
 Example User Script for a laser wakefield setup:
 --------------------------------------

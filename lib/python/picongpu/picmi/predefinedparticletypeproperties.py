@@ -12,7 +12,7 @@ from scipy import constants as consts
 
 _PropertyTuple: collections.namedtuple = collections.namedtuple("_PropertyTuple", ["mass", "charge"])
 
-# based on 2024 Particle data Group values
+# based on 2024 Particle data Group values, @todo read automatically from somewhere, BrianMarre
 _quarks = {
     "up": _PropertyTuple(
         mass=2.16e6 * consts.elementary_charge / consts.speed_of_light**2, charge=2.0 / 3.0 * consts.elementary_charge
@@ -118,5 +118,4 @@ _gauge_bosons = {
     ),
 }
 
-non_element_particle_type_properties = {}
-non_element_particle_type_properties.update(**_quarks, **_leptons, **_neutrinos, **_nucleons, **_gauge_bosons)
+non_element_particle_type_properties = {**_quarks, **_leptons, **_neutrinos, **_nucleons, **_gauge_bosons}

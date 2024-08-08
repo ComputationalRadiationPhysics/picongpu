@@ -44,7 +44,7 @@ class IonizationModel(pydantic.BaseModel):
         return hash_value
 
     def check(self):
-        # import here to avoid circular import
+        # import here to avoid circular import that stems from projecting different species types from PIConGPU onto the same `Species` type in PICMI
         from ... import Species
 
         assert isinstance(self.ion_species, Species), "ion_species must be an instance of the species object"
