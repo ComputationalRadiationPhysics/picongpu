@@ -6,7 +6,6 @@
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-cuda${CUDA_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    PIC_CMAKE_ARGS: "-DCMAKE_CUDA_FLAGS=--no-cuda-version-check"
     CI_CLANG_AS_CUDA_COMPILER: "yes"
     DISABLE_ISAAC: "yes"
   script:

@@ -142,7 +142,7 @@ def is_valid_combination(row):
             # code with clang
             if v_compiler < 14:
                 return False
-            if 11.0 <= v_cuda < 12.0 and v_compiler == 14:
+            if 11.0 <= v_cuda < 11.6 and v_compiler == 14:
                 return True
             # currently not supported due to an error
             # __clang_cuda_texture_intrinsics.h:696:13:
