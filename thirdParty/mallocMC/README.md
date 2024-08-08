@@ -72,7 +72,7 @@ Literature
 
 Just an incomplete link collection for now:
 
-- [Paper](http://www.icg.tugraz.at/Members/steinber/scatteralloc-1) by
+- [Paper](https://doi.org/10.1109/InPar.2012.6339604) by
   Markus Steinberger, Michael Kenzel, Bernhard Kainz and Dieter Schmalstieg
 
 - 2012, May 5th: [Presentation](http://innovativeparallel.org/Presentations/inPar_kainz.pdf)
